@@ -24,7 +24,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/src/utils/cn";
 import { motion, AnimatePresence } from "motion/react";
-import confetti from "canvas-confetti";
+import { useEffect } from "react";
+import { courseService, Course } from "@/src/services/courseService";
+import { useTenant } from "@/src/contexts/TenantContext";
 
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { navigationItems } from "@/src/config/navigation";
@@ -41,7 +43,33 @@ export function Dashboard() {
   const [isClaiming, setIsClaiming] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { tenant } = useTenant();
   const impersonatedStudent = location.state?.impersonateStudent;
+
+  const [activeCourses, setActiveCourses] = useState<Course[]>([]);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+
+  useEffect(() => {
+    if (role === 'student' && tenant?.id) {
+      loadActiveCourses();
+    }
+  }, [role, tenant?.id]);
+
+  const loadActiveCourses = async () => {
+    if (!tenant?.id) return;
+    try {
+      setLoadingCourses(true);
+      const { courses } = await courseService.fetchCourses({
+        tenantId: tenant.id,
+        limit: 4
+      });
+      setActiveCourses(courses);
+    } catch (err) {
+      console.error('Failed to load active courses:', err);
+    } finally {
+      setLoadingCourses(false);
+    }
+  };
 
   const hubItems = navigationItems.filter(item =>
     item.location === 'learning-hub' && item.roles.includes(role)
@@ -58,11 +86,14 @@ export function Dashboard() {
       addXP(10); // Add XP when claiming reward
       setShowBadgeModal(true);
       setIsClaiming(false);
-      confetti({
-        particleCount: 150,
-        spread: 100,
-        origin: { y: 0.5 },
-        colors: ["#fbbf24", "#f59e0b", "#d97706"],
+      import("canvas-confetti").then((confettiModule) => {
+        const confetti = confettiModule.default || confettiModule;
+        (confetti as any)({
+          particleCount: 150,
+          spread: 100,
+          origin: { y: 0.5 },
+          colors: ["#fbbf24", "#f59e0b", "#d97706"],
+        });
       });
     }, 800);
   };
@@ -91,27 +122,6 @@ export function Dashboard() {
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Selamat Datang, {userName}! 👋</h1>
             <p className="text-sm sm:text-base text-slate-500 mt-1">Siap untuk melanjutkan petualangan belajarmu hari ini?</p>
-          </div>
-          <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
-            <button className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors relative shrink-0">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 border-2 border-white rounded-full"></span>
-            </button>
-            <div className="flex items-center gap-3 pl-3 border-l border-slate-200">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-slate-900">{userName}</p>
-                <p className="text-xs text-slate-500">{role === 'teacher' ? 'Guru' : 'Siswa Kelas 10A'}</p>
-              </div>
-              <div className="flex items-center gap-3 sm:hidden">
-                <div className="text-right">
-                  <p className="text-sm font-bold text-slate-900">{userName}</p>
-                  <p className="text-xs text-slate-500">{role === 'teacher' ? 'Guru' : 'Siswa'}</p>
-                </div>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold shrink-0">
-                {userName.charAt(0)}
-              </div>
-            </div>
           </div>
         </div>
 
@@ -178,6 +188,42 @@ export function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* Section: Materi Sedang Berjalan (Student Only) */}
+        {role === 'student' && activeCourses.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <Play className="w-5 h-5 text-indigo-500" />
+                Lanjutkan Belajar
+              </h2>
+              <Link to="/courses" className="text-sm font-bold text-indigo-600 hover:text-indigo-700">Lihat Semua Materi</Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {activeCourses.map((course) => (
+                <motion.div
+                  key={course.id}
+                  whileHover={{ y: -4 }}
+                  onClick={() => navigate(`/courses/${course.id}`)}
+                  className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                >
+                  <div className="aspect-video rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 mb-4 flex items-center justify-center overflow-hidden relative">
+                    <BookOpen className="w-10 h-10 text-white/50" />
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
+                  </div>
+                  <h3 className="font-bold text-slate-900 line-clamp-1 mb-1 group-hover:text-indigo-600 transition-colors">{course.title}</h3>
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="text-[10px] font-bold text-slate-400">AKTIF</span>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Progress Belajar Minggu Ini */}
         <div className="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 shadow-sm">

@@ -43,8 +43,12 @@ export function Login() {
     };
 
     const fillDemo = (role: string) => {
+        const demoPassword = import.meta.env.VITE_DEMO_PASSWORD;
+        if (!demoPassword) {
+            console.warn("Demo password not configured");
+        }
         setEmail(`${role}@edusync.dev`);
-        setPassword('password123');
+        setPassword(demoPassword ?? '');
         setMode('login');
         setError('');
     };

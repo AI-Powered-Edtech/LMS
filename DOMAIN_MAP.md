@@ -1,7 +1,7 @@
 # EduSync LMS — Domain Architecture Map
 
-Architecture blueprint komprehensif untuk memastikan EduSync beroperasi sebagai production-grade, multi-tenant SaaS LMS (layaknya Canvas atau Moodle).
-Dokumen ini mendefinisikan batas-batas domain, aturan arsitektur data, serta ~50 tabel sistem inti yang mendukung modularitas dan skalabilitas fitur secara penuh.
+Dokumen ini difokuskan pada pemetaan domain entitas utama EduSync. Untuk detail arsitektur pembelajaran secara keseluruhan, lihat [COURSE_ENGINE_BLUEPRINT.md](./architecture/COURSE_ENGINE_BLUEPRINT.md). Data struktur SQL dapat ditemukan di [DATABASE_SCHEMA.md](./architecture/DATABASE_SCHEMA.md).
+
 
 ## Architecture Principles
 
@@ -66,8 +66,6 @@ Dokumen ini mendefinisikan batas-batas domain, aturan arsitektur data, serta ~50
 | `lessons` | Unit materi terkecil (Teks, Video, PDF) | `id`, `tenant_id`, `module_id`, `title`, `type` |
 | `lesson_resources` | File/attachment penunjang lesson | `id`, `tenant_id`, `lesson_id`, `file_url` |
 | `lesson_comments` | Student notes & teacher feedback spesifik ke materi | `id`, `tenant_id`, `lesson_id`, `user_id`, `content` |
-| `lesson_progress` | Track status selesai per murid per lesson | `id`, `tenant_id`, `student_id`, `lesson_id`, `status` |
-| `course_progress` | Agregasi precomputed persentase kelulusan course | `id`, `tenant_id`, `course_id`, `student_id`, `percentage` |
 
 ---
 
@@ -95,7 +93,8 @@ Dokumen ini mendefinisikan batas-batas domain, aturan arsitektur data, serta ~50
 
 | Entity | Purpose | Fitur Penting |
 |--------|---------|---------------|
-| `activity_events` | (Event Bus) Trigger untuk sinkronisasi asinkron | `id`, `tenant_id`, `event_type`, `actor_id`, `payload` |
+| `activity_events` | (Event Bus) Trigger untuk sinkronisasi asinkron | `id`, `tenant_id`, `event_type`, `event_version`, `actor_id`, `payload` |
+| `event_processing_logs`| Observability eksekusi dari edge functions / consumers | `id`, `event_id`, `consumer_name`, `status`, `execution_ms`, `error_msg` |
 | `activity_logs` | Audit Log kemanan (IP, User Agent, aksi) | `id`, `tenant_id`, `user_id`, `action`, `ip_address` |
 | `discussion_forums` | Grup forum diskusi level kelas / course | `id`, `tenant_id`, `class_id`, `title` |
 | `discussion_threads`| Topik di dalam forum | `id`, `tenant_id`, `forum_id`, `author_id`, `title` |
@@ -142,10 +141,36 @@ Dokumen ini mendefinisikan batas-batas domain, aturan arsitektur data, serta ~50
 
 ---
 
+## 10. 📈 Progress & Tracking Domain
+**Fokus:** Melacak penyelesaian materi individu dan agregasi progres level kursus.
+
+| Entity | Purpose | Fitur Penting |
+|--------|---------|---------------|
+| `lesson_progress` | Track status selesai per murid per lesson | `id`, `tenant_id`, `student_id`, `lesson_id`, `completed` |
+| `course_progress` | Agregasi precomputed persentase kelulusan course | `id`, `tenant_id`, `course_id`, `student_id`, `percentage` |
+
+---
+
+## 11. 📊 Analytics & Reporting Domain
+**Fokus:** Wawasan data pembelajaran untuk guru/admin. Mengandalkan data pre-aggregated dari database.
+
+| Entity | Purpose | Fitur Penting |
+|--------|---------|---------------|
+| `course_stats` | Tabel consumer metrik kursus pre-aggregated | `tenant_id`, `course_id`, `avg_progress`, `lesson_completion_rate`, `student_ranking` |
+
+> **Hubungan Data Pipeline (Phase 3):**  
+> `quiz_attempts` (Activity) → memicu upsert ke → `lesson_progress` (Progress) → memicu trigger DB ke → `course_progress` (Progress) → diringkas melalui periodic RPC (cron) ke → `course_stats` (Analytics).
+
+---
+
 ## Data Event & Lifecyle Constraints
 
 > Keberhasilan sistem SaaS dengan lebih dari ratusan tabel ada di retention & pipeline integrity
 
 *   **Idempotency Guards:** Semua tabel Activity Consumer (`user_points`, `notifications`, `leaderboards`, dll) harus mengecek kolom referensi ke `activity_events` untuk meminimalisasi *duplicate writes* yang sering terjadi di environment serverless.
-*   **Event Retention:** Tabel `activity_events` dirancang transaksional dalam waktu sempit (misal 30-90 hari). Data lama wajib dipindahkan ke tipe data cold-storage / event archive / dihapus agar I/O database tetap kencang.
+*   **Event Retention (3-Tier Policy):** Mengingat jumlah event akan membengkak, rotasikan data secara bertahap:
+    *   **Hot Events:** Tabel utama (`activity_events`), durasi 30-90 hari (query super kencang).
+    *   **Warm Archive:** Dipindahkan ke tabel `activity_events_archive` per kuartal (durasi s.d 1 tahun).
+    *   **Cold Storage:** Dibuang dari Postgres ke _Object Store_ (misal S3 / Supabase Storage) berbentuk file Parquet/JSONL.
+*   **Event Versioning:** Setiap payload memiliki label `event_version` guna melayani evolusi skema payload seiring pertambahan fitur di long-lived-systems.
 *   **Frontend Restrictions:** Tidak ada perhitungan agregasi berat di frontend. Frontend *hanya* men-query `user_points` atau `course_progress` tanpa melalukan kalkulasi `COUNT(*)` sama sekali.

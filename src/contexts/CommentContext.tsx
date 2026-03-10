@@ -1,14 +1,8 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
-import { supabase } from '../lib/supabase';
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
+import { commentService, CommentData } from '../services/commentService';
 
-export type Comment = {
-  id: string;
-  author: string;
-  text: string;
-  time: string;
-  author_id?: string;
-};
+export type Comment = CommentData;
 
 interface CommentContextType {
   comments: Record<string, Comment[]>;
@@ -29,25 +23,8 @@ export function CommentProvider({ children }: { children: ReactNode }) {
   const fetchComments = useCallback(async (threadId: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('discussion_posts')
-        .select('id, content, created_at, author_id, profiles!discussion_posts_author_id_fkey(first_name, last_name)')
-        .eq('thread_id', threadId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      if (data) {
-        setComments(prev => ({
-          ...prev,
-          [threadId]: data.map(d => ({
-            id: d.id,
-            author: `${(d as any).profiles?.first_name ?? ''} ${(d as any).profiles?.last_name ?? ''}`.trim() || 'Unknown',
-            text: d.content,
-            time: new Date(d.created_at).toLocaleString('id-ID'),
-            author_id: d.author_id,
-          })),
-        }));
-      }
+      const data = await commentService.fetchComments(threadId);
+      setComments(prev => ({ ...prev, [threadId]: data }));
     } catch (err) {
       console.error('Error fetching comments:', err);
     } finally {
@@ -57,26 +34,23 @@ export function CommentProvider({ children }: { children: ReactNode }) {
 
   const addComment = useCallback(async (threadId: string, text: string) => {
     if (!user) return;
-    const { data, error } = await supabase.from('discussion_posts').insert({
-      thread_id: threadId,
-      author_id: user.id,
-      content: text,
-    }).select('id, created_at').single();
-
-    if (error) { console.error('Error adding comment:', error); return; }
-
-    // Optimistic update
-    const newComment: Comment = {
-      id: data.id,
-      author: `${profile?.first_name ?? ''} ${profile?.last_name ?? ''}`.trim() || 'You',
-      text,
-      time: new Date(data.created_at).toLocaleString('id-ID'),
-      author_id: user.id,
-    };
-    setComments(prev => ({
-      ...prev,
-      [threadId]: [...(prev[threadId] || []), newComment],
-    }));
+    try {
+      const data = await commentService.addComment(threadId, user.id, text);
+      // Optimistic update
+      const newComment: Comment = {
+        id: data.id,
+        author: `${profile?.first_name ?? ''} ${profile?.last_name ?? ''}`.trim() || 'You',
+        text,
+        time: new Date(data.created_at).toLocaleString('id-ID'),
+        author_id: user.id,
+      };
+      setComments(prev => ({
+        ...prev,
+        [threadId]: [...(prev[threadId] || []), newComment],
+      }));
+    } catch (err) {
+      console.error('Error adding comment:', err);
+    }
   }, [user, profile]);
 
   const getComments = useCallback((threadId: string) => {

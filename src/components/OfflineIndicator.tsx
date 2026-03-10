@@ -27,9 +27,14 @@ export function OfflineIndicator() {
           exit={{ opacity: 0, y: -50 }}
           className="fixed top-0 left-0 right-0 z-[100] flex justify-center p-4 pointer-events-none"
         >
-          <div className="bg-red-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm font-bold pointer-events-auto">
-            <WifiOff className="w-4 h-4" />
-            Anda sedang offline. Periksa koneksi internet Anda.
+          <div className="bg-slate-900 border border-slate-700 text-white px-4 py-2.5 rounded-full shadow-xl flex items-center gap-3 text-sm pointer-events-auto">
+            <div className="bg-red-500/20 p-1.5 rounded-full">
+              <WifiOff className="w-4 h-4 text-red-400" />
+            </div>
+            <div>
+              <span className="font-bold">Anda sedang offline.</span>
+              <span className="font-medium text-slate-300 hidden sm:inline ml-1">Progress disimpan secara lokal.</span>
+            </div>
           </div>
         </motion.div>
       )}

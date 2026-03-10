@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { 
-  Users, Target, Plus, Clock, 
+import {
+  Users, Target, Plus, Clock,
   ChevronRight, BookOpen, CheckCircle2, AlertCircle,
   FileText, BarChart3, Settings
 } from 'lucide-react';
@@ -19,7 +19,7 @@ export function TeacherDashboard() {
   const { classrooms, activeClassroomId, setActiveClassroomId } = useClassroom();
   const { role } = useAuth();
   const navigate = useNavigate();
-  
+
   const activeClassroom = classrooms.find(c => c.id === activeClassroomId);
 
   return (
@@ -30,15 +30,22 @@ export function TeacherDashboard() {
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Selamat Datang, Bu Rina! 👋</h1>
           <p className="text-slate-500 mt-1">Berikut adalah ringkasan kelas dan tugas Anda hari ini.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button 
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => navigate('/teaching/courses')}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-all shadow-sm"
+          >
+            <BookOpen className="w-4 h-4" />
+            Kelola Materi
+          </button>
+          <button
             onClick={() => navigate('/creator')}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all shadow-sm"
           >
             <Plus className="w-4 h-4" />
             Buat Tugas
           </button>
-          <button 
+          <button
             onClick={() => alert('Fitur Buat Kelas akan segera hadir!')}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-sm font-bold transition-all shadow-sm"
           >
@@ -57,8 +64,8 @@ export function TeacherDashboard() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {alerts.map(alert => (
-              <div 
-                key={alert.id} 
+              <div
+                key={alert.id}
                 className={cn(
                   "flex items-start gap-4 p-4 rounded-2xl border transition-colors cursor-pointer group",
                   alert.urgent ? "bg-orange-50 border-orange-200 hover:bg-orange-100" : "bg-blue-50 border-blue-200 hover:bg-blue-100"
@@ -95,7 +102,7 @@ export function TeacherDashboard() {
           </h2>
           <button className="text-sm font-bold text-blue-600 hover:text-blue-700">Lihat Semua</button>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {classrooms.map(classroom => (
             <div key={classroom.id} className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow">
@@ -109,7 +116,7 @@ export function TeacherDashboard() {
                     {classroom.name.substring(0, 2).toUpperCase()}
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4 mt-6">
                   <div className="bg-slate-50 p-3 rounded-2xl">
                     <p className="text-xs text-slate-500 font-medium mb-1">Rata-rata Kelas</p>
@@ -121,9 +128,9 @@ export function TeacherDashboard() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="p-4 bg-slate-50 flex justify-between items-center mt-auto">
-                <button 
+                <button
                   onClick={() => {
                     setActiveClassroomId(classroom.id);
                     navigate('/analytics');
@@ -132,7 +139,7 @@ export function TeacherDashboard() {
                 >
                   <BarChart3 className="w-4 h-4" /> Analytics
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     setActiveClassroomId(classroom.id);
                     navigate('/assignments');
@@ -162,11 +169,11 @@ export function TeacherDashboard() {
             <div key={activity.id} className="flex gap-4 items-start">
               <div className={cn(
                 "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-                activity.type === 'complete' ? "bg-green-100 text-green-600" : 
-                activity.type === 'submit' ? "bg-blue-100 text-blue-600" : "bg-purple-100 text-purple-600"
+                activity.type === 'complete' ? "bg-green-100 text-green-600" :
+                  activity.type === 'submit' ? "bg-blue-100 text-blue-600" : "bg-purple-100 text-purple-600"
               )}>
-                {activity.type === 'complete' ? <CheckCircle2 className="w-5 h-5" /> : 
-                 activity.type === 'submit' ? <FileText className="w-5 h-5" /> : <Users className="w-5 h-5" />}
+                {activity.type === 'complete' ? <CheckCircle2 className="w-5 h-5" /> :
+                  activity.type === 'submit' ? <FileText className="w-5 h-5" /> : <Users className="w-5 h-5" />}
               </div>
               <div>
                 <p className="text-sm text-slate-900">

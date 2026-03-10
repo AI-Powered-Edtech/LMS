@@ -30,10 +30,14 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     else if (role === 'teacher') redirectPath = "/teacher-dashboard";
     else if (role === 'student') redirectPath = "/";
 
-    console.log(`[Redirect] Role ${role} trying to access restricted route (Allowed: ${allowedRoles}). Redirecting to ${redirectPath}. User:`, user?.id);
+    if (import.meta.env.DEV) {
+      console.log(`[Redirect] Role ${role} trying to access restricted route (Allowed: ${allowedRoles}). Redirecting to ${redirectPath}. User:`, user?.id);
+    }
     return <Navigate to={redirectPath} replace />;
   }
 
-  console.log(`[Render] Allowed access for role ${role} (Allowed: ${allowedRoles}). Render children.`);
+  if (import.meta.env.DEV) {
+    console.log(`[Render] Allowed access for role ${role} (Allowed: ${allowedRoles}). Render children.`);
+  }
   return <>{children}</>;
 }

@@ -1,53 +1,56 @@
 import { useState, useEffect } from "react";
-import { Trophy, Flame, Medal } from "lucide-react";
+import { Trophy, Flame } from "lucide-react";
 import { cn } from "@/src/utils/cn";
 import { motion } from "motion/react";
-
-interface User {
-  id: string;
-  name: string;
-  xp: number;
-  streak: number;
-  avatar: string;
-}
-
-const generateUsers = (count: number): User[] => {
-  return Array.from({ length: count }).map((_, i) => ({
-    id: `user-${i}`,
-    name: `Student ${i + 1}`,
-    xp: 10000 - i * 150,
-    streak: Math.floor(Math.random() * 30),
-    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`,
-  }));
-};
+import { useClassroom } from "@/src/contexts/ClassroomContext";
+import { leaderboardService, LeaderboardEntry } from "@/src/services/leaderboardService";
 
 export function Leaderboard() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { activeClassroomId } = useClassroom();
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setUsers(generateUsers(20));
-  }, []);
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
-    if (scrollHeight - scrollTop <= clientHeight * 1.5 && !loading) {
-      setLoading(true);
-      setTimeout(() => {
-        setUsers((prev) => [
-          ...prev,
-          ...generateUsers(10).map((u) => ({
-            ...u,
-            id: `user-${prev.length + Math.random()}`,
-          })),
-        ]);
+    async function fetchLeaderboard() {
+      if (!activeClassroomId) {
         setLoading(false);
-      }, 1000);
+        return;
+      }
+      setLoading(true);
+      try {
+        const data = await leaderboardService.getLeaderboard(activeClassroomId);
+        setEntries(data);
+      } catch (error) {
+        console.error("Failed to fetch leaderboard", error);
+      } finally {
+        setLoading(false);
+      }
     }
-  };
 
-  const top3 = users.slice(0, 3);
-  const rest = users.slice(3);
+    fetchLeaderboard();
+  }, [activeClassroomId]);
+
+  if (loading) {
+    return (
+      <div className="flex-1 w-full flex flex-col items-center justify-center p-8 text-slate-500">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin mb-4" />
+        <p>Memuat papan peringkat...</p>
+      </div>
+    );
+  }
+
+  if (entries.length === 0) {
+    return (
+      <div className="flex-1 w-full flex flex-col items-center justify-center p-8 text-slate-500">
+        <Trophy className="w-16 h-16 text-slate-300 mb-4" />
+        <p className="font-bold text-lg text-slate-700">Belum ada peringkat</p>
+        <p className="text-sm">Kerjakan kuis dan tugas untuk mendapatkan poin!</p>
+      </div>
+    );
+  }
+
+  const top3 = entries.slice(0, 3);
+  const rest = entries.slice(3);
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 flex-1 w-full flex flex-col">
@@ -72,8 +75,8 @@ export function Leaderboard() {
             <div className="relative mb-4">
               <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-slate-300 overflow-hidden bg-slate-100">
                 <img
-                  src={top3[1].avatar}
-                  alt=""
+                  src={top3[1].user_profiles?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${top3[1].user_profiles?.full_name}`}
+                  alt={top3[1].user_profiles?.full_name || "User"}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -83,10 +86,10 @@ export function Leaderboard() {
             </div>
             <div className="text-center mb-2">
               <p className="font-bold text-slate-800 text-sm md:text-base truncate w-full">
-                {top3[1].name}
+                {top3[1].user_profiles?.full_name || "Siswa"}
               </p>
               <p className="text-yellow-600 font-bold text-sm">
-                {top3[1].xp} XP
+                {top3[1].score} XP
               </p>
             </div>
             <div className="w-full h-24 bg-gradient-to-t from-slate-200 to-slate-100 rounded-t-2xl border-t-4 border-slate-300" />
@@ -104,8 +107,8 @@ export function Leaderboard() {
               <CrownIcon className="w-8 h-8 text-yellow-500 fill-yellow-500 absolute -top-6 left-1/2 -translate-x-1/2 drop-shadow-md" />
               <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-yellow-400 overflow-hidden bg-yellow-50 shadow-lg shadow-yellow-200/50">
                 <img
-                  src={top3[0].avatar}
-                  alt=""
+                  src={top3[0].user_profiles?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${top3[0].user_profiles?.full_name}`}
+                  alt={top3[0].user_profiles?.full_name || "User"}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -115,9 +118,9 @@ export function Leaderboard() {
             </div>
             <div className="text-center mb-2">
               <p className="font-bold text-slate-900 text-base md:text-lg truncate w-full">
-                {top3[0].name}
+                {top3[0].user_profiles?.full_name || "Siswa"}
               </p>
-              <p className="text-yellow-600 font-bold">{top3[0].xp} XP</p>
+              <p className="text-yellow-600 font-bold">{top3[0].score} XP</p>
             </div>
             <div className="w-full h-32 bg-gradient-to-t from-yellow-200 to-yellow-100 rounded-t-2xl border-t-4 border-yellow-400 shadow-inner" />
           </motion.div>
@@ -134,8 +137,8 @@ export function Leaderboard() {
             <div className="relative mb-4">
               <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-orange-300 overflow-hidden bg-orange-50">
                 <img
-                  src={top3[2].avatar}
-                  alt=""
+                  src={top3[2].user_profiles?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${top3[2].user_profiles?.full_name}`}
+                  alt={top3[2].user_profiles?.full_name || "User"}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -145,10 +148,10 @@ export function Leaderboard() {
             </div>
             <div className="text-center mb-2">
               <p className="font-bold text-slate-800 text-sm md:text-base truncate w-full">
-                {top3[2].name}
+                {top3[2].user_profiles?.full_name || "Siswa"}
               </p>
               <p className="text-yellow-600 font-bold text-sm">
-                {top3[2].xp} XP
+                {top3[2].score} XP
               </p>
             </div>
             <div className="w-full h-20 bg-gradient-to-t from-orange-200 to-orange-100 rounded-t-2xl border-t-4 border-orange-300" />
@@ -159,45 +162,38 @@ export function Leaderboard() {
       {/* List */}
       <div
         className="flex-1 overflow-y-auto bg-white rounded-3xl shadow-sm border border-slate-200 p-2 md:p-4"
-        onScroll={handleScroll}
       >
         <div className="space-y-2">
-          {rest.map((user, index) => (
+          {rest.map((entry, index) => (
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
-              key={user.id}
+              key={entry.rank}
               className="flex items-center gap-4 p-3 md:p-4 rounded-2xl hover:bg-slate-50 transition-colors group"
             >
               <div className="w-8 text-center font-bold text-slate-400 group-hover:text-slate-600">
-                {index + 4}
+                {entry.rank}
               </div>
               <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-slate-100 overflow-hidden shrink-0">
                 <img
-                  src={user.avatar}
-                  alt=""
+                  src={entry.user_profiles?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.user_profiles?.full_name}`}
+                  alt={entry.user_profiles?.full_name || "User"}
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-slate-800 truncate">{user.name}</p>
+                <p className="font-bold text-slate-800 truncate">{entry.user_profiles?.full_name || "Siswa"}</p>
                 <p className="text-sm text-slate-500 flex items-center gap-1">
                   <Flame className="w-3 h-3 text-orange-500 fill-orange-500" />
-                  {user.streak} hari
+                  0 hari {/* Streak is currently not available in this query model */}
                 </p>
               </div>
               <div className="font-bold text-yellow-600 text-right shrink-0">
-                {user.xp} XP
+                {entry.score} XP
               </div>
             </motion.div>
           ))}
-          {loading && (
-            <div className="py-4 text-center text-slate-500 flex items-center justify-center gap-2">
-              <div className="w-4 h-4 border-2 border-slate-300 border-t-blue-500 rounded-full animate-spin" />
-              Memuat...
-            </div>
-          )}
         </div>
       </div>
     </div>

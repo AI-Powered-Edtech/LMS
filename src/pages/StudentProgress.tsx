@@ -1,31 +1,72 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useStudentProgress, LessonProgress, QuizAttempt } from '@/src/contexts/StudentProgressContext';
-import { 
-  Award, 
-  Clock, 
-  CheckCircle2, 
-  TrendingUp, 
-  BookOpen, 
-  BarChart2 
+import { progressService, StudentProgressData } from '@/src/services/progressService';
+import {
+  Award,
+  Clock,
+  CheckCircle2,
+  TrendingUp,
+  BookOpen,
+  BarChart2
 } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
 
 export function StudentProgress() {
   const { studentId } = useParams();
-  const { lessonProgress, quizAttempts, xp, achievements } = useStudentProgress();
+  const [data, setData] = useState<StudentProgressData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data for student info
-  const studentName = "Andi Wijaya";
-  
-  const completedLessons = Object.values(lessonProgress).filter(p => p.status === 'completed');
-  const totalXP = xp;
-  
+  useEffect(() => {
+    async function loadProgress() {
+      if (!studentId) {
+        setError('ID Siswa tidak ditemukan');
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        // High performance consolidation: 6 queries -> 1 RPC call
+        const progressData = await progressService.getStudentProgressBundle(studentId);
+        setData(progressData);
+      } catch (err: any) {
+        console.error('Failed to load student progress', err);
+        setError('Gagal memuat progres siswa');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProgress();
+  }, [studentId]);
+
+  if (loading) {
+    return (
+      <div className="flex-1 w-full flex flex-col items-center justify-center p-12 text-slate-500">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin mb-4" />
+        <p>Memuat profil siswa...</p>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex-1 w-full flex flex-col items-center justify-center p-12 text-slate-500">
+        <p className="text-red-500 font-bold mb-2">{error || 'Data tidak ditemukan'}</p>
+      </div>
+    );
+  }
+
+  const { profile, totalXP, completedLessonsCount, quizAttempts, achievements, courseProgress } = data;
+  const studentName = profile?.full_name || 'Siswa Tanpa Nama';
+  const avatarUrl = profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${studentName}`;
+
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-12">
       <div className="flex items-center gap-4">
         <div className="w-16 h-16 bg-slate-200 rounded-full overflow-hidden shadow-md">
-          <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${studentName}`} alt={studentName} className="w-full h-full object-cover" />
+          <img src={avatarUrl} alt={studentName} className="w-full h-full object-cover" />
         </div>
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{studentName}</h1>
@@ -40,7 +81,7 @@ export function StudentProgress() {
           </div>
           <div>
             <p className="text-sm font-bold text-slate-500 uppercase">Materi Selesai</p>
-            <p className="text-2xl font-black text-slate-900">{completedLessons.length}</p>
+            <p className="text-2xl font-black text-slate-900">{completedLessonsCount}</p>
           </div>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
@@ -63,42 +104,82 @@ export function StudentProgress() {
         </div>
       </div>
 
+      <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-blue-600" /> Progres Kursus
+        </h2>
+        <div className="space-y-4">
+          {!courseProgress || courseProgress.length === 0 ? (
+            <p className="text-slate-500 italic text-sm text-center py-4">Belum ada progres kursus.</p>
+          ) : (
+            courseProgress.map((cp) => (
+              <div key={cp.id} className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-bold text-slate-800">{cp.courses?.title || 'Kursus Tidak Terdaftar'}</h3>
+                  <span className="text-sm font-bold text-blue-600">{cp.percentage}%</span>
+                </div>
+                <div className="w-full bg-slate-200 rounded-full h-2.5 mb-2 overflow-hidden">
+                  <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style={{ width: `${Math.min(cp.percentage, 100)}%` }}></div>
+                </div>
+                <div className="flex justify-between text-xs text-slate-500">
+                  <span>{cp.completed_lessons} / {cp.total_lessons} Materi Selesai</span>
+                  {cp.last_activity_at && <span>Aktivitas terakhir: {new Date(cp.last_activity_at).toLocaleDateString('id-ID')}</span>}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
           <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
             <BarChart2 className="w-5 h-5 text-blue-600" /> Riwayat Kuis
           </h2>
           <div className="space-y-4">
-            {Object.values(quizAttempts).flat().map((attempt: QuizAttempt) => (
-              <div key={attempt.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                <div>
-                  <p className="font-bold text-slate-800">Kuis ID: {attempt.quizId}</p>
-                  <p className="text-xs text-slate-500">{attempt.completedAt.toLocaleDateString('id-ID')}</p>
-                </div>
-                <span className={cn("font-bold px-3 py-1 rounded-full text-sm", attempt.passed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
-                  {attempt.score}/{attempt.totalPoints}
-                </span>
-              </div>
-            ))}
+            {quizAttempts.length === 0 ? (
+              <p className="text-slate-500 italic text-sm text-center py-4">Belum ada riwayat kuis.</p>
+            ) : (
+              quizAttempts.map((attempt) => {
+                const isPassed = attempt.score >= 70; // Assuming 70 is passing score
+                return (
+                  <div key={attempt.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <div>
+                      <p className="font-bold text-slate-800">Kuis: {attempt.quiz_id}</p>
+                      <p className="text-xs text-slate-500">{new Date(attempt.created_at).toLocaleDateString('id-ID')}</p>
+                    </div>
+                    <span className={cn("font-bold px-3 py-1 rounded-full text-sm", isPassed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
+                      Nilai: {attempt.score}
+                    </span>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
 
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
           <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-            <Award className="w-5 h-5 text-amber-500" /> Pencapaian
+            <Award className="w-5 h-5 text-amber-500" /> Daftar Lencana
           </h2>
           <div className="grid grid-cols-2 gap-4">
-            {achievements.map(ach => (
-              <div key={ach.id} className="p-4 bg-amber-50 border border-amber-100 rounded-2xl text-center">
-                <div className="text-3xl mb-2">
-                  {ach.icon === 'crown' ? '👑' : ach.icon === 'zap' ? '⚡' : '🎯'}
+            {achievements.length === 0 ? (
+              <p className="text-slate-500 italic text-sm text-center py-4 col-span-2">Belum ada lencana yang diraih.</p>
+            ) : (
+              achievements.map((ach) => (
+                <div key={ach.id} className="p-4 bg-amber-50 border border-amber-100 rounded-2xl text-center">
+                  <div className="text-3xl mb-2">
+                    {ach.badges?.icon === 'crown' ? '👑' : ach.badges?.icon === 'zap' ? '⚡' : '🎯'}
+                  </div>
+                  <p className="font-bold text-slate-800 text-sm">{ach.badges?.name || 'Badge'}</p>
+                  <p className="text-xs text-slate-500 mt-1">{new Date(ach.earned_at).toLocaleDateString('id-ID')}</p>
                 </div>
-                <p className="font-bold text-slate-800 text-sm">{ach.title}</p>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 }
+

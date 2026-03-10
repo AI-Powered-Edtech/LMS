@@ -12,6 +12,7 @@ import { Leaderboard } from "./pages/Leaderboard";
 import { Forum } from "./pages/Forum";
 import { Analytics } from "./pages/Analytics";
 import { DocumentManager } from "./pages/DocumentManager";
+import { Courses } from "./pages/Courses";
 import { Directory } from "./pages/Directory";
 import { LessonViewer } from "./pages/LessonViewer";
 import { SpeedGrader } from "./pages/SpeedGrader";
@@ -23,6 +24,8 @@ import { Profile } from "./pages/Profile";
 import { PublicProfile } from "./pages/PublicProfile";
 import { Settings } from "./pages/Settings";
 import { Gradebook } from "./pages/Gradebook";
+import { QuizGradebook } from "./pages/QuizGradebook";
+import { AssignmentGradebook } from "./pages/AssignmentGradebook";
 import { Certificates } from "./pages/Certificates";
 import { Calendar } from "./pages/Calendar";
 import { Announcements } from "./pages/Announcements";
@@ -36,7 +39,7 @@ import { ToastProvider } from "./contexts/ToastContext";
 import { ModerationProvider } from "./contexts/ModerationContext";
 import { ModuleConfigProvider } from "./contexts/ModuleConfigContext";
 import { CalendarProvider } from "./contexts/CalendarContext";
-import { ProtectedRoute } from "./components/ProtectedRoute";
+import { RoleRoute } from "./components/RoleRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 import { SessionManager } from "./components/SessionManager";
@@ -74,41 +77,45 @@ export default function App() {
                                 <Routes>
                                   <Route path="/login" element={<Login />} />
                                   <Route path="/" element={<Layout />}>
-                                    <Route index element={<ProtectedRoute allowedRoles={['student']}><Dashboard /></ProtectedRoute>} />
-                                    <Route path="directory" element={<ProtectedRoute allowedRoles={['teacher', 'student', 'admin']}><Directory /></ProtectedRoute>} />
+                                    <Route index element={<RoleRoute role="student"><Dashboard /></RoleRoute>} />
+                                    <Route path="dashboard" element={<RoleRoute role="student"><Dashboard /></RoleRoute>} />
+                                    <Route path="directory" element={<RoleRoute role={['teacher', 'student', 'admin']}><Directory /></RoleRoute>} />
 
                                     {/* Hub Routes */}
-                                    <Route path="teacher-dashboard" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />
-                                    <Route path="social-hub" element={<ProtectedRoute allowedRoles={['teacher', 'student', 'admin']}><SocialHub /></ProtectedRoute>} />
-                                    <Route path="gamification-hub" element={<ProtectedRoute allowedRoles={['student']}><GamificationHub /></ProtectedRoute>} />
-                                    <Route path="admin-hub" element={<ProtectedRoute allowedRoles={['admin']}><AdminHub /></ProtectedRoute>} />
+                                    <Route path="teacher-dashboard" element={<RoleRoute role="teacher"><TeacherDashboard /></RoleRoute>} />
+                                    <Route path="social-hub" element={<RoleRoute role={['teacher', 'student', 'admin']}><SocialHub /></RoleRoute>} />
+                                    <Route path="gamification-hub" element={<RoleRoute role="student"><GamificationHub /></RoleRoute>} />
+                                    <Route path="admin-hub" element={<RoleRoute role="admin"><AdminHub /></RoleRoute>} />
 
-                                    <Route path="lesson" element={<ProtectedRoute allowedRoles={['student']}><LessonViewer /></ProtectedRoute>} />
-                                    <Route path="grader" element={<ProtectedRoute allowedRoles={['teacher', 'admin']}><SpeedGrader /></ProtectedRoute>} />
-                                    <Route path="quiz" element={<ProtectedRoute allowedRoles={['student']}><QuizModule /></ProtectedRoute>} />
-                                    <Route path="billing" element={<ProtectedRoute allowedRoles={['admin']}><BillingDashboard /></ProtectedRoute>} />
-                                    <Route path="creator" element={<ProtectedRoute allowedRoles={['teacher', 'admin']}><Creator /></ProtectedRoute>} />
-                                    <Route path="leaderboard" element={<ProtectedRoute allowedRoles={['student']}><Leaderboard /></ProtectedRoute>} />
-                                    <Route path="forum" element={<ProtectedRoute allowedRoles={['teacher', 'student', 'admin']}><Forum /></ProtectedRoute>} />
-                                    <Route path="profile" element={<ProtectedRoute allowedRoles={['teacher', 'student', 'admin']}><Profile /></ProtectedRoute>} />
-                                    <Route path="p/:username" element={<ProtectedRoute allowedRoles={['teacher', 'student', 'admin']}><PublicProfile /></ProtectedRoute>} />
-                                    <Route path="settings" element={<ProtectedRoute allowedRoles={['teacher', 'student', 'admin']}><Settings /></ProtectedRoute>} />
-                                    <Route path="analytics" element={<ProtectedRoute allowedRoles={['teacher', 'admin']}><Analytics /></ProtectedRoute>} />
-                                    <Route path="scan-attendance" element={<ProtectedRoute allowedRoles={['teacher', 'admin']}><ScanAttendance /></ProtectedRoute>} />
-                                    <Route path="documents" element={<ProtectedRoute allowedRoles={['teacher', 'admin']}><DocumentManager /></ProtectedRoute>} />
-                                    <Route path="gradebook" element={<ProtectedRoute allowedRoles={['teacher', 'admin']}><Gradebook /></ProtectedRoute>} />
-                                    <Route path="teaching/course-builder" element={<ProtectedRoute allowedRoles={['teacher', 'admin']}><CourseBuilder /></ProtectedRoute>} />
-                                    <Route path="certificates" element={<ProtectedRoute allowedRoles={['student']}><Certificates /></ProtectedRoute>} />
-                                    <Route path="calendar" element={<ProtectedRoute allowedRoles={['teacher', 'student', 'admin']}><Calendar /></ProtectedRoute>} />
-                                    <Route path="schedule" element={<ProtectedRoute allowedRoles={['teacher', 'student', 'admin']}><Calendar /></ProtectedRoute>} />
-                                    <Route path="announcements" element={<ProtectedRoute allowedRoles={['teacher', 'student', 'admin']}><Announcements /></ProtectedRoute>} />
-                                    <Route path="assignments" element={<ProtectedRoute allowedRoles={['teacher', 'student', 'admin']}><Assignments /></ProtectedRoute>} />
-                                    <Route path="student-progress/:studentId" element={<ProtectedRoute allowedRoles={['teacher', 'admin']}><StudentProgress /></ProtectedRoute>} />
-                                    <Route path="group-assignment" element={<ProtectedRoute allowedRoles={['teacher', 'student', 'admin']}><GroupAssignment /></ProtectedRoute>} />
-                                    <Route path="admin/moderation" element={<ProtectedRoute allowedRoles={['teacher', 'admin']}><ModerationDashboard /></ProtectedRoute>} />
-                                    <Route path="admin/finance" element={<ProtectedRoute allowedRoles={['admin']}><FinanceDashboard /></ProtectedRoute>} />
-                                    <Route path="admin/ppdb" element={<ProtectedRoute allowedRoles={['admin']}><PPDBDashboard /></ProtectedRoute>} />
-                                    <Route path="admin/administration" element={<ProtectedRoute allowedRoles={['admin']}><AdministrationDashboard /></ProtectedRoute>} />
+                                    <Route path="lesson" element={<RoleRoute role="student"><LessonViewer /></RoleRoute>} />
+                                    <Route path="grader" element={<RoleRoute role={['teacher', 'admin']}><SpeedGrader /></RoleRoute>} />
+                                    <Route path="quiz" element={<RoleRoute role="student"><QuizModule /></RoleRoute>} />
+                                    <Route path="billing" element={<RoleRoute role="admin"><BillingDashboard /></RoleRoute>} />
+                                    <Route path="creator" element={<RoleRoute role={['teacher', 'admin']}><Creator /></RoleRoute>} />
+                                    <Route path="leaderboard" element={<RoleRoute role="student"><Leaderboard /></RoleRoute>} />
+                                    <Route path="forum" element={<RoleRoute role={['teacher', 'student', 'admin']}><Forum /></RoleRoute>} />
+                                    <Route path="profile" element={<RoleRoute role={['teacher', 'student', 'admin']}><Profile /></RoleRoute>} />
+                                    <Route path="p/:username" element={<RoleRoute role={['teacher', 'student', 'admin']}><PublicProfile /></RoleRoute>} />
+                                    <Route path="settings" element={<RoleRoute role={['teacher', 'student', 'admin']}><Settings /></RoleRoute>} />
+                                    <Route path="analytics" element={<RoleRoute role={['teacher', 'admin']}><Analytics /></RoleRoute>} />
+                                    <Route path="scan-attendance" element={<RoleRoute role={['teacher', 'admin']}><ScanAttendance /></RoleRoute>} />
+                                    <Route path="documents" element={<RoleRoute role={['teacher', 'admin']}><DocumentManager /></RoleRoute>} />
+                                    <Route path="gradebook" element={<RoleRoute role={['teacher', 'admin']}><Gradebook /></RoleRoute>} />
+                                    <Route path="teaching/quiz-gradebook" element={<RoleRoute role={['teacher', 'admin']}><QuizGradebook /></RoleRoute>} />
+                                    <Route path="teaching/assignment-gradebook" element={<RoleRoute role={['teacher', 'admin']}><AssignmentGradebook /></RoleRoute>} />
+                                    <Route path="teaching/courses" element={<RoleRoute role={['teacher', 'admin']}><Courses /></RoleRoute>} />
+                                    <Route path="teaching/course-builder" element={<RoleRoute role={['teacher', 'admin']}><CourseBuilder /></RoleRoute>} />
+                                    <Route path="certificates" element={<RoleRoute role="student"><Certificates /></RoleRoute>} />
+                                    <Route path="calendar" element={<RoleRoute role={['teacher', 'student', 'admin']}><Calendar /></RoleRoute>} />
+                                    <Route path="schedule" element={<RoleRoute role={['teacher', 'student', 'admin']}><Calendar /></RoleRoute>} />
+                                    <Route path="announcements" element={<RoleRoute role={['teacher', 'student', 'admin']}><Announcements /></RoleRoute>} />
+                                    <Route path="assignments" element={<RoleRoute role={['teacher', 'student', 'admin']}><Assignments /></RoleRoute>} />
+                                    <Route path="student-progress/:studentId" element={<RoleRoute role={['teacher', 'admin']}><StudentProgress /></RoleRoute>} />
+                                    <Route path="group-assignment" element={<RoleRoute role={['teacher', 'student', 'admin']}><GroupAssignment /></RoleRoute>} />
+                                    <Route path="admin/moderation" element={<RoleRoute role={['teacher', 'admin']}><ModerationDashboard /></RoleRoute>} />
+                                    <Route path="admin/finance" element={<RoleRoute role="admin"><FinanceDashboard /></RoleRoute>} />
+                                    <Route path="admin/ppdb" element={<RoleRoute role="admin"><PPDBDashboard /></RoleRoute>} />
+                                    <Route path="admin/administration" element={<RoleRoute role="admin"><AdministrationDashboard /></RoleRoute>} />
                                   </Route>
                                 </Routes>
                               </Router>

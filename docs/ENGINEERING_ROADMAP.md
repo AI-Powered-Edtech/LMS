@@ -12,6 +12,22 @@ From prototype to production. Migrated to a Supabase-centric architecture.
 ✅ Phase C — Edge Functions Deployment
 ✅ Phase D — Service Layer Context Migration (Mock → Supabase)
 ✅ Phase E — Consumer Page Type Fixing
+✅ Phase F — Documentation
+
+---
+
+## Feature Roadmap
+
+```text
+✅ Phase 1 — Core Assessment Engine (Quiz DB Schema, RPC grading, Security)
+✅ Phase 2 — Assessment Enhancement (Quiz Status, Versioning, Atomic Save)
+✅ Phase 3 — Learning Analytics & Progress Engine
+   ✅ 3A: Gradebook UI & Exports
+   ✅ 3B: Course Progress Engine (Event-driven DB Triggers)
+   ✅ 3C: Learning Analytics Dashboard & Pre-aggregated Course Stats (course_stats)
+✅ Phase 3 Documentation
+🔄 Production Hardening (Next)
+⏳ Phase 4 — Assignment System (Teacher-graded assignments)
 ```
 
 ---

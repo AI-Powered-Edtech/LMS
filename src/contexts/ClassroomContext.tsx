@@ -1,18 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
+import { classroomService, Classroom } from '../services/classroomService';
 
-export interface Classroom {
-  id: string;
-  name: string;
-  course_id?: string;
-  teacher_id: string;
-  join_code: string;
-  max_students?: number;
-  created_at: string;
-  teacher_name?: string;
-  student_count?: number;
-}
+export type { Classroom } from '../services/classroomService';
 
 interface ClassroomContextType {
   classrooms: Classroom[];
@@ -29,43 +19,18 @@ interface ClassroomContextType {
 const ClassroomContext = createContext<ClassroomContextType | undefined>(undefined);
 
 export function ClassroomProvider({ children }: { children: ReactNode }) {
-  const { user, role } = useAuth();
+  const { user, role, tenantId } = useAuth();
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [activeClassroomId, setActiveClassroomId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchClassrooms = useCallback(async () => {
-    if (!user) { setClassrooms([]); setLoading(false); return; }
+    if (!user || !tenantId) { setClassrooms([]); setLoading(false); return; }
     setLoading(true);
     setError(null);
     try {
-      let data: any[] = [];
-      if (role === 'teacher') {
-        const { data: classes, error: err } = await supabase
-          .from('classes')
-          .select('*')
-          .eq('teacher_id', user.id)
-          .order('created_at', { ascending: false });
-        if (err) throw err;
-        data = classes ?? [];
-      } else if (role === 'admin') {
-        const { data: classes, error: err } = await supabase
-          .from('classes')
-          .select('*')
-          .order('created_at', { ascending: false });
-        if (err) throw err;
-        data = classes ?? [];
-      } else {
-        // Student: fetch enrolled classes
-        const { data: enrollments, error: err } = await supabase
-          .from('enrollments')
-          .select('class_id, classes(*)')
-          .eq('student_id', user.id)
-          .eq('status', 'ACTIVE');
-        if (err) throw err;
-        data = enrollments?.map((e: any) => e.classes).filter(Boolean) ?? [];
-      }
+      const data = await classroomService.fetchClassrooms(user.id, role, tenantId);
       setClassrooms(data);
       if (data.length > 0 && !activeClassroomId) {
         setActiveClassroomId(data[0].id);
@@ -76,63 +41,30 @@ export function ClassroomProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [user, role]);
+  }, [user, role, tenantId]);
 
   useEffect(() => { fetchClassrooms(); }, [fetchClassrooms]);
 
-  // Realtime subscription
+  // Realtime subscription — delegated to service
   useEffect(() => {
     if (!user) return;
-    const channel = supabase
-      .channel('classrooms-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, () => {
-        fetchClassrooms();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'enrollments' }, () => {
-        fetchClassrooms();
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return classroomService.subscribeToChanges(() => fetchClassrooms());
   }, [user, fetchClassrooms]);
 
   const addClassroom = useCallback(async (name: string) => {
-    if (!user) return;
-    const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const { error: err } = await supabase.from('classes').insert({
-      name,
-      teacher_id: user.id,
-      join_code: joinCode,
-    });
-    if (err) throw err;
+    if (!user || !tenantId) return;
+    await classroomService.createClassroom(user.id, name, tenantId);
     await fetchClassrooms();
   }, [user, fetchClassrooms]);
 
   const updateClassroom = useCallback(async (id: string, name: string) => {
-    const { error: err } = await supabase
-      .from('classes')
-      .update({ name })
-      .eq('id', id);
-    if (err) throw err;
+    await classroomService.updateClassroom(id, name);
     await fetchClassrooms();
   }, [fetchClassrooms]);
 
   const joinClassroom = useCallback(async (joinCode: string) => {
-    if (!user) return;
-    const { data: cls, error: findErr } = await supabase
-      .from('classes')
-      .select('id')
-      .eq('join_code', joinCode.toUpperCase())
-      .single();
-    if (findErr || !cls) throw new Error('Kode kelas tidak ditemukan');
-    const { error: enrollErr } = await supabase.from('enrollments').insert({
-      class_id: cls.id,
-      student_id: user.id,
-      status: 'ACTIVE',
-    });
-    if (enrollErr) {
-      if (enrollErr.code === '23505') throw new Error('Kamu sudah terdaftar di kelas ini');
-      throw enrollErr;
-    }
+    if (!user || !tenantId) return;
+    await classroomService.joinClassroom(user.id, joinCode, tenantId);
     await fetchClassrooms();
   }, [user, fetchClassrooms]);
 

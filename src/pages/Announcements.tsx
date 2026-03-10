@@ -1,15 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Bell, Megaphone, Calendar as CalendarIcon, User, ChevronRight, Plus, Search, Filter, Pin, Paperclip, MessageSquare, CheckCircle2, Clock, MapPin, Users, Send, Eye, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/src/utils/cn";
 import { useAuth } from "@/src/contexts/AuthContext";
+import { announcementService, Announcement as DBAnnouncement, AnnouncementRSVP } from "@/src/services/announcementService";
+import { useToast } from "@/src/contexts/ToastContext";
+import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
+import { CommentSection } from "@/src/components/Social/CommentSection";
 
-interface Comment {
-  id: number;
-  author: string;
-  text: string;
-  time: string;
-}
+// Removed Comment interface as we use the real discussionService now
 
 interface Attachment {
   name: string;
@@ -17,126 +17,168 @@ interface Attachment {
   size: string;
 }
 
-interface Announcement {
-  id: number;
-  title: string;
-  content: string;
+// Map DB Announcement to UI Announcement or use DB directly
+interface Announcement extends Omit<DBAnnouncement, 'id' | 'author' | 'contact_person' | 'location'> {
+  id: string;
   author: string;
-  contactPerson?: string;
   date: string;
   time?: string;
   location?: string;
-  isRead: boolean;
-  priority: "high" | "normal" | "low";
-  targetAudience: string[];
-  isPinned: boolean;
+  contactPerson?: string;
+  isRead: boolean; // We'll compute this or track in notifications
   attachments?: Attachment[];
   readCount?: { read: number; total: number };
-  allowComments: boolean;
-  comments?: Comment[];
-  requiresRSVP?: boolean;
+  // Comments handled by CommentSection
   rsvpStatus?: "attending" | "not_attending" | "pending";
 }
 
-const initialAnnouncements: Announcement[] = [
-  {
-    id: 1,
-    title: "Perubahan Jadwal Ujian Tengah Semester & Aturan Baru",
-    content: "Mohon diperhatikan bahwa jadwal UTS diundur menjadi tanggal 20 Oktober 2026. \n\nPoin penting:\n• Bawa kartu ujian fisik\n• Hadir 15 menit sebelum ujian dimulai\n• Dilarang membawa alat komunikasi ke dalam ruang ujian.",
-    author: "Bpk. Budi Santoso (Kepala Sekolah)",
-    contactPerson: "Ibu Rina (Bagian Akademik - 08123456789)",
-    date: "10 Okt 2026",
-    time: "08:00 WIB",
-    location: "Aula Utama & Ruang Kelas Masing-masing",
-    isRead: false,
-    priority: "high",
-    targetAudience: ["Semua Siswa", "Guru"],
-    isPinned: true,
-    attachments: [
-      { name: "Jadwal_UTS_Revisi.pdf", type: "pdf", size: "2.4 MB" }
-    ],
-    readCount: { read: 450, total: 500 },
-    allowComments: false,
-    requiresRSVP: true,
-    rsvpStatus: "pending"
-  },
-  {
-    id: 2,
-    title: "Pendaftaran Lomba Desain UI/UX Tingkat Nasional",
-    content: "Pendaftaran lomba desain UI/UX tingkat nasional telah dibuka. Bagi mahasiswa yang berminat, silakan mendaftar melalui link yang telah disediakan. Pemenang akan mendapatkan beasiswa penuh untuk semester depan.",
-    author: "Ibu Siti Aminah",
-    date: "08 Okt 2026",
-    isRead: true,
-    priority: "normal",
-    targetAudience: ["Kelas 11", "Kelas 12"],
-    isPinned: false,
-    readCount: { read: 120, total: 200 },
-    allowComments: true,
-    comments: [
-      { id: 1, author: "Andi Saputra", text: "Apakah ada biaya pendaftaran, Bu?", time: "1 jam yang lalu" },
-      { id: 2, author: "Ibu Siti Aminah", text: "Gratis untuk perwakilan sekolah, Andi.", time: "45 menit yang lalu" }
-    ]
-  },
-  {
-    id: 3,
-    title: "Pemeliharaan Server EduSync",
-    content: "Akan dilakukan pemeliharaan server pada hari Sabtu, 15 Oktober 2026 pukul 00:00 - 04:00 WIB. Selama waktu tersebut, aplikasi EduSync tidak dapat diakses. Mohon simpan semua tugas Anda sebelum waktu tersebut.",
-    author: "Admin IT",
-    contactPerson: "Helpdesk IT (helpdesk@sekolah.id)",
-    date: "05 Okt 2026",
-    isRead: true,
-    priority: "normal",
-    targetAudience: ["Semua Warga Sekolah"],
-    isPinned: false,
-    readCount: { read: 890, total: 1000 },
-    allowComments: false
-  },
-];
-
 export function Announcements() {
-  const { role } = useAuth();
-  const [announcements, setAnnouncements] = useState(initialAnnouncements);
+  const { user, role, tenantId } = useAuth();
+  const { toast } = useToast();
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all"); // all, unread, pinned
-  const [expandedComments, setExpandedComments] = useState<number | null>(null);
-  const [newComment, setNewComment] = useState("");
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const PAGE_SIZE = 10;
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  const handleMarkAsRead = (id: number) => {
-    setAnnouncements(announcements.map(a => a.id === id ? { ...a, isRead: true } : a));
+  // Creation form state
+  const [formData, setFormData] = useState({
+    title: "",
+    content: "",
+    target_audience: "all_students" as any,
+    priority: "normal" as any,
+    is_pinned: false,
+    allow_comments: true,
+    requires_rsvp: false,
+    location: "",
+    contact_person: "",
+    course_id: null as string | null
+  });
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  const handleCreateAnnouncement = async (status: 'draft' | 'published') => {
+    if (!formData.title || !formData.content) {
+      toast("Judul dan isi pengumuman wajib diisi.", "error");
+      return;
+    }
+
+    setIsPublishing(true);
+    try {
+      await announcementService.saveAnnouncement({
+        ...formData,
+        tenant_id: tenantId!,
+        status,
+        created_by: user!.id,
+        location: formData.location || null,
+        contact_person: formData.contact_person || null
+      });
+
+      toast(status === 'published' ? "Pengumuman telah diterbitkan!" : "Draf pengumuman disimpan.", "success");
+
+      setIsCreateModalOpen(false);
+      // Reset form
+      setFormData({
+        title: "",
+        content: "",
+        target_audience: "all_students",
+        priority: "normal",
+        is_pinned: false,
+        allow_comments: true,
+        requires_rsvp: false,
+        location: "",
+        contact_person: "",
+        course_id: null
+      });
+      loadAnnouncements();
+    } catch (err) {
+      console.error("Error creating announcement:", err);
+      toast("Gagal menyimpan pengumuman.", "error");
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
-  const handleRSVP = (id: number, status: "attending" | "not_attending") => {
-    setAnnouncements(announcements.map(a => a.id === id ? { ...a, rsvpStatus: status, isRead: true } : a));
-  };
+  const loadAnnouncements = useCallback(async (isLoadMore = false) => {
+    if (!tenantId) return;
 
-  const handleAddComment = (id: number) => {
-    if (!newComment.trim()) return;
-    
-    setAnnouncements(announcements.map(a => {
-      if (a.id === id) {
-        const comments = a.comments || [];
-        return {
-          ...a,
-          comments: [...comments, { id: Date.now(), author: "Anda", text: newComment, time: "Baru saja" }]
-        };
+    if (!isLoadMore) {
+      setLoading(true);
+      setPage(0);
+    }
+
+    try {
+      const currentPage = isLoadMore ? page + 1 : 0;
+      const data = await announcementService.fetchAnnouncements(tenantId, {
+        search: searchTerm || undefined,
+        limit: PAGE_SIZE,
+        offset: currentPage * PAGE_SIZE
+      });
+
+      // Transform DB data to UI data
+      const transformed: Announcement[] = data.map(db => ({
+        ...db,
+        author: db.author?.full_name || 'Admin',
+        date: format(new Date(db.created_at), 'dd MMM yyyy', { locale: localeId }),
+        time: format(new Date(db.created_at), 'HH:mm', { locale: localeId }) + ' WIB',
+        location: db.location || undefined,
+        contactPerson: db.contact_person || undefined,
+        isRead: true, // Placeholder logic
+        rsvpStatus: db.rsvp_status === 'yes' ? 'attending' :
+          db.rsvp_status === 'no' ? 'not_attending' : 'pending'
+      }));
+
+      if (isLoadMore) {
+        setAnnouncements(prev => [...prev, ...transformed]);
+      } else {
+        setAnnouncements(transformed);
       }
-      return a;
-    }));
-    setNewComment("");
+
+      setHasMore(data.length === PAGE_SIZE);
+      if (isLoadMore) setPage(currentPage);
+    } catch (error) {
+      console.error('Error loading announcements:', error);
+      toast('Gagal memuat pengumuman', 'error');
+    } finally {
+      if (!isLoadMore) setLoading(false);
+    }
+  }, [tenantId, searchTerm, toast, page]);
+
+  useEffect(() => {
+    loadAnnouncements();
+  }, [loadAnnouncements]);
+
+  // RSVP Handler
+  const handleRSVP = async (announcementId: string, response: 'yes' | 'no' | 'maybe') => {
+    if (!user || !tenantId) return;
+    try {
+      await announcementService.submitRSVP(announcementId, tenantId, user.id, response);
+      toast('Berhasil mengirim RSVP', 'success');
+      loadAnnouncements(); // Refresh to show new status
+    } catch (error) {
+      toast('Gagal mengirim RSVP', 'error');
+    }
+  };
+  const [expandedComments, setExpandedComments] = useState<string | null>(null);
+
+  const handleMarkAsRead = (id: string) => {
+    setAnnouncements(announcements.map(a => a.id === id ? { ...a, isRead: true } : a));
   };
 
   const filteredAnnouncements = announcements.filter(a => {
     const matchesSearch = a.title.toLowerCase().includes(searchTerm.toLowerCase()) || a.content.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = 
+    const matchesFilter =
       filter === "all" ? true :
-      filter === "unread" ? !a.isRead :
-      filter === "pinned" ? a.isPinned : true;
+        filter === "unread" ? !a.isRead :
+          filter === "pinned" ? a.is_pinned : true;
     return matchesSearch && matchesFilter;
   }).sort((a, b) => {
     // Pinned always on top
-    if (a.isPinned && !b.isPinned) return -1;
-    if (!a.isPinned && b.isPinned) return 1;
+    if (a.is_pinned && !b.is_pinned) return -1;
+    if (!a.is_pinned && b.is_pinned) return 1;
     return 0;
   });
 
@@ -154,7 +196,7 @@ export function Announcements() {
           </p>
         </div>
         {role === 'teacher' && (
-          <button 
+          <button
             onClick={() => setIsCreateModalOpen(true)}
             className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center gap-2 transition-colors shadow-sm shadow-blue-200"
           >
@@ -223,29 +265,29 @@ export function Announcements() {
             className={cn(
               "bg-white rounded-3xl border transition-all duration-300 hover:shadow-md relative overflow-hidden group",
               !announcement.isRead ? "border-blue-200 shadow-sm" : "border-slate-200",
-              announcement.isPinned && "border-amber-200 ring-1 ring-amber-100"
+              announcement.is_pinned && "border-amber-200 ring-1 ring-amber-100"
             )}
           >
             {/* Unread Indicator */}
             {!announcement.isRead && (
               <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500" />
             )}
-            
+
             <div className="p-6 sm:p-8">
               {/* Header: Badges & Pin */}
               <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                 <div className="flex flex-wrap items-center gap-2">
-                  {announcement.isPinned && (
+                  {announcement.is_pinned && (
                     <span className="flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 text-xs font-bold rounded-full uppercase tracking-wider">
                       <Pin className="w-3.5 h-3.5" /> Penting
                     </span>
                   )}
-                  {announcement.targetAudience.map((audience, i) => (
-                    <span key={i} className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full">
-                      <Users className="w-3.5 h-3.5" /> {audience}
+                  {announcement.target_audience && (
+                    <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full">
+                      <Users className="w-3.5 h-3.5" /> {announcement.target_audience.replace('_', ' ')}
                     </span>
-                  ))}
-                  {announcement.priority === "high" && !announcement.isPinned && (
+                  )}
+                  {announcement.priority === "high" && !announcement.is_pinned && (
                     <span className="px-3 py-1 bg-red-100 text-red-600 text-xs font-bold rounded-full uppercase tracking-wider">
                       Darurat
                     </span>
@@ -258,7 +300,7 @@ export function Announcements() {
                   </span>
                 </div>
               </div>
-              
+
               {/* Title & Content */}
               <h2 className={cn(
                 "text-2xl font-bold mb-4",
@@ -266,7 +308,7 @@ export function Announcements() {
               )}>
                 {announcement.title}
               </h2>
-              
+
               <div className="prose prose-slate max-w-none mb-6">
                 <p className="whitespace-pre-wrap text-slate-600 leading-relaxed">
                   {announcement.content}
@@ -327,7 +369,7 @@ export function Announcements() {
               )}
 
               {/* RSVP / Confirmation Section */}
-              {announcement.requiresRSVP && role === 'student' && (
+              {announcement.requires_rsvp && role === 'student' && (
                 <div className="mb-6 p-5 bg-blue-50 border border-blue-100 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h4 className="font-bold text-blue-900">Konfirmasi Kehadiran / Pemahaman</h4>
@@ -336,8 +378,8 @@ export function Announcements() {
                   <div className="flex items-center gap-3 shrink-0">
                     {announcement.rsvpStatus === "pending" ? (
                       <>
-                        <button 
-                          onClick={() => handleRSVP(announcement.id, "attending")}
+                        <button
+                          onClick={() => handleRSVP(announcement.id, "yes")}
                           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm"
                         >
                           Saya Mengerti
@@ -368,19 +410,19 @@ export function Announcements() {
                     )}
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3">
-                  {announcement.allowComments && (
-                    <button 
+                  {announcement.allow_comments && (
+                    <button
                       onClick={() => setExpandedComments(expandedComments === announcement.id ? null : announcement.id)}
                       className="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 text-sm font-bold rounded-xl transition-colors"
                     >
                       <MessageSquare className="w-4 h-4" />
-                      {announcement.comments?.length || 0} Komentar
+                      Diskusi
                     </button>
                   )}
-                  
-                  {!announcement.isRead && role === 'student' && !announcement.requiresRSVP && (
+
+                  {!announcement.isRead && role === 'student' && !announcement.requires_rsvp && (
                     <button
                       onClick={() => handleMarkAsRead(announcement.id)}
                       className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 text-sm font-bold rounded-xl transition-colors flex items-center gap-2"
@@ -393,54 +435,15 @@ export function Announcements() {
 
               {/* Comments Section (Expandable) */}
               <AnimatePresence>
-                {expandedComments === announcement.id && announcement.allowComments && (
-                  <motion.div 
+                {expandedComments === announcement.id && announcement.allow_comments && (
+                  <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden"
                   >
-                    <div className="mt-6 pt-6 border-t border-slate-100 space-y-6">
-                      <h4 className="font-bold text-slate-800">Komentar & Diskusi</h4>
-                      
-                      <div className="space-y-4">
-                        {announcement.comments?.map(comment => (
-                          <div key={comment.id} className="flex gap-3">
-                            <div className="w-8 h-8 bg-slate-200 rounded-full shrink-0 overflow-hidden">
-                              <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.author}`} alt="" className="w-full h-full object-cover" />
-                            </div>
-                            <div className="flex-1 bg-slate-50 p-3 rounded-2xl rounded-tl-none border border-slate-100">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="text-sm font-bold text-slate-900">{comment.author}</span>
-                                <span className="text-xs text-slate-500">{comment.time}</span>
-                              </div>
-                              <p className="text-sm text-slate-700">{comment.text}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="flex gap-3 mt-4">
-                        <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full shrink-0 flex items-center justify-center font-bold text-sm">
-                          A
-                        </div>
-                        <div className="flex-1 relative">
-                          <input 
-                            type="text" 
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleAddComment(announcement.id)}
-                            placeholder="Tulis komentar atau pertanyaan..."
-                            className="w-full pl-4 pr-12 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
-                          />
-                          <button 
-                            onClick={() => handleAddComment(announcement.id)}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                          >
-                            <Send className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
+                    <div className="mt-6 pt-6 border-t border-slate-100">
+                      <CommentSection entityId={announcement.id} entityType="announcement" />
                     </div>
                   </motion.div>
                 )}
@@ -449,6 +452,17 @@ export function Announcements() {
             </div>
           </motion.div>
         ))}
+
+        {filteredAnnouncements.length > 0 && hasMore && (
+          <div className="flex justify-center pt-4 pb-10">
+            <button
+              onClick={() => loadAnnouncements(true)}
+              className="px-8 py-3 bg-white border border-slate-200 text-slate-600 font-bold rounded-2xl hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2"
+            >
+              Muat Lebih Banyak
+            </button>
+          </div>
+        )}
 
         {filteredAnnouncements.length === 0 && (
           <div className="text-center py-20 bg-white rounded-3xl border border-slate-200">
@@ -475,49 +489,98 @@ export function Announcements() {
             >
               <div className="flex items-center justify-between p-6 border-b border-slate-100 shrink-0">
                 <h2 className="text-xl font-bold text-slate-900">Buat Pengumuman Baru</h2>
-                <button 
+                <button
                   onClick={() => setIsCreateModalOpen(false)}
                   className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              
+
               <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-slate-700">Judul Pengumuman</label>
-                  <input type="text" placeholder="Contoh: Libur Nasional Idul Fitri" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={e => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Contoh: Libur Nasional Idul Fitri"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-slate-700">Isi Pengumuman</label>
-                  <textarea rows={5} placeholder="Tuliskan detail pengumuman di sini..." className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                  <textarea
+                    rows={5}
+                    value={formData.content}
+                    onChange={e => setFormData({ ...formData, content: e.target.value })}
+                    placeholder="Tuliskan detail pengumuman di sini..."
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-100 pt-6">
                   <div className="space-y-1.5">
                     <label className="text-sm font-bold text-slate-700">Target Penerima</label>
-                    <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium">
-                      <option>Semua Warga Sekolah</option>
-                      <option>Hanya Siswa</option>
-                      <option>Hanya Guru</option>
-                      <option>Kelas 12 Saja</option>
+                    <select
+                      value={formData.target_audience}
+                      onChange={e => setFormData({ ...formData, target_audience: e.target.value as any })}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                    >
+                      <option value="all_students">Semua Siswa</option>
+                      <option value="course_students">Siswa Kursus Tertentu</option>
+                      <option value="course_staff">Hanya Staf Kursus</option>
+                      <option value="system">Sistem (Admin Saja)</option>
                     </select>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-bold text-slate-700">Prioritas</label>
-                    <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium">
-                      <option>Normal</option>
-                      <option>Tinggi (Darurat)</option>
+                    <select
+                      value={formData.priority}
+                      onChange={e => setFormData({ ...formData, priority: e.target.value as any })}
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                    >
+                      <option value="normal">Normal</option>
+                      <option value="high">Tinggi (Darurat)</option>
+                      <option value="low">Rendah</option>
                     </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-bold text-slate-700">Lokasi (Opsional)</label>
+                    <input
+                      type="text"
+                      value={formData.location}
+                      onChange={e => setFormData({ ...formData, location: e.target.value })}
+                      placeholder="Contoh: Aula Serbaguna"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-bold text-slate-700">Narahubung (Opsional)</label>
+                    <input
+                      type="text"
+                      value={formData.contact_person}
+                      onChange={e => setFormData({ ...formData, contact_person: e.target.value })}
+                      placeholder="Contoh: Ibu Rina (0812...)"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
                   </div>
                 </div>
 
                 <div className="space-y-3 border-t border-slate-100 pt-6">
                   <label className="text-sm font-bold text-slate-700">Pengaturan Tambahan</label>
-                  
+
                   <label className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
-                    <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                    <input
+                      type="checkbox"
+                      checked={formData.is_pinned}
+                      onChange={e => setFormData({ ...formData, is_pinned: e.target.checked })}
+                      className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
                     <div>
                       <p className="font-bold text-slate-800 text-sm">Sematkan di Atas (Pin)</p>
                       <p className="text-xs text-slate-500">Pengumuman akan selalu muncul di urutan pertama.</p>
@@ -525,26 +588,28 @@ export function Announcements() {
                   </label>
 
                   <label className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
-                    <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" defaultChecked />
+                    <input
+                      type="checkbox"
+                      checked={formData.allow_comments}
+                      onChange={e => setFormData({ ...formData, allow_comments: e.target.checked })}
+                      className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
                     <div>
                       <p className="font-bold text-slate-800 text-sm">Izinkan Komentar</p>
-                      <p className="text-xs text-slate-500">Siswa dan orang tua dapat bertanya di kolom komentar.</p>
+                      <p className="text-xs text-slate-500">Siswa dan staf dapat berdiskusi di kolom komentar.</p>
                     </div>
                   </label>
 
                   <label className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
-                    <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                    <input
+                      type="checkbox"
+                      checked={formData.requires_rsvp}
+                      onChange={e => setFormData({ ...formData, requires_rsvp: e.target.checked })}
+                      className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
                     <div>
                       <p className="font-bold text-slate-800 text-sm">Wajib Konfirmasi (RSVP)</p>
-                      <p className="text-xs text-slate-500">Penerima harus menekan tombol "Saya Mengerti".</p>
-                    </div>
-                  </label>
-                  
-                  <label className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
-                    <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" defaultChecked />
-                    <div>
-                      <p className="font-bold text-slate-800 text-sm">Kirim Notifikasi Push & Email</p>
-                      <p className="text-xs text-slate-500">Kirim peringatan instan ke perangkat penerima.</p>
+                      <p className="text-xs text-slate-500">Penerima harus memberikan respon (ya/tidak).</p>
                     </div>
                   </label>
                 </div>
@@ -555,14 +620,24 @@ export function Announcements() {
                   <Paperclip className="w-4 h-4" /> Tambah Lampiran
                 </button>
                 <div className="flex gap-3">
-                  <button 
-                    onClick={() => setIsCreateModalOpen(false)}
-                    className="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-200 rounded-xl transition-colors"
+                  <button
+                    disabled={isPublishing}
+                    onClick={() => handleCreateAnnouncement('draft')}
+                    className="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-200 rounded-xl transition-colors disabled:opacity-50"
                   >
-                    Batal
+                    Simpan Draf
                   </button>
-                  <button className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm shadow-blue-200 flex items-center gap-2">
-                    <Send className="w-4 h-4" /> Terbitkan
+                  <button
+                    disabled={isPublishing}
+                    onClick={() => handleCreateAnnouncement('published')}
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm shadow-blue-200 flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {isPublishing ? (
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                    Terbitkan
                   </button>
                 </div>
               </div>

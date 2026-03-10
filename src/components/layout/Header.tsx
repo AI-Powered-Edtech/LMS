@@ -5,13 +5,15 @@ import { useNotifications } from "@/src/contexts/NotificationContext";
 import { useTheme } from "@/src/contexts/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
+import { useStudentProgress } from "@/src/contexts/StudentProgressContext";
+import { NotificationCenter } from "../Social/NotificationCenter";
 
 export function Header() {
   const streak = 5;
   const hasLoggedInToday = false; // Simulasi: abu-abu jika pengguna tidak login hari itu
-  const xp = 1250;
-  const levelXp = 2000;
-  const progress = (xp / levelXp) * 100;
+  const { xp } = useStudentProgress();
+  const levelXp = Math.floor(xp / 2000 + 1) * 2000;
+  const progress = Math.min((xp / levelXp) * 100, 100);
 
   const { role, profile, signOut } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
@@ -98,88 +100,10 @@ export function Header() {
           )}
         </div>
 
-        {/* Theme Toggle */}
-        <button
-          onClick={toggleTheme}
-          className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-colors"
-        >
-          {theme === 'light' ? (
-            <Moon className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-          ) : (
-            <Sun className="w-5 h-5 text-yellow-400" />
-          )}
-        </button>
+
 
         {/* Notification Bell */}
-        <div className="relative" ref={notifRef}>
-          <button
-            onClick={() => setIsNotifOpen(!isNotifOpen)}
-            className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition-colors relative"
-          >
-            <Bell className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </button>
-
-          {isNotifOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden z-50">
-              <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
-                <h3 className="font-bold text-slate-800 dark:text-slate-200">Notifikasi</h3>
-                {unreadCount > 0 && (
-                  <button
-                    onClick={markAllAsRead}
-                    className="text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                  >
-                    Tandai semua dibaca
-                  </button>
-                )}
-              </div>
-              <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
-                {notifications.length > 0 ? (
-                  notifications.map((notif) => (
-                    <div
-                      key={notif.id}
-                      onClick={() => {
-                        markAsRead(notif.id);
-                        setIsNotifOpen(false);
-                      }}
-                      className={cn(
-                        "p-4 border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer",
-                        !notif.is_read && "bg-blue-50/30 dark:bg-blue-900/10"
-                      )}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className={cn(
-                          "w-2 h-2 rounded-full mt-1.5 shrink-0",
-                          !notif.is_read ? "bg-blue-500" : "bg-transparent"
-                        )} />
-                        <div>
-                          <p className={cn("text-sm font-bold", !notif.is_read ? "text-slate-900 dark:text-slate-100" : "text-slate-700 dark:text-slate-300")}>
-                            {notif.title}
-                          </p>
-                          <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
-                            {notif.message}
-                          </p>
-                          <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 font-medium">
-                            {new Date(notif.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-8 text-center text-slate-500 dark:text-slate-400">
-                    <Bell className="w-8 h-8 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-                    <p className="font-medium">Belum ada notifikasi</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+        <NotificationCenter />
 
         {/* Profile Avatar Dropdown */}
         <div className="relative" ref={profileRef}>

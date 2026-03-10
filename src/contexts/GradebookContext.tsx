@@ -1,31 +1,10 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
+import { gradebookService, GradeStatus, GradeEntry, GradeData, GradebookStudent, GradebookAssignment } from '../services/gradebookService';
 
-export type Student = {
-  id: string;
-  name: string;
-  nis: string;
-  avatarSeed?: string;
-};
-
-export type Assignment = {
-  id: string;
-  title: string;
-  type: 'quiz' | 'assignment' | 'project' | 'exam' | 'presentation' | 'offline';
-  maxScore: number;
-  date: string;
-};
-
-export type GradeStatus = 'ungraded' | 'graded' | 'needs_revision';
-
-export type GradeEntry = {
-  score: number | null;
-  status: GradeStatus;
-  feedback?: string;
-};
-
-export type GradeData = Record<string, Record<string, GradeEntry>>;
+export type { GradeStatus, GradeEntry, GradeData } from '../services/gradebookService';
+export type Student = GradebookStudent;
+export type Assignment = GradebookAssignment;
 
 interface GradebookContextType {
   students: Student[];
@@ -51,56 +30,10 @@ export function GradebookProvider({ children }: { children: ReactNode }) {
     if (!user) { setLoading(false); return; }
     setLoading(true);
     try {
-      // Fetch assignments from classes the user teaches or is enrolled in
-      const { data: assignmentsData } = await supabase
-        .from('assignments')
-        .select('id, title, due_date, created_at')
-        .order('created_at', { ascending: false });
-
-      if (assignmentsData) {
-        setAssignments(assignmentsData.map(a => ({
-          id: a.id,
-          title: a.title,
-          type: 'assignment' as const,
-          maxScore: 100,
-          date: a.due_date ? new Date(a.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '',
-        })));
-      }
-
-      // Fetch submissions with grades
-      const { data: submissionsData } = await supabase
-        .from('assignment_submissions')
-        .select('id, assignment_id, student_id, status, grades(score, feedback)')
-        .order('submitted_at', { ascending: false });
-
-      // Fetch students (profiles)
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, email')
-        .eq('is_active', true);
-
-      if (profilesData) {
-        setStudents(profilesData.map(p => ({
-          id: p.id,
-          name: `${p.first_name} ${p.last_name}`.trim() || p.email,
-          nis: p.email.split('@')[0],
-        })));
-      }
-
-      // Build grades map
-      if (submissionsData) {
-        const gradeMap: GradeData = {};
-        submissionsData.forEach(sub => {
-          if (!gradeMap[sub.student_id]) gradeMap[sub.student_id] = {};
-          const grade = (sub as any).grades;
-          gradeMap[sub.student_id][sub.assignment_id] = {
-            score: grade?.score ?? null,
-            status: grade ? 'graded' : 'ungraded',
-            feedback: grade?.feedback,
-          };
-        });
-        setGrades(gradeMap);
-      }
+      const data = await gradebookService.fetchGradebook();
+      setAssignments(data.assignments);
+      setStudents(data.students);
+      setGrades(data.grades);
     } catch (err) {
       console.error('Error fetching gradebook:', err);
     } finally {
@@ -116,15 +49,10 @@ export function GradebookProvider({ children }: { children: ReactNode }) {
       ...prev,
       [studentId]: { ...prev[studentId], [assignmentId]: { score, status, feedback } }
     }));
-    // Edge function handles the real grading with auth checks
+    // Edge function handles the real grading
     if (score !== null) {
-      supabase.functions.invoke('grade-submission', {
-        body: {
-          submission_id: assignmentId, // Will need actual submission_id mapping
-          score,
-          feedback,
-        }
-      }).catch(err => console.error('Error grading:', err));
+      gradebookService.submitGrade(assignmentId, score, feedback)
+        .catch(err => console.error('Error grading:', err));
     }
   }, []);
 
