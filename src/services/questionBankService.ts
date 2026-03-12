@@ -134,10 +134,9 @@ export const questionBankService = {
 
     async addQuestionToQuiz(questionId: string, quizId: string, points: number = 1, orderIndex: number = 0) {
         const { data, error } = await supabase.rpc("add_question_to_quiz", {
-            p_question_id: questionId,
             p_quiz_id: quizId,
-            p_points: points,
-            p_order_index: orderIndex
+            p_question_bank_id: questionId,
+            p_order: orderIndex
         });
 
         if (error) throw error;
