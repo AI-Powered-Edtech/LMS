@@ -32,12 +32,14 @@ import { Announcements } from "./pages/Announcements";
 import { Assignments } from "./pages/Assignments";
 import { StudentProgress } from "./pages/StudentProgress";
 import { GroupAssignment } from "./pages/GroupAssignment";
+import { QuestionBankPage } from "./pages/QuestionBankPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ClassroomProvider } from "./contexts/ClassroomContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { ToastProvider } from "./contexts/ToastContext";
 import { ModerationProvider } from "./contexts/ModerationContext";
 import { ModuleConfigProvider } from "./contexts/ModuleConfigContext";
+import { CourseEnrollmentGuard } from "./components/guards/CourseEnrollmentGuard";
 import { CalendarProvider } from "./contexts/CalendarContext";
 import { RoleRoute } from "./components/RoleRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -103,7 +105,9 @@ export default function App() {
                                     <Route path="gradebook" element={<RoleRoute role={['teacher', 'admin']}><Gradebook /></RoleRoute>} />
                                     <Route path="teaching/quiz-gradebook" element={<RoleRoute role={['teacher', 'admin']}><QuizGradebook /></RoleRoute>} />
                                     <Route path="teaching/assignment-gradebook" element={<RoleRoute role={['teacher', 'admin']}><AssignmentGradebook /></RoleRoute>} />
+                                    <Route path="teaching" element={<RoleRoute role="teacher"><TeachingHub /></RoleRoute>} />
                                     <Route path="teaching/courses" element={<RoleRoute role={['teacher', 'admin']}><Courses /></RoleRoute>} />
+                                    <Route path="teaching/question-bank" element={<RoleRoute role={['teacher', 'admin']}><QuestionBankPage /></RoleRoute>} />
                                     <Route path="teaching/course-builder" element={<RoleRoute role={['teacher', 'admin']}><CourseBuilder /></RoleRoute>} />
                                     <Route path="certificates" element={<RoleRoute role="student"><Certificates /></RoleRoute>} />
                                     <Route path="calendar" element={<RoleRoute role={['teacher', 'student', 'admin']}><Calendar /></RoleRoute>} />
@@ -116,6 +120,14 @@ export default function App() {
                                     <Route path="admin/finance" element={<RoleRoute role="admin"><FinanceDashboard /></RoleRoute>} />
                                     <Route path="admin/ppdb" element={<RoleRoute role="admin"><PPDBDashboard /></RoleRoute>} />
                                     <Route path="admin/administration" element={<RoleRoute role="admin"><AdministrationDashboard /></RoleRoute>} />
+                                    <Route path="courses" element={<RoleRoute role="student"><LessonViewer /></RoleRoute>} />
+                                    <Route path="courses/:courseId" element={
+                                      <RoleRoute role={['student', 'teacher', 'admin']}>
+                                        <CourseEnrollmentGuard>
+                                          <LessonViewer />
+                                        </CourseEnrollmentGuard>
+                                      </RoleRoute>
+                                    } />
                                   </Route>
                                 </Routes>
                               </Router>

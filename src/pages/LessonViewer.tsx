@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useParams } from "react-router-dom";
 import { ArrowLeft, Loader2, AlertTriangle, CheckCircle, Award, BookOpen, PlayCircle, ChevronRight, Layers, Clock, FileText, HelpCircle } from "lucide-react";
 import { cn } from "@/src/utils/cn";
 import { motion, AnimatePresence } from "motion/react";
@@ -37,7 +37,7 @@ interface CourseWithModules {
   }[];
 }
 
-function CourseBrowser({ onSelectModule, tenantId }: { onSelectModule: (moduleId: string) => void; tenantId: string }) {
+function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule: (moduleId: string) => void; tenantId: string; courseId?: string }) {
   const [courses, setCourses] = useState<CourseWithModules[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedCourse, setExpandedCourse] = useState<string | null>(null);
@@ -46,7 +46,11 @@ function CourseBrowser({ onSelectModule, tenantId }: { onSelectModule: (moduleId
     (async () => {
       try {
         // Fetch courses via service (already enforces tenant_id)
-        const { courses: coursesData } = await courseService.fetchCourses({ tenantId, limit: 100 });
+        const { courses: coursesData } = await courseService.fetchCourses({
+          tenantId,
+          limit: 100,
+          ids: courseId ? [courseId] : undefined
+        });
 
         if (!coursesData?.length) { setLoading(false); return; }
 
@@ -238,6 +242,7 @@ function CourseBrowser({ onSelectModule, tenantId }: { onSelectModule: (moduleId
 export function LessonViewer() {
   const { user, tenantId, profile, role } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { courseId } = useParams();
   const moduleId = searchParams.get("moduleId");
   const lessonId = searchParams.get("lessonId");
 
@@ -369,7 +374,7 @@ export function LessonViewer() {
   // Render: No module selected
   // ============================================================
   if (!moduleId) {
-    return <CourseBrowser onSelectModule={handleSelectModule} tenantId={tenantId!} />;
+    return <CourseBrowser onSelectModule={handleSelectModule} tenantId={tenantId!} courseId={courseId} />;
   }
 
   // ============================================================

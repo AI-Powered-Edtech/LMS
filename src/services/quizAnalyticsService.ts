@@ -6,11 +6,31 @@ export interface AttemptDetailAnswer {
     question_id: string;
     question_text: string;
     question_position: number;
+    question_type: 'MCQ' | 'TRUE_FALSE' | 'MULTIPLE_SELECT' | 'SHORT_ANSWER' | 'ESSAY';
     selected_option_id: string | null;
+    selected_option_ids: string[];
     selected_option_text: string | null;
+    text_answer: string | null;
     correct_option_id: string | null;
     correct_option_text: string | null;
-    is_correct: boolean;
+    is_correct: boolean | null;
+    points_earned: number | null;
+    max_points: number;
+    grader_comment: string | null;
+}
+
+export interface QuizStats {
+    quiz_id: string;
+    tenant_id: string;
+    total_attempts: number;
+    total_unique_students: number;
+    avg_score: number;
+    median_score: number;
+    highest_score: number;
+    lowest_score: number;
+    avg_time_seconds: number;
+    pass_rate: number;
+    updated_at: string;
 }
 
 export interface QuestionDifficulty {
@@ -57,6 +77,24 @@ export const quizAnalyticsService = {
         }
 
         return (data ?? []) as QuestionDifficulty[];
+    },
+
+    /**
+     * Fetch quiz stats from the precomputed quiz_stats table.
+     */
+    async getQuizStats(quizId: string): Promise<QuizStats | null> {
+        const { data, error } = await supabase
+            .from('quiz_stats')
+            .select('*')
+            .eq('quiz_id', quizId)
+            .maybeSingle();
+
+        if (error) {
+            console.error('Error fetching quiz stats:', error);
+            throw error;
+        }
+
+        return data as QuizStats | null;
     },
 
     /**

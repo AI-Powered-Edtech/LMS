@@ -9,9 +9,38 @@ import { cn } from "@/src/utils/cn";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
+import { useEffect } from "react";
+import { gamificationService, type UserStreak, type UserBadge } from "../services/gamificationService";
+
+const MOCK_STREAK: UserStreak = {
+  user_id: 'demo-user',
+  tenant_id: 'demo-tenant',
+  current_streak: 5,
+  longest_streak: 12,
+  last_activity_date: new Date().toISOString(),
+  updated_at: new Date().toISOString()
+};
+
+const MOCK_BADGES: UserBadge[] = [
+  {
+    badge_id: 'b1',
+    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+    badge: { id: 'b1', name: 'First Quiz', description: 'Menyelesaikan kuis pertama Anda', icon: '📝', created_at: '' }
+  },
+  {
+    badge_id: 'b2',
+    created_at: new Date(Date.now() - 86400000).toISOString(),
+    badge: { id: 'b2', name: 'Perfect Score', description: 'Mendapat nilai 100 di kuis', icon: '💯', created_at: '' }
+  },
+  {
+    badge_id: 'b3',
+    created_at: new Date().toISOString(),
+    badge: { id: 'b3', name: 'LMS Voyager', description: 'Menjelajahi semua modul pembelajaran', icon: '🚀', created_at: '' }
+  }
+];
 
 export function Profile() {
-  const { role } = useAuth();
+  const { user, tenantId, role, profile } = useAuth();
   const navigate = useNavigate();
   const isTeacher = role === 'teacher';
 
@@ -20,6 +49,56 @@ export function Profile() {
   const [signatureUrl, setSignatureUrl] = useState<string | null>("https://upload.wikimedia.org/wikipedia/commons/f/f8/John_Hancock_signature.png");
   const [openSessionMenuId, setOpenSessionMenuId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [streakData, setStreakData] = useState<UserStreak | null>(null);
+  const [userBadges, setUserBadges] = useState<UserBadge[]>([]);
+  const [loadingGamification, setLoadingGamification] = useState(true);
+
+
+  useEffect(() => {
+    if (!isTeacher) {
+      loadGamificationData();
+    }
+  }, [user, tenantId, isTeacher]);
+
+  const loadGamificationData = async () => {
+    try {
+      setLoadingGamification(true);
+
+      // Fallback to mock data for demo accounts or if user/tenant is missing
+      const isDemo = !user || !tenantId || profile?.is_demo;
+
+      if (isDemo) {
+        setStreakData(MOCK_STREAK);
+        setUserBadges(MOCK_BADGES);
+        setLoadingGamification(false);
+        return;
+      }
+
+      const [streak, badges] = await Promise.all([
+        gamificationService.getUserStreak(user.id, tenantId),
+        gamificationService.getUserBadges(user.id, tenantId)
+      ]);
+      setStreakData(streak);
+      setUserBadges(badges);
+    } catch (error: any) {
+      // PGRST204/205: Missing table/schema cache error
+      // 42703: Column does not exist
+      const isMissingSchema = ['PGRST204', 'PGRST205', '42703'].includes(error?.code);
+
+      if (isMissingSchema) {
+        console.warn(`[Diagnostic] Supabase Schema Missing (Code: ${error?.code}). Gamification tables not found. Falling back to mock data.`);
+        setStreakData(MOCK_STREAK);
+        setUserBadges(MOCK_BADGES);
+      } else {
+        console.error("Failed to load gamification data:", error);
+        setStreakData(null);
+        setUserBadges([]);
+      }
+    } finally {
+      setLoadingGamification(false);
+    }
+  };
 
   const handleSignatureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -287,6 +366,12 @@ export function Profile() {
                 {currentUser.status}
               </span>
               {isTeacher && <span title="Verified Teacher"><ShieldCheck className="w-4 h-4 text-emerald-500" /></span>}
+              {!isTeacher && streakData && streakData.current_streak > 0 && (
+                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
+                  <Flame className="w-3.5 h-3.5 fill-current" />
+                  {streakData.current_streak} Hari
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-1 text-slate-500 text-sm mt-2">
@@ -745,6 +830,53 @@ export function Profile() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Badges Section */}
+                  {!isTeacher && (
+                    <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+                      <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                          <Trophy className="w-5 h-5 text-yellow-500" />
+                          Lencana & Pencapaian
+                        </h2>
+                        <span className="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">
+                          {userBadges.length} Didapat
+                        </span>
+                      </div>
+
+                      {loadingGamification ? (
+                        <div className="flex items-center justify-center py-8">
+                          <RefreshCw className="w-6 h-6 text-slate-300 animate-spin" />
+                        </div>
+                      ) : userBadges.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                          {userBadges.map((ub) => (
+                            <motion.div
+                              key={ub.badge_id}
+                              whileHover={{ y: -5 }}
+                              className="flex flex-col items-center p-3 rounded-2xl bg-slate-50 border border-slate-100 text-center group transition-all hover:bg-white hover:border-yellow-200 hover:shadow-md"
+                            >
+                              <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">
+                                {ub.badge.icon || '🏅'}
+                              </div>
+                              <h3 className="text-xs font-bold text-slate-900 mb-1">{ub.badge.name}</h3>
+                              <p className="text-[10px] text-slate-500 leading-tight">
+                                {ub.badge.description}
+                              </p>
+                              <div className="mt-2 text-[9px] font-bold text-slate-400">
+                                {new Date(ub.created_at).toLocaleDateString()}
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                          <Award className="w-12 h-12 text-slate-200 mx-auto mb-3" />
+                          <p className="text-sm font-medium text-slate-500 italic">Belum ada lencana yang didapat. Ayo tingkatkan belajarmu!</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
             </div>

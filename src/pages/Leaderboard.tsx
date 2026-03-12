@@ -1,24 +1,25 @@
 import { useState, useEffect } from "react";
 import { Trophy, Flame } from "lucide-react";
-import { cn } from "@/src/utils/cn";
 import { motion } from "motion/react";
 import { useClassroom } from "@/src/contexts/ClassroomContext";
+import { useAuth } from "@/src/contexts/AuthContext";
 import { leaderboardService, LeaderboardEntry } from "@/src/services/leaderboardService";
 
 export function Leaderboard() {
   const { activeClassroomId } = useClassroom();
+  const { tenantId } = useAuth();
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchLeaderboard() {
-      if (!activeClassroomId) {
-        setLoading(false);
+      if (!activeClassroomId || !tenantId) {
+        if (!activeClassroomId && !tenantId) setLoading(false);
         return;
       }
       setLoading(true);
       try {
-        const data = await leaderboardService.getLeaderboard(activeClassroomId);
+        const data = await leaderboardService.getLeaderboard(activeClassroomId, tenantId);
         setEntries(data);
       } catch (error) {
         console.error("Failed to fetch leaderboard", error);
@@ -28,7 +29,7 @@ export function Leaderboard() {
     }
 
     fetchLeaderboard();
-  }, [activeClassroomId]);
+  }, [activeClassroomId, tenantId]);
 
   if (loading) {
     return (

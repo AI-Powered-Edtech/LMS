@@ -58,10 +58,17 @@ export interface QuizBlockData {
     shuffle_options?: boolean;
     time_limit_minutes?: number;
     status?: 'draft' | 'published' | 'archived';
+    mode?: 'practice' | 'graded' | 'exam';
+    show_correct_answers?: boolean;
+    available_from?: string | null;
+    available_until?: string | null;
     questions: {
         id?: string;
         text: string;
         order: number;
+        question_type?: 'MCQ' | 'TRUE_FALSE' | 'MULTIPLE_SELECT' | 'SHORT_ANSWER' | 'ESSAY';
+        points?: number;
+        explanation?: string | null;
         options: {
             id?: string;
             text: string;
@@ -321,7 +328,7 @@ export const courseBuilderService = {
             .select(`
                 *,
                 quiz_questions (
-                    id, text, "order",
+                    id, text, "order", question_type, points, explanation,
                     quiz_options (id, text, is_correct)
                 )
             `)

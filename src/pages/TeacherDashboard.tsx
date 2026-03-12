@@ -3,24 +3,37 @@ import { motion } from 'motion/react';
 import {
   Users, Target, Plus, Clock,
   ChevronRight, BookOpen, CheckCircle2, AlertCircle,
-  FileText, BarChart3, Settings
+  FileText, BarChart3, Settings, PenTool
 } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
 import { useNavigate } from 'react-router-dom';
 import { useClassroom } from '@/src/contexts/ClassroomContext';
 import { useAuth } from '@/src/contexts/AuthContext';
 
-const alerts = [
-  { id: 1, type: 'grading', message: '15 tugas Writing dari kelas 9A perlu dikoreksi', urgent: true },
-  { id: 2, type: 'insight', message: '60% siswa kelas 8B lemah di Vocabulary', urgent: false },
-];
+import { useAssignments } from '@/src/features/assignments/hooks/useAssignments';
 
 export function TeacherDashboard() {
   const { classrooms, activeClassroomId, setActiveClassroomId } = useClassroom();
   const { role } = useAuth();
   const navigate = useNavigate();
+  const { assignments, loading: assignmentsLoading } = useAssignments();
 
   const activeClassroom = classrooms.find(c => c.id === activeClassroomId);
+
+  // Filter to only assignments created by this teacher
+  const teacherAssignments = assignments.filter(a => 
+    (a.studentSubmissions || []).length > 0
+  );
+  
+  const pendingGradingCount = teacherAssignments.reduce((acc, assignment) => {
+    const sum = (assignment.studentSubmissions || []).filter(sub => sub.status === 'submitted').length;
+    return acc + sum;
+  }, 0);
+
+  const alerts = [
+    ...(pendingGradingCount > 0 ? [{ id: 1, type: 'grading', message: `${pendingGradingCount} tugas dari keseluruhan perlu dikoreksi`, urgent: true }] : []),
+    { id: 2, type: 'insight', message: '60% siswa kelas 8B lemah di Vocabulary', urgent: false },
+  ];
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 sm:space-y-8 pb-20 sm:pb-12">
@@ -150,6 +163,48 @@ export function TeacherDashboard() {
                 </button>
               </div>
             </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Teaching Hub Tools */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <Settings className="w-5 h-5 text-blue-500" />
+            Peralatan Mengajar
+          </h2>
+          <button
+            onClick={() => navigate('/teaching')}
+            className="text-sm font-bold text-blue-600 hover:text-blue-700"
+          >
+            Lihat Semua Alat
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[
+            { id: 'gradebook', name: 'Buku Nilai', icon: CheckCircle2, path: '/gradebook', color: 'text-blue-600', bg: 'bg-blue-50' },
+            { id: 'analytics', name: 'Analitik', icon: BarChart3, path: '/analytics', color: 'text-indigo-600', bg: 'bg-indigo-50' },
+            { id: 'grader', name: 'Grader', icon: PenTool, path: '/grader', color: 'text-amber-600', bg: 'bg-amber-50' },
+          ].map((tool, idx) => (
+            <motion.button
+              key={tool.id}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: idx * 0.05 }}
+              onClick={() => navigate(tool.path)}
+              className="flex items-center gap-4 p-5 bg-white rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all group group"
+            >
+              <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110", tool.bg, tool.color)}>
+                <tool.icon className="w-6 h-6" />
+              </div>
+              <div className="flex flex-col items-start">
+                <span className="text-sm font-bold text-slate-900 group-hover:text-blue-700">{tool.name}</span>
+                <span className="text-xs text-slate-500 font-medium">Buka menu {tool.name.toLowerCase()}</span>
+              </div>
+              <ChevronRight className="w-5 h-5 ml-auto text-slate-300 group-hover:text-blue-400 transition-colors" />
+            </motion.button>
           ))}
         </div>
       </div>

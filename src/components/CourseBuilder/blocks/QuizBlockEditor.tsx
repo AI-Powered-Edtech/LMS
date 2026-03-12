@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { HelpCircle, Plus, Trash2, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { HelpCircle, Plus, Trash2, Loader2, CheckCircle, AlertTriangle, Search } from 'lucide-react';
 import { useBuilder } from '@/src/contexts/BuilderContext';
 import { courseBuilderService, type QuizBlockData } from '@/src/services/courseBuilderService';
 import { cn } from '@/src/utils/cn';
+import type { QuestionType, QuizMode } from '@/src/services/quizService';
+import { QuestionSearchModal } from '@/src/features/question-bank/components/QuestionSearchModal';
 
 type QuizStatus = 'draft' | 'published' | 'archived';
 
@@ -18,6 +20,7 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
     const [error, setError] = useState<string | null>(null);
     const [savedQuizId, setSavedQuizId] = useState<string | undefined>(undefined);
     const [quizStatus, setQuizStatus] = useState<QuizStatus>('draft');
+    const [showQuestionModal, setShowQuestionModal] = useState(false);
 
     const [quizData, setQuizData] = useState<QuizBlockData>({
         title: 'Kuis Baru',
@@ -53,6 +56,9 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
                                 id: q.id,
                                 text: q.text,
                                 order: q.order,
+                                question_type: q.question_type || 'MCQ',
+                                points: q.points ?? 1,
+                                explanation: q.explanation || '',
                                 options: q.quiz_options || []
                             }))
                     });
@@ -107,6 +113,9 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
                 {
                     text: '',
                     order: prev.questions.length + 1,
+                    question_type: 'MCQ' as QuestionType,
+                    points: 1,
+                    explanation: '',
                     options: [
                         { text: 'Opsi A', is_correct: true },
                         { text: 'Opsi B', is_correct: false }
@@ -148,8 +157,53 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
 
     const setCorrectOption = (qIdx: number, oIdx: number) => {
         const qs = [...quizData.questions];
-        qs[qIdx].options.forEach((o, i) => { o.is_correct = (i === oIdx); });
+        const qType = qs[qIdx].question_type || 'MCQ';
+        if (qType === 'MULTIPLE_SELECT') {
+            // Toggle for multi-select
+            qs[qIdx].options[oIdx].is_correct = !qs[qIdx].options[oIdx].is_correct;
+        } else {
+            // Single correct for MCQ/TRUE_FALSE
+            qs[qIdx].options.forEach((o, i) => { o.is_correct = (i === oIdx); });
+        }
         setQuizData({ ...quizData, questions: qs });
+    };
+
+    const updateQuestionType = (qIdx: number, newType: QuestionType) => {
+        const qs = [...quizData.questions];
+        qs[qIdx] = { ...qs[qIdx], question_type: newType };
+        // Auto-set options for TRUE_FALSE
+        if (newType === 'TRUE_FALSE') {
+            qs[qIdx].options = [
+                { text: 'Benar', is_correct: true },
+                { text: 'Salah', is_correct: false }
+            ];
+        }
+        // Clear options for text types
+        if (newType === 'SHORT_ANSWER' || newType === 'ESSAY') {
+            qs[qIdx].options = [];
+        }
+        // Add default options if switching back to MCQ/MULTIPLE_SELECT
+        if ((newType === 'MCQ' || newType === 'MULTIPLE_SELECT') && qs[qIdx].options.length === 0) {
+            qs[qIdx].options = [
+                { text: 'Opsi A', is_correct: true },
+                { text: 'Opsi B', is_correct: false }
+            ];
+        }
+        setQuizData({ ...quizData, questions: qs });
+    };
+
+    const updateQuestionPoints = (qIdx: number, pts: number) => {
+        const qs = [...quizData.questions];
+        qs[qIdx] = { ...qs[qIdx], points: pts };
+        setQuizData({ ...quizData, questions: qs });
+    };
+
+    const questionTypeLabels: Record<string, string> = {
+        'MCQ': 'Pilihan Ganda',
+        'TRUE_FALSE': 'Benar/Salah',
+        'MULTIPLE_SELECT': 'Pilih Beberapa',
+        'SHORT_ANSWER': 'Jawaban Singkat',
+        'ESSAY': 'Esai',
     };
 
     if (isLoading) {
@@ -282,6 +336,35 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
                         </label>
                     </div>
                 </div>
+
+                {/* Quiz Mode & Availability */}
+                <div className="grid grid-cols-3 gap-3">
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Mode Kuis</label>
+                        <select
+                            value={quizData.mode || 'graded'}
+                            onChange={e => setQuizData({ ...quizData, mode: e.target.value as QuizMode })}
+                            disabled={isPublished}
+                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 text-sm"
+                        >
+                            <option value="practice">Latihan (unlimited)</option>
+                            <option value="graded">Dinilai (max attempt)</option>
+                            <option value="exam">Ujian (1 attempt)</option>
+                        </select>
+                    </div>
+                    <div className="flex items-end gap-2 pb-0.5">
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={quizData.show_correct_answers ?? false}
+                                onChange={e => setQuizData({ ...quizData, show_correct_answers: e.target.checked })}
+                                disabled={isPublished}
+                                className="w-4 h-4 rounded accent-blue-600"
+                            />
+                            <span className="text-xs text-slate-600 font-medium">Tampilkan jawaban benar</span>
+                        </label>
+                    </div>
+                </div>
             </div>
 
             {/* Questions */}
@@ -292,12 +375,20 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
                         <span className="ml-2 text-xs font-normal text-slate-400">({quizData.questions.length} soal)</span>
                     </h4>
                     {!isPublished && (
-                        <button
-                            onClick={addQuestion}
-                            className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold rounded-lg text-xs flex items-center gap-1 transition-colors"
-                        >
-                            <Plus className="w-3.5 h-3.5" /> Tambah Soal
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setShowQuestionModal(true)}
+                                className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold rounded-lg text-xs flex items-center gap-1 transition-colors"
+                            >
+                                <Search className="w-3.5 h-3.5" /> Ambil dari Bank Soal
+                            </button>
+                            <button
+                                onClick={addQuestion}
+                                className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold rounded-lg text-xs flex items-center gap-1 transition-colors"
+                            >
+                                <Plus className="w-3.5 h-3.5" /> Buat Baru
+                            </button>
+                        </div>
                     )}
                 </div>
 
@@ -310,11 +401,30 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
                 ) : (
                     quizData.questions.map((q, qIdx) => (
                         <div key={q.id || qIdx} className="p-4 border border-slate-200 rounded-2xl bg-white shadow-sm space-y-3 group relative">
-                            {/* Question number + delete */}
+                            {/* Question type + number + delete */}
                             <div className="flex items-center gap-2">
                                 <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs font-bold flex items-center justify-center shrink-0">
                                     {qIdx + 1}
                                 </span>
+                                <select
+                                    value={q.question_type || 'MCQ'}
+                                    onChange={e => updateQuestionType(qIdx, e.target.value as QuestionType)}
+                                    disabled={isPublished}
+                                    className="px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500 font-medium disabled:opacity-60"
+                                >
+                                    {Object.entries(questionTypeLabels).map(([val, label]) => (
+                                        <option key={val} value={val}>{label}</option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="number" min="1" max="100"
+                                    value={q.points ?? 1}
+                                    onChange={e => updateQuestionPoints(qIdx, parseInt(e.target.value) || 1)}
+                                    disabled={isPublished}
+                                    className="w-16 px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-60"
+                                    title="Poin"
+                                />
+                                <span className="text-[10px] text-slate-400">poin</span>
                                 <input
                                     type="text"
                                     value={q.text}
@@ -333,8 +443,12 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
                                 )}
                             </div>
 
-                            {/* Options */}
+                            {/* Options — hide for SHORT_ANSWER / ESSAY */}
+                            {(q.question_type !== 'SHORT_ANSWER' && q.question_type !== 'ESSAY') && (
                             <div className="pl-8 space-y-2">
+                                {q.question_type === 'MULTIPLE_SELECT' && (
+                                    <p className="text-[10px] text-slate-400 italic">Klik untuk toggle jawaban benar (bisa lebih dari 1)</p>
+                                )}
                                 {q.options.map((opt, oIdx) => (
                                     <div key={oIdx} className="flex items-center gap-2">
                                         <button
@@ -342,7 +456,8 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
                                             disabled={isPublished}
                                             title={opt.is_correct ? 'Jawaban benar' : 'Jadikan jawaban benar'}
                                             className={cn(
-                                                'w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
+                                                'w-5 h-5 border-2 flex items-center justify-center shrink-0 transition-colors',
+                                                q.question_type === 'MULTIPLE_SELECT' ? 'rounded' : 'rounded-full',
                                                 opt.is_correct
                                                     ? 'border-emerald-500 bg-emerald-500'
                                                     : 'border-slate-300 bg-white hover:border-emerald-400',
@@ -359,17 +474,17 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
                                             type="text"
                                             value={opt.text}
                                             onChange={e => updateOption(qIdx, oIdx, e.target.value)}
-                                            disabled={isPublished}
+                                            disabled={isPublished || q.question_type === 'TRUE_FALSE'}
                                             className={cn(
                                                 'flex-1 px-3 py-1.5 text-sm border rounded-lg outline-none focus:border-blue-400 transition-colors',
                                                 opt.is_correct
                                                     ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
                                                     : 'bg-slate-50 border-slate-200',
-                                                isPublished && 'opacity-60 cursor-not-allowed'
+                                                (isPublished || q.question_type === 'TRUE_FALSE') && 'opacity-60 cursor-not-allowed'
                                             )}
                                             placeholder="Teks opsi..."
                                         />
-                                        {!isPublished && q.options.length > 2 && (
+                                        {!isPublished && q.options.length > 2 && q.question_type !== 'TRUE_FALSE' && (
                                             <button
                                                 onClick={() => removeOption(qIdx, oIdx)}
                                                 className="p-1 text-slate-300 hover:text-red-500 transition-colors"
@@ -379,7 +494,7 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
                                         )}
                                     </div>
                                 ))}
-                                {!isPublished && (
+                                {!isPublished && q.question_type !== 'TRUE_FALSE' && (
                                     <button
                                         onClick={() => addOption(qIdx)}
                                         className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 mt-1 transition-colors"
@@ -388,6 +503,18 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
                                     </button>
                                 )}
                             </div>
+                            )}
+
+                            {/* Text hint for essay/short-answer types */}
+                            {(q.question_type === 'SHORT_ANSWER' || q.question_type === 'ESSAY') && (
+                                <div className="pl-8">
+                                    <p className="text-xs text-slate-400 italic bg-slate-50 p-3 rounded-lg border border-dashed border-slate-200">
+                                        {q.question_type === 'SHORT_ANSWER'
+                                            ? '🖊️ Siswa akan mengetik jawaban singkat (dinilai manual oleh guru)'
+                                            : '📝 Siswa akan menulis esai panjang (dinilai manual oleh guru)'}
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     ))
                 )}
@@ -397,6 +524,36 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
                 <p className="text-xs text-center text-slate-400 pb-2">
                     Kuis sudah dipublish. Kembalikan ke Draft untuk mengedit soal.
                 </p>
+            )}
+            {/* Question Search Modal */}
+            {savedQuizId && (
+                <QuestionSearchModal
+                    quizId={savedQuizId}
+                    isOpen={showQuestionModal}
+                    onClose={() => setShowQuestionModal(false)}
+                    onAddSuccess={(question) => {
+                        // Optimistically update the UI
+                        setQuizData(prev => ({
+                            ...prev,
+                            questions: [
+                                ...prev.questions,
+                                {
+                                    id: question.id,
+                                    text: question.question_text,
+                                    order: prev.questions.length + 1,
+                                    question_type: question.question_type as QuestionType,
+                                    points: 1,
+                                    explanation: question.explanation || '',
+                                    options: (question.options || []).map(o => ({
+                                        text: o.option_text,
+                                        is_correct: o.is_correct
+                                    }))
+                                }
+                            ]
+                        }));
+                        setShowQuestionModal(false);
+                    }}
+                />
             )}
         </div>
     );

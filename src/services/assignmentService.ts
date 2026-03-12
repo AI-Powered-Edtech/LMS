@@ -165,5 +165,66 @@ export const assignmentService = {
         }
 
         return data as AssignmentSubmission[];
+    },
+
+    /**
+     * Fetches all assignments for a student to display in Pusat Tugas.
+     * Uses a single query to get assignments and the student's submission status (Anti N+1).
+     * Relies on RLS to filter assignment_submissions by the current user's ID.
+     * Includes pagination for scalability.
+     */
+    async getStudentAssignments(tenantId: string, page = 1, limit = 20) {
+        return this.getAssignments(tenantId, page, limit);
+    },
+
+    /**
+     * Fetches all assignments for a teacher dashboard overview.
+     * Includes pagination for scalability.
+     */
+    async getTeacherAssignments(tenantId: string, page = 1, limit = 20) {
+        return this.getAssignments(tenantId, page, limit);
+    },
+
+    /**
+     * Internal method to fetch assignments with submissions.
+     * Supports pagination for scalability with large datasets.
+     */
+    async getAssignments(tenantId: string, page = 1, limit = 20) {
+        const from = (page - 1) * limit;
+        const to = from + limit - 1;
+
+        const { data, error, count } = await supabase
+            .from('assignments')
+            .select(`
+                *,
+                assignment_submissions!left (
+                    id,
+                    status,
+                    score,
+                    submitted_at,
+                    file_url,
+                    user_profiles:student_id (
+                        full_name
+                    )
+                )
+            `, { count: 'exact' })
+            .eq('tenant_id', tenantId)
+            .order('due_date', { ascending: true })
+            .range(from, to);
+
+        if (error) {
+            console.error('Error fetching assignments:', error);
+            throw error;
+        }
+
+        return {
+            data,
+            pagination: {
+                page,
+                limit,
+                total: count ?? 0,
+                totalPages: Math.ceil((count ?? 0) / limit)
+            }
+        };
     }
 };

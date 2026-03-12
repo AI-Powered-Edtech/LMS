@@ -24,6 +24,7 @@ export interface FetchCoursesOptions {
     page?: number;
     limit?: number;
     search?: string;
+    ids?: string[];
 }
 
 export const courseService = {
@@ -31,7 +32,7 @@ export const courseService = {
      * Fetches courses for a specific tenant with optional pagination and search.
      * RLS ensures users only see courses they have access to.
      */
-    async fetchCourses({ tenantId, page = 1, limit = 10, search }: FetchCoursesOptions) {
+    async fetchCourses({ tenantId, page = 1, limit = 10, search, ids }: FetchCoursesOptions) {
         let query = supabase
             .from('courses')
             .select(`
@@ -41,8 +42,13 @@ export const courseService = {
                     class:classes(name)
                 )
             `, { count: 'exact' })
-            .eq('tenant_id', tenantId)
-            .order('created_at', { ascending: false });
+            .eq('tenant_id', tenantId);
+
+        if (ids && ids.length > 0) {
+            query = query.in('id', ids);
+        }
+
+        query = query.order('created_at', { ascending: false });
 
         if (search) {
             query = query.ilike('title', `%${search}%`);
@@ -140,5 +146,26 @@ export const courseService = {
             console.error('Error deleting course:', error);
             throw error;
         }
+    },
+
+    /**
+     * Checks if a user is enrolled in a specific course.
+     */
+    async checkEnrollment(courseId: string, userId: string, tenantId: string) {
+        const { data, error } = await supabase
+            .from('course_enrollments')
+            .select('id')
+            .eq('course_id', courseId)
+            .eq('user_id', userId)
+            .eq('tenant_id', tenantId)
+            .eq('status', 'active')
+            .maybeSingle();
+
+        if (error) {
+            console.error('Error checking course enrollment:', error);
+            return false;
+        }
+
+        return !!data;
     }
 };

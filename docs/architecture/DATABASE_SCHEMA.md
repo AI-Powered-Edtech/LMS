@@ -280,6 +280,57 @@ create index idx_course_stats_refresh on course_stats(last_refreshed_at);
 
 ---
 
+## Gamification
+
+### 12. `user_points`
+
+Stores accumulated XP per user per tenant.
+
+```sql
+-- Existing table (created in production hardening)
+-- Key columns: user_id, tenant_id, points
+-- Unique constraint: (user_id, tenant_id)
+```
+
+### 13. `leaderboards`
+
+Per-class ranking with realtime score sync.
+
+```sql
+-- Existing table (migration 40)
+-- Key columns: tenant_id, class_id, user_id, score, rank
+-- Unique constraint: (tenant_id, class_id, user_id)
+```
+
+### Level System
+
+Level is computed from XP and stored on `user_profiles.level`.
+
+```sql
+-- Formula: level = floor(points / 400) + 1
+-- Function: compute_level(p_points integer) → integer (IMMUTABLE, NULL-safe)
+-- Column: user_profiles.level integer DEFAULT 1
+```
+
+**Level Tiers:**
+
+| Level | Tier | Color |
+|-------|------|-------|
+| 1-3 | Pemula | Gray |
+| 4-7 | Penjelajah | Blue |
+| 8-12 | Cendekia | Purple |
+| 13+ | Master | Gold |
+
+**Related Gamification RPCs:**
+- `add_user_points(p_user_id, p_points)`: Upserts XP and auto-recomputes `user_profiles.level` (SECURITY DEFINER)
+- `recompute_leaderboard(p_tenant_id, p_class_id)`: Recalculates rank using DENSE_RANK
+- `compute_level(p_points)`: Pure function, IMMUTABLE, O(1)
+
+**Triggers:**
+- `on_user_points_changed`: Syncs `user_points.points` → `leaderboards.score`
+
+---
+
 ## Typical Query Pattern (Smart Player)
 
 To load the sidebar and viewer efficiently, we query a module and nest its relations, ensuring order at every level:

@@ -13,77 +13,20 @@ import { useComments } from "@/src/contexts/CommentContext";
 import { useGradebook } from "@/src/contexts/GradebookContext";
 import { useCalendar } from "@/src/contexts/CalendarContext";
 import { useNotifications } from "@/src/contexts/NotificationContext";
+import { useAssignments } from "@/src/features/assignments/hooks/useAssignments";
+import { assignmentService } from "@/src/services/assignmentService";
+import { AssignmentUiState } from "@/src/features/assignments/types";
 
-// Mock Data
-const mockAssignments = [
-  {
-    id: "a1",
-    title: "Tugas Akhir Sejarah Indonesia",
-    type: "individual",
-    description: "Buatlah esai minimal 1000 kata mengenai dampak penjajahan Belanda terhadap sistem pendidikan di Indonesia. Sertakan minimal 3 sumber referensi yang valid.",
-    dueDate: "2026-03-10T23:59:00",
-    status: "assigned", // assigned, turned_in, late, returned
-    grade: null,
-    maxGrade: 100,
-    attachments: [
-      { id: 1, name: "Panduan_Penulisan_Esai.pdf", type: "pdf", url: "#" }
-    ],
-    studentSubmissions: [
-      { id: 1, studentName: "Ahmad", status: "turned_in", submittedAt: "2026-03-08T14:30:00", grade: null, uploadedFiles: [{ name: "Tugas_Akhir_Ahmad.pdf", type: "pdf" }] },
-      { id: 2, studentName: "Bunga", status: "assigned", submittedAt: null, grade: null, uploadedFiles: [] },
-      { id: 999, studentName: "Anda", status: "assigned", submittedAt: null, grade: null, uploadedFiles: [] },
-    ],
-    comments: [
-      { id: 1, author: "Guru", text: "Pastikan format sitasi menggunakan APA style.", time: "2 hari yang lalu" }
-    ]
-  },
-  {
-    id: "a2",
-    title: "Latihan Soal Matematika Bab 4",
-    type: "individual",
-    description: "Kerjakan soal latihan di buku cetak halaman 45-46 nomor 1 sampai 10. Foto hasil kerjaan kalian dan unggah ke sini.",
-    dueDate: "2026-03-05T12:00:00",
-    status: "returned",
-    grade: 85,
-    maxGrade: 100,
-    attachments: [],
-    studentSubmissions: [
-      { id: 1, studentName: "Ahmad", status: "returned", submittedAt: "2026-03-04T20:15:00", grade: 85 },
-      { id: 2, studentName: "Bunga", status: "late", submittedAt: "2026-03-06T08:00:00", grade: 70 },
-      { id: 999, studentName: "Anda", status: "returned", submittedAt: "2026-03-04T21:00:00", grade: 90, uploadedFiles: [{ name: "Latihan_Matematika.pdf", type: "pdf" }] },
-    ],
-    comments: [
-      { id: 1, author: "Guru", text: "Kerja bagus, perhatikan lagi rumus nomor 7.", time: "1 hari yang lalu" },
-      { id: 2, author: "Ahmad", text: "Baik Pak, terima kasih koreksinya.", time: "10 jam yang lalu" }
-    ]
-  },
-  {
-    id: "a3",
-    title: "Proyek Kelompok Biologi",
-    type: "group",
-    description: "Kumpulkan laporan hasil pengamatan pertumbuhan kecambah. Cukup satu perwakilan kelompok yang mengumpulkan.",
-    dueDate: "2026-03-15T08:00:00",
-    status: "assigned",
-    grade: null,
-    maxGrade: 100,
-    attachments: [
-      { id: 1, name: "Format_Laporan.docx", type: "doc", url: "#" }
-    ],
-    studentSubmissions: [
-      { id: 999, studentName: "Anda", status: "assigned", submittedAt: null, grade: null, uploadedFiles: [] }
-    ],
-    comments: []
-  }
-];
+// Mock data has been removed and replaced with real backend integration via useAssignments hook.
 
 export function Assignments() {
-  const { role } = useAuth();
+  const { role, tenantId, user } = useAuth();
   const { addEvent } = useCalendar();
   const { addNotification } = useNotifications();
   const { addAssignment: addGradebookAssignment, getStudentGrade } = useGradebook();
   const { addComment, getComments, setInitialComments } = useComments();
 
-  const [assignments, setAssignments] = useState(mockAssignments);
+  const { assignments, loading, setAssignments, refetch } = useAssignments();
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -117,28 +60,59 @@ export function Assignments() {
 
   const activeAssignment = assignments.find(a => a.id === selectedAssignment);
 
-  const filteredAssignments = assignments.filter(a => {
+  // Use type guard to ensure assignments is defined before filtering
+  const filteredAssignments = (assignments || []).filter((a) => {
     const matchesSearch = a.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filter === "all" || a.status === filter;
+    const matchesStatus = filter === "all" || 
+      a.status === filter ||
+      (filter === "submitted" && (a.status as string) === "turned_in") ||
+      (filter === "graded" && (a.status as string) === "returned") ||
+      (filter === "turned_in" && a.status === "submitted") ||
+      (filter === "returned" && a.status === "graded");
     const matchesType = typeFilter === "all" || a.type === typeFilter;
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  const handleTurnIn = (id: string) => {
-    setAssignments(assignments.map(a => {
-      if (a.id === id) {
-        return {
-          ...a,
-          status: "turned_in",
-          studentSubmissions: a.studentSubmissions.map(s =>
-            s.studentName === 'Anda'
-              ? { ...s, status: "turned_in", submittedAt: new Date().toISOString(), uploadedFiles: [{ name: "Tugas_Saya.pdf", type: "pdf" }] }
-              : s
-          )
-        };
-      }
-      return a;
-    }));
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
+      </div>
+    );
+  }
+
+  const handleTurnIn = async (id: string) => {
+    if (!tenantId || !user) return;
+
+    try {
+      // call assignmentService.submitAssignment
+      await assignmentService.submitAssignment({
+        tenant_id: tenantId,
+        assignment_id: id,
+        student_id: user.id,
+        submission_text: null,
+        file_url: null,
+        attempt_number: 1,
+      });
+
+      setAssignments(assignments.map(a => {
+        if (a.id === id) {
+          return {
+            ...a,
+            status: "submitted",
+            studentSubmissions: (a.studentSubmissions || []).map(s =>
+              s.studentName === 'Anda' || s.studentName === 'Siswa' || s.studentName === user.user_metadata?.full_name
+                ? { ...s, status: "submitted", submittedAt: new Date().toISOString(), uploadedFiles: [{ id: "1", name: "Tugas_Saya.pdf", type: "pdf", url: "" }] }
+                : s
+            )
+          };
+        }
+        return a;
+      }));
+    } catch (error) {
+      console.error("Failed to turn in assignment", error);
+      alert("Gagal menyerahkan tugas.");
+    }
   };
 
   const handleUnsubmit = (id: string) => {
@@ -147,7 +121,7 @@ export function Assignments() {
         return {
           ...a,
           status: "assigned",
-          studentSubmissions: a.studentSubmissions.map(s =>
+          studentSubmissions: (a.studentSubmissions || []).map(s =>
             s.studentName === 'Anda'
               ? { ...s, status: "assigned", submittedAt: null, uploadedFiles: [] }
               : s
@@ -176,19 +150,21 @@ export function Assignments() {
       type: newAssignment.type,
       description: newAssignment.description,
       dueDate: newAssignment.dueDate,
-      status: "assigned",
+      status: "assigned" as const,
       grade: null,
+      submittedAt: null,
       maxGrade: newAssignment.maxGrade,
+      rawSubmissions: [],
       attachments: [],
       studentSubmissions: [
-        { id: 1, studentName: "Ahmad", status: "assigned", submittedAt: null, grade: null, uploadedFiles: [] },
-        { id: 2, studentName: "Bunga", status: "assigned", submittedAt: null, grade: null, uploadedFiles: [] },
-        { id: 999, studentName: "Anda", status: "assigned", submittedAt: null, grade: null, uploadedFiles: [] }
+        { id: 1, studentName: "Ahmad", status: "assigned" as const, submittedAt: null, grade: null, uploadedFiles: [] },
+        { id: 2, studentName: "Bunga", status: "assigned" as const, submittedAt: null, grade: null, uploadedFiles: [] },
+        { id: 999, studentName: "Anda", status: "assigned" as const, submittedAt: null, grade: null, uploadedFiles: [] }
       ],
       comments: []
     };
 
-    setAssignments([assignmentToAdd, ...assignments]);
+    setAssignments([assignmentToAdd as unknown as AssignmentUiState, ...assignments]);
 
     // INTEGRATION: Add to Calendar
     const dueDateObj = new Date(newAssignment.dueDate);
@@ -234,8 +210,10 @@ export function Assignments() {
     switch (status) {
       case 'assigned':
         return <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">Ditugaskan</span>;
+      case 'submitted':
       case 'turned_in':
         return <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Diserahkan</span>;
+      case 'graded':
       case 'returned':
         return <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Dinilai</span>;
       case 'late':
@@ -300,8 +278,8 @@ export function Assignments() {
                 >
                   <option value="all">Semua Status</option>
                   <option value="assigned">Ditugaskan</option>
-                  <option value="turned_in">Diserahkan</option>
-                  <option value="returned">Dinilai</option>
+                  <option value="submitted">Diserahkan</option>
+                  <option value="graded">Dinilai</option>
                   <option value="late">Terlambat</option>
                 </select>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -355,11 +333,11 @@ export function Assignments() {
                 </div>
                 <div className={cn(
                   "flex items-center gap-2 text-xs font-medium",
-                  new Date(assignment.dueDate) < new Date() && assignment.status !== 'turned_in' ? "text-red-600" : "text-slate-500"
+                  new Date(assignment.dueDate) < new Date() && assignment.status !== 'submitted' && assignment.status !== 'graded' ? "text-red-600" : "text-slate-500"
                 )}>
                   <Clock className="w-3.5 h-3.5" />
                   Tenggat: {new Date(assignment.dueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                  {new Date(assignment.dueDate) < new Date() && assignment.status !== 'turned_in' && (
+                  {new Date(assignment.dueDate) < new Date() && assignment.status !== 'submitted' && assignment.status !== 'graded' && (
                     <span className="ml-1 px-1.5 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded-full">LATE</span>
                   )}
                 </div>
@@ -406,7 +384,7 @@ export function Assignments() {
                 <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{activeAssignment.description}</p>
 
                 {/* Teacher Attachments */}
-                {activeAssignment.attachments.length > 0 && (
+                {(activeAssignment.attachments || []).length > 0 && (
                   <div className="mt-6">
                     <h4 className="text-sm font-bold text-slate-700 mb-3">Lampiran Guru:</h4>
                     <div className="flex flex-wrap gap-3">
@@ -458,14 +436,14 @@ export function Assignments() {
 
                           {/* Student Attachments Area */}
                           <div className="space-y-3 mb-6">
-                            {activeAssignment.status === 'assigned' ? (
+                            {activeAssignment.status === 'assigned' || activeAssignment.status === 'late' ? (
                               <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:bg-slate-50 transition-colors">
                                 <UploadCloud className="w-8 h-8 text-slate-400 mx-auto mb-2" />
                                 <p className="text-sm font-bold text-slate-700">Belum ada file yang dilampirkan</p>
                                 <p className="text-xs text-slate-500 mt-1">Tambahkan file untuk diserahkan</p>
                               </div>
                             ) : (
-                              ((activeAssignment.studentSubmissions.find(s => s.studentName === 'Anda') as any)?.uploadedFiles || []).map((file: any, idx: number) => (
+                              (((activeAssignment.studentSubmissions || []).find((s: any) => s.studentName === 'Anda' || s.studentName === 'Siswa') as any)?.uploadedFiles || []).map((file: any, idx: number) => (
                                 <div key={idx} className="flex items-center justify-between p-3 bg-blue-50 border border-blue-100 rounded-xl">
                                   <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-blue-600 shadow-sm">
@@ -485,7 +463,7 @@ export function Assignments() {
                           </div>
 
                           {/* Action Buttons */}
-                          {activeAssignment.status === 'assigned' ? (
+                          {activeAssignment.status === 'assigned' || activeAssignment.status === 'late' ? (
                             <div className="space-y-3">
                               <div className="grid grid-cols-2 gap-2">
                                 <button className="flex items-center justify-center gap-2 p-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
@@ -523,11 +501,11 @@ export function Assignments() {
                           <div className="flex items-center justify-between mb-6">
                             <h3 className="font-bold text-slate-900 text-lg">Status Pengumpulan</h3>
                             <div className="text-sm font-bold text-slate-500">
-                              {activeAssignment.studentSubmissions.filter(s => s.status === 'turned_in' || s.status === 'returned').length} / {activeAssignment.studentSubmissions.length} Diserahkan
+                              {(activeAssignment.studentSubmissions || []).filter((s: any) => s.status === 'submitted' || s.status === 'graded').length} / {(activeAssignment.studentSubmissions || []).length} Diserahkan
                             </div>
                           </div>
                           <div className="space-y-3">
-                            {activeAssignment.studentSubmissions.map(sub => {
+                            {(activeAssignment.studentSubmissions || []).map((sub: any) => {
                               const gradeEntry = getStudentGrade(sub.id, activeAssignment.id);
                               const displayGrade = gradeEntry?.score !== null ? gradeEntry?.score : sub.grade;
                               const isGraded = displayGrade !== null && displayGrade !== undefined;
@@ -540,12 +518,12 @@ export function Assignments() {
                                     </div>
                                     <div>
                                       <p className="text-sm font-bold text-slate-800">{sub.studentName}</p>
-                                      <p className="text-xs text-slate-500">{sub.status === 'assigned' ? 'Belum diserahkan' : sub.status === 'turned_in' ? 'Diserahkan' : 'Dinilai'}</p>
+                                      <p className="text-xs text-slate-500">{sub.status === 'assigned' ? 'Belum diserahkan' : sub.status === 'submitted' ? 'Diserahkan' : 'Dinilai'}</p>
                                     </div>
                                   </div>
                                   {isGraded ? (
                                     <span className="font-bold text-emerald-600">{displayGrade}/100</span>
-                                  ) : sub.status === 'turned_in' ? (
+                                  ) : sub.status === 'submitted' ? (
                                     <Link
                                       to={`/grader?assignmentId=${activeAssignment.id}&studentId=${sub.id}`}
                                       className="text-xs font-bold text-blue-600 hover:underline"

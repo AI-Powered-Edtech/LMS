@@ -33,11 +33,13 @@ import { navigationItems } from "@/src/config/navigation";
 import { HubView } from "@/src/components/HubView";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useStudentProgress } from "@/src/contexts/StudentProgressContext";
+import { useAssignments } from "@/src/features/assignments/hooks/useAssignments";
 
 export function Dashboard() {
   console.log('[Dashboard] Rendering started');
   const { role } = useAuth();
-  const { xp, dailyGoal, achievements, assignments, addXP } = useStudentProgress();
+  const { xp, dailyGoal, achievements, addXP } = useStudentProgress();
+  const { assignments, loading: assignmentsLoading } = useAssignments();
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [showQuizHistory, setShowQuizHistory] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
@@ -167,24 +169,30 @@ export function Dashboard() {
               <Link to="/assignments" className="text-sm font-bold text-blue-600 hover:text-blue-700">Lihat Semua</Link>
             </div>
             <div className="space-y-3 flex-1">
-              {assignments.slice(0, 3).map((task, idx) => (
-                <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => navigate('/assignments')}>
-                  <div className={cn("w-3 h-3 rounded-full shrink-0", task.urgent ? "bg-red-500 animate-pulse" : "bg-yellow-400")} />
+              {assignmentsLoading ? (
+                <div className="flex items-center justify-center p-4">
+                  <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : (assignments || []).slice(0, 3).filter(a => a.status === 'assigned' || a.status === 'late').map((task) => (
+                <div key={task.id} className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => navigate('/assignments')}>
+                  <div className={cn("w-3 h-3 rounded-full shrink-0", task.status === 'late' ? "bg-red-500 animate-pulse" : "bg-yellow-400")} />
                   <div className="flex-1">
                     <h3 className="font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{task.title}</h3>
                     <div className="flex items-center gap-2 mt-1 mb-2">
                       <span className="text-xs font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-600">{task.type}</span>
-                      <span className={cn("text-xs font-bold", task.urgent ? "text-red-600" : "text-slate-500")}>
-                        {task.dueDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      <span className={cn("text-xs font-bold", task.status === 'late' ? "text-red-600" : "text-slate-500")}>
+                        {new Date(task.dueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </span>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-1.5">
-                      <div className={cn("h-1.5 rounded-full", task.urgent ? "bg-red-500" : "bg-blue-500")} style={{ width: `${task.progress}%` }} />
                     </div>
                   </div>
                   <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors" />
                 </div>
               ))}
+              {!assignmentsLoading && assignments.filter(a => a.status === 'assigned' || a.status === 'late').length === 0 && (
+                <div className="text-center p-4 text-slate-500 text-sm">
+                  Tidak ada tugas yang mendekati deadline.
+                </div>
+              )}
             </div>
           </div>
         </div>
