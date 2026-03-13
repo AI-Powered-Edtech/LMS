@@ -256,9 +256,10 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
 
     // ─── Course Actions ───────────────────────
     const loadCourse = useCallback(async (courseId: string) => {
+        if (!tenantId) return;
         dispatch({ type: 'LOAD_COURSE_START' });
         try {
-            const { course, modules } = await builderCourseService.fetchCourseStructure(courseId);
+            const { course, modules } = await builderCourseService.fetchCourseStructure(courseId, tenantId);
             dispatch({
                 type: 'LOAD_COURSE_SUCCESS',
                 course,
@@ -267,7 +268,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
         } catch (err: unknown) {
             dispatch({ type: 'LOAD_COURSE_ERROR', error: (err as Error).message });
         }
-    }, []);
+    }, [tenantId]);
 
     const publishCourse = async () => {
         if (!state.courseId || !tenantId) return;
@@ -286,7 +287,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
 
         dispatch({ type: 'SET_SAVING', status: 'saving' });
         try {
-            await builderCourseService.publishCourse(state.courseId);
+            await builderCourseService.publishCourse(state.courseId, tenantId);
             dispatch({ type: 'SET_COURSE_STATUS', status: 'published' });
             dispatch({ type: 'SET_SAVING', status: 'saved' });
             toast("Kursus berhasil dipublish", 'success');
@@ -297,15 +298,15 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
         }
     };
     const draftCourse = useCallback(async () => {
-        if (!state.courseId) return;
+        if (!state.courseId || !tenantId) return;
         dispatch({ type: 'SET_SAVING', status: 'saving' });
         try {
-            await builderCourseService.draftCourse(state.courseId);
+            await builderCourseService.draftCourse(state.courseId, tenantId);
             dispatch({ type: 'SET_SAVING', status: 'saved' });
         } catch {
             dispatch({ type: 'SET_SAVING', status: 'error' });
         }
-    }, [state.courseId]);
+    }, [state.courseId, tenantId]);
 
     // ─── Module Actions ───────────────────────
     const addModule = useCallback(async (title: string) => {
@@ -315,23 +316,25 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     }, [state.courseId, tenantId]);
 
     const updateModule = useCallback(async (moduleId: string, data: { title?: string; description?: string }) => {
+        if (!tenantId) return;
         dispatch({ type: 'UPDATE_MODULE', moduleId, data });
         dispatch({ type: 'SET_SAVING', status: 'saving' });
         try {
-            await builderModuleService.updateModule(moduleId, data);
+            await builderModuleService.updateModule(moduleId, tenantId, data);
             dispatch({ type: 'SET_SAVING', status: 'saved' });
         } catch {
             dispatch({ type: 'SET_SAVING', status: 'error' });
         }
-    }, []);
+    }, [tenantId]);
 
     const deleteModule = useCallback(async (moduleId: string) => {
+        if (!tenantId) return;
         dispatch({ type: 'DELETE_MODULE', moduleId });
-        await builderModuleService.deleteModule(moduleId);
-    }, []);
+        await builderModuleService.deleteModule(moduleId, tenantId);
+    }, [tenantId]);
 
     const reorderModules = useCallback(async (moduleIds: string[]) => {
-        if (!state.courseId) return;
+        if (!state.courseId || !tenantId) return;
 
         const previousModules = state.modules; // Save for explicit rollback
 
@@ -343,13 +346,13 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'SET_MODULES', modules: reordered });
 
         try {
-            await builderModuleService.reorderModules(state.courseId, moduleIds);
+            await builderModuleService.reorderModules(state.courseId, moduleIds, tenantId);
         } catch (error: any) {
             console.error("Failed to reorder modules", error);
             dispatch({ type: 'SET_MODULES', modules: previousModules }); // Rollback
             toast("Gagal mengubah urutan modul: " + error.message, "error");
         }
-    }, [state.modules, state.courseId, toast]);
+    }, [state.modules, state.courseId, tenantId, toast]);
 
     // ─── Lesson Actions ───────────────────────
     const addLesson = useCallback(async (moduleId: string, type: string, title: string) => {
@@ -359,20 +362,22 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     }, [tenantId]);
 
     const updateLessonAction = useCallback(async (lessonId: string, data: Partial<DomainLesson>) => {
+        if (!tenantId) return;
         dispatch({ type: 'UPDATE_LESSON', lessonId, data });
         dispatch({ type: 'SET_SAVING', status: 'saving' });
         try {
-            await builderLessonService.updateLesson(lessonId, data);
+            await builderLessonService.updateLesson(lessonId, tenantId, data);
             dispatch({ type: 'SET_SAVING', status: 'saved' });
         } catch {
             dispatch({ type: 'SET_SAVING', status: 'error' });
         }
-    }, []);
+    }, [tenantId]);
 
     const deleteLesson = useCallback(async (lessonId: string) => {
+        if (!tenantId) return;
         dispatch({ type: 'DELETE_LESSON', lessonId });
-        await builderLessonService.deleteLesson(lessonId);
-    }, []);
+        await builderLessonService.deleteLesson(lessonId, tenantId);
+    }, [tenantId]);
 
     const reorderLessons = useCallback(async (lessonIds: string[]) => {
         const previousModules = state.modules; // Save for explicit rollback
@@ -395,27 +400,28 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
 
         // Find module ID
         const targetMod = state.modules.find(m => m.lessons.some(l => lessonIds.includes(l.id)));
-        if (targetMod) {
+        if (targetMod && tenantId) {
             try {
-                await builderLessonService.reorderLessons(targetMod.id, lessonIds);
+                await builderLessonService.reorderLessons(targetMod.id, lessonIds, tenantId);
             } catch (error: any) {
                 console.error("Failed to reorder lessons", error);
                 dispatch({ type: 'SET_MODULES', modules: previousModules }); // Rollback
                 toast("Gagal mengubah urutan materi: " + error.message, "error");
             }
         }
-    }, [state.modules, toast]);
+    }, [state.modules, tenantId, toast]);
 
     // ─── Lesson Selection (Staged Load) ───────
     const selectLesson = useCallback(async (lessonId: string) => {
+        if (!tenantId) return;
         dispatch({ type: 'LOAD_BLOCKS_START' });
         try {
-            const blocks = await builderBlockService.fetchLessonBlocks(lessonId);
+            const blocks = await builderBlockService.fetchLessonBlocks(lessonId, tenantId);
             dispatch({ type: 'LOAD_BLOCKS_SUCCESS', lessonId, blocks });
         } catch (err) {
             console.error('Failed to load blocks:', err);
         }
-    }, []);
+    }, [tenantId]);
 
     const closeLesson = useCallback(() => {
         dispatch({ type: 'CLOSE_LESSON' });
@@ -429,6 +435,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     }, [state.activeLesson, tenantId]);
 
     const updateBlock = useCallback((blockId: string, data: Partial<DomainBlock>) => {
+        if (!tenantId) return;
         // Optimistic update immediately
         dispatch({ type: 'UPDATE_BLOCK', blockId, data });
 
@@ -439,7 +446,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
         const timer = setTimeout(async () => {
             dispatch({ type: 'SET_SAVING', status: 'saving' });
             try {
-                await builderBlockService.updateBlock(blockId, data);
+                await builderBlockService.updateBlock(blockId, tenantId, data);
                 dispatch({ type: 'SET_SAVING', status: 'saved' });
             } catch {
                 dispatch({ type: 'SET_SAVING', status: 'error' });
@@ -448,9 +455,10 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
         }, 2000);
 
         saveTimerRef.current.set(blockId, timer);
-    }, []);
+    }, [tenantId]);
 
     const saveBlock = useCallback(async (blockId: string) => {
+        if (!tenantId) return;
         // Force immediate save (flush debounce)
         const existing = saveTimerRef.current.get(blockId);
         if (existing) clearTimeout(existing);
@@ -461,7 +469,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
 
         dispatch({ type: 'SET_SAVING', status: 'saving' });
         try {
-            await builderBlockService.updateBlock(blockId, {
+            await builderBlockService.updateBlock(blockId, tenantId, {
                 content: block.content,
                 url: block.url,
                 title: block.title,
@@ -471,12 +479,13 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
         } catch {
             dispatch({ type: 'SET_SAVING', status: 'error' });
         }
-    }, [state.activeLesson]);
+    }, [state.activeLesson, tenantId]);
 
     const deleteBlock = useCallback(async (blockId: string) => {
+        if (!tenantId) return;
         dispatch({ type: 'DELETE_BLOCK', blockId });
-        await builderBlockService.deleteBlock(blockId);
-    }, []);
+        await builderBlockService.deleteBlock(blockId, tenantId);
+    }, [tenantId]);
 
     const reorderBlocks = useCallback(async (blockIds: string[]) => {
         if (!state.activeLesson) return;
@@ -490,13 +499,13 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'SET_BLOCKS', blocks: reordered as DomainBlock[] });
 
         try {
-            await builderBlockService.reorderBlocks(state.activeLesson.id, blockIds);
+            await builderBlockService.reorderBlocks(state.activeLesson.id, blockIds, tenantId);
         } catch (error: any) {
             console.error("Failed to reorder blocks", error);
             dispatch({ type: 'SET_BLOCKS', blocks: previousBlocks }); // Rollback
             toast("Gagal mengubah urutan konten: " + error.message, "error");
         }
-    }, [state.activeLesson, toast]);
+    }, [state.activeLesson, tenantId, toast]);
 
     const selectBlock = useCallback((blockId: string | null) => {
         dispatch({ type: 'SET_ACTIVE_BLOCK', blockId });

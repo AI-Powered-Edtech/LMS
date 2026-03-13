@@ -129,7 +129,7 @@ export function VideoViewer({
     }, [isStalled]);
 
     return (
-        <div className="w-full h-full overflow-y-auto custom-scrollbar flex flex-col lg:flex-row md:gap-6 max-w-[1400px] mx-auto p-6 md:p-10">
+        <div className="w-full h-full overflow-y-auto custom-scrollbar flex flex-col lg:flex-row md:gap-8 max-w-[1400px] mx-auto p-6 md:p-10">
             {/* Empty State */}
             {!videoUrl ? (
                 <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 border border-slate-200 rounded-2xl p-8 text-center min-h-[400px]">
@@ -159,7 +159,7 @@ export function VideoViewer({
             ) : (
                 /* Video Player */
                 <div className="flex-1 flex flex-col min-w-0">
-                    <div className="aspect-video bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-200 relative group">
+                    <div className="aspect-video bg-slate-900 rounded-2xl overflow-hidden shadow-xl border border-slate-200/50 relative group">
                         <video
                             ref={videoRef}
                             src={videoUrl}
@@ -199,7 +199,7 @@ export function VideoViewer({
                         )}
                     </div>
 
-                    <div className="mt-6 bg-white p-6 rounded-2xl border border-slate-200 w-full mb-6 lg:mb-0">
+                    <div className="mt-6 bg-gradient-to-r from-white to-slate-50/50 p-6 rounded-2xl border border-slate-100 w-full mb-6 lg:mb-0 shadow-sm">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="font-bold text-slate-800 text-base">Tentang Video Ini</h3>
                             <button className="hidden sm:flex items-center gap-2 text-blue-600 bg-blue-50 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors">

@@ -10,7 +10,8 @@ export const builderLessonService = {
         const { count } = await supabase
             .from('lessons')
             .select('id', { count: 'exact', head: true })
-            .eq('module_id', moduleId);
+            .eq('module_id', moduleId)
+            .eq('tenant_id', tenantId);
 
         const { data, error } = await supabase
             .from('lessons')
@@ -29,7 +30,7 @@ export const builderLessonService = {
         return mapLesson(data);
     },
 
-    async updateLesson(lessonId: string, data: Partial<DomainLesson>): Promise<void> {
+    async updateLesson(lessonId: string, tenantId: string, data: Partial<DomainLesson>): Promise<void> {
         // Map Domain model fields back to database columns if needed
         const dbUpdate: any = {};
         if (data.title !== undefined) dbUpdate.title = data.title;
@@ -39,23 +40,26 @@ export const builderLessonService = {
         const { error } = await supabase
             .from('lessons')
             .update(dbUpdate)
-            .eq('id', lessonId);
+            .eq('id', lessonId)
+            .eq('tenant_id', tenantId);
 
         if (error) throw new Error(error.message);
     },
 
-    async deleteLesson(lessonId: string): Promise<void> {
+    async deleteLesson(lessonId: string, tenantId: string): Promise<void> {
         const { error } = await supabase
             .from('lessons')
             .delete()
-            .eq('id', lessonId);
+            .eq('id', lessonId)
+            .eq('tenant_id', tenantId);
         if (error) throw new Error(error.message);
     },
 
-    async reorderLessons(moduleId: string, lessonIds: string[]): Promise<void> {
+    async reorderLessons(moduleId: string, lessonIds: string[], tenantId: string): Promise<void> {
         const { error } = await supabase.rpc('rpc_reorder_module_lessons', {
             p_module_id: moduleId,
-            p_lesson_ids: lessonIds
+            p_lesson_ids: lessonIds,
+            p_tenant_id: tenantId
         });
 
         if (error) throw new Error(error.message);

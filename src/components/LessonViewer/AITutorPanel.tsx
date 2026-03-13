@@ -9,6 +9,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Sparkles, Bot, User, Lightbulb, X, MessageSquare } from "lucide-react";
 import { cn } from "@/src/utils/cn";
+import { useAuth } from "@/src/contexts/AuthContext";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -45,6 +46,7 @@ export function AITutorPanel({
   initialDifficulty = "not_started",
   onClose,
 }: AITutorPanelProps) {
+  const { tenantId } = useAuth();
   // State
   const [messages, setMessages] = useState<AITutorMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -88,7 +90,7 @@ export function AITutorPanel({
     setIsLoading(true);
 
     try {
-      const result = await askTutor(lessonId, question, sessionId);
+      const result = await askTutor(lessonId, question, tenantId!, sessionId);
 
       if (result.error) {
         setError(result.error);
@@ -162,7 +164,7 @@ export function AITutorPanel({
   return (
     <div className="flex flex-col h-full bg-slate-50/50">
       {/* Header */}
-      <div className="bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between shrink-0">
+      <div className="bg-gradient-to-r from-white to-violet-50/30 border-b border-slate-100 px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
             <Sparkles className="w-5 h-5 text-white" />
@@ -246,10 +248,10 @@ export function AITutorPanel({
               {/* Message Bubble */}
               <div
                 className={cn(
-                  "max-w-[80%] px-4 py-3 rounded-2xl",
+                  "max-w-[80%] px-4 py-3 rounded-2xl shadow-sm",
                   message.role === "user"
                     ? "bg-blue-600 text-white rounded-tr-md"
-                    : "bg-white border border-slate-200 text-slate-700 rounded-tl-md"
+                    : "bg-gradient-to-br from-white to-slate-50/50 border border-slate-200/80 text-slate-700 rounded-tl-md"
                 )}
               >
                 <div className={cn(

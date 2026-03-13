@@ -38,9 +38,9 @@ export function LessonSidebar({ moduleTitle, lessons, progress, activeLessonId, 
     });
 
     return (
-        <aside className="w-full lg:w-80 bg-white border border-slate-200 rounded-3xl flex flex-col shrink-0 h-[50vh] lg:h-full overflow-hidden shadow-sm z-20">
+        <aside className="w-full lg:w-80 bg-white border border-slate-200/70 rounded-2xl flex flex-col shrink-0 h-[50vh] lg:h-full overflow-hidden shadow-lg shadow-slate-200/50 z-20">
             {/* Header */}
-            <div className="p-6 bg-white border-b border-slate-100 z-10 shrink-0">
+            <div className="p-5 bg-gradient-to-r from-white to-blue-50/30 border-b border-slate-100 z-10 shrink-0">
                 {onBack && (
                     <button
                         onClick={onBack}
@@ -52,9 +52,9 @@ export function LessonSidebar({ moduleTitle, lessons, progress, activeLessonId, 
                 )}
                 <h2 className="font-bold text-slate-900 text-lg mb-3 leading-snug">{moduleTitle || "Daftar Pelajaran"}</h2>
                 <div className="flex items-center gap-3">
-                    <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                         <div
-                            className="h-full bg-green-500 rounded-full transition-all duration-500"
+                            className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-500"
                             style={{ width: `${lessons.length > 0 ? (completedCount / lessons.length) * 100 : 0}%` }}
                         />
                     </div>
@@ -91,8 +91,8 @@ export function LessonSidebar({ moduleTitle, lessons, progress, activeLessonId, 
                                         className={cn(
                                             "w-full text-left p-4 rounded-xl transition-all flex items-start gap-4 group border outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
                                             isActive
-                                                ? "bg-blue-50/50 border-blue-200 shadow-sm"
-                                                : "bg-white border-slate-200 hover:border-slate-300 hover:shadow-sm"
+                                                ? "bg-blue-50 border-blue-200/80 shadow-md shadow-blue-100/50 ring-1 ring-blue-100"
+                                                : "bg-white border-slate-100 hover:border-slate-200 hover:shadow-sm"
                                         )}
                                     >
                                         {/* Status Icon */}

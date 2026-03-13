@@ -6,11 +6,12 @@ import { mapBlock } from '../../domain/block/mappers';
  * Block Service for Course Builder (refactored)
  */
 export const builderBlockService = {
-    async fetchLessonBlocks(lessonId: string): Promise<DomainBlock[]> {
+    async fetchLessonBlocks(lessonId: string, tenantId: string): Promise<DomainBlock[]> {
         const { data, error } = await supabase
             .from('lesson_resources')
             .select('*')
             .eq('lesson_id', lessonId)
+            .eq('tenant_id', tenantId)
             .order('order_index', { ascending: true });
 
         if (error) throw new Error(error.message);
@@ -21,7 +22,8 @@ export const builderBlockService = {
         const { count } = await supabase
             .from('lesson_resources')
             .select('id', { count: 'exact', head: true })
-            .eq('lesson_id', lessonId);
+            .eq('lesson_id', lessonId)
+            .eq('tenant_id', tenantId);
 
         const { data, error } = await supabase
             .from('lesson_resources')
@@ -38,7 +40,7 @@ export const builderBlockService = {
         return mapBlock(data);
     },
 
-    async updateBlock(blockId: string, data: Partial<DomainBlock>): Promise<void> {
+    async updateBlock(blockId: string, tenantId: string, data: Partial<DomainBlock>): Promise<void> {
         const dbUpdate: any = {};
         if (data.title !== undefined) dbUpdate.title = data.title;
         if (data.url !== undefined) dbUpdate.url = data.url;
@@ -49,25 +51,28 @@ export const builderBlockService = {
         const { error } = await supabase
             .from('lesson_resources')
             .update(dbUpdate)
-            .eq('id', blockId);
+            .eq('id', blockId)
+            .eq('tenant_id', tenantId);
 
         if (error) throw new Error(error.message);
     },
 
-    async deleteBlock(blockId: string): Promise<void> {
+    async deleteBlock(blockId: string, tenantId: string): Promise<void> {
         const { error } = await supabase
             .from('lesson_resources')
             .delete()
-            .eq('id', blockId);
+            .eq('id', blockId)
+            .eq('tenant_id', tenantId);
 
         if (error) throw new Error(error.message);
     },
 
-    async reorderBlocks(lessonId: string, blockIds: string[]): Promise<void> {
+    async reorderBlocks(lessonId: string, blockIds: string[], tenantId: string): Promise<void> {
         // Optimized RPC call using WITH ORDINALITY
         const { error } = await supabase.rpc('rpc_reorder_lesson_resources', {
             p_lesson_id: lessonId,
-            p_resource_ids: blockIds
+            p_resource_ids: blockIds,
+            p_tenant_id: tenantId
         });
 
         if (error) throw new Error(error.message);

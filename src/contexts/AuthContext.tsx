@@ -156,6 +156,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    // 🛡️ Mock Authentication Fallback for Demo Accounts
+    const demoPassword = import.meta.env.VITE_DEMO_PASSWORD;
+    if (email.startsWith('demo.') && password === demoPassword) {
+      console.log('[AuthContext] Demo login detected, using mock fallback');
+      
+      const rolePart = email.split('.')[1]?.split('@')[0] || 'student';
+      const role: Role = (['admin', 'teacher', 'student'].includes(rolePart) ? rolePart : 'student') as Role;
+
+      // Create a stable mock user object
+      const mockUser = {
+        id: 'd0000000-0000-0000-0000-000000000000',
+        email,
+        role: 'authenticated',
+        aud: 'authenticated',
+        app_metadata: {},
+        user_metadata: {},
+        created_at: new Date().toISOString(),
+      } as any as User;
+
+      const mockProfile: Profile = {
+        id: mockUser.id,
+        email,
+        first_name: 'Demo',
+        last_name: role.charAt(0).toUpperCase() + role.slice(1),
+        avatar_url: null,
+        tenant_id: 'd0000000-0000-0000-0000-000000000001',
+        is_demo: true
+      };
+
+      const mockSession = {
+        access_token: 'demo-access-token',
+        refresh_token: 'demo-refresh-token',
+        expires_in: 3600,
+        token_type: 'bearer',
+        user: mockUser,
+      } as any as Session;
+
+      // Update state to bypass need for actual Supabase backend data
+      setSession(mockSession);
+      setUser(mockUser);
+      setProfile(mockProfile);
+      setTenantId(mockProfile.tenant_id);
+      setRoles([role]);
+      setLoading(false);
+
+      return { error: null };
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error: error as Error | null };
   };

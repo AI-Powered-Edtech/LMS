@@ -37,10 +37,10 @@ export function BuilderSidebar() {
 
     const getLessonIcon = (type: string) => {
         switch (type?.toLowerCase()) {
-            case 'video': return <Video className="w-3.5 h-3.5 text-blue-500" />;
-            case 'article': return <FileText className="w-3.5 h-3.5 text-emerald-500" />;
-            case 'quiz': return <HelpCircle className="w-3.5 h-3.5 text-purple-500" />;
-            default: return <FileText className="w-3.5 h-3.5 text-slate-400" />;
+            case 'video': return <Video className="w-4 h-4 text-blue-500" />;
+            case 'article': return <FileText className="w-4 h-4 text-indigo-500" />;
+            case 'quiz': return <HelpCircle className="w-4 h-4 text-rose-500" />;
+            default: return <FileText className="w-4 h-4 text-slate-400" />;
         }
     };
 
@@ -81,13 +81,16 @@ export function BuilderSidebar() {
     };
 
     return (
-        <div className="w-[340px] bg-white border-r border-slate-200 flex flex-col h-full shrink-0 relative z-10 shadow-[1px_0_15px_rgba(0,0,0,0.03)]">
+        <div className="w-[340px] bg-slate-50/30 border-r border-slate-200/60 flex flex-col h-full shrink-0 relative z-10 backdrop-blur-xl">
             {/* Header */}
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Susunan Materi</span>
+            <div className="px-6 py-5 border-b border-slate-200/50 flex items-center justify-between bg-white/50">
+                <div>
+                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-0.5">Struktur Kursus</span>
+                   <span className="text-sm font-bold text-slate-800">Kurikulum Materi</span>
+                </div>
                 <button
                     onClick={handleAddModule}
-                    className="p-1.5 bg-white border border-slate-200 shadow-sm hover:bg-blue-50 text-blue-600 rounded-lg transition-all"
+                    className="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-md shadow-indigo-100 hover:scale-105 active:scale-95"
                     title="Tambah Modul"
                 >
                     <Plus className="w-4 h-4" />
@@ -134,8 +137,9 @@ export function BuilderSidebar() {
                                                     {/* Module Header */}
                                                     <div
                                                         className={cn(
-                                                            'flex items-center gap-1 px-2 py-2 rounded-lg cursor-pointer group',
-                                                            'hover:bg-slate-50 transition-colors'
+                                                            'flex items-center gap-2 px-3 py-3 rounded-xl cursor-pointer group',
+                                                            'hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-slate-200/50',
+                                                            expandedModules.has(mod.id) && 'bg-white shadow-sm border-slate-200/50 mb-1'
                                                         )}
                                                         onClick={() => toggleModule(mod.id)}
                                                     >
@@ -192,25 +196,36 @@ export function BuilderSidebar() {
                                                                                             {...lesDragProvided.dragHandleProps}
                                                                                             onClick={() => actions.selectLesson(lesson.id)}
                                                                                             className={cn(
-                                                                                                'flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer group/lesson transition-colors text-xs',
+                                                                                                'flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer group/lesson transition-all text-xs border border-transparent mb-1',
                                                                                                 state.activeLesson?.id === lesson.id
-                                                                                                    ? 'bg-blue-50 text-blue-700 font-bold'
-                                                                                                    : 'text-slate-600 hover:bg-slate-50',
-                                                                                                lesSnapshot.isDragging && 'shadow-md ring-1 ring-blue-200 bg-white'
+                                                                                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100 font-bold'
+                                                                                                    : 'text-slate-600 hover:bg-white hover:border-slate-100',
+                                                                                                lesSnapshot.isDragging && 'shadow-xl ring-2 ring-indigo-500 bg-white scale-105 z-50'
                                                                                             )}
                                                                                         >
-                                                                                            {getLessonIcon(lesson.type)}
+                                                                                            <div className={cn(
+                                                                                                "p-1.5 rounded-lg transition-colors",
+                                                                                                state.activeLesson?.id === lesson.id ? "bg-white/20" : "bg-slate-100 group-hover/lesson:bg-white"
+                                                                                            )}>
+                                                                                                {getLessonIcon(lesson.type)}
+                                                                                            </div>
                                                                                             <div className="flex-1 min-w-0">
-                                                                                                <h4 className="text-sm font-medium text-slate-700 truncate">
+                                                                                                <h4 className={cn(
+                                                                                                    "text-sm font-bold truncate",
+                                                                                                    state.activeLesson?.id === lesson.id ? "text-white" : "text-slate-700"
+                                                                                                )}>
                                                                                                     {lesson.title}
                                                                                                 </h4>
-                                                                                                <div className="flex items-center gap-2 mt-1">
-                                                                                                    <span className="text-xs text-slate-500 capitalize">
+                                                                                                <div className="flex items-center gap-2 mt-0.5">
+                                                                                                    <span className={cn(
+                                                                                                        "text-[10px] font-medium uppercase tracking-wider",
+                                                                                                        state.activeLesson?.id === lesson.id ? "text-white/70" : "text-slate-400"
+                                                                                                    )}>
                                                                                                         {lesson.type}
                                                                                                     </span>
                                                                                                     {!lesson.isPublished && (
-                                                                                                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">
-                                                                                                            Draft
+                                                                                                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-amber-400/90 text-amber-900 shadow-sm shadow-amber-200">
+                                                                                                            DRAFT
                                                                                                         </span>
                                                                                                     )}
                                                                                                 </div>
@@ -222,9 +237,14 @@ export function BuilderSidebar() {
                                                                                                         actions.deleteLesson(lesson.id);
                                                                                                     }
                                                                                                 }}
-                                                                                                className="p-0.5 opacity-0 group-hover/lesson:opacity-100 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded transition-all"
+                                                                                                className={cn(
+                                                                                                    "p-1.5 rounded-lg transition-all",
+                                                                                                    state.activeLesson?.id === lesson.id 
+                                                                                                        ? "opacity-0 group-hover/lesson:opacity-100 hover:bg-white/20 text-white" 
+                                                                                                        : "opacity-0 group-hover/lesson:opacity-100 hover:bg-rose-50 text-slate-400 hover:text-rose-500"
+                                                                                                )}
                                                                                             >
-                                                                                                <Trash2 className="w-3 h-3" />
+                                                                                                <Trash2 className="w-3.5 h-3.5" />
                                                                                             </button>
                                                                                         </div>
                                                                                     )}
@@ -234,28 +254,33 @@ export function BuilderSidebar() {
 
                                                                             {/* Add Lesson Menu */}
                                                                             {addingLessonTo === mod.id ? (
-                                                                                <div className="flex gap-1 py-1 px-1">
-                                                                                    {['article', 'video', 'quiz'].map(t => (
+                                                                                <div className="flex gap-2 py-2 px-2 bg-white/40 rounded-xl mt-2 border border-slate-100">
+                                                                                    {[
+                                                                                        { type: 'article', color: 'indigo' },
+                                                                                        { type: 'video', color: 'blue' },
+                                                                                        { type: 'quiz', color: 'rose' }
+                                                                                    ].map(t => (
                                                                                         <button
-                                                                                            key={t}
-                                                                                            onClick={() => handleAddLesson(mod.id, t)}
+                                                                                            key={t.type}
+                                                                                            onClick={() => handleAddLesson(mod.id, t.type)}
                                                                                             className={cn(
-                                                                                                'flex-1 py-1 rounded text-[10px] font-bold transition-colors border border-dashed',
-                                                                                                t === 'article' && 'text-emerald-600 border-emerald-300 hover:bg-emerald-50',
-                                                                                                t === 'video' && 'text-blue-600 border-blue-300 hover:bg-blue-50',
-                                                                                                t === 'quiz' && 'text-purple-600 border-purple-300 hover:bg-purple-50',
+                                                                                                'flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all border border-dashed hover:scale-105 active:scale-95',
+                                                                                                t.type === 'article' && 'text-indigo-600 border-indigo-200 bg-indigo-50/50 hover:bg-indigo-50',
+                                                                                                t.type === 'video' && 'text-blue-600 border-blue-200 bg-blue-50/50 hover:bg-blue-50',
+                                                                                                t.type === 'quiz' && 'text-rose-600 border-rose-200 bg-rose-50/50 hover:bg-rose-50',
                                                                                             )}
                                                                                         >
-                                                                                            {t}
+                                                                                            {t.type.toUpperCase()}
                                                                                         </button>
                                                                                     ))}
                                                                                 </div>
                                                                             ) : (
                                                                                 <button
                                                                                     onClick={() => setAddingLessonTo(mod.id)}
-                                                                                    className="w-full py-1 text-[10px] font-bold text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors flex items-center justify-center gap-1"
+                                                                                    className="w-full mt-2 py-2 text-[10px] font-black text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm rounded-xl transition-all flex items-center justify-center gap-1.5 border border-dashed border-slate-200 hover:border-indigo-200 group/add"
                                                                                 >
-                                                                                    <Plus className="w-3 h-3" /> Add Lesson
+                                                                                    <Plus className="w-3.5 h-3.5 group-hover/add:rotate-90 transition-transform duration-300" /> 
+                                                                                    TAMBAH MATERI
                                                                                 </button>
                                                                             )}
                                                                         </div>

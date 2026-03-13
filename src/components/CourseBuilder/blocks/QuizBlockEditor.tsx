@@ -220,43 +220,43 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
     return (
         <div className="w-full space-y-6">
             {/* Header with status */}
-            <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
-                        <HelpCircle className="w-5 h-5 text-purple-600" />
+            <div className="flex items-start justify-between gap-4 p-6 bg-white rounded-[24px] border border-slate-100 shadow-sm">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-[20px] bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 shadow-inner">
+                        <HelpCircle className="w-6 h-6" />
                     </div>
                     <div>
-                        <h3 className="font-bold text-slate-900">Quiz Editor</h3>
-                        <span className={cn(
-                            'inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mt-0.5',
-                            isPublished ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                        <h3 className="text-lg font-black text-slate-800 tracking-tight">Pengaturan Kuis</h3>
+                        <div className={cn(
+                            'inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1 rounded-full mt-1 shadow-sm',
+                            isPublished ? 'bg-emerald-500 text-white shadow-emerald-100' : 'bg-amber-400 text-amber-900 shadow-amber-100'
                         )}>
-                            {isPublished ? <CheckCircle className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
-                            {isPublished ? 'Published' : 'Draft'}
-                        </span>
+                            {isPublished ? <CheckCircle className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
+                            {isPublished ? 'Terbit' : 'Draft'}
+                        </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-3 shrink-0">
                     <button
                         onClick={() => handleSave()}
                         disabled={isSaving}
-                        className="px-3 py-1.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors flex items-center gap-1.5"
+                        className="px-4 py-2 text-xs font-black text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all flex items-center gap-2 shadow-sm"
                     >
                         {isSaving && !isPublishing && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                        Simpan Draft
+                        SIMPAN DRAFT
                     </button>
                     <button
                         onClick={handlePublishToggle}
                         disabled={isSaving}
                         className={cn(
-                            'px-3 py-1.5 text-sm font-bold rounded-lg transition-colors flex items-center gap-1.5',
+                            'px-4 py-2 text-xs font-black rounded-xl transition-all flex items-center gap-2 shadow-lg',
                             isPublished
-                                ? 'text-amber-700 bg-amber-50 hover:bg-amber-100'
-                                : 'text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm'
+                                ? 'text-amber-700 bg-amber-50 hover:bg-amber-100 shadow-amber-100'
+                                : 'text-white bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100'
                         )}
                     >
                         {isPublishing && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                        {isPublished ? 'Kembalikan ke Draft' : 'Publish Kuis'}
+                        {isPublished ? 'BATALKAN TERBIT' : 'TERBITKAN KUIS'}
                     </button>
                 </div>
             </div>
@@ -269,70 +269,70 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
             )}
 
             {/* Quiz Settings */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-6 p-8 bg-slate-50/50 rounded-[32px] border border-slate-200/50">
                 <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Judul Kuis</label>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">Judul Kuis</label>
                     <input
                         type="text"
                         value={quizData.title}
                         onChange={e => setQuizData({ ...quizData, title: e.target.value })}
                         disabled={isPublished}
-                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all disabled:opacity-60 font-bold text-slate-700 placeholder:text-slate-200 shadow-sm"
                         placeholder="Masukkan judul kuis..."
                     />
                 </div>
                 <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Instruksi</label>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">Instruksi Pengerjaan</label>
                     <textarea
                         value={quizData.instructions || ''}
                         onChange={e => setQuizData({ ...quizData, instructions: e.target.value })}
                         disabled={isPublished}
                         rows={2}
-                        className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none disabled:opacity-60 disabled:cursor-not-allowed"
-                        placeholder="Masukkan instruksi pengerjaan..."
+                        className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none disabled:opacity-60 font-medium text-slate-600 placeholder:text-slate-200 shadow-sm"
+                        placeholder="Tuliskan panduan singkat untuk kuis ini..."
                     />
                 </div>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-6">
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Maks. Percobaan</label>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">Maks. Percobaan</label>
                         <input
                             type="number" min="1" max="10"
                             value={quizData.max_attempts}
                             onChange={e => setQuizData({ ...quizData, max_attempts: parseInt(e.target.value) })}
                             disabled={isPublished}
-                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+                            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all disabled:opacity-60 font-black text-slate-700 shadow-sm"
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nilai Lulus (%)</label>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">Lulus Min. (%)</label>
                         <input
                             type="number" min="0" max="100"
                             value={quizData.passing_score}
                             onChange={e => setQuizData({ ...quizData, passing_score: parseInt(e.target.value) })}
                             disabled={isPublished}
-                            className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+                            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all disabled:opacity-60 font-black text-slate-700 shadow-sm"
                         />
                     </div>
-                    <div className="flex flex-col justify-end gap-2 pb-0.5">
-                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <div className="flex flex-col justify-end gap-3 pb-1">
+                        <label className="flex items-center gap-3 cursor-pointer select-none group">
                             <input
                                 type="checkbox"
                                 checked={quizData.shuffle_questions}
                                 onChange={e => setQuizData({ ...quizData, shuffle_questions: e.target.checked })}
                                 disabled={isPublished}
-                                className="w-4 h-4 rounded accent-blue-600"
+                                className="w-5 h-5 rounded-lg border-slate-300 text-indigo-600 focus:ring-indigo-500 transition-all cursor-pointer"
                             />
-                            <span className="text-xs text-slate-600 font-medium">Acak soal</span>
+                            <span className="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Acak Pertanyaan</span>
                         </label>
-                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <label className="flex items-center gap-3 cursor-pointer select-none group">
                             <input
                                 type="checkbox"
                                 checked={quizData.shuffle_options}
                                 onChange={e => setQuizData({ ...quizData, shuffle_options: e.target.checked })}
                                 disabled={isPublished}
-                                className="w-4 h-4 rounded accent-blue-600"
+                                className="w-5 h-5 rounded-lg border-slate-300 text-indigo-600 focus:ring-indigo-500 transition-all cursor-pointer"
                             />
-                            <span className="text-xs text-slate-600 font-medium">Acak opsi</span>
+                            <span className="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Acak Opsi Pilihan</span>
                         </label>
                     </div>
                 </div>
@@ -393,52 +393,55 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
                 </div>
 
                 {quizData.questions.length === 0 ? (
-                    <div className="text-center p-8 border-2 border-dashed border-slate-200 rounded-2xl">
-                        <HelpCircle className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                        <p className="text-sm font-medium text-slate-500">Belum ada soal.</p>
-                        <p className="text-xs text-slate-400 mt-1">Klik "Tambah Soal" untuk mulai membuat pertanyaan.</p>
+                    <div className="text-center p-12 border-2 border-dashed border-slate-200 rounded-[32px] bg-white/50">
+                        <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <HelpCircle className="w-8 h-8 text-slate-300" />
+                        </div>
+                        <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Belum ada soal</p>
+                        <p className="text-xs text-slate-400 mt-2">Klik "Buat Baru" untuk mulai menyusun pertanyaan kuis.</p>
                     </div>
                 ) : (
                     quizData.questions.map((q, qIdx) => (
-                        <div key={q.id || qIdx} className="p-4 border border-slate-200 rounded-2xl bg-white shadow-sm space-y-3 group relative">
+                        <div key={q.id || qIdx} className="p-6 border border-slate-200/60 rounded-[28px] bg-white shadow-sm space-y-4 group relative hover:border-indigo-200 transition-all">
                             {/* Question type + number + delete */}
-                            <div className="flex items-center gap-2">
-                                <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs font-bold flex items-center justify-center shrink-0">
+                            <div className="flex items-center gap-3">
+                                <span className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 text-xs font-black flex items-center justify-center shrink-0 shadow-inner">
                                     {qIdx + 1}
                                 </span>
                                 <select
                                     value={q.question_type || 'MCQ'}
                                     onChange={e => updateQuestionType(qIdx, e.target.value as QuestionType)}
                                     disabled={isPublished}
-                                    className="px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500 font-medium disabled:opacity-60"
+                                    className="px-3 py-2 text-[10px] font-black uppercase tracking-wider bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-indigo-100 font-medium disabled:opacity-60 transition-all"
                                 >
                                     {Object.entries(questionTypeLabels).map(([val, label]) => (
                                         <option key={val} value={val}>{label}</option>
                                     ))}
                                 </select>
-                                <input
-                                    type="number" min="1" max="100"
-                                    value={q.points ?? 1}
-                                    onChange={e => updateQuestionPoints(qIdx, parseInt(e.target.value) || 1)}
-                                    disabled={isPublished}
-                                    className="w-16 px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-60"
-                                    title="Poin"
-                                />
-                                <span className="text-[10px] text-slate-400">poin</span>
+                                <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl">
+                                    <input
+                                        type="number" min="1" max="100"
+                                        value={q.points ?? 1}
+                                        onChange={e => updateQuestionPoints(qIdx, parseInt(e.target.value) || 1)}
+                                        disabled={isPublished}
+                                        className="w-10 bg-transparent text-xs font-black text-slate-700 outline-none disabled:opacity-60"
+                                    />
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">PTS</span>
+                                </div>
                                 <input
                                     type="text"
                                     value={q.text}
                                     onChange={e => updateQuestion(qIdx, e.target.value)}
                                     disabled={isPublished}
-                                    className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-medium text-sm disabled:opacity-60"
+                                    className="flex-1 px-4 py-2 bg-slate-50 border border-slate-100 rounded-[14px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-200 outline-none font-bold text-sm text-slate-700 placeholder:text-slate-200 disabled:opacity-60 transition-all"
                                     placeholder="Tulis pertanyaan di sini..."
                                 />
                                 {!isPublished && (
                                     <button
                                         onClick={() => removeQuestion(qIdx)}
-                                        className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                        className="p-2 opacity-0 group-hover:opacity-100 hover:bg-rose-50 text-slate-300 hover:text-rose-500 rounded-xl transition-all"
                                     >
-                                        <Trash2 className="w-3.5 h-3.5" />
+                                        <Trash2 className="w-4 h-4" />
                                     </button>
                                 )}
                             </div>
@@ -476,10 +479,10 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
                                             onChange={e => updateOption(qIdx, oIdx, e.target.value)}
                                             disabled={isPublished || q.question_type === 'TRUE_FALSE'}
                                             className={cn(
-                                                'flex-1 px-3 py-1.5 text-sm border rounded-lg outline-none focus:border-blue-400 transition-colors',
+                                                'flex-1 px-4 py-2 text-sm border rounded-xl outline-none focus:ring-4 focus:ring-indigo-50 transition-all font-medium',
                                                 opt.is_correct
-                                                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                                                    : 'bg-slate-50 border-slate-200',
+                                                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800 focus:ring-emerald-50'
+                                                    : 'bg-white border-slate-200 text-slate-600',
                                                 (isPublished || q.question_type === 'TRUE_FALSE') && 'opacity-60 cursor-not-allowed'
                                             )}
                                             placeholder="Teks opsi..."
