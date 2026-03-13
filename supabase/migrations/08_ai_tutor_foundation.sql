@@ -16,6 +16,8 @@
 CREATE INDEX IF NOT EXISTS idx_lesson_resources_lesson_tenant 
 ON lesson_resources (lesson_id, tenant_id);
 
+DROP FUNCTION IF EXISTS get_tutor_context(uuid, uuid, uuid);
+
 CREATE OR REPLACE FUNCTION get_tutor_context(
   p_tenant_id uuid,
   p_user_id uuid,

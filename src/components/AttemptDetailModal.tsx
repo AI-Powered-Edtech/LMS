@@ -152,6 +152,18 @@ export function AttemptDetailModal({
                                             </span>
                                         </div>
                                     )}
+                                    
+                                    {/* Explanation */}
+                                    {answer.explanation && (
+                                        <div className="mt-3 p-3 bg-blue-50/50 border border-blue-100 rounded-lg">
+                                            <span className="font-bold text-xs uppercase tracking-wide text-blue-800 mb-1 block">
+                                                Penjelasan:
+                                            </span>
+                                            <p className="text-sm text-blue-900/80 leading-relaxed">
+                                                {answer.explanation}
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))

@@ -14,12 +14,16 @@ import {
   ArrowLeft,
   Timer,
   Sparkles,
-  Loader2
+  Loader2,
+  AlertTriangle,
+  X
 } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
 import { useStudentProgress } from '@/src/contexts/StudentProgressContext';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { quizService, type QuizAttemptResult, type QuizAttempt, type SubmitAnswer } from '@/src/services/quizService';
+import { QuizTakingView } from './quiz/QuizTakingView';
+import { AttemptDetailModal } from '@/src/components/AttemptDetailModal';
 
 const getDifficultyColor = (diff: string | undefined) => {
   switch (diff) {
@@ -53,21 +57,28 @@ export function QuizModule() {
   const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Start Quiz Modal
+  const [pendingQuiz, setPendingQuiz] = useState<any | null>(null);
+
   // Quiz Taking State
   const [isQuizActive, setIsQuizActive] = useState(false);
   const [currentQuizId, setCurrentQuizId] = useState<string | null>(null);
   const [currentAttemptId, setCurrentAttemptId] = useState<string | null>(null);
   const [attemptVersion, setAttemptVersion] = useState<number | undefined>(undefined);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
-  const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
+  const [attemptQuestions, setAttemptQuestions] = useState<any[]>([]);
   const [answers, setAnswers] = useState<Record<string, SubmitAnswer>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
+  const [showReview, setShowReview] = useState(false);
 
   // Results State
   const [showResults, setShowResults] = useState(false);
   const [quizResult, setQuizResult] = useState<QuizAttemptResult | null>(null);
   const [totalXP, setTotalXP] = useState(100);
+
+  // Review Mode State
+  const [reviewAttempt, setReviewAttempt] = useState<{ attemptId: string; studentName: string; score: number | null; passed: boolean | null; } | null>(null);
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -93,6 +104,9 @@ export function QuizModule() {
   }, [tenantId]);
 
   const filteredQuizzes = quizzes.filter((quiz) => {
+    // Filter to only show active quizzes (exclude drafts, include nulls for legacy)
+    if (quiz.status === 'draft') return false;
+
     const matchesSearch = quiz.title?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesSubject = selectedSubject === 'all' || quiz.subject === selectedSubject || (!quiz.subject && selectedSubject === 'Umum');
     return matchesSearch && matchesSubject;
@@ -110,9 +124,11 @@ export function QuizModule() {
       setAttemptVersion(startData.version);
       setExpiresAt(startData.expires_at);
       
+      // Always fetch attempt questions for the snapshot
+      const questions = await quizService.getAttemptQuestions(startData.attempt_id);
+      setAttemptQuestions(questions);
+
       if (startData.recovered) {
-        // Fetch existing progress with multi-type answer support
-        const questions = await quizService.getAttemptQuestions(startData.attempt_id);
         const recoveredAnswers: Record<string, SubmitAnswer> = {};
         questions.forEach((q) => {
           if (q.selected_option_ids?.length > 0 || q.text_answer) {
@@ -128,16 +144,88 @@ export function QuizModule() {
         setAnswers({});
       }
       
-      setCurrentQuestionIdx(0);
+      setShowReview(false);
       setIsQuizActive(true);
       setShowResults(false);
     } catch (err: any) {
       console.error("Failed to start", err);
       if (err.message?.includes("limit reached")) {
         alert(err.message);
+      } else if (err.message?.includes("active attempt")) {
+        alert("Anda memiliki kuis yang sedang berjalan. Silakan muat ulang halaman.");
+        window.location.reload();
       } else {
         alert("Gagal memulai kuis. Silakan coba lagi nanti.");
       }
+    } finally {
+      setIsStarting(false);
+    }
+  };
+
+  const handleResumeQuiz = async (attempt: QuizAttempt) => {
+    try {
+      setIsStarting(true);
+      setCurrentQuizId(attempt.quiz_id);
+      setCurrentAttemptId(attempt.id);
+      setAttemptVersion(attempt.version);
+      setExpiresAt(attempt.expires_at);
+      
+      const questions = await quizService.getAttemptQuestions(attempt.id);
+      setAttemptQuestions(questions);
+
+      // Check if already expired upon resuming
+      if (attempt.expires_at && new Date(attempt.expires_at) < new Date()) {
+          alert("Waktu habis! Kuis Anda telah ditandai sebagai kedaluwarsa dan akan disubmit otomatis.");
+          
+          const recoveredAnswers: Record<string, SubmitAnswer> = {};
+          questions.forEach((q) => {
+            if (q.selected_option_ids?.length > 0 || q.text_answer) {
+              recoveredAnswers[q.question_id] = {
+                question_id: q.question_id,
+                selected_option_ids: q.selected_option_ids || [],
+                text_answer: q.text_answer || undefined,
+              };
+            }
+          });
+          
+          const formattedAnswers: SubmitAnswer[] = Object.entries(recoveredAnswers).map(([qId, ans]) => ({
+            question_id: qId,
+            selected_option_ids: ans.selected_option_ids || [],
+            text_answer: ans.text_answer,
+          }));
+          
+          const result = await quizService.submitQuizAttempt(attempt.id, formattedAnswers, attempt.version);
+          setQuizResult(result);
+          
+          if (tenantId) {
+             const updatedAttempts = await quizService.getUserAttempts(tenantId);
+             setQuizAttempts(updatedAttempts || []);
+          }
+          
+          setIsQuizActive(false);
+          setShowResults(true);
+          setPendingQuiz(null);
+          return;
+      }
+
+      const recoveredAnswers: Record<string, SubmitAnswer> = {};
+      questions.forEach((q) => {
+        if (q.selected_option_ids?.length > 0 || q.text_answer) {
+          recoveredAnswers[q.question_id] = {
+            question_id: q.question_id,
+            selected_option_ids: q.selected_option_ids || [],
+            text_answer: q.text_answer || undefined,
+          };
+        }
+      });
+      setAnswers(recoveredAnswers);
+      
+      setShowReview(false);
+      setIsQuizActive(true);
+      setShowResults(false);
+    } catch (err: any) {
+      console.error("Failed to resume", err);
+      alert("Gagal melanjutkan kuis.");
     } finally {
       setIsStarting(false);
     }
@@ -198,10 +286,6 @@ export function QuizModule() {
     }
   };
 
-  const handleNext = () => {
-    setCurrentQuestionIdx(i => i + 1);
-  };
-
   const currentQuiz = quizzes.find(q => q.id === currentQuizId);
 
   // Loading View
@@ -215,7 +299,7 @@ export function QuizModule() {
 
   // Quiz Taking View
   if (isQuizActive && currentQuiz) {
-    if (!currentQuiz.quiz_questions || currentQuiz.quiz_questions.length === 0) {
+    if (!attemptQuestions || attemptQuestions.length === 0) {
       return (
         <div className="flex-1 max-w-4xl w-full mx-auto px-6 py-8">
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-12 text-center">
@@ -232,31 +316,18 @@ export function QuizModule() {
       );
     }
 
-    const question = currentQuiz.quiz_questions[currentQuestionIdx];
-    const isLastQuestion = currentQuestionIdx === currentQuiz.quiz_questions.length - 1;
-    const qType = question?.question_type || 'MCQ';
-    const hasAnswer = question ? (
-      ['SHORT_ANSWER', 'ESSAY'].includes(qType)
-        ? !!answers[question.id]?.text_answer?.trim()
-        : (answers[question.id]?.selected_option_ids?.length ?? 0) > 0
-    ) : false;
-
     return (
       <QuizTakingView
         attemptId={currentAttemptId}
         expiresAt={expiresAt}
         quiz={currentQuiz}
-        question={question}
-        currentQuestion={currentQuestionIdx}
-        totalQuestions={currentQuiz.quiz_questions.length}
+        attemptQuestions={attemptQuestions}
         answers={answers}
         isSubmitting={isSubmitting}
-        onAnswer={(answer: SubmitAnswer) => handleAnswer(question.id, answer)}
-        onNext={handleNext}
-        onPrevious={() => setCurrentQuestionIdx(i => i - 1)}
+        onAnswer={handleAnswer}
         onSubmit={handleSubmitQuiz}
-        isLastQuestion={isLastQuestion}
-        hasAnswer={hasAnswer}
+        showReview={showReview}
+        setShowReview={setShowReview}
       />
     );
   }
@@ -278,6 +349,105 @@ export function QuizModule() {
 
   return (
     <div className="flex-1 space-y-6">
+      {/* Start Quiz Confirmation Modal */}
+      <AnimatePresence>
+        {pendingQuiz && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setPendingQuiz(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 relative"
+            >
+              <button
+                onClick={() => setPendingQuiz(null)}
+                className="absolute top-4 right-4 p-2 rounded-xl hover:bg-slate-100 text-slate-400 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-6">
+                <Play className="w-8 h-8 text-white fill-current" />
+              </div>
+
+              <h2 className="text-2xl font-bold text-slate-900 text-center mb-2">
+                {pendingQuiz.isResume ? 'Lanjutkan Kuis?' : 'Mulai Kuis?'}
+              </h2>
+              <p className="text-slate-500 text-center mb-6">{pendingQuiz.title}</p>
+
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center justify-between py-3 px-4 bg-slate-50 rounded-xl">
+                  <span className="text-sm font-medium text-slate-500">Jumlah Soal</span>
+                  <span className="font-bold text-slate-800">{pendingQuiz.quiz_questions?.length || 0} soal</span>
+                </div>
+                {(pendingQuiz.time_limit_minutes > 0) && (
+                  <div className="flex items-center justify-between py-3 px-4 bg-slate-50 rounded-xl">
+                    <span className="text-sm font-medium text-slate-500">Batas Waktu</span>
+                    <span className="font-bold text-slate-800">{pendingQuiz.time_limit_minutes} menit</span>
+                  </div>
+                )}
+                {pendingQuiz.max_attempts && (
+                  <div className="flex items-center justify-between py-3 px-4 bg-slate-50 rounded-xl">
+                    <span className="text-sm font-medium text-slate-500">Kesempatan</span>
+                    <span className="font-bold text-slate-800">{pendingQuiz.max_attempts}× percobaan</span>
+                  </div>
+                )}
+              </div>
+
+              {pendingQuiz.isResume ? (
+                <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100 mb-6">
+                  <Clock className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                  <div className="text-sm text-blue-700">
+                    <p className="font-bold mb-1">Anda memiliki kuis yang masih berjalan.</p>
+                    <p>Waktu yang tersisa akan dilanjutkan dari sisa waktu sebelumnya. Harap segera diselesaikan.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-xl border border-amber-100 mb-6">
+                  <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                  <div className="text-sm text-amber-700">
+                    <p className="font-bold mb-1">Peringatan Waktu!</p>
+                    <p>Setelah Anda menekan tombol mulai, timer akan langsung berjalan. Waktu tidak dapat dihentikan sementara.</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setPendingQuiz(null)}
+                  className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={() => {
+                    const quiz = pendingQuiz;
+                    setPendingQuiz(null);
+                    if (quiz.isResume) {
+                      handleResumeQuiz(quiz.activeAttempt);
+                    } else {
+                      handleStartQuiz(quiz.id);
+                    }
+                  }}
+                  disabled={isStarting}
+                  className="flex-1 px-4 py-3 rounded-xl font-bold text-white bg-slate-900 hover:bg-slate-800 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                >
+                  {isStarting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
+                  {isStarting ? (pendingQuiz.isResume ? 'Melanjutkan...' : 'Memulai...') : (pendingQuiz.isResume ? 'Lanjutkan Kuis' : 'Mulai Kuis')}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -377,14 +547,27 @@ export function QuizModule() {
       {/* Quiz List */}
       {activeTab === 'available' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredQuizzes.length > 0 ? filteredQuizzes.map((quiz) => (
-            <QuizCard
-              key={quiz.id}
-              quiz={quiz}
-              onStart={() => handleStartQuiz(quiz.id)}
-              isStarting={isStarting && currentQuizId === quiz.id}
-            />
-          )) : (
+          {filteredQuizzes.length > 0 ? filteredQuizzes.map((quiz) => {
+            const activeAttempt = quizAttempts.find(a => a.quiz_id === quiz.id && a.status === 'IN_PROGRESS');
+            const attemptsCount = quizAttempts.filter(a => a.quiz_id === quiz.id).length;
+            
+            return (
+              <QuizCard
+                key={quiz.id}
+                quiz={quiz}
+                activeAttempt={activeAttempt}
+                attemptsCount={attemptsCount}
+                onStart={() => {
+                  if (activeAttempt) {
+                    setPendingQuiz({ ...quiz, isResume: true, activeAttempt });
+                  } else {
+                    setPendingQuiz({ ...quiz, isResume: false });
+                  }
+                }}
+                isStarting={isStarting && currentQuizId === quiz.id}
+              />
+            );
+          }) : (
             <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-10 text-slate-500">
               Belum ada kuis yang tersedia.
             </div>
@@ -393,7 +576,16 @@ export function QuizModule() {
       ) : (
         <div className="space-y-4">
           {quizAttempts.length > 0 ? quizAttempts.map((attempt) => (
-            <QuizAttemptCard key={attempt.id} attempt={attempt} />
+            <QuizAttemptCard 
+              key={attempt.id} 
+              attempt={attempt} 
+              onReview={() => setReviewAttempt({
+                attemptId: attempt.id,
+                studentName: 'Anda',
+                score: attempt.score,
+                passed: attempt.passed
+              })}
+            />
           )) : (
             <div className="text-center py-10 text-slate-500">
               Anda belum menyelesaikan kuis apapun.
@@ -401,12 +593,28 @@ export function QuizModule() {
           )}
         </div>
       )}
+
+      {/* Review Modal */}
+      {reviewAttempt && (
+        <AttemptDetailModal 
+          attemptId={reviewAttempt.attemptId}
+          studentName={reviewAttempt.studentName}
+          score={reviewAttempt.score}
+          passed={reviewAttempt.passed}
+          onClose={() => setReviewAttempt(null)}
+        />
+      )}
     </div>
   );
 }
 
-function QuizCard({ quiz, onStart, isStarting }: { quiz: any; onStart: () => void; isStarting?: boolean }) {
+function QuizCard({ quiz, activeAttempt, attemptsCount = 0, onStart, isStarting }: { quiz: any; activeAttempt?: any; attemptsCount?: number; onStart: () => void; isStarting?: boolean }) {
   const timeLimitMin = quiz.time_limit_minutes || 0;
+  const maxAttempts = quiz.max_attempts;
+  const isAvailable = attemptsCount < maxAttempts || !maxAttempts;
+  const availableUntil = quiz.available_until ? new Date(quiz.available_until) : null;
+  const isExpired = availableUntil ? availableUntil < new Date() : false;
+
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -414,48 +622,86 @@ function QuizCard({ quiz, onStart, isStarting }: { quiz: any; onStart: () => voi
       className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full overflow-hidden"
     >
       <div className="p-5 flex-1 flex flex-col">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <span className={cn('inline-block px-2 py-1 rounded-md text-xs font-bold mb-3', getDifficultyColor(quiz.difficulty))}>
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex gap-2 items-center">
+            <span className={cn('inline-block px-2 py-1 rounded-md text-xs font-bold', getDifficultyColor(quiz.difficulty))}>
               {getDifficultyLabel(quiz.difficulty)}
             </span>
-            <h3 className="text-lg font-bold text-slate-900 leading-tight">{quiz.title}</h3>
-            <p className="text-sm text-slate-500 mt-1">{quiz.subject || 'Umum'} • {quiz.grade || 'Semua Kelas'}</p>
+            {activeAttempt ? (
+              <span className="inline-block px-2 py-1 rounded-md text-xs font-bold bg-blue-100 text-blue-700 uppercase tracking-wider">
+                In Progress
+              </span>
+            ) : attemptsCount > 0 && !isAvailable ? (
+              <span className="inline-block px-2 py-1 rounded-md text-xs font-bold bg-green-100 text-green-700 uppercase tracking-wider">
+                Completed
+              </span>
+            ) : (
+              <span className="inline-block px-2 py-1 rounded-md text-xs font-bold bg-slate-100 text-slate-700 uppercase tracking-wider">
+                Available
+              </span>
+            )}
           </div>
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shrink-0">
             <Target className="w-5 h-5 text-white" />
           </div>
         </div>
 
+        <h3 className="text-lg font-bold text-slate-900 leading-tight mb-1">{quiz.title}</h3>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-4">
+           {quiz.subject && <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">{quiz.subject}</span>}
+           <span className="text-sm text-slate-500">{quiz.quiz_questions?.length || 0} Questions {timeLimitMin > 0 ? `• ${timeLimitMin} Minutes` : ''}</span>
+        </div>
+        
+        {availableUntil && (
+           <p className={cn("text-xs font-bold mb-3", isExpired ? "text-red-500" : "text-amber-600")}>
+             Due: {availableUntil.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+             {' '}{availableUntil.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+           </p>
+        )}
+
         <p className="text-sm text-slate-600 mb-6 line-clamp-2 flex-1">{quiz.description}</p>
 
-        <div className="flex items-center gap-4 text-sm font-medium text-slate-500 mb-6">
-          <div className="flex items-center gap-1.5">
-            <HelpCircle className="w-4 h-4" />
-            <span>{quiz.quiz_questions?.length || 0} soal</span>
+        {activeAttempt && (
+          <div className="mb-6 space-y-2">
+            <div className="flex justify-between items-end">
+              <span className="text-xs font-bold text-blue-600">Progress Pengerjaan</span>
+              <span className="text-xs font-bold text-blue-400">Sedang Berjalan</span>
+            </div>
+            <div className="w-full bg-blue-50 rounded-full h-2 overflow-hidden">
+               <div className="bg-blue-500 h-2 rounded-full w-[50%] animate-pulse"></div>
+            </div>
           </div>
-          {timeLimitMin > 0 && (
-            <div className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4" />
-              <span>{timeLimitMin} m</span>
+        )}
+
+        <div className="flex items-center gap-4 text-sm font-medium text-slate-500 mb-6">
+          {maxAttempts > 0 && (
+            <div className="flex items-center gap-1.5 text-xs font-bold px-2 py-1 bg-slate-50 border border-slate-100 rounded-md">
+              <span>Attempt: {Math.min(attemptsCount + (activeAttempt ? 0 : 1), maxAttempts)} / {maxAttempts}</span>
             </div>
           )}
         </div>
 
-        <button onClick={onStart} disabled={isStarting} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
+        <button 
+          onClick={onStart} 
+          disabled={isStarting || (!activeAttempt && !isAvailable)} 
+          className={cn(
+             "w-full font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50",
+             activeAttempt ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-slate-900 hover:bg-slate-800 text-white"
+          )}
+        >
           {isStarting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
-          {isStarting ? 'Memulai...' : 'Mulai Kuis'}
+          {isStarting ? (activeAttempt ? 'Melanjutkan...' : 'Memulai...') : (activeAttempt ? 'Lanjutkan Kuis' : (!isAvailable ? 'Selesai' : 'Mulai Kuis'))}
         </button>
       </div>
     </motion.div>
   );
 }
 
-function QuizAttemptCard({ attempt }: { attempt: any }) {
+function QuizAttemptCard({ attempt, onReview }: { attempt: any; onReview: () => void }) {
   const quizTitle = attempt.quizzes?.title || 'Kuis Tidak Diketahui';
   const passed = attempt.passed;
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex items-center justify-between">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div className="flex items-center gap-4">
         <div
           className={cn(
@@ -472,299 +718,30 @@ function QuizAttemptCard({ attempt }: { attempt: any }) {
           </p>
         </div>
       </div>
-      <div className="text-right">
-        <p className={cn(
-          'text-2xl font-black tracking-tight',
-          passed ? 'text-green-600' : 'text-red-600'
-        )}>
-          {attempt.score}%
-        </p>
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-          {passed ? 'Lulus' : 'Belum Lulus'}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function QuizTakingView({
-  attemptId,
-  expiresAt,
-  quiz,
-  question,
-  currentQuestion,
-  totalQuestions,
-  answers,
-  onAnswer,
-  onNext,
-  onPrevious,
-  onSubmit,
-  isLastQuestion,
-  hasAnswer,
-  isSubmitting
-}: any) {
-  // Initial calculate time left
-  const calculateInitialTime = () => {
-    if (expiresAt) {
-      const remainingSeconds = Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000);
-      return Math.max(0, remainingSeconds);
-    }
-    return (quiz.time_limit_minutes || 10) * 60;
-  };
-
-  const [timeLeft, setTimeLeft] = useState(calculateInitialTime());
-
-  useEffect(() => {
-    if (timeLeft <= 0) {
-      onSubmit();
-      return;
-    }
-    const timer = setInterval(() => setTimeLeft((t: number) => t - 1), 1000);
-    return () => clearInterval(timer);
-  }, [timeLeft, onSubmit]);
-
-  // Heartbeat tracking
-  useEffect(() => {
-    if (!attemptId) return;
-    
-    const interval = setInterval(() => {
-      quizService.recordHeartbeat(attemptId);
-    }, 30000); // 30 seconds
-
-    return () => clearInterval(interval);
-  }, [attemptId]);
-
-  // Answer Persistence (multi-type)
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    if (!attemptId || !question || !answers[question.id]) return;
-    const ans = answers[question.id];
-    
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-    
-    debounceTimer.current = setTimeout(async () => {
-      try {
-        await quizService.saveQuizAnswer(attemptId, question.id, {
-          selected_option_ids: ans.selected_option_ids || [],
-          text_answer: ans.text_answer,
-        });
-      } catch (err) {
-        console.error("Failed to persist answer", err);
-      }
-    }, 1000);
-
-    return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    };
-  }, [answers, question, attemptId]);
-
-  const formattedTime = `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`;
-  const isCritical = timeLeft < 60;
-  const progress = ((currentQuestion + 1) / totalQuestions) * 100;
-  const questionType = question?.question_type || 'MCQ';
-  const currentAnswer = answers[question?.id];
-
-  return (
-    <div className="max-w-3xl mx-auto space-y-6 flex-1 w-full">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-slate-900">{quiz.title}</h1>
-          <p className="text-sm font-medium text-slate-500 mt-1">
-            Soal {currentQuestion + 1} dari {totalQuestions}
+      <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100">
+        <div className="text-left md:text-right">
+          <p className={cn(
+            'text-2xl font-black tracking-tight',
+            passed ? 'text-green-600' : 'text-red-600'
+          )}>
+            {attempt.score}%
+          </p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            {passed ? 'Lulus' : 'Belum Lulus'}
           </p>
         </div>
-        <div className={cn(
-          'flex items-center gap-2 px-4 py-2 rounded-xl border',
-          isCritical ? 'bg-red-50 border-red-200 text-red-600 animate-pulse' : 'bg-white border-slate-200 text-slate-700'
-        )}>
-          <Timer className="w-5 h-5" />
-          <span className="font-mono text-lg font-bold">{formattedTime}</span>
-        </div>
-      </div>
-
-      {/* Progress */}
-      <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-        <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${progress}%` }} />
-      </div>
-
-      {/* Question Card */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-8">
-        {/* Question Type Badge */}
-        <div className="flex items-center gap-2 mb-4">
-          <span className={cn(
-            'inline-block px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider',
-            questionType === 'ESSAY' ? 'bg-purple-100 text-purple-700' :
-            questionType === 'SHORT_ANSWER' ? 'bg-amber-100 text-amber-700' :
-            questionType === 'MULTIPLE_SELECT' ? 'bg-cyan-100 text-cyan-700' :
-            questionType === 'TRUE_FALSE' ? 'bg-teal-100 text-teal-700' :
-            'bg-blue-100 text-blue-700'
-          )}>
-            {questionType === 'MCQ' ? 'Pilihan Ganda' :
-             questionType === 'TRUE_FALSE' ? 'Benar / Salah' :
-             questionType === 'MULTIPLE_SELECT' ? 'Pilihan Banyak' :
-             questionType === 'SHORT_ANSWER' ? 'Jawaban Singkat' :
-             questionType === 'ESSAY' ? 'Esai' : 'Soal'}
-          </span>
-          {question.points && question.points > 0 && (
-            <span className="text-xs font-bold text-slate-400">{question.points} poin</span>
-          )}
-        </div>
-
-        <h3 className="text-xl font-medium text-slate-900 mb-8 leading-relaxed">{question.text}</h3>
-
-        {/* MCQ / TRUE_FALSE — Radio Buttons */}
-        {(questionType === 'MCQ' || questionType === 'TRUE_FALSE') && (
-          <div className="space-y-3">
-            {question.quiz_options?.map((option: any) => {
-              const isSelected = currentAnswer?.selected_option_ids?.includes(option.id) ?? false;
-              return (
-                <button
-                  key={option.id}
-                  onClick={() => onAnswer({ question_id: question.id, selected_option_ids: [option.id] })}
-                  className={cn(
-                    'w-full flex items-center space-x-4 p-4 rounded-2xl border-2 text-left transition-all',
-                    isSelected
-                      ? 'border-blue-500 bg-blue-50 text-blue-900'
-                      : 'border-slate-100 hover:border-blue-200 hover:bg-slate-50 text-slate-700'
-                  )}
-                >
-                  <div className={cn(
-                    "w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0",
-                    isSelected ? "border-blue-500" : "border-slate-300"
-                  )}>
-                    {isSelected && <div className="w-3 h-3 bg-blue-500 rounded-full" />}
-                  </div>
-                  <span className="font-medium text-base">{option.text}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* MULTIPLE_SELECT — Checkboxes */}
-        {questionType === 'MULTIPLE_SELECT' && (
-          <div className="space-y-3">
-            <p className="text-sm text-slate-500 -mt-4 mb-4 italic">Pilih semua jawaban yang benar</p>
-            {question.quiz_options?.map((option: any) => {
-              const currentIds = currentAnswer?.selected_option_ids || [];
-              const isSelected = currentIds.includes(option.id);
-              return (
-                <button
-                  key={option.id}
-                  onClick={() => {
-                    const newIds = isSelected
-                      ? currentIds.filter((id: string) => id !== option.id)
-                      : [...currentIds, option.id];
-                    onAnswer({ question_id: question.id, selected_option_ids: newIds });
-                  }}
-                  className={cn(
-                    'w-full flex items-center space-x-4 p-4 rounded-2xl border-2 text-left transition-all',
-                    isSelected
-                      ? 'border-cyan-500 bg-cyan-50 text-cyan-900'
-                      : 'border-slate-100 hover:border-cyan-200 hover:bg-slate-50 text-slate-700'
-                  )}
-                >
-                  <div className={cn(
-                    "w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0",
-                    isSelected ? "border-cyan-500 bg-cyan-500" : "border-slate-300"
-                  )}>
-                    {isSelected && (
-                      <svg className="w-4 h-4 text-white" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    )}
-                  </div>
-                  <span className="font-medium text-base">{option.text}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* SHORT_ANSWER — Text Input */}
-        {questionType === 'SHORT_ANSWER' && (
-          <div>
-            <input
-              type="text"
-              value={currentAnswer?.text_answer || ''}
-              onChange={(e) => onAnswer({ question_id: question.id, text_answer: e.target.value, selected_option_ids: [] })}
-              placeholder="Ketik jawaban singkat Anda..."
-              className="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none text-base font-medium text-slate-800 placeholder-slate-400 transition-all"
-              autoFocus
-            />
-          </div>
-        )}
-
-        {/* ESSAY — Textarea */}
-        {questionType === 'ESSAY' && (
-          <div>
-            <textarea
-              value={currentAnswer?.text_answer || ''}
-              onChange={(e) => onAnswer({ question_id: question.id, text_answer: e.target.value, selected_option_ids: [] })}
-              placeholder="Tulis jawaban esai Anda di sini..."
-              rows={8}
-              className="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none text-base font-medium text-slate-800 placeholder-slate-400 transition-all resize-y min-h-[150px]"
-              autoFocus
-            />
-            <p className="text-xs text-slate-400 mt-2 text-right">
-              {(currentAnswer?.text_answer || '').length} karakter
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Navigation */}
-      <div className="flex items-center justify-between pt-4">
-        <button
-          onClick={onPrevious}
-          disabled={currentQuestion === 0}
-          className="px-4 py-2 rounded-xl font-bold text-slate-600 hover:bg-slate-200 disabled:opacity-50 disabled:hover:bg-transparent flex items-center gap-2 transition-colors"
+        <button 
+          onClick={onReview}
+          className="md:mt-3 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 text-sm font-bold rounded-xl transition-colors shrink-0 whitespace-nowrap"
         >
-          <ArrowLeft className="w-4 h-4" />
-          Sebelumnya
+          Review Answers
         </button>
-
-        <div className="flex gap-2 hidden md:flex">
-          {Array.from({ length: totalQuestions }).map((_, index) => (
-            <div
-              key={index}
-              className={cn(
-                'w-2.5 h-2.5 rounded-full transition-colors',
-                index === currentQuestion && 'bg-blue-500',
-                index < currentQuestion && 'bg-blue-200',
-                index > currentQuestion && 'bg-slate-200'
-              )}
-            />
-          ))}
-        </div>
-
-        {isLastQuestion ? (
-          <button
-            onClick={onSubmit}
-            disabled={!hasAnswer || isSubmitting}
-            className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold flex items-center gap-2 disabled:opacity-50 transition-colors"
-          >
-            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-            {isSubmitting ? 'Menyimpan...' : 'Selesai'}
-          </button>
-        ) : (
-          <button
-            onClick={onNext}
-            disabled={!hasAnswer}
-            className="px-6 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold flex items-center gap-2 disabled:opacity-50 transition-colors"
-          >
-            Selanjutnya
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        )}
       </div>
     </div>
   );
 }
+
+
 
 function QuizResultsView({
   result,

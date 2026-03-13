@@ -34,6 +34,10 @@ erDiagram
     Quiz ||--o{ QuizAttempt : has
     User ||--o{ QuizAttempt : attempts
 
+    QuestionBank ||--o{ QuestionOption : has
+    QuestionBank ||--o{ QuestionTag : tagged
+    QuestionBank }o--o{ QuizQuestion : "linked via question_bank_id"
+
     Class ||--o{ DiscussionThread : has
     DiscussionThread ||--o{ DiscussionPost : has
     User ||--o{ DiscussionPost : writes
@@ -90,6 +94,71 @@ Complex operations are wrapped in Postgres functions to prevent multiple network
 - `on_assignment_graded` — Automatically inserts a notification for the student when a grade is submitted.
 - `on_badge_earned` — Emits a realtime database event for Gamification popups.
 - `trg_lesson_progress_activity`, `trg_assignment_submission_activity`, `trg_assignment_graded_activity`, `trg_quiz_attempt_activity`, `trg_enrollment_activity` — Insert strongly-typed records into `activity_events` via `create_activity_event()` for the event-driven system.
+
+---
+
+## Quiz Engine & Question Bank
+
+### Architecture
+
+The quiz engine uses a **snapshot chain** architecture for immutable quiz attempts:
+
+```mermaid
+flowchart LR
+    QB[question_bank] -->|question_bank_id FK| QQ[quiz_questions]
+    QQ -->|snapshot at attempt start| QAQ[quiz_attempt_questions]
+    QO[quiz_options] -->|grading lookup| QAQ
+    QAQ -->|score rollup| QA[quiz_attempts]
+    QA -->|stats trigger| QS[quiz_stats]
+    QA -->|stats trigger| QST[question_stats]
+```
+
+**Two authoring modes:**
+- **Direct**: Teacher creates questions directly in `quiz_questions` (`question_bank_id = NULL`)
+- **Bank-backed**: Teacher selects from `question_bank` → `add_question_to_quiz` copies text + options into `quiz_questions` + `quiz_options`
+
+**Runtime identity**: `quiz_questions.id` is used everywhere (snapshots, grading, stats). `question_bank_id` is a nullable FK for provenance only.
+
+### Tables
+
+| Table | Purpose |
+|-------|---------|
+| `question_bank` | Reusable question repository (per-tenant) |
+| `question_options` | Options for bank questions |
+| `question_tags` | Tag-based categorization for bank questions |
+| `question_bank_usage` | Tracks which quizzes use which bank questions |
+| `question_stats` | Per-question analytics. Composite PK `(question_id, quiz_id)` supports per-quiz and global difficulty analysis |
+| `quiz_questions` | Quiz-scoped questions (snapshot layer) with optional `question_bank_id` FK |
+| `quiz_options` | Options for quiz questions (used by grading pipeline) |
+| `quiz_attempts` | Student attempt records with status enum: `IN_PROGRESS`, `SUBMITTED`, `GRADED`, `EXPIRED`, `ABANDONED` |
+| `quiz_attempt_questions` | Per-question snapshot with `question_snapshot` JSONB for immutability |
+| `quiz_stats` | Pre-aggregated quiz-level statistics |
+
+### Key RPCs
+
+| Function | Purpose | Access |
+|----------|---------|--------|
+| `start_quiz_attempt(quiz_id)` | Creates attempt, snapshots questions, handles recovery/expiry | Student |
+| `submit_quiz_attempt(attempt_id, answers, version)` | Auto-grades MCQ/TRUE_FALSE/MULTIPLE_SELECT, defers essays | Student |
+| `grade_attempt_question(id, points, correct, comment)` | Manual grading for SHORT_ANSWER/ESSAY | Teacher/Admin |
+| `create_question(...)` | Creates bank question with options/tags/stats | Teacher/Admin |
+| `update_question(...)` | Updates bank question, syncs linked `quiz_options` | Teacher/Admin |
+| `add_question_to_quiz(bank_id, quiz_id, order)` | Links bank question to quiz, copies options to `quiz_options` | Teacher/Admin |
+| `search_questions(...)` | Filtered search with pagination | Teacher/Admin |
+| `get_question(id)` | Full question with options and tags | Teacher/Admin |
+
+### Migrations
+
+| Version | Description |
+|---------|-------------|
+| `63_quiz_engine_schema` | Multi-type questions, quiz modes, stats tables, snapshot columns |
+| `64_quiz_engine_rpc` | Core RPCs: start/submit/grade attempt, stats trigger |
+| `65_quiz_engine_rls` | Quiz engine RLS policies |
+| `66_quiz_engine_hardening` | Security hardening |
+| `67_quiz_engine_rpc_patches` | Optimistic locking, timer clamping, late submission handling |
+| `68_question_bank_migrations` | Question bank schema, options, tags, usage tracking, RLS |
+| `69_question_bank_rpc` | Bank RPCs: create/update/search/archive question |
+| `71_schema_reconciliation` | **Canonical fix**: composite PK `question_stats`, `question_bank_id` FK, option copy in `add_question_to_quiz`, fixed all RPCs |
 
 ---
 

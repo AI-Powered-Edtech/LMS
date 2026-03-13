@@ -19,8 +19,12 @@ import {
   Eye,
   Bell,
   User,
+  Users,
   BookOpen,
-  Megaphone
+  Megaphone,
+  Plus,
+  Loader2,
+  X
 } from "lucide-react";
 import { cn } from "@/src/utils/cn";
 import { motion, AnimatePresence } from "motion/react";
@@ -34,14 +38,23 @@ import { HubView } from "@/src/components/HubView";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useStudentProgress } from "@/src/contexts/StudentProgressContext";
 import { useAssignments } from "@/src/features/assignments/hooks/useAssignments";
+import { useClassroom } from "@/src/contexts/ClassroomContext";
 
 export function Dashboard() {
   console.log('[Dashboard] Rendering started');
   const { role } = useAuth();
   const { xp, dailyGoal, achievements, addXP } = useStudentProgress();
   const { assignments, loading: assignmentsLoading } = useAssignments();
+  const { classrooms, joinClassroom } = useClassroom();
+  
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [showQuizHistory, setShowQuizHistory] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joinCodeInput, setJoinCodeInput] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const [joinSuccess, setJoinSuccess] = useState(false);
+
   const [isClaiming, setIsClaiming] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -57,6 +70,17 @@ export function Dashboard() {
     }
   }, [role, tenant?.id]);
 
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const joinCode = searchParams.get('join');
+    if (joinCode && role === 'student') {
+      setJoinCodeInput(joinCode.toUpperCase());
+      setShowJoinModal(true);
+      // Remove the parameter from URL after reading it
+      window.history.replaceState({}, document.title, location.pathname);
+    }
+  }, [location, role]);
+
   const loadActiveCourses = async () => {
     if (!tenant?.id) return;
     try {
@@ -70,6 +94,27 @@ export function Dashboard() {
       console.error('Failed to load active courses:', err);
     } finally {
       setLoadingCourses(false);
+    }
+  };
+
+  const handleJoinClass = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!joinCodeInput.trim()) return;
+    
+    setIsJoining(true);
+    setJoinError(null);
+    try {
+      await joinClassroom(joinCodeInput.trim());
+      setJoinSuccess(true);
+      setTimeout(() => {
+        setShowJoinModal(false);
+        setJoinCodeInput('');
+        setJoinSuccess(false);
+      }, 2000);
+    } catch (err: any) {
+      setJoinError(err.message || 'Gagal bergabung ke kelas');
+    } finally {
+      setIsJoining(false);
     }
   };
 
@@ -126,6 +171,49 @@ export function Dashboard() {
             <p className="text-sm sm:text-base text-slate-500 mt-1">Siap untuk melanjutkan petualangan belajarmu hari ini?</p>
           </div>
         </div>
+
+        {/* Kelas Saya Section (Student Only) */}
+        {role === 'student' && (
+          <div className="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <Users className="w-5 h-5 text-indigo-500" />
+                Kelas Saya
+              </h2>
+              <button 
+                onClick={() => setShowJoinModal(true)}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-sm transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Gabung Kelas
+              </button>
+            </div>
+            
+            {classrooms.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {classrooms.map(cls => (
+                  <div key={cls.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50 hover:border-indigo-200 transition-colors">
+                    <h3 className="font-bold text-slate-800">{cls.name}</h3>
+                    <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+                       <User className="w-3.5 h-3.5" />
+                       {cls.teacher_name || 'Guru'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6 px-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                <p className="text-sm font-medium text-slate-500 mb-2">Kamu belum bergabung di kelas mana pun.</p>
+                <button 
+                  onClick={() => setShowJoinModal(true)}
+                  className="text-indigo-600 font-bold text-sm hover:underline"
+                >
+                  Masukkan Kode Kelas
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Top Grid: Jadwal & Tugas */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -465,6 +553,73 @@ export function Dashboard() {
               >
                 SHARE TO FEED
               </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showJoinModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl shadow-xl w-full max-w-sm overflow-hidden p-6 relative"
+            >
+              <button
+                onClick={() => {
+                  setShowJoinModal(false);
+                  setJoinSuccess(false);
+                }}
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2 rounded-xl"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Gabung Kelas</h3>
+              <p className="text-sm text-slate-500 mb-6">Masukkan kode kelas dari gurumu.</p>
+
+              {!joinSuccess && joinError && (
+                <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl flex items-start gap-2 border border-red-100">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{joinError}</span>
+                </div>
+              )}
+
+              {joinSuccess ? (
+                <div className="text-center py-6">
+                  <motion.div 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"
+                  >
+                    <CheckCircle2 className="w-8 h-8 text-green-500" />
+                  </motion.div>
+                  <h4 className="text-lg font-bold text-slate-900 mb-2">Berhasil Bergabung!</h4>
+                  <p className="text-sm text-slate-500 mb-6">Kamu telah ditambahkan ke dalam kelas.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleJoinClass} className="space-y-4">
+                  <div>
+                    <input
+                      type="text"
+                      value={joinCodeInput}
+                      onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
+                      placeholder="Contoh: XH2K7"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none uppercase font-bold tracking-widest text-center text-lg placeholder:font-normal placeholder:normal-case placeholder:tracking-normal"
+                      autoFocus
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={!joinCodeInput.trim() || isJoining}
+                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2"
+                  >
+                    {isJoining ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                    {isJoining ? 'Bergabung...' : 'Gabung'}
+                  </button>
+                </form>
+              )}
             </motion.div>
           </div>
         )}
