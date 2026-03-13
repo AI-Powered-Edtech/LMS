@@ -47,7 +47,7 @@ export function Login() {
         if (!demoPassword) {
             console.warn("Demo password not configured");
         }
-        setEmail(`${role}@edusync.dev`);
+        setEmail(`demo.${role}@edusync.dev`);
         setPassword(demoPassword ?? '');
         setMode('login');
         setError('');

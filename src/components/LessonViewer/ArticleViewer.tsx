@@ -89,7 +89,7 @@ export function ArticleViewer({
             <div className="max-w-4xl mx-auto relative">
                 {/* Progress tracker */}
                 {!isCompleted && (
-                    <div className="sticky top-0 z-10 mb-8 bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-xl text-sm font-medium flex items-start gap-3 shadow-sm">
+                    <div className="sticky top-0 z-10 mb-8 bg-gradient-to-r from-blue-50 to-indigo-50/50 border border-blue-200/80 text-blue-800 px-5 py-4 rounded-xl text-sm font-medium flex items-start gap-3 shadow-sm">
                         <Sparkles className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
                         <div className="flex-1">
                             <p>Sistem melacak progres membaca Anda. Gulir hingga bawah dan baca minimal {minReadingTimeSeconds} detik.</p>
@@ -107,7 +107,7 @@ export function ArticleViewer({
 
                 {/* Article content */}
                 <div
-                    className="prose prose-slate prose-blue max-w-none prose-headings:font-bold prose-h1:text-3xl prose-p:leading-relaxed prose-p:text-slate-600 prose-a:text-blue-600 hover:prose-a:text-blue-700"
+                    className="prose prose-slate prose-blue max-w-none prose-headings:font-extrabold prose-headings:tracking-tight prose-h1:text-3xl prose-h2:text-xl prose-p:leading-relaxed prose-p:text-slate-600 prose-a:text-blue-600 hover:prose-a:text-blue-700 prose-img:rounded-xl prose-pre:rounded-xl prose-pre:bg-slate-50"
                     dangerouslySetInnerHTML={{ __html: sanitizedHTML }}
                 />
             </div>

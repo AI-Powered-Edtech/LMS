@@ -146,7 +146,7 @@ function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule:
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: ci * 0.08, duration: 0.3 }}
-                className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+                className="bg-white rounded-2xl border border-slate-200/70 shadow-md shadow-slate-200/40 overflow-hidden hover:shadow-lg hover:shadow-slate-200/60 transition-all duration-300"
               >
                 {/* Course Header */}
                 <button
@@ -205,7 +205,7 @@ function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule:
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: mi * 0.04 }}
                               onClick={() => onSelectModule(mod.id)}
-                              className="w-full flex items-center gap-4 px-5 py-3.5 text-left hover:bg-blue-50/80 transition-all group border-b border-slate-100 last:border-b-0"
+                              className="w-full flex items-center gap-4 px-5 py-3.5 text-left hover:bg-blue-50/60 transition-all group border-b border-slate-100 last:border-b-0"
                             >
                               <div className="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center shrink-0 text-sm font-bold text-slate-500 group-hover:bg-blue-500 group-hover:text-white group-hover:border-blue-500 transition-all shadow-sm">
                                 {mod.order}
@@ -381,7 +381,7 @@ export function LessonViewer() {
   // Render: Main Viewer Layout
   // ============================================================
   return (
-    <div className="flex flex-col lg:flex-row h-full bg-slate-50/50 p-4 lg:p-8 gap-6 overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-full bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/20 p-4 lg:p-6 xl:p-8 gap-5 overflow-hidden">
       {/* Sidebar */}
       <LessonSidebar
         lessons={moduleLessons}
@@ -392,11 +392,11 @@ export function LessonViewer() {
       />
 
       {/* Main Content Area - Floating Card */}
-      <div className="flex-1 flex flex-col min-w-0 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative z-10">
+      <div className="flex-1 flex flex-col min-w-0 bg-white rounded-2xl border border-slate-200/70 shadow-lg shadow-slate-200/50 overflow-hidden relative z-10">
         {/* Top Bar */}
         {/* Top Bar */}
         {state.lesson && (
-          <div className="bg-white border-b border-slate-100 flex flex-col shrink-0">
+          <div className="bg-gradient-to-r from-white to-slate-50/50 border-b border-slate-100 flex flex-col shrink-0">
             <div className="px-8 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex-1 min-w-0 pr-4">
                 <div className="flex items-center gap-2 text-sm text-blue-600 font-bold mb-2">
@@ -407,7 +407,7 @@ export function LessonViewer() {
                           <AlertTriangle className="w-4 h-4" />}
                   <span className="capitalize">{state.lesson.type}</span>
                 </div>
-                <h1 className="text-2xl md:text-3xl font-extrabold text-slate-800 truncate tracking-tight">{state.lesson.title}</h1>
+                <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 truncate tracking-tight leading-tight">{state.lesson.title}</h1>
               </div>
 
               <div className="shrink-0 flex items-center gap-3">
@@ -435,7 +435,7 @@ export function LessonViewer() {
             </div>
 
             {/* Navigation Tabs */}
-            <div className="flex px-8 border-t border-slate-50" role="tablist" aria-label="Navigasi Pelajaran">
+            <div className="flex px-8 gap-1" role="tablist" aria-label="Navigasi Pelajaran">
               <button
                 role="tab"
                 id="tab-content"
