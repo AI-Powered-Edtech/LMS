@@ -1,5 +1,5 @@
 import { useBuilder } from '@/src/contexts/BuilderContext';
-import { Link as LinkIcon, Play } from 'lucide-react';
+import { Link as LinkIcon, Play, Video } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
 
 interface VideoBlockEditorProps {
@@ -33,13 +33,13 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
     const embedUrl = isYoutube ? getYoutubeEmbedUrl(url) : null;
 
     return (
-        <div className="space-y-3">
+        <div className="space-y-4">
             {/* URL Input */}
-            <div className="relative">
-                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <div className="relative group">
+                <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
                 <input
                     type="text"
-                    placeholder="Paste YouTube or video URL..."
+                    placeholder="Tempel tautan YouTube atau video di sini..."
                     value={url}
                     onChange={(e) => {
                         actions.updateBlock(blockId, { url: e.target.value });
@@ -47,13 +47,13 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
                     onBlur={() => {
                         actions.saveBlock(blockId);
                     }}
-                    className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none transition-all bg-white"
+                    className="w-full pl-11 pr-4 py-3 border border-slate-200/60 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all bg-slate-50/50 focus:bg-white placeholder:text-slate-300 shadow-inner"
                 />
             </div>
 
             {/* Video Preview */}
             {embedUrl ? (
-                <div className="rounded-lg overflow-hidden border border-slate-200 bg-black aspect-video">
+                <div className="rounded-[24px] overflow-hidden border border-slate-200/50 bg-black aspect-video shadow-lg">
                     <iframe
                         src={embedUrl}
                         className="w-full h-full"
@@ -63,15 +63,24 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
                     />
                 </div>
             ) : url ? (
-                <div className="rounded-lg overflow-hidden border border-slate-200 bg-slate-900 aspect-video flex items-center justify-center">
+                <div className="rounded-[24px] overflow-hidden border border-slate-200/50 bg-slate-900 aspect-video flex items-center justify-center shadow-lg">
                     <div className="text-center">
-                        <Play className="w-8 h-8 text-white/40 mx-auto mb-1" />
-                        <p className="text-[10px] text-white/50 font-medium">
-                            {url.startsWith('http') ? 'External video' : 'Invalid URL'}
+                        <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-md">
+                           <Play className="w-8 h-8 text-white/60" />
+                        </div>
+                        <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">
+                            {url.startsWith('http') ? 'VIDEO EKSTERNAL' : 'URL TIDAK VALID'}
                         </p>
                     </div>
                 </div>
-            ) : null}
+            ) : (
+                <div className="py-12 border-2 border-dashed border-slate-100 rounded-[28px] bg-slate-50/30 flex flex-col items-center justify-center text-slate-300">
+                    <div className="p-4 bg-white rounded-2xl mb-3 shadow-sm">
+                        <Video className="w-8 h-8" />
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.1em]">Belum ada video ditambahkan</p>
+                </div>
+            )}
         </div>
     );
 }

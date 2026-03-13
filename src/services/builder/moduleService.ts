@@ -11,7 +11,8 @@ export const builderModuleService = {
         const { count } = await supabase
             .from('course_modules')
             .select('id', { count: 'exact', head: true })
-            .eq('course_id', courseId);
+            .eq('course_id', courseId)
+            .eq('tenant_id', tenantId);
 
         const { data, error } = await supabase
             .from('course_modules')
@@ -28,30 +29,33 @@ export const builderModuleService = {
         return mapModule({ ...data, lessons: [] });
     },
 
-    async updateModule(moduleId: string, data: { title?: string }): Promise<void> {
+    async updateModule(moduleId: string, tenantId: string, data: { title?: string }): Promise<void> {
         const updateData: any = {};
         if (data.title !== undefined) updateData.title = data.title;
 
         const { error } = await supabase
             .from('course_modules')
             .update(updateData)
-            .eq('id', moduleId);
+            .eq('id', moduleId)
+            .eq('tenant_id', tenantId);
         if (error) throw new Error(error.message);
     },
 
-    async deleteModule(moduleId: string): Promise<void> {
+    async deleteModule(moduleId: string, tenantId: string): Promise<void> {
         const { error } = await supabase
             .from('course_modules')
             .delete()
-            .eq('id', moduleId);
+            .eq('id', moduleId)
+            .eq('tenant_id', tenantId);
         if (error) throw new Error(error.message);
     },
 
-    async reorderModules(courseId: string, moduleIds: string[]): Promise<void> {
+    async reorderModules(courseId: string, moduleIds: string[], tenantId: string): Promise<void> {
         // Optimized RPC Call using WITH ORDINALITY
         const { error } = await supabase.rpc('rpc_reorder_course_modules', {
             p_course_id: courseId,
-            p_module_ids: moduleIds
+            p_module_ids: moduleIds,
+            p_tenant_id: tenantId
         });
 
         if (error) throw new Error(error.message);

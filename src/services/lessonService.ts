@@ -110,7 +110,7 @@ export const lessonService = {
      * Fetch a single lesson with its resources and quiz questions.
      * Quiz options are fetched WITHOUT is_correct (client-safe).
      */
-    async fetchLesson(lessonId: string): Promise<Lesson | null> {
+    async fetchLesson(lessonId: string, tenantId: string): Promise<Lesson | null> {
         const { data, error } = await supabase
             .from('lessons')
             .select(`
@@ -127,6 +127,7 @@ export const lessonService = {
         )
       `)
             .eq('id', lessonId)
+            .eq('tenant_id', tenantId)
             .single();
 
         if (error) {
@@ -146,7 +147,7 @@ export const lessonService = {
     /**
      * Fetch all lessons in a module with the current user's progress.
      */
-    async fetchModuleLessons(moduleId: string, userId: string): Promise<{
+    async fetchModuleLessons(moduleId: string, userId: string, tenantId: string): Promise<{
         lessons: Lesson[];
         progress: Record<string, LessonProgress>;
     }> {
@@ -163,6 +164,7 @@ export const lessonService = {
         )
       `)
             .eq('module_id', moduleId)
+            .eq('tenant_id', tenantId)
             .order('order');
 
         if (lessonsError) {
@@ -371,12 +373,13 @@ export const lessonService = {
     /**
      * Fetch the user's progress for a specific lesson.
      */
-    async fetchProgress(lessonId: string, userId: string): Promise<LessonProgress | null> {
+    async fetchProgress(lessonId: string, userId: string, tenantId: string): Promise<LessonProgress | null> {
         const { data, error } = await supabase
             .from('lesson_progress')
             .select('id, user_id, lesson_id, status, progress_percentage, last_position, completed, completed_at')
             .eq('lesson_id', lessonId)
             .eq('user_id', userId)
+            .eq('tenant_id', tenantId)
             .maybeSingle();
 
         if (error) {

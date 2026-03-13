@@ -13,7 +13,7 @@ export const builderCourseService = {
      * Stage 1: Fetch modules + lessons (no blocks) 
      * Refactored to return Domain Models
      */
-    async fetchCourseStructure(courseId: string): Promise<{
+    async fetchCourseStructure(courseId: string, tenantId: string): Promise<{
         course: DomainCourse;
         modules: DomainModule[];
     }> {
@@ -21,6 +21,7 @@ export const builderCourseService = {
             .from('courses')
             .select('*')
             .eq('id', courseId)
+            .eq('tenant_id', tenantId)
             .single();
 
         if (courseErr || !course) throw new Error('Course not found');
@@ -32,6 +33,7 @@ export const builderCourseService = {
         lessons (*)
       `)
             .eq('course_id', courseId)
+            .eq('tenant_id', tenantId)
             .order('order', { ascending: true });
 
         if (modErr) throw new Error(modErr.message);
@@ -52,19 +54,21 @@ export const builderCourseService = {
     },
 
     /** Use RPC to publish a course and update status/publishing timestamps */
-    async publishCourse(courseId: string): Promise<void> {
+    async publishCourse(courseId: string, tenantId: string): Promise<void> {
         const { error } = await supabase.rpc('rpc_publish_course', {
-            p_course_id: courseId
+            p_course_id: courseId,
+            p_tenant_id: tenantId
         });
         if (error) throw new Error(error.message);
     },
 
     /** Manually drafted via update instead of full RPC for now, for completeness */
-    async draftCourse(courseId: string): Promise<void> {
+    async draftCourse(courseId: string, tenantId: string): Promise<void> {
         const { error } = await supabase
             .from('courses')
             .update({ status: 'draft' })
-            .eq('id', courseId);
+            .eq('id', courseId)
+            .eq('tenant_id', tenantId);
         if (error) throw new Error(error.message);
     }
 };

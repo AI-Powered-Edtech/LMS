@@ -284,9 +284,9 @@ export function LessonViewer() {
   // Load module lessons for sidebar
   // ============================================================
   useEffect(() => {
-    if (!moduleId || !user?.id) return;
+    if (!moduleId || !user?.id || !tenantId) return;
     setSidebarLoading(true);
-    lessonService.fetchModuleLessons(moduleId, user.id)
+    lessonService.fetchModuleLessons(moduleId, user.id, tenantId)
       .then(({ lessons, progress }) => {
         setModuleLessons(lessons);
         setModuleProgress(progress);
@@ -299,12 +299,12 @@ export function LessonViewer() {
   // Load selected lesson (state machine: LOAD_LESSON)
   // ============================================================
   useEffect(() => {
-    if (!lessonId || !user?.id) return;
+    if (!lessonId || !user?.id || !tenantId) return;
     actions.loadLesson();
 
     Promise.all([
-      lessonService.fetchLesson(lessonId),
-      lessonService.fetchProgress(lessonId, user.id),
+      lessonService.fetchLesson(lessonId, tenantId),
+      lessonService.fetchProgress(lessonId, user.id, tenantId),
     ]).then(([lesson, progress]) => {
       if (lesson) {
         actions.lessonLoaded(lesson, progress);
@@ -314,7 +314,7 @@ export function LessonViewer() {
     }).catch(err => {
       actions.loadError(err.message || "Gagal memuat pelajaran");
     });
-  }, [lessonId, user?.id, actions]);
+  }, [lessonId, user?.id, tenantId, actions]);
 
   // ============================================================
   // Handle lesson selection from sidebar
@@ -570,8 +570,8 @@ export function LessonViewer() {
                       // Reload lesson
                       actions.loadLesson();
                       const [lesson, progress] = await Promise.all([
-                        lessonService.fetchLesson(state.lesson.id),
-                        user?.id ? lessonService.fetchProgress(state.lesson.id, user.id) : null,
+                        lessonService.fetchLesson(state.lesson.id, tenantId),
+                        user?.id ? lessonService.fetchProgress(state.lesson.id, user.id, tenantId) : null,
                       ]);
                       if (lesson) {
                         actions.lessonLoaded(lesson, progress || null);

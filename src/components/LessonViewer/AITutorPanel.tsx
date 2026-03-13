@@ -9,6 +9,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Sparkles, Bot, User, Lightbulb, X, MessageSquare } from "lucide-react";
 import { cn } from "@/src/utils/cn";
+import { useAuth } from "@/src/contexts/AuthContext";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -45,6 +46,7 @@ export function AITutorPanel({
   initialDifficulty = "not_started",
   onClose,
 }: AITutorPanelProps) {
+  const { tenantId } = useAuth();
   // State
   const [messages, setMessages] = useState<AITutorMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -88,7 +90,7 @@ export function AITutorPanel({
     setIsLoading(true);
 
     try {
-      const result = await askTutor(lessonId, question, sessionId);
+      const result = await askTutor(lessonId, question, tenantId!, sessionId);
 
       if (result.error) {
         setError(result.error);

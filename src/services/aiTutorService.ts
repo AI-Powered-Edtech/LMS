@@ -45,6 +45,7 @@ export interface AITutorError {
 export async function askTutor(
   lessonId: string,
   question: string,
+  tenantId: string,
   sessionId?: string
 ): Promise<{ data?: AITutorResponse; error?: AITutorError }> {
   try {
@@ -52,6 +53,7 @@ export async function askTutor(
       body: {
         lesson_id: lessonId,
         question: question.trim(),
+        tenant_id: tenantId,
         session_id: sessionId,
       },
     });
