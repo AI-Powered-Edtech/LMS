@@ -1709,6 +1709,7 @@ $$;
 
 Implemented:
 - [x] Core quiz tables (enums, columns, constraints)
+- [x] Multi-class assignment (`quiz_assignments` table + origin_class_id)
 - [x] Attempt system (`start_quiz_attempt`, `submit_quiz_attempt` RPCs)
 - [x] Grading engine (auto-grade MCQ/TF/MULTIPLE_SELECT, manual-grade SHORT_ANSWER/ESSAY)
 - [x] Manual grading infrastructure (`grade_attempt_question`, `recalculate_attempt_score`)
@@ -1723,7 +1724,7 @@ Lesson Quiz (Smart Player) — QuizViewer.tsx
 Standalone Quiz Platform   — Quiz.tsx + QuizTakingView
 ```
 
-> **Migrations:** `63_quiz_engine_schema.sql`, `64_quiz_engine_rpc.sql`, `65_quiz_engine_rls.sql`
+> **Migrations:** `63_quiz_engine_schema.sql`, `64_quiz_engine_rpc.sql`, `65_quiz_engine_rls.sql`, `81_quiz_assignments_schema.sql`
 
 ---
 
@@ -1733,7 +1734,6 @@ Standalone Quiz Platform   — Quiz.tsx + QuizTakingView
 
 - [ ] Quiz library (browse, filter, search)
 - [ ] Standalone quiz builder (separate from Course Builder)
-- [ ] Class assignment (assign quiz to class)
 - [ ] Teacher gradebook UI (`QuizGradebook.tsx` — "Perlu Dinilai" tab, inline grading)
 - [ ] Quiz analytics dashboard (per-quiz stats, per-question difficulty)
 - [ ] Quiz modes UI (practice/graded/exam behavior in frontend)
