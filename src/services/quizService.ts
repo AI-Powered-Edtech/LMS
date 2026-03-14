@@ -524,6 +524,7 @@ export const quizService = {
 
     async assignQuizToClasses(
         quizId: string,
+        tenantId: string,
         assignments: {
             class_id: string;
             available_from?: string;
@@ -536,6 +537,7 @@ export const quizService = {
                 assignments.map(a => ({
                     quiz_id: quizId,
                     class_id: a.class_id,
+                    tenant_id: tenantId,
                     available_from: a.available_from ?? null,
                     available_until: a.available_until ?? null,
                     status: 'draft'
@@ -656,6 +658,24 @@ export const quizService = {
             .single();
 
         if (error) throw error;
+
+        // Auto-create initial assignment to the origin class
+        const { error: assignError } = await supabase
+            .from('quiz_assignments')
+            .insert({
+                quiz_id: data.id,
+                class_id: payload.class_id,
+                tenant_id: payload.tenant_id,
+                available_from: payload.available_from || null,
+                available_until: payload.available_until || null,
+                status: 'draft'
+            });
+
+        if (assignError) {
+            console.error('Failed to auto-create quiz assignment:', assignError);
+            throw assignError;
+        }
+
         return data;
     },
 
