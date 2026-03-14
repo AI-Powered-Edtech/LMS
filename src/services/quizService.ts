@@ -8,6 +8,16 @@ export type QuestionType = 'MCQ' | 'TRUE_FALSE' | 'MULTIPLE_SELECT' | 'SHORT_ANS
 export type QuizMode = 'practice' | 'graded' | 'exam';
 export type QuizAttemptStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'SUBMITTED' | 'EXPIRED' | 'GRADED' | 'ABANDONED';
 
+export interface QuizAssignment {
+    id: string;
+    quiz_id: string;
+    class_id: string;
+    tenant_id: string;
+    status: 'draft' | 'active' | 'scheduled' | 'ended';
+    available_from?: string;
+    available_until?: string;
+}
+
 export interface QuizOptionSnapshot {
     id: string;
     text: string;
@@ -477,24 +487,106 @@ export const quizService = {
 
     /**
      * Fetch all quizzes for a specific class (teacher view — all statuses)
+     * Now joins through quiz_assignments
      */
     async getQuizzesByClass(classId: string) {
         const { data, error } = await supabase
-            .from('quizzes')
+            .from('quiz_assignments')
             .select(`
-                id, title, status, mode, time_limit_minutes, max_attempts,
-                passing_score, created_at, updated_at, available_from, available_until,
-                show_correct_answers, shuffle_questions, shuffle_options,
-                quiz_questions ( id )
+                *,
+                quizzes (
+                    id, title, status, mode, time_limit_minutes, max_attempts,
+                    passing_score, created_at, updated_at, available_from, available_until,
+                    show_correct_answers, shuffle_questions, shuffle_options,
+                    quiz_questions ( id )
+                )
             `)
             .eq('class_id', classId)
-            .order('created_at', { ascending: false });
+            // order by assignment creation or quiz creation. Let's just use assignment's available_from or id
+            .order('available_from', { ascending: false });
 
         if (error) throw error;
-        return (data || []).map(q => ({
-            ...q,
-            question_count: (q.quiz_questions || []).length,
+        
+        // Map the result to match the expected format for UI compatibility (combining assignment & quiz data)
+        return (data || []).map((assignment: any) => ({
+            ...(assignment.quizzes || {}),
+            assignment_id: assignment.id,
+            assignment_status: assignment.status,
+            assignment_available_from: assignment.available_from,
+            assignment_available_until: assignment.available_until,
+            question_count: (assignment.quizzes?.quiz_questions || []).length,
         }));
+    },
+
+    // ────────────────────────────────────────────────────────────
+    // Quiz Assignments
+    // ────────────────────────────────────────────────────────────
+
+    async assignQuizToClasses(
+        quizId: string,
+        assignments: {
+            class_id: string;
+            available_from?: string;
+            available_until?: string;
+        }[]
+    ) {
+        const { error } = await supabase
+            .from('quiz_assignments')
+            .insert(
+                assignments.map(a => ({
+                    quiz_id: quizId,
+                    class_id: a.class_id,
+                    available_from: a.available_from ?? null,
+                    available_until: a.available_until ?? null,
+                    status: 'draft'
+                }))
+            );
+
+        if (error) throw error;
+    },
+
+    async getAssignmentsByClass(classId: string) {
+        const { data, error } = await supabase
+            .from('quiz_assignments')
+            .select(`
+                *,
+                quizzes (
+                    id, title, mode, passing_score, status, time_limit_minutes,
+                    quiz_questions (id)
+                )
+            `)
+            .eq('class_id', classId);
+
+        if (error) throw error;
+        return data;
+    },
+
+    async getAssignmentsByQuiz(quizId: string) {
+        const { data, error } = await supabase
+            .from('quiz_assignments')
+            .select('*')
+            .eq('quiz_id', quizId);
+
+        if (error) throw error;
+        return data;
+    },
+
+    async updateQuizAssignment(assignmentId: string, updates: Record<string, unknown>) {
+        const { error } = await supabase
+            .from('quiz_assignments')
+            .update(updates)
+            .eq('id', assignmentId);
+
+        if (error) throw error;
+    },
+
+    async removeQuizAssignment(assignmentId: string) {
+        const { error } = await supabase
+            .from('quiz_assignments')
+            .delete()
+            .eq('id', assignmentId);
+
+        if (error) throw error;
     },
 
     /**
@@ -545,7 +637,7 @@ export const quizService = {
             .from('quizzes')
             .insert({
                 title: payload.title,
-                class_id: payload.class_id,
+                origin_class_id: payload.class_id,
                 course_id: payload.course_id || null,
                 tenant_id: payload.tenant_id,
                 instructions: payload.instructions || null,
