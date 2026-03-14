@@ -32,10 +32,16 @@ export function Login() {
         try {
             if (mode === 'login') {
                 const { error: err } = await signIn(email, password);
-                if (err) setError(err.message);
+                if (err) {
+                    console.error('[Login Error]:', err);
+                    setError(err.message);
+                }
             } else {
                 const { error: err } = await signUp(email, password, firstName, lastName);
-                if (err) setError(err.message);
+                if (err) {
+                    console.error('[Register Error]:', err);
+                    setError(err.message);
+                }
             }
         } finally {
             setSubmitting(false);
@@ -43,7 +49,9 @@ export function Login() {
     };
 
     const fillAccount = (role: string) => {
-        setEmail(`${role}@edusync.dev`);
+        const demoEmail = `${role}@edusync.dev`;
+        
+        setEmail(demoEmail);
         setPassword('');
         setMode('login');
         setError('');
@@ -160,7 +168,7 @@ export function Login() {
                         </button>
                     </div>
                     <p style={styles.demoHint}>
-                        Email: <code>{'{role}'}@edusync.dev</code> · Password: sesuai yang di-set di Supabase Auth
+                        Email: <code>{'{role}'}@edusync.dev</code> · Password: <code>admin123</code>
                     </p>
                 </div>
             </div>
