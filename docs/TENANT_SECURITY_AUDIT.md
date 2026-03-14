@@ -2,7 +2,7 @@
 
 > **Date**: 2026-03-08  
 > **Scope**: All 31 public tables, 119 RLS policies, 10 helper functions  
-> **Supabase Project**: `omfnkoufjqjqilswldtz` (LMS)
+> **Supabase Project**: `` (LMS)
 
 ---
 

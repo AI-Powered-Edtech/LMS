@@ -58,13 +58,6 @@ export function TeacherDashboard() {
             <Plus className="w-4 h-4" />
             Buat Tugas
           </button>
-          <button
-            onClick={() => alert('Fitur Buat Kelas akan segera hadir!')}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-sm font-bold transition-all shadow-sm"
-          >
-            <Users className="w-4 h-4" />
-            Buat Kelas
-          </button>
         </div>
       </div>
 

@@ -110,7 +110,7 @@ export const quizService = {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error('Not authenticated');
 
-        const { data, error } = await supabase.rpc('v1_start_attempt', {
+        const { data, error } = await supabase.rpc('v1_start_quiz_attempt', {
             p_quiz_id: quizId
         });
 
@@ -141,14 +141,8 @@ export const quizService = {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error('Not authenticated');
 
-        // Note: New V1 RPC relies on async grading.
         const { data, error } = await supabase.rpc('v1_submit_quiz_attempt', {
-            p_attempt_id: attemptId,
-            p_final_answers: answers.map(a => ({
-                question_id: a.question_id,
-                student_answers: a.selected_option_ids.length > 0 ? a.selected_option_ids : a.text_answer
-            })),
-            p_telemetry_data: {} // We can pipe telemetry properly in Phase 2
+            p_attempt_id: attemptId
         });
 
         if (error) {
@@ -251,6 +245,34 @@ export const quizService = {
     },
 
     /**
+     * Fetch all results for a specific quiz (teacher/admin only)
+     */
+    async getQuizResults(quizId: string) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error('Not authenticated');
+
+        const { data, error } = await supabase.rpc('v1_get_quiz_results', {
+            p_quiz_id: quizId
+        });
+
+        if (error) {
+            console.error('Error fetching quiz results:', error);
+            throw new Error(error.message || 'Failed to fetch quiz results');
+        }
+
+        return data as Array<{
+            attempt_id: string;
+            student_id: string;
+            student_name: string;
+            started_at: string;
+            submitted_at: string | null;
+            score: number | null;
+            status: string;
+            passed: boolean | null;
+        }>;
+    },
+
+    /**
      * Save/Update an answer for a specific question in an attempt.
      * Supports both option-based and text-based answers.
      */
@@ -259,21 +281,18 @@ export const quizService = {
         questionId: string,
         answer: { selected_option_ids?: string[]; text_answer?: string; selected_option_id?: string }
     ) {
-        let student_answers: any = null;
+        let selected_option_ids: string[] = [];
         if (answer.selected_option_ids && answer.selected_option_ids.length > 0) {
-            student_answers = answer.selected_option_ids;
+            selected_option_ids = answer.selected_option_ids;
         } else if (answer.selected_option_id) {
-            student_answers = [answer.selected_option_id];
-        } else if (answer.text_answer !== undefined) {
-            student_answers = answer.text_answer;
+            selected_option_ids = [answer.selected_option_id];
         }
 
-        const { error } = await supabase.rpc('v1_save_partial_answers', {
+        const { error } = await supabase.rpc('v1_save_answer', {
             p_attempt_id: attemptId,
-            p_answers: [{
-                question_id: questionId,
-                student_answers
-            }]
+            p_question_id: questionId,
+            p_selected_option_ids: selected_option_ids,
+            p_text_answer: answer.text_answer || null
         });
 
         if (error) {
@@ -293,18 +312,17 @@ export const quizService = {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error('Not authenticated');
 
-        const { error } = await supabase.rpc('v1_save_partial_answers', {
-            p_attempt_id: attemptId,
-            p_answers: answers.map(a => ({
-                question_id: a.question_id,
-                student_answers: a.selected_option_ids.length > 0 ? a.selected_option_ids : a.text_answer
-            }))
-        });
-
-        if (error) {
-            console.error('Error batch saving answers:', error);
-            throw error;
-        }
+        const promises = answers.map(a => 
+            supabase.rpc('v1_save_answer', {
+                p_attempt_id: attemptId,
+                p_question_id: a.question_id,
+                p_selected_option_ids: a.selected_option_ids || [],
+                p_text_answer: a.text_answer || null
+            })
+        );
+        
+        await Promise.all(promises);
+        
         return true;
     },
 

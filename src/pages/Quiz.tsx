@@ -22,7 +22,7 @@ import { cn } from '@/src/utils/cn';
 import { useStudentProgress } from '@/src/contexts/StudentProgressContext';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { quizService, type QuizAttemptResult, type QuizAttempt, type SubmitAnswer } from '@/src/services/quizService';
-import { QuizTakingView } from './quiz/QuizTakingView';
+import { QuizPlayer } from './quiz/QuizPlayer';
 import { AttemptDetailModal } from '@/src/components/AttemptDetailModal';
 
 const getDifficultyColor = (diff: string | undefined) => {
@@ -317,7 +317,7 @@ export function QuizModule() {
     }
 
     return (
-      <QuizTakingView
+      <QuizPlayer
         attemptId={currentAttemptId}
         expiresAt={expiresAt}
         quiz={currentQuiz}

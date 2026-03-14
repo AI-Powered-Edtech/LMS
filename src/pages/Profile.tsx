@@ -65,10 +65,10 @@ export function Profile() {
     try {
       setLoadingGamification(true);
 
-      // Fallback to mock data for demo accounts or if user/tenant is missing
-      const isDemo = !user || !tenantId || profile?.is_demo;
+      // Fallback to mock data if user/tenant is missing
+      const canFetch = user && tenantId;
 
-      if (isDemo) {
+      if (!canFetch) {
         setStreakData(MOCK_STREAK);
         setUserBadges(MOCK_BADGES);
         setLoadingGamification(false);

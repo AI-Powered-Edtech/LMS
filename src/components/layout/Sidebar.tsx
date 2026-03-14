@@ -15,6 +15,7 @@ export function Sidebar() {
   const { isModuleEnabled } = useModuleConfig();
   const [isClassroomDropdownOpen, setIsClassroomDropdownOpen] = useState(false);
   const [isAddingClassroom, setIsAddingClassroom] = useState(false);
+  const [isSavingClass, setIsSavingClass] = useState(false);
   const [newClassroomName, setNewClassroomName] = useState("");
 
   const filteredNavItems = navigationItems.filter(item => {
@@ -30,13 +31,20 @@ export function Sidebar() {
     return true;
   });
 
-  const handleAddClassroom = (e: React.FormEvent) => {
+  const handleAddClassroom = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newClassroomName.trim()) {
-      addClassroom(newClassroomName.trim());
+    if (!newClassroomName.trim() || isSavingClass) return;
+    setIsSavingClass(true);
+    try {
+      await addClassroom(newClassroomName.trim());
       setNewClassroomName("");
       setIsAddingClassroom(false);
       setIsClassroomDropdownOpen(false);
+    } catch (err: any) {
+      console.error('[Sidebar] Failed to create class:', err);
+      alert(`Gagal membuat kelas: ${err.message || 'Terjadi kesalahan.'}`);
+    } finally {
+      setIsSavingClass(false);
     }
   };
 
@@ -100,10 +108,10 @@ export function Sidebar() {
                     <div className="flex gap-2">
                       <button
                         type="submit"
-                        disabled={!newClassroomName.trim()}
+                        disabled={!newClassroomName.trim() || isSavingClass}
                         className="flex-1 bg-blue-600 text-white text-xs font-bold py-2 rounded-lg disabled:opacity-50 hover:bg-blue-700"
                       >
-                        SAVE
+                        {isSavingClass ? 'Menyimpan...' : 'SAVE'}
                       </button>
                       <button
                         type="button"

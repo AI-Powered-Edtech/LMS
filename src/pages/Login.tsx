@@ -42,13 +42,9 @@ export function Login() {
         }
     };
 
-    const fillDemo = (role: string) => {
-        const demoPassword = import.meta.env.VITE_DEMO_PASSWORD;
-        if (!demoPassword) {
-            console.warn("Demo password not configured");
-        }
-        setEmail(`demo.${role}@edusync.dev`);
-        setPassword(demoPassword ?? '');
+    const fillAccount = (role: string) => {
+        setEmail(`${role}@edusync.dev`);
+        setPassword('');
         setMode('login');
         setError('');
     };
@@ -139,19 +135,33 @@ export function Login() {
                     </button>
                 </form>
 
+                {/* Setup Warning Banner */}
+                <div style={styles.warning}>
+                    <p style={styles.warningTitle}>⚠️ Perhatian Developer</p>
+                    <p style={styles.warningText}>
+                        Pastikan akun sudah dibuat di <strong>Supabase Auth</strong> dan memiliki entry 
+                        di tabel <code>profiles</code> + <code>user_roles</code>.
+                        Lihat <code>README.md</code> atau seed migration untuk setup.
+                    </p>
+                </div>
+
+                {/* Quick Login - Real Accounts */}
                 <div style={styles.demo}>
-                    <p style={styles.demoTitle}>Demo Accounts</p>
+                    <p style={styles.demoTitle}>Quick Login (Dev Accounts)</p>
                     <div style={styles.demoButtons}>
-                        <button style={styles.demoBtn} onClick={() => fillDemo('student')}>
+                        <button style={styles.demoBtn} onClick={() => fillAccount('student')}>
                             🎓 Student
                         </button>
-                        <button style={styles.demoBtn} onClick={() => fillDemo('teacher')}>
+                        <button style={styles.demoBtn} onClick={() => fillAccount('teacher')}>
                             👩‍🏫 Teacher
                         </button>
-                        <button style={styles.demoBtn} onClick={() => fillDemo('admin')}>
+                        <button style={styles.demoBtn} onClick={() => fillAccount('admin')}>
                             🛡️ Admin
                         </button>
                     </div>
+                    <p style={styles.demoHint}>
+                        Email: <code>{'{role}'}@edusync.dev</code> · Password: sesuai yang di-set di Supabase Auth
+                    </p>
                 </div>
             </div>
         </div>
@@ -276,5 +286,30 @@ const styles: Record<string, React.CSSProperties> = {
         color: '#94a3b8',
         cursor: 'pointer',
         fontSize: '0.8rem',
+    },
+    demoHint: {
+        color: '#64748b',
+        fontSize: '0.7rem',
+        marginTop: '0.75rem',
+        margin: '0.75rem 0 0',
+    },
+    warning: {
+        marginTop: '1.5rem',
+        padding: '1rem',
+        background: 'rgba(234, 179, 8, 0.1)',
+        border: '1px solid rgba(234, 179, 8, 0.25)',
+        borderRadius: '0.5rem',
+    },
+    warningTitle: {
+        color: '#facc15',
+        fontSize: '0.8rem',
+        fontWeight: 600,
+        margin: '0 0 0.5rem',
+    },
+    warningText: {
+        color: '#94a3b8',
+        fontSize: '0.7rem',
+        lineHeight: 1.5,
+        margin: 0,
     },
 };
