@@ -41,7 +41,6 @@ import { useAssignments } from "@/src/features/assignments/hooks/useAssignments"
 import { useClassroom } from "@/src/contexts/ClassroomContext";
 
 export function Dashboard() {
-  console.log('[Dashboard] Rendering started');
   const { role } = useAuth();
   const { xp, dailyGoal, achievements, addXP } = useStudentProgress();
   const { assignments, loading: assignmentsLoading } = useAssignments();
