@@ -16,21 +16,21 @@ BEGIN
     
     -- 0.1 analytics_metrics
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'analytics_metrics' AND column_name = 'tenant_id') THEN
-        ALTER TABLE public.analytics_metrics ADD COLUMN tenant_id uuid REFERENCES public.tenants(id);
+        ALTER TABLE public.analytics_metrics ADD COLUMN IF NOT EXISTS tenant_id uuid REFERENCES public.tenants(id);
         UPDATE public.analytics_metrics SET tenant_id = v_default_tenant_id WHERE tenant_id IS NULL;
         ALTER TABLE public.analytics_metrics ALTER COLUMN tenant_id SET NOT NULL;
     END IF;
 
     -- 0.2 analytics_rate_limits
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'analytics_rate_limits' AND column_name = 'tenant_id') THEN
-        ALTER TABLE public.analytics_rate_limits ADD COLUMN tenant_id uuid REFERENCES public.tenants(id);
+        ALTER TABLE public.analytics_rate_limits ADD COLUMN IF NOT EXISTS tenant_id uuid REFERENCES public.tenants(id);
         UPDATE public.analytics_rate_limits SET tenant_id = v_default_tenant_id WHERE tenant_id IS NULL;
         ALTER TABLE public.analytics_rate_limits ALTER COLUMN tenant_id SET NOT NULL;
     END IF;
 
     -- 0.3 badges
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'badges' AND column_name = 'tenant_id') THEN
-        ALTER TABLE public.badges ADD COLUMN tenant_id uuid REFERENCES public.tenants(id);
+        ALTER TABLE public.badges ADD COLUMN IF NOT EXISTS tenant_id uuid REFERENCES public.tenants(id);
         UPDATE public.badges SET tenant_id = v_default_tenant_id WHERE tenant_id IS NULL;
         ALTER TABLE public.badges ALTER COLUMN tenant_id SET NOT NULL;
     END IF;

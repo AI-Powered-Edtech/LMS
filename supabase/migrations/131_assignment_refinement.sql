@@ -3,8 +3,8 @@
 
 -- 1. Add updated_at and max_attempts to assignments
 ALTER TABLE assignments 
-ADD COLUMN updated_at timestamptz DEFAULT now(),
-ADD COLUMN max_attempts integer DEFAULT 1 CHECK (max_attempts >= 1);
+ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now(),
+ADD COLUMN IF NOT EXISTS max_attempts integer DEFAULT 1 CHECK (max_attempts >= 1);
 
 -- 2. Add composite index for Gradebook performance
 CREATE INDEX idx_assignment_submissions_assignment_status 

@@ -47,15 +47,15 @@ CREATE TRIGGER set_discussions_updated_at
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='notifications' AND column_name='actor_id') THEN
-        ALTER TABLE public.notifications ADD COLUMN actor_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL;
+        ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS actor_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL;
     END IF;
     
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='notifications' AND column_name='entity_id') THEN
-        ALTER TABLE public.notifications ADD COLUMN entity_id uuid;
+        ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS entity_id uuid;
     END IF;
     
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='notifications' AND column_name='link') THEN
-        ALTER TABLE public.notifications ADD COLUMN link text;
+        ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS link text;
     END IF;
 END $$;
 

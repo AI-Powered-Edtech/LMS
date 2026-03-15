@@ -2,7 +2,7 @@
 -- This migration adds the assignments and assignment_submissions tables, ensuring multi-tenant isolation and integration with the progress engine.
 
 -- 1. Create assignments table
-CREATE TABLE assignments (
+CREATE TABLE IF NOT EXISTS assignments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id uuid NOT NULL,
   course_id uuid NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
@@ -16,7 +16,7 @@ CREATE TABLE assignments (
 );
 
 -- 2. Create assignment_submissions table
-CREATE TABLE assignment_submissions (
+CREATE TABLE IF NOT EXISTS assignment_submissions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id uuid NOT NULL,
   assignment_id uuid NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
@@ -25,18 +25,24 @@ CREATE TABLE assignment_submissions (
   file_url text,
   score numeric,
   feedback text,
-  status text DEFAULT 'submitted' CHECK (status IN ('draft', 'submitted', 'graded', 'returned')),
+  status public.submission_status DEFAULT 'SUBMITTED'::public.submission_status,
   submitted_at timestamptz DEFAULT now(),
   graded_at timestamptz,
   UNIQUE(assignment_id, student_id)
 );
+-- 3. Ensure required columns exist (01_migration.sql may have created a simpler table)
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS course_id uuid REFERENCES courses(id) ON DELETE CASCADE;
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS lesson_id uuid REFERENCES lessons(id) ON DELETE CASCADE;
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS instructions text;
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS max_points integer DEFAULT 100;
+ALTER TABLE assignments ADD COLUMN IF NOT EXISTS created_by uuid REFERENCES auth.users(id);
 
--- 3. Add Indexes for performance
-CREATE INDEX idx_assignments_lesson ON assignments(lesson_id);
-CREATE INDEX idx_assignments_tenant ON assignments(tenant_id);
-CREATE INDEX idx_assignment_submissions_assignment ON assignment_submissions(assignment_id);
-CREATE INDEX idx_assignment_submissions_student ON assignment_submissions(student_id);
-CREATE INDEX idx_assignment_submissions_tenant ON assignment_submissions(tenant_id);
+-- 3b. Add Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_assignments_lesson ON assignments(lesson_id);
+CREATE INDEX IF NOT EXISTS idx_assignments_tenant ON assignments(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_assignment_submissions_assignment ON assignment_submissions(assignment_id);
+CREATE INDEX IF NOT EXISTS idx_assignment_submissions_student ON assignment_submissions(student_id);
+CREATE INDEX IF NOT EXISTS idx_assignment_submissions_tenant ON assignment_submissions(tenant_id);
 
 -- 4. Enable RLS
 ALTER TABLE assignments ENABLE ROW LEVEL SECURITY;
@@ -44,6 +50,7 @@ ALTER TABLE assignment_submissions ENABLE ROW LEVEL SECURITY;
 
 -- 5. RLS Policies for assignments
 -- Students can read assignments for courses they are enrolled in
+DROP POLICY IF EXISTS "enrolled_students_read_assignments" ON assignments;
 CREATE POLICY "enrolled_students_read_assignments" ON assignments
   FOR SELECT
   USING (
@@ -56,6 +63,7 @@ CREATE POLICY "enrolled_students_read_assignments" ON assignments
   );
 
 -- Teachers can manage assignments in their courses
+DROP POLICY IF EXISTS "teachers_manage_assignments" ON assignments;
 CREATE POLICY "teachers_manage_assignments" ON assignments
   FOR ALL
   USING (
@@ -70,12 +78,14 @@ CREATE POLICY "teachers_manage_assignments" ON assignments
 
 -- 6. RLS Policies for assignment_submissions
 -- Students can manage their own submissions
+DROP POLICY IF EXISTS "students_manage_own_submissions" ON assignment_submissions;
 CREATE POLICY "students_manage_own_submissions" ON assignment_submissions
   FOR ALL
   USING (student_id = auth.uid())
   WITH CHECK (student_id = auth.uid());
 
 -- Teachers can read and grade all submissions in their courses
+DROP POLICY IF EXISTS "teachers_grade_submissions" ON assignment_submissions;
 CREATE POLICY "teachers_grade_submissions" ON assignment_submissions
   FOR ALL
   USING (
@@ -116,8 +126,9 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Trigger for progress integration
+DROP TRIGGER IF EXISTS after_assignment_submission ON assignment_submissions;
 CREATE TRIGGER after_assignment_submission
 AFTER INSERT OR UPDATE ON assignment_submissions
 FOR EACH ROW
-WHEN (NEW.status = 'submitted')
+WHEN (NEW.status = 'SUBMITTED'::public.submission_status)
 EXECUTE FUNCTION on_assignment_submitted();

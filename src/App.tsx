@@ -52,7 +52,12 @@ import { ModerationDashboard } from "./pages/admin/ModerationDashboard";
 import { FinanceDashboard } from "./pages/admin/FinanceDashboard";
 import { PPDBDashboard } from "./pages/admin/PPDBDashboard";
 import { AdministrationDashboard } from "./pages/admin/AdministrationDashboard";
+import { UserManagement } from "./pages/admin/UserManagement";
+import { AuditDashboard } from "./pages/admin/AuditDashboard";
 import { Login } from "./pages/Login";
+import { ForgotPassword } from "./pages/ForgotPassword";
+import { ResetPassword } from "./pages/ResetPassword";
+import { VerifyEmail } from "./pages/VerifyEmail";
 import { TeachingHub, SocialHub, GamificationHub, AdminHub } from "./pages/Hubs";
 
 import { GradebookProvider } from "./contexts/GradebookContext";
@@ -81,6 +86,9 @@ export default function App() {
                               <Router>
                                 <Routes>
                                   <Route path="/login" element={<Login />} />
+                                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                                  <Route path="/reset-password" element={<ResetPassword />} />
+                                  <Route path="/verify-email" element={<VerifyEmail />} />
                                   <Route path="/" element={<Layout />}>
                                     <Route index element={<RoleRoute role="student"><Dashboard /></RoleRoute>} />
                                     <Route path="dashboard" element={<RoleRoute role="student"><Dashboard /></RoleRoute>} />
@@ -125,6 +133,8 @@ export default function App() {
                                     <Route path="admin/finance" element={<RoleRoute role="admin"><FinanceDashboard /></RoleRoute>} />
                                     <Route path="admin/ppdb" element={<RoleRoute role="admin"><PPDBDashboard /></RoleRoute>} />
                                     <Route path="admin/administration" element={<RoleRoute role="admin"><AdministrationDashboard /></RoleRoute>} />
+                                    <Route path="admin/users" element={<RoleRoute role="admin"><UserManagement /></RoleRoute>} />
+                                    <Route path="admin/audit" element={<RoleRoute role="admin"><AuditDashboard /></RoleRoute>} />
                                     <Route path="courses" element={<RoleRoute role="student"><LessonViewer /></RoleRoute>} />
                                     <Route path="courses/:courseId" element={
                                       <RoleRoute role={['student', 'teacher', 'admin']}>

@@ -13,8 +13,8 @@ create index if not exists idx_courses_tenant_status
   on courses (tenant_id, status);
 
 -- modules
-create index if not exists idx_modules_tenant_course
-  on modules (tenant_id, course_id);
+-- create index if not exists idx_modules_tenant_course
+  -- on modules (tenant_id, course_id);
 
 -- lessons
 create index if not exists idx_lessons_tenant_module
@@ -32,8 +32,8 @@ create index if not exists idx_progress_user_lesson
   on lesson_progress (user_id, lesson_id);
 
 -- quiz_attempts
-create index if not exists idx_quiz_attempts_tenant_user
-  on quiz_attempts (tenant_id, user_id);
+-- create index if not exists idx_quiz_attempts_tenant_user
+  -- on quiz_attempts (tenant_id, user_id);
 
-create index if not exists idx_quiz_attempts_quiz
-  on quiz_attempts (quiz_id, user_id);
+-- create index if not exists idx_quiz_attempts_quiz
+  -- on quiz_attempts (quiz_id, user_id);

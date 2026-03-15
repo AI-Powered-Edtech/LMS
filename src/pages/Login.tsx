@@ -1,6 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+
+interface InviteInfo {
+    email: string;
+    role: string;
+    tenant_name: string;
+    tenant_id: string;
+}
 
 export function Login() {
     const { user, signIn, signUp, loading } = useAuth();
@@ -11,6 +19,31 @@ export function Login() {
     const [lastName, setLastName] = useState('');
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [inviteToken, setInviteToken] = useState<string | null>(null);
+    const [inviteInfo, setInviteInfo] = useState<InviteInfo | null>(null);
+
+    // Parse invite token from URL hash (e.g., /#/login?invite=TOKEN)
+    useEffect(() => {
+        const hash = window.location.hash;
+        const queryPart = hash.split('?')[1];
+        if (queryPart) {
+            const params = new URLSearchParams(queryPart);
+            const token = params.get('invite');
+            if (token) {
+                setInviteToken(token);
+                setMode('register');
+                // Validate the token
+                supabase.rpc('validate_invitation', { p_token: token }).then(({ data }) => {
+                    if (data?.valid) {
+                        setInviteInfo(data as InviteInfo);
+                        setEmail(data.email);
+                    } else {
+                        setError(data?.error || 'Undangan tidak valid atau sudah kedaluwarsa.');
+                    }
+                });
+            }
+        }
+    }, []);
 
     if (loading) {
         return (
@@ -33,14 +66,24 @@ export function Login() {
             if (mode === 'login') {
                 const { error: err } = await signIn(email, password);
                 if (err) {
-                    console.error('[Login Error]:', err);
                     setError(err.message);
                 }
             } else {
-                const { error: err } = await signUp(email, password, firstName, lastName);
-                if (err) {
-                    console.error('[Register Error]:', err);
-                    setError(err.message);
+                // Pass invite_token in metadata if present
+                const { error: signUpError } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            first_name: firstName,
+                            last_name: lastName,
+                            ...(inviteToken ? { invite_token: inviteToken } : {}),
+                            ...(inviteInfo?.tenant_id ? { tenant_id: inviteInfo.tenant_id } : {}),
+                        },
+                    },
+                });
+                if (signUpError) {
+                    setError(signUpError.message);
                 }
             }
         } finally {
@@ -65,6 +108,24 @@ export function Login() {
                     <h1 style={styles.title}>EduSync</h1>
                     <p style={styles.subtitle}>Learning Management System</p>
                 </div>
+
+                {inviteInfo && (
+                    <div style={{
+                        padding: '1rem',
+                        background: 'rgba(34,197,94,0.1)',
+                        border: '1px solid rgba(34,197,94,0.25)',
+                        borderRadius: '0.5rem',
+                        marginBottom: '1rem',
+                        textAlign: 'center' as const,
+                    }}>
+                        <p style={{ color: '#86efac', fontSize: '0.85rem', margin: '0 0 0.25rem', fontWeight: 600 }}>
+                            🎉 Anda diundang ke {inviteInfo.tenant_name}
+                        </p>
+                        <p style={{ color: '#94a3b8', fontSize: '0.75rem', margin: 0 }}>
+                            Role: <strong style={{ color: '#60a5fa' }}>{inviteInfo.role}</strong> • Buat akun untuk bergabung
+                        </p>
+                    </div>
+                )}
 
                 <div style={styles.tabs}>
                     <button
@@ -132,6 +193,14 @@ export function Login() {
                         />
                     </div>
 
+                    {mode === 'login' && (
+                        <div style={{ textAlign: 'right' as const, marginTop: '-0.25rem' }}>
+                            <Link to="/forgot-password" style={{ color: '#94a3b8', fontSize: '0.8rem', textDecoration: 'none' }}>
+                                Lupa Password?
+                            </Link>
+                        </div>
+                    )}
+
                     {error && <div style={styles.error}>{error}</div>}
 
                     <button
@@ -168,7 +237,7 @@ export function Login() {
                         </button>
                     </div>
                     <p style={styles.demoHint}>
-                        Email: <code>{'{role}'}@edusync.dev</code> · Password: <code>admin123</code>
+                        Email: <code>{'{role}'}@edusync.dev</code>
                     </p>
                 </div>
             </div>

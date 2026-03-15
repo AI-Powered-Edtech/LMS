@@ -212,6 +212,7 @@ ALTER TABLE student_concept_mastery ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_tutor_cache ENABLE ROW LEVEL SECURITY;
 
 -- Tenants/Admins can manage chunks within their tenant
+DROP POLICY IF EXISTS "Tenants manage chunks" ON lesson_resource_chunks;
 CREATE POLICY "Tenants manage chunks"
   ON lesson_resource_chunks
   FOR ALL TO authenticated
@@ -221,19 +222,21 @@ CREATE POLICY "Tenants manage chunks"
   );
 
 -- Students can read chunks if they are enrolled in the course
+DROP POLICY IF EXISTS "Students read enrolled course chunks" ON lesson_resource_chunks;
 CREATE POLICY "Students read enrolled course chunks"
   ON lesson_resource_chunks
   FOR SELECT TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM enrollments e
+      SELECT 1 FROM course_enrollments e
       WHERE e.course_id = lesson_resource_chunks.course_id
         AND e.user_id = auth.uid()
-        AND e.status = 'active'
+        AND e.status = 'ACTIVE'
     )
   );
 
 -- Tenants/Admins manage embedding jobs
+DROP POLICY IF EXISTS "Tenants manage embedding jobs" ON embedding_jobs;
 CREATE POLICY "Tenants manage embedding jobs"
   ON embedding_jobs
   FOR ALL TO authenticated
@@ -243,6 +246,7 @@ CREATE POLICY "Tenants manage embedding jobs"
   );
 
 -- Students can read their own concept mastery
+DROP POLICY IF EXISTS "Students read own mastery" ON student_concept_mastery;
 CREATE POLICY "Students read own mastery"
   ON student_concept_mastery
   FOR SELECT TO authenticated
@@ -250,6 +254,7 @@ CREATE POLICY "Students read own mastery"
 
 -- Edge Functions (Service Role) handles updates/inserts, so no extra policy needed for writes.
 -- Tenants/Admins can manage student_concept_mastery
+DROP POLICY IF EXISTS "Tenants manage concept mastery" ON student_concept_mastery;
 CREATE POLICY "Tenants manage concept mastery"
   ON student_concept_mastery
   FOR ALL TO authenticated
@@ -259,19 +264,21 @@ CREATE POLICY "Tenants manage concept mastery"
   );
 
 -- Students can read shared cached answers for their course
+DROP POLICY IF EXISTS "Students read course cache" ON ai_tutor_cache;
 CREATE POLICY "Students read course cache"
   ON ai_tutor_cache
   FOR SELECT TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM enrollments e
+      SELECT 1 FROM course_enrollments e
       WHERE e.course_id = ai_tutor_cache.course_id
         AND e.user_id = auth.uid()
-        AND e.status = 'active'
+        AND e.status = 'ACTIVE'
     )
   );
   
 -- Admins/edge function can write to cache
+DROP POLICY IF EXISTS "Tenants manage cache" ON ai_tutor_cache;
 CREATE POLICY "Tenants manage cache"
   ON ai_tutor_cache
   FOR ALL TO authenticated

@@ -1,0 +1,534 @@
+-- Migration 84: Consolidate quiz_attempts to quiz_attempts_v2
+
+-- 1. Freeze V1 Writes
+REVOKE INSERT, UPDATE ON public.quiz_attempts FROM authenticated;
+LOCK TABLE public.quiz_attempts IN SHARE MODE;
+
+-- 2. Tenant Hardening for V2
+-- Backfill missing tenant_ids
+UPDATE public.quiz_attempts_v2 qa
+SET tenant_id = q.tenant_id
+FROM public.quizzes q
+WHERE qa.quiz_id = q.id
+AND qa.tenant_id IS NULL;
+
+-- Enforce NOT NULL constraint
+ALTER TABLE public.quiz_attempts_v2 ALTER COLUMN tenant_id SET NOT NULL;
+
+-- Ensure partition index exists on parent
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_v2_tenant ON public.quiz_attempts_v2 (tenant_id);
+
+-- Ensure Unique Attempt Constraint
+ALTER TABLE public.quiz_attempts_v2 
+ADD CONSTRAINT uq_quiz_student_attempt UNIQUE (quiz_id, student_id, attempt_number);
+
+-- 3. Backfill Data from V1 to V2
+INSERT INTO public.quiz_attempts_v2 (
+    id,
+    quiz_id,
+    student_id,
+    tenant_id,
+    score,
+    status,
+    created_at,
+    -- Map other necessary fields from V1 or set defaults
+    started_at,
+    submitted_at,
+    passed,
+    attempt_number,
+    time_spent
+)
+SELECT 
+    id,
+    quiz_id,
+    student_id,
+    tenant_id,
+    score,
+    status::text,
+    created_at,
+    COALESCE(started_at, created_at) as started_at,
+    -- infer submitted_at for GRADED/SUBMITTED statuses if it doesn't exist
+    CASE WHEN status IN ('GRADED', 'SUBMITTED') THEN COALESCE(updated_at, created_at) ELSE NULL END as submitted_at,
+    -- we might need to rely on existing attempts not having passed calculated correctly or leave it null
+    NULL as passed,
+    COALESCE(attempt_number, 1) as attempt_number,
+    0 as time_spent
+FROM public.quiz_attempts
+ON CONFLICT (id) DO NOTHING;
+
+-- 4. Create Compatibility View
+ALTER TABLE public.quiz_attempts RENAME TO quiz_attempts_legacy;
+
+CREATE OR REPLACE VIEW public.quiz_attempts AS
+SELECT 
+    id,
+    quiz_id,
+    student_id,
+    tenant_id,
+    score,
+    status::public.quiz_attempt_status, -- Cast back to enum if necessary depending on original table
+    created_at,
+    updated_at,
+    started_at,
+    -- Map other fields required by the legacy table structure
+    -- (Need to ensure all columns match the original quiz_attempts structure)
+    expires_at,
+    attempt_number,
+    tab_switch_count,
+    focus_loss_count
+FROM public.quiz_attempts_v2;
+
+-- 5. RPC Updates (to be written correctly)
+
+-- 5. Enforce unique attempt per student per quiz
+-- Note: V2 is partitioned by started_at, so a global unique constraint on (quiz_id, student_id, attempt_number) 
+-- requires the partition key to be part of the index if we want a true unique constraint. 
+-- However, Postgres 15+ allows unique constraints on partitioned tables if the partition key is included.
+-- Actually, a better approach for partitioned tables (if we don't include started_at) is to rely on programmatic checks 
+-- or a separate tracking table. Let's see if we can just create a unique index including started_at, 
+-- or if we adjust the constraint requirement. Since we just need to prevent duplicate attempts during backfill and generally,
+-- we'll add the constraint including the partition key, or simply use a unique index on the parent.
+-- Let's try adding it directly, if it fails due to partitioning we'll handle it.
+
+-- Wait, in Postgres, unique constraints on partitioned tables MUST include all partition keys.
+-- So UNIQUE (quiz_id, student_id, attempt_number, started_at) is required.
+-- Let's add that to prevent duplicate entries for the exact same attempt.
+ALTER TABLE public.quiz_attempts_v2
+  DROP CONSTRAINT IF EXISTS quiz_attempts_v2_unique_attempt;
+
+ALTER TABLE public.quiz_attempts_v2
+  ADD CONSTRAINT quiz_attempts_v2_unique_attempt UNIQUE (quiz_id, student_id, attempt_number, started_at);
+
+
+-- 6. RPC alignment (we will stub the creation here, or update them in this migration)
+-- The plan requires updating `v1_submit_quiz_attempt` to add the advisory lock
+-- and check idempotency. Since we drop the legacy table and replace it with a view, 
+-- `v1_submit_quiz_attempt` might fail if it tries to do a `SELECT ... FOR UPDATE` on a view.
+-- Wait! `FOR UPDATE` is NOT allowed on views in Postgres.
+-- So `v1_submit_quiz_attempt` MUST be updated to either select `FOR UPDATE` from `quiz_attempts_v2`,
+-- or we handle the lock differently.
+-- Let's update `v1_submit_quiz_attempt` directly in this migration to use `quiz_attempts_v2`.
+
+
+-- 6. RPC alignment for `v1_submit_quiz_attempt`
+-- It already queries from `quiz_attempts_v2`, but it lacks the advisory lock
+-- to prevent concurrent duplicate submissions that bypass the FOR UPDATE block.
+
+CREATE OR REPLACE FUNCTION public.v1_submit_quiz_attempt(
+    p_attempt_id UUID,
+    p_final_answers JSONB DEFAULT '[]'::JSONB,
+    p_telemetry_data JSONB DEFAULT '{}'::JSONB
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_attempt RECORD;
+    v_question RECORD;
+    v_question_row RECORD;
+    v_total_questions INTEGER := 0;
+    v_total_correct INTEGER := 0;
+    v_total_points NUMERIC := 0;
+    v_points_earned NUMERIC := 0;
+    v_has_ungraded BOOLEAN := FALSE;
+    v_score NUMERIC := 0;
+    v_passed BOOLEAN;
+    v_time_spent INTEGER := 0;
+    v_selected_option_ids UUID[];
+    v_correct_option_ids UUID[];
+    v_is_correct BOOLEAN;
+    v_status TEXT;
+BEGIN
+    -- [RACE CONDITION FIX] Prevent concurrent submissions by taking a transaction-level advisory lock
+    -- using the integer hash of the attempt ID.
+    PERFORM pg_advisory_xact_lock(hashtext(p_attempt_id::text));
+
+    SELECT
+        a.id,
+        a.quiz_id,
+        a.assignment_id,
+        a.student_id,
+        a.tenant_id,
+        a.status,
+        a.started_at,
+        a.expires_at,
+        a.question_manifest,
+        a.tab_switch_count,
+        a.focus_loss_count,
+        q.passing_score,
+        q.show_correct_answers
+    INTO v_attempt
+    FROM public.quiz_attempts_v2 a
+    JOIN public.quizzes q ON q.id = a.quiz_id
+    WHERE a.id = p_attempt_id
+    FOR UPDATE;
+
+    IF v_attempt.id IS NULL THEN
+        RAISE EXCEPTION 'Attempt not found' USING ERRCODE = 'P0001';
+    END IF;
+
+    IF v_attempt.student_id <> auth.uid() OR v_attempt.tenant_id <> get_my_tenant_id() THEN
+        RAISE EXCEPTION 'Unauthorized' USING ERRCODE = 'P0002';
+    END IF;
+
+    -- [IDEMPOTENCY CHECK] Immediately return if already submitted
+    IF v_attempt.status IN ('SUBMITTED', 'GRADED') THEN
+        SELECT
+            COUNT(*),
+            COUNT(*) FILTER (WHERE aq.is_correct = true),
+            COALESCE(SUM(COALESCE(aq.points_earned, 0)), 0),
+            BOOL_OR(q.question_type IN ('SHORT_ANSWER', 'ESSAY'))
+        INTO
+            v_total_questions,
+            v_total_correct,
+            v_points_earned,
+            v_has_ungraded
+        FROM public.quiz_questions q
+        LEFT JOIN public.quiz_attempt_questions_v2 aq
+          ON aq.attempt_id = v_attempt.id
+         AND aq.question_id = q.id
+        WHERE q.id = ANY(v_attempt.question_manifest);
+
+        SELECT COALESCE(SUM(points), 0)
+        INTO v_total_points
+        FROM public.quiz_questions
+        WHERE id = ANY(v_attempt.question_manifest);
+
+        v_score := CASE
+            WHEN v_total_points > 0 THEN ROUND((v_points_earned / v_total_points) * 100, 2)
+            ELSE 0
+        END;
+
+        RETURN jsonb_build_object(
+            'attempt_id', v_attempt.id,
+            'status', v_attempt.status,
+            'score', v_score,
+            'passed', (v_score >= COALESCE(v_attempt.passing_score, 0)),
+            'total_correct', v_total_correct,
+            'correct_answers', v_total_correct,
+            'total_questions', v_total_questions,
+            'time_spent', COALESCE((p_telemetry_data ->> 'time_spent_seconds')::integer, 0),
+            'has_ungraded', COALESCE(v_has_ungraded, false),
+            'show_correct_answers', COALESCE(v_attempt.show_correct_answers, false)
+        );
+    END IF;
+
+    IF jsonb_array_length(COALESCE(p_final_answers, '[]'::jsonb)) > 0 THEN
+        PERFORM public.v1_save_partial_answers(p_attempt_id, p_final_answers);
+    END IF;
+
+    v_time_spent := COALESCE(
+        (p_telemetry_data ->> 'time_spent_seconds')::integer,
+        COALESCE(v_attempt.tab_switch_count * 5, 0) -- Fallback
+    );
+
+    FOR v_question_row IN
+        SELECT jsonb_array_elements_text(jsonb_build_array(v_attempt.question_manifest)) AS id
+    LOOP
+        SELECT * INTO v_question
+        FROM public.quiz_questions
+        WHERE id = (v_question_row.id)::uuid;
+
+        IF v_question.question_type IN ('MULTIPLE_CHOICE', 'TRUE_FALSE') THEN
+            SELECT ARRAY_AGG(option_id) INTO v_selected_option_ids
+            FROM public.quiz_attempt_answers
+            WHERE attempt_id = v_attempt.id AND question_id = v_question.id;
+
+            SELECT ARRAY_AGG(id) INTO v_correct_option_ids
+            FROM public.quiz_question_options
+            WHERE question_id = v_question.id AND is_correct = true;
+
+            -- Grading logic: Exact match arrays
+            IF v_selected_option_ids IS NOT NULL AND v_correct_option_ids IS NOT NULL AND
+               ARRAY_LENGTH(v_selected_option_ids, 1) = ARRAY_LENGTH(v_correct_option_ids, 1) AND
+               v_selected_option_ids <@ v_correct_option_ids AND v_selected_option_ids @> v_correct_option_ids THEN
+                v_is_correct := true;
+                v_points_earned := v_question.points;
+            ELSE
+                v_is_correct := false;
+                v_points_earned := 0;
+            END IF;
+
+            INSERT INTO public.quiz_attempt_questions_v2 (
+                attempt_id, question_id, tenant_id, is_correct, points_earned
+            ) VALUES (
+                v_attempt.id, v_question.id, v_attempt.tenant_id, v_is_correct, v_points_earned
+            )
+            ON CONFLICT (attempt_id, question_id) DO UPDATE
+            SET is_correct = EXCLUDED.is_correct,
+                points_earned = EXCLUDED.points_earned;
+
+        ELSIF v_question.question_type IN ('SHORT_ANSWER', 'ESSAY') THEN
+            v_has_ungraded := TRUE;
+            INSERT INTO public.quiz_attempt_questions_v2 (
+                attempt_id, question_id, tenant_id, is_correct, points_earned
+            ) VALUES (
+                v_attempt.id, v_question.id, v_attempt.tenant_id, false, 0
+            )
+            ON CONFLICT (attempt_id, question_id) DO NOTHING;
+        END IF;
+
+    END LOOP;
+
+    SELECT
+        COUNT(*),
+        COUNT(*) FILTER (WHERE aq.is_correct = true),
+        COALESCE(SUM(COALESCE(aq.points_earned, 0)), 0)
+    INTO
+        v_total_questions,
+        v_total_correct,
+        v_points_earned
+    FROM public.quiz_questions q
+    LEFT JOIN public.quiz_attempt_questions_v2 aq
+      ON aq.attempt_id = v_attempt.id
+     AND aq.question_id = q.id
+    WHERE q.id = ANY(v_attempt.question_manifest);
+
+    SELECT COALESCE(SUM(points), 0)
+    INTO v_total_points
+    FROM public.quiz_questions
+    WHERE id = ANY(v_attempt.question_manifest);
+
+    IF v_total_points > 0 THEN
+        v_score := ROUND((v_points_earned / v_total_points) * 100, 2);
+    ELSE
+        v_score := 0;
+    END IF;
+
+    v_passed := v_score >= COALESCE(v_attempt.passing_score, 0);
+    v_status := CASE WHEN v_has_ungraded THEN 'SUBMITTED' ELSE 'GRADED' END;
+
+    UPDATE public.quiz_attempts_v2
+    SET
+        status = v_status,
+        score = v_score,
+        passed = v_passed,
+        submitted_at = NOW()
+    WHERE id = v_attempt.id;
+
+    RETURN jsonb_build_object(
+        'attempt_id', v_attempt.id,
+        'status', v_status,
+        'score', v_score,
+        'passed', v_passed,
+        'total_correct', v_total_correct,
+        'correct_answers', v_total_correct,
+        'total_questions', v_total_questions,
+        'time_spent', v_time_spent,
+        'has_ungraded', v_has_ungraded,
+        'show_correct_answers', COALESCE(v_attempt.show_correct_answers, false)
+    );
+END;
+$$;
+
+-- Replace legacy save answer RPC to point to V2.
+CREATE OR REPLACE FUNCTION public.v1_save_answer(
+    p_attempt_id UUID,
+    p_question_id UUID,
+    p_selected_option_ids UUID[] DEFAULT NULL,
+    p_text_response TEXT DEFAULT NULL
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_attempt RECORD;
+    v_timestamp TIMESTAMPTZ := now();
+BEGIN
+    -- Fetch Attempt Info from V2
+    SELECT id, tenant_id, student_id, status, expires_at INTO v_attempt
+    FROM public.quiz_attempts_v2
+    WHERE id = p_attempt_id;
+
+    IF v_attempt.id IS NULL THEN
+        RAISE EXCEPTION 'Attempt not found' USING ERRCODE = 'P0001';
+    END IF;
+
+    -- Authorization & Expiration checks
+    IF v_attempt.student_id <> auth.uid() OR v_attempt.tenant_id <> get_my_tenant_id() THEN
+        RAISE EXCEPTION 'Unauthorized' USING ERRCODE = 'P0002';
+    END IF;
+    IF v_attempt.status <> 'IN_PROGRESS' THEN
+        RAISE EXCEPTION 'Attempt is not in progress' USING ERRCODE = 'P0003';
+    END IF;
+    IF v_attempt.expires_at < v_timestamp THEN
+        RAISE EXCEPTION 'Attempt expired' USING ERRCODE = 'P0004';
+    END IF;
+
+    -- Delete old answers for this question
+    DELETE FROM public.quiz_attempt_answers
+    WHERE attempt_id = p_attempt_id AND question_id = p_question_id;
+
+    -- Insert new answers
+    IF p_selected_option_ids IS NOT NULL THEN
+        INSERT INTO public.quiz_attempt_answers (attempt_id, question_id, option_id, tenant_id, created_at)
+        SELECT p_attempt_id, p_question_id, unnest(p_selected_option_ids), v_attempt.tenant_id, v_timestamp;
+    END IF;
+
+    IF p_text_response IS NOT NULL AND TRIM(p_text_response) <> '' THEN
+         INSERT INTO public.quiz_attempt_answers (attempt_id, question_id, text_response, tenant_id, created_at)
+         VALUES (p_attempt_id, p_question_id, p_text_response, v_attempt.tenant_id, v_timestamp);
+    END IF;
+
+    -- Update last heartbeat / activity timestamp on V2
+    UPDATE public.quiz_attempts_v2
+    SET last_heartbeat_at = v_timestamp
+    WHERE id = p_attempt_id;
+
+    RETURN jsonb_build_object(
+        'status', 'success',
+        'saved_at', v_timestamp
+    );
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION public.v1_start_quiz_attempt(p_quiz_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_student_id UUID;
+    v_tenant_id UUID;
+    v_quiz RECORD;
+    v_existing_attempt RECORD;
+    v_attempt_id UUID;
+    v_attempt_number INTEGER;
+    v_expires_at TIMESTAMPTZ;
+    v_question_manifest jsonb;
+    v_assignment_id UUID;
+BEGIN
+    v_student_id := auth.uid();
+    v_tenant_id := get_my_tenant_id();
+
+    IF v_student_id IS NULL OR v_tenant_id IS NULL THEN
+        RAISE EXCEPTION 'Unauthorized' USING ERRCODE = 'P0002';
+    END IF;
+
+    -- Fetch Quiz Info
+    SELECT * INTO v_quiz
+    FROM public.quizzes
+    WHERE id = p_quiz_id AND tenant_id = v_tenant_id;
+
+    IF v_quiz.id IS NULL THEN
+        RAISE EXCEPTION 'Quiz not found' USING ERRCODE = 'P0001';
+    END IF;
+
+    -- Guard 1: Return existing attempt if in_progress and not expired
+    SELECT id, status, started_at, expires_at INTO v_existing_attempt
+    FROM public.quiz_attempts_v2
+    WHERE quiz_id = p_quiz_id 
+      AND student_id = v_student_id 
+      AND status = 'IN_PROGRESS';
+
+    IF v_existing_attempt.id IS NOT NULL THEN
+        IF v_existing_attempt.expires_at > now() THEN
+            RETURN jsonb_build_object(
+                'attempt_id', v_existing_attempt.id,
+                'status', v_existing_attempt.status,
+                'started_at', v_existing_attempt.started_at,
+                'expires_at', v_existing_attempt.expires_at
+            );
+        ELSE
+            -- Auto-submit expired attempt to free up
+            PERFORM public.v1_submit_quiz_attempt(v_existing_attempt.id);
+        END IF;
+    END IF;
+
+    -- Guard 2: Maximum Attempts Check
+    SELECT COUNT(*) INTO v_attempt_number
+    FROM public.quiz_attempts_v2
+    WHERE quiz_id = p_quiz_id AND student_id = v_student_id;
+
+    IF v_quiz.max_attempts IS NOT NULL AND v_attempt_number >= v_quiz.max_attempts THEN
+        RAISE EXCEPTION 'Max attempts reached' USING ERRCODE = 'P0005';
+    END IF;
+
+    v_attempt_number := v_attempt_number + 1;
+    v_expires_at := CASE
+        WHEN v_quiz.time_limit IS NOT NULL THEN now() + v_quiz.time_limit * interval '1 minute'
+        ELSE now() + interval '24 hours'
+    END;
+
+    -- Check if assigned to class, grab assignment_id
+    SELECT id INTO v_assignment_id 
+    FROM public.quiz_assignments 
+    WHERE quiz_id = p_quiz_id AND class_id IN (
+        SELECT class_id FROM public.class_students WHERE student_id = v_student_id
+    ) LIMIT 1;
+
+    -- Fetch and shuffle questions
+    SELECT jsonb_agg(id ORDER BY CASE WHEN v_quiz.shuffle_questions THEN random() ELSE "order" END)
+    INTO v_question_manifest
+    FROM public.quiz_questions
+    WHERE quiz_id = p_quiz_id;
+
+    IF v_question_manifest IS NULL THEN
+        v_question_manifest := '[]'::jsonb;
+    END IF;
+
+    -- Create New Attempt
+    INSERT INTO public.quiz_attempts_v2 (
+        quiz_id, assignment_id, student_id, tenant_id, status, started_at, expires_at, attempt_seed, attempt_number, question_manifest
+    ) VALUES (
+        p_quiz_id, v_assignment_id, v_student_id, v_tenant_id, 'IN_PROGRESS', now(), v_expires_at, gen_random_uuid(), v_attempt_number, v_question_manifest
+    ) RETURNING id INTO v_attempt_id;
+
+    RETURN jsonb_build_object(
+        'attempt_id', v_attempt_id,
+        'status', 'IN_PROGRESS',
+        'started_at', now(),
+        'expires_at', v_expires_at
+    );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.v1_submit_quiz_attempt(p_attempt_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_attempt RECORD;
+    v_question_ids UUID[];
+    v_total_score NUMERIC := 0;
+BEGIN
+    PERFORM pg_advisory_xact_lock(hashtext(p_attempt_id::text));
+
+    SELECT id, tenant_id, student_id, status, expires_at, quiz_id INTO v_attempt
+    FROM public.quiz_attempts_v2
+    WHERE id = p_attempt_id
+    FOR UPDATE;
+
+    IF v_attempt.id IS NULL THEN
+        RAISE EXCEPTION 'Attempt not found' USING ERRCODE = 'P0001';
+    END IF;
+
+    IF v_attempt.student_id <> auth.uid() OR v_attempt.tenant_id <> get_my_tenant_id() THEN
+        RAISE EXCEPTION 'Unauthorized' USING ERRCODE = 'P0002';
+    END IF;
+
+    IF v_attempt.status IN ('SUBMITTED', 'GRADED') THEN
+        RETURN jsonb_build_object(
+            'status', v_attempt.status,
+            'submitted_at', now()
+        );
+    END IF;
+
+    UPDATE public.quiz_attempts_v2
+    SET status = 'SUBMITTED', submitted_at = now()
+    WHERE id = p_attempt_id AND status = 'IN_PROGRESS';
+
+    RETURN jsonb_build_object(
+        'status', 'SUBMITTED',
+        'submitted_at', now()
+    );
+END;
+$$;

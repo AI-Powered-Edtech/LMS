@@ -1,3 +1,6 @@
+-- Fix: Ensure percentage column exists (01_migration.sql creates course_progress without it)
+ALTER TABLE IF EXISTS course_progress ADD COLUMN IF NOT EXISTS percentage numeric DEFAULT 0;
+
 -- ==========================================================================
 -- Migration 13: Add Critical Indexes for Analytics Queries
 --

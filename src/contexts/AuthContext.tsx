@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
 
@@ -54,6 +54,7 @@ interface AuthContextType {
   role: Role; // primary role (highest privilege)
   permissions: Permissions;
   loading: boolean;
+  emailVerified: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, firstName: string, lastName: string, tenantId?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -75,52 +76,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
+  const fetchLock = useRef(false);
 
   const fetchUserData = async (userId: string) => {
-    // Fetch profile
-    console.log('[fetchUserData] Fetching profile for', userId);
-    const { data: profileData, error: profileErr } = await supabase
-      .from('profiles')
-      .select('id, email, first_name, last_name, avatar_url, tenant_id')
-      .eq('id', userId)
-      .single();
+    if (fetchLock.current) return;
+    fetchLock.current = true;
+    try {
+      // Fetch profile
+      const { data: profileData, error: profileErr } = await supabase
+        .from('profiles')
+        .select('id, email, first_name, last_name, avatar_url, tenant_id')
+        .eq('id', userId)
+        .single();
 
-    console.log('[fetchUserData] Profile fetch result:', { profileData, profileErr });
+      if (profileData) {
+        setProfile(profileData);
+        setTenantId(profileData.tenant_id);
+      }
 
-    if (profileData) {
-      setProfile(profileData);
-      setTenantId(profileData.tenant_id);
-    }
+      // Fetch roles
+      const { data: rolesData, error: rolesErr } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
 
-    // Fetch roles
-    console.log('[fetchUserData] Fetching roles for', userId);
-    const { data: rolesData, error: rolesErr } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId);
-
-    console.log('[fetchUserData] Roles fetch result:', { rolesData, rolesErr });
-
-    if (rolesData) {
-      const userRoles = rolesData.map((r: { role: string }) => r.role.toLowerCase() as Role);
-      setRoles(userRoles);
+      if (rolesData) {
+        const userRoles = rolesData.map((r: { role: string }) => r.role.toLowerCase() as Role);
+        setRoles(userRoles);
+      }
+    } finally {
+      fetchLock.current = false;
     }
   };
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session: s } }) => {
-      console.log('[AuthContext] getSession resolved');
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        console.log('[AuthContext] getSession user found, calling fetchUserData');
         fetchUserData(s.user.id).finally(() => {
-          console.log('[AuthContext] getSession fetchUserData finally, setting loading=false');
           setLoading(false);
         });
       } else {
-        console.log('[AuthContext] getSession no user, setting loading=false');
         setLoading(false);
       }
     });
@@ -128,18 +126,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, s) => {
-        console.log('[AuthContext] onAuthStateChange event:', _event);
         setSession(s);
         setUser(s?.user ?? null);
         if (s?.user) {
-          console.log('[AuthContext] onAuthStateChange user found, calling fetchUserData');
           fetchUserData(s.user.id)
             .then(() => {
-              console.log('[AuthContext] onAuthStateChange fetchUserData completed');
               setLoading(false);
             })
-            .catch(err => {
-              console.error('[AuthContext] onAuthStateChange fetch error:', err);
+            .catch(() => {
               setLoading(false);
             });
         } else {
@@ -185,6 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const role = getPrimaryRole(roles);
   const permissions = rolePermissions[role];
+  const emailVerified = !!user?.email_confirmed_at;
 
   return (
     <AuthContext.Provider
@@ -197,6 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role,
         permissions,
         loading,
+        emailVerified,
         signIn,
         signUp,
         signOut,

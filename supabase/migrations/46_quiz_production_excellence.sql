@@ -10,7 +10,7 @@
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='quiz_attempts' AND column_name='cheating_signals') THEN
-        ALTER TABLE public.quiz_attempts ADD COLUMN cheating_signals JSONB DEFAULT '[]'::jsonb;
+        ALTER TABLE public.quiz_attempts ADD COLUMN IF NOT EXISTS cheating_signals JSONB DEFAULT '[]'::jsonb;
     END IF;
 END $$;
 

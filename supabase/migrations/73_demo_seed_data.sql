@@ -5,7 +5,7 @@
 DO $$ 
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='assignment_submissions' AND column_name='score') THEN
-        ALTER TABLE assignment_submissions ADD COLUMN score numeric;
+        ALTER TABLE assignment_submissions ADD COLUMN IF NOT EXISTS score numeric;
     END IF;
 END $$;
 

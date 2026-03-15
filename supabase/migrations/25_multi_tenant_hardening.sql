@@ -29,7 +29,7 @@ BEGIN
         AND table_name = 'modules' 
         AND column_name = 'tenant_id'
     ) THEN
-        ALTER TABLE public.modules ADD COLUMN tenant_id uuid REFERENCES public.tenants(id);
+        ALTER TABLE public.modules ADD COLUMN IF NOT EXISTS tenant_id uuid REFERENCES public.tenants(id);
     END IF;
 END $$;
 

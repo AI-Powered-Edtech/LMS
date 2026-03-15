@@ -1646,7 +1646,7 @@ ALTER FUNCTION "public"."set_updated_at"() OWNER TO "postgres";
 CREATE OR REPLACE FUNCTION "public"."start_quiz_attempt"("p_quiz_id" "uuid") RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
-    AS $
+    AS $$
 DECLARE
   v_tenant_id uuid;
   v_course_id uuid;
@@ -1720,7 +1720,7 @@ BEGIN
 
   RETURN jsonb_build_object('attempt_id', v_attempt_id, 'status', 'IN_PROGRESS');
 END;
-$;
+$$;
 
 
 ALTER FUNCTION "public"."start_quiz_attempt"("p_quiz_id" "uuid") OWNER TO "postgres";
@@ -1729,7 +1729,7 @@ ALTER FUNCTION "public"."start_quiz_attempt"("p_quiz_id" "uuid") OWNER TO "postg
 CREATE OR REPLACE FUNCTION "public"."submit_quiz_attempt"("p_quiz_id" "uuid", "p_answers" "jsonb") RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
-    AS $
+    AS $$
 DECLARE
   v_tenant_id uuid;
   v_user_tenant_id uuid;
@@ -1858,7 +1858,7 @@ BEGIN
       'total_questions', v_total_questions
   );
 END;
-$;
+$$;
 
 
 ALTER FUNCTION "public"."submit_quiz_attempt"("p_quiz_id" "uuid", "p_answers" "jsonb") OWNER TO "postgres";

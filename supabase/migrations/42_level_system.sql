@@ -28,7 +28,7 @@ BEGIN
           AND table_name = 'profiles' 
           AND column_name = 'level'
     ) THEN
-        ALTER TABLE public.profiles ADD COLUMN level integer DEFAULT 1;
+        ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS level integer DEFAULT 1;
     END IF;
 END $$;
 

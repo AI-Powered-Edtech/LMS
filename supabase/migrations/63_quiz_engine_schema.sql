@@ -32,7 +32,7 @@ DO $$ BEGIN
     WHERE table_name = 'quiz_questions' AND column_name = 'question_type'
   ) THEN
     ALTER TABLE public.quiz_questions
-      ADD COLUMN question_type public.question_type DEFAULT 'MCQ';
+      ADD COLUMN IF NOT EXISTS question_type public.question_type DEFAULT 'MCQ';
   END IF;
 END $$;
 
@@ -42,7 +42,7 @@ DO $$ BEGIN
     WHERE table_name = 'quiz_questions' AND column_name = 'points'
   ) THEN
     ALTER TABLE public.quiz_questions
-      ADD COLUMN points INTEGER DEFAULT 10;
+      ADD COLUMN IF NOT EXISTS points INTEGER DEFAULT 10;
   END IF;
 END $$;
 
@@ -52,7 +52,7 @@ DO $$ BEGIN
     WHERE table_name = 'quiz_questions' AND column_name = 'explanation'
   ) THEN
     ALTER TABLE public.quiz_questions
-      ADD COLUMN explanation TEXT;
+      ADD COLUMN IF NOT EXISTS explanation TEXT;
   END IF;
 END $$;
 
@@ -70,7 +70,7 @@ DO $$ BEGIN
     WHERE table_name = 'quizzes' AND column_name = 'mode'
   ) THEN
     ALTER TABLE public.quizzes
-      ADD COLUMN mode public.quiz_mode DEFAULT 'graded';
+      ADD COLUMN IF NOT EXISTS mode public.quiz_mode DEFAULT 'graded';
   END IF;
 END $$;
 
@@ -80,7 +80,7 @@ DO $$ BEGIN
     WHERE table_name = 'quizzes' AND column_name = 'show_correct_answers'
   ) THEN
     ALTER TABLE public.quizzes
-      ADD COLUMN show_correct_answers BOOLEAN DEFAULT false;
+      ADD COLUMN IF NOT EXISTS show_correct_answers BOOLEAN DEFAULT false;
   END IF;
 END $$;
 
@@ -90,7 +90,7 @@ DO $$ BEGIN
     WHERE table_name = 'quizzes' AND column_name = 'available_from'
   ) THEN
     ALTER TABLE public.quizzes
-      ADD COLUMN available_from TIMESTAMPTZ;
+      ADD COLUMN IF NOT EXISTS available_from TIMESTAMPTZ;
   END IF;
 END $$;
 
@@ -100,7 +100,7 @@ DO $$ BEGIN
     WHERE table_name = 'quizzes' AND column_name = 'available_until'
   ) THEN
     ALTER TABLE public.quizzes
-      ADD COLUMN available_until TIMESTAMPTZ;
+      ADD COLUMN IF NOT EXISTS available_until TIMESTAMPTZ;
   END IF;
 END $$;
 
@@ -119,7 +119,7 @@ DO $$ BEGIN
     WHERE table_name = 'quiz_attempt_questions' AND column_name = 'selected_option_ids'
   ) THEN
     ALTER TABLE public.quiz_attempt_questions
-      ADD COLUMN selected_option_ids UUID[] DEFAULT '{}';
+      ADD COLUMN IF NOT EXISTS selected_option_ids UUID[] DEFAULT '{}';
   END IF;
 END $$;
 
@@ -129,7 +129,7 @@ DO $$ BEGIN
     WHERE table_name = 'quiz_attempt_questions' AND column_name = 'text_answer'
   ) THEN
     ALTER TABLE public.quiz_attempt_questions
-      ADD COLUMN text_answer TEXT;
+      ADD COLUMN IF NOT EXISTS text_answer TEXT;
   END IF;
 END $$;
 
@@ -139,7 +139,7 @@ DO $$ BEGIN
     WHERE table_name = 'quiz_attempt_questions' AND column_name = 'points_earned'
   ) THEN
     ALTER TABLE public.quiz_attempt_questions
-      ADD COLUMN points_earned NUMERIC(5,2) DEFAULT 0;
+      ADD COLUMN IF NOT EXISTS points_earned NUMERIC(5,2) DEFAULT 0;
   END IF;
 END $$;
 
@@ -149,7 +149,7 @@ DO $$ BEGIN
     WHERE table_name = 'quiz_attempt_questions' AND column_name = 'is_correct'
   ) THEN
     ALTER TABLE public.quiz_attempt_questions
-      ADD COLUMN is_correct BOOLEAN;
+      ADD COLUMN IF NOT EXISTS is_correct BOOLEAN;
   END IF;
 END $$;
 
@@ -159,7 +159,7 @@ DO $$ BEGIN
     WHERE table_name = 'quiz_attempt_questions' AND column_name = 'question_snapshot'
   ) THEN
     ALTER TABLE public.quiz_attempt_questions
-      ADD COLUMN question_snapshot JSONB DEFAULT '{}';
+      ADD COLUMN IF NOT EXISTS question_snapshot JSONB DEFAULT '{}';
   END IF;
 END $$;
 
@@ -169,7 +169,7 @@ DO $$ BEGIN
     WHERE table_name = 'quiz_attempt_questions' AND column_name = 'question_type'
   ) THEN
     ALTER TABLE public.quiz_attempt_questions
-      ADD COLUMN question_type public.question_type DEFAULT 'MCQ';
+      ADD COLUMN IF NOT EXISTS question_type public.question_type DEFAULT 'MCQ';
   END IF;
 END $$;
 
@@ -179,7 +179,7 @@ DO $$ BEGIN
     WHERE table_name = 'quiz_attempt_questions' AND column_name = 'max_points'
   ) THEN
     ALTER TABLE public.quiz_attempt_questions
-      ADD COLUMN max_points INTEGER DEFAULT 10;
+      ADD COLUMN IF NOT EXISTS max_points INTEGER DEFAULT 10;
   END IF;
 END $$;
 
@@ -189,7 +189,7 @@ DO $$ BEGIN
     WHERE table_name = 'quiz_attempt_questions' AND column_name = 'grader_comment'
   ) THEN
     ALTER TABLE public.quiz_attempt_questions
-      ADD COLUMN grader_comment TEXT;
+      ADD COLUMN IF NOT EXISTS grader_comment TEXT;
   END IF;
 END $$;
 
@@ -199,7 +199,7 @@ DO $$ BEGIN
     WHERE table_name = 'quiz_attempt_questions' AND column_name = 'graded_by'
   ) THEN
     ALTER TABLE public.quiz_attempt_questions
-      ADD COLUMN graded_by UUID REFERENCES public.profiles(id);
+      ADD COLUMN IF NOT EXISTS graded_by UUID REFERENCES public.profiles(id);
   END IF;
 END $$;
 
@@ -209,7 +209,7 @@ DO $$ BEGIN
     WHERE table_name = 'quiz_attempt_questions' AND column_name = 'graded_at'
   ) THEN
     ALTER TABLE public.quiz_attempt_questions
-      ADD COLUMN graded_at TIMESTAMPTZ;
+      ADD COLUMN IF NOT EXISTS graded_at TIMESTAMPTZ;
   END IF;
 END $$;
 
@@ -235,7 +235,7 @@ DO $$ BEGIN
     WHERE table_name = 'quiz_attempts' AND column_name = 'attempt_seed'
   ) THEN
     ALTER TABLE public.quiz_attempts
-      ADD COLUMN attempt_seed UUID DEFAULT gen_random_uuid();
+      ADD COLUMN IF NOT EXISTS attempt_seed UUID DEFAULT gen_random_uuid();
   END IF;
 END $$;
 

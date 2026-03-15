@@ -47,12 +47,12 @@ BEGIN
         -- Re-add the proper default
         ALTER TABLE public.quiz_attempts ALTER COLUMN status SET DEFAULT 'NOT_STARTED'::public.quiz_attempt_status;
     ELSIF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='quiz_attempts' AND column_name='status') THEN
-        ALTER TABLE public.quiz_attempts ADD COLUMN status public.quiz_attempt_status NOT NULL DEFAULT 'NOT_STARTED';
+        ALTER TABLE public.quiz_attempts ADD COLUMN IF NOT EXISTS status public.quiz_attempt_status NOT NULL DEFAULT 'NOT_STARTED';
     END IF;
 
     -- Add expires_at if it's missing
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='quiz_attempts' AND column_name='expires_at') THEN
-        ALTER TABLE public.quiz_attempts ADD COLUMN expires_at timestamptz;
+        ALTER TABLE public.quiz_attempts ADD COLUMN IF NOT EXISTS expires_at timestamptz;
     END IF;
 END $$;
 

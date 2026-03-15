@@ -16,7 +16,7 @@ DO $$ BEGIN
     WHERE table_name = 'quiz_attempts_v2' AND column_name = 'attempt_seed'
   ) THEN
     ALTER TABLE public.quiz_attempts_v2
-      ADD COLUMN attempt_seed UUID DEFAULT gen_random_uuid();
+      ADD COLUMN IF NOT EXISTS attempt_seed UUID DEFAULT gen_random_uuid();
   END IF;
 END $$;
 

@@ -13,10 +13,10 @@
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_points' AND column_name = 'created_at') THEN
-        ALTER TABLE public.user_points ADD COLUMN created_at timestamp with time zone DEFAULT now();
+        ALTER TABLE public.user_points ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
     END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_points' AND column_name = 'class_id') THEN
-        ALTER TABLE public.user_points ADD COLUMN class_id uuid REFERENCES public.classes(id) ON DELETE SET NULL;
+        ALTER TABLE public.user_points ADD COLUMN IF NOT EXISTS class_id uuid REFERENCES public.classes(id) ON DELETE SET NULL;
     END IF;
 END $$;
 

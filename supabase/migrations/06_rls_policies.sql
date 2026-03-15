@@ -245,7 +245,7 @@ create policy "quiz_attempts_select_own"
   on quiz_attempts for select
   using (
     tenant_id::text = auth.jwt() ->> 'tenant_id'
-    and user_id = auth.uid()
+    and student_id = auth.uid()
     and has_feature('quiz')
   );
 
@@ -254,7 +254,7 @@ create policy "quiz_attempts_insert_student"
   on quiz_attempts for insert
   with check (
     tenant_id::text = auth.jwt() ->> 'tenant_id'
-    and user_id = auth.uid()
+    and student_id = auth.uid()
     and has_feature('quiz')
   );
 

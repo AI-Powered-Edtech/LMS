@@ -6,7 +6,7 @@
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'quizzes' AND column_name = 'total_points') THEN
-        ALTER TABLE public.quizzes ADD COLUMN total_points INTEGER DEFAULT 100;
+        ALTER TABLE public.quizzes ADD COLUMN IF NOT EXISTS total_points INTEGER DEFAULT 100;
         COMMENT ON COLUMN public.quizzes.total_points IS 'Sum of points for all questions in this quiz.';
     END IF;
 END $$;
@@ -20,7 +20,7 @@ WHERE status IS NULL;
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'quiz_attempts' AND column_name = 'last_heartbeat_at') THEN
-        ALTER TABLE public.quiz_attempts ADD COLUMN last_heartbeat_at TIMESTAMPTZ DEFAULT now();
+        ALTER TABLE public.quiz_attempts ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ DEFAULT now();
     END IF;
 END $$;
 

@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { user, role, loading } = useAuth();
+  const { user, role, loading, emailVerified } = useAuth();
 
   if (loading) {
     return (
@@ -20,6 +20,11 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   // Not logged in → login page
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Logged in but email not verified → verification page
+  if (!emailVerified) {
+    return <Navigate to="/verify-email" replace />;
   }
 
   // Logged in but wrong role

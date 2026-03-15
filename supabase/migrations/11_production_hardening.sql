@@ -30,14 +30,19 @@ ON public.course_stats(course_id);
 -- We update the trigger to only fire when completed transitions from false to true.
 DROP TRIGGER IF EXISTS on_lesson_progress_completed ON public.lesson_progress;
 
-CREATE TRIGGER on_lesson_progress_completed
-AFTER INSERT OR UPDATE OF completed
+CREATE TRIGGER on_lesson_progress_completed_insert
+AFTER INSERT
 ON public.lesson_progress
 FOR EACH ROW
-WHEN (
-  NEW.completed = true
-  AND (OLD.completed IS NULL OR OLD.completed = false)
-)
+WHEN (NEW.completed = true)
+EXECUTE FUNCTION public.recompute_course_progress_trigger();
+
+DROP TRIGGER IF EXISTS on_lesson_progress_completed_update ON public.lesson_progress;
+CREATE TRIGGER on_lesson_progress_completed_update
+AFTER UPDATE OF completed
+ON public.lesson_progress
+FOR EACH ROW
+WHEN (NEW.completed = true AND OLD.completed = false)
 EXECUTE FUNCTION public.recompute_course_progress_trigger();
 
 
