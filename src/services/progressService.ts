@@ -51,7 +51,7 @@ export const progressService = {
                 profile: data.profile,
                 totalXP: data.total_xp,
                 completedLessonsCount: data.completed_lessons_count,
-                quizAttempts: data.quiz_attempts || [],
+                quizAttempts: data.quiz_attempts_v2 || [],
                 achievements: (data.achievements || []).map((a: any) => ({
                     id: a.id,
                     earned_at: a.earned_at,
