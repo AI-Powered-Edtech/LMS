@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "motion/react";
 // TODO: AI grading will be routed through backend API (Phase 5)
 import { useGradebook } from "@/src/contexts/GradebookContext";
 import { useComments } from "@/src/contexts/CommentContext";
+import { aiGraderService } from "@/src/services/aiGraderService";
 
 
 
@@ -204,13 +205,43 @@ export function SpeedGrader() {
     }
     setIsAIGrading(true);
     try {
-      // TODO: Route through backend API in Phase 5
-      // POST /api/ai/grade-essay with essay text and rubric
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      alert("⚠️ Fitur AI Grading sedang dalam proses migrasi ke backend API. Akan tersedia di update berikutnya.");
-    } catch (error) {
+      const mockEssayText = `Perkembangan Artificial Intelligence (AI) dalam dekade terakhir telah memicu perdebatan sengit mengenai masa depan lapangan pekerjaan. Di satu sisi, banyak yang khawatir bahwa mesin akan menggantikan peran manusia dalam berbagai sektor industri.
+
+Namun, sejarah menunjukkan bahwa setiap revolusi industri selalu menciptakan jenis pekerjaan baru yang sebelumnya tidak pernah terbayangkan. Misalnya, munculnya profesi seperti Prompt Engineer atau AI Ethics Officer.
+
+Pendidikan memainkan peran penting dalam mempersiapkan generasi mendatang untuk menghadapi perubahan ini. Kurikulum harus beradaptasi untuk mengajarkan keterampilan yang tidak mudah diotomatisasi, seperti pemikiran kritis, kreativitas, dan kecerdasan emosional.
+
+Oleh karena itu, AI tidak akan menggantikan manusia, melainkan manusia yang menggunakan AI akan menggantikan manusia yang tidak menggunakannya. Kolaborasi antara kecerdasan buatan dan kecerdasan manusia adalah kunci untuk mencapai kemajuan yang berkelanjutan.`;
+
+      const aiResponse = await aiGraderService.gradeEssay({
+        submissionId: `${assignmentId}-${currentStudent.id}`,
+        essayText: mockEssayText,
+        rubric: rubric.map(r => ({
+          criterion: r.criterion,
+          maxPoints: r.maxPoints,
+          description: r.description
+        }))
+      });
+
+      // Map scores back to rubric IDs
+      const newScores: Record<string, number> = {};
+      let aggregatedFeedback = aiResponse.overallFeedback ? aiResponse.overallFeedback + '\n\n' : '';
+
+      rubric.forEach(r => {
+        if (aiResponse.scores[r.criterion] !== undefined) {
+          newScores[r.id] = aiResponse.scores[r.criterion];
+        }
+        if (aiResponse.feedback[r.criterion] !== undefined) {
+          aggregatedFeedback += `**${r.criterion}**: ${aiResponse.feedback[r.criterion]}\n`;
+        }
+      });
+
+      setScores(newScores);
+      setFeedback(aggregatedFeedback.trim());
+
+    } catch (error: any) {
       console.error("AI Grading failed:", error);
-      alert("Gagal melakukan penilaian otomatis dengan AI.");
+      alert(error.message || "Gagal melakukan penilaian otomatis dengan AI.");
     } finally {
       setIsAIGrading(false);
     }
