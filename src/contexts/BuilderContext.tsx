@@ -311,9 +311,14 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     // ─── Module Actions ───────────────────────
     const addModule = useCallback(async (title: string) => {
         if (!state.courseId || !tenantId) return;
-        const mod = await builderModuleService.createModule(state.courseId, title, tenantId);
-        dispatch({ type: 'ADD_MODULE', module: mod });
-    }, [state.courseId, tenantId]);
+        try {
+            const mod = await builderModuleService.createModule(state.courseId, title, tenantId);
+            dispatch({ type: 'ADD_MODULE', module: mod });
+        } catch (err: any) {
+            console.error('Failed to add module:', err);
+            toast('Gagal menambah modul: ' + (err.message || 'Unknown error'), 'error');
+        }
+    }, [state.courseId, tenantId, toast]);
 
     const updateModule = useCallback(async (moduleId: string, data: { title?: string; description?: string }) => {
         if (!tenantId) return;
@@ -330,8 +335,13 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     const deleteModule = useCallback(async (moduleId: string) => {
         if (!tenantId) return;
         dispatch({ type: 'DELETE_MODULE', moduleId });
-        await builderModuleService.deleteModule(moduleId, tenantId);
-    }, [tenantId]);
+        try {
+            await builderModuleService.deleteModule(moduleId, tenantId);
+        } catch (err: any) {
+            console.error('Failed to delete module:', err);
+            toast('Gagal menghapus modul: ' + (err.message || 'Unknown error'), 'error');
+        }
+    }, [tenantId, toast]);
 
     const reorderModules = useCallback(async (moduleIds: string[]) => {
         if (!state.courseId || !tenantId) return;
@@ -357,9 +367,14 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     // ─── Lesson Actions ───────────────────────
     const addLesson = useCallback(async (moduleId: string, type: string, title: string) => {
         if (!tenantId) return;
-        const lesson = await builderLessonService.createLesson(moduleId, type, title, tenantId);
-        dispatch({ type: 'ADD_LESSON', moduleId, lesson });
-    }, [tenantId]);
+        try {
+            const lesson = await builderLessonService.createLesson(moduleId, type, title, tenantId);
+            dispatch({ type: 'ADD_LESSON', moduleId, lesson });
+        } catch (err: any) {
+            console.error('Failed to add lesson:', err);
+            toast('Gagal menambah materi: ' + (err.message || 'Unknown error'), 'error');
+        }
+    }, [tenantId, toast]);
 
     const updateLessonAction = useCallback(async (lessonId: string, data: Partial<DomainLesson>) => {
         if (!tenantId) return;
@@ -376,8 +391,13 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     const deleteLesson = useCallback(async (lessonId: string) => {
         if (!tenantId) return;
         dispatch({ type: 'DELETE_LESSON', lessonId });
-        await builderLessonService.deleteLesson(lessonId, tenantId);
-    }, [tenantId]);
+        try {
+            await builderLessonService.deleteLesson(lessonId, tenantId);
+        } catch (err: any) {
+            console.error('Failed to delete lesson:', err);
+            toast('Gagal menghapus materi: ' + (err.message || 'Unknown error'), 'error');
+        }
+    }, [tenantId, toast]);
 
     const reorderLessons = useCallback(async (lessonIds: string[]) => {
         const previousModules = state.modules; // Save for explicit rollback
@@ -430,9 +450,14 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     // ─── Block Actions ────────────────────────
     const addBlock = useCallback(async (type: string) => {
         if (!state.activeLesson || !tenantId) return;
-        const block = await builderBlockService.createBlock(state.activeLesson.id, type, tenantId);
-        dispatch({ type: 'ADD_BLOCK', block });
-    }, [state.activeLesson, tenantId]);
+        try {
+            const block = await builderBlockService.createBlock(state.activeLesson.id, type, tenantId);
+            dispatch({ type: 'ADD_BLOCK', block });
+        } catch (err: any) {
+            console.error('Failed to add block:', err);
+            toast('Gagal menambah konten: ' + (err.message || 'Unknown error'), 'error');
+        }
+    }, [state.activeLesson, tenantId, toast]);
 
     const updateBlock = useCallback((blockId: string, data: Partial<DomainBlock>) => {
         if (!tenantId) return;
@@ -484,8 +509,13 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     const deleteBlock = useCallback(async (blockId: string) => {
         if (!tenantId) return;
         dispatch({ type: 'DELETE_BLOCK', blockId });
-        await builderBlockService.deleteBlock(blockId, tenantId);
-    }, [tenantId]);
+        try {
+            await builderBlockService.deleteBlock(blockId, tenantId);
+        } catch (err: any) {
+            console.error('Failed to delete block:', err);
+            toast('Gagal menghapus konten: ' + (err.message || 'Unknown error'), 'error');
+        }
+    }, [tenantId, toast]);
 
     const reorderBlocks = useCallback(async (blockIds: string[]) => {
         if (!state.activeLesson) return;

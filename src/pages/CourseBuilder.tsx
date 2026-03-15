@@ -14,10 +14,11 @@ function CourseBuilderPage() {
   const { state, actions } = useBuilder();
 
   useEffect(() => {
-    if (courseId && !state.courseId) {
+    // Prevent infinite loop if `actions` object changes on every render or if already loading
+    if (courseId && !state.courseId && !state.loadingCourse && !state.error) {
       actions.loadCourse(courseId);
     }
-  }, [courseId, state.courseId, actions]);
+  }, [courseId, state.courseId, state.loadingCourse, state.error, actions]);
 
   if (!courseId) {
     return (

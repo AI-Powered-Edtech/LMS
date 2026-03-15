@@ -33,6 +33,7 @@ export const courseService = {
      * RLS ensures users only see courses they have access to.
      */
     async fetchCourses({ tenantId, page = 1, limit = 10, search, ids }: FetchCoursesOptions) {
+        // Try fetching with joined class data first
         let query = supabase
             .from('courses')
             .select(`
@@ -60,11 +61,36 @@ export const courseService = {
             query = query.range(from, to);
         }
 
-        const { data, error, count } = await query;
+        let { data, error, count } = await query;
 
+        // Graceful fallback: if the join fails, fetch courses without joined data
         if (error) {
-            console.error('Error fetching courses:', error);
-            throw error;
+            console.warn('Courses join query failed, falling back to simple fetch:', error.message);
+            let fallbackQuery = supabase
+                .from('courses')
+                .select('*', { count: 'exact' })
+                .eq('tenant_id', tenantId)
+                .order('created_at', { ascending: false });
+
+            if (ids && ids.length > 0) {
+                fallbackQuery = fallbackQuery.in('id', ids);
+            }
+            if (search) {
+                fallbackQuery = fallbackQuery.ilike('title', `%${search}%`);
+            }
+            if (page && limit) {
+                const from = (page - 1) * limit;
+                const to = from + limit - 1;
+                fallbackQuery = fallbackQuery.range(from, to);
+            }
+
+            const fallback = await fallbackQuery;
+            if (fallback.error) {
+                console.error('Error fetching courses (fallback):', fallback.error);
+                throw fallback.error;
+            }
+            data = fallback.data;
+            count = fallback.count;
         }
 
         return {
