@@ -38,6 +38,8 @@ export const gradebookService = {
      * @param tenantId - Required for multi-tenant isolation (EduSync Constitution Rule #3)
      */
     async fetchGradebook(tenantId: string): Promise<GradebookData> {
+        if (!tenantId) throw new Error("tenantId is required for fetchGradebook");
+
         // Fetch assignments with tenant_id filter for multi-tenant isolation
         const { data: assignmentsData } = await supabase
             .from('assignments')
@@ -55,27 +57,23 @@ export const gradebookService = {
                 : '',
         }));
 
-        // Fetch submissions with grades - filtered by tenant via assignments join
+        // Fetch submissions with grades - filtered by tenant for multi-tenant isolation
         const { data: submissionsData } = await supabase
             .from('assignment_submissions')
-            .select('id, assignment_id, student_id, status, score, feedback, assignments(tenant_id)')
+            .select('id, assignment_id, student_id, status, score, feedback')
+            .eq('tenant_id', tenantId)
             .order('submitted_at', { ascending: false });
-
-        // Filter submissions to only include those from the current tenant
-        const tenantSubmissions = submissionsData?.filter(
-            sub => (sub as any).assignments?.tenant_id === tenantId
-        ) ?? [];
 
         // Build grade map from submissions
         const grades: GradeData = {};
-        if (tenantSubmissions) {
-            tenantSubmissions.forEach(sub => {
+        if (submissionsData) {
+            submissionsData.forEach(sub => {
                 if (!grades[sub.student_id]) grades[sub.student_id] = {};
                 
                 grades[sub.student_id][sub.assignment_id] = {
                     score: sub.score ?? null,
                     status: sub.status as GradeStatus || 'ungraded',
-                    feedback: sub.feedback,
+                    feedback: sub.feedback ?? undefined,
                     source: 'assignment'
                 };
             });
@@ -134,6 +132,8 @@ export const gradebookService = {
         feedback: string | undefined,
         tenantId: string
     ): Promise<void> {
+        if (!tenantId) throw new Error("tenantId is required for submitGrade");
+
         // Use direct Supabase update with RLS - more reliable than edge function
         const { error } = await supabase
             .from('assignment_submissions')
@@ -141,10 +141,13 @@ export const gradebookService = {
                 score, 
                 feedback, 
                 status: 'graded', 
-                graded_at: new Date().toISOString(),
-                tenant_id: tenantId
+                graded_at: new Date().toISOString()
             })
-            .match({ assignment_id: assignmentId, student_id: studentId });
+            .match({
+                assignment_id: assignmentId,
+                student_id: studentId,
+                tenant_id: tenantId
+            });
 
         if (error) throw error;
     },
