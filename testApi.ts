@@ -8,9 +8,9 @@ const supabase = createClient(
 );
 
 async function run() {
-    console.log("Testing quiz_attempts query:");
+    console.log("Testing quiz_attempts_v2 query:");
     const { data: attempts, error: attemptsError } = await supabase
-        .from('quiz_attempts')
+        .from('quiz_attempts_v2')
         .select(`
                 *,
                 quizzes (
