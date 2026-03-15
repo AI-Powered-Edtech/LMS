@@ -30,7 +30,6 @@ export function GradebookProvider({ children }: { children: ReactNode }) {
     if (!user || !tenantId) { setLoading(false); return; }
     setLoading(true);
     try {
-      // CRITICAL FIX: Pass tenantId for multi-tenant isolation
       const data = await gradebookService.fetchGradebook(tenantId);
       setAssignments(data.assignments);
       setStudents(data.students);
