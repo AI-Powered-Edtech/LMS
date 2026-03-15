@@ -84,7 +84,6 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
             };
             const result = await courseBuilderService.saveQuizData(
                 activeLesson.id,
-                state.courseId ?? '',
                 activeLesson.tenantId,
                 payload
             );

@@ -116,7 +116,7 @@ export function TeacherDashboard() {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-xl font-bold text-slate-900">{classroom.name}</h3>
-                    <p className="text-sm text-slate-500 mt-1">35 Siswa</p>
+                    <p className="text-sm text-slate-500 mt-1">{classroom.student_count ?? 0} Siswa</p>
                   </div>
                   <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold">
                     {classroom.name.substring(0, 2).toUpperCase()}
@@ -148,7 +148,7 @@ export function TeacherDashboard() {
                 <button
                   onClick={() => {
                     setActiveClassroomId(classroom.id);
-                    navigate('/assignments');
+                    navigate('/teaching/classes');
                   }}
                   className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1"
                 >

@@ -100,11 +100,12 @@ export const studentProgressService = {
      */
     async fetchQuizAttempts(userId: string, tenantId: string): Promise<Record<string, QuizAttempt[]>> {
         const { data } = await supabase
-            .from('quiz_attempts')
-            .select('id, quiz_id, score, answers, created_at')
+            .from('quiz_attempts_v2')
+            .select('id, quiz_id, score, started_at, submitted_at, passed')
             .eq('student_id', userId)
             .eq('tenant_id', tenantId)
-            .order('created_at', { ascending: false });
+            .in('status', ['SUBMITTED', 'GRADED'])
+            .order('submitted_at', { ascending: false });
 
         const attemptsMap: Record<string, QuizAttempt[]> = {};
         (data ?? []).forEach(a => {
@@ -114,9 +115,9 @@ export const studentProgressService = {
                 score: a.score ?? 0,
                 totalPoints: 100,
                 percentage: a.score ?? 0,
-                passed: (a.score ?? 0) >= 70,
-                completedAt: new Date(a.created_at),
-                answers: a.answers ?? {},
+                passed: a.passed ?? (a.score ?? 0) >= 70,
+                completedAt: new Date(a.submitted_at || a.started_at),
+                answers: {},
             };
             if (!attemptsMap[a.quiz_id]) attemptsMap[a.quiz_id] = [];
             attemptsMap[a.quiz_id].push(attempt);
@@ -196,15 +197,8 @@ export const studentProgressService = {
     /**
      * Submit a quiz attempt within a tenant.
      */
-    async submitQuizAttempt(userId: string, quizId: string, score: number, answers: Record<string, string>, tenantId: string): Promise<void> {
-        const { error } = await supabase.from('quiz_attempts').insert({
-            quiz_id: quizId,
-            student_id: userId,
-            score,
-            answers,
-            tenant_id: tenantId,
-        });
-        if (error) console.error('Error submitting quiz attempt:', error);
+    async submitQuizAttempt(_userId: string, _quizId: string, _score: number, _answers: Record<string, string>, _tenantId: string): Promise<void> {
+        console.warn('[studentProgressService] Legacy submitQuizAttempt skipped. Quiz attempts are persisted via quiz_attempts_v2 RPC flow.');
     },
 
     /**

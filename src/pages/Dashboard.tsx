@@ -192,8 +192,12 @@ export function Dashboard() {
             {classrooms.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {classrooms.map(cls => (
-                  <div key={cls.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50 hover:border-indigo-200 transition-colors">
-                    <h3 className="font-bold text-slate-800">{cls.name}</h3>
+                  <div 
+                    key={cls.id} 
+                    onClick={() => navigate(`/classes/${cls.id}`)}
+                    className="p-4 rounded-xl border border-slate-100 bg-slate-50 hover:border-indigo-200 transition-colors cursor-pointer group"
+                  >
+                    <h3 className="font-bold text-slate-800 group-hover:text-indigo-700 transition-colors">{cls.name}</h3>
                     <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
                        <User className="w-3.5 h-3.5" />
                        {cls.teacher_name || 'Guru'}

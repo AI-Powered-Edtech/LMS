@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   HelpCircle,
@@ -10,18 +10,13 @@ import {
   CheckCircle,
   XCircle,
   Trophy,
-  ArrowRight,
-  ArrowLeft,
-  Timer,
-  Sparkles,
   Loader2,
   AlertTriangle,
   X
 } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
-import { useStudentProgress } from '@/src/contexts/StudentProgressContext';
 import { useAuth } from '@/src/contexts/AuthContext';
-import { quizService, type QuizAttemptResult, type QuizAttempt, type SubmitAnswer } from '@/src/services/quizService';
+import { quizService, type QuizAttemptResult, type QuizAttempt, type SubmitAnswer, type StudentQuizAssignment } from '@/src/services/quizService';
 import { QuizPlayer } from './quiz/QuizPlayer';
 import { AttemptDetailModal } from '@/src/components/AttemptDetailModal';
 
@@ -47,18 +42,17 @@ const getDifficultyLabel = (diff: string | undefined) => {
 
 export function QuizModule() {
   const { tenantId } = useAuth();
-  const { getRemedialContent } = useStudentProgress();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSubject, setSelectedSubject] = useState<string>('all');
+  const [selectedClass, setSelectedClass] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<'available' | 'completed'>('available');
 
   // Quiz Data State
-  const [quizzes, setQuizzes] = useState<any[]>([]);
+  const [quizzes, setQuizzes] = useState<StudentQuizAssignment[]>([]);
   const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Start Quiz Modal
-  const [pendingQuiz, setPendingQuiz] = useState<any | null>(null);
+  const [pendingQuiz, setPendingQuiz] = useState<(StudentQuizAssignment & { isResume: boolean; activeAttempt?: QuizAttempt }) | null>(null);
 
   // Quiz Taking State
   const [isQuizActive, setIsQuizActive] = useState(false);
@@ -80,46 +74,54 @@ export function QuizModule() {
   // Review Mode State
   const [reviewAttempt, setReviewAttempt] = useState<{ attemptId: string; studentName: string; score: number | null; passed: boolean | null; } | null>(null);
 
-  useEffect(() => {
-    const fetchQuizzes = async () => {
-      if (!tenantId) {
-        setIsLoading(false);
-        return;
-      }
-      try {
-        setIsLoading(true);
-        const [fetchedQuizzes, fetchedAttempts] = await Promise.all([
-          quizService.getAllQuizzes(tenantId),
-          quizService.getUserAttempts(tenantId)
-        ]);
-        setQuizzes(fetchedQuizzes || []);
-        setQuizAttempts(fetchedAttempts || []);
-      } catch (err) {
-        console.error("Gagal memuat kuis:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchQuizzes();
+  const refreshQuizData = useCallback(async () => {
+    if (!tenantId) {
+      setIsLoading(false);
+      return;
+    }
+    try {
+      setIsLoading(true);
+      const [fetchedQuizzes, fetchedAttempts] = await Promise.all([
+        quizService.getStudentQuizAssignments(tenantId),
+        quizService.getUserAttempts(tenantId)
+      ]);
+      setQuizzes(fetchedQuizzes || []);
+      setQuizAttempts(fetchedAttempts || []);
+    } catch (err) {
+      console.error("Gagal memuat kuis:", err);
+    } finally {
+      setIsLoading(false);
+    }
   }, [tenantId]);
+
+  useEffect(() => {
+    refreshQuizData();
+  }, [refreshQuizData]);
+
+  const completedAttempts = quizAttempts.filter((attempt) =>
+    attempt.status === 'SUBMITTED' || attempt.status === 'GRADED'
+  );
 
   const filteredQuizzes = quizzes.filter((quiz) => {
     // Filter to only show active quizzes (exclude drafts, include nulls for legacy)
     if (quiz.status === 'draft') return false;
 
     const matchesSearch = quiz.title?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSubject = selectedSubject === 'all' || quiz.subject === selectedSubject || (!quiz.subject && selectedSubject === 'Umum');
-    return matchesSearch && matchesSubject;
+    const matchesClass = selectedClass === 'all' || quiz.class_name === selectedClass;
+    return matchesSearch && matchesClass;
   });
 
-  const subjects = [...new Set(quizzes.map((q) => q.subject || 'Umum'))];
+  const classes = [...new Set(quizzes.map((q) => q.class_name || 'Umum'))];
 
-  const handleStartQuiz = async (quizId: string) => {
+  const handleStartQuiz = async (quiz: StudentQuizAssignment) => {
     try {
       setIsStarting(true);
-      const startData = await quizService.startQuizAttempt(quizId);
+      setCurrentQuizId(quiz.id);
+      const startData = await quizService.startQuizAttempt({
+        quizId: quiz.quiz_id,
+        assignmentId: quiz.assignment_id,
+      });
       
-      setCurrentQuizId(quizId);
       setCurrentAttemptId(startData.attempt_id);
       setAttemptVersion(startData.version);
       setExpiresAt(startData.expires_at);
@@ -151,9 +153,12 @@ export function QuizModule() {
       console.error("Failed to start", err);
       if (err.message?.includes("limit reached")) {
         alert(err.message);
-      } else if (err.message?.includes("active attempt")) {
-        alert("Anda memiliki kuis yang sedang berjalan. Silakan muat ulang halaman.");
-        window.location.reload();
+      } else if (err.message?.includes("not enrolled")) {
+        alert("Anda tidak terdaftar di kelas untuk assignment kuis ini.");
+      } else if (err.message?.includes("not yet available")) {
+        alert("Kuis ini belum dibuka.");
+      } else if (err.message?.includes("no longer available")) {
+        alert("Waktu akses kuis ini sudah berakhir.");
       } else {
         alert("Gagal memulai kuis. Silakan coba lagi nanti.");
       }
@@ -162,10 +167,10 @@ export function QuizModule() {
     }
   };
 
-  const handleResumeQuiz = async (attempt: QuizAttempt) => {
+  const handleResumeQuiz = async (quiz: StudentQuizAssignment, attempt: QuizAttempt) => {
     try {
       setIsStarting(true);
-      setCurrentQuizId(attempt.quiz_id);
+      setCurrentQuizId(quiz.id);
       setCurrentAttemptId(attempt.id);
       setAttemptVersion(attempt.version);
       setExpiresAt(attempt.expires_at);
@@ -196,11 +201,7 @@ export function QuizModule() {
           
           const result = await quizService.submitQuizAttempt(attempt.id, formattedAnswers, attempt.version);
           setQuizResult(result);
-          
-          if (tenantId) {
-             const updatedAttempts = await quizService.getUserAttempts(tenantId);
-             setQuizAttempts(updatedAttempts || []);
-          }
+          await refreshQuizData();
           
           setIsQuizActive(false);
           setShowResults(true);
@@ -236,7 +237,6 @@ export function QuizModule() {
   };
 
   const handleSubmitQuiz = async () => {
-    const currentTenantId = tenantId;
     const quiz = quizzes.find(q => q.id === currentQuizId);
     if (!quiz) return;
 
@@ -252,11 +252,7 @@ export function QuizModule() {
 
       const result = await quizService.submitQuizAttempt(currentAttemptId, formattedAnswers, attemptVersion);
       setQuizResult(result);
-
-      if (currentTenantId) {
-        const updatedAttempts = await quizService.getUserAttempts(currentTenantId);
-        setQuizAttempts(updatedAttempts || []);
-      }
+      await refreshQuizData();
 
       if (result.passed) {
         setTotalXP(prev => prev + 50); // Tambahan stat XP sekadar visual
@@ -269,15 +265,11 @@ export function QuizModule() {
       if (err.message?.includes("Time limit exceeded")) {
         alert("Waktu habis! Kuis Anda telah ditandai sebagai kedaluwarsa.");
         setIsQuizActive(false);
-        if (tenantId) {
-          quizService.getUserAttempts(tenantId).then(setQuizAttempts);
-        }
+        refreshQuizData();
       } else if (err.message?.includes("ATTEMPT_VERSION_CONFLICT")) {
           alert("Kuis ini baru saja disubmit dari tempat lain (tab/perangkat lain). Memuat ulang...");
           setIsQuizActive(false);
-          if (tenantId) {
-            quizService.getUserAttempts(tenantId).then(setQuizAttempts);
-          }
+          refreshQuizData();
       } else {
         alert("Gagal mengirim kuis. Silakan coba lagi.");
       }
@@ -338,7 +330,7 @@ export function QuizModule() {
       <QuizResultsView
         result={quizResult}
         quiz={currentQuiz}
-        onRetry={() => handleStartQuiz(currentQuiz.id)}
+        onRetry={() => handleStartQuiz(currentQuiz)}
         onClose={() => {
           setShowResults(false);
           setCurrentQuizId(null);
@@ -431,9 +423,9 @@ export function QuizModule() {
                     const quiz = pendingQuiz;
                     setPendingQuiz(null);
                     if (quiz.isResume) {
-                      handleResumeQuiz(quiz.activeAttempt);
+                      handleResumeQuiz(quiz, quiz.activeAttempt!);
                     } else {
-                      handleStartQuiz(quiz.id);
+                      handleStartQuiz(quiz);
                     }
                   }}
                   disabled={isStarting}
@@ -474,7 +466,7 @@ export function QuizModule() {
             <CheckCircle className="w-5 h-5 text-green-600" />
           </div>
           <div>
-            <p className="text-2xl font-black text-slate-800">{quizAttempts.length}</p>
+            <p className="text-2xl font-black text-slate-800">{completedAttempts.length}</p>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Selesai</p>
           </div>
         </div>
@@ -484,7 +476,7 @@ export function QuizModule() {
           </div>
           <div>
             <p className="text-2xl font-black text-slate-800">
-              {quizAttempts.length > 0 ? Math.round(quizAttempts.reduce((acc, a) => acc + (a.score || 0), 0) / quizAttempts.length) : 0}%
+              {completedAttempts.length > 0 ? Math.round(completedAttempts.reduce((acc, a) => acc + (a.score || 0), 0) / completedAttempts.length) : 0}%
             </p>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Rata-rata</p>
           </div>
@@ -514,14 +506,14 @@ export function QuizModule() {
             />
           </div>
           <select
-            value={selectedSubject}
-            onChange={(e) => setSelectedSubject(e.target.value)}
+            value={selectedClass}
+            onChange={(e) => setSelectedClass(e.target.value)}
             className="px-4 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700"
           >
-            <option value="all">Semua Mapel</option>
-            {subjects.map((subject) => (
-              <option key={subject} value={subject}>
-                {subject}
+            <option value="all">Semua Kelas</option>
+            {classes.map((cls) => (
+              <option key={cls} value={cls}>
+                {cls}
               </option>
             ))}
           </select>
@@ -548,8 +540,8 @@ export function QuizModule() {
       {activeTab === 'available' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredQuizzes.length > 0 ? filteredQuizzes.map((quiz) => {
-            const activeAttempt = quizAttempts.find(a => a.quiz_id === quiz.id && a.status === 'IN_PROGRESS');
-            const attemptsCount = quizAttempts.filter(a => a.quiz_id === quiz.id).length;
+            const activeAttempt = quizAttempts.find(a => a.assignment_id === quiz.assignment_id && a.status === 'IN_PROGRESS');
+            const attemptsCount = quizAttempts.filter(a => a.assignment_id === quiz.assignment_id).length;
             
             return (
               <QuizCard
@@ -575,7 +567,7 @@ export function QuizModule() {
         </div>
       ) : (
         <div className="space-y-4">
-          {quizAttempts.length > 0 ? quizAttempts.map((attempt) => (
+          {completedAttempts.length > 0 ? completedAttempts.map((attempt) => (
             <QuizAttemptCard 
               key={attempt.id} 
               attempt={attempt} 
@@ -612,7 +604,7 @@ function QuizCard({ quiz, activeAttempt, attemptsCount = 0, onStart, isStarting 
   const timeLimitMin = quiz.time_limit_minutes || 0;
   const maxAttempts = quiz.max_attempts;
   const isAvailable = attemptsCount < maxAttempts || !maxAttempts;
-  const availableUntil = quiz.available_until ? new Date(quiz.available_until) : null;
+  const availableUntil = quiz.due_at ? new Date(quiz.due_at) : null;
   const isExpired = availableUntil ? availableUntil < new Date() : false;
 
   return (
@@ -624,9 +616,6 @@ function QuizCard({ quiz, activeAttempt, attemptsCount = 0, onStart, isStarting 
       <div className="p-5 flex-1 flex flex-col">
         <div className="flex items-start justify-between mb-2">
           <div className="flex gap-2 items-center">
-            <span className={cn('inline-block px-2 py-1 rounded-md text-xs font-bold', getDifficultyColor(quiz.difficulty))}>
-              {getDifficultyLabel(quiz.difficulty)}
-            </span>
             {activeAttempt ? (
               <span className="inline-block px-2 py-1 rounded-md text-xs font-bold bg-blue-100 text-blue-700 uppercase tracking-wider">
                 In Progress
@@ -648,7 +637,7 @@ function QuizCard({ quiz, activeAttempt, attemptsCount = 0, onStart, isStarting 
 
         <h3 className="text-lg font-bold text-slate-900 leading-tight mb-1">{quiz.title}</h3>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-4">
-           {quiz.subject && <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">{quiz.subject}</span>}
+           <span className="text-sm font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">{quiz.class_name}</span>
            <span className="text-sm text-slate-500">{quiz.quiz_questions?.length || 0} Questions {timeLimitMin > 0 ? `• ${timeLimitMin} Minutes` : ''}</span>
         </div>
         
@@ -706,15 +695,15 @@ function QuizAttemptCard({ attempt, onReview }: { attempt: any; onReview: () => 
         <div
           className={cn(
             'w-12 h-12 rounded-full flex items-center justify-center shrink-0',
-            passed ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+            passed === true ? 'bg-green-100 text-green-600' : passed === false ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
           )}
         >
-          {passed ? <CheckCircle className="w-6 h-6" /> : <XCircle className="w-6 h-6" />}
+          {passed === true ? <CheckCircle className="w-6 h-6" /> : passed === false ? <XCircle className="w-6 h-6" /> : <Clock className="w-6 h-6" />}
         </div>
         <div>
           <h4 className="font-bold text-slate-900">{quizTitle}</h4>
           <p className="text-sm text-slate-500">
-            {new Date(attempt.submitted_at).toLocaleDateString('id-ID')}
+            {attempt.submitted_at ? new Date(attempt.submitted_at).toLocaleDateString('id-ID') : 'Menunggu penilaian'}
           </p>
         </div>
       </div>
@@ -722,12 +711,12 @@ function QuizAttemptCard({ attempt, onReview }: { attempt: any; onReview: () => 
         <div className="text-left md:text-right">
           <p className={cn(
             'text-2xl font-black tracking-tight',
-            passed ? 'text-green-600' : 'text-red-600'
+            passed === true ? 'text-green-600' : passed === false ? 'text-red-600' : 'text-amber-600'
           )}>
-            {attempt.score}%
+            {attempt.score ?? '-'}{attempt.score !== null ? '%' : ''}
           </p>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            {passed ? 'Lulus' : 'Belum Lulus'}
+            {passed === true ? 'Lulus' : passed === false ? 'Belum Lulus' : 'Menunggu'}
           </p>
         </div>
         <button 
@@ -750,6 +739,7 @@ function QuizResultsView({
   onClose,
 }: any) {
   const passed = result.passed;
+  const isPendingGrade = passed === null;
 
   return (
     <div className="max-w-2xl mx-auto flex-1 w-full flex items-center justify-center">
@@ -760,22 +750,26 @@ function QuizResultsView({
           transition={{ type: 'spring', damping: 10 }}
           className={cn(
             'w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6',
-            passed ? 'bg-green-100' : 'bg-red-100'
+            passed === true ? 'bg-green-100' : isPendingGrade ? 'bg-amber-100' : 'bg-red-100'
           )}
         >
-          {passed ? (
+          {passed === true ? (
             <Trophy className="w-12 h-12 text-green-600" />
+          ) : isPendingGrade ? (
+            <Clock className="w-12 h-12 text-amber-600" />
           ) : (
             <XCircle className="w-12 h-12 text-red-600" />
           )}
         </motion.div>
 
         <h2 className="text-3xl font-black text-slate-900 mb-2">
-          {passed ? 'Selamat!' : 'Jangan Menyerah!'}
+          {passed === true ? 'Selamat!' : isPendingGrade ? 'Menunggu Penilaian' : 'Jangan Menyerah!'}
         </h2>
         <p className="text-slate-500 font-medium mb-8">
-          {passed
+          {passed === true
             ? 'Anda telah berhasil menyelesaikan kuis ini!'
+            : isPendingGrade
+            ? 'Jawaban Anda sudah dikirim. Nilai akhir akan muncul setelah penilaian selesai.'
             : 'Anda belum mencapai nilai minimum. Coba lagi!'}
         </p>
 
@@ -797,7 +791,7 @@ function QuizResultsView({
           >
             Kembali ke Daftar Kuis
           </button>
-          {!passed && (
+          {passed === false && (
             <button
               onClick={onRetry}
               className="px-6 py-3 rounded-xl font-bold text-white bg-slate-900 hover:bg-slate-800 flex items-center justify-center gap-2 transition-colors"

@@ -14,6 +14,7 @@ export interface GradeEntry {
     score: number | null;
     status: GradeStatus;
     feedback?: string;
+    source?: 'assignment' | 'quiz';
 }
 
 export type GradeData = Record<string, Record<string, GradeEntry>>;
@@ -34,12 +35,14 @@ export interface GradebookData {
 export const gradebookService = {
     /**
      * Fetch complete gradebook data: assignments, students, and grade entries.
+     * @param tenantId - Required for multi-tenant isolation (EduSync Constitution Rule #3)
      */
-    async fetchGradebook(): Promise<GradebookData> {
-        // Fetch assignments
+    async fetchGradebook(tenantId: string): Promise<GradebookData> {
+        // Fetch assignments with tenant_id filter for multi-tenant isolation
         const { data: assignmentsData } = await supabase
             .from('assignments')
-            .select('id, title, due_date, created_at')
+            .select('id, title, due_date, created_at, tenant_id')
+            .eq('tenant_id', tenantId)
             .order('created_at', { ascending: false });
 
         const assignments: GradebookAssignment[] = (assignmentsData ?? []).map(a => ({
@@ -52,16 +55,37 @@ export const gradebookService = {
                 : '',
         }));
 
-        // Fetch submissions with grades
+        // Fetch submissions with grades - filtered by tenant via assignments join
         const { data: submissionsData } = await supabase
             .from('assignment_submissions')
-            .select('id, assignment_id, student_id, status, grades(score, feedback)')
+            .select('id, assignment_id, student_id, status, score, feedback, assignments(tenant_id)')
             .order('submitted_at', { ascending: false });
 
-        // Fetch student profiles
+        // Filter submissions to only include those from the current tenant
+        const tenantSubmissions = submissionsData?.filter(
+            sub => (sub as any).assignments?.tenant_id === tenantId
+        ) ?? [];
+
+        // Build grade map from submissions
+        const grades: GradeData = {};
+        if (tenantSubmissions) {
+            tenantSubmissions.forEach(sub => {
+                if (!grades[sub.student_id]) grades[sub.student_id] = {};
+                
+                grades[sub.student_id][sub.assignment_id] = {
+                    score: sub.score ?? null,
+                    status: sub.status as GradeStatus || 'ungraded',
+                    feedback: sub.feedback,
+                    source: 'assignment'
+                };
+            });
+        }
+
+        // Fetch student profiles with tenant_id filter for multi-tenant isolation
         const { data: profilesData } = await supabase
             .from('profiles')
-            .select('id, first_name, last_name, email')
+            .select('id, first_name, last_name, email, tenant_id')
+            .eq('tenant_id', tenantId)
             .eq('is_active', true);
 
         const students: GradebookStudent[] = (profilesData ?? []).map(p => ({
@@ -70,16 +94,23 @@ export const gradebookService = {
             nis: p.email.split('@')[0],
         }));
 
-        // Build grade map from submissions
-        const grades: GradeData = {};
-        if (submissionsData) {
-            submissionsData.forEach(sub => {
-                if (!grades[sub.student_id]) grades[sub.student_id] = {};
-                const grade = (sub as any).grades;
-                grades[sub.student_id][sub.assignment_id] = {
-                    score: grade?.score ?? null,
-                    status: grade ? 'graded' : 'ungraded',
-                    feedback: grade?.feedback,
+        // CRITICAL BUG #3 FIX: Also fetch quiz attempts and merge into grades
+        // This syncs quiz results to the gradebook
+        const { data: quizAttempts } = await supabase
+            .from('quiz_attempts_v2')
+            .select('id, quiz_id, student_id, score, status, tenant_id')
+            .eq('tenant_id', tenantId)
+            .eq('status', 'GRADED');
+
+        // Merge quiz results into grades - quizzes appear as assignments in gradebook
+        if (quizAttempts && quizAttempts.length > 0) {
+            quizAttempts.forEach(attempt => {
+                if (!grades[attempt.student_id]) grades[attempt.student_id] = {};
+                grades[attempt.student_id][attempt.quiz_id] = {
+                    score: attempt.score,
+                    status: 'graded',
+                    feedback: undefined,
+                    source: 'quiz'
                 };
             });
         }
@@ -88,12 +119,33 @@ export const gradebookService = {
     },
 
     /**
-     * Submit a grade via edge function (secure, server-side grading).
+     * Submit a grade via direct database operation.
+     * Uses RLS policies for security - replaces non-existent edge function.
+     * @param assignmentId - The assignment ID
+     * @param studentId - The student ID
+     * @param score - The score to assign
+     * @param feedback - Optional feedback
+     * @param tenantId - Required for multi-tenant isolation
      */
-    async submitGrade(submissionId: string, score: number, feedback?: string): Promise<void> {
-        const { error } = await supabase.functions.invoke('grade-submission', {
-            body: { submission_id: submissionId, score, feedback },
-        });
+    async submitGrade(
+        assignmentId: string, 
+        studentId: string, 
+        score: number, 
+        feedback: string | undefined,
+        tenantId: string
+    ): Promise<void> {
+        // Use direct Supabase update with RLS - more reliable than edge function
+        const { error } = await supabase
+            .from('assignment_submissions')
+            .update({ 
+                score, 
+                feedback, 
+                status: 'graded', 
+                graded_at: new Date().toISOString(),
+                tenant_id: tenantId
+            })
+            .match({ assignment_id: assignmentId, student_id: studentId });
+
         if (error) throw error;
     },
 };

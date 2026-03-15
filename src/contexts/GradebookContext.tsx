@@ -20,17 +20,18 @@ interface GradebookContextType {
 const GradebookContext = createContext<GradebookContextType | undefined>(undefined);
 
 export function GradebookProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, tenantId } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [grades, setGrades] = useState<GradeData>({});
   const [loading, setLoading] = useState(true);
 
   const fetchGradebook = useCallback(async () => {
-    if (!user) { setLoading(false); return; }
+    if (!user || !tenantId) { setLoading(false); return; }
     setLoading(true);
     try {
-      const data = await gradebookService.fetchGradebook();
+      // CRITICAL FIX: Pass tenantId for multi-tenant isolation
+      const data = await gradebookService.fetchGradebook(tenantId);
       setAssignments(data.assignments);
       setStudents(data.students);
       setGrades(data.grades);
@@ -39,7 +40,7 @@ export function GradebookProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, tenantId]);
 
   useEffect(() => { fetchGradebook(); }, [fetchGradebook]);
 
@@ -49,12 +50,12 @@ export function GradebookProvider({ children }: { children: ReactNode }) {
       ...prev,
       [studentId]: { ...prev[studentId], [assignmentId]: { score, status, feedback } }
     }));
-    // Edge function handles the real grading
-    if (score !== null) {
-      gradebookService.submitGrade(assignmentId, score, feedback)
+    // Database handles the real grading - tenantId required for isolation
+    if (score !== null && tenantId) {
+      gradebookService.submitGrade(assignmentId, studentId, score, feedback, tenantId)
         .catch(err => console.error('Error grading:', err));
     }
-  }, []);
+  }, [tenantId]);
 
   const getStudentGrade = useCallback((studentId: string, assignmentId: string) => {
     return grades[studentId]?.[assignmentId] ?? null;

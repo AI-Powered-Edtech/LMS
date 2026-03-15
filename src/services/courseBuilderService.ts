@@ -339,11 +339,10 @@ export const courseBuilderService = {
         return data || null;
     },
 
-    async saveQuizData(lessonId: string, classId: string, tenantId: string, data: QuizBlockData): Promise<{ quiz_id: string }> {
+    async saveQuizData(lessonId: string, tenantId: string, data: QuizBlockData): Promise<{ quiz_id: string }> {
         // Uses atomic RPC save_quiz_builder — all operations run in a single DB transaction
         const { data: result, error } = await supabase.rpc('save_quiz_builder', {
             p_lesson_id: lessonId,
-            p_class_id: classId,
             p_tenant_id: tenantId,
             p_quiz_data: data,
         });

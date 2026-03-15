@@ -67,9 +67,9 @@ export const quizAnalyticsService = {
      * Fetch question difficulty statistics for a quiz.
      * Returns percentage of students who answered each question correctly.
      */
-    async getQuestionDifficulty(quizId: string): Promise<QuestionDifficulty[]> {
+    async getQuestionDifficulty(assignmentId: string): Promise<QuestionDifficulty[]> {
         const { data, error } = await supabase.rpc('get_question_difficulty', {
-            p_quiz_id: quizId,
+            p_assignment_id: assignmentId,
         });
 
         if (error) {

@@ -16,6 +16,7 @@ import { useNotifications } from "@/src/contexts/NotificationContext";
 import { useAssignments } from "@/src/features/assignments/hooks/useAssignments";
 import { assignmentService } from "@/src/services/assignmentService";
 import { AssignmentUiState } from "@/src/features/assignments/types";
+import { supabase } from "@/src/lib/supabase";
 
 // Mock data has been removed and replaced with real backend integration via useAssignments hook.
 
@@ -28,6 +29,7 @@ export function Assignments() {
 
   const { assignments, loading, setAssignments, refetch } = useAssignments();
   const initialized = useRef(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -47,6 +49,7 @@ export function Assignments() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [previewFile, setPreviewFile] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
 
   // New Assignment State
   const [newAssignment, setNewAssignment] = useState({
@@ -59,6 +62,7 @@ export function Assignments() {
   });
 
   const activeAssignment = assignments.find(a => a.id === selectedAssignment);
+  const activeSelectedFile = activeAssignment ? selectedFiles[activeAssignment.id] : null;
 
   // Use type guard to ensure assignments is defined before filtering
   const filteredAssignments = (assignments || []).filter((a) => {
@@ -85,34 +89,47 @@ export function Assignments() {
     if (!tenantId || !user) return;
 
     try {
-      // call assignmentService.submitAssignment
+      const selectedFile = selectedFiles[id] || null;
+      let fileUrl: string | null = null;
+
+      if (selectedFile) {
+        const storagePath = `${tenantId}/assignments/${id}/${user.id}/${Date.now()}-${selectedFile.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('assignment-submissions')
+          .upload(storagePath, selectedFile, { upsert: false });
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicData } = supabase.storage
+          .from('assignment-submissions')
+          .getPublicUrl(uploadData?.path || "");
+
+        fileUrl = publicData?.publicUrl || uploadData?.path || null;
+      }
+
       await assignmentService.submitAssignment({
         tenant_id: tenantId,
         assignment_id: id,
         student_id: user.id,
         submission_text: null,
-        file_url: null,
+        file_url: fileUrl,
         attempt_number: 1,
       });
 
-      setAssignments(assignments.map(a => {
-        if (a.id === id) {
-          return {
-            ...a,
-            status: "submitted",
-            studentSubmissions: (a.studentSubmissions || []).map(s =>
-              s.studentName === 'Anda' || s.studentName === 'Siswa' || s.studentName === user.user_metadata?.full_name
-                ? { ...s, status: "submitted", submittedAt: new Date().toISOString(), uploadedFiles: [{ id: "1", name: "Tugas_Saya.pdf", type: "pdf", url: "" }] }
-                : s
-            )
-          };
-        }
-        return a;
-      }));
+      await refetch();
+      setSelectedFiles(prev => ({ ...prev, [id]: null }));
     } catch (error) {
       console.error("Failed to turn in assignment", error);
       alert("Gagal menyerahkan tugas.");
     }
+  };
+
+  const handleFileChange = (assignmentId: string, file: File | null) => {
+    setSelectedFiles(prev => ({ ...prev, [assignmentId]: file }));
+  };
+
+  const clearSelectedFile = (assignmentId: string) => {
+    setSelectedFiles(prev => ({ ...prev, [assignmentId]: null }));
   };
 
   const handleUnsubmit = (id: string) => {
@@ -437,11 +454,32 @@ export function Assignments() {
                           {/* Student Attachments Area */}
                           <div className="space-y-3 mb-6">
                             {activeAssignment.status === 'assigned' || activeAssignment.status === 'late' ? (
-                              <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:bg-slate-50 transition-colors">
-                                <UploadCloud className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                                <p className="text-sm font-bold text-slate-700">Belum ada file yang dilampirkan</p>
-                                <p className="text-xs text-slate-500 mt-1">Tambahkan file untuk diserahkan</p>
-                              </div>
+                              activeSelectedFile ? (
+                                <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-blue-600 shadow-sm">
+                                      <FileText className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                      <p className="text-sm font-bold text-slate-800">{activeSelectedFile.name}</p>
+                                      <p className="text-xs text-slate-500 uppercase">{activeSelectedFile.type || 'FILE'}</p>
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={() => clearSelectedFile(activeAssignment.id)}
+                                    className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                                    aria-label="Hapus file"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:bg-slate-50 transition-colors">
+                                  <UploadCloud className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                                  <p className="text-sm font-bold text-slate-700">Belum ada file yang dilampirkan</p>
+                                  <p className="text-xs text-slate-500 mt-1">Tambahkan file untuk diserahkan</p>
+                                </div>
+                              )
                             ) : (
                               (((activeAssignment.studentSubmissions || []).find((s: any) => s.studentName === 'Anda' || s.studentName === 'Siswa') as any)?.uploadedFiles || []).map((file: any, idx: number) => (
                                 <div key={idx} className="flex items-center justify-between p-3 bg-blue-50 border border-blue-100 rounded-xl">
@@ -472,13 +510,22 @@ export function Assignments() {
                                 <button className="flex items-center justify-center gap-2 p-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
                                   <LinkIcon className="w-4 h-4 text-blue-500" /> Link
                                 </button>
-                                <button className="flex items-center justify-center gap-2 p-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
+                                <button
+                                  className="flex items-center justify-center gap-2 p-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                                  onClick={() => fileInputRef.current?.click()}
+                                >
                                   <Paperclip className="w-4 h-4 text-blue-500" /> File
                                 </button>
                                 <button className="flex items-center justify-center gap-2 p-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
                                   <Camera className="w-4 h-4 text-blue-500" /> Kamera
                                 </button>
                               </div>
+                              <input
+                                ref={fileInputRef}
+                                type="file"
+                                className="hidden"
+                                onChange={(e) => handleFileChange(activeAssignment.id, e.target.files?.[0] || null)}
+                              />
                               <button
                                 onClick={() => handleTurnIn(activeAssignment.id)}
                                 className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm"

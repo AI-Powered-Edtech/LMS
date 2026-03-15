@@ -34,6 +34,8 @@ import { StudentProgress } from "./pages/StudentProgress";
 import { GroupAssignment } from "./pages/GroupAssignment";
 import { QuestionBankPage } from "./pages/QuestionBankPage";
 import { QuizManager } from "./pages/QuizManager";
+import { ClassManagement } from "./pages/ClassManagement";
+import { StudentClassPage } from "./pages/StudentClassPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ClassroomProvider } from "./contexts/ClassroomContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
@@ -111,6 +113,7 @@ export default function App() {
                                     <Route path="teaching/question-bank" element={<RoleRoute role={['teacher', 'admin']}><QuestionBankPage /></RoleRoute>} />
                                     <Route path="teaching/course-builder" element={<RoleRoute role={['teacher', 'admin']}><CourseBuilder /></RoleRoute>} />
                                     <Route path="teaching/quiz-manager" element={<RoleRoute role={['teacher', 'admin']}><QuizManager /></RoleRoute>} />
+                                    <Route path="teaching/classes" element={<RoleRoute role={['teacher', 'admin']}><ClassManagement /></RoleRoute>} />
                                     <Route path="certificates" element={<RoleRoute role="student"><Certificates /></RoleRoute>} />
                                     <Route path="calendar" element={<RoleRoute role={['teacher', 'student', 'admin']}><Calendar /></RoleRoute>} />
                                     <Route path="schedule" element={<RoleRoute role={['teacher', 'student', 'admin']}><Calendar /></RoleRoute>} />
@@ -130,6 +133,7 @@ export default function App() {
                                         </CourseEnrollmentGuard>
                                       </RoleRoute>
                                     } />
+                                    <Route path="classes/:classId" element={<RoleRoute role="student"><StudentClassPage /></RoleRoute>} />
                                   </Route>
                                 </Routes>
                               </Router>

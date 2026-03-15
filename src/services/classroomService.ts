@@ -81,27 +81,36 @@ export const classroomService = {
 
     /**
      * Join a classroom by join code.
+     * Note: student_id and tenant_id are inferred by the RPC from auth context.
      */
-    async joinClassroom(studentId: string, joinCode: string, tenantId: string): Promise<void> {
-        const { data: cls, error: findErr } = await supabase
-            .from('classes')
-            .select('id')
-            .eq('join_code', joinCode.toUpperCase())
-            .eq('tenant_id', tenantId)
-            .single();
-
-        if (findErr || !cls) throw new Error('Kode kelas tidak ditemukan');
-
-        const { error: enrollErr } = await supabase.from('enrollments').insert({
-            class_id: cls.id,
-            student_id: studentId,
-            status: 'ACTIVE',
-            tenant_id: tenantId,
+    async joinClassroom(joinCode: string): Promise<void> {
+        const { error } = await supabase.rpc('enroll_student', {
+            p_join_code: joinCode.toUpperCase()
         });
 
-        if (enrollErr) {
-            if (enrollErr.code === '23505') throw new Error('Kamu sudah terdaftar di kelas ini');
-            throw enrollErr;
+        if (error) {
+            const message = error.message || '';
+
+            if (message.includes('Invalid join code') || error.code === 'P0002') {
+                throw new Error('Kode kelas tidak ditemukan');
+            }
+            if (
+                message.includes('Already enrolled')
+                || message.includes('duplicate key value')
+                || message.includes('already exists')
+                || error.code === 'P0003'
+                || error.code === '23505'
+                || error.code === '23514'
+            ) {
+                throw new Error('Kamu sudah terdaftar di kelas ini');
+            }
+            if (message.includes('Class is full') || error.code === 'P0004') {
+                throw new Error('Kelas sudah penuh');
+            }
+            if (message.includes('matching the ON CONFLICT specification')) {
+                throw new Error('Sistem kelas sedang disinkronkan. Coba gabung lagi beberapa saat lagi.');
+            }
+            throw new Error('Gagal bergabung dengan kelas. Silakan coba lagi.');
         }
     },
 

@@ -327,7 +327,7 @@ export const lessonService = {
                 localStorage.setItem(queueKey, JSON.stringify(remainingQueue));
             } else {
                 localStorage.removeItem(queueKey);
-                console.log('[Offline Queue] Fluhed successfully');
+                console.log('[Offline Queue] Flushed successfully');
             }
         } finally {
             (this as any)._isProcessingOfflineQueue = false;
@@ -340,34 +340,6 @@ export const lessonService = {
      */
     async completeLesson(lessonId: string, tenantId: string): Promise<void> {
         await this.updateProgress(lessonId, tenantId, 'completed', 100);
-    },
-
-    /**
-     * Submit quiz answers for server-side grading via Edge Function.
-     * Answers are validated server-side — no answer leakage to client.
-     */
-    async submitQuizAttempt(
-        quizId: string,
-        answers: { question_id: string; selected_option_id: string }[],
-        startedAt: string
-    ): Promise<QuizGradeResult> {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) throw new Error('Not authenticated');
-
-        const response = await supabase.functions.invoke('grade-quiz', {
-            body: {
-                quiz_id: quizId,
-                answers,
-                started_at: startedAt,
-            },
-        });
-
-        if (response.error) {
-            console.error('Error grading quiz:', response.error);
-            throw new Error(response.error.message || 'Quiz grading failed');
-        }
-
-        return response.data as QuizGradeResult;
     },
 
     /**

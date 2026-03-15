@@ -137,7 +137,7 @@ export function AttemptDetailModal({
                                             Jawaban Siswa:
                                         </span>
                                         <span className="font-semibold">
-                                            {answer.selected_option_text || 'Tidak menjawab'}
+                                            {answer.selected_option_text || answer.text_answer || 'Tidak menjawab'}
                                         </span>
                                     </div>
 

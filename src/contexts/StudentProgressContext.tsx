@@ -23,7 +23,6 @@ interface StudentProgressContextType {
   assignments: Assignment[];
   loading: boolean;
   updateLessonProgress: (lessonId: string, progress: number, status: LessonStatus, score?: number) => void;
-  submitQuizAttempt: (quizId: string, attempt: Omit<QuizAttempt, 'id' | 'completedAt'>) => void;
   getModuleStatus: (moduleId: string) => ModuleStatus;
   unlockModule: (moduleId: string) => void;
   getRemedialContent: (quizId: string) => RemedialContent | null;
@@ -87,18 +86,6 @@ export function StudentProgressProvider({ children }: { children: ReactNode }) {
     }));
   }, [user, tenantId]);
 
-  const submitQuizAttempt = useCallback((quizId: string, attemptData: Omit<QuizAttempt, 'id' | 'completedAt'>) => {
-    if (!user || !tenantId) return;
-    studentProgressService.submitQuizAttempt(user.id, quizId, attemptData.score, attemptData.answers, tenantId);
-    const newAttempt: QuizAttempt = {
-      ...attemptData,
-      id: crypto.randomUUID(),
-      completedAt: new Date(),
-    };
-    setQuizAttempts(prev => ({ ...prev, [quizId]: [newAttempt, ...(prev[quizId] || [])] }));
-    addXP(attemptData.passed ? 50 : 10);
-  }, [user, tenantId]);
-
   const unlockModule = useCallback((moduleId: string) => {
     setModules(prev => prev.map(m => m.id === moduleId ? { ...m, status: 'active' } : m));
   }, []);
@@ -119,9 +106,9 @@ export function StudentProgressProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(() => ({
     modules, lessonProgress, quizAttempts, xp, dailyGoal, achievements, assignments, loading,
-    updateLessonProgress, submitQuizAttempt, getModuleStatus, unlockModule, getRemedialContent, addXP
+    updateLessonProgress, getModuleStatus, unlockModule, getRemedialContent, addXP
   }), [modules, lessonProgress, quizAttempts, xp, dailyGoal, achievements, assignments, loading,
-    updateLessonProgress, submitQuizAttempt, getModuleStatus, unlockModule, getRemedialContent, addXP]);
+    updateLessonProgress, getModuleStatus, unlockModule, getRemedialContent, addXP]);
 
   return (
     <StudentProgressContext.Provider value={value}>

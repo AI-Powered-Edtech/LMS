@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
     ArrowLeft, Plus, Trash2, Loader2, CheckCircle, AlertTriangle,
     Search, HelpCircle, Clock, Pencil, X,
-    Save, Globe, Lock, Copy, Link as LinkIcon, Users
+    Save, Globe, Lock, Copy, Link as LinkIcon, Users, Calendar
 } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
 import { quizService, type QuestionType, type QuizMode } from '@/src/services/quizService';
@@ -11,6 +11,8 @@ import { QuestionSearchModal } from '@/src/features/question-bank/components/Que
 import { useClassroom } from '@/src/contexts/ClassroomContext';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { supabase } from '@/src/lib/supabase';
+import { QuizAssignModal } from '@/src/components/Quiz/QuizAssignModal';
+import { QuizAssignmentStatus } from '@/src/components/Quiz/QuizAssignmentStatus';
 
 // ─────────────────────────────────────────────────────────
 // Types
@@ -27,6 +29,7 @@ interface QuizListItem {
     max_attempts: number;
     passing_score: number;
     question_count: number;
+    assignment_count?: number;
     created_at: string;
     updated_at: string;
 }
@@ -54,7 +57,7 @@ interface QuizFormData {
     shuffle_options: boolean;
     show_correct_answers: boolean;
     available_from: string;
-    available_until: string;
+    due_at: string;
     status: QuizStatus;
     questions: QuizQuestion[];
 }
@@ -70,7 +73,7 @@ const emptyForm: QuizFormData = {
     shuffle_options: false,
     show_correct_answers: false,
     available_from: '',
-    available_until: '',
+    due_at: '',
     status: 'draft',
     questions: [],
 };
@@ -85,7 +88,7 @@ const questionTypeLabels: Record<string, string> = {
 
 const modeLabels: Record<string, string> = {
     practice: 'Latihan',
-    graded: 'Dinilai',
+    graded: 'Penilaian',
     exam: 'Ujian',
 };
 
@@ -117,10 +120,13 @@ export function QuizManager() {
 
     // Views: 'list' | 'editor'
     const [view, setView] = useState<'list' | 'editor'>('list');
+    const [activeTab, setActiveTab] = useState<'class' | 'library'>('class');
+    const [assignModalQuizId, setAssignModalQuizId] = useState<string | null>(null);
     const [quizzes, setQuizzes] = useState<QuizListItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [editingQuizId, setEditingQuizId] = useState<string | null>(null);
+    const [expandedQuizId, setExpandedQuizId] = useState<string | null>(null);
 
     // Editor state
     const [form, setForm] = useState<QuizFormData>(emptyForm);
@@ -130,18 +136,23 @@ export function QuizManager() {
     // ─── List Loading ──────────────────────────────────────
 
     const loadQuizzes = useCallback(async () => {
-        if (!activeClassroomId) return;
+        if (!activeClassroomId || !tenantId) return;
         setIsLoading(true);
         setError(null);
         try {
-            const data = await quizService.getQuizzesByClass(activeClassroomId);
+            let data;
+            if (activeTab === 'class') {
+                data = await quizService.getQuizzesByClass(activeClassroomId);
+            } else {
+                data = await quizService.getTeacherQuizzes(tenantId);
+            }
             setQuizzes(data as QuizListItem[]);
         } catch (err: any) {
             setError(err.message);
         } finally {
             setIsLoading(false);
         }
-    }, [activeClassroomId]);
+    }, [activeClassroomId, tenantId, activeTab]);
 
     useEffect(() => {
         loadQuizzes();
@@ -173,7 +184,7 @@ export function QuizManager() {
                 shuffle_options: data.shuffle_options || false,
                 show_correct_answers: data.show_correct_answers || false,
                 available_from: data.available_from || '',
-                available_until: data.available_until || '',
+                due_at: data.available_until || '',
                 status: data.status || 'draft',
                 questions: (data.quiz_questions || []).map((q: any) => ({
                     id: q.id,
@@ -203,6 +214,11 @@ export function QuizManager() {
 
     const handleSave = async (targetStatus?: QuizStatus) => {
         if (!activeClassroomId || !tenantId) return;
+        // Prevent publishing without questions
+        if (targetStatus === 'published' && form.questions.length === 0) {
+            setError('Tidak bisa publish kuis tanpa soal. Tambahkan minimal 1 soal.');
+            return;
+        }
         setIsSaving(true);
         setError(null);
 
@@ -226,7 +242,7 @@ export function QuizManager() {
                     shuffle_options: form.shuffle_options,
                     show_correct_answers: form.show_correct_answers,
                     available_from: form.available_from || null,
-                    available_until: form.available_until || null,
+                    due_at: form.due_at || null,
                 });
                 quizId = created.id;
                 setEditingQuizId(quizId);
@@ -244,7 +260,7 @@ export function QuizManager() {
                     shuffle_options: form.shuffle_options,
                     show_correct_answers: form.show_correct_answers,
                     available_from: form.available_from || null,
-                    available_until: form.available_until || null,
+                    available_until: form.due_at || null,
                     status,
                 });
             }
@@ -484,6 +500,32 @@ export function QuizManager() {
                     </div>
                 )}
 
+                {/* Tabs */}
+                <div className="flex bg-slate-100 p-1 rounded-xl">
+                    <button
+                        onClick={() => setActiveTab('class')}
+                        className={cn(
+                            "flex-1 py-2.5 px-4 rounded-lg text-sm font-bold transition-all",
+                            activeTab === 'class'
+                                ? "bg-white text-indigo-600 shadow-sm"
+                                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                        )}
+                    >
+                        Kuis Kelas Ini
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('library')}
+                        className={cn(
+                            "flex-1 py-2.5 px-4 rounded-lg text-sm font-bold transition-all",
+                            activeTab === 'library'
+                                ? "bg-white text-indigo-600 shadow-sm"
+                                : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                        )}
+                    >
+                        Semua Kuis (Bank Kuis)
+                    </button>
+                </div>
+
                 {error && (
                     <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -530,6 +572,18 @@ export function QuizManager() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {activeTab === 'library' && quiz.status === 'published' && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setAssignModalQuizId(quiz.id);
+                                                }}
+                                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                title="Assign ke Kelas"
+                                            >
+                                                <Calendar className="w-4 h-4" />
+                                            </button>
+                                        )}
                                         <button
                                             onClick={(e) => { e.stopPropagation(); openEditQuiz(quiz.id); }}
                                             className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -562,9 +616,45 @@ export function QuizManager() {
                                     <span>Maks. {quiz.max_attempts}x</span>
                                     <span>Lulus: {quiz.passing_score}%</span>
                                 </div>
+                                
+                                {activeTab === 'library' && (
+                                    <div className="mt-4 pt-4 border-t border-slate-100">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setExpandedQuizId(expandedQuizId === quiz.id ? null : quiz.id);
+                                            }}
+                                            className="text-xs font-bold text-slate-500 hover:text-indigo-600 transition-colors flex items-center justify-between w-full"
+                                        >
+                                            <span>Assignment Status ({(quiz as any).assignment_count || 0} kelas)</span>
+                                            <ArrowLeft className={cn("w-3 h-3 transition-transform", expandedQuizId === quiz.id ? "rotate-90" : "-rotate-90")} />
+                                        </button>
+                                        
+                                        {expandedQuizId === quiz.id && (
+                                            <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+                                                <QuizAssignmentStatus 
+                                                    quizId={quiz.id} 
+                                                    onAssignClick={() => setAssignModalQuizId(quiz.id)} 
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
+                )}
+                
+                {assignModalQuizId && (
+                    <QuizAssignModal
+                        quizId={assignModalQuizId}
+                        isOpen={true}
+                        onClose={() => setAssignModalQuizId(null)}
+                        onSuccess={() => {
+                            setAssignModalQuizId(null);
+                            loadQuizzes();
+                        }}
+                    />
                 )}
             </div>
         );
@@ -666,7 +756,7 @@ export function QuizManager() {
                             className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
                         >
                             <option value="practice">Latihan</option>
-                            <option value="graded">Dinilai</option>
+                            <option value="graded">Penilaian</option>
                             <option value="exam">Ujian</option>
                         </select>
                     </div>

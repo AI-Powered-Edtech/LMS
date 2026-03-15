@@ -64,9 +64,9 @@ export function ClassroomProvider({ children }: { children: ReactNode }) {
 
   const joinClassroom = useCallback(async (joinCode: string) => {
     if (!user || !tenantId) return;
-    await classroomService.joinClassroom(user.id, joinCode, tenantId);
+    await classroomService.joinClassroom(joinCode);
     await fetchClassrooms();
-  }, [user, fetchClassrooms]);
+  }, [fetchClassrooms]);
 
   return (
     <ClassroomContext.Provider value={{

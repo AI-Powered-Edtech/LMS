@@ -50,23 +50,49 @@ export function QuizViewer({
     const [error, setError] = useState<string | null>(null);
     const [attemptId, setAttemptId] = useState<string | null>(null);
     const [attemptVersion, setAttemptVersion] = useState<number | undefined>(undefined);
-    const hasStarted = useRef(false);
+    const [attemptNumber, setAttemptNumber] = useState<number | null>(null);
+
+    const attemptIdRef = useRef<string | null>(null);
+    const attemptVersionRef = useRef<number | undefined>(undefined);
+    const attemptNumberRef = useRef<number | null>(null);
+    const startAttemptPromise = useRef<Promise<{ id: string; version?: number; attempt_number?: number }> | null>(null);
 
     const ensureAttemptStarted = async () => {
-        if (!hasStarted.current) {
-            hasStarted.current = true;
+        if (attemptIdRef.current) {
+            return { id: attemptIdRef.current, version: attemptVersionRef.current, attempt_number: attemptNumberRef.current ?? undefined };
+        }
+
+        if (startAttemptPromise.current) {
+            return startAttemptPromise.current;
+        }
+
+        startAttemptPromise.current = (async () => {
             onStartViewing();
             try {
                 const res = await quizService.startQuizAttempt(quizId);
+                attemptIdRef.current = res.attempt_id;
+                attemptVersionRef.current = res.version;
+                attemptNumberRef.current = res.attempt_number ?? null;
                 setAttemptId(res.attempt_id);
                 setAttemptVersion(res.version);
-                return { id: res.attempt_id, version: res.version };
+                setAttemptNumber(res.attempt_number ?? null);
+                return { id: res.attempt_id, version: res.version, attempt_number: res.attempt_number };
             } catch (err) {
-                console.error("Failed to start quiz:", err);
+                const message = err instanceof Error ? err.message : 'Gagal memulai kuis';
+                setError(message);
+                attemptIdRef.current = null;
+                attemptVersionRef.current = undefined;
+                attemptNumberRef.current = null;
+                throw err;
+            } finally {
+                startAttemptPromise.current = null;
             }
-        }
-        return { id: attemptId, version: attemptVersion };
+        })();
+
+        return startAttemptPromise.current;
     };
+
+    const hasAttemptsLeft = !maxAttempts || (attemptNumber ?? 0) < maxAttempts;
 
     // ── Option selection for MCQ / TRUE_FALSE ──
     const handleSelectOption = async (questionId: string, optionId: string) => {
@@ -127,6 +153,9 @@ export function QuizViewer({
 
             const gradeResult = await quizService.submitQuizAttempt(currentAttempt.id, submitAnswers, currentAttempt.version);
             setResult(gradeResult);
+            if (currentAttempt.attempt_number !== undefined && currentAttempt.attempt_number !== null) {
+                setAttemptNumber(currentAttempt.attempt_number);
+            }
 
             if (gradeResult.passed) {
                 onCompletionMet();
@@ -139,12 +168,19 @@ export function QuizViewer({
     };
 
     const handleRetry = () => {
+        if (!hasAttemptsLeft) {
+            setError(`Anda telah mencapai batas maksimal ${maxAttempts} percobaan.`);
+            return;
+        }
         setAnswers({});
         setResult(null);
         setError(null);
         setAttemptId(null);
         setAttemptVersion(undefined);
-        hasStarted.current = false;
+        setAttemptNumber(attemptNumber !== null ? attemptNumber : null);
+        attemptIdRef.current = null;
+        attemptVersionRef.current = undefined;
+        attemptNumberRef.current = null;
     };
 
     // ── Question Type Badge ──
@@ -325,13 +361,18 @@ export function QuizViewer({
                         </>
                     )}
 
-                    {!result.passed && !result.has_ungraded && (
+                    {!result.passed && !result.has_ungraded && hasAttemptsLeft && (
                         <button
                             onClick={handleRetry}
                             className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors mt-4"
                         >
                             Coba Lagi
                         </button>
+                    )}
+                    {!result.passed && !result.has_ungraded && !hasAttemptsLeft && (
+                        <p className="text-sm text-red-600 font-semibold mt-4">
+                            Batas percobaan tercapai (maks {maxAttempts}).
+                        </p>
                     )}
                 </motion.div>
             </div>
