@@ -147,8 +147,8 @@ export function QuizManager() {
                 data = await quizService.getTeacherQuizzes(tenantId);
             }
             setQuizzes(data as QuizListItem[]);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : String(err));
         } finally {
             setIsLoading(false);
         }
@@ -203,8 +203,8 @@ export function QuizManager() {
             });
             setEditingQuizId(quizId);
             setView('editor');
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : String(err));
         } finally {
             setIsLoading(false);
         }
@@ -305,8 +305,8 @@ export function QuizManager() {
 
             // Reload editor with fresh data
             await openEditQuiz(quizId);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : String(err));
         } finally {
             setIsSaving(false);
         }
@@ -319,8 +319,8 @@ export function QuizManager() {
         try {
             await quizService.deleteQuiz(quizId);
             setQuizzes(prev => prev.filter(q => q.id !== quizId));
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : String(err));
         }
     };
 
@@ -346,9 +346,9 @@ export function QuizManager() {
         }));
     };
 
-    const updateQuestion = (idx: number, field: string, value: any) => {
+    const updateQuestion = <K extends keyof QuizQuestion>(idx: number, field: K, value: QuizQuestion[K]) => {
         const qs = [...form.questions];
-        (qs[idx] as any)[field] = value;
+        qs[idx][field] = value;
         setForm({ ...form, questions: qs });
     };
 
