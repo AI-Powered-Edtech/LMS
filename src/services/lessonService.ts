@@ -79,6 +79,12 @@ export interface LessonProgress {
     completed_at: string | null;
 }
 
+export interface SignedProgressQueue {
+    payload: string;
+    signature: string;
+    createdAt: number;
+}
+
 export interface ProgressQueueItem {
     lessonId: string;
     status: 'started' | 'in_progress' | 'completed';
@@ -101,9 +107,98 @@ export interface QuizGradeResult {
     }[];
 }
 
+
+// ============================================================
+// Security Helpers
+// ============================================================
+
+const QUEUE_KEY = 'edusync_progress_queue';
+
+async function generateHmacKey(secret: string): Promise<CryptoKey> {
+    const enc = new TextEncoder();
+    return await globalThis.crypto.subtle.importKey(
+        'raw',
+        enc.encode(secret),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign', 'verify']
+    );
+}
+
+async function signData(data: string, secret: string): Promise<string> {
+    const key = await generateHmacKey(secret);
+    const enc = new TextEncoder();
+    const signature = await globalThis.crypto.subtle.sign('HMAC', key, enc.encode(data));
+    const hashArray = Array.from(new Uint8Array(signature));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function verifySignature(data: string, signatureHex: string, secret: string): Promise<boolean> {
+    try {
+        const key = await generateHmacKey(secret);
+        const enc = new TextEncoder();
+        const sigArray = new Uint8Array(signatureHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+        return await globalThis.crypto.subtle.verify('HMAC', key, sigArray, enc.encode(data));
+    } catch {
+        return false;
+    }
+}
+
+async function getSessionKey(): Promise<string | null> {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session || !session.user) return null;
+    return session.user.id + (session.expires_at || 0).toString();
+}
+
+async function loadSecureQueue(): Promise<ProgressQueueItem[]> {
+    const rawQueue = localStorage.getItem(QUEUE_KEY);
+    if (!rawQueue) return [];
+
+    try {
+        const signedQueue: SignedProgressQueue = JSON.parse(rawQueue);
+        if (!signedQueue.payload || !signedQueue.signature) {
+            throw new Error("Invalid queue structure");
+        }
+
+        const sessionKey = await getSessionKey();
+        if (!sessionKey) {
+            throw new Error("No active session");
+        }
+
+        const isValid = await verifySignature(signedQueue.payload, signedQueue.signature, sessionKey);
+        if (!isValid) {
+            throw new Error("Signature verification failed");
+        }
+
+        return JSON.parse(signedQueue.payload);
+    } catch (e) {
+        console.warn('[Offline Queue] Invalid or unauthorized queue detected, clearing.', e);
+        localStorage.removeItem(QUEUE_KEY);
+        return [];
+    }
+}
+
+async function saveSecureQueue(queue: ProgressQueueItem[]): Promise<void> {
+    const sessionKey = await getSessionKey();
+    if (!sessionKey) {
+        console.warn('[Offline Queue] Cannot save queue without active session');
+        return;
+    }
+
+    const payload = JSON.stringify(queue);
+    const signature = await signData(payload, sessionKey);
+    const signedQueue: SignedProgressQueue = {
+        payload,
+        signature,
+        createdAt: Date.now()
+    };
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(signedQueue));
+}
+
 // ============================================================
 // Service
 // ============================================================
+
 
 export const lessonService = {
     /**
@@ -242,11 +337,8 @@ export const lessonService = {
         } catch (error) {
             console.warn('[Offline Queue] Network error, queuing progress for lesson', lessonId);
 
-            // Note: We don't save tenantId or userId in queue for security.
-            // Server validates session when queue is flushed.
-            const queueKey = 'edusync_progress_queue';
-            const rawQueue = localStorage.getItem(queueKey);
-            let queue: ProgressQueueItem[] = rawQueue ? JSON.parse(rawQueue) : [];
+            // Replace insecure local storage usage with signed queue
+            let queue: ProgressQueueItem[] = await loadSecureQueue();
 
             const existingIndex = queue.findIndex(item => item.lessonId === lessonId);
             const position = lastPosition ?? null;
@@ -278,7 +370,7 @@ export const lessonService = {
                 queue = queue.slice(0, 20);
             }
 
-            localStorage.setItem(queueKey, JSON.stringify(queue));
+            await saveSecureQueue(queue);
         }
     },
 
@@ -292,17 +384,7 @@ export const lessonService = {
         (this as any)._isProcessingOfflineQueue = true;
 
         try {
-            const queueKey = 'edusync_progress_queue';
-            const rawQueue = localStorage.getItem(queueKey);
-            if (!rawQueue) return;
-
-            let queue: ProgressQueueItem[] = [];
-            try {
-                queue = JSON.parse(rawQueue);
-            } catch {
-                localStorage.removeItem(queueKey);
-                return;
-            }
+            let queue: ProgressQueueItem[] = await loadSecureQueue();
 
             if (queue.length === 0) return;
 
@@ -324,9 +406,9 @@ export const lessonService = {
             }
 
             if (remainingQueue.length > 0) {
-                localStorage.setItem(queueKey, JSON.stringify(remainingQueue));
+                await saveSecureQueue(remainingQueue);
             } else {
-                localStorage.removeItem(queueKey);
+                localStorage.removeItem(QUEUE_KEY);
                 console.log('[Offline Queue] Flushed successfully');
             }
         } finally {
