@@ -346,9 +346,9 @@ export function QuizManager() {
         }));
     };
 
-    const updateQuestion = (idx: number, field: string, value: any) => {
+    const updateQuestion = <K extends keyof QuizQuestion>(idx: number, field: K, value: QuizQuestion[K]) => {
         const qs = [...form.questions];
-        (qs[idx] as any)[field] = value;
+        qs[idx][field] = value;
         setForm({ ...form, questions: qs });
     };
 
