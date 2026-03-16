@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useCalendar } from "@/src/contexts/CalendarContext";
 import { useNotifications } from "@/src/contexts/NotificationContext";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/src/lib/supabase";
 
 
 
@@ -77,10 +78,35 @@ export function Creator() {
     setLoadingText("Membaca file...");
 
     try {
-      // TODO: Route through backend API in Phase 5
-      // POST /api/ai/generate-content with file upload
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setError("⚠️ Fitur AI Content Generation sedang dalam proses migrasi ke backend API. Akan tersedia di update berikutnya.");
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("assignmentType", assignmentType);
+      formData.append("questionCount", questionCount.toString());
+      formData.append("difficulty", difficulty);
+
+      const { data, error: supaError } = await supabase.functions.invoke("generate-ai-content", {
+        body: formData,
+      });
+
+      if (supaError) {
+        console.error("Supabase edge function error:", supaError);
+        // Specifically catch a common indication of a 404 from invoke
+        if (supaError.message && (supaError.message.includes('404') || supaError.message.includes('not found') || supaError.message.includes('FetchError'))) {
+           throw new Error("⚠️ Layanan AI (Backend API) belum tersedia saat ini.");
+        }
+        throw new Error(supaError.message || "Gagal memproses materi dengan AI.");
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      // Check if response contains expected data structure
+      if (data && data.questions && Array.isArray(data.questions)) {
+        setResult(data);
+      } else {
+         throw new Error("Respons API tidak valid.");
+      }
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Terjadi kesalahan saat memproses materi.");
