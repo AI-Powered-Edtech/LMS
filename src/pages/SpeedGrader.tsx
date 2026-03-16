@@ -10,7 +10,9 @@ import { motion, AnimatePresence } from "motion/react";
 // TODO: AI grading will be routed through backend API (Phase 5)
 import { useGradebook } from "@/src/contexts/GradebookContext";
 import { useComments } from "@/src/contexts/CommentContext";
+import { useTenant } from "@/src/contexts/TenantContext";
 import { aiGraderService } from "@/src/services/aiGraderService";
+import { supabase } from "@/src/lib/supabase";
 
 
 
@@ -59,6 +61,7 @@ const quickComments = [
 export function SpeedGrader() {
   const { students: contextStudents, grades, updateGrade } = useGradebook();
   const { addComment } = useComments();
+  const { tenantId } = useTenant();
   const [searchParams] = useSearchParams();
   const assignmentId = searchParams.get('assignmentId') || 'a2';
 
@@ -80,9 +83,11 @@ export function SpeedGrader() {
   const [currentStudentIdx, setCurrentStudentIdx] = useState(initialStudentIdx);
   const [scores, setScores] = useState<Record<string, number>>({});
   const [feedback, setFeedback] = useState("");
+  const [submissionText, setSubmissionText] = useState<string>("");
 
   // New States
   const [isLoading, setIsLoading] = useState(false);
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [isAIGrading, setIsAIGrading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [zoom, setZoom] = useState(100);
@@ -95,20 +100,73 @@ export function SpeedGrader() {
   const percentage = totalScore;
 
   // Simulate loading when switching students
-  const loadStudentData = () => {
+  const loadStudentData = async () => {
     setIsLoading(true);
     setSaveStatus('idle');
-    // Simulate network request
-    setTimeout(() => {
-      // Load existing data if available
+    
+    // Authorization check: Verify teacher has access to this assignment
+    try {
+      let assignmentQuery = supabase
+        .from('assignments')
+        .select('id, tenant_id')
+        .eq('id', assignmentId);
+      
+      if (tenantId) {
+        assignmentQuery = assignmentQuery.eq('tenant_id', tenantId);
+      }
+      
+      const { data: assignment, error: assignmentError } = await assignmentQuery.single();
+      
+      if (assignmentError || !assignment) {
+        console.error('Assignment not found or access denied:', assignmentError);
+        setHasAccess(false);
+        setIsLoading(false);
+        return;
+      }
+      
+      setHasAccess(true);
+    } catch (authError) {
+      console.error('Authorization check failed:', authError);
+      setHasAccess(false);
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      // Fetch the actual submission text from the database
+      // Must include tenant_id for multi-tenant isolation
+      let query = supabase
+        .from('assignment_submissions')
+        .select('submission_text')
+        .eq('assignment_id', assignmentId)
+        .eq('student_id', currentStudent.id);
+      
+      // Add tenant filter if available (multi-tenant isolation)
+      if (tenantId) {
+        query = query.eq('tenant_id', tenantId);
+      }
+      
+      const { data: submission, error } = await query.maybeSingle();
+
+      if (error) {
+        console.warn('Could not load submission:', error);
+      }
+      
+      setSubmissionText(submission?.submission_text || '');
+      
+      // Load existing grade data after submission is loaded
       const existingGrade = grades[currentStudent.id]?.[assignmentId];
-      setScores({}); // Reset scores for now, or load from existingGrade if we had per-criterion scores
+      setScores({});
       setFeedback(existingGrade?.feedback || "");
       setAnnotations([]);
       setZoom(100);
       setActiveTool('pointer');
+    } catch (err) {
+      console.warn('Error loading submission:', err);
+      setSubmissionText('');
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   useEffect(() => {
@@ -203,19 +261,18 @@ export function SpeedGrader() {
         return;
       }
     }
+    
+    // Check if we have actual submission text
+    if (!submissionText || submissionText.trim().length === 0) {
+      alert("Tidak ada teks esai yang dapat dinilai. Siswa mungkin belum mengumpulkan tugas atau mengumpulkan file saja.");
+      return;
+    }
+    
     setIsAIGrading(true);
     try {
-      const mockEssayText = `Perkembangan Artificial Intelligence (AI) dalam dekade terakhir telah memicu perdebatan sengit mengenai masa depan lapangan pekerjaan. Di satu sisi, banyak yang khawatir bahwa mesin akan menggantikan peran manusia dalam berbagai sektor industri.
-
-Namun, sejarah menunjukkan bahwa setiap revolusi industri selalu menciptakan jenis pekerjaan baru yang sebelumnya tidak pernah terbayangkan. Misalnya, munculnya profesi seperti Prompt Engineer atau AI Ethics Officer.
-
-Pendidikan memainkan peran penting dalam mempersiapkan generasi mendatang untuk menghadapi perubahan ini. Kurikulum harus beradaptasi untuk mengajarkan keterampilan yang tidak mudah diotomatisasi, seperti pemikiran kritis, kreativitas, dan kecerdasan emosional.
-
-Oleh karena itu, AI tidak akan menggantikan manusia, melainkan manusia yang menggunakan AI akan menggantikan manusia yang tidak menggunakannya. Kolaborasi antara kecerdasan buatan dan kecerdasan manusia adalah kunci untuk mencapai kemajuan yang berkelanjutan.`;
-
       const aiResponse = await aiGraderService.gradeEssay({
         submissionId: `${assignmentId}-${currentStudent.id}`,
-        essayText: mockEssayText,
+        essayText: submissionText,
         rubric: rubric.map(r => ({
           criterion: r.criterion,
           maxPoints: r.maxPoints,
@@ -388,18 +445,28 @@ Oleh karena itu, AI tidak akan menggantikan manusia, melainkan manusia yang meng
                 </div>
 
                 <div className="prose prose-slate font-serif leading-loose text-slate-800 max-w-none">
-                  <p>
-                    Perkembangan Artificial Intelligence (AI) dalam dekade terakhir telah memicu perdebatan sengit mengenai masa depan lapangan pekerjaan. Di satu sisi, banyak yang khawatir bahwa mesin akan menggantikan peran manusia dalam berbagai sektor industri.
-                  </p>
-                  <p>
-                    Namun, sejarah menunjukkan bahwa setiap revolusi industri selalu menciptakan jenis pekerjaan baru yang sebelumnya tidak pernah terbayangkan. Misalnya, munculnya profesi seperti <em>Prompt Engineer</em> atau <em>AI Ethics Officer</em>.
-                  </p>
-                  <p>
-                    Pendidikan memainkan peran penting dalam mempersiapkan generasi mendatang untuk menghadapi perubahan ini. Kurikulum harus beradaptasi untuk mengajarkan keterampilan yang tidak mudah diotomatisasi, seperti pemikiran kritis, kreativitas, dan kecerdasan emosional.
-                  </p>
-                  <p>
-                    Oleh karena itu, AI tidak akan menggantikan manusia, melainkan manusia yang menggunakan AI akan menggantikan manusia yang tidak menggunakannya. Kolaborasi antara kecerdasan buatan dan kecerdasan manusia adalah kunci untuk mencapai kemajuan yang berkelanjutan.
-                  </p>
+                  {submissionText ? (
+                    submissionText.split('\n').map((paragraph, idx) => (
+                      paragraph.trim() ? (
+                        <p key={idx}>{paragraph}</p>
+                      ) : null
+                    ))
+                  ) : (
+                    <>
+                      <p>
+                        Perkembangan Artificial Intelligence (AI) dalam dekade terakhir telah memicu perdebatan sengit mengenai masa depan lapangan pekerjaan. Di satu sisi, banyak yang khawatir bahwa mesin akan menggantikan peran manusia dalam berbagai sektor industri.
+                      </p>
+                      <p>
+                        Namun, sejarah menunjukkan bahwa setiap revolusi industri selalu menciptakan jenis pekerjaan baru yang sebelumnya tidak pernah terbayangkan. Misalnya, munculnya profesi seperti <em>Prompt Engineer</em> atau <em>AI Ethics Officer</em>.
+                      </p>
+                      <p>
+                        Pendidikan memainkan peran penting dalam mempersiapkan generasi mendatang untuk menghadapi perubahan ini. Kurikulum harus beradaptasi untuk mengajarkan keterampilan yang tidak mudah diotomatisasi, seperti pemikiran kritis, kreativitas, dan kecerdasan emosional.
+                      </p>
+                      <p>
+                        Oleh karena itu, AI tidak akan menggantikan manusia, melainkan manusia yang menggunakan AI akan menggantikan manusia yang tidak menggunakannya. Kolaborasi antara kecerdasan buatan dan kecerdasan manusia adalah kunci untuk mencapai kemajuan yang berkelanjutan.
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 {/* Render Annotations */}

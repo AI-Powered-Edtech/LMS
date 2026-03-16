@@ -30,7 +30,16 @@ serve(async (req) => {
       });
     }
 
-    // Process FormData
+    // Get tenant_id from user metadata for multi-tenant isolation
+    const tenantId = user.user_metadata?.tenant_id;
+    if (!tenantId) {
+      return new Response(JSON.stringify({ error: 'Tenant context missing. Please contact administrator.' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 403,
+      });
+    }
+
+    // Process FormData with tenant context
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
     const assignmentType = formData.get('assignmentType') as string;
@@ -108,6 +117,7 @@ serve(async (req) => {
 
     const result = {
       type: assignmentType,
+      tenant_id: tenantId, // Include tenant context in response
       summary: `Rangkuman AI: Dokumen berhasil dianalisis. Materi ini mencakup konsep-konsep tingkat ${difficulty}. Berikut adalah hasil ekstraksi ${safeCount} poin pembelajaran utama.`,
       questions
     };

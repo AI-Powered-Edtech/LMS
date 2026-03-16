@@ -38,15 +38,45 @@ async function authenticate(req: Request) {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) throw new Error('AUTH_INVALID');
 
-    // Assuming user metadata or another table holds the role.
-    // Here we check if tenant_id exists in metadata and assume valid user for now.
-    // In a real application, you'd check a 'roles' table or user_metadata.role
+    // Get tenant_id from user metadata for multi-tenant isolation
+    const tenantId = user.user_metadata?.tenant_id;
+    if (!tenantId) {
+        throw new Error('TENANT_MISSING');
+    }
+
+    // Check role - students cannot grade essays
     const role = user.user_metadata?.role;
     if (role === 'student') {
         throw new Error('UNAUTHORIZED_ROLE');
     }
 
-    return { user, supabaseClient };
+    return { user, supabaseClient, tenantId };
+}
+
+// Validate that the submission belongs to the same tenant
+async function validateTenantAccess(supabaseClient: any, submissionId: string, tenantId: string) {
+    // Extract assignmentId from submissionId (format: assignmentId-studentId)
+    const assignmentId = submissionId.split('-')[0];
+    
+    // Get the assignment to verify tenant
+    const { data: assignment, error } = await supabaseClient
+        .from('assignments')
+        .select('tenant_id, id')
+        .eq('id', assignmentId)
+        .single();
+
+    if (error || !assignment) {
+        console.error('Assignment lookup error:', error);
+        throw new Error('SUBMISSION_NOT_FOUND');
+    }
+
+    // Verify tenant isolation
+    if (assignment.tenant_id !== tenantId) {
+        console.error(`Tenant mismatch: ${assignment.tenant_id} !== ${tenantId}`);
+        throw new Error('TENANT_ACCESS_DENIED');
+    }
+
+    return true;
 }
 
 async function callGroq(messages: any[]) {
@@ -98,9 +128,13 @@ serve(async (req) => {
     }
 
     try {
-        const { user } = await authenticate(req);
+        const { user, supabaseClient, tenantId } = await authenticate(req);
 
         const { submissionId, essayText, rubric } = await req.json();
+
+        if (!submissionId) {
+            return errorResponse('Missing required parameter: submissionId', 400);
+        }
 
         if (!essayText || !rubric || !Array.isArray(rubric)) {
             return errorResponse('Missing required parameters: essayText and rubric', 400);
@@ -109,6 +143,9 @@ serve(async (req) => {
         if (essayText.length > 10000) {
             return errorResponse('Essay text exceeds maximum length of 10000 characters', 400);
         }
+
+        // Validate tenant access - ensures the submission belongs to the same tenant
+        await validateTenantAccess(supabaseClient, submissionId, tenantId);
 
         const rubricText = rubric.map((r: any) => `- ${r.criterion} (Max Score: ${r.maxPoints || r.maxScore}): ${r.description || ''}`).join('\n');
 
@@ -154,6 +191,9 @@ Example Output format:
 
         if (err.message === 'UNAUTHORIZED_ROLE') return errorResponse('Unauthorized: Students cannot grade essays.', 403);
         if (err.message === 'AUTH_MISSING' || err.message === 'AUTH_INVALID') return errorResponse('Unauthorized', 401);
+        if (err.message === 'TENANT_MISSING') return errorResponse('Tenant context missing', 403);
+        if (err.message === 'TENANT_ACCESS_DENIED') return errorResponse('Access denied: Cross-tenant access is prohibited', 403);
+        if (err.message === 'SUBMISSION_NOT_FOUND') return errorResponse('Submission not found', 404);
         if (err.message === 'LLM_TIMEOUT') return errorResponse('AI_GRADING_TIMEOUT', 504);
 
         return errorResponse('AI_GRADING_FAILED', 500);
