@@ -100,6 +100,25 @@ export async function askTutor(
       };
     }
 
+    // Validate the response shape
+    if (!data || typeof data.response !== 'string') {
+      return {
+        error: {
+          message: 'Terjadi kesalahan yang tidak terduga',
+          code: 'UNKNOWN_ERROR',
+        },
+      };
+    }
+
+    if (data.response.trim() === '') {
+      return {
+        error: {
+          message: 'Tutor gagal memberikan jawaban',
+          code: 'TUTOR_ERROR',
+        },
+      };
+    }
+
     return { data: data as AITutorResponse };
   } catch (err: any) {
     console.error('[AI Tutor] Unexpected error:', err);
