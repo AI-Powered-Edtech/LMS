@@ -269,7 +269,8 @@ export function QuizManager() {
             const existingQs = form.questions.filter(q => q.id);
             const newQs = form.questions.filter(q => !q.id);
 
-            // For existing questions, update text/type/points and replace options
+            // Update existing questions sequentially to avoid race conditions
+            // where updateQuizQuestion and replaceQuestionOptions conflict
             for (const q of existingQs) {
                 await quizService.updateQuizQuestion(q.id!, {
                     text: q.text,
@@ -285,16 +286,20 @@ export function QuizManager() {
                 );
             }
 
-            // Add new questions
-            for (const q of newQs) {
-                await quizService.addQuestionToQuiz(quizId, tenantId, {
-                    text: q.text,
-                    question_type: q.question_type,
-                    points: q.points,
-                    explanation: q.explanation || undefined,
-                    order: q.order,
-                    options: q.options.map(o => ({ text: o.text, is_correct: o.is_correct })),
-                });
+            // Add new questions in parallel
+            if (newQs.length > 0) {
+                await Promise.all(
+                    newQs.map(q =>
+                        quizService.addQuestionToQuiz(quizId, tenantId, {
+                            text: q.text,
+                            question_type: q.question_type,
+                            points: q.points,
+                            explanation: q.explanation || undefined,
+                            order: q.order,
+                            options: q.options.map(o => ({ text: o.text, is_correct: o.is_correct })),
+                        })
+                    )
+                );
             }
 
             // Set status if publishing
@@ -626,7 +631,7 @@ export function QuizManager() {
                                             }}
                                             className="text-xs font-bold text-slate-500 hover:text-indigo-600 transition-colors flex items-center justify-between w-full"
                                         >
-                                            <span>Assignment Status ({(quiz as any).assignment_count || 0} kelas)</span>
+                                            <span>Assignment Status ({quiz.assignment_count || 0} kelas)</span>
                                             <ArrowLeft className={cn("w-3 h-3 transition-transform", expandedQuizId === quiz.id ? "rotate-90" : "-rotate-90")} />
                                         </button>
                                         
@@ -794,15 +799,15 @@ export function QuizManager() {
                 </div>
 
                 <div className="flex flex-wrap gap-x-6 gap-y-2">
-                    {[
-                        { key: 'shuffle_questions', label: 'Acak soal' },
-                        { key: 'shuffle_options', label: 'Acak opsi' },
-                        { key: 'show_correct_answers', label: 'Tampilkan jawaban benar' },
-                    ].map(item => (
+                    {([
+                        { key: 'shuffle_questions' as const, label: 'Acak soal' },
+                        { key: 'shuffle_options' as const, label: 'Acak opsi' },
+                        { key: 'show_correct_answers' as const, label: 'Tampilkan jawaban benar' },
+                    ] as const).map(item => (
                         <label key={item.key} className="flex items-center gap-2 cursor-pointer select-none">
                             <input
                                 type="checkbox"
-                                checked={(form as any)[item.key]}
+                                checked={form[item.key as keyof QuizFormData] as boolean}
                                 onChange={e => setForm({ ...form, [item.key]: e.target.checked })}
                                 disabled={isPublished}
                                 className="w-4 h-4 rounded accent-blue-600"

@@ -51,6 +51,8 @@ CREATE INDEX IF NOT EXISTS idx_ai_tutor_interactions_user ON ai_tutor_interactio
 CREATE INDEX IF NOT EXISTS idx_ai_tutor_interactions_tenant ON ai_tutor_interactions (tenant_id);
 
 -- ─── 3. Core Context RPC ───
+-- Drop first to allow return type change (jsonb→json) from earlier migration
+DROP FUNCTION IF EXISTS get_tutor_context(uuid, uuid, uuid);
 CREATE OR REPLACE FUNCTION get_tutor_context(
   p_tenant_id uuid,
   p_user_id uuid,
@@ -108,18 +110,22 @@ $$;
 ALTER TABLE ai_tutor_rate_limits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_tutor_interactions ENABLE ROW LEVEL SECURITY;
 
--- Service role handles inserts (from Edge Function). 
+-- Service role handles inserts (from Edge Function).
 -- Users can read their own data if they are within their tenant.
 
+DROP POLICY IF EXISTS "users_read_own_rate_limits" ON ai_tutor_rate_limits;
 CREATE POLICY "users_read_own_rate_limits" ON ai_tutor_rate_limits
   FOR SELECT USING (auth.uid() = user_id AND tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
 
+DROP POLICY IF EXISTS "users_read_own_interactions" ON ai_tutor_interactions;
 CREATE POLICY "users_read_own_interactions" ON ai_tutor_interactions
   FOR SELECT USING (auth.uid() = user_id AND tenant_id = (auth.jwt() ->> 'tenant_id')::uuid);
 
 -- Ensure service role can do everything (default bypass RLS, but explicit for clarity)
+DROP POLICY IF EXISTS "service_role_all_rate_limits" ON ai_tutor_rate_limits;
 CREATE POLICY "service_role_all_rate_limits" ON ai_tutor_rate_limits
   FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "service_role_all_interactions" ON ai_tutor_interactions;
 CREATE POLICY "service_role_all_interactions" ON ai_tutor_interactions
   FOR ALL USING (true);

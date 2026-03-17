@@ -4,6 +4,145 @@
 
 ---
 
+## 🚀 Setup Awal — Untuk Developer Baru (Mulai di Sini)
+
+> Setiap developer menggunakan **Supabase project sendiri**. Ikuti langkah berikut dari awal sebelum menjalankan aplikasi.
+
+### Langkah 1: Buat Project Supabase Baru
+
+1. Buka **https://supabase.com/dashboard**
+2. Klik **"New Project"**
+3. Isi:
+   - **Name:** `edusync-dev-<namakamu>` (contoh: `edusync-dev-budi`)
+   - **Database Password:** simpan baik-baik, akan dibutuhkan nanti
+   - **Region:** pilih yang terdekat (Singapore)
+4. Klik **"Create new project"** — tunggu ~2 menit sampai selesai
+
+---
+
+### Langkah 2: Ambil Credentials Project Kamu
+
+Di Supabase Dashboard project kamu → **Project Settings** → **API**:
+
+| Variable | Lokasi | Contoh |
+|----------|--------|--------|
+| `VITE_SUPABASE_URL` | "Project URL" | `https://xxxxxx.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | "Project API Keys" → `anon` `public` | `eyJhbGci...` |
+
+---
+
+### Langkah 3: Buat File `.env.local`
+
+Di root project (`/LMS`), buat file `.env.local`:
+
+```bash
+VITE_SUPABASE_URL=https://<PROJECT_REF>.supabase.co
+VITE_SUPABASE_ANON_KEY=<ANON_KEY_KAMU>
+```
+
+> ⚠️ Jangan commit file `.env.local` ke git — sudah ada di `.gitignore`
+
+---
+
+### Langkah 4: Apply Schema ke Project Kamu
+
+Schema lengkap sudah tersedia di file `supabase/schema_baseline.sql`.
+
+1. Buka **Supabase Dashboard** → **SQL Editor**
+2. Klik **"New query"**
+3. Copy seluruh isi file `supabase/schema_baseline.sql`
+4. Paste ke SQL Editor → klik **"Run"**
+5. Tunggu sampai selesai (file cukup besar, ~12.000 baris)
+
+> ✅ Setelah berhasil, kamu akan melihat semua tabel EduSync di **Table Editor**
+
+---
+
+### Langkah 5: Buat Tenant Dev
+
+Di SQL Editor, jalankan query berikut untuk membuat tenant development:
+
+```sql
+INSERT INTO public.tenants (id, name, slug, is_active)
+VALUES (
+  '00000000-0000-0000-0000-00000000000d',
+  'EduSync Dev Tenant',
+  'dev',
+  true
+)
+ON CONFLICT (id) DO NOTHING;
+```
+
+---
+
+### Langkah 6: Buat 3 Akun Dev di Supabase Auth
+
+Di Dashboard → **Authentication** → **Users** → **"Add User"** → **"Create New User"**
+
+Buat 3 user berikut (centang **"Auto Confirm User"** untuk semua):
+
+| Email | Password | Role |
+|-------|----------|------|
+| `student@edusync.dev` | `Student123!` | Student |
+| `teacher@edusync.dev` | `Teacher123!` | Teacher |
+| `admin@edusync.dev` | `Admin123!` | Admin |
+
+---
+
+### Langkah 7: Seed Profiles & Roles
+
+Setelah 3 user dibuat, salin **User ID** masing-masing dari kolom "UID" di halaman Authentication → Users.
+
+Lalu jalankan di SQL Editor (ganti `<ID_STUDENT>`, `<ID_TEACHER>`, `<ID_ADMIN>` dengan UUID asli):
+
+```sql
+-- ── Profiles ──
+INSERT INTO public.profiles (id, email, first_name, last_name, tenant_id)
+VALUES
+  ('<ID_STUDENT>', 'student@edusync.dev', 'Student', 'Dev', '00000000-0000-0000-0000-00000000000d'),
+  ('<ID_TEACHER>', 'teacher@edusync.dev', 'Teacher', 'Dev', '00000000-0000-0000-0000-00000000000d'),
+  ('<ID_ADMIN>',   'admin@edusync.dev',   'Admin',   'Dev', '00000000-0000-0000-0000-00000000000d')
+ON CONFLICT (id) DO NOTHING;
+
+-- ── Roles ──
+INSERT INTO public.user_roles (user_id, role, tenant_id)
+VALUES
+  ('<ID_STUDENT>', 'STUDENT', '00000000-0000-0000-0000-00000000000d'),
+  ('<ID_TEACHER>', 'TEACHER', '00000000-0000-0000-0000-00000000000d'),
+  ('<ID_ADMIN>',   'ADMIN',   '00000000-0000-0000-0000-00000000000d')
+ON CONFLICT DO NOTHING;
+```
+
+> ⚠️ Nilai `role` **HARUS UPPERCASE**: `STUDENT`, `TEACHER`, `ADMIN`
+
+---
+
+### Langkah 8: Jalankan Aplikasi
+
+```bash
+npm install
+npm run dev
+```
+
+Buka `http://localhost:5173` → klik tombol **Quick Login** sesuai role → masukkan password dari Langkah 6.
+
+---
+
+### ✅ Checklist Setup Selesai
+
+- [ ] Project Supabase sudah dibuat
+- [ ] File `.env.local` sudah diisi dengan URL & anon key project kamu
+- [ ] `schema_baseline.sql` sudah di-run di SQL Editor
+- [ ] Tenant dev sudah dibuat
+- [ ] 3 user auth sudah dibuat (student, teacher, admin)
+- [ ] Profiles & user_roles sudah di-seed
+- [ ] `npm run dev` berjalan dan bisa login
+
+---
+
+
+---
+
 ## ⛔ LARANGAN: Jangan Pernah Gunakan Mock Auth / Fake JWT
 
 ### Apa yang Dimaksud Mock Auth?

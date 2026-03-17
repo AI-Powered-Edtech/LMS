@@ -26,6 +26,7 @@ ON CONFLICT DO NOTHING;
 ALTER TABLE public.analytics_circuit_breaker ENABLE ROW LEVEL SECURITY;
 
 -- 3. RLS Policy: Only admins can view/manage circuit breaker
+DROP POLICY IF EXISTS "Admins can manage analytics circuit breaker" ON public.analytics_circuit_breaker;
 CREATE POLICY "Admins can manage analytics circuit breaker"
 ON public.analytics_circuit_breaker FOR ALL
 USING (

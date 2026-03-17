@@ -1,5 +1,5 @@
 import { AutosaveIndicator, SaveStatus } from './AutosaveIndicator';
-import { QuizTimer } from './QuizTimer';
+import { QuizTimerDisplay } from './QuizTimerDisplay';
 
 interface QuizHeaderProps {
   title: string;
@@ -29,7 +29,7 @@ export function QuizHeader({
           <AutosaveIndicator status={!isOnline ? 'offline' : saveStatus} />
         </div>
       </div>
-      <QuizTimer timeLeft={timeLeft} />
+      <QuizTimerDisplay timeLeft={timeLeft} />
     </div>
   );
 }

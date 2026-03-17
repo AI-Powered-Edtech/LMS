@@ -33,13 +33,17 @@ BEGIN
     PERFORM cron.unschedule('refresh-all-course-stats');
 EXCEPTION
     WHEN undefined_table THEN
-        -- Job doesn't exist yet, that's fine
+        -- pg_cron not installed, that's fine
+        NULL;
+    WHEN OTHERS THEN
+        -- Job doesn't exist yet (XX000) or any other non-fatal error, continue
         NULL;
 END
 $$;
 
 -- Schedule the job (wrapped in DO to handle potential failures)
-DO $$
+-- NOTE: outer block uses $outer$ to avoid conflict with $$ inside cron SQL string
+DO $outer$
 DECLARE
     job_id bigint;
 BEGIN
@@ -47,27 +51,27 @@ BEGIN
     job_id := cron.schedule(
         'refresh-all-course-stats',
         '*/5 * * * *',
-        $$
+        $cron_job$
         DO $$
         DECLARE
             r RECORD;
         BEGIN
             -- Refresh stats for all active courses
-            FOR r IN 
-                SELECT id FROM public.courses 
+            FOR r IN
+                SELECT id FROM public.courses
                 WHERE status = 'published'
-                LIMIT 100  -- Process in batches to avoid long locks
+                LIMIT 100
             LOOP
                 BEGIN
                     PERFORM public.refresh_course_stats(r.id);
                 EXCEPTION
                     WHEN others THEN
-                        -- Log error but continue with next course
                         RAISE WARNING 'Failed to refresh stats for course %: %', r.id, SQLERRM;
                 END;
             END LOOP;
         END
         $$
+        $cron_job$
         );
     RAISE NOTICE 'Scheduled job created with ID: %', job_id;
 EXCEPTION
@@ -78,7 +82,7 @@ EXCEPTION
     WHEN others THEN
         RAISE NOTICE 'Could not create scheduled job: %', SQLERRM;
 END
-$$;
+$outer$;
 
 -- Alternative: Create a function to manually trigger refresh for all courses
 -- This can be called via API if pg_cron is not available
@@ -97,7 +101,7 @@ BEGIN
         RAISE EXCEPTION 'Unauthorized: Only teachers and admins can refresh all course stats';
     END IF;
 
-    FOR r IN 
+    FOR r IN
         SELECT id FROM public.courses WHERE status = 'published'
     LOOP
         BEGIN
@@ -114,8 +118,8 @@ END;
 $$;
 
 -- Add comment for documentation
-COMMENT ON FUNCTION public.refresh_all_course_stats() IS 
-'Manually trigger refresh of all course statistics. Requires teacher or admin role. 
+COMMENT ON FUNCTION public.refresh_all_course_stats() IS
+'Manually trigger refresh of all course statistics. Requires teacher or admin role.
 Use this if pg_cron is not available on your Supabase plan.';
 
 -- Notify PostgREST to reload schema

@@ -450,7 +450,7 @@ function PostItem({
       {/* Comments Section */}
       {sortedComments.length > 0 && (
         <div className="bg-slate-50/50 p-4 md:p-6 border-t border-slate-200 space-y-6">
-          {sortedComments.map((comment: any) => (
+          {sortedComments.map((comment: Comment) => (
             <CommentThread 
               key={comment.id} 
               comment={comment} 

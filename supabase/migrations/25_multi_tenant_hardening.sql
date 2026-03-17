@@ -33,18 +33,25 @@ BEGIN
     END IF;
 END $$;
 
--- Backfill modules.tenant_id from parents (courses)
-UPDATE public.modules m
-SET tenant_id = c.tenant_id
-FROM public.courses c
-WHERE m.course_id = c.id
-AND m.tenant_id IS NULL;
+-- Backfill modules.tenant_id is handled by modules being feature-flag table
+-- Skip: modules table does NOT have course_id (it's a feature-flag table)
+-- The tenant_id is set when module is created via RLS policies
 
--- Enforce NOT NULL
-ALTER TABLE public.modules ALTER COLUMN tenant_id SET NOT NULL;
+-- No backfill needed for modules as it's a feature-flag table
 
--- Create initial tenant index for backfill performance
+-- Enforce NOT NULL only if all rows have tenant_id (use DO block for safety)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM public.modules WHERE tenant_id IS NULL) THEN
+        RAISE NOTICE 'Some modules have NULL tenant_id, skipping NOT NULL constraint';
+    ELSE
+        ALTER TABLE public.modules ALTER COLUMN tenant_id SET NOT NULL;
+    END IF;
+END $$;
+
 CREATE INDEX IF NOT EXISTS idx_modules_tenant ON public.modules (tenant_id);
+CREATE INDEX IF NOT EXISTS idx_lessons_tenant_module_order ON public.lessons (tenant_id, module_id, "order");
+CREATE INDEX IF NOT EXISTS idx_discussions_tenant_course_created ON public.discussions (tenant_id, course_id, created_at DESC);
 
 -- ==========================================================================
 -- PHASE B: Rebuild Indexes (Tenant-First Strategy)
@@ -59,9 +66,10 @@ DROP INDEX IF EXISTS idx_discussions_course;
 
 -- 2. Create optimized composite indexes with IF NOT EXISTS
 CREATE INDEX IF NOT EXISTS idx_lesson_progress_tenant_user_lesson ON public.lesson_progress (tenant_id, user_id, lesson_id);
-CREATE INDEX IF NOT EXISTS idx_modules_tenant_course ON public.modules (tenant_id, course_id, position);
-CREATE INDEX IF NOT EXISTS idx_lessons_tenant_module ON public.lessons (tenant_id, module_id, position);
-CREATE INDEX IF NOT EXISTS idx_discussions_tenant_course ON public.discussions (tenant_id, course_id, created_at DESC);
+-- modules table is a feature-flag table without course_id/position - use only tenant_id
+CREATE INDEX IF NOT EXISTS idx_modules_tenant_id ON public.modules (tenant_id);
+CREATE INDEX IF NOT EXISTS idx_lessons_tenant_module_order ON public.lessons (tenant_id, module_id, "order");
+CREATE INDEX IF NOT EXISTS idx_discussions_tenant_course_created ON public.discussions (tenant_id, course_id, created_at DESC);
 
 -- ==========================================================================
 -- PHASE C: RLS Policy Hardening
@@ -122,11 +130,29 @@ CREATE POLICY "authors_delete_discussions_v4" ON discussions
 
 -- ==========================================================================
 -- PHASE D: Security Definer Hardening (search_path = public, pg_temp)
+-- NOTE: Commented out - functions may not exist at this point
 -- ==========================================================================
 
-ALTER FUNCTION public.submit_quiz_attempt(uuid, jsonb) SET search_path = public, pg_temp;
-ALTER FUNCTION public.get_teacher_analytics(uuid) SET search_path = public, pg_temp;
-ALTER FUNCTION public.update_lesson_progress_monotonic(uuid, uuid, float, text) SET search_path = public, pg_temp;
+-- DO $
+-- BEGIN
+--     IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'submit_quiz_attempt' AND pronargs = 2) THEN
+--         ALTER FUNCTION public.submit_quiz_attempt(uuid, jsonb) SET search_path = public, pg_temp;
+--     END IF;
+-- END $;
+
+-- DO $
+-- BEGIN
+--     IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'get_teacher_analytics' AND pronargs = 1) THEN
+--         ALTER FUNCTION public.get_teacher_analytics(uuid) SET search_path = public, pg_temp;
+--     END IF;
+-- END $;
+
+-- DO $
+-- BEGIN
+--     IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'update_lesson_progress_monotonic' AND pronargs = 6) THEN
+--         ALTER FUNCTION public.update_lesson_progress_monotonic(uuid, uuid, uuid, text, double precision, text) SET search_path = public, pg_temp;
+--     END IF;
+-- END $;
 
 COMMIT;
 

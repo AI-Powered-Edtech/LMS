@@ -54,6 +54,7 @@ import { PPDBDashboard } from "./pages/admin/PPDBDashboard";
 import { AdministrationDashboard } from "./pages/admin/AdministrationDashboard";
 import { UserManagement } from "./pages/admin/UserManagement";
 import { AuditDashboard } from "./pages/admin/AuditDashboard";
+import { AdminAnalyticsDashboard } from "./pages/admin/AdminAnalyticsDashboard";
 import { Login } from "./pages/Login";
 import { ForgotPassword } from "./pages/ForgotPassword";
 import { ResetPassword } from "./pages/ResetPassword";
@@ -65,6 +66,14 @@ import { CommentProvider } from "./contexts/CommentContext";
 import { StudentProgressProvider } from "./contexts/StudentProgressContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { TenantProvider } from "./contexts/TenantContext";
+
+import { AuthGuard } from "./components/guards/AuthGuard";
+import { TenantGuard } from "./components/guards/TenantGuard";
+import { RoleGuard } from "./components/guards/RoleGuard";
+import { RoleResolver } from "./components/guards/RoleResolver";
+import { WorkspaceSelector } from "./pages/WorkspaceSelector";
+import { Unauthorized } from "./pages/Unauthorized";
+import { Outlet } from "react-router-dom";
 
 export default function App() {
   return (
@@ -89,8 +98,47 @@ export default function App() {
                                   <Route path="/forgot-password" element={<ForgotPassword />} />
                                   <Route path="/reset-password" element={<ResetPassword />} />
                                   <Route path="/verify-email" element={<VerifyEmail />} />
-                                  <Route path="/" element={<Layout />}>
-                                    <Route index element={<RoleRoute role="student"><Dashboard /></RoleRoute>} />
+                                  
+                                  <Route path="/workspace-selector" element={<AuthGuard><WorkspaceSelector /></AuthGuard>} />
+                                  <Route path="/unauthorized" element={<Unauthorized />} />
+                                  <Route path="/" element={
+                                    <AuthGuard>
+                                      <TenantGuard>
+                                        <Layout />
+                                      </TenantGuard>
+                                    </AuthGuard>
+                                  }>
+                                    {/* App prefix for role-based features */}
+                                    <Route path="app">
+                                      <Route index element={<RoleResolver />} />
+                                    
+                                    <Route path="student" element={<RoleGuard allowedRoles={['student']}><Outlet /></RoleGuard>}>
+                                      <Route index element={<Dashboard />} />
+                                      <Route path="dashboard" element={<Dashboard />} />
+                                      <Route path="courses" element={<LessonViewer />} />
+                                      <Route path="courses/:courseId" element={<CourseEnrollmentGuard><LessonViewer /></CourseEnrollmentGuard>} />
+                                      <Route path="quizzes" element={<QuizModule />} />
+                                      <Route path="assignments" element={<Assignments />} />
+                                    </Route>
+
+                                    <Route path="teacher" element={<RoleGuard allowedRoles={['teacher']}><Outlet /></RoleGuard>}>
+                                      <Route index element={<TeacherDashboard />} />
+                                      <Route path="dashboard" element={<TeacherDashboard />} />
+                                      <Route path="quiz-manager" element={<QuizManager />} />
+                                      <Route path="courses" element={<Courses />} />
+                                    </Route>
+
+                                    <Route path="admin" element={<RoleGuard allowedRoles={['admin']}><Outlet /></RoleGuard>}>
+                                      <Route index element={<AdministrationDashboard />} />
+                                      <Route path="dashboard" element={<AdministrationDashboard />} />
+                                      <Route path="users" element={<UserManagement />} />
+                                    </Route>
+
+                                    </Route>
+
+                                    {/* Legacy / unclassified routes mapping for compatibility */}
+                                    <Route index element={<Navigate to="/app" replace />} />
+                                    
                                     <Route path="dashboard" element={<RoleRoute role="student"><Dashboard /></RoleRoute>} />
                                     <Route path="directory" element={<RoleRoute role={['teacher', 'student', 'admin']}><Directory /></RoleRoute>} />
 
@@ -135,6 +183,7 @@ export default function App() {
                                     <Route path="admin/administration" element={<RoleRoute role="admin"><AdministrationDashboard /></RoleRoute>} />
                                     <Route path="admin/users" element={<RoleRoute role="admin"><UserManagement /></RoleRoute>} />
                                     <Route path="admin/audit" element={<RoleRoute role="admin"><AuditDashboard /></RoleRoute>} />
+                                    <Route path="admin/analytics" element={<RoleRoute role="admin"><AdminAnalyticsDashboard /></RoleRoute>} />
                                     <Route path="courses" element={<RoleRoute role="student"><LessonViewer /></RoleRoute>} />
                                     <Route path="courses/:courseId" element={
                                       <RoleRoute role={['student', 'teacher', 'admin']}>
@@ -144,7 +193,9 @@ export default function App() {
                                       </RoleRoute>
                                     } />
                                     <Route path="classes/:classId" element={<RoleRoute role="student"><StudentClassPage /></RoleRoute>} />
+                                  
                                   </Route>
+
                                 </Routes>
                               </Router>
                             </StudentProgressProvider>

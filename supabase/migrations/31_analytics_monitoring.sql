@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS public.analytics_metrics (
 ALTER TABLE public.analytics_metrics ENABLE ROW LEVEL SECURITY;
 
 -- 3. RLS Policy: Only admins can view metrics
+DROP POLICY IF EXISTS "Admins can view analytics metrics" ON public.analytics_metrics;
 CREATE POLICY "Admins can view analytics metrics"
 ON public.analytics_metrics FOR SELECT
 USING (

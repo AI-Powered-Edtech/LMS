@@ -109,33 +109,48 @@ DROP INDEX IF EXISTS public.course_progress_progress_idx;
 
 
 -- 3. RLS POLICY OPTIMIZATION (SCALAR SUBQUERIES)
+-- Note: Using CREATE OR REPLACE for policies that may or may not exist
 
 -- Profiles
-ALTER POLICY "profiles_select" ON public.profiles
+DROP POLICY IF EXISTS "profiles_select" ON public.profiles;
+CREATE POLICY "profiles_select" ON public.profiles
+FOR SELECT
 USING ((id = (SELECT auth.uid())) OR (tenant_id = (SELECT public.get_my_tenant_id())));
 
 -- Courses
-ALTER POLICY "courses_select" ON public.courses
+DROP POLICY IF EXISTS "courses_select" ON public.courses;
+CREATE POLICY "courses_select" ON public.courses
+FOR SELECT
 USING (tenant_id = (SELECT public.get_my_tenant_id()));
 
 -- Classes
-ALTER POLICY "classes_select" ON public.classes
+DROP POLICY IF EXISTS "classes_select" ON public.classes;
+CREATE POLICY "classes_select" ON public.classes
+FOR SELECT
 USING (tenant_id = (SELECT public.get_my_tenant_id()) AND ((teacher_id = (SELECT auth.uid())) OR is_enrolled_in_class(id) OR has_role('ADMIN'::app_role)));
 
 -- Enrollments
-ALTER POLICY "enrollments_select" ON public.enrollments
+DROP POLICY IF EXISTS "enrollments_select" ON public.enrollments;
+CREATE POLICY "enrollments_select" ON public.enrollments
+FOR SELECT
 USING (tenant_id = (SELECT public.get_my_tenant_id()) AND ((student_id = (SELECT auth.uid())) OR is_class_teacher(class_id) OR has_role('ADMIN'::app_role)));
 
 -- Quiz Attempts
-ALTER POLICY "quiz_attempts_select" ON public.quiz_attempts
+DROP POLICY IF EXISTS "quiz_attempts_select" ON public.quiz_attempts;
+CREATE POLICY "quiz_attempts_select" ON public.quiz_attempts
+FOR SELECT
 USING (tenant_id = (SELECT public.get_my_tenant_id()) AND ((student_id = (SELECT auth.uid())) OR (EXISTS (SELECT 1 FROM public.quizzes q JOIN public.classes c ON c.id = q.class_id WHERE q.id = quiz_attempts.quiz_id AND c.teacher_id = (SELECT auth.uid()))) OR has_role('ADMIN'::app_role)));
 
 -- AI Tutor interactions
-ALTER POLICY "users_read_own_interactions" ON public.ai_tutor_interactions
+DROP POLICY IF EXISTS "users_read_own_interactions" ON public.ai_tutor_interactions;
+CREATE POLICY "users_read_own_interactions" ON public.ai_tutor_interactions
+FOR SELECT
 USING (user_id = (SELECT auth.uid()) AND tenant_id = (SELECT public.get_my_tenant_id()));
 
 -- AI Tutor cache
-ALTER POLICY "Tenants manage cache" ON public.ai_tutor_cache
+DROP POLICY IF EXISTS "Tenants manage cache" ON public.ai_tutor_cache;
+CREATE POLICY "Tenants manage cache" ON public.ai_tutor_cache
+FOR SELECT
 USING (tenant_id = (SELECT public.get_my_tenant_id()));
 
 -- End of 36_final_refinement.sql

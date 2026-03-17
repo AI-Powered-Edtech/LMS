@@ -7,27 +7,28 @@ CREATE TABLE IF NOT EXISTS announcements (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   course_id uuid REFERENCES courses(id) ON DELETE CASCADE,
-  
+
   title text NOT NULL,
   content text NOT NULL,
   priority text NOT NULL DEFAULT 'normal' CHECK (priority IN ('low', 'normal', 'high')),
-  target_audience text NOT NULL DEFAULT 'all_students' 
+  target_audience text NOT NULL DEFAULT 'all_students'
     CHECK (target_audience IN ('course_students', 'course_staff', 'all_students', 'system')),
-  
+
   status text NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived')),
   is_pinned boolean DEFAULT false,
   allow_comments boolean DEFAULT true,
   requires_rsvp boolean DEFAULT false,
-  
+
   location text,
   contact_person text,
-  
+
   created_by uuid NOT NULL REFERENCES profiles(id),
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
 
 -- Trigger for updated_at
+DROP TRIGGER IF EXISTS set_announcements_updated_at ON announcements;
 CREATE TRIGGER set_announcements_updated_at
   BEFORE UPDATE ON announcements
   FOR EACH ROW
@@ -41,10 +42,10 @@ CREATE TABLE IF NOT EXISTS announcement_rsvps (
   tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   announcement_id uuid NOT NULL REFERENCES announcements(id) ON DELETE CASCADE,
   user_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  
+
   response text NOT NULL CHECK (response IN ('yes', 'no', 'maybe')),
   responded_at timestamptz DEFAULT now(),
-  
+
   UNIQUE (announcement_id, user_id)
 );
 
@@ -80,7 +81,7 @@ USING (
     EXISTS (
       SELECT 1 FROM enrollments e
       JOIN classes cl ON cl.id = e.class_id
-      WHERE cl.course_id = announcements.course_id 
+      WHERE cl.course_id = announcements.course_id
       AND e.student_id = auth.uid()
     )
   )
@@ -93,11 +94,11 @@ ON announcements FOR ALL
 USING (
   EXISTS (
     SELECT 1 FROM profiles up
-    WHERE up.id = auth.uid() 
+    WHERE up.id = auth.uid()
     AND up.tenant_id = announcements.tenant_id
     AND EXISTS (
-      SELECT 1 FROM user_roles ur 
-      WHERE ur.user_id = auth.uid() 
+      SELECT 1 FROM user_roles ur
+      WHERE ur.user_id = auth.uid()
       AND ur.role IN ('TEACHER', 'ADMIN')
     )
   )
@@ -105,11 +106,11 @@ USING (
 WITH CHECK (
   EXISTS (
     SELECT 1 FROM profiles up
-    WHERE up.id = auth.uid() 
+    WHERE up.id = auth.uid()
     AND up.tenant_id = tenant_id
     AND EXISTS (
-      SELECT 1 FROM user_roles ur 
-      WHERE ur.user_id = auth.uid() 
+      SELECT 1 FROM user_roles ur
+      WHERE ur.user_id = auth.uid()
       AND ur.role IN ('TEACHER', 'ADMIN')
     )
   )
@@ -118,6 +119,7 @@ WITH CHECK (
 -- ** RSVP RLS **
 
 -- Users manage their own RSVPs
+DROP POLICY IF EXISTS "users_manage_own_rsvps" ON announcement_rsvps;
 CREATE POLICY "users_manage_own_rsvps"
 ON announcement_rsvps FOR ALL
 USING (user_id = auth.uid())
@@ -150,11 +152,11 @@ DECLARE
 BEGIN
   -- GUARD: Only if status changed to 'published'
   IF (NEW.status = 'published') AND (OLD.status IS DISTINCT FROM 'published' OR OLD.id IS NULL) THEN
-    
+
     -- If course-specific, notify enrolled students
     IF NEW.course_id IS NOT NULL THEN
       INSERT INTO notifications (tenant_id, user_id, title, message, type, entity_id)
-      SELECT 
+      SELECT
         NEW.tenant_id,
         e.student_id,
         'Pengumuman Baru: ' || NEW.title,
@@ -167,7 +169,7 @@ BEGIN
     ELSE
       -- If system-wide, notify all students in the tenant
       INSERT INTO notifications (tenant_id, user_id, title, message, type, entity_id)
-      SELECT 
+      SELECT
         NEW.tenant_id,
         ur.user_id,
         'Pengumuman Sekolah: ' || NEW.title,
@@ -182,6 +184,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP TRIGGER IF EXISTS on_announcement_published ON announcements;
 CREATE TRIGGER on_announcement_published
   AFTER INSERT OR UPDATE ON announcements
   FOR EACH ROW
@@ -194,7 +197,7 @@ BEGIN
   -- GUARD: status changed to 'published'
   IF (NEW.status = 'published') AND (OLD.status IS DISTINCT FROM 'published') THEN
     INSERT INTO notifications (tenant_id, user_id, title, message, type, entity_id)
-    SELECT 
+    SELECT
       NEW.tenant_id,
       e.student_id,
       'Kursus Diterbitkan',
@@ -209,6 +212,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP TRIGGER IF EXISTS on_course_published ON courses;
 CREATE TRIGGER on_course_published
   AFTER UPDATE ON courses
   FOR EACH ROW
@@ -224,12 +228,12 @@ DECLARE
 BEGIN
   -- GUARD: status changed to 'published'
   IF (NEW.status = 'published') AND (OLD.status IS DISTINCT FROM 'published') THEN
-    -- Get course info
-    SELECT id, title, teacher_id INTO v_course_id, v_course_title, v_teacher_id
+    -- Get course info (courses uses created_by, not teacher_id)
+    SELECT id, title, created_by INTO v_course_id, v_course_title, v_teacher_id
     FROM courses WHERE id = NEW.course_id;
 
     INSERT INTO notifications (tenant_id, user_id, title, message, type, entity_id)
-    SELECT 
+    SELECT
       NEW.tenant_id,
       e.student_id,
       'Kuis Baru Tersedia',
@@ -244,6 +248,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP TRIGGER IF EXISTS on_quiz_published ON lessons;
 CREATE TRIGGER on_quiz_published
   AFTER UPDATE ON lessons
   FOR EACH ROW

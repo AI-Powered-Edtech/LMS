@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 
@@ -19,17 +19,29 @@ interface TenantContextType {
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
 
 export function TenantProvider({ children }: { children: ReactNode }) {
-    const { user, session } = useAuth();
+    const { user, session, loading: authLoading } = useAuth();
     const [tenantId, setTenantId] = useState<string | null>(null);
     const [tenant, setTenant] = useState<Tenant | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    // Track if we've already resolved tenant to avoid re-fetching
+    const resolvedRef = useRef(false);
 
     useEffect(() => {
+        // Don't resolve if auth is still loading or if already resolved
+        if (authLoading || resolvedRef.current) {
+            if (!authLoading) {
+                setLoading(false);
+            }
+            return;
+        }
+
+        // If no user or session, reset and don't load
         if (!user || !session) {
             setTenantId(null);
             setTenant(null);
             setLoading(false);
+            resolvedRef.current = true;
             return;
         }
 
@@ -62,6 +74,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
                 }
 
                 setTenantId(resolvedTenantId);
+                resolvedRef.current = true;
 
                 // 3. Fetch full tenant record
                 if (resolvedTenantId) {
@@ -83,7 +96,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         };
 
         resolveTenant();
-    }, [user, session]);
+    }, [user, session, authLoading]);
 
     return (
         <TenantContext.Provider value={{ tenantId, tenant, loading, error }}>

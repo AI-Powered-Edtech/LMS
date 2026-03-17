@@ -374,6 +374,18 @@ export const navigationItems: NavItem[] = [
     border: "border-orange-200"
   },
   {
+    id: 'analytics',
+    name: "Analitik",
+    path: "/admin/analytics",
+    icon: BarChart3,
+    roles: ['admin'],
+    location: 'admin-hub',
+    description: "Dashboard analitik pembelajaran.",
+    color: "text-blue-600",
+    bg: "bg-blue-100",
+    border: "border-blue-200"
+  },
+  {
     id: 'finance',
     name: "Keuangan & SPP",
     path: "/admin/finance",

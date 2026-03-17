@@ -16,8 +16,7 @@ SELECT
     COALESCE(SUM(cp.completed_lessons), 0) as total_completed_lessons,
     now() as last_refreshed_at
 FROM public.courses c
-LEFT JOIN public.classes cl ON cl.course_id = c.id
-LEFT JOIN public.enrollments e ON e.class_id = cl.id AND e.status = 'ACTIVE'
+LEFT JOIN public.course_enrollments e ON e.course_id = c.id AND e.status = 'ACTIVE'
 LEFT JOIN public.course_progress cp ON cp.course_id = c.id AND cp.user_id = e.user_id
 GROUP BY c.id, c.title, c.tenant_id;
 

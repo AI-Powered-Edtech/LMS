@@ -12,7 +12,7 @@ ADD COLUMN IF NOT EXISTS attempt_number integer DEFAULT 1 CHECK (attempt_number 
 
 -- 3. Update Unique Constraint for Multiple Attempts
 -- First, drop the old constraint if it exists (usually named based on columns)
-DO $$ 
+DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'assignment_submissions_assignment_id_student_id_key') THEN
         ALTER TABLE assignment_submissions DROP CONSTRAINT assignment_submissions_assignment_id_student_id_key;
@@ -57,14 +57,20 @@ CREATE POLICY "teachers_grade_submissions" ON assignment_submissions
 -- 6. Refine Trigger Guard for progress integration
 -- We replace the existing trigger with a more guarded one
 DROP TRIGGER IF EXISTS after_assignment_submission ON assignment_submissions;
+DROP TRIGGER IF EXISTS after_assignment_submission_update ON assignment_submissions;
 
+-- INSERT trigger: OLD is not available, so check NEW.status only
 CREATE TRIGGER after_assignment_submission
-AFTER INSERT OR UPDATE ON assignment_submissions
+AFTER INSERT ON assignment_submissions
 FOR EACH ROW
-WHEN (
-  NEW.status = 'submitted'
-  AND (OLD.status IS NULL OR OLD.status IS DISTINCT FROM 'submitted')
-)
+WHEN (NEW.status = 'SUBMITTED')
+EXECUTE FUNCTION on_assignment_submitted();
+
+-- UPDATE trigger: safe to reference OLD here
+CREATE TRIGGER after_assignment_submission_update
+AFTER UPDATE ON assignment_submissions
+FOR EACH ROW
+WHEN (NEW.status = 'SUBMITTED' AND OLD.status IS DISTINCT FROM 'SUBMITTED')
 EXECUTE FUNCTION on_assignment_submitted();
 
 -- 7. Comments for documentation

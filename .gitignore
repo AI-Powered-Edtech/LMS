@@ -7,7 +7,18 @@ coverage/
 .env*
 !.env.example
 
+# Supabase local temp files (project-ref, local config)
+supabase/.temp/
+
+# Schema baseline — generated file, not for version control
+# Tim regenerate ini dari remote project masing-masing
+supabase/schema_baseline.sql
+
 /src/generated/prisma
+
+# refactoring scripts
+*_refactor.sh
+*_migration.sh
 
 # testing artifacts
 playwright-report/

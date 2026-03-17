@@ -26,6 +26,7 @@ CREATE INDEX IF NOT EXISTS idx_course_insights_type ON public.course_insights(in
 ALTER TABLE public.course_insights ENABLE ROW LEVEL SECURITY;
 
 -- 4. RLS Policies
+DROP POLICY IF EXISTS "Admins can manage tenant insights" ON public.course_insights;
 CREATE POLICY "Admins can manage tenant insights"
 ON public.course_insights FOR ALL
 USING (
@@ -37,6 +38,7 @@ WITH CHECK (
     AND (auth.jwt() ->> 'role') = 'admin'
 );
 
+DROP POLICY IF EXISTS "Teachers can view tenant insights" ON public.course_insights;
 CREATE POLICY "Teachers can view tenant insights"
 ON public.course_insights FOR SELECT
 USING (

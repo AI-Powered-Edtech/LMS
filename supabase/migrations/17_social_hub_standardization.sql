@@ -14,27 +14,28 @@ DROP TABLE IF EXISTS public.discussion_threads;
 CREATE TABLE IF NOT EXISTS public.discussions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id uuid NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
-  
+
   -- Contextual Links (All optional, at least one should usually be set)
   course_id uuid REFERENCES public.courses(id) ON DELETE CASCADE,
   lesson_id uuid REFERENCES public.lessons(id) ON DELETE CASCADE,
   announcement_id uuid REFERENCES public.announcements(id) ON DELETE CASCADE,
-  
+
   author_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   parent_id uuid REFERENCES public.discussions(id) ON DELETE CASCADE,
-  
+
   content text NOT NULL,
-  
+
   -- Status Flags
   is_pinned boolean DEFAULT false,
   is_edited boolean DEFAULT false,
   is_deleted boolean DEFAULT false,
-  
+
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
 
 -- Trigger for updated_at
+DROP TRIGGER IF EXISTS set_discussions_updated_at ON public.discussions;
 CREATE TRIGGER set_discussions_updated_at
   BEFORE UPDATE ON public.discussions
   FOR EACH ROW
@@ -49,11 +50,11 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='notifications' AND column_name='actor_id') THEN
         ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS actor_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL;
     END IF;
-    
+
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='notifications' AND column_name='entity_id') THEN
         ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS entity_id uuid;
     END IF;
-    
+
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='notifications' AND column_name='link') THEN
         ALTER TABLE public.notifications ADD COLUMN IF NOT EXISTS link text;
     END IF;
@@ -74,16 +75,18 @@ CREATE INDEX IF NOT EXISTS idx_discussions_created_at ON public.discussions(crea
 ALTER TABLE public.discussions ENABLE ROW LEVEL SECURITY;
 
 -- Read Policy: Basic visibility check
+DROP POLICY IF EXISTS "users_read_discussions" ON public.discussions;
 CREATE POLICY "users_read_discussions"
 ON public.discussions FOR SELECT
 USING (
   tenant_id::text = auth.jwt() ->> 'tenant_id'
 );
 
--- Note: In a production scenario, we'd add more complex checks like 
+-- Note: In a production scenario, we'd add more complex checks like
 -- "can only see course discussions if enrolled", but for now, tenant isolation is the priority.
 
 -- Insert Policy
+DROP POLICY IF EXISTS "users_create_discussions" ON public.discussions;
 CREATE POLICY "users_create_discussions"
 ON public.discussions FOR INSERT
 WITH CHECK (
@@ -92,18 +95,20 @@ WITH CHECK (
 );
 
 -- Update Policy: Only author can update
+DROP POLICY IF EXISTS "authors_update_discussions" ON public.discussions;
 CREATE POLICY "authors_update_discussions"
 ON public.discussions FOR UPDATE
 USING (author_id = auth.uid())
 WITH CHECK (author_id = auth.uid());
 
 -- Delete Policy: Author or Admin
+DROP POLICY IF EXISTS "authors_delete_discussions" ON public.discussions;
 CREATE POLICY "authors_delete_discussions"
 ON public.discussions FOR DELETE
 USING (
   author_id = auth.uid() OR
   EXISTS (
-    SELECT 1 FROM public.user_roles ur 
+    SELECT 1 FROM public.user_roles ur
     WHERE ur.user_id = auth.uid() AND ur.role = 'ADMIN'
   )
 );
@@ -119,10 +124,10 @@ DECLARE
 BEGIN
   -- GUARD: Only if it's a reply
   IF NEW.parent_id IS NOT NULL THEN
-    SELECT author_id INTO v_parent_author 
-    FROM public.discussions 
+    SELECT author_id INTO v_parent_author
+    FROM public.discussions
     WHERE id = NEW.parent_id;
-    
+
     -- Don't notify self
     IF v_parent_author IS NOT NULL AND v_parent_author != NEW.author_id THEN
       SELECT first_name || ' ' || last_name INTO v_actor_name FROM public.profiles WHERE id = NEW.author_id;
@@ -137,7 +142,7 @@ BEGIN
         v_actor_name || ' membalas diskusi Anda.',
         'INFO', -- Using standard notification_type
         COALESCE(NEW.announcement_id, NEW.course_id),
-        CASE 
+        CASE
           WHEN NEW.announcement_id IS NOT NULL THEN '/announcements'
           ELSE '/learning/' || NEW.course_id
         END

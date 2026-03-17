@@ -29,10 +29,10 @@ export interface AssignmentSubmission {
     attempt_number: number;
     submitted_at: string;
     graded_at: string | null;
-    student_profile?: {
+    user_profiles?: {
         full_name: string;
-        avatar_url: string | null;
-    };
+        avatar_url?: string | null;
+    } | { full_name: string; avatar_url?: string | null }[];
 }
 
 export const assignmentService = {

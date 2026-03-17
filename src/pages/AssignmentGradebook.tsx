@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     FileText,
     Search,
@@ -51,8 +51,8 @@ export function AssignmentGradebook() {
 
                 if (error) throw error;
                 setAssignments(data || []);
-            } catch (err: any) {
-                setError(err.message);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : String(err));
             } finally {
                 setLoading(false);
             }
@@ -60,26 +60,28 @@ export function AssignmentGradebook() {
         loadAssignments();
     }, [user?.id, tenantId]);
 
-    const handleSelectAssignment = async (assignment: Assignment) => {
+    // ⚡ PERFORMANCE: Memoize handlers to prevent unnecessary re-renders
+    const handleSelectAssignment = useCallback(async (assignment: Assignment) => {
         setSelectedAssignment(assignment);
         setLoadingSubmissions(true);
         try {
             const data = await assignmentService.getAssignmentSubmissions(assignment.id);
             setSubmissions(data || []);
-        } catch (err: any) {
+        } catch (err) {
             console.error('Error fetching submissions:', err);
         } finally {
             setLoadingSubmissions(false);
         }
-    };
+    }, []);
 
-    const handleOpenGrading = (submission: AssignmentSubmission) => {
+    // ⚡ PERFORMANCE: Memoize grading handlers
+    const handleOpenGrading = useCallback((submission: AssignmentSubmission) => {
         setGradingSubmission(submission);
         setScore(submission.score || 0);
         setFeedback(submission.feedback || '');
-    };
+    }, []);
 
-    const handleSaveGrade = async () => {
+    const handleSaveGrade = useCallback(async () => {
         if (!gradingSubmission) return;
         setIsSubmittingGrade(true);
         try {
@@ -91,12 +93,12 @@ export function AssignmentGradebook() {
             // Update local state
             setSubmissions(prev => prev.map(s => s.id === result.id ? result : s));
             setGradingSubmission(null);
-        } catch (err: any) {
-            alert('Gagal menyimpan nilai: ' + err.message);
+        } catch (err) {
+            alert('Gagal menyimpan nilai: ' + (err instanceof Error ? err.message : String(err)));
         } finally {
             setIsSubmittingGrade(false);
         }
-    };
+    }, [gradingSubmission, score, feedback]);
 
     if (loading) {
         return (
@@ -219,14 +221,14 @@ export function AssignmentGradebook() {
                                             </td>
                                         </tr>
                                     ) : (
-                                        submissions.map((sub: any) => (
+                                        submissions.map((sub: AssignmentSubmission) => (
                                             <tr key={sub.id} className="hover:bg-blue-50 transition-colors group">
                                                 <td className="px-8 py-5">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xs font-bold">
-                                                            {sub.students?.full_name?.charAt(0) || '?'}
+                                                            {Array.isArray(sub.user_profiles) ? sub.user_profiles[0]?.full_name?.charAt(0) : sub.user_profiles?.full_name?.charAt(0) || '?'}
                                                         </div>
-                                                        <span className="font-bold text-slate-700">{sub.students?.full_name || 'Unknown Student'}</span>
+                                                        <span className="font-bold text-slate-700">{Array.isArray(sub.user_profiles) ? sub.user_profiles[0]?.full_name : sub.user_profiles?.full_name || 'Unknown Student'}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-5 text-sm text-slate-500">
@@ -298,7 +300,7 @@ export function AssignmentGradebook() {
                                         <GraduationCap className="w-5 h-5 text-white" />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-slate-800">Menilai: {(gradingSubmission as any).students?.full_name}</h3>
+                                        <h3 className="font-bold text-slate-800">Menilai: {Array.isArray(gradingSubmission?.user_profiles) ? gradingSubmission?.user_profiles[0]?.full_name : gradingSubmission?.user_profiles?.full_name}</h3>
                                         <p className="text-xs text-slate-400 font-medium">Tugas: {selectedAssignment?.title}</p>
                                     </div>
                                 </div>
