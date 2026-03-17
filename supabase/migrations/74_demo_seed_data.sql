@@ -25,6 +25,12 @@ BEGIN
     SELECT id INTO v_teacher_id FROM auth.users WHERE email = v_teacher_email;
     SELECT id INTO v_student_id FROM auth.users WHERE email = v_student_email;
 
+    -- Skip if demo users don't exist
+    IF v_teacher_id IS NULL OR v_student_id IS NULL THEN
+        RAISE NOTICE 'Skipping seed: Demo users not found in auth.users';
+        RETURN;
+    END IF;
+
     -- 3. Link Users to Demo Tenant
     -- Profiles (Include 'email' which is NOT NULL, and use first/last name)
     INSERT INTO profiles (id, tenant_id, email, first_name, last_name, created_at)

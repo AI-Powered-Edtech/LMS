@@ -100,7 +100,7 @@ BEGIN
         RAISE EXCEPTION 'Unauthorized' USING ERRCODE = 'P0002';
     END IF;
 
-    IF v_attempt.status != 'IN_PROGRESS' THEN
+    IF v_attempt.status != 'in_progress' THEN
         RAISE EXCEPTION 'Attempt is not in progress' USING ERRCODE = 'P0003';
     END IF;
 
@@ -163,7 +163,7 @@ BEGIN
 
     UPDATE public.quiz_attempts_v2
     SET last_heartbeat_at = now()
-    WHERE id = p_attempt_id AND status = 'IN_PROGRESS';
+    WHERE id = p_attempt_id AND status = 'in_progress';
 
     RETURN jsonb_build_object(
         'success', true,
@@ -272,7 +272,7 @@ BEGIN
         RAISE EXCEPTION 'Unauthorized' USING ERRCODE = 'P0002';
     END IF;
 
-    IF v_attempt.status IN ('SUBMITTED', 'GRADED', 'EXPIRED') THEN
+    IF v_attempt.status IN ('submitted', 'graded', 'expired') THEN
         SELECT
             COUNT(*),
             COUNT(*) FILTER (WHERE aq.is_correct = true),
@@ -317,11 +317,11 @@ BEGIN
     -- If submission arrives > 30s after expiration, mark as EXPIRED and ignore new payload
     IF v_attempt.expires_at IS NOT NULL AND now() > v_attempt.expires_at + INTERVAL '30 seconds' THEN
         UPDATE public.quiz_attempts_v2
-        SET status = 'EXPIRED', submitted_at = now()
-        WHERE id = p_attempt_id AND status = 'IN_PROGRESS';
+        SET status = 'expired', submitted_at = now()
+        WHERE id = p_attempt_id AND status = 'in_progress';
 
         RETURN jsonb_build_object(
-            'status', 'EXPIRED'
+            'status', 'expired'
         );
     END IF;
 
@@ -407,7 +407,7 @@ BEGIN
     END IF;
 
     v_passed := v_score >= COALESCE(v_attempt.passing_score, 0);
-    v_status := CASE WHEN v_has_ungraded THEN 'SUBMITTED' ELSE 'GRADED' END;
+    v_status := CASE WHEN v_has_ungraded THEN 'submitted' ELSE 'graded' END;
 
     UPDATE public.quiz_attempts_v2
     SET

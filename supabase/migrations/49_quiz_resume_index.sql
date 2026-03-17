@@ -32,7 +32,7 @@ BEGIN
     WHERE id = p_attempt_id
       AND student_id = v_user_id
       AND tenant_id = v_tenant_id
-      AND status = 'IN_PROGRESS';
+      AND status = 'in_progress';
     
     -- Check if a row was actually affected
     GET DIAGNOSTICS v_updated = ROW_COUNT;

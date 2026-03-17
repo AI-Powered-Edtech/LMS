@@ -32,9 +32,9 @@ BEGIN
 
     -- Map status to event type
     CASE NEW.status
-        WHEN 'IN_PROGRESS' THEN v_event_type := 'QUIZ_STARTED'::public.activity_event_type;
-        WHEN 'SUBMITTED' THEN v_event_type := 'QUIZ_SUBMITTED'::public.activity_event_type;
-        WHEN 'GRADED' THEN v_event_type := 'QUIZ_GRADED'::public.activity_event_type;
+        WHEN 'in_progress' THEN v_event_type := 'QUIZ_STARTED'::public.activity_event_type;
+        WHEN 'submitted' THEN v_event_type := 'QUIZ_SUBMITTED'::public.activity_event_type;
+        WHEN 'graded' THEN v_event_type := 'QUIZ_GRADED'::public.activity_event_type;
         ELSE RETURN NEW; -- EXPIRED, ABANDONED are ignored for now
     END CASE;
 

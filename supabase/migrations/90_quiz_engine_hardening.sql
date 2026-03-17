@@ -108,18 +108,15 @@ COMMENT ON VIEW public.quiz_attempts IS
   'Compatibility view → quiz_attempts_v2. Read-only. Do NOT write through this view.';
 
 -- Read-only view: quiz_attempt_questions -> quiz_attempt_questions_v2
+-- NOTE: quiz_attempt_questions_v2 is partitioned by started_at, columns: attempt_id, started_at, question_id, tenant_id, student_answers, points_earned, is_correct
 CREATE OR REPLACE VIEW public.quiz_attempt_questions AS
 SELECT
-    id,
     attempt_id,
     question_id,
     tenant_id,
     is_correct,
     points_earned,
-    student_answers,
-    grader_comment,
-    graded_by,
-    graded_at
+    student_answers
 FROM public.quiz_attempt_questions_v2;
 
 COMMENT ON VIEW public.quiz_attempt_questions IS
@@ -339,7 +336,7 @@ BEGIN
                 SELECT a.id, a.quiz_id, a.score, COALESCE(a.submitted_at, a.started_at) AS created_at
                 FROM public.quiz_attempts_v2 a
                 WHERE a.student_id = p_student_id AND a.tenant_id = v_tenant_id
-                  AND a.status IN ('SUBMITTED', 'GRADED')
+                  AND a.status IN ('submitted', 'graded')
                 ORDER BY COALESCE(a.submitted_at, a.started_at) DESC
             ) d
         ),
@@ -384,17 +381,17 @@ DECLARE
 BEGIN
     -- Mark expired IN_PROGRESS attempts that never got submitted
     UPDATE public.quiz_attempts_v2
-    SET status = 'EXPIRED',
+    SET status = 'expired',
         submitted_at = expires_at
-    WHERE status = 'IN_PROGRESS'
+    WHERE status = 'in_progress'
       AND expires_at < NOW() - INTERVAL '5 minutes';
 
     GET DIAGNOSTICS v_expired_count = ROW_COUNT;
 
     -- Mark attempts stale for > 48h with no heartbeat as ABANDONED
     UPDATE public.quiz_attempts_v2
-    SET status = 'ABANDONED'
-    WHERE status = 'IN_PROGRESS'
+    SET status = 'abandoned'
+    WHERE status = 'in_progress'
       AND last_heartbeat_at < NOW() - INTERVAL '48 hours';
 
     GET DIAGNOSTICS v_abandoned_count = ROW_COUNT;

@@ -33,8 +33,8 @@ BEGIN
     IF v_tenant_id IS NULL THEN
         SELECT id INTO v_tenant_id FROM tenants WHERE name ILIKE '%Demo%' LIMIT 1;
         IF v_tenant_id IS NULL THEN
-            INSERT INTO tenants (name, slug, settings) 
-            VALUES ('Demo Academy', 'demo-academy', '{"theme": "dark"}'::jsonb) 
+            INSERT INTO tenants (name, slug) 
+            VALUES ('Demo Academy', 'demo-academy') 
             RETURNING id INTO v_tenant_id;
         END IF;
     END IF;

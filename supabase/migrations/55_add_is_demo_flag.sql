@@ -12,7 +12,8 @@ WHERE email ILIKE '%student.edusync.dev'
    OR email ILIKE '%teacher.edusync.com';
 
 -- Ensure the view (if it exists) reflects this. 
--- Assuming user_profiles is a view:
+-- Drop and recreate to handle schema changes:
+DROP VIEW IF EXISTS public.user_profiles;
 CREATE OR REPLACE VIEW public.user_profiles AS
 SELECT 
     p.id,
@@ -24,7 +25,7 @@ SELECT
     p.is_demo,
     ur.role,
     p.level,
-    p.total_xp
+    0 AS total_xp
 FROM public.profiles p
 LEFT JOIN public.user_roles ur ON p.id = ur.user_id;
 

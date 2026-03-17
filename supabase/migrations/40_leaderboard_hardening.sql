@@ -13,7 +13,7 @@ CREATE INDEX IF NOT EXISTS idx_leaderboards_tenant_points
 ON public.leaderboards (tenant_id, points DESC);
 
 -- 2. Ensure UNIQUE constraint for leaderboard entry
-DO $
+DO $$
 BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM pg_constraint WHERE conname = 'uq_leaderboards_tenant_user'
@@ -21,7 +21,7 @@ BEGIN
         ALTER TABLE public.leaderboards 
         ADD CONSTRAINT uq_leaderboards_tenant_user UNIQUE (tenant_id, user_id);
     END IF;
-END $;
+END $$;
 
 -- 3. Ensure add_user_points RPC exists
 CREATE OR REPLACE FUNCTION public.add_user_points(
@@ -48,8 +48,7 @@ BEGIN
     DO UPDATE SET 
         points = public.user_points.points + p_points,
         updated_at = now();
-END;
-$$;
+END $$;
 
 -- 4. Create function and trigger to sync XP to leaderboards
 -- This ONLY updates the score, not the rank. Rank is computed by RPC.
@@ -68,8 +67,7 @@ BEGIN
       AND tenant_id = NEW.tenant_id;
       
     RETURN NEW;
-END;
-$$;
+END $$;
 
 DROP TRIGGER IF EXISTS on_user_points_changed ON public.user_points;
 CREATE TRIGGER on_user_points_changed
@@ -85,7 +83,7 @@ CREATE OR REPLACE FUNCTION public.recompute_leaderboard(
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-AS $
+AS $$
 BEGIN
     UPDATE public.leaderboards l
     SET 
@@ -100,5 +98,4 @@ BEGIN
     ) r
     WHERE l.user_id = r.user_id
       AND l.tenant_id = p_tenant_id;
-END;
-$;
+END $$;

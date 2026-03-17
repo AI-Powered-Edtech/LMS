@@ -60,7 +60,7 @@ BEGIN
     -- 4. Recovery: Check for active attempt
     SELECT id, status INTO v_attempt_id, v_status
     FROM public.quiz_attempts
-    WHERE student_id = auth.uid() AND quiz_id = p_quiz_id AND status = 'IN_PROGRESS'
+    WHERE student_id = auth.uid() AND quiz_id = p_quiz_id AND status = 'in_progress'
     ORDER BY started_at DESC
     LIMIT 1;
 
@@ -77,7 +77,7 @@ BEGIN
     FROM public.quiz_attempts
     WHERE quiz_id = p_quiz_id 
       AND student_id = auth.uid() 
-      AND status IN ('SUBMITTED', 'GRADED');
+      AND status IN ('submitted', 'graded');
 
     IF COALESCE(v_max_attempts, 0) > 0 AND v_attempt_count >= COALESCE(v_max_attempts, 1) THEN
         RAISE EXCEPTION 'Attempt limit reached. Maximum allowed: %', v_max_attempts;
@@ -91,7 +91,7 @@ BEGIN
     INSERT INTO public.quiz_attempts (
         quiz_id, student_id, tenant_id, status, started_at, expires_at
     ) VALUES (
-        p_quiz_id, auth.uid(), v_tenant_id, 'IN_PROGRESS', now(), v_expires_at
+        p_quiz_id, auth.uid(), v_tenant_id, 'in_progress', now(), v_expires_at
     ) RETURNING id INTO v_attempt_id;
 
     -- 7. Snapshot Questions with BACKEND RANDOMIZATION
@@ -110,7 +110,7 @@ BEGIN
 
     RETURN jsonb_build_object(
         'attempt_id', v_attempt_id,
-        'status', 'IN_PROGRESS',
+        'status', 'in_progress',
         'recovered', false
     );
 END;

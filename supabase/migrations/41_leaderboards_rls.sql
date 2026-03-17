@@ -6,13 +6,12 @@
 -- ==========================================================================
 
 -- 1. Cleanup Duplicates (if any exist before the unique constraint was added)
--- We keep the row with the latest updated_at or highest score
+-- We keep the row with the latest updated_at or highest points
 DELETE FROM public.leaderboards a
 USING public.leaderboards b
 WHERE a.tenant_id = b.tenant_id
-  AND a.class_id = b.class_id
   AND a.user_id = b.user_id
-  AND (a.score < b.score OR (a.score = b.score AND a.updated_at < b.updated_at));
+  AND (a.points < b.points OR (a.points = b.points AND a.updated_at < b.updated_at));
 
 -- 2. Enable RLS
 ALTER TABLE public.leaderboards ENABLE ROW LEVEL SECURITY;

@@ -91,7 +91,7 @@ BEGIN
         SELECT 1 FROM public.quiz_attempts 
         WHERE student_id = NEW.student_id 
           AND tenant_id = NEW.tenant_id 
-          AND status IN ('SUBMITTED', 'GRADED')
+          AND status IN ('submitted', 'graded')
           AND id != NEW.id
     ) THEN
         PERFORM public.award_badge_if_qualified(NEW.student_id, 'First Quiz', NEW.tenant_id);
@@ -110,7 +110,7 @@ DROP TRIGGER IF EXISTS trg_quiz_badges ON public.quiz_attempts;
 CREATE TRIGGER trg_quiz_badges
 AFTER UPDATE OF status ON public.quiz_attempts
 FOR EACH ROW
-WHEN (NEW.status = 'GRADED' AND OLD.status != 'GRADED')
+WHEN (NEW.status = 'graded' AND OLD.status != 'graded')
 EXECUTE FUNCTION public.handle_quiz_badges();
 
 -- Badge: 7 Day Streak

@@ -14,13 +14,13 @@ BEGIN
     END IF;
 END $$;
 
--- 2. Hardened Cleanup: Ensure 'ABANDONED' state is available (already added in 43, but ensuring safety)
+-- 2. Hardened Cleanup: Ensure 'abandoned' state is available (already added in 43, but ensuring safety)
 -- This is already in the ENUM from 43_migration.sql
 
 -- 3. Optimization: Partial index for historical queries
 CREATE INDEX IF NOT EXISTS idx_quiz_attempts_submitted_hist 
 ON public.quiz_attempts (submitted_at) 
-WHERE (status = 'SUBMITTED' OR status = 'GRADED');
+WHERE (status = 'submitted' OR status = 'graded');
 
 -- 4. Re-implement start_quiz_attempt with Backend Randomization
 CREATE OR REPLACE FUNCTION public.start_quiz_attempt(p_quiz_id UUID)
@@ -72,7 +72,7 @@ BEGIN
     -- 4. Recovery: Check for active attempt
     SELECT id, status INTO v_attempt_id, v_status
     FROM public.quiz_attempts
-    WHERE student_id = auth.uid() AND quiz_id = p_quiz_id AND status = 'IN_PROGRESS'
+    WHERE student_id = auth.uid() AND quiz_id = p_quiz_id AND status = 'in_progress'
     ORDER BY started_at DESC
     LIMIT 1;
 
@@ -89,7 +89,7 @@ BEGIN
     FROM public.quiz_attempts
     WHERE quiz_id = p_quiz_id 
       AND student_id = auth.uid() 
-      AND status IN ('SUBMITTED', 'GRADED');
+      AND status IN ('submitted', 'graded');
 
     IF v_attempt_count >= COALESCE(v_max_attempts, 1) THEN
         RAISE EXCEPTION 'Attempt limit reached. Maximum allowed: %', v_max_attempts;
@@ -103,7 +103,7 @@ BEGIN
     INSERT INTO public.quiz_attempts (
         quiz_id, student_id, tenant_id, status, started_at, expires_at
     ) VALUES (
-        p_quiz_id, auth.uid(), v_tenant_id, 'IN_PROGRESS', now(), v_expires_at
+        p_quiz_id, auth.uid(), v_tenant_id, 'in_progress', now(), v_expires_at
     ) RETURNING id INTO v_attempt_id;
 
     -- 7. Snapshot Questions with BACKEND RANDOMIZATION
@@ -126,7 +126,7 @@ BEGIN
 
     RETURN jsonb_build_object(
         'attempt_id', v_attempt_id,
-        'status', 'IN_PROGRESS',
+        'status', 'in_progress',
         'recovered', false
     );
 END;
@@ -166,8 +166,8 @@ DECLARE
 BEGIN
     -- A. Mark as EXPIRED if past time limit
     UPDATE public.quiz_attempts
-    SET status = 'EXPIRED', finished_at = COALESCE(expires_at, now())
-    WHERE status = 'IN_PROGRESS'
+    SET status = 'expired', finished_at = COALESCE(expires_at, now())
+    WHERE status = 'in_progress'
       AND expires_at IS NOT NULL
       AND now() > expires_at + INTERVAL '5 minutes';
     
@@ -177,8 +177,8 @@ BEGIN
     -- Note: quiz_attempts should have an updated_at column for this to be accurate.
     -- If not, we use started_at.
     UPDATE public.quiz_attempts
-    SET status = 'ABANDONED', finished_at = now()
-    WHERE status = 'IN_PROGRESS'
+    SET status = 'abandoned', finished_at = now()
+    WHERE status = 'in_progress'
       AND started_at < now() - INTERVAL '48 hours';
 
     GET DIAGNOSTICS v_count_abandoned = ROW_COUNT;

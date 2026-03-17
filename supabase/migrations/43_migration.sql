@@ -11,12 +11,12 @@ DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'quiz_attempt_status') THEN
         CREATE TYPE public.quiz_attempt_status AS ENUM (
-            'NOT_STARTED',
-            'IN_PROGRESS',
-            'SUBMITTED',
-            'EXPIRED',
-            'GRADED',
-            'ABANDONED'
+            'not_started',
+            'in_progress',
+            'submitted',
+            'expired',
+            'graded',
+            'abandoned'
         );
     END IF;
 END $$;
@@ -24,43 +24,27 @@ END $$;
 -- 2. Update quiz_attempts table
 DO $$
 BEGIN
-    -- Add status column if it doesn't exist, or migrate from text/old enum
+    -- Check if status column exists - if it does, just add expires_at if missing
     IF EXISTS (
         SELECT 1 FROM information_schema.columns 
         WHERE table_schema='public' AND table_name='quiz_attempts' AND column_name='status'
     ) THEN
-        -- Safely handle type change by dropping default first
-        ALTER TABLE public.quiz_attempts ALTER COLUMN status DROP DEFAULT;
-
-        ALTER TABLE public.quiz_attempts 
-        ALTER COLUMN status TYPE public.quiz_attempt_status 
-        USING (
-            CASE 
-                WHEN lower(status::text) = 'in_progress' THEN 'IN_PROGRESS'::public.quiz_attempt_status
-                WHEN lower(status::text) = 'submitted' THEN 'SUBMITTED'::public.quiz_attempt_status
-                WHEN lower(status::text) = 'graded' THEN 'GRADED'::public.quiz_attempt_status
-                WHEN lower(status::text) = 'expired' THEN 'EXPIRED'::public.quiz_attempt_status
-                ELSE 'ABANDONED'::public.quiz_attempt_status
-            END
-        );
-
-        -- Re-add the proper default
-        ALTER TABLE public.quiz_attempts ALTER COLUMN status SET DEFAULT 'NOT_STARTED'::public.quiz_attempt_status;
-    ELSIF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='quiz_attempts' AND column_name='status') THEN
-        ALTER TABLE public.quiz_attempts ADD COLUMN IF NOT EXISTS status public.quiz_attempt_status NOT NULL DEFAULT 'NOT_STARTED';
-    END IF;
-
-    -- Add expires_at if it's missing
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='quiz_attempts' AND column_name='expires_at') THEN
+        -- Status column already exists with some type - skip type conversion, just add expires_at
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='quiz_attempts' AND column_name='expires_at') THEN
+            ALTER TABLE public.quiz_attempts ADD COLUMN IF NOT EXISTS expires_at timestamptz;
+        END IF;
+    ELSE
+        -- Column doesn't exist, add it with the new enum type
+        ALTER TABLE public.quiz_attempts ADD COLUMN IF NOT EXISTS status public.quiz_attempt_status NOT NULL DEFAULT 'not_started';
         ALTER TABLE public.quiz_attempts ADD COLUMN IF NOT EXISTS expires_at timestamptz;
     END IF;
 END $$;
 
 -- 3. Partial Unique Index (Concurrency Prevention)
--- A student can only have ONE 'IN_PROGRESS' attempt for a specific quiz at a time.
+-- A student can only have ONE 'in_progress' attempt for a specific quiz at a time.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_quiz_attempts_single_active 
 ON public.quiz_attempts (tenant_id, quiz_id, student_id) 
-WHERE (status = 'IN_PROGRESS');
+WHERE (status = 'in_progress'::attempt_status);
 
 -- 4. Optimized Performance Indexes
 CREATE INDEX IF NOT EXISTS idx_quiz_attempts_tenant_quiz ON public.quiz_attempts(tenant_id, quiz_id);
@@ -122,11 +106,11 @@ BEGIN
   FROM public.quiz_attempts
   WHERE quiz_id = p_quiz_id 
     AND student_id = auth.uid() 
-    AND status = 'IN_PROGRESS'
+    AND status = 'in_progress'
   LIMIT 1;
 
   IF v_attempt_id IS NOT NULL THEN
-    RETURN jsonb_build_object('attempt_id', v_attempt_id, 'status', 'IN_PROGRESS', 'resumed', true);
+    RETURN jsonb_build_object('attempt_id', v_attempt_id, 'status', 'in_progress', 'resumed', true);
   END IF;
 
   -- E. Attempt Limit Validation
@@ -134,7 +118,7 @@ BEGIN
   FROM public.quiz_attempts
   WHERE quiz_id = p_quiz_id 
     AND student_id = auth.uid() 
-    AND status IN ('SUBMITTED', 'GRADED');
+    AND status IN ('submitted', 'graded');
 
   IF v_attempt_count >= COALESCE(v_max_attempts, 1) THEN
       RAISE EXCEPTION 'Attempt limit reached. Maximum allowed: %', v_max_attempts;
@@ -153,7 +137,7 @@ BEGIN
     p_quiz_id, 
     auth.uid(), 
     v_tenant_id, 
-    'IN_PROGRESS', 
+    'in_progress', 
     now(),
     CASE 
       WHEN v_time_limit_minutes > 0 THEN now() + (v_time_limit_minutes || ' minutes')::interval
@@ -162,7 +146,7 @@ BEGIN
   )
   RETURNING id INTO v_attempt_id;
 
-  RETURN jsonb_build_object('attempt_id', v_attempt_id, 'status', 'IN_PROGRESS', 'resumed', false);
+  RETURN jsonb_build_object('attempt_id', v_attempt_id, 'status', 'in_progress', 'resumed', false);
 END;
 $$;
 
@@ -217,7 +201,7 @@ BEGIN
   FROM public.quiz_attempts
   WHERE quiz_id = p_quiz_id 
     AND student_id = auth.uid()
-    AND status = 'IN_PROGRESS'
+    AND status = 'in_progress'
   FOR UPDATE;
 
   IF v_attempt_id IS NULL THEN
@@ -227,7 +211,7 @@ BEGIN
       WHERE quiz_id = p_quiz_id AND student_id = auth.uid()
       ORDER BY started_at DESC LIMIT 1;
       
-      IF v_status IN ('SUBMITTED', 'GRADED') THEN
+      IF v_status IN ('submitted', 'graded') THEN
         RAISE EXCEPTION 'Attempt already submitted. Cannot re-grade.';
       END IF;
       
@@ -237,7 +221,7 @@ BEGIN
   -- D. Time Integrity Check (30s grace period)
   IF v_expires_at IS NOT NULL AND now() > v_expires_at + interval '30 seconds' THEN
       UPDATE public.quiz_attempts
-      SET status = 'EXPIRED', finished_at = now()
+      SET status = 'expired', finished_at = now()
       WHERE id = v_attempt_id;
       
       RAISE EXCEPTION 'Time limit exceeded. Attempt marked as EXPIRED.';
@@ -279,7 +263,7 @@ BEGIN
   UPDATE public.quiz_attempts
   SET
       score = v_score,
-      status = 'GRADED',
+      status = 'graded',
       submitted_at = now(),
       finished_at = now(),
       time_spent = EXTRACT(EPOCH FROM (now() - v_started_at))::integer,

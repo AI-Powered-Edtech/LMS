@@ -12,8 +12,9 @@ BEGIN
 END $$;
 
 -- 2. Fix potential nulls in quiz_attempts for new hardening logic
+-- Use 'submitted' as fallback since 'abandoned' is not in the enum
 UPDATE public.quiz_attempts 
-SET status = 'ABANDONED'::public.quiz_attempt_status 
+SET status = 'submitted'::attempt_status 
 WHERE status IS NULL;
 
 -- 3. Ensure last_heartbeat_at exists and is populated for active attempts

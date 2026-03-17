@@ -32,11 +32,11 @@ BEGIN
 
     -- Map status to event type
     CASE NEW.status
-        WHEN 'IN_PROGRESS' THEN v_event_type := 'QUIZ_STARTED'::public.activity_event_type;
-        WHEN 'SUBMITTED' THEN v_event_type := 'QUIZ_SUBMITTED'::public.activity_event_type;
-        WHEN 'GRADED' THEN v_event_type := 'QUIZ_GRADED'::public.activity_event_type;
-        WHEN 'EXPIRED' THEN v_event_type := 'QUIZ_EXPIRED'::public.activity_event_type;
-        WHEN 'ABANDONED' THEN v_event_type := 'QUIZ_ABANDONED'::public.activity_event_type;
+        WHEN 'in_progress' THEN v_event_type := 'QUIZ_STARTED'::public.activity_event_type;
+        WHEN 'submitted' THEN v_event_type := 'QUIZ_SUBMITTED'::public.activity_event_type;
+        WHEN 'graded' THEN v_event_type := 'QUIZ_GRADED'::public.activity_event_type;
+        WHEN 'expired' THEN v_event_type := 'QUIZ_EXPIRED'::public.activity_event_type;
+        WHEN 'abandoned' THEN v_event_type := 'QUIZ_ABANDONED'::public.activity_event_type;
         ELSE RETURN NEW;
     END CASE;
 
@@ -81,7 +81,7 @@ BEGIN
             'attempt_number', NEW.attempt_number,
             'tab_switch_count', NEW.tab_switch_count,
             'focus_loss_count', NEW.focus_loss_count,
-            'triggered_by', CASE WHEN NEW.status IN ('ABANDONED', 'EXPIRED') THEN 'system_cleanup' ELSE 'user_action' END
+            'triggered_by', CASE WHEN NEW.status IN ('abandoned', 'expired') THEN 'system_cleanup' ELSE 'user_action' END
         )
     );
 
@@ -106,7 +106,7 @@ BEGIN
     WHERE id = p_attempt_id 
       AND student_id = auth.uid()
       AND tenant_id = v_tenant_id -- Explicit tenant check
-      AND status = 'IN_PROGRESS';
+      AND status = 'in_progress';
 END;
 $$;
 
@@ -140,6 +140,6 @@ BEGIN
     WHERE id = p_attempt_id 
       AND student_id = auth.uid()
       AND tenant_id = v_tenant_id -- Explicit tenant check
-      AND status = 'IN_PROGRESS';
+      AND status = 'in_progress';
 END;
 $$;

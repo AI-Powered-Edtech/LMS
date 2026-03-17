@@ -16,7 +16,7 @@ ADD COLUMN IF NOT EXISTS focus_loss_count INTEGER DEFAULT 0;
 -- 2. Add Composite Index for efficient cleanup
 CREATE INDEX IF NOT EXISTS idx_quiz_attempts_cleanup_lookup 
 ON public.quiz_attempts (status, last_heartbeat_at)
-WHERE status = 'IN_PROGRESS';
+WHERE status = 'in_progress';
 
 -- 2. Heartbeat RPC
 CREATE OR REPLACE FUNCTION public.record_quiz_heartbeat(p_attempt_id UUID)
@@ -29,7 +29,7 @@ BEGIN
     SET last_heartbeat_at = now()
     WHERE id = p_attempt_id 
       AND student_id = auth.uid()
-      AND status = 'IN_PROGRESS';
+      AND status = 'in_progress';
 END;
 $$;
 
@@ -60,7 +60,7 @@ BEGIN
         )
     WHERE id = p_attempt_id 
       AND student_id = auth.uid()
-      AND status = 'IN_PROGRESS';
+      AND status = 'in_progress';
 END;
 $$;
 
@@ -78,8 +78,8 @@ DECLARE
 BEGIN
     -- A. Hard Expiration (Timer ran out)
     UPDATE public.quiz_attempts
-    SET status = 'EXPIRED', finished_at = COALESCE(expires_at, now())
-    WHERE status = 'IN_PROGRESS'
+    SET status = 'expired', finished_at = COALESCE(expires_at, now())
+    WHERE status = 'in_progress'
       AND expires_at IS NOT NULL
       AND now() > expires_at + INTERVAL '5 minutes';
     
@@ -88,8 +88,8 @@ BEGIN
     -- B. Soft Inactivity (Abandoned - e.g. browser closed, no heartbeat)
     -- Using 15 minutes as the threshold for "Abandoned"
     UPDATE public.quiz_attempts
-    SET status = 'ABANDONED', finished_at = now()
-    WHERE status = 'IN_PROGRESS'
+    SET status = 'abandoned', finished_at = now()
+    WHERE status = 'in_progress'
       AND last_heartbeat_at < now() - INTERVAL '15 minutes';
 
     GET DIAGNOSTICS v_count_abandoned = ROW_COUNT;

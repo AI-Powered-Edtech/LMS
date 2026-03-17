@@ -29,7 +29,7 @@ DECLARE
     v_existing_id UUID;
 BEGIN
     -- Only check when inserting an IN_PROGRESS attempt
-    IF NEW.status <> 'IN_PROGRESS' THEN
+    IF NEW.status <> 'in_progress' THEN
         RETURN NEW;
     END IF;
 
@@ -40,7 +40,7 @@ BEGIN
     WHERE student_id = NEW.student_id
       AND quiz_id = NEW.quiz_id
       AND tenant_id = NEW.tenant_id
-      AND status = 'IN_PROGRESS'
+      AND status = 'in_progress'
     LIMIT 1
     FOR UPDATE;
 
@@ -65,7 +65,7 @@ COMMENT ON FUNCTION public.check_single_active_attempt() IS
 CREATE TRIGGER trg_single_active_attempt
     BEFORE INSERT ON public.quiz_attempts_v2
     FOR EACH ROW
-    WHEN (NEW.status = 'IN_PROGRESS')
+    WHEN (NEW.status = 'in_progress')
     EXECUTE FUNCTION public.check_single_active_attempt();
 
 

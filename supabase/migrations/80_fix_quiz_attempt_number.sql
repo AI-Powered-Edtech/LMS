@@ -35,7 +35,7 @@ BEGIN
     FROM public.quiz_attempts
     WHERE quiz_id = p_quiz_id 
       AND student_id = v_student_id 
-      AND status = 'IN_PROGRESS';
+      AND status = 'in_progress';
 
     IF v_existing_attempt.id IS NOT NULL THEN
         RETURN jsonb_build_object(
@@ -70,7 +70,7 @@ BEGIN
     INSERT INTO public.quiz_attempts (
         quiz_id, student_id, tenant_id, status, started_at, expires_at, attempt_seed, attempt_number
     ) VALUES (
-        p_quiz_id, v_student_id, v_tenant_id, 'IN_PROGRESS', now(), v_expires_at, gen_random_uuid(), v_attempt_number
+        p_quiz_id, v_student_id, v_tenant_id, 'in_progress', now(), v_expires_at, gen_random_uuid(), v_attempt_number
     ) RETURNING id INTO v_attempt_id;
 
     -- Snapshot Questions (With Randomization/Shuffling)
@@ -94,7 +94,7 @@ BEGIN
 
     RETURN jsonb_build_object(
         'attempt_id', v_attempt_id,
-        'status', 'IN_PROGRESS',
+        'status', 'in_progress',
         'recovered', false,
         'attempt_number', v_attempt_number,
         'started_at', now(),

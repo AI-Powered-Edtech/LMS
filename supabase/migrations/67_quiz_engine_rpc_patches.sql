@@ -70,7 +70,7 @@ BEGIN
     -- Fetch existing IN_PROGRESS attempt
     SELECT id, status, expires_at, attempt_number INTO v_existing_attempt
     FROM public.quiz_attempts
-    WHERE student_id = v_user_id AND quiz_id = p_quiz_id AND status = 'IN_PROGRESS'
+    WHERE student_id = v_user_id AND quiz_id = p_quiz_id AND status = 'in_progress'
     ORDER BY started_at DESC LIMIT 1;
 
     IF v_existing_attempt.id IS NOT NULL THEN
@@ -79,7 +79,7 @@ BEGIN
         ELSE
             RETURN jsonb_build_object(
                 'attempt_id', v_existing_attempt.id, 
-                'status', 'IN_PROGRESS', 
+                'status', 'in_progress', 
                 'recovered', true, 
                 'expires_at', v_existing_attempt.expires_at,
                 'attempt_number', v_existing_attempt.attempt_number
@@ -89,7 +89,7 @@ BEGIN
 
     SELECT count(*) INTO v_attempt_count
     FROM public.quiz_attempts
-    WHERE quiz_id = p_quiz_id AND student_id = v_user_id AND status IN ('SUBMITTED', 'GRADED', 'EXPIRED');
+    WHERE quiz_id = p_quiz_id AND student_id = v_user_id AND status IN ('submitted', 'graded', 'expired');
 
     IF COALESCE(v_quiz.max_attempts, 0) > 0 AND v_attempt_count >= v_quiz.max_attempts THEN
         RAISE EXCEPTION 'ATTEMPT_LIMIT_REACHED';
@@ -109,7 +109,7 @@ BEGIN
     END IF;
 
     INSERT INTO public.quiz_attempts (quiz_id, student_id, tenant_id, status, started_at, expires_at, attempt_number, attempt_seed)
-    VALUES (p_quiz_id, v_user_id, v_tenant_id, 'IN_PROGRESS', now(), v_expires_at, v_attempt_number, v_attempt_seed)
+    VALUES (p_quiz_id, v_user_id, v_tenant_id, 'in_progress', now(), v_expires_at, v_attempt_number, v_attempt_seed)
     RETURNING id INTO v_attempt_id;
 
     INSERT INTO public.quiz_attempt_questions (attempt_id, question_id, tenant_id, text, explanation, "order_index", question_type, max_points, question_snapshot)
@@ -140,7 +140,7 @@ BEGIN
 
     RETURN jsonb_build_object(
         'attempt_id', v_attempt_id, 
-        'status', 'IN_PROGRESS', 
+        'status', 'in_progress', 
         'recovered', false, 
         'expires_at', v_expires_at, 
         'attempt_number', v_attempt_number
@@ -195,7 +195,7 @@ BEGIN
     FOR UPDATE;
 
     IF v_attempt.id IS NULL THEN RAISE EXCEPTION 'ATTEMPT_NOT_FOUND'; END IF;
-    IF v_attempt.status != 'IN_PROGRESS' THEN RAISE EXCEPTION 'ATTEMPT_NOT_IN_PROGRESS'; END IF;
+    IF v_attempt.status != 'in_progress' THEN RAISE EXCEPTION 'ATTEMPT_NOT_IN_PROGRESS'; END IF;
 
     -- Optimistic locking check
     IF p_version IS NOT NULL AND v_attempt.version != p_version THEN
@@ -260,7 +260,7 @@ BEGIN
     v_time_spent := GREATEST(0, EXTRACT(EPOCH FROM (now() - v_attempt.started_at))::INTEGER);
 
     UPDATE public.quiz_attempts
-    SET status = CASE WHEN v_has_ungraded THEN 'SUBMITTED'::public.quiz_attempt_status ELSE 'GRADED'::public.quiz_attempt_status END,
+    SET status = CASE WHEN v_has_ungraded THEN 'submitted'::public.quiz_attempt_status ELSE 'graded'::public.quiz_attempt_status END,
         score = v_final_score, passed = CASE WHEN v_has_ungraded THEN NULL ELSE v_passed END,
         submitted_at = now(), finished_at = now(), duration_seconds = v_time_spent, answers = p_answers,
         version = version + 1
@@ -277,7 +277,7 @@ BEGIN
         jsonb_build_object('quiz_id', v_attempt.quiz_id, 'score', v_final_score, 'passed', v_passed, 'attempt_number', v_attempt.attempt_number, 'time_spent', v_time_spent, 'has_ungraded', v_has_ungraded)
     FROM public.quizzes q WHERE q.id = v_attempt.quiz_id;
 
-    RETURN jsonb_build_object('attempt_id', p_attempt_id, 'status', CASE WHEN v_has_ungraded THEN 'SUBMITTED' ELSE 'GRADED' END,
+    RETURN jsonb_build_object('attempt_id', p_attempt_id, 'status', CASE WHEN v_has_ungraded THEN 'submitted' ELSE 'graded' END,
         'score', v_final_score, 'passed', CASE WHEN v_has_ungraded THEN NULL ELSE v_passed END,
         'total_correct', v_total_correct_count, 'total_questions', v_total_questions,
         'time_spent', v_time_spent, 'has_ungraded', v_has_ungraded, 'show_correct_answers', v_attempt.show_correct_answers,

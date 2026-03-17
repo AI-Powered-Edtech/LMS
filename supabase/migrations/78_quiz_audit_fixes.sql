@@ -117,10 +117,10 @@ BEGIN
 
     -- Auto-abandon expired IN_PROGRESS attempts before checking
     UPDATE public.quiz_attempts_v2
-    SET status = 'ABANDONED'
+    SET status = 'abandoned'
     WHERE quiz_id = p_quiz_id 
       AND student_id = v_student_id 
-      AND status = 'IN_PROGRESS'
+      AND status = 'in_progress'
       AND expires_at < now();
 
     -- Enforce Attempt Limits
@@ -138,7 +138,7 @@ BEGIN
     FROM public.quiz_attempts_v2 
     WHERE quiz_id = p_quiz_id 
       AND student_id = v_student_id 
-      AND status = 'IN_PROGRESS'
+      AND status = 'in_progress'
       AND expires_at >= now()
     LIMIT 1;
 
@@ -146,7 +146,7 @@ BEGIN
         -- Return existing attempt for resume instead of error
         RETURN jsonb_build_object(
             'attempt_id', v_existing_attempt.id,
-            'status', 'IN_PROGRESS',
+            'status', 'in_progress',
             'recovered', true,
             'started_at', v_existing_attempt.started_at,
             'expires_at', v_existing_attempt.expires_at,
@@ -185,14 +185,14 @@ BEGIN
         expires_at, question_manifest, attempt_number, attempt_seed
     )
     VALUES (
-        v_new_attempt_id, v_tenant_id, p_quiz_id, v_student_id, now(), 'IN_PROGRESS', 
+        v_new_attempt_id, v_tenant_id, p_quiz_id, v_student_id, now(), 'in_progress', 
         v_expires_at, v_manifest, v_previous_attempts + 1, v_attempt_seed
     );
 
     -- Return API Contract matched payload
     RETURN jsonb_build_object(
         'attempt_id', v_new_attempt_id,
-        'status', 'IN_PROGRESS',
+        'status', 'in_progress',
         'recovered', false,
         'started_at', now(),
         'expires_at', v_expires_at,

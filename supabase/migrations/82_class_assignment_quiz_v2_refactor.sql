@@ -1170,6 +1170,9 @@ BEGIN
 END;
 $$;
 
+-- Drop function to allow parameter name change from p_quiz_id to p_assignment_id
+DROP FUNCTION IF EXISTS public.get_question_difficulty(uuid);
+
 CREATE OR REPLACE FUNCTION public.get_question_difficulty(p_assignment_id UUID)
 RETURNS TABLE (
     question_id UUID,

@@ -62,7 +62,7 @@ BEGIN
     -- Find the latest IN_PROGRESS attempt
     SELECT id, status, expires_at INTO v_attempt_id, v_status, v_expires_at
     FROM public.quiz_attempts
-    WHERE student_id = auth.uid() AND quiz_id = p_quiz_id AND status = 'IN_PROGRESS'
+    WHERE student_id = auth.uid() AND quiz_id = p_quiz_id AND status = 'in_progress'
     ORDER BY started_at DESC
     LIMIT 1;
 
@@ -71,7 +71,7 @@ BEGIN
         IF v_expires_at IS NOT NULL AND now() > v_expires_at THEN
             -- Mark as expired
             UPDATE public.quiz_attempts
-            SET status = 'EXPIRED', finished_at = v_expires_at
+            SET status = 'expired', finished_at = v_expires_at
             WHERE id = v_attempt_id;
             
             -- Reset variables to proceed as if no active attempt exists
@@ -92,7 +92,7 @@ BEGIN
     FROM public.quiz_attempts
     WHERE quiz_id = p_quiz_id 
       AND student_id = auth.uid() 
-      AND status IN ('SUBMITTED', 'GRADED', 'EXPIRED'); -- Count EXPIRED towards limit too if needed, or follow policy
+      AND status IN ('submitted', 'graded', 'expired'); -- Count EXPIRED towards limit too if needed, or follow policy
 
     IF COALESCE(v_max_attempts, 0) > 0 AND v_attempt_count >= COALESCE(v_max_attempts, 1) THEN
         RAISE EXCEPTION 'Attempt limit reached. Maximum allowed: %', v_max_attempts;
@@ -106,7 +106,7 @@ BEGIN
     INSERT INTO public.quiz_attempts (
         quiz_id, student_id, tenant_id, status, started_at, expires_at
     ) VALUES (
-        p_quiz_id, auth.uid(), v_tenant_id, 'IN_PROGRESS', now(), v_expires_at
+        p_quiz_id, auth.uid(), v_tenant_id, 'in_progress', now(), v_expires_at
     ) RETURNING id INTO v_attempt_id;
 
     -- 7. Snapshot Questions
@@ -125,7 +125,7 @@ BEGIN
 
     RETURN jsonb_build_object(
         'attempt_id', v_attempt_id,
-        'status', 'IN_PROGRESS',
+        'status', 'in_progress',
         'recovered', false,
         'expires_at', v_expires_at
     );

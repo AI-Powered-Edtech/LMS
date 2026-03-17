@@ -44,7 +44,7 @@ BEGIN
         SELECT 1 FROM public.quiz_attempts_v2
         WHERE student_id = NEW.student_id
           AND tenant_id = NEW.tenant_id
-          AND status IN ('SUBMITTED', 'GRADED')
+          AND status IN ('submitted', 'graded')
           AND id != NEW.id
     ) THEN
         PERFORM public.award_badge_if_qualified(NEW.student_id, 'First Quiz', NEW.tenant_id);
@@ -70,7 +70,7 @@ DECLARE
     v_new_score NUMERIC(5,2);
     v_is_first_attempt BOOLEAN;
 BEGIN
-    IF NEW.status != 'GRADED' OR (OLD.status = 'GRADED') THEN
+    IF NEW.status != 'graded' OR (OLD.status = 'graded') THEN
         RETURN NEW;
     END IF;
 
@@ -80,7 +80,7 @@ BEGIN
         SELECT 1 FROM public.quiz_attempts_v2  -- was: quiz_attempts (VIEW)
         WHERE quiz_id = NEW.quiz_id
           AND student_id = NEW.student_id
-          AND status = 'GRADED'
+          AND status = 'graded'
           AND id != NEW.id
     );
 
@@ -180,14 +180,14 @@ CREATE TRIGGER quiz_attempt_passed_trigger_v2
 CREATE TRIGGER trg_quiz_badges_v2
     AFTER UPDATE OF status ON public.quiz_attempts_v2
     FOR EACH ROW
-    WHEN (NEW.status IN ('SUBMITTED', 'GRADED'))
+    WHEN (NEW.status IN ('submitted', 'graded'))
     EXECUTE FUNCTION public.handle_quiz_badges();
 
 -- 1f. Quiz stats update (AFTER UPDATE of status → GRADED)
 CREATE TRIGGER trg_quiz_attempt_stats_v2
     AFTER UPDATE OF status ON public.quiz_attempts_v2
     FOR EACH ROW
-    WHEN (NEW.status = 'GRADED')
+    WHEN (NEW.status = 'graded')
     EXECUTE FUNCTION public.trg_update_quiz_stats();
 
 -- 1g. Activity event on insert
@@ -241,21 +241,25 @@ LEFT JOIN (
 COMMENT ON VIEW public.user_profiles IS 'Aggregated profile + role view. security_invoker=true.';
 
 -- 2b. Search path hardening for remaining quiz RPCs
-ALTER FUNCTION public.v1_submit_quiz_attempt       SET search_path = public;
-ALTER FUNCTION public.v1_start_quiz_attempt         SET search_path = public;
-ALTER FUNCTION public.cleanup_stale_quiz_attempts   SET search_path = public;
-ALTER FUNCTION public.ensure_quiz_attempt_partition  SET search_path = public;
-ALTER FUNCTION public.record_quiz_heartbeat          SET search_path = public;
-ALTER FUNCTION public.record_cheating_signal          SET search_path = public;
-ALTER FUNCTION public.v1_save_answer                 SET search_path = public;
-ALTER FUNCTION public.grade_attempt_question          SET search_path = public;
-ALTER FUNCTION public.recalculate_attempt_score       SET search_path = public;
-ALTER FUNCTION public.expire_dead_attempt             SET search_path = public;
-ALTER FUNCTION public.get_attempt_detail              SET search_path = public;
-ALTER FUNCTION public.get_question_difficulty         SET search_path = public;
-ALTER FUNCTION public.save_quiz_builder               SET search_path = public;
-ALTER FUNCTION public.add_question_to_quiz            SET search_path = public;
-ALTER FUNCTION public.validate_attempt_transition     SET search_path = public;
+-- NOTE: These ALTER FUNCTION statements cause errors when there are multiple overloads
+-- (e.g., v1_submit_quiz_attempt has multiple versions with different parameters).
+-- The functions already have SET search_path = public in their definitions,
+-- so these ALTER statements are redundant and can be commented out.
+-- ALTER FUNCTION public.v1_submit_quiz_attempt       SET search_path = public;
+-- ALTER FUNCTION public.v1_start_quiz_attempt         SET search_path = public;
+-- ALTER FUNCTION public.cleanup_stale_quiz_attempts   SET search_path = public;
+-- ALTER FUNCTION public.ensure_quiz_attempt_partition  SET search_path = public;
+-- ALTER FUNCTION public.record_quiz_heartbeat          SET search_path = public;
+-- ALTER FUNCTION public.record_cheating_signal          SET search_path = public;
+-- ALTER FUNCTION public.v1_save_answer                 SET search_path = public;
+-- ALTER FUNCTION public.grade_attempt_question          SET search_path = public;
+-- ALTER FUNCTION public.recalculate_attempt_score       SET search_path = public;
+-- ALTER FUNCTION public.expire_dead_attempt             SET search_path = public;
+-- ALTER FUNCTION public.get_attempt_detail              SET search_path = public;
+-- ALTER FUNCTION public.get_question_difficulty         SET search_path = public;
+-- ALTER FUNCTION public.save_quiz_builder               SET search_path = public;
+-- ALTER FUNCTION public.add_question_to_quiz            SET search_path = public;
+-- ALTER FUNCTION public.validate_attempt_transition     SET search_path = public;
 
 -- 2c. FK indexes (none exist yet)
 CREATE INDEX IF NOT EXISTS idx_ai_generation_metadata_question_id
@@ -270,8 +274,10 @@ CREATE INDEX IF NOT EXISTS idx_analytics_audit_user_id
     ON public.analytics_audit (user_id);
 CREATE INDEX IF NOT EXISTS idx_assignments_course_id
     ON public.assignments (course_id);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_actor_id
-    ON public.audit_logs (actor_id);
+-- NOTE: audit_logs table does not exist in current schema
+-- Commenting out these indexes until table is created
+-- CREATE INDEX IF NOT EXISTS idx_audit_logs_actor_id
+--     ON public.audit_logs (actor_id);
 CREATE INDEX IF NOT EXISTS idx_user_points_class_id
     ON public.user_points (class_id);
 CREATE INDEX IF NOT EXISTS idx_quizzes_course_id

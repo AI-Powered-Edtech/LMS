@@ -51,7 +51,7 @@ BEGIN
   FROM public.quiz_attempts
   WHERE quiz_id = p_quiz_id 
     AND student_id = auth.uid()
-    AND status = 'IN_PROGRESS'
+    AND status = 'in_progress'
   FOR UPDATE;
 
   IF v_attempt_id IS NULL THEN
@@ -61,7 +61,7 @@ BEGIN
       WHERE quiz_id = p_quiz_id AND student_id = auth.uid()
       ORDER BY started_at DESC LIMIT 1;
       
-      IF v_status IN ('SUBMITTED', 'GRADED') THEN
+      IF v_status IN ('submitted', 'graded') THEN
         RAISE EXCEPTION 'Attempt already submitted. Cannot re-grade.';
       END IF;
       
@@ -71,7 +71,7 @@ BEGIN
   -- D. Time Integrity Check (30s grace period)
   IF v_expires_at IS NOT NULL AND now() > v_expires_at + interval '30 seconds' THEN
       UPDATE public.quiz_attempts
-      SET status = 'EXPIRED', finished_at = now()
+      SET status = 'expired', finished_at = now()
       WHERE id = v_attempt_id;
       
       RAISE EXCEPTION 'Time limit exceeded. Attempt marked as EXPIRED.';
@@ -114,7 +114,7 @@ BEGIN
   UPDATE public.quiz_attempts
   SET
       score = v_score,
-      status = 'GRADED',
+      status = 'graded',
       submitted_at = now(),
       finished_at = now(),
       duration_seconds = EXTRACT(EPOCH FROM (now() - v_started_at))::integer,

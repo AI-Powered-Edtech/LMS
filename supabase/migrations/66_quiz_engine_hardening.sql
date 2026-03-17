@@ -81,16 +81,16 @@ AS $$
 BEGIN
     RETURN CASE
 
-        WHEN p_old_status = 'NOT_STARTED'
-        AND p_new_status = 'IN_PROGRESS'
+        WHEN p_old_status = 'not_started'
+        AND p_new_status = 'in_progress'
         THEN TRUE
 
-        WHEN p_old_status = 'IN_PROGRESS'
-        AND p_new_status IN ('SUBMITTED','EXPIRED','ABANDONED')
+        WHEN p_old_status = 'in_progress'
+        AND p_new_status IN ('submitted','expired','abandoned')
         THEN TRUE
 
-        WHEN p_old_status = 'SUBMITTED'
-        AND p_new_status = 'GRADED'
+        WHEN p_old_status = 'submitted'
+        AND p_new_status = 'graded'
         THEN TRUE
 
         ELSE FALSE
@@ -159,7 +159,7 @@ BEGIN
         FROM quiz_attempts
         WHERE id = p_attempt_id
         AND student_id = v_student_id
-        AND status = 'IN_PROGRESS'
+        AND status = 'in_progress'
     ) THEN
         RAISE EXCEPTION 'Invalid attempt or permission denied';
     END IF;
@@ -260,11 +260,11 @@ BEGIN
 
     UPDATE quiz_attempts
     SET
-        status = 'EXPIRED',
+        status = 'expired',
         finished_at = expires_at,
         updated_at = now()
     WHERE id = p_attempt_id
-    AND status = 'IN_PROGRESS'
+    AND status = 'in_progress'
     AND expires_at IS NOT NULL
     AND now() > expires_at;
 

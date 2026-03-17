@@ -21,9 +21,9 @@ USING (
   tenant_id = get_my_tenant_id()
   AND (
     (class_id IS NOT NULL AND is_class_member(class_id))
-    OR (course_id IS NOT NULL AND is_enrolled_in_course(course_id))
+    
     OR (class_id IS NOT NULL AND is_class_teacher(class_id))
-    OR (course_id IS NOT NULL AND is_course_creator(course_id))
+    
     OR has_role('ADMIN')
   )
 );
@@ -34,7 +34,7 @@ WITH CHECK (
   is_module_enabled('quizzes') AND tenant_id = get_my_tenant_id()
   AND (
     (class_id IS NOT NULL AND is_class_teacher(class_id))
-    OR (course_id IS NOT NULL AND is_course_creator(course_id))
+    
     OR has_role('ADMIN')
   )
 );
@@ -45,7 +45,7 @@ USING (
   is_module_enabled('quizzes') AND tenant_id = get_my_tenant_id()
   AND (
     (class_id IS NOT NULL AND is_class_teacher(class_id))
-    OR (course_id IS NOT NULL AND is_course_creator(course_id))
+    
     OR has_role('ADMIN')
   )
 );
@@ -56,7 +56,7 @@ USING (
   is_module_enabled('quizzes') AND tenant_id = get_my_tenant_id()
   AND (
     (class_id IS NOT NULL AND is_class_teacher(class_id))
-    OR (course_id IS NOT NULL AND is_course_creator(course_id))
+    
     OR has_role('ADMIN')
   )
 );
@@ -71,9 +71,9 @@ USING (
     WHERE q.id = quiz_id 
     AND (
       (q.class_id IS NOT NULL AND is_class_member(q.class_id))
-      OR (q.course_id IS NOT NULL AND is_enrolled_in_course(q.course_id))
+      
       OR (q.class_id IS NOT NULL AND is_class_teacher(q.class_id))
-      OR (q.course_id IS NOT NULL AND is_course_creator(q.course_id))
+      
       OR has_role('ADMIN')
     )
   )
@@ -88,7 +88,7 @@ WITH CHECK (
     WHERE q.id = quiz_id 
     AND (
       (q.class_id IS NOT NULL AND is_class_teacher(q.class_id))
-      OR (q.course_id IS NOT NULL AND is_course_creator(q.course_id))
+      
       OR has_role('ADMIN')
     )
   )
@@ -103,7 +103,7 @@ USING (
     WHERE q.id = quiz_id 
     AND (
       (q.class_id IS NOT NULL AND is_class_teacher(q.class_id))
-      OR (q.course_id IS NOT NULL AND is_course_creator(q.course_id))
+      
       OR has_role('ADMIN')
     )
   )
@@ -118,7 +118,7 @@ USING (
     WHERE q.id = quiz_id 
     AND (
       (q.class_id IS NOT NULL AND is_class_teacher(q.class_id))
-      OR (q.course_id IS NOT NULL AND is_course_creator(q.course_id))
+      
       OR has_role('ADMIN')
     )
   )
@@ -135,9 +135,9 @@ USING (
     WHERE qq.id = question_id
     AND (
       (q.class_id IS NOT NULL AND is_class_member(q.class_id))
-      OR (q.course_id IS NOT NULL AND is_enrolled_in_course(q.course_id))
+      
       OR (q.class_id IS NOT NULL AND is_class_teacher(q.class_id))
-      OR (q.course_id IS NOT NULL AND is_course_creator(q.course_id))
+      
       OR has_role('ADMIN')
     )
   )
@@ -153,7 +153,7 @@ WITH CHECK (
     WHERE qq.id = question_id
     AND (
       (q.class_id IS NOT NULL AND is_class_teacher(q.class_id))
-      OR (q.course_id IS NOT NULL AND is_course_creator(q.course_id))
+      
       OR has_role('ADMIN')
     )
   )
@@ -169,7 +169,7 @@ USING (
     WHERE qq.id = question_id
     AND (
       (q.class_id IS NOT NULL AND is_class_teacher(q.class_id))
-      OR (q.course_id IS NOT NULL AND is_course_creator(q.course_id))
+      
       OR has_role('ADMIN')
     )
   )
@@ -185,7 +185,7 @@ USING (
     WHERE qq.id = question_id
     AND (
       (q.class_id IS NOT NULL AND is_class_teacher(q.class_id))
-      OR (q.course_id IS NOT NULL AND is_course_creator(q.course_id))
+      
       OR has_role('ADMIN')
     )
   )
@@ -203,7 +203,7 @@ USING (
       WHERE q.id = quiz_id 
       AND (
         (q.class_id IS NOT NULL AND is_class_teacher(q.class_id))
-        OR (q.course_id IS NOT NULL AND is_course_creator(q.course_id))
+        
       )
     )
     OR has_role('ADMIN')

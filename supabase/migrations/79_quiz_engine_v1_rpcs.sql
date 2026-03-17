@@ -36,7 +36,7 @@ BEGIN
     FROM public.quiz_attempts
     WHERE quiz_id = p_quiz_id 
       AND student_id = v_student_id 
-      AND status = 'IN_PROGRESS';
+      AND status = 'in_progress';
 
     IF v_existing_attempt.id IS NOT NULL THEN
         -- If expired, auto-close it and continue to let them start a new one (if attempts allow),
@@ -62,7 +62,7 @@ BEGIN
     INSERT INTO public.quiz_attempts (
         quiz_id, student_id, tenant_id, status, started_at, expires_at, attempt_seed
     ) VALUES (
-        p_quiz_id, v_student_id, v_tenant_id, 'IN_PROGRESS', now(), v_expires_at, gen_random_uuid()
+        p_quiz_id, v_student_id, v_tenant_id, 'in_progress', now(), v_expires_at, gen_random_uuid()
     ) RETURNING id INTO v_attempt_id;
 
     -- Snapshot Questions (With Randomization/Shuffling)
@@ -86,7 +86,7 @@ BEGIN
 
     RETURN jsonb_build_object(
         'attempt_id', v_attempt_id,
-        'status', 'IN_PROGRESS',
+        'status', 'in_progress',
         'recovered', false,
         'started_at', now(),
         'expires_at', v_expires_at
@@ -131,7 +131,7 @@ BEGIN
     END IF;
 
     -- Guard 2: Reject if submitted
-    IF v_attempt.status != 'IN_PROGRESS' THEN
+    IF v_attempt.status != 'in_progress' THEN
         RAISE EXCEPTION 'Attempt is no longer in progress' USING ERRCODE = 'P0003';
     END IF;
 
@@ -192,7 +192,7 @@ BEGIN
     END IF;
 
     -- Anti Double Submit (Idempotency check)
-    IF v_attempt.status IN ('SUBMITTED', 'GRADED') THEN
+    IF v_attempt.status IN ('submitted', 'graded') THEN
         RETURN jsonb_build_object(
             'status', v_attempt.status,
             'message', 'Already submitted'
@@ -200,18 +200,18 @@ BEGIN
     END IF;
 
     -- Timer enforcement verification (mark EXPIRED if past due, but still grade what we have)
-    -- Wait, if it's expired we still grade and submit, but maybe track status='EXPIRED'?
+    -- Wait, if it's expired we still grade and submit, but maybe track status='expired'?
     -- Often LMS treats auto-submit of an expired as SUBMITTED but with an expired timestamp.
     -- Let's just grade it as is. 
 
     -- ANTI DOUBLE SUBMIT LOCK
     UPDATE public.quiz_attempts
-    SET status = 'SUBMITTED', submitted_at = now()
-    WHERE id = p_attempt_id AND status = 'IN_PROGRESS';
+    SET status = 'submitted', submitted_at = now()
+    WHERE id = p_attempt_id AND status = 'in_progress';
 
     IF NOT FOUND THEN
         -- Another transaction beat us to the update
-        RETURN jsonb_build_object('status', 'SUBMITTED', 'message', 'Already submitted');
+        RETURN jsonb_build_object('status', 'submitted', 'message', 'Already submitted');
     END IF;
 
     -- ========================
@@ -269,7 +269,7 @@ BEGIN
     WHERE id = p_attempt_id;
 
     RETURN jsonb_build_object(
-        'status', 'SUBMITTED',
+        'status', 'submitted',
         'score', v_total_score,
         'correct', v_correct_count,
         'incorrect', v_incorrect_count,

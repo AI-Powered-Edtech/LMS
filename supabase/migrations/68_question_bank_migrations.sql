@@ -148,9 +148,7 @@ CREATE TABLE IF NOT EXISTS lesson_chunks (
 
     lesson_id UUID,
 
-    content TEXT NOT NULL,
-
-    embedding extensions.vector(1536)
+    content TEXT NOT NULL
 );
 
 

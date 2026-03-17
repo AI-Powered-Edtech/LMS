@@ -57,8 +57,8 @@ CREATE TABLE IF NOT EXISTS public.quiz_attempts_v2 (
     student_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     
-    status VARCHAR(20) DEFAULT 'IN_PROGRESS' 
-        CHECK (status IN ('IN_PROGRESS', 'SUBMITTED', 'GRADED', 'ABANDONED')),
+    status VARCHAR(20) DEFAULT 'in_progress' 
+        CHECK (status IN ('in_progress', 'submitted', 'graded', 'abandoned')),
     score NUMERIC(5,2),
     expires_at TIMESTAMPTZ NOT NULL,
     question_manifest UUID[] NOT NULL DEFAULT '{}',
@@ -151,10 +151,10 @@ BEGIN
 
     -- Auto-abandon expired IN_PROGRESS attempts before checking
     UPDATE public.quiz_attempts_v2
-    SET status = 'ABANDONED'
+    SET status = 'abandoned'
     WHERE quiz_id = p_quiz_id 
       AND student_id = v_student_id 
-      AND status = 'IN_PROGRESS'
+      AND status = 'in_progress'
       AND expires_at < now();
 
     -- Enforce Attempt Limits
@@ -172,7 +172,7 @@ BEGIN
     FROM public.quiz_attempts_v2 
     WHERE quiz_id = p_quiz_id 
       AND student_id = v_student_id 
-      AND status = 'IN_PROGRESS'
+      AND status = 'in_progress'
       AND expires_at >= now()
     LIMIT 1;
 
@@ -180,7 +180,7 @@ BEGIN
         -- Return existing attempt for resume instead of error
         RETURN jsonb_build_object(
             'attempt_id', v_existing_attempt.id,
-            'status', 'IN_PROGRESS',
+            'status', 'in_progress',
             'recovered', true,
             'started_at', v_existing_attempt.started_at,
             'expires_at', v_existing_attempt.expires_at,
@@ -210,14 +210,14 @@ BEGIN
         expires_at, question_manifest, attempt_number
     )
     VALUES (
-        v_new_attempt_id, v_tenant_id, p_quiz_id, v_student_id, now(), 'IN_PROGRESS', 
+        v_new_attempt_id, v_tenant_id, p_quiz_id, v_student_id, now(), 'in_progress', 
         v_expires_at, v_manifest, v_previous_attempts + 1
     );
 
     -- Return API Contract matched payload
     RETURN jsonb_build_object(
         'attempt_id', v_new_attempt_id,
-        'status', 'IN_PROGRESS',
+        'status', 'in_progress',
         'recovered', false,
         'started_at', now(),
         'expires_at', v_expires_at,
@@ -265,7 +265,7 @@ BEGIN
     END IF;
 
     -- Status Guard (Must be IN_PROGRESS and not expired)
-    IF v_attempt.status != 'IN_PROGRESS' THEN
+    IF v_attempt.status != 'in_progress' THEN
         RAISE EXCEPTION 'Attempt is not in progress' USING ERRCODE = 'P0003'; -- Maps to 409
     END IF;
     IF now() > v_attempt.expires_at THEN
@@ -337,7 +337,7 @@ BEGIN
     END IF;
 
     -- Strictly Idempotent Returns
-    IF v_attempt.status IN ('SUBMITTED', 'GRADED') THEN
+    IF v_attempt.status IN ('submitted', 'graded') THEN
         RETURN jsonb_build_object(
             'status', v_attempt.status,
             'message', 'Submission already exists. Grading underway or complete.',
@@ -345,7 +345,7 @@ BEGIN
         );
     END IF;
 
-    IF v_attempt.status != 'IN_PROGRESS' THEN
+    IF v_attempt.status != 'in_progress' THEN
         RAISE EXCEPTION 'Attempt cannot be submitted from current state' USING ERRCODE = 'P0003';
     END IF;
 
@@ -356,7 +356,7 @@ BEGIN
 
     -- 1. State Transition
     UPDATE public.quiz_attempts_v2
-    SET status = 'SUBMITTED'
+    SET status = 'submitted'
     WHERE id = v_attempt.id AND started_at = v_attempt.started_at;
 
     -- 2. Insert into Grading Queue (Write Isolation)
@@ -382,7 +382,7 @@ BEGIN
     );
 
     RETURN jsonb_build_object(
-        'status', 'SUBMITTED',
+        'status', 'submitted',
         'message', 'Submission received. Grading in progress.',
         'submitted_at', now(),
         'queue_ticket_id', v_queue_ticket_id

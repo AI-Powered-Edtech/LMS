@@ -89,7 +89,7 @@ BEGIN
     -- 3. Recovery: Check for active attempt
     SELECT id, status INTO v_attempt_id, v_status
     FROM public.quiz_attempts
-    WHERE student_id = auth.uid() AND quiz_id = p_quiz_id AND status = 'IN_PROGRESS'
+    WHERE student_id = auth.uid() AND quiz_id = p_quiz_id AND status = 'in_progress'
     LIMIT 1;
 
     IF v_attempt_id IS NOT NULL THEN
@@ -110,7 +110,7 @@ BEGIN
     INSERT INTO public.quiz_attempts (
         quiz_id, student_id, tenant_id, status, started_at, expires_at
     ) VALUES (
-        p_quiz_id, auth.uid(), v_tenant_id, 'IN_PROGRESS', now(), v_expires_at
+        p_quiz_id, auth.uid(), v_tenant_id, 'in_progress', now(), v_expires_at
     ) RETURNING id INTO v_attempt_id;
 
     -- 5. Snapshot Questions (Crucial for Data Integrity)
@@ -130,7 +130,7 @@ BEGIN
 
     RETURN jsonb_build_object(
         'attempt_id', v_attempt_id,
-        'status', 'IN_PROGRESS',
+        'status', 'in_progress',
         'recovered', false
     );
 END;

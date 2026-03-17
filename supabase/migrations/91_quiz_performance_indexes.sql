@@ -1,61 +1,63 @@
 -- Migration 91: Quiz Engine — 100k-Scale Performance Indexes
 -- ============================================================
 -- Optimized for high concurrent load (100k simultaneous submissions).
--- All indexes use CONCURRENTLY so they don't lock the table in production.
+-- NOTE: Cannot use CONCURRENTLY on partitioned tables in migrations.
 -- ============================================================
 
 -- ── HOT PATH 1: Find active attempt for a student
 -- Used by: v1_start_quiz_attempt (resume check), getActiveAttempt()
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_v2_student_active_status
+CREATE INDEX IF NOT EXISTS idx_v2_student_active_status
     ON public.quiz_attempts_v2 (student_id, quiz_id, status)
-    WHERE status = 'IN_PROGRESS';
+    WHERE status = 'in_progress';
 
 -- ── HOT PATH 2: Gradebook — all attempts for an assignment
 -- Used by: v1_get_assignment_results(), QuizGradebook page
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_v2_assignment_submitted
+CREATE INDEX IF NOT EXISTS idx_v2_assignment_submitted
     ON public.quiz_attempts_v2 (assignment_id, submitted_at DESC NULLS LAST)
-    WHERE status IN ('SUBMITTED', 'GRADED');
+    WHERE status IN ('submitted', 'graded');
 
 -- ── HOT PATH 3: Analytics — quiz-level stats
 -- Used by: quiz_stats aggregation, get_quiz_results
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_v2_quiz_status_score
+CREATE INDEX IF NOT EXISTS idx_v2_quiz_status_score
     ON public.quiz_attempts_v2 (quiz_id, status, score)
-    WHERE status IN ('SUBMITTED', 'GRADED');
+    WHERE status IN ('submitted', 'graded');
 
 -- ── HOT PATH 4: Tenant isolation scan (required for RLS enforcement)
 -- Already exists from migration 84 as idx_quiz_attempts_v2_tenant
 -- but ensure it exists on the parent table
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_v2_tenant_student
+CREATE INDEX IF NOT EXISTS idx_v2_tenant_student
     ON public.quiz_attempts_v2 (tenant_id, student_id);
 
 -- ── HOT PATH 5: Expiry cleanup job
 -- Used by: cleanup_stale_quiz_attempts()
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_v2_expires_in_progress
+CREATE INDEX IF NOT EXISTS idx_v2_expires_in_progress
     ON public.quiz_attempts_v2 (expires_at)
-    WHERE status = 'IN_PROGRESS';
+    WHERE status = 'in_progress';
 
 -- ── HOT PATH 6: Heartbeat staleness check
 -- Used by: cleanup_stale_quiz_attempts() abandoned detection
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_v2_heartbeat_in_progress
+CREATE INDEX IF NOT EXISTS idx_v2_heartbeat_in_progress
     ON public.quiz_attempts_v2 (last_heartbeat_at)
-    WHERE status = 'IN_PROGRESS';
+    WHERE status = 'in_progress';
 
 -- ── quiz_attempt_questions_v2: lookup answers for an attempt
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_v2_aq_attempt_question
+CREATE INDEX IF NOT EXISTS idx_v2_aq_attempt_question
     ON public.quiz_attempt_questions_v2 (attempt_id, question_id);
 
 -- ── quiz_attempt_questions_v2: tenant isolation for RLS
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_v2_aq_tenant
+CREATE INDEX IF NOT EXISTS idx_v2_aq_tenant
     ON public.quiz_attempt_questions_v2 (tenant_id);
 
 -- ── quiz_attempt_answers: lookup selected options per attempt + question
--- (Used by v1_submit_quiz_attempt grading loop)
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_answers_attempt_question
-    ON public.quiz_attempt_answers (attempt_id, question_id);
+-- NOTE: quiz_attempt_answers table does not exist in current schema
+-- (answers are stored in quiz_attempt_questions_v2.student_answers JSONB)
+-- Commented out until table is created
+-- CREATE INDEX IF NOT EXISTS idx_answers_attempt_question
+--     ON public.quiz_attempt_answers (attempt_id, question_id);
 
--- ── quiz_attempt_answers: tenant isolation
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_answers_tenant
-    ON public.quiz_attempt_answers (tenant_id);
+-- -- quiz_attempt_answers: tenant isolation
+-- CREATE INDEX IF NOT EXISTS idx_answers_tenant
+--     ON public.quiz_attempt_answers (tenant_id);
 
 -- ============================================================
 -- PARTITION AUTO-PROVISIONING FUNCTION

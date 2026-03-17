@@ -137,7 +137,7 @@ BEGIN
     SELECT COUNT(*) INTO v_active_attempts
     FROM quiz_attempts qa
     JOIN quiz_questions qq ON qa.quiz_id = qq.quiz_id
-    WHERE qq.question_id = p_question_id AND qa.status = 'IN_PROGRESS';
+    WHERE qq.question_id = p_question_id AND qa.status = 'in_progress';
 
     IF v_active_attempts > 0 THEN
         RAISE EXCEPTION 'Cannot modify question. It is currently in use in % active attempt(s).', v_active_attempts;

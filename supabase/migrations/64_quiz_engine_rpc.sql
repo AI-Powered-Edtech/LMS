@@ -91,7 +91,7 @@ BEGIN
     -- 5. Recovery: check for existing IN_PROGRESS attempt
     SELECT id, status, expires_at INTO v_existing_attempt
     FROM public.quiz_attempts
-    WHERE student_id = v_user_id AND quiz_id = p_quiz_id AND status = 'IN_PROGRESS'
+    WHERE student_id = v_user_id AND quiz_id = p_quiz_id AND status = 'in_progress'
     ORDER BY started_at DESC
     LIMIT 1;
 
@@ -99,13 +99,13 @@ BEGIN
         -- If expired, auto-expire it
         IF v_existing_attempt.expires_at IS NOT NULL AND now() > v_existing_attempt.expires_at THEN
             UPDATE public.quiz_attempts
-            SET status = 'EXPIRED', finished_at = v_existing_attempt.expires_at
+            SET status = 'expired', finished_at = v_existing_attempt.expires_at
             WHERE id = v_existing_attempt.id;
         ELSE
             -- Recoverable! Return existing attempt
             RETURN jsonb_build_object(
                 'attempt_id', v_existing_attempt.id,
-                'status', 'IN_PROGRESS',
+                'status', 'in_progress',
                 'recovered', true,
                 'expires_at', v_existing_attempt.expires_at
             );
@@ -117,7 +117,7 @@ BEGIN
     FROM public.quiz_attempts
     WHERE quiz_id = p_quiz_id 
       AND student_id = v_user_id 
-      AND status IN ('SUBMITTED', 'GRADED', 'EXPIRED');
+      AND status IN ('submitted', 'graded', 'expired');
 
     IF COALESCE(v_quiz.max_attempts, 0) > 0 AND v_attempt_count >= v_quiz.max_attempts THEN
         RAISE EXCEPTION 'ATTEMPT_LIMIT_REACHED';
@@ -136,7 +136,7 @@ BEGIN
         quiz_id, student_id, tenant_id, status, started_at, expires_at,
         attempt_number, attempt_seed
     ) VALUES (
-        p_quiz_id, v_user_id, v_tenant_id, 'IN_PROGRESS', now(), v_expires_at,
+        p_quiz_id, v_user_id, v_tenant_id, 'in_progress', now(), v_expires_at,
         v_attempt_number, v_attempt_seed
     ) RETURNING id INTO v_attempt_id;
 
@@ -196,7 +196,7 @@ BEGIN
 
     RETURN jsonb_build_object(
         'attempt_id', v_attempt_id,
-        'status', 'IN_PROGRESS',
+        'status', 'in_progress',
         'recovered', false,
         'expires_at', v_expires_at,
         'attempt_number', v_attempt_number
@@ -208,6 +208,9 @@ $$;
 -- 2. submit_quiz_attempt() — multi-type auto-grading
 --    with partial scoring for MULTIPLE_SELECT
 -- ────────────────────────────────────────────────────────────
+
+-- Drop function first to allow parameter name change
+DROP FUNCTION IF EXISTS public.submit_quiz_attempt(uuid, jsonb);
 
 CREATE OR REPLACE FUNCTION public.submit_quiz_attempt(
     p_attempt_id UUID,
@@ -256,14 +259,14 @@ BEGIN
         RAISE EXCEPTION 'ATTEMPT_NOT_FOUND';
     END IF;
 
-    IF v_attempt.status != 'IN_PROGRESS' THEN
+    IF v_attempt.status != 'in_progress' THEN
         RAISE EXCEPTION 'ATTEMPT_NOT_IN_PROGRESS';
     END IF;
 
     -- Time limit check
     IF v_attempt.expires_at IS NOT NULL AND now() > v_attempt.expires_at THEN
         UPDATE public.quiz_attempts
-        SET status = 'EXPIRED', finished_at = v_attempt.expires_at
+        SET status = 'expired', finished_at = v_attempt.expires_at
         WHERE id = p_attempt_id;
         
         RAISE EXCEPTION 'TIME_LIMIT_EXCEEDED';
@@ -388,8 +391,8 @@ BEGIN
 
     -- 5. Update attempt
     UPDATE public.quiz_attempts
-    SET status = CASE WHEN v_has_ungraded THEN 'SUBMITTED'::public.quiz_attempt_status 
-                      ELSE 'GRADED'::public.quiz_attempt_status END,
+    SET status = CASE WHEN v_has_ungraded THEN 'submitted'::public.quiz_attempt_status 
+                      ELSE 'graded'::public.quiz_attempt_status END,
         score = v_final_score,
         passed = CASE WHEN v_has_ungraded THEN NULL ELSE v_passed END,
         submitted_at = now(),
@@ -420,7 +423,7 @@ BEGIN
 
     RETURN jsonb_build_object(
         'attempt_id', p_attempt_id,
-        'status', CASE WHEN v_has_ungraded THEN 'SUBMITTED' ELSE 'GRADED' END,
+        'status', CASE WHEN v_has_ungraded THEN 'submitted' ELSE 'graded' END,
         'score', v_final_score,
         'passed', CASE WHEN v_has_ungraded THEN NULL ELSE v_passed END,
         'total_correct', v_total_correct_count,
@@ -483,7 +486,7 @@ BEGIN
     UPDATE public.quiz_attempts
     SET score = v_final_score,
         passed = v_passed,
-        status = CASE WHEN v_all_graded THEN 'GRADED'::public.quiz_attempt_status 
+        status = CASE WHEN v_all_graded THEN 'graded'::public.quiz_attempt_status 
                       ELSE status END
     WHERE id = p_attempt_id;
 
@@ -614,7 +617,7 @@ DECLARE
     v_is_first_attempt BOOLEAN;
 BEGIN
     -- Only process when status transitions to GRADED
-    IF NEW.status != 'GRADED' OR (OLD.status = 'GRADED') THEN
+    IF NEW.status != 'graded' OR (OLD.status = 'graded') THEN
         RETURN NEW;
     END IF;
 
@@ -625,7 +628,7 @@ BEGIN
         SELECT 1 FROM public.quiz_attempts
         WHERE quiz_id = NEW.quiz_id 
           AND student_id = NEW.student_id
-          AND status = 'GRADED'
+          AND status = 'graded'
           AND id != NEW.id
     );
 

@@ -212,7 +212,7 @@ BEGIN
     FROM public.quiz_attempts qa
     JOIN public.quiz_questions qq ON qa.quiz_id = qq.quiz_id
     WHERE qq.question_bank_id = p_question_id
-      AND qa.status = 'IN_PROGRESS'::public.quiz_attempt_status;
+      AND qa.status = 'in_progress'::public.quiz_attempt_status;
 
     IF v_active_attempts > 0 THEN
         RAISE EXCEPTION 'Cannot modify question. It is currently in use in % active attempt(s).', v_active_attempts;
@@ -482,8 +482,8 @@ DECLARE
     v_is_first_attempt BOOLEAN;
 BEGIN
     -- Only process when status transitions to GRADED
-    IF NEW.status != 'GRADED'::public.quiz_attempt_status
-       OR (OLD.status = 'GRADED'::public.quiz_attempt_status) THEN
+    IF NEW.status != 'graded'::public.quiz_attempt_status
+       OR (OLD.status = 'graded'::public.quiz_attempt_status) THEN
         RETURN NEW;
     END IF;
 
@@ -494,7 +494,7 @@ BEGIN
         SELECT 1 FROM public.quiz_attempts
         WHERE quiz_id = NEW.quiz_id
           AND student_id = NEW.student_id
-          AND status = 'GRADED'::public.quiz_attempt_status
+          AND status = 'graded'::public.quiz_attempt_status
           AND id != NEW.id
     );
 
