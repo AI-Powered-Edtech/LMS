@@ -2,26 +2,26 @@
 -- Migration 40: Leaderboard Hardening
 --
 -- 1. Adds composite index for leaderboard Top-N pagination performance.
--- 2. Ensures uniqueness for tenant_id + class_id + user_id.
+-- 2. Ensures uniqueness for tenant_id + user_id.
 -- 3. Creates RPC add_user_points to manage XP upserts.
 -- 4. Creates trigger on user_points to update leaderboards score.
 -- 5. Creates RPC recompute_leaderboard to calculate rank offline/separately.
 -- ==========================================================================
 
 -- 1. Add Composite Index for Top-N query
-CREATE INDEX IF NOT EXISTS idx_leaderboards_tenant_class_score
-ON public.leaderboards (tenant_id, class_id, score DESC);
+CREATE INDEX IF NOT EXISTS idx_leaderboards_tenant_points
+ON public.leaderboards (tenant_id, points DESC);
 
 -- 2. Ensure UNIQUE constraint for leaderboard entry
-DO $$
+DO $
 BEGIN
     IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint WHERE conname = 'uq_leaderboards_tenant_class_user'
+        SELECT 1 FROM pg_constraint WHERE conname = 'uq_leaderboards_tenant_user'
     ) THEN
         ALTER TABLE public.leaderboards 
-        ADD CONSTRAINT uq_leaderboards_tenant_class_user UNIQUE (tenant_id, class_id, user_id);
+        ADD CONSTRAINT uq_leaderboards_tenant_user UNIQUE (tenant_id, user_id);
     END IF;
-END $$;
+END $;
 
 -- 3. Ensure add_user_points RPC exists
 CREATE OR REPLACE FUNCTION public.add_user_points(
@@ -62,7 +62,7 @@ BEGIN
     -- Update all leaderboard entries for this user with their new total points
     UPDATE public.leaderboards
     SET 
-        score = NEW.points,
+        points = NEW.points,
         updated_at = now()
     WHERE user_id = NEW.user_id 
       AND tenant_id = NEW.tenant_id;
@@ -80,13 +80,12 @@ EXECUTE FUNCTION sync_user_points_to_leaderboard();
 
 -- 5. Create RPC for rank recomputation
 CREATE OR REPLACE FUNCTION public.recompute_leaderboard(
-    p_tenant_id uuid,
-    p_class_id uuid
+    p_tenant_id uuid
 )
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-AS $$
+AS $
 BEGIN
     UPDATE public.leaderboards l
     SET 
@@ -95,13 +94,11 @@ BEGIN
     FROM (
         SELECT 
             user_id,
-            DENSE_RANK() OVER (ORDER BY score DESC) as computed_rank
+            DENSE_RANK() OVER (ORDER BY points DESC) as computed_rank
         FROM public.leaderboards
         WHERE tenant_id = p_tenant_id
-          AND class_id = p_class_id
     ) r
     WHERE l.user_id = r.user_id
-      AND l.tenant_id = p_tenant_id
-      AND l.class_id = p_class_id;
+      AND l.tenant_id = p_tenant_id;
 END;
-$$;
+$;
