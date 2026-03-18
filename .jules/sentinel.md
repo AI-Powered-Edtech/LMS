@@ -1,0 +1,4 @@
+## 2024-03-18 - [Prevent Reverse Tabnabbing in Article Viewer]
+**Vulnerability:** The `ArticleViewer.tsx` component used `DOMPurify` to sanitize user-provided HTML but allowed arbitrary links to be rendered without enforcing `target="_blank"` and `rel="noopener noreferrer"`. This could expose users to reverse tabnabbing attacks if a malicious link is clicked.
+**Learning:** When using DOMPurify within a React component (e.g., inside a `useMemo` block), adding a hook to the global `DOMPurify` object is an unsafe pattern as it mutates global state during the render phase and `removeHook` would wipe out all hooks globally.
+**Prevention:** Always instantiate a local DOMPurify instance (`const localDOMPurify = DOMPurify(window)`) when adding custom hooks in a component to ensure the changes are safely isolated.

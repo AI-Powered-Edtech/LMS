@@ -75,9 +75,24 @@ export function ArticleViewer({
     }, [isCompleted, onStartViewing]);
 
     const sanitizedHTML = useMemo(() => {
-        return DOMPurify.sanitize(content.replace(/\n/g, '<br/>'), {
+        // Use a local DOMPurify instance to avoid mutating the global one during render
+        const localDOMPurify = DOMPurify(window);
+
+        // Add hook to ensure all links open in a new tab securely
+        // This prevents Reverse Tabnabbing attacks where a newly opened tab
+        // can navigate the original tab to a malicious site via window.opener
+        localDOMPurify.addHook('afterSanitizeAttributes', function(node) {
+            if (node.tagName && node.tagName.toLowerCase() === 'a') {
+                node.setAttribute('target', '_blank');
+                node.setAttribute('rel', 'noopener noreferrer');
+            }
+        });
+
+        const clean = localDOMPurify.sanitize(content.replace(/\n/g, '<br/>'), {
             USE_PROFILES: { html: true }
         });
+
+        return clean;
     }, [content]);
 
     return (
