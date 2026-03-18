@@ -1,22 +1,24 @@
 import { Flame, Star, UserCircle, LogOut, Bell, Moon, Sun, Activity } from "lucide-react";
 import { cn } from "@/src/utils/cn";
 import { useAuth, Role } from "@/src/contexts/AuthContext";
-import { useNotifications } from "@/src/contexts/NotificationContext";
+import { useNotifications, useMarkAsRead, useMarkAllAsRead } from "@/src/features/notifications";
 import { useTheme } from "@/src/contexts/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
-import { useStudentProgress } from "@/src/contexts/StudentProgressContext";
+import { useStudentProgressData } from '@/src/hooks/useStudentProgressQueries';
 import { NotificationCenter } from "../Social/NotificationCenter";
 
 export function Header() {
   const streak = 5;
   const hasLoggedInToday = false; // Simulasi: abu-abu jika pengguna tidak login hari itu
-  const { xp } = useStudentProgress();
+  const { xp } = useStudentProgressData();
   const levelXp = Math.floor(xp / 2000 + 1) * 2000;
   const progress = Math.min((xp / levelXp) * 100, 100);
 
   const { role, profile, signOut } = useAuth();
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount } = useNotifications();
+  const markAsReadMutation = useMarkAsRead();
+  const markAllAsReadMutation = useMarkAllAsRead();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);

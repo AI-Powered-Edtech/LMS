@@ -7,6 +7,7 @@ import { quizService, type QuizAttemptResult, type SubmitAnswer, type StudentQui
 import { getCurrentQuestionIndex } from '../features/quizzes/api/quizPlayer.service';
 import { QuizPlayer } from '../features/quizzes/components/player/QuizPlayer';
 import { AttemptDetailModal } from '@/src/components/AttemptDetailModal';
+import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary';
 
 // Extracted Components
 import { QuizCard } from '../features/quizzes/components/student/QuizCard';
@@ -28,7 +29,7 @@ export function QuizModule() {
   // React Query Data
   const { data: quizzes = [], isLoading: isLoadingQuizzes, refetch: refetchQuizzes } = useStudentQuizAssignments(tenantId);
   const { data: quizAttempts = [], isLoading: isLoadingAttempts, refetch: refetchAttempts } = useUserAttempts(tenantId);
-  
+
   const isLoading = isLoadingQuizzes || isLoadingAttempts;
 
   // Mutations
@@ -111,7 +112,7 @@ export function QuizModule() {
       setCurrentAttemptId(attemptId);
       setAttemptVersion(version);
       setExpiresAt(expiredAt);
-      
+
       const questions = await quizService.getAttemptQuestions(attemptId);
       setAttemptQuestions(questions);
 
@@ -212,16 +213,18 @@ export function QuizModule() {
     }
 
     return (
-      <QuizPlayer
-        attemptId={currentAttemptId!}
-        expiresAt={expiresAt}
-        quiz={currentQuiz}
-        attemptQuestions={attemptQuestions}
-        initialAnswers={initialAnswers}
-        initialQuestionIndex={initialQuestionIndex}
-        isSubmitting={isSubmitting}
-        onSubmit={() => handleSubmitQuiz(initialAnswers)}
-      />
+      <FeatureErrorBoundary featureName="Quiz">
+        <QuizPlayer
+          attemptId={currentAttemptId!}
+          expiresAt={expiresAt}
+          quiz={currentQuiz}
+          attemptQuestions={attemptQuestions}
+          initialAnswers={initialAnswers}
+          initialQuestionIndex={initialQuestionIndex}
+          isSubmitting={isSubmitting}
+          onSubmit={() => handleSubmitQuiz(initialAnswers)}
+        />
+      </FeatureErrorBoundary>
     );
   }
 
@@ -342,7 +345,7 @@ export function QuizModule() {
           {filteredQuizzes.length > 0 ? filteredQuizzes.map((quiz) => {
             const activeAttempt = quizAttempts.find(a => a.assignment_id === quiz.assignment_id && a.status === 'IN_PROGRESS');
             const attemptsCount = quizAttempts.filter(a => a.assignment_id === quiz.assignment_id).length;
-            
+
             return (
               <QuizCard
                 key={quiz.id}
@@ -362,9 +365,9 @@ export function QuizModule() {
       ) : (
         <div className="space-y-4">
           {completedAttempts.length > 0 ? completedAttempts.map((attempt) => (
-            <QuizAttemptCard 
-              key={attempt.id} 
-              attempt={attempt} 
+            <QuizAttemptCard
+              key={attempt.id}
+              attempt={attempt}
               onReview={() => setReviewAttempt({ attemptId: attempt.id, studentName: 'Anda', score: attempt.score, passed: attempt.passed })}
             />
           )) : (
@@ -376,7 +379,7 @@ export function QuizModule() {
       )}
 
       {reviewAttempt && (
-        <AttemptDetailModal 
+        <AttemptDetailModal
           attemptId={reviewAttempt.attemptId}
           studentName={reviewAttempt.studentName}
           score={reviewAttempt.score}

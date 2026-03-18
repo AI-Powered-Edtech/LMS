@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTenant } from '../../contexts/TenantContext';
 
 interface InviteUserModalProps {
     isOpen: boolean;
@@ -12,8 +11,7 @@ interface InviteUserModalProps {
 type InviteRole = 'STUDENT' | 'TEACHER' | 'ADMIN';
 
 export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalProps) {
-    const { user } = useAuth();
-    const { tenantId, tenant } = useTenant();
+    const { user, tenantId, activeTenant } = useAuth();
     const [email, setEmail] = useState('');
     const [role, setRole] = useState<InviteRole>('STUDENT');
     const [loading, setLoading] = useState(false);
@@ -82,7 +80,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
                 <div style={styles.header}>
                     <h2 style={styles.title}>📨 Undang Pengguna Baru</h2>
                     <p style={styles.subtitle}>
-                        Ke <strong>{tenant?.name ?? 'tenant'}</strong>
+                        Ke <strong>{activeTenant?.name ?? 'tenant'}</strong>
                     </p>
                     <button style={styles.closeBtn} onClick={handleClose}>✕</button>
                 </div>

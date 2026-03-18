@@ -2,8 +2,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { UserCircle, Plus, ChevronDown, Check } from "lucide-react";
 import { cn } from "@/src/utils/cn";
 import { useAuth } from "@/src/contexts/AuthContext";
-import { useClassroom } from "@/src/contexts/ClassroomContext";
-import { useModuleConfig, ModuleId } from "@/src/contexts/ModuleConfigContext";
+import { useClassroom } from "@/src/hooks/useClassroomQueries";
+import { useModuleConfig, ModuleId } from "@/src/hooks/useModuleConfig";
 import { useState } from "react";
 import { navigationItems } from "@/src/config/navigation";
 

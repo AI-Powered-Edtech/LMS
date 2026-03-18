@@ -1,5 +1,5 @@
 import { useReducer, useCallback, useMemo } from 'react';
-import { Lesson, LessonProgress } from '@/src/services/lessonService';
+import { Lesson, LessonProgress } from '@/src/features/lessons';
 
 // ============================================================
 // State

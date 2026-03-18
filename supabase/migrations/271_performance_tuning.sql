@@ -15,9 +15,13 @@ CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_id ON public.lesson_progress
 CREATE INDEX IF NOT EXISTS idx_lesson_progress_lesson_id ON public.lesson_progress(lesson_id);
 CREATE INDEX IF NOT EXISTS idx_lesson_progress_tenant_id ON public.lesson_progress(tenant_id);
 
-CREATE INDEX IF NOT EXISTS idx_quiz_attempts_student_id ON public.quiz_attempts(student_id);
-CREATE INDEX IF NOT EXISTS idx_quiz_attempts_quiz_id ON public.quiz_attempts(quiz_id);
-CREATE INDEX IF NOT EXISTS idx_quiz_attempts_tenant_id ON public.quiz_attempts(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_student_id_v2 ON public.quiz_attempts_v2(student_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_quiz_id_v2 ON public.quiz_attempts_v2(quiz_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_tenant_id_v2 ON public.quiz_attempts_v2(tenant_id);
+
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_student_id_legacy ON public.quiz_attempts_legacy(student_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_quiz_id_legacy ON public.quiz_attempts_legacy(quiz_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_tenant_id_legacy ON public.quiz_attempts_legacy(tenant_id);
 
 CREATE INDEX IF NOT EXISTS idx_enrollments_student_id ON public.enrollments(student_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_class_id ON public.enrollments(class_id);

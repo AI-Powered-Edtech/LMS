@@ -6,7 +6,7 @@ import {
   BookOpen, ChevronRight, UserPlus, Settings2, Hash
 } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
-import { useClassroom } from '@/src/contexts/ClassroomContext';
+import { useClassroom } from '@/src/hooks/useClassroomQueries';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { supabase } from '@/src/lib/supabase';
 

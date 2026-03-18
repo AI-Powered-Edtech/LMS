@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { courseService } from '../../services/courseService';
+import { courseService } from '../../features/courses';
 
 interface CourseEnrollmentGuardProps {
     children: React.ReactNode;

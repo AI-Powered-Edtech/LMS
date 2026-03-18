@@ -1,11 +1,11 @@
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useTenantQuery } from '../useTenantQuery';
-import { useTenant } from '../../contexts/TenantContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 
-vi.mock('../../contexts/TenantContext', () => ({
-    useTenant: vi.fn(),
+vi.mock('../../contexts/AuthContext', () => ({
+    useAuth: vi.fn(),
 }));
 
 const eqMock = vi.fn();
@@ -34,7 +34,7 @@ describe('useTenantQuery', () => {
     describe('tenantQuery', () => {
         it('applies tenant filter when tenantId exists', () => {
             // Arrange
-            (useTenant as any).mockReturnValue({ tenantId: mockTenantId });
+            (useAuth as any).mockReturnValue({ tenantId: mockTenantId });
             const { result } = renderHook(() => useTenantQuery());
 
             // Act
@@ -48,7 +48,7 @@ describe('useTenantQuery', () => {
 
         it('does not apply tenant filter when tenantId is null', () => {
             // Arrange
-            (useTenant as any).mockReturnValue({ tenantId: null });
+            (useAuth as any).mockReturnValue({ tenantId: null });
             const { result } = renderHook(() => useTenantQuery());
 
             // Act
@@ -64,7 +64,7 @@ describe('useTenantQuery', () => {
     describe('tenantInsert', () => {
         it('injects tenant_id when tenant exists', async () => {
             // Arrange
-            (useTenant as any).mockReturnValue({ tenantId: mockTenantId });
+            (useAuth as any).mockReturnValue({ tenantId: mockTenantId });
             const { result } = renderHook(() => useTenantQuery());
             const dataToInsert = { title: 'Math' };
 
@@ -81,7 +81,7 @@ describe('useTenantQuery', () => {
 
         it('does not modify payload when tenantId is null', async () => {
             // Arrange
-            (useTenant as any).mockReturnValue({ tenantId: null });
+            (useAuth as any).mockReturnValue({ tenantId: null });
             const { result } = renderHook(() => useTenantQuery());
             const dataToInsert = { title: 'Math' };
 

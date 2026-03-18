@@ -13,10 +13,12 @@ import {
   Edit2,
   Save,
   X,
-  Plus
+  Plus,
+  Users
 } from "lucide-react";
 import { cn } from "@/src/utils/cn";
-import { useGradebook, Assignment } from "@/src/contexts/GradebookContext";
+import { useGradebook, Assignment } from "@/src/hooks/useGradebookQueries";
+import { EmptyState } from "@/src/components/ui";
 
 export function Gradebook() {
   const { students, assignments, grades, updateGrade, addAssignment } = useGradebook();
@@ -444,8 +446,12 @@ export function Gradebook() {
               })}
               {filteredStudents.length === 0 && (
                 <tr>
-                  <td colSpan={assignments.length + 4} className="p-8 text-center text-slate-500">
-                    Tidak ada siswa yang cocok dengan pencarian.
+                  <td colSpan={assignments.length + 4} className="p-8">
+                    <EmptyState
+                      icon={<Users className="w-12 h-12" />}
+                      title="Belum ada siswa"
+                      description="Siswa akan muncul setelah mereka bergabung ke kelas."
+                    />
                   </td>
                 </tr>
               )}

@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { useTenant } from '../contexts/TenantContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useCallback } from 'react';
 
 /**
@@ -19,7 +19,7 @@ import { useCallback } from 'react';
  *   await tenantInsert('classes', { name: 'English 101', teacher_id: userId });
  */
 export function useTenantQuery() {
-    const { tenantId } = useTenant();
+    const { tenantId } = useAuth();
 
     /**
      * Returns a Supabase query builder pre-filtered by tenant_id.

@@ -1,51 +1,44 @@
-import { useState, useEffect } from "react";
 import { Trophy, Flame } from "lucide-react";
 import { motion } from "motion/react";
-import { useClassroom } from "@/src/contexts/ClassroomContext";
-import { useAuth } from "@/src/contexts/AuthContext";
-import { leaderboardService, LeaderboardEntry } from "@/src/services/leaderboardService";
+import { useClassroom } from "@/src/hooks/useClassroomQueries";
+import { useLeaderboard } from "@/src/features/gamification";
+import type { LeaderboardEntry } from "@/src/features/gamification";
+import { SkeletonCard, EmptyState } from "@/src/components/ui";
 
 export function Leaderboard() {
   const { activeClassroomId } = useClassroom();
-  const { tenantId } = useAuth();
-  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: entries = [], isLoading: loading, error } = useLeaderboard(activeClassroomId);
 
-  useEffect(() => {
-    async function fetchLeaderboard() {
-      if (!activeClassroomId || !tenantId) {
-        if (!activeClassroomId && !tenantId) setLoading(false);
-        return;
-      }
-      setLoading(true);
-      try {
-        const data = await leaderboardService.getLeaderboard(activeClassroomId, tenantId);
-        setEntries(data);
-      } catch (error) {
-        console.error("Failed to fetch leaderboard", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchLeaderboard();
-  }, [activeClassroomId, tenantId]);
+  if (error) {
+    return (
+      <div className="flex-1 w-full flex flex-col items-center justify-center p-8 text-slate-500">
+        <div className="text-center py-12 text-red-500">
+          Gagal memuat leaderboard. Silakan coba lagi.
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
-      <div className="flex-1 w-full flex flex-col items-center justify-center p-8 text-slate-500">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin mb-4" />
-        <p>Memuat papan peringkat...</p>
+      <div className="max-w-4xl mx-auto w-full p-8 space-y-6">
+        <SkeletonCard lines={2} />
+        <div className="grid grid-cols-3 gap-4">
+          <SkeletonCard /><SkeletonCard /><SkeletonCard />
+        </div>
+        <SkeletonCard lines={4} />
       </div>
     );
   }
 
   if (entries.length === 0) {
     return (
-      <div className="flex-1 w-full flex flex-col items-center justify-center p-8 text-slate-500">
-        <Trophy className="w-16 h-16 text-slate-300 mb-4" />
-        <p className="font-bold text-lg text-slate-700">Belum ada peringkat</p>
-        <p className="text-sm">Kerjakan kuis dan tugas untuk mendapatkan poin!</p>
+      <div className="flex-1 w-full flex items-center justify-center p-8">
+        <EmptyState
+          icon={<Trophy className="w-12 h-12" />}
+          title="Belum ada peringkat"
+          description="Kerjakan kuis dan tugas untuk mendapatkan poin!"
+        />
       </div>
     );
   }

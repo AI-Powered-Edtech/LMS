@@ -3,8 +3,10 @@ import { ChevronLeft, ChevronRight, Clock, MapPin, Video, Calendar as CalendarIc
 import { cn } from "@/src/utils/cn";
 import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "@/src/contexts/AuthContext";
-import { useNotifications } from "@/src/contexts/NotificationContext";
-import { useCalendar, CalendarEvent } from "@/src/contexts/CalendarContext";
+import { useSendNotification } from "@/src/features/notifications";
+import { useCalendarEvents, useUpdateCalendarEvent, CalendarEvent } from '@/src/hooks/useCalendarQueries';
+import { useCalendarStore } from '@/src/hooks/useCalendarQueries';
+import { SkeletonCard } from "@/src/components/ui";
 
 type EventType = "exam" | "assignment" | "event" | "quiz";
 type Priority = "low" | "medium" | "high";
@@ -12,9 +14,14 @@ type Priority = "low" | "medium" | "high";
 const daysOfWeek = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
 export function Calendar() {
-  const { role, permissions } = useAuth();
-  const { addNotification } = useNotifications();
-  const { events, addEvent, updateEvent } = useCalendar();
+  const { role, user } = useAuth();
+  const sendNotification = useSendNotification();
+  const { events, addEvent, updateEvent } = useCalendarStore();
+  const { data: fetchedEvents, isLoading } = useCalendarEvents();
+  const { updateEvent: updateEventMutate } = useUpdateCalendarEvent();
+
+  // Use fetched events if available, otherwise use store events
+  const displayEvents = fetchedEvents || events;
 
   // Default to March 2026 based on current time context
   const [currentDate, setCurrentDate] = useState(new Date(2026, 2, 1));
@@ -46,7 +53,7 @@ export function Calendar() {
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
   const getEventsForDate = (date: number, month: number, year: number) => {
-    return events.filter(
+    return displayEvents.filter(
       (e) => e.date.getDate() === date && e.date.getMonth() === month && e.date.getFullYear() === year
     );
   };
@@ -75,11 +82,20 @@ export function Calendar() {
   };
 
   const toggleCompletion = (id: string) => {
-    const event = events.find(e => e.id === id);
+    const event = displayEvents.find(e => e.id === id);
     if (event) {
-      updateEvent(id, { completed: !event.completed });
+      updateEventMutate(id, { completed: !event.completed });
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-full max-w-7xl mx-auto p-4 md:p-8 space-y-6">
+        <SkeletonCard lines={1} />
+        <SkeletonCard lines={6} />
+      </div>
+    );
+  }
 
   const handleAddEvent = (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +118,8 @@ export function Calendar() {
     addEvent(eventToAdd);
 
     if (eventToAdd.type === 'exam') {
-      addNotification({
+      sendNotification.mutate({
+        userId: user!.id,
         type: 'exam',
         title: 'Ujian Baru Dijadwalkan',
         message: `${eventToAdd.title} dijadwalkan pada ${eventToAdd.date.toLocaleDateString('id-ID')} pukul ${eventToAdd.time}`

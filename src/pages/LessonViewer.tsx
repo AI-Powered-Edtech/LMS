@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { ErrorBoundary } from '@/src/components/common/ErrorBoundary';
 import { useAuth } from "@/src/contexts/AuthContext";
 import { supabase } from "@/src/lib/supabase";
-import { courseService } from "@/src/services/courseService";
-import { lessonService, type Lesson, type LessonProgress } from "@/src/services/lessonService";
+import { courseService } from "@/src/features/courses";
+import { lessonService, type Lesson, type LessonProgress } from "@/src/features/lessons";
 import {
   VideoViewer,
   ArticleViewer,
@@ -20,6 +20,7 @@ import {
 } from "@/src/components/LessonViewer";
 import { DiscussionBoard } from "@/src/components/Social/DiscussionBoard";
 import { MessageSquare, Info, Sparkles } from "lucide-react";
+import { Breadcrumb } from "@/src/components/ui";
 
 // ============================================================
 // Course/Module Browser — shown when no moduleId param
@@ -266,6 +267,7 @@ export function LessonViewer() {
   const [moduleLessons, setModuleLessons] = useState<Lesson[]>([]);
   const [moduleProgress, setModuleProgress] = useState<Record<string, LessonProgress>>({});
   const [sidebarLoading, setSidebarLoading] = useState(false);
+  const [moduleTitle, setModuleTitle] = useState<string>('');
 
   // Completion celebration
   const [showCelebration, setShowCelebration] = useState(false);
@@ -285,15 +287,35 @@ export function LessonViewer() {
   // ============================================================
   useEffect(() => {
     if (!moduleId || !user?.id || !tenantId) return;
+    let cancelled = false;
     setSidebarLoading(true);
+
+    // Fetch module title
+    supabase
+      .from('course_modules')
+      .select('title')
+      .eq('id', moduleId)
+      .eq('tenant_id', tenantId)
+      .single()
+      .then(({ data: moduleData, error }) => {
+        if (error) { console.error("Failed to load module title:", error); return; }
+        if (!cancelled && moduleData?.title) {
+          setModuleTitle(moduleData.title);
+        }
+      });
+
     lessonService.fetchModuleLessons(moduleId, user.id, tenantId)
       .then(({ lessons, progress }) => {
-        setModuleLessons(lessons);
-        setModuleProgress(progress);
+        if (!cancelled) {
+          setModuleLessons(lessons);
+          setModuleProgress(progress);
+        }
       })
       .catch(err => console.error("Failed to load module lessons:", err))
-      .finally(() => setSidebarLoading(false));
-  }, [moduleId, user?.id]);
+      .finally(() => { if (!cancelled) setSidebarLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [moduleId, user?.id, tenantId]);
 
   // ============================================================
   // Load selected lesson (state machine: LOAD_LESSON)
@@ -384,6 +406,7 @@ export function LessonViewer() {
     <div className="flex flex-col lg:flex-row h-full bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/20 p-4 lg:p-6 xl:p-8 gap-5 overflow-hidden">
       {/* Sidebar */}
       <LessonSidebar
+        moduleTitle={moduleTitle}
         lessons={moduleLessons}
         progress={moduleProgress}
         activeLessonId={lessonId}
@@ -399,6 +422,14 @@ export function LessonViewer() {
           <div className="bg-gradient-to-r from-white to-slate-50/50 border-b border-slate-100 flex flex-col shrink-0">
             <div className="px-8 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex-1 min-w-0 pr-4">
+                <Breadcrumb
+                  items={[
+                    { label: 'Materi', href: '/lesson' },
+                    { label: moduleTitle || 'Modul' },
+                    { label: state.lesson.title },
+                  ]}
+                  className="mb-3"
+                />
                 <div className="flex items-center gap-2 text-sm text-blue-600 font-bold mb-2">
                   {state.lesson.type === 'video' ? <PlayCircle className="w-4 h-4" /> :
                     state.lesson.type === 'article' ? <FileText className="w-4 h-4" /> :

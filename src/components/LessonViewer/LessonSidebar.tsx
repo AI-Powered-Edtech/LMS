@@ -2,7 +2,8 @@ import { useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { CheckCircle, Circle, PlayCircle, FileText, AlertTriangle, Lock, ChevronRight, ArrowLeft } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
-import type { Lesson, LessonProgress } from '@/src/services/lessonService';
+import type { Lesson, LessonProgress } from '@/src/features/lessons';
+import { SkeletonCard } from '@/src/components/ui';
 
 interface LessonSidebarProps {
     moduleTitle?: string;
@@ -64,7 +65,13 @@ export function LessonSidebar({ moduleTitle, lessons, progress, activeLessonId, 
 
             {/* Lesson List - Virtualized */}
             <div ref={parentRef} className="flex-1 overflow-y-auto relative custom-scrollbar">
-                {lessons.length > 0 ? (
+                {lessons.length === 0 ? (
+                    <div className="p-4 space-y-3">
+                        <SkeletonCard lines={1} />
+                        <SkeletonCard lines={1} />
+                        <SkeletonCard lines={1} />
+                    </div>
+                ) : (
                     <div
                         className="w-full relative"
                         style={{ height: `${rowVirtualizer.getTotalSize() + 32}px` }} // +32px for top/bottom padding 16px
@@ -153,10 +160,6 @@ export function LessonSidebar({ moduleTitle, lessons, progress, activeLessonId, 
                                 </div>
                             );
                         })}
-                    </div>
-                ) : (
-                    <div className="p-6 text-center text-slate-400 text-sm">
-                        Belum ada pelajaran di modul ini.
                     </div>
                 )}
             </div>

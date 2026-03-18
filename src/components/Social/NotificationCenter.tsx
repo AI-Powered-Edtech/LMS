@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, Check, Trash2, ExternalLink, Inbox } from 'lucide-react';
-import { notificationService, Notification } from '../../services/notificationService';
-import { useAuth } from '../../contexts/AuthContext';
+import { Bell, Check, ExternalLink, Inbox } from 'lucide-react';
+import type { Notification } from '@/src/features/notifications';
+import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '@/src/features/notifications';
 import { cn } from '../../utils/cn';
 import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -9,25 +9,11 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const NotificationCenter: React.FC = () => {
-    const { user } = useAuth();
-    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const { notifications, unreadCount, loading } = useNotifications();
+    const markAsReadMutation = useMarkAsRead();
+    const markAllAsReadMutation = useMarkAllAsRead();
     const [isOpen, setIsOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
-
-    const unreadCount = notifications.filter(n => !n.is_read).length;
-
-    useEffect(() => {
-        if (user) {
-            loadNotifications();
-            const channel = notificationService.subscribe(user.id, (newNotif) => {
-                setNotifications(prev => [newNotif, ...prev]);
-            });
-            return () => {
-                channel.unsubscribe();
-            };
-        }
-    }, [user]);
 
     // Close on click outside
     useEffect(() => {
@@ -40,37 +26,13 @@ export const NotificationCenter: React.FC = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const loadNotifications = async () => {
-        if (!user) return;
-        setLoading(true);
-        try {
-            const data = await notificationService.fetchNotifications(user.id);
-            setNotifications(data);
-        } catch (error) {
-            console.error('Failed to load notifications:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const handleMarkAsRead = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        try {
-            await notificationService.markAsRead(id);
-            setNotifications(notifications.map(n => n.id === id ? { ...n, is_read: true } : n));
-        } catch (error) {
-            console.error('Failed to mark as read:', error);
-        }
+        markAsReadMutation.mutate(id);
     };
 
     const handleMarkAllAsRead = async () => {
-        if (!user) return;
-        try {
-            await notificationService.markAllAsRead(user.id);
-            setNotifications(notifications.map(n => ({ ...n, is_read: true })));
-        } catch (error) {
-            console.error('Failed to mark all as read:', error);
-        }
+        markAllAsReadMutation.mutate();
     };
 
     return (

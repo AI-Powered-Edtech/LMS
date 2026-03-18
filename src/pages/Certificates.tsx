@@ -8,8 +8,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/src/utils/cn";
 import { useAuth } from "@/src/contexts/AuthContext";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+// html2canvas and jsPDF loaded dynamically in handleDownload to reduce bundle (~450KB saving)
 
 interface Certificate {
   id: string;
@@ -92,16 +91,22 @@ export function Certificates() {
     }
 
     try {
+      // Dynamic imports — only loaded when user clicks download
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ]);
+
       // Temporarily make the hidden certificate visible for capturing
       element.style.display = 'block';
-      
+
       const canvas = await html2canvas(element, {
-        scale: 2, // Higher resolution
+        scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff'
       });
-      
+
       element.style.display = 'none';
 
       if (format === 'png') {

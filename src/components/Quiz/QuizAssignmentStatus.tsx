@@ -21,7 +21,7 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
         setIsLoading(true);
         setError(null);
         try {
-            const data = await quizService.getAssignmentsByQuiz(quizId);
+            const data = await quizService.getAssignmentsByQuiz(quizId, tenantId);
             setAssignments(data);
         } catch (err: any) {
             console.error('Failed to load assignments:', err);
@@ -40,7 +40,7 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
         if (!confirm('Hapus assignment untuk kelas ini? Siswa di kelas tersebut tidak akan bisa mengakses kuis ini lagi.')) return;
         
         try {
-            await quizService.removeQuizAssignment(assignmentId);
+            await quizService.removeQuizAssignment(assignmentId, tenantId);
             setAssignments(prev => prev.filter(a => a.id !== assignmentId));
         } catch (err: any) {
             alert('Gagal menghapus assignment: ' + err.message);

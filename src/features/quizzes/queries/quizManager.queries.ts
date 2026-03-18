@@ -248,7 +248,10 @@ export function useUpdateQuizAssignment() {
       quizAssignmentService.updateQuizAssignment(assignmentId, updates, tenantId),
     onSuccess: (_, { quizId, tenantId }) => {
       queryClient.invalidateQueries({ queryKey: QuizKeys.assignmentsByQuiz(quizId, tenantId) });
-      queryClient.invalidateQueries({ queryKey: ['quiz', 'assignmentsByClass'] }); // Usually needs multiple class invalidation, handled in component
+      // Invalidate all assignmentsByClass for this tenant (classId unknown at mutation level)
+      queryClient.invalidateQueries({ queryKey: QuizKeys.all(tenantId), predicate: (query) =>
+        Array.isArray(query.queryKey) && query.queryKey.includes('assignmentsByClass')
+      });
     },
   });
 }
@@ -263,7 +266,10 @@ export function useRemoveQuizAssignment() {
     mutationFn: ({ assignmentId, quizId, tenantId }: { assignmentId: string; quizId: string; tenantId: string }) => quizAssignmentService.removeQuizAssignment(assignmentId, tenantId),
     onSuccess: (_, { quizId, tenantId }) => {
       queryClient.invalidateQueries({ queryKey: QuizKeys.assignmentsByQuiz(quizId, tenantId) });
-      queryClient.invalidateQueries({ queryKey: ['quiz', 'assignmentsByClass'] }); // Often handled at component level or needs classId
+      // Invalidate all assignmentsByClass for this tenant (classId unknown at mutation level)
+      queryClient.invalidateQueries({ queryKey: QuizKeys.all(tenantId), predicate: (query) =>
+        Array.isArray(query.queryKey) && query.queryKey.includes('assignmentsByClass')
+      });
     },
   });
 }

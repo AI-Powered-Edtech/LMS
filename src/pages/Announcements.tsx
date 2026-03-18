@@ -3,11 +3,12 @@ import { Bell, Megaphone, Calendar as CalendarIcon, User, ChevronRight, Plus, Se
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/src/utils/cn";
 import { useAuth } from "@/src/contexts/AuthContext";
-import { announcementService, Announcement as DBAnnouncement, AnnouncementRSVP } from "@/src/services/announcementService";
+import { Announcement as DBAnnouncement, AnnouncementRSVP } from "@/src/services/announcementService";
 import { useToast } from "@/src/contexts/ToastContext";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { CommentSection } from "@/src/components/Social/CommentSection";
+import { useAnnouncements, useSaveAnnouncement, useSubmitRSVP } from "@/src/features/announcements";
 
 // Removed Comment interface as we use the real discussionService now
 
@@ -36,7 +37,6 @@ export function Announcements() {
   const { user, role, tenantId } = useAuth();
   const { toast } = useToast();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all"); // all, unread, pinned
   const [page, setPage] = useState(0);
@@ -44,6 +44,50 @@ export function Announcements() {
   const PAGE_SIZE = 10;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // Use React Query hooks
+  const { data: fetchedAnnouncements, isLoading, refetch } = useAnnouncements({
+    search: searchTerm || undefined,
+    limit: PAGE_SIZE,
+    offset: page * PAGE_SIZE,
+  });
+
+  const saveMutation = useSaveAnnouncement();
+  const rsvpMutation = useSubmitRSVP();
+
+  // Transform fetched data to local Announcement type
+  const transformToLocalAnnouncement = (data: DBAnnouncement[]): Announcement[] => {
+    return data.map(db => ({
+      ...db,
+      author: db.author?.full_name || 'Admin',
+      date: format(new Date(db.created_at), 'dd MMM yyyy', { locale: localeId }),
+      time: format(new Date(db.created_at), 'HH:mm', { locale: localeId }) + ' WIB',
+      location: db.location || undefined,
+      contactPerson: db.contact_person || undefined,
+      isRead: true, // Placeholder logic
+      rsvpStatus: db.rsvp_status === 'yes' ? 'attending' :
+        db.rsvp_status === 'no' ? 'not_attending' : 'pending'
+    }));
+  };
+
+  // Update announcements when fetched data changes
+  useEffect(() => {
+    if (fetchedAnnouncements) {
+      const transformed = transformToLocalAnnouncement(fetchedAnnouncements);
+      if (page === 0) {
+        setAnnouncements(transformed);
+      } else {
+        setAnnouncements(prev => [...prev, ...transformed]);
+      }
+      setHasMore(fetchedAnnouncements.length === PAGE_SIZE);
+    }
+  }, [fetchedAnnouncements, page]);
+
+  // Reset to first page when search changes
+  useEffect(() => {
+    setPage(0);
+    refetch();
+  }, [searchTerm]);
 
   // Creation form state
   const [formData, setFormData] = useState({
@@ -58,7 +102,6 @@ export function Announcements() {
     contact_person: "",
     course_id: null as string | null
   });
-  const [isPublishing, setIsPublishing] = useState(false);
 
   const handleCreateAnnouncement = async (status: 'draft' | 'published') => {
     if (!formData.title || !formData.content) {
@@ -66,9 +109,8 @@ export function Announcements() {
       return;
     }
 
-    setIsPublishing(true);
     try {
-      await announcementService.saveAnnouncement({
+      await saveMutation.mutateAsync({
         ...formData,
         tenant_id: tenantId!,
         status,
@@ -93,71 +135,19 @@ export function Announcements() {
         contact_person: "",
         course_id: null
       });
-      loadAnnouncements();
+      refetch();
     } catch (err) {
       console.error("Error creating announcement:", err);
       toast("Gagal menyimpan pengumuman.", "error");
-    } finally {
-      setIsPublishing(false);
     }
   };
 
-  const loadAnnouncements = useCallback(async (isLoadMore = false) => {
-    if (!tenantId) return;
-
-    if (!isLoadMore) {
-      setLoading(true);
-      setPage(0);
-    }
-
-    try {
-      const currentPage = isLoadMore ? page + 1 : 0;
-      const data = await announcementService.fetchAnnouncements(tenantId, {
-        search: searchTerm || undefined,
-        limit: PAGE_SIZE,
-        offset: currentPage * PAGE_SIZE
-      });
-
-      // Transform DB data to UI data
-      const transformed: Announcement[] = data.map(db => ({
-        ...db,
-        author: db.author?.full_name || 'Admin',
-        date: format(new Date(db.created_at), 'dd MMM yyyy', { locale: localeId }),
-        time: format(new Date(db.created_at), 'HH:mm', { locale: localeId }) + ' WIB',
-        location: db.location || undefined,
-        contactPerson: db.contact_person || undefined,
-        isRead: true, // Placeholder logic
-        rsvpStatus: db.rsvp_status === 'yes' ? 'attending' :
-          db.rsvp_status === 'no' ? 'not_attending' : 'pending'
-      }));
-
-      if (isLoadMore) {
-        setAnnouncements(prev => [...prev, ...transformed]);
-      } else {
-        setAnnouncements(transformed);
-      }
-
-      setHasMore(data.length === PAGE_SIZE);
-      if (isLoadMore) setPage(currentPage);
-    } catch (error) {
-      console.error('Error loading announcements:', error);
-      toast('Gagal memuat pengumuman', 'error');
-    } finally {
-      if (!isLoadMore) setLoading(false);
-    }
-  }, [tenantId, searchTerm, toast, page]);
-
-  useEffect(() => {
-    loadAnnouncements();
-  }, [loadAnnouncements]);
-
   // RSVP Handler
   const handleRSVP = async (announcementId: string, response: 'yes' | 'no' | 'maybe') => {
-    if (!user || !tenantId) return;
     try {
-      await announcementService.submitRSVP(announcementId, tenantId, user.id, response);
+      await rsvpMutation.mutateAsync({ announcementId, response });
       toast('Berhasil mengirim RSVP', 'success');
-      loadAnnouncements(); // Refresh to show new status
+      refetch(); // Refresh to show new status
     } catch (error) {
       toast('Gagal mengirim RSVP', 'error');
     }
@@ -456,7 +446,7 @@ export function Announcements() {
         {filteredAnnouncements.length > 0 && hasMore && (
           <div className="flex justify-center pt-4 pb-10">
             <button
-              onClick={() => loadAnnouncements(true)}
+              onClick={() => setPage(prev => prev + 1)}
               className="px-8 py-3 bg-white border border-slate-200 text-slate-600 font-bold rounded-2xl hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2"
             >
               Muat Lebih Banyak
@@ -621,18 +611,18 @@ export function Announcements() {
                 </button>
                 <div className="flex gap-3">
                   <button
-                    disabled={isPublishing}
+                    disabled={saveMutation.isPending}
                     onClick={() => handleCreateAnnouncement('draft')}
                     className="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-200 rounded-xl transition-colors disabled:opacity-50"
                   >
                     Simpan Draf
                   </button>
                   <button
-                    disabled={isPublishing}
+                    disabled={saveMutation.isPending}
                     onClick={() => handleCreateAnnouncement('published')}
                     className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm shadow-blue-200 flex items-center gap-2 disabled:opacity-50"
                   >
-                    {isPublishing ? (
+                    {saveMutation.isPending ? (
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     ) : (
                       <Send className="w-4 h-4" />

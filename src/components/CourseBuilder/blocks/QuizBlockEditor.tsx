@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { HelpCircle, Plus, Trash2, Loader2, CheckCircle, AlertTriangle, Search } from 'lucide-react';
+import { useAuth } from '@/src/contexts/AuthContext';
 import { useBuilder } from '@/src/contexts/BuilderContext';
 import { courseBuilderService, type QuizBlockData } from '@/src/services/courseBuilderService';
 import { cn } from '@/src/utils/cn';
@@ -9,6 +10,7 @@ import { QuestionSearchModal } from '@/src/features/question-bank/components/Que
 type QuizStatus = 'draft' | 'published' | 'archived';
 
 export function QuizBlockEditor({ blockId }: { blockId: string }) {
+    const { tenantId } = useAuth();
     const { state } = useBuilder();
     const activeLesson = state.modules
         .flatMap(m => m.lessons)
@@ -37,7 +39,7 @@ export function QuizBlockEditor({ blockId }: { blockId: string }) {
         if (!activeLesson) return;
         async function load() {
             try {
-                const data = await courseBuilderService.getQuizByLesson(activeLesson!.id);
+                const data = await courseBuilderService.getQuizByLesson(activeLesson!.id, tenantId!);
                 if (data) {
                     setSavedQuizId(data.id);
                     setQuizStatus((data.status as QuizStatus) || 'draft');

@@ -8,7 +8,7 @@ import {
 import { cn } from '@/src/utils/cn';
 import { quizService, type QuestionType, type QuizMode } from '@/src/services/quizService';
 import { QuestionSearchModal } from '@/src/features/question-bank/components/QuestionSearchModal';
-import { useClassroom } from '@/src/contexts/ClassroomContext';
+import { useClassroom } from '@/src/hooks/useClassroomQueries';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { supabase } from '@/src/lib/supabase';
 import { QuizAssignModal } from '@/src/components/Quiz/QuizAssignModal';
@@ -142,7 +142,7 @@ export function QuizManager() {
         try {
             let data;
             if (activeTab === 'class') {
-                data = await quizService.getQuizzesByClass(activeClassroomId);
+                data = await quizService.getQuizzesByClass(activeClassroomId, tenantId);
             } else {
                 data = await quizService.getTeacherQuizzes(tenantId);
             }
@@ -169,7 +169,7 @@ export function QuizManager() {
     const openEditQuiz = async (quizId: string) => {
         setIsLoading(true);
         try {
-            const data = await quizService.getQuizWithQuestions(quizId);
+            const data = await quizService.getQuizWithQuestions(quizId, tenantId);
             if (!data) throw new Error('Quiz not found');
 
             setForm({
@@ -262,7 +262,7 @@ export function QuizManager() {
                     available_from: form.available_from || null,
                     available_until: form.due_at || null,
                     status,
-                });
+                }, tenantId);
             }
 
             // Sync questions: delete removed, update existing, add new
@@ -278,7 +278,7 @@ export function QuizManager() {
                     points: q.points,
                     explanation: q.explanation,
                     order: q.order,
-                });
+                }, tenantId);
                 await quizService.replaceQuestionOptions(
                     q.id!,
                     tenantId,
@@ -304,7 +304,7 @@ export function QuizManager() {
 
             // Set status if publishing
             if (targetStatus && (targetStatus === 'draft' || targetStatus === 'published')) {
-                await quizService.setQuizStatus(quizId, targetStatus);
+                await quizService.setQuizStatus(quizId, targetStatus, tenantId);
                 setForm(prev => ({ ...prev, status: targetStatus }));
             }
 
@@ -322,7 +322,7 @@ export function QuizManager() {
     const handleDelete = async (quizId: string) => {
         if (!confirm('Hapus kuis ini? Aksi ini tidak bisa dibatalkan.')) return;
         try {
-            await quizService.deleteQuiz(quizId);
+            await quizService.deleteQuiz(quizId, tenantId!);
             setQuizzes(prev => prev.filter(q => q.id !== quizId));
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : String(err));

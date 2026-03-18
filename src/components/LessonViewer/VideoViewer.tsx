@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { PlayCircle, Sparkles, AlertTriangle, Lock, FileText, MessageSquare } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
 import { motion, AnimatePresence } from 'motion/react';
-import type { LessonResource } from '@/src/services/lessonService';
+import type { LessonResource } from '@/src/features/lessons';
 
 interface Transcript {
     time: number;

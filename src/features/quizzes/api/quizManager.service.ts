@@ -49,6 +49,27 @@ export async function getTeacherQuizzes(tenantId: string) {
 }
 
 /**
+ * Get quizzes by course
+ */
+export async function getQuizzesByCourse(courseId: string, tenantId: string) {
+  const { data, error } = await supabase
+    .from('quizzes')
+    .select(`
+      *,
+      quiz_questions (
+        id, text, "order", question_type, points,
+        quiz_options (id, text)
+      )
+    `)
+    .eq('course_id', courseId)
+    .eq('tenant_id', tenantId)
+    .eq('status', 'published');
+
+  if (error) throw error;
+  return data;
+}
+
+/**
  * Get quizzes by class
  */
 export async function getQuizzesByClass(classId: string, tenantId: string) {

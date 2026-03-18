@@ -8,9 +8,9 @@ import {
 import { cn } from "@/src/utils/cn";
 import { motion, AnimatePresence } from "motion/react";
 // TODO: AI grading will be routed through backend API (Phase 5)
-import { useGradebook } from "@/src/contexts/GradebookContext";
-import { useComments } from "@/src/contexts/CommentContext";
-import { useTenant } from "@/src/contexts/TenantContext";
+import { useGradebook } from "@/src/hooks/useGradebookQueries";
+import { useComments } from "@/src/hooks/useCommentQueries";
+import { useAuth } from "@/src/contexts/AuthContext";
 import { aiGraderService } from "@/src/services/aiGraderService";
 import { supabase } from "@/src/lib/supabase";
 
@@ -61,7 +61,7 @@ const quickComments = [
 export function SpeedGrader() {
   const { students: contextStudents, grades, updateGrade } = useGradebook();
   const { addComment } = useComments();
-  const { tenantId } = useTenant();
+  const { tenantId } = useAuth();
   const [searchParams] = useSearchParams();
   const assignmentId = searchParams.get('assignmentId') || 'a2';
 
@@ -103,27 +103,27 @@ export function SpeedGrader() {
   const loadStudentData = async () => {
     setIsLoading(true);
     setSaveStatus('idle');
-    
+
     // Authorization check: Verify teacher has access to this assignment
     try {
       let assignmentQuery = supabase
         .from('assignments')
         .select('id, tenant_id')
         .eq('id', assignmentId);
-      
+
       if (tenantId) {
         assignmentQuery = assignmentQuery.eq('tenant_id', tenantId);
       }
-      
+
       const { data: assignment, error: assignmentError } = await assignmentQuery.single();
-      
+
       if (assignmentError || !assignment) {
         console.error('Assignment not found or access denied:', assignmentError);
         setHasAccess(false);
         setIsLoading(false);
         return;
       }
-      
+
       setHasAccess(true);
     } catch (authError) {
       console.error('Authorization check failed:', authError);
@@ -131,7 +131,7 @@ export function SpeedGrader() {
       setIsLoading(false);
       return;
     }
-    
+
     try {
       // Fetch the actual submission text from the database
       // Must include tenant_id for multi-tenant isolation
@@ -140,20 +140,20 @@ export function SpeedGrader() {
         .select('submission_text')
         .eq('assignment_id', assignmentId)
         .eq('student_id', currentStudent.id);
-      
+
       // Add tenant filter if available (multi-tenant isolation)
       if (tenantId) {
         query = query.eq('tenant_id', tenantId);
       }
-      
+
       const { data: submission, error } = await query.maybeSingle();
 
       if (error) {
         console.warn('Could not load submission:', error);
       }
-      
+
       setSubmissionText(submission?.submission_text || '');
-      
+
       // Load existing grade data after submission is loaded
       const existingGrade = grades[currentStudent.id]?.[assignmentId];
       setScores({});
@@ -261,13 +261,13 @@ export function SpeedGrader() {
         return;
       }
     }
-    
+
     // Check if we have actual submission text
     if (!submissionText || submissionText.trim().length === 0) {
       alert("Tidak ada teks esai yang dapat dinilai. Siswa mungkin belum mengumpulkan tugas atau mengumpulkan file saja.");
       return;
     }
-    
+
     setIsAIGrading(true);
     try {
       const aiResponse = await aiGraderService.gradeEssay({

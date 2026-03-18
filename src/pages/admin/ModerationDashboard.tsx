@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useModeration, Report } from '@/src/contexts/ModerationContext';
+import { useModerationReports, useResolveReport, Report } from '@/src/features/moderation/queries/moderationQueries';
 import { CheckCircle, XCircle, AlertTriangle, Search, Filter, Clock, User, MessageSquare, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/src/utils/cn';
 
 export function ModerationDashboard() {
   const navigate = useNavigate();
-  const { reports, resolveReport } = useModeration();
+  const { data: reports = [], isLoading } = useModerationReports();
+  const resolveReport = useResolveReport();
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'resolved'>('pending');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -165,14 +166,14 @@ export function ModerationDashboard() {
                   {report.status === 'pending' && (
                     <div className="flex flex-row md:flex-col gap-3 justify-center border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6 md:w-48 shrink-0">
                       <button
-                        onClick={() => resolveReport(report.id, 'approved')}
+                        onClick={() => resolveReport.mutate({ reportId: report.id, status: 'approved' })}
                         className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-colors shadow-sm"
                       >
                         <CheckCircle className="w-4 h-4" />
                         Hapus Konten
                       </button>
                       <button
-                        onClick={() => resolveReport(report.id, 'rejected')}
+                        onClick={() => resolveReport.mutate({ reportId: report.id, status: 'rejected' })}
                         className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold text-sm transition-colors"
                       >
                         <XCircle className="w-4 h-4" />

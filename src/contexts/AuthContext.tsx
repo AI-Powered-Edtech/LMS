@@ -244,15 +244,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Process pending invite token after session is established.
+  // When a user registers via invite link, Login.tsx stores the token in localStorage.
+  // After email verification + login, we call accept_invitation to upgrade the role
+  // from default STUDENT to the invited role (TEACHER/ADMIN) and mark the invitation accepted.
+  const processPendingInvite = async (userId: string) => {
+    const pendingToken = localStorage.getItem("pendingInviteToken");
+    if (!pendingToken) return;
+
+    localStorage.removeItem("pendingInviteToken");
+    try {
+      const { data } = await supabase.rpc("accept_invitation", {
+        p_token: pendingToken,
+      });
+      if (data?.success) {
+        // Re-fetch user data to pick up the upgraded role
+        fetchLock.current = false; // Allow re-fetch
+        await fetchUserData(userId);
+      }
+    } catch (e) {
+      console.error("Failed to accept invitation:", e);
+    }
+  };
+
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        fetchUserData(s.user.id).finally(() => {
-          setLoading(false);
-        });
+        fetchUserData(s.user.id)
+          .then(() => processPendingInvite(s!.user.id))
+          .finally(() => {
+            setLoading(false);
+          });
       } else {
         setLoadingMemberships(false);
         setLoading(false);
@@ -272,6 +297,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // "No Workspace Access" before data arrives.
         setLoadingMemberships(true);
         fetchUserData(s.user.id)
+          .then(() => processPendingInvite(s!.user.id))
           .then(() => {
             setLoading(false);
           })

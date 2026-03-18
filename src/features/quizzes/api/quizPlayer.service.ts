@@ -327,6 +327,13 @@ export async function getStudentQuizAssignments(tenantId: string): Promise<Stude
 }
 
 /**
+ * Get all quizzes (alias for assignments)
+ */
+export async function getAllQuizzes(tenantId: string) {
+  return getStudentQuizAssignments(tenantId);
+}
+
+/**
  * Get all attempts for the current user
  */
 export async function getUserAttempts(tenantId: string): Promise<QuizAttempt[]> {

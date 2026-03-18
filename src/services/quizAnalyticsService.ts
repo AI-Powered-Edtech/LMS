@@ -83,12 +83,18 @@ export const quizAnalyticsService = {
     /**
      * Fetch quiz stats from the precomputed quiz_stats table.
      */
-    async getQuizStats(quizId: string): Promise<QuizStats | null> {
-        const { data, error } = await supabase
+    async getQuizStats(quizId: string, tenantId?: string): Promise<QuizStats | null> {
+        let query = supabase
             .from('quiz_stats')
             .select('*')
-            .eq('quiz_id', quizId)
-            .maybeSingle();
+            .eq('quiz_id', quizId);
+
+        // Tenant isolation — filter by tenant_id when available
+        if (tenantId) {
+            query = query.eq('tenant_id', tenantId);
+        }
+
+        const { data, error } = await query.maybeSingle();
 
         if (error) {
             console.error('Error fetching quiz stats:', error);

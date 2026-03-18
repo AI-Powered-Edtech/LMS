@@ -14,6 +14,7 @@ interface QuizPlayerState {
   
   // Navigation state
   currentQuestion: number;
+  timeRemaining: number | null;
   
   // Flagged questions
   flagged: Set<string>;
@@ -32,15 +33,11 @@ interface QuizPlayerState {
 // Store Factory
 // ============================================
 
-interface QuizPlayerStoreConfig {
-  totalQuestions: number;
-}
-
-export const createQuizPlayerStore = ({ totalQuestions }: QuizPlayerStoreConfig) =>
-  create<QuizPlayerState>((set, get) => ({
+export const useQuizPlayerStore = create<QuizPlayerState>((set, get) => ({
     // Initial state
     answers: {},
     currentQuestion: 0,
+    timeRemaining: null,
     flagged: new Set<string>(),
 
     // Actions
@@ -58,17 +55,14 @@ export const createQuizPlayerStore = ({ totalQuestions }: QuizPlayerStoreConfig)
     },
 
     goTo: (questionIndex: number) => {
-      const { currentQuestion } = get();
-      if (questionIndex >= 0 && questionIndex < totalQuestions) {
+      if (questionIndex >= 0) {
         set({ currentQuestion: questionIndex });
       }
     },
 
     nextQuestion: () => {
       const { currentQuestion } = get();
-      if (currentQuestion < totalQuestions - 1) {
-        set({ currentQuestion: currentQuestion + 1 });
-      }
+      set({ currentQuestion: currentQuestion + 1 });
     },
 
     previousQuestion: () => {
@@ -94,6 +88,7 @@ export const createQuizPlayerStore = ({ totalQuestions }: QuizPlayerStoreConfig)
       set({
         answers: {},
         currentQuestion: 0,
+        timeRemaining: null,
         flagged: new Set<string>(),
       });
     },
@@ -103,6 +98,5 @@ export const createQuizPlayerStore = ({ totalQuestions }: QuizPlayerStoreConfig)
 // Default store (for type exports)
 // ============================================
 
-// This is a placeholder - the actual store is created with createQuizPlayerStore
-// with the totalQuestions parameter. This export is for type reference only.
+// For type reference only
 export type { QuizPlayerState };

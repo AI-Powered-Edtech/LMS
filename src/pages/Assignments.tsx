@@ -9,21 +9,22 @@ import {
   Calendar as CalendarIcon, Users, FileUp, ArrowRight
 } from "lucide-react";
 import { cn } from "@/src/utils/cn";
-import { useComments } from "@/src/contexts/CommentContext";
-import { useGradebook } from "@/src/contexts/GradebookContext";
-import { useCalendar } from "@/src/contexts/CalendarContext";
-import { useNotifications } from "@/src/contexts/NotificationContext";
+import { useComments } from "@/src/hooks/useCommentQueries";
+import { useGradebook } from "@/src/hooks/useGradebookQueries";
+import { useAddCalendarEvent } from '@/src/hooks/useCalendarQueries';
+import { useSendNotification } from "@/src/features/notifications";
 import { useAssignments } from "@/src/features/assignments/hooks/useAssignments";
 import { assignmentService } from "@/src/services/assignmentService";
 import { AssignmentUiState } from "@/src/features/assignments/types";
 import { supabase } from "@/src/lib/supabase";
+import { SkeletonCard, EmptyState } from "@/src/components/ui";
 
 // Mock data has been removed and replaced with real backend integration via useAssignments hook.
 
 export function Assignments() {
   const { role, tenantId, user } = useAuth();
-  const { addEvent } = useCalendar();
-  const { addNotification } = useNotifications();
+  const { addEvent } = useAddCalendarEvent();
+  const sendNotification = useSendNotification();
   const { addAssignment: addGradebookAssignment, getStudentGrade } = useGradebook();
   const { addComment, getComments, setInitialComments } = useComments();
 
@@ -67,7 +68,7 @@ export function Assignments() {
   // Use type guard to ensure assignments is defined before filtering
   const filteredAssignments = (assignments || []).filter((a) => {
     const matchesSearch = a.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filter === "all" || 
+    const matchesStatus = filter === "all" ||
       a.status === filter ||
       (filter === "submitted" && (a.status as string) === "turned_in") ||
       (filter === "graded" && (a.status as string) === "returned") ||
@@ -79,8 +80,14 @@ export function Assignments() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
+      <div className="w-full max-w-7xl mx-auto p-4 md:p-8 space-y-6">
+        <SkeletonCard lines={1} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <SkeletonCard lines={3} />
+          <SkeletonCard lines={3} />
+          <SkeletonCard lines={3} />
+          <SkeletonCard lines={3} />
+        </div>
       </div>
     );
   }
@@ -206,7 +213,8 @@ export function Assignments() {
       date: dueDateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
     });
 
-    addNotification({
+    sendNotification.mutate({
+      userId: user!.id,
       type: 'assignment',
       title: 'Tugas Baru Dibuat',
       message: `${newAssignment.title} telah ditugaskan, ditambahkan ke kalender, dan buku nilai.`
@@ -361,9 +369,11 @@ export function Assignments() {
               </button>
             ))}
             {filteredAssignments.length === 0 && (
-              <div className="text-center py-8 text-slate-500 text-sm">
-                Tidak ada tugas yang ditemukan.
-              </div>
+              <EmptyState
+                icon={<FileText className="w-12 h-12" />}
+                title="Tidak ada tugas ditemukan"
+                description="Coba ubah filter atau buat tugas baru."
+              />
             )}
           </div>
         </div>

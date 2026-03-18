@@ -9,35 +9,10 @@ import { cn } from "@/src/utils/cn";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { useEffect } from "react";
-import { gamificationService, type UserStreak, type UserBadge } from "../services/gamificationService";
+import { useUserStreak, useUserBadges } from "@/src/features/gamification";
+import { MOCK_STREAK, MOCK_BADGES } from "@/src/features/gamification/types";
 
-const MOCK_STREAK: UserStreak = {
-  user_id: 'demo-user',
-  tenant_id: 'demo-tenant',
-  current_streak: 5,
-  longest_streak: 12,
-  last_activity_date: new Date().toISOString(),
-  updated_at: new Date().toISOString()
-};
 
-const MOCK_BADGES: UserBadge[] = [
-  {
-    badge_id: 'b1',
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-    badge: { id: 'b1', name: 'First Quiz', description: 'Menyelesaikan kuis pertama Anda', icon: '📝', created_at: '' }
-  },
-  {
-    badge_id: 'b2',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-    badge: { id: 'b2', name: 'Perfect Score', description: 'Mendapat nilai 100 di kuis', icon: '💯', created_at: '' }
-  },
-  {
-    badge_id: 'b3',
-    created_at: new Date().toISOString(),
-    badge: { id: 'b3', name: 'LMS Voyager', description: 'Menjelajahi semua modul pembelajaran', icon: '🚀', created_at: '' }
-  }
-];
 
 export function Profile() {
   const { user, tenantId, role, profile } = useAuth();
@@ -50,55 +25,14 @@ export function Profile() {
   const [openSessionMenuId, setOpenSessionMenuId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [streakData, setStreakData] = useState<UserStreak | null>(null);
-  const [userBadges, setUserBadges] = useState<UserBadge[]>([]);
-  const [loadingGamification, setLoadingGamification] = useState(true);
-
-
-  useEffect(() => {
-    if (!isTeacher) {
-      loadGamificationData();
-    }
-  }, [user, tenantId, isTeacher]);
-
-  const loadGamificationData = async () => {
-    try {
-      setLoadingGamification(true);
-
-      // Fallback to mock data if user/tenant is missing
-      const canFetch = user && tenantId;
-
-      if (!canFetch) {
-        setStreakData(MOCK_STREAK);
-        setUserBadges(MOCK_BADGES);
-        setLoadingGamification(false);
-        return;
-      }
-
-      const [streak, badges] = await Promise.all([
-        gamificationService.getUserStreak(user.id, tenantId),
-        gamificationService.getUserBadges(user.id, tenantId)
-      ]);
-      setStreakData(streak);
-      setUserBadges(badges);
-    } catch (error: any) {
-      // PGRST204/205: Missing table/schema cache error
-      // 42703: Column does not exist
-      const isMissingSchema = ['PGRST204', 'PGRST205', '42703'].includes(error?.code);
-
-      if (isMissingSchema) {
-        console.warn(`[Diagnostic] Supabase Schema Missing (Code: ${error?.code}). Gamification tables not found. Falling back to mock data.`);
-        setStreakData(MOCK_STREAK);
-        setUserBadges(MOCK_BADGES);
-      } else {
-        console.error("Failed to load gamification data:", error);
-        setStreakData(null);
-        setUserBadges([]);
-      }
-    } finally {
-      setLoadingGamification(false);
-    }
-  };
+  // Use gamification hooks - handle loading/error/null states with mock fallback
+  const { data: streakData, isLoading: streakLoading } = useUserStreak();
+  const { data: badgesData = [], isLoading: badgesLoading } = useUserBadges();
+  
+  // Determine effective data (use mock if no real data)
+  const effectiveStreak = streakData ?? MOCK_STREAK;
+  const effectiveBadges = badgesData.length > 0 ? badgesData : MOCK_BADGES;
+  const loadingGamification = streakLoading || badgesLoading;
 
   const handleSignatureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -366,10 +300,10 @@ export function Profile() {
                 {currentUser.status}
               </span>
               {isTeacher && <span title="Verified Teacher"><ShieldCheck className="w-4 h-4 text-emerald-500" /></span>}
-              {!isTeacher && streakData && streakData.current_streak > 0 && (
+              {!isTeacher && effectiveStreak && effectiveStreak.current_streak > 0 && (
                 <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
                   <Flame className="w-3.5 h-3.5 fill-current" />
-                  {streakData.current_streak} Hari
+                  {effectiveStreak.current_streak} Hari
                 </div>
               )}
             </div>
@@ -840,7 +774,7 @@ export function Profile() {
                           Lencana & Pencapaian
                         </h2>
                         <span className="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">
-                          {userBadges.length} Didapat
+                          {effectiveBadges.length} Didapat
                         </span>
                       </div>
 
@@ -848,9 +782,9 @@ export function Profile() {
                         <div className="flex items-center justify-center py-8">
                           <RefreshCw className="w-6 h-6 text-slate-300 animate-spin" />
                         </div>
-                      ) : userBadges.length > 0 ? (
+                      ) : effectiveBadges.length > 0 ? (
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                          {userBadges.map((ub) => (
+                          {effectiveBadges.map((ub) => (
                             <motion.div
                               key={ub.badge_id}
                               whileHover={{ y: -5 }}

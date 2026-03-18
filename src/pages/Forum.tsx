@@ -26,8 +26,9 @@ import "katex/dist/katex.min.css";
 import { cn } from "@/src/utils/cn";
 import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "@/src/contexts/AuthContext";
-import { useModeration } from "@/src/contexts/ModerationContext";
+import { useSubmitReport } from "@/src/features/moderation/queries/moderationQueries";
 import { ReportModal } from "@/src/components/moderation/ReportModal";
+import { EmptyState } from "@/src/components/ui";
 
 interface Comment {
   id: string;
@@ -468,7 +469,7 @@ function PostItem({
 
 export function Forum() {
   const { role } = useAuth();
-  const { submitReport } = useModeration();
+  const submitReport = useSubmitReport();
   const isTeacher = role === 'teacher';
   
   const [posts, setPosts] = useState<Post[]>(initialPosts);
@@ -528,7 +529,7 @@ export function Forum() {
     const isAiSuspect = newPostContent.length > 200 && (newPostContent.includes("tentu") || newPostContent.includes("sebagai model bahasa"));
     
     if (isAiSuspect) {
-      submitReport({
+      submitReport.mutate({
         contentId: postId,
         contentType: 'post',
         reason: 'ai_generated',
@@ -718,11 +719,11 @@ export function Forum() {
             />
           ))
         ) : (
-          <div className="text-center py-12 bg-white rounded-3xl border border-slate-200 border-dashed">
-            <MessageSquare className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-slate-700">Tidak ada diskusi ditemukan</h3>
-            <p className="text-slate-500 mt-1">Coba gunakan kata kunci lain atau buat pertanyaan baru.</p>
-          </div>
+          <EmptyState
+            icon={<MessageSquare className="w-12 h-12" />}
+            title="Tidak ada diskusi ditemukan"
+            description="Coba ubah filter atau buat diskusi baru."
+          />
         )}
       </div>
 

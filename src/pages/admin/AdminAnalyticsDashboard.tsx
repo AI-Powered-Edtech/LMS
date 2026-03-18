@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import {
   BarChart3,
   Users,
@@ -32,9 +32,8 @@ import {
   Legend
 } from 'recharts';
 import { cn } from '@/src/utils/cn';
-import { useTenant } from '@/src/contexts/TenantContext';
+import { useTenantAnalytics } from '@/src/features/analytics/queries/analyticsQueries';
 import {
-  analyticsService,
   TenantAnalyticsData,
   CourseEngagement,
   ActivityTimePoint
@@ -214,8 +213,8 @@ interface CourseEngagementChartProps {
 
 function CourseEngagementChart({ data }: CourseEngagementChartProps) {
   const chartData = data.slice(0, 6).map((course) => ({
-    name: course.courseName.length > 20 
-      ? course.courseName.substring(0, 20) + '...' 
+    name: course.courseName.length > 20
+      ? course.courseName.substring(0, 20) + '...'
       : course.courseName,
     students: course.enrolled,
     active: course.activeStudents,
@@ -270,14 +269,14 @@ interface StudentParticipationChartProps {
 
 function StudentParticipationChart({ totalEnrolled, activeStudents }: StudentParticipationChartProps) {
   const inactiveStudents = Math.max(0, totalEnrolled - activeStudents);
-  
+
   const data = [
     { name: 'Aktif', value: activeStudents, color: '#10B981' },
     { name: 'Tidak Aktif', value: inactiveStudents, color: '#94A3B8' }
   ];
 
-  const participationRate = totalEnrolled > 0 
-    ? Math.round((activeStudents / totalEnrolled) * 100) 
+  const participationRate = totalEnrolled > 0
+    ? Math.round((activeStudents / totalEnrolled) * 100)
     : 0;
 
   return (
@@ -329,37 +328,12 @@ function StudentParticipationChart({ totalEnrolled, activeStudents }: StudentPar
 }
 
 export function AdminAnalyticsDashboard() {
-  const { tenant } = useTenant();
-  const [data, setData] = useState<TenantAnalyticsData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const loadAnalytics = useCallback(async () => {
-    if (!tenant?.id) return;
-
-    try {
-      setError(null);
-      const analyticsData = await analyticsService.getTenantAnalytics(tenant.id);
-      setData(analyticsData);
-    } catch (err) {
-      console.error('Failed to load analytics:', err);
-      setError(err instanceof Error ? err.message : 'Gagal memuat data analitik. Silakan coba lagi.');
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [tenant?.id]);
-
-  useEffect(() => {
-    if (tenant?.id) {
-      loadAnalytics();
-    }
-  }, [tenant?.id, loadAnalytics]);
+  const { data: analytics, isLoading, error, refetch } = useTenantAnalytics();
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    loadAnalytics();
+    refetch();
   };
 
   // Loading state
@@ -375,13 +349,13 @@ export function AdminAnalyticsDashboard() {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto p-4 md:p-8">
-        <ErrorState message={error} onRetry={handleRefresh} />
+        <ErrorState message={error instanceof Error ? error.message : 'Gagal memuat data analitik. Silakan coba lagi.'} onRetry={() => refetch()} />
       </div>
     );
   }
 
   // Empty state - no data
-  if (!data || (data.overview.totalCourses === 0 && data.overview.totalEnrolled === 0)) {
+  if (!analytics || (analytics.overview.totalCourses === 0 && analytics.overview.totalEnrolled === 0)) {
     return (
       <div className="max-w-7xl mx-auto p-4 md:p-8">
         <EmptyState />
@@ -389,7 +363,7 @@ export function AdminAnalyticsDashboard() {
     );
   }
 
-  const { overview, activityMetrics, courseEngagement, activityTimeline } = data;
+  const { overview, activityMetrics, courseEngagement, activityTimeline } = analytics;
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
@@ -480,7 +454,7 @@ export function AdminAnalyticsDashboard() {
           totalEnrolled={overview.totalEnrolled}
           activeStudents={overview.activeStudents}
         />
-        
+
         {/* Summary Stats */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-6">

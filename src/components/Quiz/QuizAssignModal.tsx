@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { classroomService, Classroom } from '@/src/services/classroomService';
-import { quizService } from '@/src/services/quizService';
+import { quizService, QuizAssignment } from '@/src/services/quizService';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { cn } from '@/src/utils/cn';
 
@@ -45,10 +45,10 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
 
         setIsLoading(true);
         try {
-            const [fetchedClasses, existingAssignments] = await Promise.all([
+            const [fetchedClasses, existingAssignments] = (await Promise.all([
                 classroomService.fetchClassrooms(user.id, 'teacher', tenantId),
-                quizService.getAssignmentsByQuiz(quizId),
-            ]);
+                quizService.getAssignmentsByQuiz(quizId, tenantId),
+            ])) as [Classroom[], QuizAssignment[]];
 
             const existingByClassId = new Map(
                 existingAssignments.map((assignment) => [assignment.class_id, assignment])

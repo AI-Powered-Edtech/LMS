@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { lessonService } from '@/src/services/lessonService';
+import { lessonService } from '@/src/features/lessons';
 
 interface ProgressReporterProps {
     lessonId: string;

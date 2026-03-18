@@ -11,6 +11,7 @@ import { useAutosaveAnswers } from '../../hooks/useAutosaveAnswers';
 import type { SaveStatus } from '../../types/quizzes.types';
 import { useAntiCheat } from '../../hooks/useAntiCheat';
 import { useQuizHeartbeat } from '../../hooks/useQuizHeartbeat';
+import { useQuizPlayerStore } from '../../store/quizPlayer.store';
 // Presentational components - temporarily import from pages/quiz
 import { QuizHeader } from './QuizHeader';
 import { QuizBody } from './QuizBody';
@@ -58,6 +59,13 @@ export function QuizPlayer({
 
   const totalQuestions = attemptQuestions.length;
   const question = attemptQuestions[currentQuestionIdx];
+  const store = useQuizPlayerStore();
+
+  useEffect(() => {
+    // Reset store state when attempt changes
+    store.resetStore();
+    return () => store.resetStore();
+  }, [attemptId, store]);
 
   // ── Hooks composition ───────────────────────────────────
   const { timeLeft, isCritical, progressColor } = useQuizTimer({

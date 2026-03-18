@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { lessonService, ProgressQueueItem, SignedProgressQueue } from '../lessonService';
+import { lessonService, ProgressQueueItem, SignedProgressQueue } from '../../features/lessons';
 import { supabase } from '../../lib/supabase';
 
 vi.mock('../../lib/supabase', () => ({

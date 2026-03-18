@@ -2,15 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, BookOpen, Clock, Loader2, RefreshCw, Users } from 'lucide-react';
 import { useAuth } from '@/src/contexts/AuthContext';
-import { useTenant } from '@/src/contexts/TenantContext';
-import { courseService, Course } from '@/src/services/courseService';
+import { courseService, Course } from '@/src/features/courses';
 import { motion } from 'framer-motion';
 import { AssignCourseModal } from '@/src/components/Classroom/AssignCourseModal';
 
 export const Courses: React.FC = () => {
     const navigate = useNavigate();
-    const { user } = useAuth();
-    const { tenant } = useTenant();
+    const { user, activeTenant } = useAuth();
 
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
@@ -31,16 +29,16 @@ export const Courses: React.FC = () => {
 
     useEffect(() => {
         loadCourses();
-    }, [tenant?.id, user?.id]);
+    }, [activeTenant?.id, user?.id]);
 
     const loadCourses = async () => {
-        if (!tenant?.id) return;
+        if (!activeTenant?.id) return;
 
         try {
             setLoading(true);
             setError(null);
             const { courses: fetchedCourses } = await courseService.fetchCourses({
-                tenantId: tenant.id,
+                tenantId: activeTenant.id,
                 limit: 50, // Load initial 50 for now
             });
             setCourses(fetchedCourses);
@@ -54,14 +52,14 @@ export const Courses: React.FC = () => {
 
     const handleCreateCourse = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!tenant?.id || !user?.id || !newTitle.trim()) return;
+        if (!activeTenant?.id || !user?.id || !newTitle.trim()) return;
 
         try {
             setIsCreating(true);
             const newCourse = await courseService.createCourse({
                 title: newTitle.trim(),
                 description: newDescription.trim() || null,
-                tenant_id: tenant.id,
+                tenant_id: activeTenant.id,
                 created_by: user.id
             });
 
@@ -176,7 +174,7 @@ export const Courses: React.FC = () => {
                                         ))}
                                     </div>
                                 )}
-                                
+
                                 <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
                                     <div className="flex items-center text-gray-400 text-xs font-medium">
                                         <Clock className="w-4 h-4 mr-1.5" />
@@ -212,11 +210,11 @@ export const Courses: React.FC = () => {
                         className="bg-white dark:bg-gray-800 rounded-3xl max-w-md w-full p-8 shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden relative"
                     >
                         <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 to-purple-600" />
-                        
+
                         <h2 className="text-2xl font-black mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
                             Buat Materi Baru
                         </h2>
-                        
+
                         <form onSubmit={handleCreateCourse}>
                             <div className="mb-5">
                                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">

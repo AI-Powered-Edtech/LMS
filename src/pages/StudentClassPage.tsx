@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useClassroom } from '@/src/contexts/ClassroomContext';
-import { courseService, Course } from '@/src/services/courseService';
+import { useClassroom } from '@/src/hooks/useClassroomQueries';
+import { courseService, Course } from '@/src/features/courses';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { ArrowLeft, BookOpen, Play, GraduationCap } from 'lucide-react';
 import { cn } from '@/src/utils/cn';

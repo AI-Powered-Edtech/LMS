@@ -2,6 +2,7 @@
 // Part of the Quiz Engine Refactor
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/src/contexts/AuthContext';
 import * as quizPlayerService from '../api/quizPlayer.service';
 import { QuizKeys } from './queryKeys';
 import type { StartQuizAttemptInput, SubmitAnswer } from '../types/quizzes.types';
@@ -14,13 +15,15 @@ import type { StartQuizAttemptInput, SubmitAnswer } from '../types/quizzes.types
  * Start a new quiz attempt
  */
 export function useStartQuizAttempt() {
+  const { tenantId } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (input: StartQuizAttemptInput) => quizPlayerService.startQuizAttempt(input),
-    onSuccess: (_, variables) => {
-      // Invalidate student assignments after starting a quiz
-      queryClient.invalidateQueries({ queryKey: ['quiz', 'studentAssignments'] });
+    onSuccess: () => {
+      if (tenantId) {
+        queryClient.invalidateQueries({ queryKey: QuizKeys.studentAssignments(tenantId) });
+      }
     },
   });
 }
@@ -29,14 +32,17 @@ export function useStartQuizAttempt() {
  * Submit a quiz attempt
  */
 export function useSubmitQuizAttempt() {
+  const { tenantId } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ attemptId, answers, version }: { attemptId: string; answers: SubmitAnswer[]; version?: number }) =>
       quizPlayerService.submitQuizAttempt(attemptId, answers, version),
     onSuccess: () => {
-      // Invalidate attempts after submission
-      queryClient.invalidateQueries({ queryKey: ['quiz', 'userAttempts'] });
+      if (tenantId) {
+        queryClient.invalidateQueries({ queryKey: QuizKeys.userAttempts(tenantId) });
+        queryClient.invalidateQueries({ queryKey: QuizKeys.studentAssignments(tenantId) });
+      }
     },
   });
 }

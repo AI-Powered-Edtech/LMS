@@ -322,8 +322,8 @@ export const courseBuilderService = {
 
     // ─── Quiz ────────────────────────────────────────────────
 
-    async getQuizByLesson(lessonId: string) {
-        const { data, error } = await supabase
+    async getQuizByLesson(lessonId: string, tenantId?: string) {
+        let query = supabase
             .from('quizzes')
             .select(`
                 *,
@@ -332,8 +332,11 @@ export const courseBuilderService = {
                     quiz_options (id, text, is_correct)
                 )
             `)
-            .eq('lesson_id', lessonId)
-            .single();
+            .eq('lesson_id', lessonId);
+
+        if (tenantId) query = query.eq('tenant_id', tenantId);
+
+        const { data, error } = await query.single();
 
         if (error && error.code !== 'PGRST116') throw new Error(error.message);
         return data || null;
@@ -368,12 +371,15 @@ export const courseBuilderService = {
 
     // ─── Assignment ──────────────────────────────────────────
 
-    async getAssignmentByLesson(lessonId: string) {
-        const { data, error } = await supabase
+    async getAssignmentByLesson(lessonId: string, tenantId?: string) {
+        let query = supabase
             .from('assignments')
             .select('*')
-            .eq('lesson_id', lessonId)
-            .maybeSingle();
+            .eq('lesson_id', lessonId);
+
+        if (tenantId) query = query.eq('tenant_id', tenantId);
+
+        const { data, error } = await query.maybeSingle();
 
         if (error) throw new Error(error.message);
         return data || null;

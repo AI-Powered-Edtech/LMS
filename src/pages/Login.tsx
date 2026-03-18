@@ -19,6 +19,7 @@ export function Login() {
     const [lastName, setLastName] = useState('');
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [registrationSuccess, setRegistrationSuccess] = useState(false);
     const [inviteToken, setInviteToken] = useState<string | null>(null);
     const [inviteInfo, setInviteInfo] = useState<InviteInfo | null>(null);
 
@@ -69,21 +70,31 @@ export function Login() {
                     setError(err.message);
                 }
             } else {
-                // Pass invite_token in metadata if present
-                const { error: signUpError } = await supabase.auth.signUp({
+                // Use AuthContext.signUp for consistency
+                const { error: signUpError } = await signUp(
                     email,
                     password,
-                    options: {
-                        data: {
-                            first_name: firstName,
-                            last_name: lastName,
-                            ...(inviteToken ? { invite_token: inviteToken } : {}),
-                            ...(inviteInfo?.tenant_id ? { tenant_id: inviteInfo.tenant_id } : {}),
-                        },
-                    },
-                });
+                    firstName,
+                    lastName,
+                    inviteInfo?.tenant_id
+                );
                 if (signUpError) {
                     setError(signUpError.message);
+                } else {
+                    if (inviteToken) {
+                        // Store invite token so AuthContext can call accept_invitation
+                        // after the user's session is established (post email verification)
+                        localStorage.setItem('pendingInviteToken', inviteToken);
+                    }
+                    if (!inviteInfo) {
+                        // Self-registration (no invite) - show success message instead of auto-login
+                        setRegistrationSuccess(true);
+                        setError('');
+                        setEmail('');
+                        setPassword('');
+                        setFirstName('');
+                        setLastName('');
+                    }
                 }
             }
         } finally {
@@ -93,7 +104,7 @@ export function Login() {
 
     const fillAccount = (role: string) => {
         const demoEmail = `${role}@edusync.dev`;
-        
+
         setEmail(demoEmail);
         setPassword('');
         setMode('login');
@@ -123,6 +134,25 @@ export function Login() {
                         </p>
                         <p style={{ color: '#94a3b8', fontSize: '0.75rem', margin: 0 }}>
                             Role: <strong style={{ color: '#60a5fa' }}>{inviteInfo.role}</strong> • Buat akun untuk bergabung
+                        </p>
+                    </div>
+                )}
+
+                {registrationSuccess && (
+                    <div style={{
+                        padding: '1.5rem',
+                        background: 'rgba(34,197,94,0.1)',
+                        border: '1px solid rgba(34,197,94,0.25)',
+                        borderRadius: '0.5rem',
+                        marginBottom: '1rem',
+                        textAlign: 'center' as const,
+                    }}>
+                        <p style={{ color: '#86efac', fontSize: '1.5rem', margin: '0 0 0.75rem' }}>✅</p>
+                        <p style={{ color: '#86efac', fontSize: '0.9rem', margin: '0 0 0.5rem', fontWeight: 600 }}>
+                            Akun berhasil dibuat!
+                        </p>
+                        <p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: 0, lineHeight: 1.5 }}>
+                            Silakan periksa email Anda untuk verifikasi. Administrator akan mengaktifkan akses Anda.
                         </p>
                     </div>
                 )}
@@ -212,15 +242,16 @@ export function Login() {
                     </button>
                 </form>
 
-                {/* Setup Warning Banner */}
-                <div style={styles.warning}>
-                    <p style={styles.warningTitle}>⚠️ Perhatian Developer</p>
-                    <p style={styles.warningText}>
-                        Pastikan akun sudah dibuat di <strong>Supabase Auth</strong> dan memiliki entry 
-                        di tabel <code>profiles</code> + <code>user_roles</code>.
-                        Lihat <code>README.md</code> atau seed migration untuk setup.
-                    </p>
-                </div>
+                {import.meta.env.DEV && (
+                    <div style={styles.warning}>
+                        <p style={styles.warningTitle}>⚠️ Perhatian Developer</p>
+                        <p style={styles.warningText}>
+                            Pastikan akun sudah dibuat di <strong>Supabase Auth</strong> dan memiliki entry
+                            di tabel <code>profiles</code> + <code>user_roles</code>.
+                            Lihat <code>README.md</code> atau seed migration untuk setup.
+                        </p>
+                    </div>
+                )}
 
                 {/* Quick Login - Real Accounts */}
                 <div style={styles.demo}>

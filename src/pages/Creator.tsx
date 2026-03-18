@@ -11,17 +11,19 @@ import {
 } from "lucide-react";
 import { cn } from "@/src/utils/cn";
 import { motion, AnimatePresence } from "motion/react";
+import { useAuth } from "@/src/contexts/AuthContext";
 // TODO: AI generation will be routed through backend API (Phase 5)
-import { useCalendar } from "@/src/contexts/CalendarContext";
-import { useNotifications } from "@/src/contexts/NotificationContext";
+import { useAddCalendarEvent } from '@/src/hooks/useCalendarQueries';
+import { useSendNotification } from "@/src/features/notifications";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/src/lib/supabase";
 
 
 
 export function Creator() {
-  const { addEvent } = useCalendar();
-  const { addNotification } = useNotifications();
+  const { user } = useAuth();
+  const { addEvent } = useAddCalendarEvent();
+  const sendNotification = useSendNotification();
   const navigate = useNavigate();
 
   const [isDragging, setIsDragging] = useState(false);
@@ -92,7 +94,7 @@ export function Creator() {
         console.error("Supabase edge function error:", supaError);
         // Specifically catch a common indication of a 404 from invoke
         if (supaError.message && (supaError.message.includes('404') || supaError.message.includes('not found') || supaError.message.includes('FetchError'))) {
-           throw new Error("⚠️ Layanan AI (Backend API) belum tersedia saat ini.");
+          throw new Error("⚠️ Layanan AI (Backend API) belum tersedia saat ini.");
         }
         throw new Error(supaError.message || "Gagal memproses materi dengan AI.");
       }
@@ -105,7 +107,7 @@ export function Creator() {
       if (data && data.questions && Array.isArray(data.questions)) {
         setResult(data);
       } else {
-         throw new Error("Respons API tidak valid.");
+        throw new Error("Respons API tidak valid.");
       }
     } catch (err: any) {
       console.error(err);
@@ -135,7 +137,8 @@ export function Creator() {
       duration: 60
     });
 
-    addNotification({
+    sendNotification.mutate({
+      userId: user.id,
       type: 'assignment',
       title: 'Kuis Dijadwalkan',
       message: 'Kuis telah ditambahkan ke kalender siswa.'

@@ -4,6 +4,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { SubmitAnswer, SaveStatus } from '../types/quizzes.types';
 import * as quizPlayerService from '../api/quizPlayer.service';
+import { useAuth } from '@/src/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { QuizKeys } from '../queries/queryKeys';
 
 interface UseAutosaveAnswersOptions {
   attemptId: string | undefined;
@@ -28,6 +31,9 @@ export function useAutosaveAnswers({
 }: UseAutosaveAnswersOptions): UseAutosaveAnswersResult {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [isOnline, setIsOnline] = useState(true);
+  
+  const { tenantId } = useAuth();
+  const queryClient = useQueryClient();
   
   const dirtyAnswersRef = useRef<Record<string, SubmitAnswer>>({});
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -59,6 +65,19 @@ export function useAutosaveAnswers({
     try {
       setSaveStatus('saving');
       await quizPlayerService.batchSaveAnswers(attemptId, batch);
+      
+      // DECISION: We intentionally skip React Query cache invalidation here.
+      // Invalidation on every autosave flush (e.g. typing an essay) would trigger 
+      // expensive re-fetches. The QuizPlayer component already maintains optimistically 
+      // updated local state for all answers, so the UI remains perfectly in sync.
+      /*
+      if (tenantId) {
+        queryClient.invalidateQueries({ 
+          queryKey: QuizKeys.attemptQuestions(attemptId, tenantId) 
+        });
+      }
+      */
+      
       setSaveStatus('saved');
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
       saveTimeout.current = setTimeout(() => setSaveStatus('idle'), 2000);

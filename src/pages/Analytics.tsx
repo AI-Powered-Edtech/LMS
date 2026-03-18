@@ -26,19 +26,19 @@ import {
 } from "lucide-react";
 import { cn } from "@/src/utils/cn";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTenant } from "@/src/contexts/TenantContext";
-import { courseService, Course } from "@/src/services/courseService";
-import { analyticsService, TeacherAnalyticsData, AnalyticsError } from "@/src/services/analyticsService";
+import { useAuth } from "@/src/contexts/AuthContext";
+import { courseService, Course } from "@/src/features/courses";
+import { AnalyticsError } from "@/src/services/analyticsService";
+import { useTeacherAnalytics, useRefreshCourseStats } from "@/src/features/analytics/queries/analyticsQueries";
 
 export function Analytics() {
-  const { tenant } = useTenant();
+  const { activeTenant } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
 
-  const [data, setData] = useState<TeacherAnalyticsData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Use React Query hooks for analytics data
+  const { data, isLoading, error, refetch } = useTeacherAnalytics(selectedCourseId);
+  const refreshMutation = useRefreshCourseStats();
 
   const [filter, setFilter] = useState("Semua");
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
@@ -46,9 +46,9 @@ export function Analytics() {
   // Load courses for tenant
   useEffect(() => {
     async function loadCourses() {
-      if (!tenant?.id) return;
+      if (!activeTenant?.id) return;
       try {
-        const result = await courseService.fetchCourses({ tenantId: tenant.id, limit: 50 });
+        const result = await courseService.fetchCourses({ tenantId: activeTenant.id, limit: 50 });
         setCourses(result.courses);
         if (result.courses.length > 0) {
           setSelectedCourseId(result.courses[0].id);
@@ -58,76 +58,51 @@ export function Analytics() {
       }
     }
     loadCourses();
-  }, [tenant?.id]);
+  }, [activeTenant?.id]);
 
-  // Load analytics data when course changes
+  // Handle error state from query
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   useEffect(() => {
-    if (!selectedCourseId) return;
-    loadAnalytics();
-  }, [selectedCourseId]);
-
-  const loadAnalytics = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const analytics = await analyticsService.getTeacherAnalytics(selectedCourseId);
-      
-      if (!analytics) {
-        setError('Belum ada data analitik untuk kursus ini. Pastikan siswa telah enroll dan menyelesaikan lesson.');
-        return;
-      }
-      
-      // Check if there's any meaningful data
-      if (analytics.overview.total_enrolled === 0) {
-        setError('Belum ada siswa yang enroll di kursus ini.');
-        return;
-      }
-      
-      setData(analytics);
-    } catch (err: unknown) {
-      console.error("Failed to load analytics", err);
-      
-      // Handle AnalyticsError specifically
-      if (err instanceof AnalyticsError) {
-        switch (err.code) {
+    if (error) {
+      if (error instanceof AnalyticsError) {
+        switch (error.code) {
           case 'PERMISSION_DENIED':
-            setError('Anda tidak memiliki akses ke analitik kursus ini. Hanya guru dan admin yang dapat melihat.');
+            setErrorMessage('Anda tidak memiliki akses ke analitik kursus ini. Hanya guru dan admin yang dapat melihat.');
             break;
           case 'RPC_NOT_FOUND':
-            setError('Konfigurasi analitik belum lengkap. Silakan hubungi administrator sistem.');
+            setErrorMessage('Konfigurasi analitik belum lengkap. Silakan hubungi administrator sistem.');
             break;
           case 'COURSE_NOT_FOUND':
-            setError('Kursus tidak ditemukan atau telah dihapus.');
+            setErrorMessage('Kursus tidak ditemukan atau telah dihapus.');
             break;
           case 'TENANT_MISMATCH':
-            setError('Akses ditolak. Kursus tidak termasuk dalam organisasi Anda.');
+            setErrorMessage('Akses ditolak. Kursus tidak termasuk dalam organisasi Anda.');
             break;
           case 'NETWORK_ERROR':
-            setError('Koneksi internet bermasalah. Silakan periksa koneksi Anda dan coba lagi.');
+            setErrorMessage('Koneksi internet bermasalah. Silakan periksa koneksi Anda dan coba lagi.');
             break;
           default:
-            setError(err.message);
+            setErrorMessage(error.message);
         }
       } else {
-        // Fallback for generic errors
-        setError("Gagal memuat analitik. Pastikan module dan quiz terhubung ke progress.");
+        setErrorMessage("Gagal memuat analitik. Pastikan module dan quiz terhubung ke progress.");
       }
-    } finally {
-      setIsLoading(false);
+    } else {
+      setErrorMessage(null);
     }
-  };
+  }, [error]);
 
   const handleManualRefresh = async () => {
     if (!selectedCourseId) return;
-    setIsRefreshing(true);
     try {
-      await analyticsService.refreshCourseStats(selectedCourseId);
-      await loadAnalytics();
+      await refreshMutation.mutateAsync(selectedCourseId);
+      refetch();
     } catch (err: unknown) {
       console.error("Failed to refresh analytics", err);
-      
+
       let errorMessage = "Gagal memperbarui data analitik manual.";
-      
+
       if (err instanceof AnalyticsError) {
         switch (err.code) {
           case 'PERMISSION_DENIED':
@@ -141,10 +116,8 @@ export function Analytics() {
             break;
         }
       }
-      
+
       alert(errorMessage);
-    } finally {
-      setIsRefreshing(false);
     }
   };
 
@@ -152,7 +125,7 @@ export function Analytics() {
     alert("⚠️ Fitur AI Analytics In-Depth sedang dalam pengembangan. Gunakan AI Tutor untuk pertanyaan spesifik.");
   };
 
-  if (!tenant) return null;
+  if (!activeTenant) return null;
 
   const radarData = data?.module_completion.map(m => ({
     subject: m.title.length > 15 ? m.title.substring(0, 15) + '...' : m.title,
@@ -177,13 +150,13 @@ export function Analytics() {
   // Helper function to format last updated time
   const formatLastUpdated = (timestamp: string | null) => {
     if (!timestamp) return "Belum pernah dihitung";
-    
+
     const date = new Date(timestamp);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMinutes = Math.round(diffMs / (1000 * 60));
     const diffHours = Math.round(diffMs / (1000 * 60 * 60));
-    
+
     if (diffMinutes < 1) return "Baru saja";
     if (diffMinutes < 60) return `${diffMinutes} menit yang lalu`;
     if (diffHours < 24) return `${diffHours} jam yang lalu`;
@@ -216,10 +189,10 @@ export function Analytics() {
 
           <button
             onClick={handleManualRefresh}
-            disabled={isRefreshing || isLoading || !selectedCourseId}
+            disabled={refreshMutation.isPending || isLoading || !selectedCourseId}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-all shadow-sm disabled:opacity-50"
           >
-            <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+            <RefreshCw className={cn("w-4 h-4", refreshMutation.isPending && "animate-spin")} />
             Perbarui
           </button>
 
@@ -241,23 +214,23 @@ export function Analytics() {
         </div>
       )}
 
-      {isLoading && !isRefreshing ? (
+      {isLoading && !refreshMutation.isPending ? (
         <div className="flex flex-col items-center justify-center py-20">
           <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-4" />
           <p className="text-slate-500">Memuat data agregasi dari warehouse...</p>
         </div>
-      ) : error ? (
+      ) : errorMessage ? (
         <div className="p-6 bg-red-50 text-red-600 rounded-xl border border-red-100 flex items-start gap-4">
-          {error.includes('Koneksi') || error.includes('internet') ? (
+          {errorMessage.includes('Koneksi') || errorMessage.includes('internet') ? (
             <WifiOff className="w-6 h-6 shrink-0" />
-          ) : error.includes('akses') || error.includes('akses') ? (
+          ) : errorMessage.includes('akses') || errorMessage.includes('akses') ? (
             <AlertCircle className="w-6 h-6 shrink-0" />
           ) : (
             <AlertTriangle className="w-6 h-6 shrink-0" />
           )}
           <div>
             <h3 className="font-bold">Gagal memuat analitik</h3>
-            <p className="text-sm mt-1">{error}</p>
+            <p className="text-sm mt-1">{errorMessage}</p>
           </div>
         </div>
       ) : !data ? (

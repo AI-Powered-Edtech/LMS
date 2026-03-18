@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, AlertTriangle, Flag, CheckCircle } from 'lucide-react';
-import { useModeration, ReportReason, ContentType } from '@/src/contexts/ModerationContext';
+import { useSubmitReport, ReportReason, ContentType } from '@/src/features/moderation/queries/moderationQueries';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -13,7 +13,7 @@ interface ReportModalProps {
 }
 
 export function ReportModal({ isOpen, onClose, contentId, contentType, contentSnippet, contentAuthor }: ReportModalProps) {
-  const { submitReport } = useModeration();
+  const submitReport = useSubmitReport();
   const [reason, setReason] = useState<ReportReason>('inappropriate');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,7 +25,7 @@ export function ReportModal({ isOpen, onClose, contentId, contentType, contentSn
     
     // Simulate network delay
     setTimeout(() => {
-      submitReport({
+      submitReport.mutate({
         contentId,
         contentType,
         reason,

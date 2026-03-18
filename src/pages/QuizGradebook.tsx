@@ -20,7 +20,7 @@ import { cn } from '@/src/utils/cn';
 import { AttemptDetailModal } from '@/src/components/AttemptDetailModal';
 import { quizAnalyticsService, QuestionDifficulty } from '@/src/services/quizAnalyticsService';
 import { quizService, AssignmentResultRow } from '@/src/services/quizService';
-import { useTenant } from '@/src/contexts/TenantContext';
+import { useAuth } from '@/src/contexts/AuthContext';
 
 interface AssignmentOption {
     id: string;
@@ -54,28 +54,28 @@ export function QuizGradebook() {
     const [questionDifficulty, setQuestionDifficulty] = useState<QuestionDifficulty[]>([]);
     const [isDifficultyLoading, setIsDifficultyLoading] = useState(false);
 
-    const { tenant } = useTenant();
+    const { activeTenant } = useAuth();
 
     useEffect(() => {
         async function loadClasses() {
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user || !tenant) return;
+            if (!user || !activeTenant) return;
 
             const { data, error } = await supabase
                 .from('classes')
                 .select('id, name')
                 .eq('teacher_id', user.id)
-                .eq('tenant_id', tenant.id)
+                .eq('tenant_id', activeTenant.id)
                 .order('name', { ascending: true });
 
             if (!error && data) setClasses(data);
         }
 
         loadClasses();
-    }, [tenant]);
+    }, [activeTenant]);
 
     useEffect(() => {
-        if (!selectedClass || !tenant) {
+        if (!selectedClass || !activeTenant) {
             setAssignments([]);
             setSelectedAssignment('');
             return;
@@ -99,7 +99,7 @@ export function QuizGradebook() {
                         )
                     `)
                     .eq('class_id', selectedClass)
-                    .eq('tenant_id', tenant.id)
+                    .eq('tenant_id', activeTenant.id)
                     .eq('quizzes.status', 'published')
                     .order('created_at', { ascending: false });
 
@@ -134,7 +134,7 @@ export function QuizGradebook() {
         setIsLoading(true);
         setError(null);
         try {
-            const data = await quizService.getAssignmentResults(selectedAssignment);
+            const data = await quizService.getAssignmentResults(selectedAssignment, activeTenant.id);
             setAttempts(data);
         } catch (err: any) {
             setError(err.message || 'Gagal memuat hasil assignment');

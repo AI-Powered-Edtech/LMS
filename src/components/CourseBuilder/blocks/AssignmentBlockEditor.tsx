@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { FileText, Loader2, CheckCircle, AlertTriangle, Calendar } from 'lucide-react';
+import { useAuth } from '@/src/contexts/AuthContext';
 import { useBuilder } from '@/src/contexts/BuilderContext';
 import { courseBuilderService, type AssignmentBlockData } from '@/src/services/courseBuilderService';
 import { cn } from '@/src/utils/cn';
 
 export function AssignmentBlockEditor({ blockId }: { blockId: string }) {
+    const { tenantId } = useAuth();
     const { state } = useBuilder();
     const activeLesson = state.modules
         .flatMap(m => m.lessons)
@@ -28,7 +30,7 @@ export function AssignmentBlockEditor({ blockId }: { blockId: string }) {
         if (!activeLesson) return;
         async function load() {
             try {
-                const data = await courseBuilderService.getAssignmentByLesson(activeLesson!.id);
+                const data = await courseBuilderService.getAssignmentByLesson(activeLesson!.id, tenantId!);
                 if (data) {
                     setSavedAssignmentId(data.id);
                     setAssignmentData({
