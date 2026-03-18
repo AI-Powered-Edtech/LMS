@@ -164,6 +164,7 @@ export function BuilderSidebar() {
                                                                     actions.deleteModule(mod.id);
                                                                 }
                                                             }}
+                                                            aria-label={`Hapus Modul ${mod.title}`}
                                                             className="p-1 opacity-0 group-hover:opacity-100 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded transition-all"
                                                         >
                                                             <Trash2 className="w-3 h-3" />
@@ -237,6 +238,7 @@ export function BuilderSidebar() {
                                                                                                         actions.deleteLesson(lesson.id);
                                                                                                     }
                                                                                                 }}
+                                                                                                aria-label={`Hapus Materi ${lesson.title}`}
                                                                                                 className={cn(
                                                                                                     "p-1.5 rounded-lg transition-all",
                                                                                                     state.activeLesson?.id === lesson.id 
