@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   Search,
@@ -33,7 +33,7 @@ export function Gradebook() {
     date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
   });
 
-  const handleAddAssignment = (e: React.FormEvent) => {
+  const handleAddAssignment = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (newAssignment.title && newAssignment.type && newAssignment.maxScore) {
       const id = `a${Date.now()}`;
@@ -52,14 +52,16 @@ export function Gradebook() {
         date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
       });
     }
-  };
+  }, [newAssignment, addAssignment]);
 
-  const filteredStudents = students.filter(s =>
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.nis.includes(searchQuery)
-  );
+  const filteredStudents = useMemo(() => {
+    return students.filter(s =>
+      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.nis.includes(searchQuery)
+    );
+  }, [students, searchQuery]);
 
-  const calculateAverage = (studentId: string) => {
+  const calculateAverage = useCallback((studentId: string) => {
     const studentGrades = grades[studentId];
     if (!studentGrades) return 0;
     const scores = Object.values(studentGrades)
@@ -68,9 +70,9 @@ export function Gradebook() {
     if (scores.length === 0) return 0;
     const sum = scores.reduce((a, b) => a + b, 0);
     return Math.round(sum / scores.length);
-  };
+  }, [grades]);
 
-  const calculateTotal = (studentId: string) => {
+  const calculateTotal = useCallback((studentId: string) => {
     const studentGrades = grades[studentId];
     if (!studentGrades) return 0;
     const scores = Object.values(studentGrades)
@@ -78,21 +80,31 @@ export function Gradebook() {
       .filter((score): score is number => score !== null);
     if (scores.length === 0) return 0;
     return scores.reduce((a, b) => a + b, 0);
-  };
+  }, [grades]);
 
   // Calculate class stats
-  const allAverages = students.map(s => calculateAverage(s.id as any)).filter(avg => avg > 0);
-  const classAverage = allAverages.length > 0 ? Math.round(allAverages.reduce((a, b) => a + b, 0) / allAverages.length) : 0;
-  const highestScore = allAverages.length > 0 ? Math.max(...allAverages) : 0;
-  const lowestScore = allAverages.length > 0 ? Math.min(...allAverages) : 0;
+  const { classAverage, highestScore, lowestScore, highestStudent, lowestStudent } = useMemo(() => {
+    const averages = students.map(s => calculateAverage(s.id as any)).filter(avg => avg > 0);
+    const avg = averages.length > 0 ? Math.round(averages.reduce((a, b) => a + b, 0) / averages.length) : 0;
+    const highest = averages.length > 0 ? Math.max(...averages) : 0;
+    const lowest = averages.length > 0 ? Math.min(...averages) : 0;
 
-  let highestStudent = "-";
-  let lowestStudent = "-";
+    let highestName = "-";
+    let lowestName = "-";
 
-  if (allAverages.length > 0) {
-    highestStudent = students.find(s => calculateAverage(s.id as any) === highestScore)?.name || "-";
-    lowestStudent = students.find(s => calculateAverage(s.id as any) === lowestScore)?.name || "-";
-  }
+    if (averages.length > 0) {
+      highestName = students.find(s => calculateAverage(s.id as any) === highest)?.name || "-";
+      lowestName = students.find(s => calculateAverage(s.id as any) === lowest)?.name || "-";
+    }
+
+    return {
+      classAverage: avg,
+      highestScore: highest,
+      lowestScore: lowest,
+      highestStudent: highestName,
+      lowestStudent: lowestName
+    };
+  }, [students, calculateAverage]);
 
   const getGradeColor = (score: number | null) => {
     if (score === null || score === 0) return "text-slate-400";
@@ -133,12 +145,12 @@ export function Gradebook() {
     }
   };
 
-  const handleCellClick = (studentId: string, assignmentId: string, currentScore: number | null) => {
+  const handleCellClick = useCallback((studentId: string, assignmentId: string, currentScore: number | null) => {
     setEditingCell({ studentId, assignmentId });
     setEditValue(currentScore !== null ? currentScore.toString() : "");
-  };
+  }, []);
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = useCallback(() => {
     if (editingCell) {
       const numValue = editValue === "" ? null : parseInt(editValue, 10);
       if (numValue === null || (!isNaN(numValue) && numValue >= 0 && numValue <= 100)) {
@@ -146,15 +158,15 @@ export function Gradebook() {
       }
       setEditingCell(null);
     }
-  };
+  }, [editingCell, editValue, updateGrade]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSaveEdit();
     } else if (e.key === 'Escape') {
       setEditingCell(null);
     }
-  };
+  }, [handleSaveEdit]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
