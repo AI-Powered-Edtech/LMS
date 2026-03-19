@@ -1,7 +1,7 @@
 export interface DomainBlock {
     id: string;
     lessonId: string;
-    type: string;       // text, video, image, file, quiz
+    type: string;       // BlockType from blockRegistry
     url: string | null;
     title: string | null;
     content: string | null;

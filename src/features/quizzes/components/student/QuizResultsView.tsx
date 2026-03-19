@@ -144,9 +144,9 @@ export function QuizResultsView({
           >
             Kembali ke Daftar Kuis
           </button>
-          {showCorrectAnswers && (
+          {showCorrectAnswers && onViewAnswers && (
             <button
-              onClick={onViewAnswers || (() => console.log("View answers - not implemented yet"))}
+              onClick={onViewAnswers}
               className="px-6 py-3 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors"
             >
               <Eye className="w-4 h-4" />

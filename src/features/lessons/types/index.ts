@@ -1,11 +1,15 @@
 export interface LessonResource {
     id: string;
     lesson_id: string;
-    type: string;        // 'VIDEO' | 'PDF' | 'LINK' | 'IMAGE' | 'DOCUMENT'
-    url: string;
+    type: string;        // 'text' | 'video' | 'image' | 'file' | 'quiz' | 'assignment'
+    url: string | null;  // nullable — text/quiz/assignment blocks have no URL
     title: string | null;
     content: string | null;
     metadata: Record<string, unknown>;
+    order_index: number;
+    quiz_id?: string | null;        // ADD: from SP-0.5 migration
+    assignment_id?: string | null;  // ADD: from SP-0.5 migration
+    storage_object_id?: string | null; // For image/file blocks
 }
 
 export interface QuizOption {

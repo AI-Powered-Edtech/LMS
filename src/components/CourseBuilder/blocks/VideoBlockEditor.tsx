@@ -1,6 +1,7 @@
 import { useBuilder } from '@/src/contexts/BuilderContext';
 import { Link as LinkIcon, Play, Video } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
+import { parseVideoUrl, type VideoType } from '@/src/utils/videoUtils';
 
 interface VideoBlockEditorProps {
     blockId: string;
@@ -13,24 +14,7 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
     if (!block) return null;
 
     const url = block.url || '';
-    const isYoutube = url.includes('youtube.com') || url.includes('youtu.be');
-
-    const getYoutubeEmbedUrl = (rawUrl: string): string | null => {
-        try {
-            const urlObj = new URL(rawUrl);
-            let videoId = '';
-            if (urlObj.hostname.includes('youtube.com')) {
-                videoId = urlObj.searchParams.get('v') || '';
-            } else if (urlObj.hostname === 'youtu.be') {
-                videoId = urlObj.pathname.slice(1);
-            }
-            return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
-        } catch {
-            return null;
-        }
-    };
-
-    const embedUrl = isYoutube ? getYoutubeEmbedUrl(url) : null;
+    const { type: videoType, embedUrl } = parseVideoUrl(url);
 
     return (
         <div className="space-y-4">
@@ -69,7 +53,7 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
                            <Play className="w-8 h-8 text-white/60" />
                         </div>
                         <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">
-                            {url.startsWith('http') ? 'VIDEO EKSTERNAL' : 'URL TIDAK VALID'}
+                            {url.startsWith('http') ? (videoType === 'vimeo' ? 'VIMEO VIDEO' : 'VIDEO EKSTERNAL') : 'URL TIDAK VALID'}
                         </p>
                     </div>
                 </div>

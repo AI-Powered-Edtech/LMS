@@ -21,6 +21,8 @@ import {
 import { cn } from '@/src/utils/cn';
 import { TextBlockEditor } from './blocks/TextBlockEditor';
 import { VideoBlockEditor } from './blocks/VideoBlockEditor';
+import { ImageBlockEditor } from './blocks/ImageBlockEditor';
+import { FileBlockEditor } from './blocks/FileBlockEditor';
 import { QuizBlockEditor } from './blocks/QuizBlockEditor';
 import { AssignmentBlockEditor } from './blocks/AssignmentBlockEditor';
 import { useState } from 'react';
@@ -243,17 +245,9 @@ function renderBlockContent(block: { id: string; type: string; content: string |
         case 'VIDEO':
             return <VideoBlockEditor blockId={block.id} />;
         case 'IMAGE':
-            return (
-                <div className="text-center py-6 text-slate-400 text-xs bg-slate-50 rounded-lg border border-dashed border-slate-200">
-                    Image block — coming in Phase 5
-                </div>
-            );
+            return <ImageBlockEditor blockId={block.id} />;
         case 'FILE':
-            return (
-                <div className="text-center py-6 text-slate-400 text-xs bg-slate-50 rounded-lg border border-dashed border-slate-200">
-                    File block — coming in Phase 5
-                </div>
-            );
+            return <FileBlockEditor blockId={block.id} />;
         case 'QUIZ':
             return <QuizBlockEditor blockId={block.id} />;
         case 'ASSIGNMENT':

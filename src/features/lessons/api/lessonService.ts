@@ -100,40 +100,56 @@ async function saveSecureQueue(queue: ProgressQueueItem[]): Promise<void> {
 export const lessonService = {
     /**
      * Fetch a single lesson with its resources and quiz questions.
-     * Quiz options are fetched WITHOUT is_correct (client-safe).
+     * Uses the get_lesson_snapshot RPC for efficient data retrieval.
      */
     async fetchLesson(lessonId: string, tenantId: string): Promise<Lesson | null> {
+        // Try RPC first (migration 803+), fallback to direct query
+        const { data: rpcData, error: rpcError } = await supabase.rpc('get_lesson_snapshot', {
+            p_lesson_id: lessonId,
+            p_tenant_id: tenantId,
+        });
+
+        if (!rpcError && rpcData?.lesson) {
+            const snap = rpcData as any;
+            return {
+                ...snap.lesson,
+                course_id: snap.course_id,
+                lesson_resources: snap.resources ?? [],
+                quizzes: snap.quizzes ?? [],
+                assignments: snap.assignments ?? [],
+            } as Lesson;
+        }
+
+        if (rpcError && rpcError.code !== 'PGRST202') {
+            console.error('Error fetching lesson snapshot:', rpcError);
+        }
+
+        // Fallback: direct query (works without migration 803)
         const { data, error } = await supabase
             .from('lessons')
             .select(`
-        id, module_id, title, content, type, order,
-        passing_score, is_published, duration_minutes, tenant_id,
-        course_modules (course_id),
-        lesson_resources (id, lesson_id, type, url, title, content, metadata),
-        quizzes (
-          id, lesson_id, title, instructions, time_limit_minutes, max_attempts,
-          quiz_questions (
-            id, text, order,
-            quiz_options (id, text)
-          )
-        )
-      `)
+                id, module_id, title, content, type, order,
+                passing_score, is_published, duration_minutes, tenant_id,
+                lesson_resources (id, lesson_id, type, url, title, content, metadata),
+                quizzes (
+                    id, lesson_id, title, instructions, time_limit_minutes, max_attempts,
+                    quiz_questions (id, text, order, quiz_options (id, text))
+                ),
+                assignments (
+                    id, tenant_id, course_id, lesson_id, title, instructions,
+                    max_points, max_attempts, is_published, due_date, created_at
+                )
+            `)
             .eq('id', lessonId)
             .eq('tenant_id', tenantId)
-            .single();
+            .maybeSingle();
 
         if (error) {
             console.error('Error fetching lesson:', error);
             return null;
         }
 
-        // Flatten course_id
-        const lesson = {
-            ...data,
-            course_id: (data as any).course_modules?.course_id
-        };
-
-        return lesson as unknown as Lesson;
+        return data as unknown as Lesson | null;
     },
 
     /**
@@ -153,6 +169,10 @@ export const lessonService = {
         quizzes (
           id, lesson_id, title, instructions, time_limit_minutes, max_attempts,
           quiz_questions (id, text, order, quiz_options (id, text))
+        ),
+        assignments (
+          id, tenant_id, course_id, lesson_id, title, instructions,
+          max_points, max_attempts, is_published, due_date, created_at
         )
       `)
             .eq('module_id', moduleId)
@@ -345,15 +365,26 @@ export const lessonService = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
 
-        const { error } = await supabase.from('lesson_resources').insert({
+        const row = {
             lesson_id: lessonId,
             tenant_id: tenantId,
-            type: 'VIDEO',
             url: videoUrl,
             title: 'Dummy Video (Seeded from UI)',
             content: '',
             metadata: {}
-        });
+        };
+
+        // Try lowercase first (post-migration 803), fallback to uppercase enum
+        const { error } = await supabase.from('lesson_resources').insert({ ...row, type: 'video' });
+
+        if (error?.message?.includes('enum resource_type')) {
+            const { error: retryError } = await supabase.from('lesson_resources').insert({ ...row, type: 'VIDEO' });
+            if (retryError) {
+                console.error('Error seeding dummy video:', retryError);
+                throw new Error(retryError.message || 'Failed to seed dummy video');
+            }
+            return;
+        }
 
         if (error) {
             console.error('Error seeding dummy video:', error);

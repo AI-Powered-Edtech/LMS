@@ -1,4 +1,7 @@
 export { VideoViewer } from './VideoViewer';
+export { VideoBlock } from './blocks/VideoBlock';
+export { ImageBlockViewer } from './blocks/ImageBlockViewer';
+export { FileBlockViewer } from './blocks/FileBlockViewer';
 export { ArticleViewer } from './ArticleViewer';
 export { QuizViewer } from './QuizViewer';
 export { AssignmentViewer } from './AssignmentViewer';
@@ -8,4 +11,6 @@ export { useViewerReducer } from './useViewerReducer';
 export { AITutorPanel } from './AITutorPanel';
 export { AITutorInput } from './AITutorInput';
 export { AITutorTyping } from './AITutorTyping';
+export { MultiBlockViewer } from './MultiBlockViewer';
+export { BlockRenderer } from './BlockRenderer';
 export type { ViewerState, ViewerStatus } from './useViewerReducer';

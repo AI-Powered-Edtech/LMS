@@ -18,24 +18,43 @@ export const leaderboardService = {
      * @param tenantId - The tenant ID for isolation
      */
     async getLeaderboard(classId: string, tenantId: string): Promise<LeaderboardEntry[]> {
-        const { data, error } = await supabase
+        // Try with class_id filter (migration 052+)
+        let query = supabase
             .from('leaderboards')
             .select(`
                 score,
                 rank,
-                user_profiles (
-                  full_name,
-                  avatar_url,
-                  level
-                )
+                user_id,
+                profiles(full_name, avatar_url)
               `)
             .eq('tenant_id', tenantId)
-            .eq('class_id', classId)
             .order('rank', { ascending: true })
             .limit(20);
 
+        // Only filter by class_id if provided
+        if (classId) {
+            query = query.eq('class_id', classId);
+        }
+
+        const { data, error } = await query;
+
         if (error) {
-            // Throw error but don't log to console here to allow silent fallback in UI
+            // If class_id or score column doesn't exist, try minimal query
+            if (error.code === '42703') {
+                const { data: fallback, error: fbError } = await supabase
+                    .from('leaderboards')
+                    .select('points, rank, user_id, profiles(full_name, avatar_url)')
+                    .eq('tenant_id', tenantId)
+                    .order('rank', { ascending: true })
+                    .limit(20);
+
+                if (fbError) throw fbError;
+                // Map points → score for type compatibility
+                return ((fallback || []) as any[]).map(e => ({
+                    ...e,
+                    score: e.score ?? e.points ?? 0,
+                }));
+            }
             throw error;
         }
 
@@ -85,25 +104,30 @@ export const leaderboardService = {
         now.setUTCHours(0, 0, 0, 0);
         const weekStart = now.toISOString();
 
-        const { data, error } = await supabase
+        let query = supabase
             .from('leaderboards_weekly')
             .select(`
                 score,
                 rank,
-                user_profiles (
-                    full_name,
-                    avatar_url,
-                    level
-                )
+                user_id,
+                profiles(full_name, avatar_url)
             `)
             .eq('tenant_id', tenantId)
-            .eq('class_id', classId)
             .eq('week_start', weekStart)
             .order('rank', { ascending: true })
             .limit(20);
 
+        if (classId) {
+            query = query.eq('class_id', classId);
+        }
+
+        const { data, error } = await query;
+
         if (error) {
-            // Throw error but don't log to console here to allow silent fallback in UI
+            // Table might not exist yet — return empty
+            if (error.code === '42P01' || error.code === '42703') {
+                return [];
+            }
             throw error;
         }
 

@@ -43,7 +43,8 @@ export interface UserBadge {
 export interface LeaderboardEntry {
     rank: number;
     score: number;
-    user_profiles: {
+    user_id: string;
+    profiles?: {
         full_name: string;
         avatar_url: string | null;
         level: number;

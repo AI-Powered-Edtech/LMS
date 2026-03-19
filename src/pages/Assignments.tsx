@@ -6,7 +6,7 @@ import {
   FileText, Plus, Search, Filter, Clock, CheckCircle2,
   AlertCircle, Paperclip, Link as LinkIcon, Camera,
   MessageSquare, Send, X, UploadCloud, MoreVertical,
-  Calendar as CalendarIcon, Users, FileUp, ArrowRight
+  Calendar as CalendarIcon, Users, FileUp, ArrowRight, Loader2
 } from "lucide-react";
 import { cn } from "@/src/utils/cn";
 import { useComments } from "@/src/hooks/useCommentQueries";
@@ -17,7 +17,8 @@ import { useAssignments } from "@/src/features/assignments/hooks/useAssignments"
 import { assignmentService } from "@/src/services/assignmentService";
 import { AssignmentUiState } from "@/src/features/assignments/types";
 import { supabase } from "@/src/lib/supabase";
-import { SkeletonCard, EmptyState } from "@/src/components/ui";
+import { SkeletonCard, EmptyState, Tabs } from "@/src/components/ui";
+import type { Tab } from "@/src/components/ui";
 
 // Mock data has been removed and replaced with real backend integration via useAssignments hook.
 
@@ -52,6 +53,10 @@ export function Assignments() {
   const [previewFile, setPreviewFile] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({});
 
+  // Upload progress state
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+  const [isUploading, setIsUploading] = useState(false);
+
   // New Assignment State
   const [newAssignment, setNewAssignment] = useState({
     title: "",
@@ -70,6 +75,7 @@ export function Assignments() {
     const matchesSearch = a.title.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filter === "all" ||
       a.status === filter ||
+      (filter === "assigned" && a.status === "late") ||
       (filter === "submitted" && (a.status as string) === "turned_in") ||
       (filter === "graded" && (a.status as string) === "returned") ||
       (filter === "turned_in" && a.status === "submitted") ||
@@ -77,6 +83,14 @@ export function Assignments() {
     const matchesType = typeFilter === "all" || a.type === typeFilter;
     return matchesSearch && matchesStatus && matchesType;
   });
+
+  // Status tabs for filtering
+  const statusTabs: Tab[] = [
+    { id: 'all', label: 'Semua', count: assignments.length },
+    { id: 'assigned', label: 'Aktif', count: assignments.filter(a => a.status === 'assigned' || a.status === 'late').length },
+    { id: 'submitted', label: 'Dikumpulkan', count: assignments.filter(a => a.status === 'submitted' || (a.status as string) === 'turned_in').length },
+    { id: 'graded', label: 'Dinilai', count: assignments.filter(a => a.status === 'graded' || (a.status as string) === 'returned').length },
+  ];
 
   if (loading) {
     return (
@@ -94,6 +108,23 @@ export function Assignments() {
 
   const handleTurnIn = async (id: string) => {
     if (!tenantId || !user) return;
+
+    // Start upload progress simulation
+    setIsUploading(true);
+    setUploadProgress(prev => ({ ...prev, [id]: 0 }));
+
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        const currentProgress = prev[id] || 0;
+        if (currentProgress >= 90) {
+          clearInterval(progressInterval);
+          return prev;
+        }
+        const increment = Math.random() * (15 - 8) + 8; // Random 8-15%
+        const newProgress = Math.min(currentProgress + increment, 90);
+        return { ...prev, [id]: newProgress };
+      });
+    }, 200);
 
     try {
       const selectedFile = selectedFiles[id] || null;
@@ -128,6 +159,20 @@ export function Assignments() {
     } catch (error) {
       console.error("Failed to turn in assignment", error);
       alert("Gagal menyerahkan tugas.");
+    } finally {
+      // Clear interval and snap to 100%
+      clearInterval(progressInterval);
+      setUploadProgress(prev => ({ ...prev, [id]: 100 }));
+
+      // Wait briefly then reset
+      setTimeout(() => {
+        setIsUploading(false);
+        setUploadProgress(prev => {
+          const newProgress = { ...prev };
+          delete newProgress[id];
+          return newProgress;
+        });
+      }, 200);
     }
   };
 
@@ -291,26 +336,13 @@ export function Assignments() {
                 />
               </div>
             </div>
-            <div className="flex gap-3">
-              <div className="relative flex-1">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                  <Filter className="w-4 h-4" />
-                </div>
-                <select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-bold text-slate-700 appearance-none cursor-pointer hover:bg-slate-100 transition-colors"
-                >
-                  <option value="all">Semua Status</option>
-                  <option value="assigned">Ditugaskan</option>
-                  <option value="submitted">Diserahkan</option>
-                  <option value="graded">Dinilai</option>
-                  <option value="late">Terlambat</option>
-                </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                </div>
-              </div>
+            <div className="space-y-3">
+              <Tabs
+                tabs={statusTabs}
+                activeTab={filter}
+                onChange={setFilter}
+                className="w-full"
+              />
               <div className="relative flex-1">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
                   <Filter className="w-4 h-4" />
@@ -465,23 +497,34 @@ export function Assignments() {
                           <div className="space-y-3 mb-6">
                             {activeAssignment.status === 'assigned' || activeAssignment.status === 'late' ? (
                               activeSelectedFile ? (
-                                <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-100 rounded-xl">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-blue-600 shadow-sm">
-                                      <FileText className="w-5 h-5" />
+                                <div className="relative overflow-hidden rounded-xl">
+                                  <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-blue-600 shadow-sm">
+                                        <FileText className="w-5 h-5" />
+                                      </div>
+                                      <div>
+                                        <p className="text-sm font-bold text-slate-800">{activeSelectedFile.name}</p>
+                                        <p className="text-xs text-slate-500 uppercase">{activeSelectedFile.type || 'FILE'}</p>
+                                      </div>
                                     </div>
-                                    <div>
-                                      <p className="text-sm font-bold text-slate-800">{activeSelectedFile.name}</p>
-                                      <p className="text-xs text-slate-500 uppercase">{activeSelectedFile.type || 'FILE'}</p>
-                                    </div>
+                                    <button
+                                      onClick={() => clearSelectedFile(activeAssignment.id)}
+                                      className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                                      aria-label="Hapus file"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
                                   </div>
-                                  <button
-                                    onClick={() => clearSelectedFile(activeAssignment.id)}
-                                    className="p-2 text-slate-400 hover:text-red-500 transition-colors"
-                                    aria-label="Hapus file"
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </button>
+                                  {/* Progress bar at bottom of file card */}
+                                  {isUploading && uploadProgress[activeAssignment?.id] !== undefined && (
+                                    <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-slate-200 dark:bg-slate-700">
+                                      <div
+                                        className="h-full bg-blue-500 dark:bg-blue-400 transition-all duration-200"
+                                        style={{ width: `${uploadProgress[activeAssignment.id]}%` }}
+                                      />
+                                    </div>
+                                  )}
                                 </div>
                               ) : (
                                 <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:bg-slate-50 transition-colors">
@@ -538,9 +581,17 @@ export function Assignments() {
                               />
                               <button
                                 onClick={() => handleTurnIn(activeAssignment.id)}
-                                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm"
+                                disabled={isUploading}
+                                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                               >
-                                Serahkan Tugas
+                                {isUploading ? (
+                                  <>
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    {Math.round(uploadProgress[activeAssignment?.id] ?? 0)}%
+                                  </>
+                                ) : (
+                                  'Serahkan Tugas'
+                                )}
                               </button>
                             </div>
                           ) : (

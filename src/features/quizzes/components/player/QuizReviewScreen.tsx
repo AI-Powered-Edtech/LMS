@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Target, CheckCircle, AlertTriangle, Flag, ArrowLeft, Send } from 'lucide-react';
 import { SubmitAnswer } from '@/src/services/quizService';
 import { QuestionPalette } from './QuestionPalette';
+import { cn } from '@/src/utils/cn';
 
 interface QuizReviewScreenProps {
   questions: any[];
@@ -103,6 +104,79 @@ export function QuizReviewScreen({
             <p className="text-3xl font-black text-slate-800">{flaggedCount}</p>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ditandai</p>
           </div>
+        </div>
+      </div>
+
+      {/* Ringkasan Jawaban */}
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-8">
+        <h3 className="text-lg font-bold text-slate-900 mb-4">Ringkasan Jawaban</h3>
+        <div className="max-h-80 overflow-y-auto space-y-3">
+          {questions.map((q, i) => {
+            const qType = q.question_type || 'MCQ';
+            const isAnswered = ['SHORT_ANSWER', 'ESSAY'].includes(qType)
+              ? !!answers[q.id]?.text_answer?.trim()
+              : (answers[q.id]?.selected_option_ids?.length ?? 0) > 0;
+            const isFlagged = flagged.has(q.id);
+            
+            // Get answer preview
+            let answerPreview: string;
+            if (!isAnswered) {
+              answerPreview = 'Belum dijawab';
+            } else if (['SHORT_ANSWER', 'ESSAY'].includes(qType)) {
+              answerPreview = answers[q.id]?.text_answer?.substring(0, 80) || '';
+              if (answers[q.id]?.text_answer?.length > 80) answerPreview += '...';
+            } else {
+              // MCQ, TRUE_FALSE, MULTIPLE_SELECT - find matching options
+              const selectedIds = answers[q.id]?.selected_option_ids || [];
+              const selectedOptions = q.quiz_options?.filter((opt: any) => selectedIds.includes(opt.id)) || [];
+              answerPreview = selectedOptions.map((opt: any) => opt.text).join(', ');
+            }
+
+            const questionText = q.text?.substring(0, 60) || `Soal ${i + 1}`;
+            const truncatedQuestion = q.text?.length > 60 ? questionText + '...' : questionText;
+
+            return (
+              <button
+                key={q.id}
+                onClick={() => onJump(i)}
+                className={cn(
+                  "w-full text-left p-4 rounded-xl border-l-4 transition-all hover:shadow-md",
+                  isAnswered 
+                    ? "border-l-green-500 bg-green-50/50 hover:bg-green-50" 
+                    : "border-l-amber-500 bg-amber-50/50 hover:bg-amber-50",
+                  "dark:bg-slate-800/50 dark:hover:bg-slate-800"
+                )}
+              >
+                <div className="flex items-start gap-2">
+                  <span className={cn(
+                    "shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold",
+                    isAnswered 
+                      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" 
+                      : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                  )}>
+                    {i + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-slate-900 dark:text-slate-100 text-sm">
+                        {truncatedQuestion}
+                      </span>
+                      {isFlagged && (
+                        <Flag className="w-4 h-4 text-yellow-500 shrink-0" />
+                      )}
+                    </div>
+                    <p className={cn(
+                      "text-xs mt-1",
+                      !isAnswered && "italic text-amber-600 dark:text-amber-400",
+                      isAnswered ? "text-slate-600 dark:text-slate-400" : ""
+                    )}>
+                      {answerPreview}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 

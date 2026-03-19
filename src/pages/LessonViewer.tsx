@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, Link, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2, AlertTriangle, CheckCircle, Award, BookOpen, PlayCircle, ChevronRight, Layers, Clock, FileText, HelpCircle } from "lucide-react";
+import { ArrowLeft, Loader2, AlertTriangle, CheckCircle, Award, BookOpen, PlayCircle, ChevronRight, Layers, Clock, FileText, HelpCircle, Menu } from "lucide-react";
 import { cn } from "@/src/utils/cn";
 import { motion, AnimatePresence } from "motion/react";
 import { ErrorBoundary } from '@/src/components/common/ErrorBoundary';
 import { useAuth } from "@/src/contexts/AuthContext";
 import { supabase } from "@/src/lib/supabase";
 import { courseService } from "@/src/features/courses";
-import { lessonService, type Lesson, type LessonProgress } from "@/src/features/lessons";
+import { lessonService, type Lesson, type LessonProgress, isLessonLocked } from "@/src/features/lessons";
 import {
   VideoViewer,
   ArticleViewer,
@@ -17,6 +17,7 @@ import {
   ProgressReporter,
   AITutorPanel,
   useViewerReducer,
+  MultiBlockViewer,
 } from "@/src/components/LessonViewer";
 import { DiscussionBoard } from "@/src/components/Social/DiscussionBoard";
 import { MessageSquare, Info, Sparkles } from "lucide-react";
@@ -272,6 +273,19 @@ export function LessonViewer() {
   // Completion celebration
   const [showCelebration, setShowCelebration] = useState(false);
 
+  // Mobile sidebar drawer state
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // ============================================================
+  // D1: Compute lesson navigation state
+  // ============================================================
+  const currentLessonIndex = moduleLessons.findIndex(l => l.id === lessonId);
+  const nextLesson = currentLessonIndex >= 0 && currentLessonIndex < moduleLessons.length - 1 
+    ? moduleLessons[currentLessonIndex + 1] 
+    : null;
+  const isLastLesson = currentLessonIndex >= 0 && currentLessonIndex === moduleLessons.length - 1;
+  const completedLessonCount = moduleLessons.filter(l => moduleProgress[l.id]?.completed).length;
+
   // Tabs state
   const [activeTab, setActiveTab] = useState<'content' | 'discussion' | 'ai_tutor'>('content');
 
@@ -342,12 +356,21 @@ export function LessonViewer() {
   // Handle lesson selection from sidebar
   // ============================================================
   const handleSelectLesson = useCallback((id: string) => {
+    // Find the index of the selected lesson
+    const index = moduleLessons.findIndex(l => l.id === id);
+    
+    // Check if the lesson is locked
+    if (isLessonLocked(moduleLessons, moduleProgress, index, role)) {
+      return; // Do nothing if locked
+    }
+    
     setSearchParams(prev => {
       prev.set("lessonId", id);
       return prev;
     });
     setActiveTab('content'); // Reset tab when switching lessons
-  }, [setSearchParams]);
+    setMobileSidebarOpen(false); // Close mobile drawer when lesson is selected
+  }, [setSearchParams, moduleLessons, moduleProgress, role]);
 
   // ============================================================
   // Completion handler (state machine: COMPLETION_MET → COMPLETED)
@@ -412,24 +435,57 @@ export function LessonViewer() {
         activeLessonId={lessonId}
         onSelectLesson={handleSelectLesson}
         onBack={() => setSearchParams({})}
+        isMobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
+        userRole={role}
       />
 
       {/* Main Content Area - Floating Card */}
       <div className="flex-1 flex flex-col min-w-0 bg-white rounded-2xl border border-slate-200/70 shadow-lg shadow-slate-200/50 overflow-hidden relative z-10">
         {/* Top Bar */}
-        {/* Top Bar */}
         {state.lesson && (
-          <div className="bg-gradient-to-r from-white to-slate-50/50 border-b border-slate-100 flex flex-col shrink-0">
+          <div className="bg-gradient-to-r from-white to-slate-50/50 border-b border-slate-100 flex flex-col shrink-0 dark:from-slate-900 dark:to-slate-800 dark:border-slate-700">
             <div className="px-8 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex-1 min-w-0 pr-4">
-                <Breadcrumb
-                  items={[
-                    { label: 'Materi', href: '/lesson' },
-                    { label: moduleTitle || 'Modul' },
-                    { label: state.lesson.title },
-                  ]}
-                  className="mb-3"
-                />
+                <div className="flex items-center gap-2 mb-3">
+                  {/* Mobile hamburger button */}
+                  <button
+                    onClick={() => setMobileSidebarOpen(true)}
+                    aria-label="Buka daftar pelajaran"
+                    className="lg:hidden shrink-0 p-2 -ml-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <Menu className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                  </button>
+                  <Breadcrumb
+                    items={[
+                      { label: 'Materi', href: '/lesson' },
+                      { label: moduleTitle || 'Modul' },
+                      { label: state.lesson.title },
+                    ]}
+                  />
+                </div>
+                {moduleLessons.length > 0 && currentLessonIndex >= 0 && (
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-sm text-slate-500">
+                      Pelajaran {currentLessonIndex + 1} / {moduleLessons.length}
+                    </span>
+                    <div 
+                      className="flex-1 max-w-[200px] h-1.5 bg-slate-200 rounded-full overflow-hidden"
+                      role="progressbar"
+                      aria-valuenow={completedLessonCount}
+                      aria-valuemin={0}
+                      aria-valuemax={moduleLessons.length}
+                    >
+                      <div 
+                        className="h-full bg-blue-500 rounded-full transition-all duration-300"
+                        style={{ width: `${(completedLessonCount / moduleLessons.length) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                      {completedLessonCount}/{moduleLessons.length} selesai
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2 text-sm text-blue-600 font-bold mb-2">
                   {state.lesson.type === 'video' ? <PlayCircle className="w-4 h-4" /> :
                     state.lesson.type === 'article' ? <FileText className="w-4 h-4" /> :
@@ -443,9 +499,25 @@ export function LessonViewer() {
 
               <div className="shrink-0 flex items-center gap-3">
                 {state.status === 'completed' ? (
-                  <div className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-green-200 bg-green-50 text-green-600 font-bold text-sm shadow-sm transition-all hover:bg-green-100">
-                    <CheckCircle className="w-4 h-4" />
-                    Selesai
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-green-200 bg-green-50 text-green-600 font-bold text-sm shadow-sm transition-all hover:bg-green-100">
+                      <CheckCircle className="w-4 h-4" />
+                      Selesai
+                    </div>
+                    {nextLesson ? (
+                      <button
+                        onClick={() => handleSelectLesson(nextLesson.id)}
+                        className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-sm transition-all"
+                      >
+                        Berikutnya
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    ) : isLastLesson ? (
+                      <div className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-600 font-bold text-sm shadow-sm">
+                        <Award className="w-4 h-4" />
+                        Modul Selesai!
+                      </div>
+                    ) : null}
                   </div>
                 ) : (
                   <button
@@ -587,109 +659,123 @@ export function LessonViewer() {
                   id="panel-content"
                   aria-labelledby="tab-content"
                 >
-                  {/* Video Lesson */}
-                  {state.lesson.type === 'video' && (() => {
-                    const videoResource = state.lesson!.lesson_resources?.find(r => r.type === 'VIDEO');
-                    const videoUrl = videoResource?.url || videoResource?.content || '';
+                  {/* Multi-Block Lesson Renderer */}
+                  {state.lesson.lesson_resources && state.lesson.lesson_resources.length > 0 ? (
+                    <MultiBlockViewer
+                      lesson={state.lesson}
+                      isCompleted={state.status === 'completed'}
+                      onProgressUpdate={handleProgressUpdate}
+                      onCompletionMet={handleCompletionMet}
+                      onStartViewing={actions.startViewing}
+                    />
+                  ) : (
+                    /* Fallback for legacy lessons with no blocks (video-only, article-only) */
+                    <>
+                      {/* Video Lesson */}
+                      {state.lesson.type === 'video' && (() => {
+                        const videoResource = state.lesson!.lesson_resources?.find(r => r.type === 'VIDEO');
+                        const videoUrl = videoResource?.url || videoResource?.content || '';
 
-                    const handleSeedDummyVideo = async () => {
-                      if (!tenantId || !state.lesson) return;
-                      // Safe dynamic import so production bundles aren't impacted
-                      const { DEV_SEED_VIDEO } = await import('@/src/config/devSeeds');
-                      await lessonService.seedDummyVideo(state.lesson.id, tenantId, DEV_SEED_VIDEO);
+                        const handleSeedDummyVideo = async () => {
+                          if (!tenantId || !state.lesson) return;
+                          // Safe dynamic import so production bundles aren't impacted
+                          const { DEV_SEED_VIDEO } = await import('@/src/config/devSeeds');
+                          await lessonService.seedDummyVideo(state.lesson.id, tenantId, DEV_SEED_VIDEO);
 
-                      // Reload lesson
-                      actions.loadLesson();
-                      const [lesson, progress] = await Promise.all([
-                        lessonService.fetchLesson(state.lesson.id, tenantId),
-                        user?.id ? lessonService.fetchProgress(state.lesson.id, user.id, tenantId) : null,
-                      ]);
-                      if (lesson) {
-                        actions.lessonLoaded(lesson, progress || null);
-                      }
-                    };
+                          // Reload lesson
+                          actions.loadLesson();
+                          const [lesson, progress] = await Promise.all([
+                            lessonService.fetchLesson(state.lesson.id, tenantId),
+                            user?.id ? lessonService.fetchProgress(state.lesson.id, user.id, tenantId) : null,
+                          ]);
+                          if (lesson) {
+                            actions.lessonLoaded(lesson, progress || null);
+                          }
+                        };
 
-                    return (
-                      <VideoViewer
-                        videoUrl={videoUrl}
-                        savedPosition={state.lastPosition}
-                        isCompleted={state.status === 'completed'}
-                        onProgressUpdate={handleProgressUpdate}
-                        onCompletionMet={handleCompletionMet}
-                        onStartViewing={actions.startViewing}
-                        onSeedDummyVideo={handleSeedDummyVideo}
-                      />
-                    );
-                  })()}
+                        return (
+                          <VideoViewer
+                            videoUrl={videoUrl}
+                            savedPosition={state.lastPosition}
+                            isCompleted={state.status === 'completed'}
+                            onProgressUpdate={handleProgressUpdate}
+                            onCompletionMet={handleCompletionMet}
+                            onStartViewing={actions.startViewing}
+                            onSeedDummyVideo={handleSeedDummyVideo}
+                          />
+                        );
+                      })()}
 
-                  {/* Article Lesson */}
-                  {state.lesson.type === 'article' && (() => {
-                    const articleResource = state.lesson!.lesson_resources?.find(r =>
-                      r.type === 'DOCUMENT' || r.type === 'LINK'
-                    );
-                    const content = articleResource?.content || state.lesson!.content || 'Konten belum tersedia.';
-                    const minReadTime = (state.lesson!.duration_minutes || 2) * 60;
-                    return (
-                      <ArticleViewer
-                        content={content}
-                        minReadingTimeSeconds={minReadTime}
-                        isCompleted={state.status === 'completed'}
-                        onProgressUpdate={handleProgressUpdate}
-                        onCompletionMet={handleCompletionMet}
-                        onStartViewing={actions.startViewing}
-                      />
-                    );
-                  })()}
+                      {/* Article Lesson */}
+                      {state.lesson.type === 'article' && (() => {
+                        const articleResource = state.lesson!.lesson_resources?.find(r =>
+                          r.type === 'DOCUMENT' || r.type === 'LINK'
+                        );
+                        const content = articleResource?.content || state.lesson!.content || 'Konten belum tersedia.';
+                        const minReadTime = (state.lesson!.duration_minutes || 2) * 60;
+                        return (
+                          <ArticleViewer
+                            content={content}
+                            minReadingTimeSeconds={minReadTime}
+                            isCompleted={state.status === 'completed'}
+                            onProgressUpdate={handleProgressUpdate}
+                            onCompletionMet={handleCompletionMet}
+                            onStartViewing={actions.startViewing}
+                          />
+                        );
+                      })()}
 
-                  {/* Quiz Lesson */}
-                  {state.lesson.type === 'quiz' && (() => {
-                    const quiz = state.lesson!.quizzes?.[0];
-                    if (!quiz) {
-                      return (
-                        <div className="flex-1 flex items-center justify-center text-slate-500">
-                          Kuis belum tersedia untuk pelajaran ini.
-                        </div>
-                      );
-                    }
-                    return (
-                      <QuizViewer
-                        quizId={quiz.id}
-                        title={quiz.title}
-                        instructions={quiz.instructions}
-                        questions={quiz.quiz_questions}
-                        maxAttempts={quiz.max_attempts}
-                        isCompleted={state.status === 'completed'}
-                        onCompletionMet={handleCompletionMet}
-                        onStartViewing={actions.startViewing}
-                      />
-                    );
-                  })()}
+                      {/* Quiz Lesson */}
+                      {state.lesson.type === 'quiz' && (() => {
+                        const quiz = state.lesson!.quizzes?.[0];
+                        if (!quiz) {
+                          return (
+                            <div className="flex-1 flex items-center justify-center text-slate-500">
+                              Kuis belum tersedia untuk pelajaran ini.
+                            </div>
+                          );
+                        }
+                        return (
+                          <QuizViewer
+                            quizId={quiz.id}
+                            title={quiz.title}
+                            instructions={quiz.instructions}
+                            questions={quiz.quiz_questions}
+                            maxAttempts={quiz.max_attempts}
+                            isCompleted={state.status === 'completed'}
+                            onCompletionMet={handleCompletionMet}
+                            onStartViewing={actions.startViewing}
+                          />
+                        );
+                      })()}
 
-                  {/* Assignment Lesson */}
-                  {state.lesson.type === 'assignment' && (() => {
-                    const assignment = state.lesson!.assignments?.[0];
-                    if (!assignment) {
-                      return (
-                        <div className="flex-1 flex items-center justify-center text-slate-500">
-                          Tugas belum tersedia untuk pelajaran ini.
-                        </div>
-                      );
-                    }
-                    return (
-                      <AssignmentViewer
-                        assignmentId={assignment.id}
-                        title={assignment.title}
-                        instructions={assignment.instructions}
-                        maxPoints={assignment.max_points}
-                        maxAttempts={assignment.max_attempts}
-                        isPublished={assignment.is_published}
-                        dueDate={assignment.due_date}
-                        isCompleted={state.status === 'completed'}
-                        onCompletionMet={handleCompletionMet}
-                        onStartViewing={actions.startViewing}
-                      />
-                    );
-                  })()}
+                      {/* Assignment Lesson */}
+                      {state.lesson.type === 'assignment' && (() => {
+                        const assignment = state.lesson!.assignments?.[0];
+                        if (!assignment) {
+                          return (
+                            <div className="flex-1 flex items-center justify-center text-slate-500">
+                              Tugas belum tersedia untuk pelajaran ini.
+                            </div>
+                          );
+                        }
+                        return (
+                          <AssignmentViewer
+                            assignmentId={assignment.id}
+                            title={assignment.title}
+                            instructions={assignment.instructions}
+                            maxPoints={assignment.max_points}
+                            maxAttempts={assignment.max_attempts}
+                            isPublished={assignment.is_published}
+                            dueDate={assignment.due_date}
+                            isCompleted={state.status === 'completed'}
+                            onCompletionMet={handleCompletionMet}
+                            onStartViewing={actions.startViewing}
+                          />
+                        );
+                      })()}
+                    </>
+                  )}
                 </motion.div>
               )}
 
@@ -761,12 +847,26 @@ export function LessonViewer() {
               exit={{ opacity: 0, scale: 0.8 }}
               className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 pointer-events-none"
             >
-              <div className="bg-white rounded-3xl p-8 shadow-2xl text-center max-w-sm">
+              <div className="bg-white rounded-3xl p-8 shadow-2xl text-center max-w-sm pointer-events-auto">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Award className="w-8 h-8 text-green-600" />
                 </div>
                 <h2 className="text-2xl font-bold text-slate-900 mb-2">Pelajaran Selesai! 🎉</h2>
-                <p className="text-slate-500">Progres Anda telah disimpan. Lanjutkan ke pelajaran berikutnya!</p>
+                {nextLesson ? (
+                  <button
+                    onClick={() => {
+                      handleSelectLesson(nextLesson.id);
+                      setShowCelebration(false);
+                    }}
+                    className="text-blue-600 hover:text-blue-700 font-semibold text-lg"
+                  >
+                    Lanjut ke Pelajaran Berikutnya →
+                  </button>
+                ) : isLastLesson ? (
+                  <p className="text-slate-500">Semua pelajaran di modul ini telah selesai!</p>
+                ) : (
+                  <p className="text-slate-500">Progres Anda telah disimpan.</p>
+                )}
               </div>
             </motion.div>
           )}

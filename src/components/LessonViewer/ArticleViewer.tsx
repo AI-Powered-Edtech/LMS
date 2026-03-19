@@ -1,5 +1,6 @@
-import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import DOMPurify from 'dompurify';
+import { useRef, useState, useEffect, useCallback } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Sparkles, CheckCircle, Clock } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
 
@@ -74,11 +75,6 @@ export function ArticleViewer({
         }
     }, [isCompleted, onStartViewing]);
 
-    const sanitizedHTML = useMemo(() => {
-        return DOMPurify.sanitize(content.replace(/\n/g, '<br/>'), {
-            USE_PROFILES: { html: true }
-        });
-    }, [content]);
 
     return (
         <div
@@ -106,10 +102,18 @@ export function ArticleViewer({
                 )}
 
                 {/* Article content */}
-                <div
-                    className="prose prose-slate prose-blue max-w-none prose-headings:font-extrabold prose-headings:tracking-tight prose-h1:text-3xl prose-h2:text-xl prose-p:leading-relaxed prose-p:text-slate-600 prose-a:text-blue-600 hover:prose-a:text-blue-700 prose-img:rounded-xl prose-pre:rounded-xl prose-pre:bg-slate-50"
-                    dangerouslySetInnerHTML={{ __html: sanitizedHTML }}
-                />
+                <div className="prose prose-slate prose-blue max-w-none prose-headings:font-extrabold prose-headings:tracking-tight prose-h1:text-3xl prose-h2:text-xl prose-p:leading-relaxed prose-p:text-slate-600 prose-a:text-blue-600 hover:prose-a:text-blue-700 prose-img:rounded-xl prose-pre:rounded-xl prose-pre:bg-slate-50">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      a: ({ href, children }) => (
+                        <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
+                      ),
+                    }}
+                  >
+                    {content}
+                  </ReactMarkdown>
+                </div>
             </div>
         </div>
     );
