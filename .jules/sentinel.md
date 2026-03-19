@@ -1,0 +1,4 @@
+## 2026-03-19 - Overly Permissive CORS in Edge Functions
+**Vulnerability:** Supabase Edge Functions (`ai-grade-essay`, `generate-ai-content`) were configured with `Access-Control-Allow-Origin: *`, allowing any domain to send cross-origin requests to these sensitive API endpoints.
+**Learning:** Hardcoded wildcard CORS headers present a risk of cross-origin attacks or exposing sensitive data, particularly for APIs dealing with AI grading and content generation. Other Edge Functions in the codebase already use an environment variable approach.
+**Prevention:** Always use `Deno.env.get('CORS_ORIGIN') ?? '*'` (or a specific allowed origin configuration) when setting up CORS headers in Supabase Edge Functions to ensure proper origin restriction.
