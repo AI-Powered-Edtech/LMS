@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   Search,
@@ -19,6 +19,68 @@ import {
 import { cn } from "@/src/utils/cn";
 import { useGradebook, Assignment } from "@/src/hooks/useGradebookQueries";
 import { EmptyState } from "@/src/components/ui";
+
+// Optimization: Move pure static helper functions outside the component so they are created only once per module load
+const getGradeColor = (score: number | null) => {
+  if (score === null || score === 0) return "text-slate-400";
+  if (score >= 85) return "text-green-600 font-bold";
+  if (score >= 70) return "text-blue-600 font-bold";
+  if (score >= 60) return "text-yellow-600 font-bold";
+  return "text-red-600 font-bold";
+};
+
+const getGradeBg = (score: number | null) => {
+  if (score === null || score === 0) return "bg-slate-50";
+  if (score >= 85) return "bg-green-50";
+  if (score >= 70) return "bg-blue-50";
+  if (score >= 60) return "bg-yellow-50";
+  return "bg-red-50";
+};
+
+const getTypeLabel = (type: string) => {
+  switch (type) {
+    case 'quiz': return 'Auto-grade';
+    case 'assignment': return 'Tugas';
+    case 'project': return 'Proyek';
+    case 'exam': return 'Ujian';
+    case 'presentation': return 'Presentasi';
+    case 'offline': return 'Offline';
+    default: return type;
+  }
+};
+
+const getTypeColor = (type: string) => {
+  switch (type) {
+    case 'quiz': return 'bg-blue-100 text-blue-700';
+    case 'exam': return 'bg-red-100 text-red-700';
+    case 'project': return 'bg-purple-100 text-purple-700';
+    case 'presentation': return 'bg-orange-100 text-orange-700';
+    case 'offline': return 'bg-slate-100 text-slate-700';
+    default: return 'bg-gray-100 text-gray-700';
+  }
+};
+
+// Optimization: Move pure helper functions outside the component so they are created only once per module load
+const calculateAverage = (studentId: string, grades: any) => {
+  const studentGrades = grades[studentId];
+  if (!studentGrades) return 0;
+  const scores = Object.values(studentGrades)
+    .map((entry: any) => entry.score)
+    .filter((score): score is number => score !== null);
+  if (scores.length === 0) return 0;
+  const sum = scores.reduce((a: number, b: number) => a + b, 0);
+  return Math.round(sum / scores.length);
+};
+
+const calculateTotal = (studentId: string, grades: any) => {
+  const studentGrades = grades[studentId];
+  if (!studentGrades) return 0;
+  const scores = Object.values(studentGrades)
+    .map((entry: any) => entry.score)
+    .filter((score): score is number => score !== null);
+  if (scores.length === 0) return 0;
+  return scores.reduce((a: number, b: number) => a + b, 0);
+};
 
 export function Gradebook() {
   const { students, assignments, grades, updateGrade, addAssignment } = useGradebook();
@@ -54,84 +116,36 @@ export function Gradebook() {
     }
   };
 
-  const filteredStudents = students.filter(s =>
+  // Optimization: Memoize derived state to prevent recalculation on unrelated renders
+  const filteredStudents = useMemo(() => students.filter(s =>
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.nis.includes(searchQuery)
-  );
-
-  const calculateAverage = (studentId: string) => {
-    const studentGrades = grades[studentId];
-    if (!studentGrades) return 0;
-    const scores = Object.values(studentGrades)
-      .map(entry => entry.score)
-      .filter((score): score is number => score !== null);
-    if (scores.length === 0) return 0;
-    const sum = scores.reduce((a, b) => a + b, 0);
-    return Math.round(sum / scores.length);
-  };
-
-  const calculateTotal = (studentId: string) => {
-    const studentGrades = grades[studentId];
-    if (!studentGrades) return 0;
-    const scores = Object.values(studentGrades)
-      .map(entry => entry.score)
-      .filter((score): score is number => score !== null);
-    if (scores.length === 0) return 0;
-    return scores.reduce((a, b) => a + b, 0);
-  };
+  ), [students, searchQuery]);
 
   // Calculate class stats
-  const allAverages = students.map(s => calculateAverage(s.id as any)).filter(avg => avg > 0);
-  const classAverage = allAverages.length > 0 ? Math.round(allAverages.reduce((a, b) => a + b, 0) / allAverages.length) : 0;
-  const highestScore = allAverages.length > 0 ? Math.max(...allAverages) : 0;
-  const lowestScore = allAverages.length > 0 ? Math.min(...allAverages) : 0;
+  // Optimization: Memoize complex aggregations
+  const { classAverage, highestScore, lowestScore, highestStudent, lowestStudent } = useMemo(() => {
+    const avgs = students.map(s => calculateAverage(s.id as any, grades)).filter(avg => avg > 0);
+    const avg = avgs.length > 0 ? Math.round(avgs.reduce((a, b) => a + b, 0) / avgs.length) : 0;
+    const high = avgs.length > 0 ? Math.max(...avgs) : 0;
+    const low = avgs.length > 0 ? Math.min(...avgs) : 0;
 
-  let highestStudent = "-";
-  let lowestStudent = "-";
+    let highStd = "-";
+    let lowStd = "-";
 
-  if (allAverages.length > 0) {
-    highestStudent = students.find(s => calculateAverage(s.id as any) === highestScore)?.name || "-";
-    lowestStudent = students.find(s => calculateAverage(s.id as any) === lowestScore)?.name || "-";
-  }
-
-  const getGradeColor = (score: number | null) => {
-    if (score === null || score === 0) return "text-slate-400";
-    if (score >= 85) return "text-green-600 font-bold";
-    if (score >= 70) return "text-blue-600 font-bold";
-    if (score >= 60) return "text-yellow-600 font-bold";
-    return "text-red-600 font-bold";
-  };
-
-  const getGradeBg = (score: number | null) => {
-    if (score === null || score === 0) return "bg-slate-50";
-    if (score >= 85) return "bg-green-50";
-    if (score >= 70) return "bg-blue-50";
-    if (score >= 60) return "bg-yellow-50";
-    return "bg-red-50";
-  };
-
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'quiz': return 'Auto-grade';
-      case 'assignment': return 'Tugas';
-      case 'project': return 'Proyek';
-      case 'exam': return 'Ujian';
-      case 'presentation': return 'Presentasi';
-      case 'offline': return 'Offline';
-      default: return type;
+    if (avgs.length > 0) {
+      highStd = students.find(s => calculateAverage(s.id as any, grades) === high)?.name || "-";
+      lowStd = students.find(s => calculateAverage(s.id as any, grades) === low)?.name || "-";
     }
-  };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'quiz': return 'bg-blue-100 text-blue-700';
-      case 'exam': return 'bg-red-100 text-red-700';
-      case 'project': return 'bg-purple-100 text-purple-700';
-      case 'presentation': return 'bg-orange-100 text-orange-700';
-      case 'offline': return 'bg-slate-100 text-slate-700';
-      default: return 'bg-gray-100 text-gray-700';
-    }
-  };
+    return {
+      classAverage: avg,
+      highestScore: high,
+      lowestScore: low,
+      highestStudent: highStd,
+      lowestStudent: lowStd
+    };
+  }, [students, grades]); // Re-run when students or their grades change
 
   const handleCellClick = (studentId: string, assignmentId: string, currentScore: number | null) => {
     setEditingCell({ studentId, assignmentId });
@@ -370,8 +384,8 @@ export function Gradebook() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredStudents.map(student => {
-                const avg = calculateAverage(student.id as any);
-                const total = calculateTotal(student.id as any);
+                const avg = calculateAverage(student.id as any, grades);
+                const total = calculateTotal(student.id as any, grades);
                 return (
                   <tr key={student.id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="p-4 sticky left-0 bg-white group-hover:bg-slate-50/50 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
