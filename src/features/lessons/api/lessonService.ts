@@ -218,7 +218,13 @@ export const lessonService = {
         tenantId: string,
         status: 'started' | 'in_progress' | 'completed',
         progressPercentage: number,
-        lastPosition?: number
+        lastPosition?: number,
+        resumeAnchor?: {
+            lastBlockId?: string;
+            lastBlockIndex?: number;
+            lastBlockOffset?: number;
+            lastVideoPosition?: number;
+        }
     ): Promise<void> {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
@@ -230,6 +236,10 @@ export const lessonService = {
             p_status: status,
             p_progress_percentage: progressPercentage,
             p_last_position: lastPosition ?? null,
+            p_last_block_id: resumeAnchor?.lastBlockId ?? null,
+            p_last_block_index: resumeAnchor?.lastBlockIndex ?? null,
+            p_last_block_offset: resumeAnchor?.lastBlockOffset ?? null,
+            p_last_video_position: resumeAnchor?.lastVideoPosition ?? null,
         });
 
         if (error) {
@@ -247,10 +257,16 @@ export const lessonService = {
         tenantId: string,
         status: 'started' | 'in_progress' | 'completed',
         progressPercentage: number,
-        lastPosition?: number
+        lastPosition?: number,
+        resumeAnchor?: {
+            lastBlockId?: string;
+            lastBlockIndex?: number;
+            lastBlockOffset?: number;
+            lastVideoPosition?: number;
+        }
     ): Promise<void> {
         try {
-            await this.updateProgress(lessonId, tenantId, status, progressPercentage, lastPosition);
+            await this.updateProgress(lessonId, tenantId, status, progressPercentage, lastPosition, resumeAnchor);
         } catch (error) {
             console.warn('[Offline Queue] Network error, queuing progress for lesson', lessonId);
 
@@ -267,6 +283,7 @@ export const lessonService = {
                     status: (existing.status === 'completed' || status === 'completed') ? 'completed' : status,
                     progressPercentage: Math.max(existing.progressPercentage, progressPercentage),
                     lastPosition: Math.max(existing.lastPosition || 0, position || 0),
+                    resumeAnchor: resumeAnchor ?? existing.resumeAnchor,
                     timestamp: Date.now()
                 };
             } else {
@@ -275,6 +292,7 @@ export const lessonService = {
                     status,
                     progressPercentage,
                     lastPosition: position,
+                    resumeAnchor,
                     timestamp: Date.now()
                 });
             }
@@ -310,7 +328,8 @@ export const lessonService = {
                         tenantId,
                         item.status,
                         item.progressPercentage,
-                        item.lastPosition || undefined
+                        item.lastPosition || undefined,
+                        item.resumeAnchor
                     );
                 } catch (err) {
                     console.warn('[Offline Queue] Failed to sync item, re-queuing', item.lessonId);

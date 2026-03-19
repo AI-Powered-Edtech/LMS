@@ -17,6 +17,8 @@ export interface AttemptDetailAnswer {
     points_earned: number | null;
     max_points: number;
     grader_comment: string | null;
+    graded_at: string | null;
+    graded_by: string | null;
     explanation: string | null;
 }
 

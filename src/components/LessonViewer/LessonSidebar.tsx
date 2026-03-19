@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle, Circle, PlayCircle, FileText, AlertTriangle, Lock, ChevronRight, ArrowLeft, X } from 'lucide-react';
+import { CheckCircle, Circle, PlayCircle, FileText, AlertTriangle, Lock, ChevronRight, ArrowLeft, X, Clock } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
 import type { Lesson, LessonProgress } from '@/src/features/lessons';
-import { isLessonLocked } from '@/src/features/lessons';
+import { isLessonLocked, getLessonDuration, getModuleDuration, formatDuration } from '@/src/features/lessons';
 import { SkeletonCard } from '@/src/components/ui';
 
 interface LessonSidebarProps {
@@ -19,10 +19,10 @@ interface LessonSidebarProps {
     userRole?: string;
 }
 
-const typeIcons: Record<string, React.ReactNode> = {
-    video: <PlayCircle className="w-4 h-4" />,
-    article: <FileText className="w-4 h-4" />,
-    quiz: <AlertTriangle className="w-4 h-4" />,
+const typeIcons: Record<string, React.FC<{ className?: string }>> = {
+    video: PlayCircle,
+    article: FileText,
+    quiz: AlertTriangle,
 };
 
 const typeLabels: Record<string, string> = {
@@ -78,6 +78,11 @@ export function LessonSidebar({ moduleTitle, lessons, progress, activeLessonId, 
                     </div>
                     <span className="text-sm font-bold text-slate-500">{completedCount}/{lessons.length}</span>
                 </div>
+                {lessons.length > 0 && (
+                    <p className="text-xs text-slate-400 mt-2">
+                        {lessons.length} pelajaran &bull; {formatDuration(getModuleDuration(lessons))}
+                    </p>
+                )}
             </div>
 
             {/* Lesson List - Virtualized */}
@@ -167,22 +172,12 @@ export function LessonSidebar({ moduleTitle, lessons, progress, activeLessonId, 
                                             </p>
                                             <div className="flex items-center gap-3 flex-wrap">
                                                 <span className="text-[11px] text-slate-500 flex items-center gap-1.5 font-medium">
-                                                    {lesson.type === 'video' ? (
-                                                        <>
-                                                            <PlayCircle className="w-3.5 h-3.5" />
-                                                            {lesson.duration_minutes ? `0:${lesson.duration_minutes.toString().padStart(2, '0')}` : 'Video'}
-                                                        </>
-                                                    ) : lesson.type === 'article' ? (
-                                                        <>
-                                                            <FileText className="w-3.5 h-3.5" />
-                                                            {lesson.duration_minutes ? `${lesson.duration_minutes} min read` : 'Artikel'}
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <AlertTriangle className="w-3.5 h-3.5" />
-                                                            {typeLabels[lesson.type] || lesson.type}
-                                                        </>
-                                                    )}
+                                                    {(() => { const Icon = typeIcons[lesson.type] || FileText; return <Icon className="w-3.5 h-3.5" />; })()}
+                                                    {typeLabels[lesson.type] || lesson.type}
+                                                </span>
+                                                <span className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
+                                                    <Clock className="w-3 h-3" />
+                                                    {formatDuration(getLessonDuration(lesson))}
                                                 </span>
 
                                                 {lesson.passing_score ? (

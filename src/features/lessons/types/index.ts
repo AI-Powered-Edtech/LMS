@@ -75,6 +75,10 @@ export interface LessonProgress {
     last_position: number | null;
     completed: boolean;
     completed_at: string | null;
+    last_block_id?: string | null;
+    last_block_index?: number | null;
+    last_block_offset?: number | null;
+    last_video_position?: number | null;
 }
 
 export interface SignedProgressQueue {
@@ -89,6 +93,12 @@ export interface ProgressQueueItem {
     progressPercentage: number;
     lastPosition: number | null;
     timestamp: number;
+    resumeAnchor?: {
+        lastBlockId?: string;
+        lastBlockIndex?: number;
+        lastBlockOffset?: number;
+        lastVideoPosition?: number;
+    };
 }
 
 export interface QuizGradeResult {

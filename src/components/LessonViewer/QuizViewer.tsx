@@ -1,8 +1,10 @@
-import { useState, useRef } from 'react';
-import { AlertTriangle, CheckCircle, XCircle, Loader2, Clock, FileText } from 'lucide-react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { AlertTriangle, CheckCircle, XCircle, Loader2, Clock, FileText, Cloud, CloudOff } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { quizService, type QuizAttemptResult, type QuestionType } from '@/src/services/quizService';
+import { useQuizAutosave } from '@/src/features/quizzes/hooks/useQuizAutosave';
+import type { SubmitAnswer } from '@/src/features/quizzes/types/quizzes.types';
 
 interface QuizOption {
     id: string;
@@ -56,6 +58,39 @@ export function QuizViewer({
     const attemptVersionRef = useRef<number | undefined>(undefined);
     const attemptNumberRef = useRef<number | null>(null);
     const startAttemptPromise = useRef<Promise<{ id: string; version?: number; attempt_number?: number }> | null>(null);
+
+    // ── Autosave setup ───────────────────────────────────────
+    // Create a saveProgress wrapper that converts answers to the expected format
+    const quizServiceWithSaveProgress = useMemo(() => ({
+        saveProgress: async (attemptId: string, answers: Record<string, unknown>) => {
+            // Convert answers record to array format for batchSaveAnswers
+            const submitAnswers: SubmitAnswer[] = Object.entries(answers).map(([questionId, answer]) => ({
+                question_id: questionId,
+                selected_option_ids: (answer as { selected_option_ids?: string[] })?.selected_option_ids || [],
+                text_answer: (answer as { text_answer?: string })?.text_answer,
+            }));
+            await quizService.batchSaveAnswers(attemptId, submitAnswers);
+        },
+    }), []);
+
+    const { lastSaved, isSaving } = useQuizAutosave({
+        attemptId: attemptId || '',
+        answers: answers as Record<string, unknown>,
+        quizService: quizServiceWithSaveProgress,
+        intervalMs: 30000,
+    });
+
+    // State for showing the "tersimpan" indicator with fade
+    const [showSavedIndicator, setShowSavedIndicator] = useState(false);
+
+    // Show indicator when saved
+    useEffect(() => {
+        if (lastSaved && !isSaving) {
+            setShowSavedIndicator(true);
+            const timer = setTimeout(() => setShowSavedIndicator(false), 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [lastSaved, isSaving]);
 
     const ensureAttemptStarted = async () => {
         if (attemptIdRef.current) {
@@ -421,6 +456,37 @@ export function QuizViewer({
                     `Kirim Jawaban (${questions.filter(q => isQuestionAnswered(q)).length}/${questions.length})`
                 )}
             </button>
+
+            {/* Autosave indicator - bottom right, fades after 2s */}
+            <AnimatePresence>
+                {(showSavedIndicator || isSaving) && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed bottom-6 right-6 z-40"
+                    >
+                        <div className={cn(
+                            "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium shadow-sm border",
+                            isSaving 
+                                ? "bg-amber-50 border-amber-200 text-amber-700"
+                                : "bg-green-50 border-green-200 text-green-700"
+                        )}>
+                            {isSaving ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <span>Menyimpan...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Cloud className="w-4 h-4" />
+                                    <span>Jawaban tersimpan</span>
+                                </>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

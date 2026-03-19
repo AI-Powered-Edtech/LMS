@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, Link, useParams } from "react-router-dom";
 import { ArrowLeft, Loader2, AlertTriangle, CheckCircle, Award, BookOpen, PlayCircle, ChevronRight, Layers, Clock, FileText, HelpCircle, Menu } from "lucide-react";
 import { cn } from "@/src/utils/cn";
@@ -18,84 +18,155 @@ import {
   AITutorPanel,
   useViewerReducer,
   MultiBlockViewer,
+  ScrollProgressBar,
+  ModuleCompletionModal,
 } from "@/src/components/LessonViewer";
 import { DiscussionBoard } from "@/src/components/Social/DiscussionBoard";
 import { MessageSquare, Info, Sparkles } from "lucide-react";
 import { Breadcrumb } from "@/src/components/ui";
+import { CourseHeader, ProgressSummary, ModuleList, type ModuleWithProgress } from "@/src/components/CourseOverview";
 
 // ============================================================
 // Course/Module Browser — shown when no moduleId param
 // ============================================================
 
-interface CourseWithModules {
+interface CourseData {
   id: string;
   title: string;
   description: string | null;
-  modules: {
-    id: string;
-    title: string;
-    order: number;
-    lessonCount: number;
-  }[];
+  created_by: string;
 }
 
 function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule: (moduleId: string) => void; tenantId: string; courseId?: string }) {
-  const [courses, setCourses] = useState<CourseWithModules[]>([]);
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [expandedCourse, setExpandedCourse] = useState<string | null>(null);
+  const [course, setCourse] = useState<CourseData | null>(null);
+  const [modules, setModules] = useState<ModuleWithProgress[]>([]);
+  const [totalLessons, setTotalLessons] = useState(0);
+  const [completedLessons, setCompletedLessons] = useState(0);
+  const [totalDuration, setTotalDuration] = useState(0);
+  const [instructorName, setInstructorName] = useState<string | undefined>();
+  const [nextIncompleteModuleId, setNextIncompleteModuleId] = useState<string | undefined>();
 
   useEffect(() => {
+    if (!user?.id) return;
+
     (async () => {
       try {
-        // Fetch courses via service (already enforces tenant_id)
+        // 1. Fetch courses
         const { courses: coursesData } = await courseService.fetchCourses({
           tenantId,
           limit: 100,
-          ids: courseId ? [courseId] : undefined
+          ids: courseId ? [courseId] : undefined,
         });
 
         if (!coursesData?.length) { setLoading(false); return; }
 
-        // Fetch modules with lesson counts (filtered by tenant)
+        // Use the first course (single-course view when courseId is present, or first available)
+        const activeCourse = coursesData[0];
+        setCourse({
+          id: activeCourse.id,
+          title: activeCourse.title,
+          description: activeCourse.description,
+          created_by: activeCourse.created_by,
+        });
+
+        // 2. Fetch modules with lesson details
         const { data: modulesData } = await supabase
           .from('course_modules')
-          .select('id, title, order, course_id, lessons(count)')
+          .select('id, title, order, course_id, lessons(id, duration_minutes)')
           .eq('tenant_id', tenantId)
-          .in('course_id', coursesData.map(c => c.id))
+          .eq('course_id', activeCourse.id)
           .order('order', { ascending: true });
 
-        const courseMap: CourseWithModules[] = coursesData.map(c => ({
-          id: c.id,
-          title: c.title,
-          description: c.description,
-          modules: (modulesData || [])
-            .filter(m => m.course_id === c.id)
-            .map(m => ({
-              id: m.id,
-              title: m.title,
-              order: m.order,
-              lessonCount: (m as any).lessons?.[0]?.count ?? 0,
-            })),
-        }));
+        if (!modulesData?.length) {
+          setModules([]);
+          setLoading(false);
+          return;
+        }
 
-        setCourses(courseMap);
-        if (courseMap.length === 1) setExpandedCourse(courseMap[0].id);
+        // 3. Collect all lesson IDs and fetch progress
+        const allLessonIds = (modulesData as any[]).flatMap((m: any) =>
+          (m.lessons || []).map((l: any) => l.id)
+        );
+
+        let completedSet = new Set<string>();
+        if (allLessonIds.length > 0) {
+          const { data: progressData } = await supabase
+            .from('lesson_progress')
+            .select('lesson_id, completed')
+            .eq('user_id', user.id)
+            .in('lesson_id', allLessonIds)
+            .eq('completed', true);
+
+          if (progressData) {
+            completedSet = new Set(progressData.map(p => p.lesson_id));
+          }
+        }
+
+        // 4. Build module progress data
+        let totalL = 0;
+        let completedL = 0;
+        let totalDur = 0;
+        let foundNextIncomplete = false;
+
+        const modulesWithProgress: ModuleWithProgress[] = (modulesData as any[]).map((m: any) => {
+          const lessons = m.lessons || [];
+          const lessonCount = lessons.length;
+          const completedCount = lessons.filter((l: any) => completedSet.has(l.id)).length;
+          const duration = lessons.reduce((sum: number, l: any) => sum + (l.duration_minutes || 5), 0);
+
+          totalL += lessonCount;
+          completedL += completedCount;
+          totalDur += duration;
+
+          // Find the first incomplete module for "Lanjut Belajar"
+          if (!foundNextIncomplete && completedCount < lessonCount) {
+            setNextIncompleteModuleId(m.id);
+            foundNextIncomplete = true;
+          }
+
+          return {
+            id: m.id,
+            title: m.title,
+            order: m.order,
+            lessonCount,
+            completedLessons: completedCount,
+            durationMinutes: duration,
+          };
+        });
+
+        setModules(modulesWithProgress);
+        setTotalLessons(totalL);
+        setCompletedLessons(completedL);
+        setTotalDuration(totalDur);
+
+        // 5. Fetch instructor name from profiles
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', activeCourse.created_by)
+          .single();
+
+        if (profileData?.full_name) {
+          setInstructorName(profileData.full_name);
+        }
       } catch (err) {
         console.warn('[CourseBrowser] fetch failed:', err);
       } finally {
         setLoading(false);
       }
     })();
-  }, [tenantId]);
+  }, [tenantId, courseId, user?.id]);
 
-  const courseGradients = [
-    'from-blue-500 to-indigo-600',
-    'from-violet-500 to-purple-600',
-    'from-emerald-500 to-teal-600',
-    'from-rose-500 to-pink-600',
-    'from-amber-500 to-orange-600',
-    'from-cyan-500 to-blue-600',
-  ];
+  const handleContinueLearning = useCallback(() => {
+    if (nextIncompleteModuleId) {
+      onSelectModule(nextIncompleteModuleId);
+    } else if (modules.length > 0) {
+      // All complete or no progress — go to first module
+      onSelectModule(modules[0].id);
+    }
+  }, [nextIncompleteModuleId, modules, onSelectModule]);
 
   if (loading) {
     return (
@@ -108,7 +179,7 @@ function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule:
     );
   }
 
-  if (!courses.length) {
+  if (!course) {
     return (
       <div className="flex items-center justify-center h-full bg-gradient-to-br from-slate-50 to-slate-100">
         <div className="text-center p-8">
@@ -124,114 +195,33 @@ function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule:
 
   return (
     <div className="h-full overflow-auto bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
-      <div className="max-w-4xl mx-auto px-4 md:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <PlayCircle className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-slate-900">Smart Player</h1>
+      <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 space-y-6">
+        <CourseHeader
+          course={course}
+          instructorName={instructorName}
+          onContinueLearning={handleContinueLearning}
+          hasProgress={completedLessons > 0}
+        />
+
+        {totalLessons > 0 && (
+          <ProgressSummary
+            totalLessons={totalLessons}
+            completedLessons={completedLessons}
+            totalDurationMinutes={totalDuration}
+          />
+        )}
+
+        {modules.length > 0 ? (
+          <ModuleList
+            modules={modules}
+            onSelectModule={onSelectModule}
+            nextIncompleteModuleId={nextIncompleteModuleId}
+          />
+        ) : (
+          <div className="bg-white rounded-2xl border border-slate-200/70 shadow-md shadow-slate-200/40 p-8 text-center">
+            <p className="text-slate-400 text-sm">Belum ada modul dalam kursus ini.</p>
           </div>
-          <p className="text-slate-500 ml-[52px]">Pilih modul untuk mulai belajar</p>
-        </div>
-
-        {/* Course Cards */}
-        <div className="space-y-4">
-          {courses.map((course, ci) => {
-            const isExpanded = expandedCourse === course.id;
-            const gradient = courseGradients[ci % courseGradients.length];
-
-            return (
-              <motion.div
-                key={course.id}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: ci * 0.08, duration: 0.3 }}
-                className="bg-white rounded-2xl border border-slate-200/70 shadow-md shadow-slate-200/40 overflow-hidden hover:shadow-lg hover:shadow-slate-200/60 transition-all duration-300"
-              >
-                {/* Course Header */}
-                <button
-                  onClick={() => setExpandedCourse(isExpanded ? null : course.id)}
-                  className="w-full flex items-center gap-4 p-5 text-left hover:bg-slate-50/50 transition-colors"
-                >
-                  <div className={cn(
-                    "w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center shrink-0 shadow-lg",
-                    gradient,
-                    `shadow-${gradient.split('-')[1]}-500/20`
-                  )}>
-                    <BookOpen className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-slate-900 truncate">{course.title}</h3>
-                    {course.description && (
-                      <p className="text-sm text-slate-400 truncate mt-0.5">{course.description}</p>
-                    )}
-                    <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-400">
-                      <span className="flex items-center gap-1">
-                        <Layers className="w-3 h-3" />
-                        {course.modules.length} modul
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <FileText className="w-3 h-3" />
-                        {course.modules.reduce((sum, m) => sum + m.lessonCount, 0)} pelajaran
-                      </span>
-                    </div>
-                  </div>
-                  <ChevronRight className={cn(
-                    "w-5 h-5 text-slate-300 shrink-0 transition-transform duration-200",
-                    isExpanded && "rotate-90"
-                  )} />
-                </button>
-
-                {/* Module List */}
-                <AnimatePresence>
-                  {isExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="border-t border-slate-100 bg-slate-50/50">
-                        {course.modules.length === 0 ? (
-                          <div className="p-5 text-center text-sm text-slate-400">
-                            Belum ada modul dalam kursus ini.
-                          </div>
-                        ) : (
-                          course.modules.map((mod, mi) => (
-                            <motion.button
-                              key={mod.id}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: mi * 0.04 }}
-                              onClick={() => onSelectModule(mod.id)}
-                              className="w-full flex items-center gap-4 px-5 py-3.5 text-left hover:bg-blue-50/60 transition-all group border-b border-slate-100 last:border-b-0"
-                            >
-                              <div className="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center shrink-0 text-sm font-bold text-slate-500 group-hover:bg-blue-500 group-hover:text-white group-hover:border-blue-500 transition-all shadow-sm">
-                                {mod.order}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-slate-700 group-hover:text-blue-700 truncate transition-colors text-sm">
-                                  {mod.title}
-                                </p>
-                                <p className="text-xs text-slate-400 mt-0.5">
-                                  {mod.lessonCount} pelajaran
-                                </p>
-                              </div>
-                              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-500 transition-colors shrink-0" />
-                            </motion.button>
-                          ))
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
-        </div>
+        )}
       </div>
     </div>
   );
@@ -276,6 +266,13 @@ export function LessonViewer() {
   // Mobile sidebar drawer state
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
+  // Resume banner state
+  const [showResumeBanner, setShowResumeBanner] = useState(false);
+
+  // Module completion celebration
+  const [showModuleComplete, setShowModuleComplete] = useState(false);
+  const moduleCompleteShownRef = useRef<string | null>(null);
+
   // ============================================================
   // D1: Compute lesson navigation state
   // ============================================================
@@ -303,6 +300,7 @@ export function LessonViewer() {
     if (!moduleId || !user?.id || !tenantId) return;
     let cancelled = false;
     setSidebarLoading(true);
+    moduleCompleteShownRef.current = null; // Reset on module change
 
     // Fetch module title
     supabase
@@ -377,6 +375,9 @@ export function LessonViewer() {
   // ============================================================
   const handleCompletionMet = useCallback(async () => {
     if (!state.lesson || !tenantId || state.status === 'completed') return;
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('[Lesson Completion]', { lessonId: state.lesson.id, status: state.status });
+    }
     actions.completionMet();
 
     try {
@@ -403,6 +404,16 @@ export function LessonViewer() {
         confetti({ particleCount: 150, spread: 80, origin: { y: 0.7 } });
       } catch (err) { console.warn("Confetti failed:", err); }
       setTimeout(() => setShowCelebration(false), 4000);
+
+      // Check module completion (all lessons in module done?)
+      if (moduleId && moduleCompleteShownRef.current !== moduleId) {
+        const updatedProgress = { ...moduleProgress, [state.lesson!.id]: { completed: true, status: 'completed' } };
+        const allDone = moduleLessons.length > 0 && moduleLessons.every(l => updatedProgress[l.id]?.completed || updatedProgress[l.id]?.status === 'completed');
+        if (allDone) {
+          moduleCompleteShownRef.current = moduleId;
+          setTimeout(() => setShowModuleComplete(true), 4200); // after lesson celebration fades
+        }
+      }
     } catch (err) {
       console.error("Completion failed:", err);
     }
@@ -414,6 +425,117 @@ export function LessonViewer() {
   const handleProgressUpdate = useCallback((percentage: number, position?: number) => {
     actions.updateProgress(percentage, position);
   }, [actions]);
+
+  // ============================================================
+  // Resume anchor update handler (debounced from MultiBlockViewer)
+  // ============================================================
+  const handleResumeAnchorUpdate = useCallback(async (anchor: {
+    lastBlockId: string;
+    lastBlockIndex: number;
+    lastBlockOffset: number;
+  }) => {
+    if (!lessonId || !tenantId || !user?.id || state.status === 'completed') return;
+
+    await lessonService.queueProgressUpdate(
+      lessonId,
+      tenantId,
+      'in_progress',
+      state.progressPercentage ?? 0,
+      undefined,
+      {
+        lastBlockId: anchor.lastBlockId,
+        lastBlockIndex: anchor.lastBlockIndex,
+        lastBlockOffset: anchor.lastBlockOffset,
+      }
+    );
+  }, [lessonId, tenantId, user?.id, state.progressPercentage, state.status]);
+
+  // ============================================================
+  // Video time update handler (debounced from VideoBlock)
+  // ============================================================
+  const handleVideoTimeUpdate = useCallback(async (blockId: string, seconds: number) => {
+    if (!lessonId || !tenantId || !user?.id || state.status === 'completed') return;
+
+    await lessonService.queueProgressUpdate(
+      lessonId,
+      tenantId,
+      'in_progress',
+      state.progressPercentage ?? 0,
+      undefined,
+      { lastBlockId: blockId, lastVideoPosition: seconds }
+    );
+  }, [lessonId, tenantId, user?.id, state.progressPercentage, state.status]);
+
+  // ============================================================
+  // Scroll to block helper function
+  // ============================================================
+  const scrollToBlock = useCallback((
+    blockId?: string | null,
+    blockIndex?: number | null,
+    offset?: number | null,
+  ) => {
+    // 1. Try by block id
+    if (blockId) {
+      const el = document.getElementById(`block-${blockId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (offset && offset > 0) {
+          setTimeout(() => window.scrollBy({ top: offset, behavior: 'smooth' }), 300);
+        }
+        return;
+      }
+    }
+    // 2. Fallback to block index
+    if (blockIndex != null && blockIndex > 0) {
+      const blocks = document.querySelectorAll('[data-block-id]');
+      const el = blocks[blockIndex];
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+    }
+    // 3. Fallback: top
+  }, []);
+
+  // ============================================================
+  // Resume banner handlers
+  // ============================================================
+  const handleStartOver = useCallback(() => {
+    setShowResumeBanner(false);
+    // Stay at top - no action needed
+  }, []);
+
+  const handleResume = useCallback(() => {
+    setShowResumeBanner(false);
+    // Scroll must happen AFTER blocks are mounted in the DOM
+    setTimeout(() => {
+      scrollToBlock(
+        state.progress?.last_block_id,
+        state.progress?.last_block_index,
+        state.progress?.last_block_offset
+      );
+    }, 100);
+  }, [scrollToBlock, state.progress]);
+
+  // ============================================================
+  // Show resume banner when lesson loads with saved progress
+  // ============================================================
+  useEffect(() => {
+    // Only show banner when lesson is loaded and not completed
+    if (
+      state.progress &&
+      state.progress.last_block_id &&
+      state.status !== 'completed' &&
+      state.status !== 'loading' &&
+      state.status !== 'idle'
+    ) {
+      setShowResumeBanner(true);
+    }
+    // For completed lessons, silently scroll to top
+    if (state.status === 'completed') {
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+    }
+  }, [state.progress, state.status]);
 
   // ============================================================
   // Render: No module selected
@@ -585,6 +707,32 @@ export function LessonViewer() {
           </div>
         )}
 
+        {/* Resume Banner */}
+        {showResumeBanner && (
+          <div className="mx-6 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <BookOpen className="w-5 h-5 text-blue-600 shrink-0" />
+              <p className="text-sm font-medium text-blue-800">
+                Lanjutkan dari terakhir kamu berhenti?
+              </p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <button
+                onClick={handleStartOver}
+                className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-800 transition-colors"
+              >
+                Mulai dari awal
+              </button>
+              <button
+                onClick={handleResume}
+                className="px-4 py-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                Lanjutkan
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Content */}
         <div className="flex-1 overflow-hidden flex flex-col">
           <ErrorBoundary>
@@ -659,14 +807,19 @@ export function LessonViewer() {
                   id="panel-content"
                   aria-labelledby="tab-content"
                 >
+                  <ScrollProgressBar />
                   {/* Multi-Block Lesson Renderer */}
                   {state.lesson.lesson_resources && state.lesson.lesson_resources.length > 0 ? (
                     <MultiBlockViewer
                       lesson={state.lesson}
                       isCompleted={state.status === 'completed'}
+                      savedVideoBlockId={state.progress?.last_block_id ?? null}
+                      savedVideoPosition={state.progress?.last_video_position ?? null}
+                      onVideoTimeUpdate={handleVideoTimeUpdate}
                       onProgressUpdate={handleProgressUpdate}
                       onCompletionMet={handleCompletionMet}
                       onStartViewing={actions.startViewing}
+                      onResumeAnchorUpdate={handleResumeAnchorUpdate}
                     />
                   ) : (
                     /* Fallback for legacy lessons with no blocks (video-only, article-only) */
@@ -869,6 +1022,21 @@ export function LessonViewer() {
                 )}
               </div>
             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Module Completion Modal */}
+        <AnimatePresence>
+          {showModuleComplete && (
+            <ModuleCompletionModal
+              moduleTitle={moduleTitle}
+              hasNextModule={!isLastLesson}
+              onContinue={() => {
+                setShowModuleComplete(false);
+                setSearchParams({});
+              }}
+              onClose={() => setShowModuleComplete(false)}
+            />
           )}
         </AnimatePresence>
       </div >

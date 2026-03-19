@@ -14,6 +14,8 @@ interface BlockRendererProps {
   /** Matched assignment (if block.type === 'assignment') */
   assignment?: Assignment;
   isCompleted: boolean;
+  savedVideoPosition?: number | null;
+  onVideoTimeUpdate?: (seconds: number) => void;
   onCompletionMet?: () => void;
   onProgressUpdate?: (pct: number) => void;
   onStartViewing?: () => void;
@@ -24,6 +26,8 @@ export function BlockRenderer({
   quiz,
   assignment,
   isCompleted,
+  savedVideoPosition,
+  onVideoTimeUpdate,
   onCompletionMet,
   onProgressUpdate,
   onStartViewing,
@@ -42,9 +46,11 @@ export function BlockRenderer({
         <VideoBlock
           url={block.url || ''}
           isCompleted={isCompleted}
+          savedVideoPosition={savedVideoPosition}
           onProgressUpdate={onProgressUpdate ?? (() => {})}
           onCompletionMet={onCompletionMet ?? (() => {})}
           onStartViewing={onStartViewing ?? (() => {})}
+          onVideoTimeUpdate={onVideoTimeUpdate}
         />
       );
 

@@ -1,17 +1,19 @@
 // Quiz Player - Orchestrator component
 // Part of the Quiz Engine Refactor
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Eye, WifiOff } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
-import type { SubmitAnswer } from '../../types/quizzes.types';
+import type { SubmitAnswer, QuizAttemptQuestion } from '../../types/quizzes.types';
 import { useQuizTimer } from '../../hooks/useQuizTimer';
-import { useAutosaveAnswers } from '../../hooks/useAutosaveAnswers';
+import { useQuizAutosave } from '../../hooks/useQuizAutosave';
 import type { SaveStatus } from '../../types/quizzes.types';
 import { useAntiCheat } from '../../hooks/useAntiCheat';
 import { useQuizHeartbeat } from '../../hooks/useQuizHeartbeat';
 import { useQuizPlayerStore } from '../../store/quizPlayer.store';
+import * as quizPlayerService from '../../api/quizPlayer.service';
+import { getCurrentQuestionIndex } from '../../api/quizPlayer.service';
 // Presentational components - temporarily import from pages/quiz
 import { QuizHeader } from './QuizHeader';
 import { QuizBody } from './QuizBody';
@@ -27,12 +29,7 @@ interface QuizPlayerProps {
     title: string;
     time_limit_minutes?: number;
   };
-  attemptQuestions: Array<{
-    id: string;
-    question_type?: string;
-    question_text?: string;
-    options?: Array<{ id: string; text: string }>;
-  }>;
+  attemptQuestions: QuizAttemptQuestion[];
   initialAnswers?: Record<string, SubmitAnswer>;
   initialQuestionIndex?: number;
   onSubmit: (answers: Record<string, SubmitAnswer>) => void;
@@ -56,6 +53,8 @@ export function QuizPlayer({
   const [flagged, setFlagged] = useState<Set<string>>(new Set());
   const [showReview, setShowReview] = useState(false);
   const [answers, setAnswers] = useState<Record<string, SubmitAnswer>>(initialAnswers);
+  const [isResuming, setIsResuming] = useState(false);
+  const [resumeToast, setResumeToast] = useState<{ show: boolean; current: number; total: number }>({ show: false, current: 0, total: 0 });
 
   const totalQuestions = attemptQuestions.length;
   const question = attemptQuestions[currentQuestionIdx];
@@ -67,6 +66,46 @@ export function QuizPlayer({
     return () => store.resetStore();
   }, [attemptId, store]);
 
+  // Resume logic: compute current question index from saved answers on mount
+  useEffect(() => {
+    const computeResumeIndex = async () => {
+      // Check if there's a saved attempt (initialAnswers has content)
+      const hasSavedAnswers = Object.keys(initialAnswers).length > 0;
+      if (!hasSavedAnswers || attemptQuestions.length === 0) {
+        return;
+      }
+
+      setIsResuming(true);
+
+      try {
+        // Compute the current question index from saved answers
+        const resumeIndex = getCurrentQuestionIndex(attemptQuestions, initialAnswers);
+        
+        // Only update if the computed index is different from initial
+        if (resumeIndex > 0 && resumeIndex !== initialQuestionIndex) {
+          setCurrentQuestionIdx(resumeIndex);
+          // Show toast notification
+          setResumeToast({ 
+            show: true, 
+            current: resumeIndex + 1, 
+            total: attemptQuestions.length 
+          });
+          // Auto-hide toast after 2 seconds
+          setTimeout(() => {
+            setResumeToast(prev => ({ ...prev, show: false }));
+          }, 2000);
+        }
+      } catch (error) {
+        // Gracefully fallback to initial index on error
+        console.error('Failed to compute resume index:', error);
+      } finally {
+        setIsResuming(false);
+      }
+    };
+
+    computeResumeIndex();
+  }, [attemptId, attemptQuestions, initialAnswers, initialQuestionIndex]);
+
   // ── Hooks composition ───────────────────────────────────
   const { timeLeft, isCritical, progressColor } = useQuizTimer({
     expiresAt,
@@ -74,20 +113,40 @@ export function QuizPlayer({
     onTimeUp: () => onSubmit(answers),
   });
 
-  const { saveStatus, isOnline, setAnswer: setAutoSaveAnswer, flushSave } = useAutosaveAnswers({
+  // Create a saveProgress wrapper for the quiz service
+  const quizServiceWithSaveProgress = useMemo(() => ({
+    saveProgress: async (attemptId: string, answers: Record<string, unknown>) => {
+      const submitAnswers: SubmitAnswer[] = Object.entries(answers).map(([questionId, answer]) => ({
+        question_id: questionId,
+        selected_option_ids: (answer as SubmitAnswer).selected_option_ids || [],
+        text_answer: (answer as SubmitAnswer).text_answer,
+      }));
+      await quizPlayerService.batchSaveAnswers(attemptId, submitAnswers);
+    },
+  }), []);
+
+  // Use interval-based autosave (replaces debounced autosave + heartbeat dedup)
+  const { lastSaved, isSaving } = useQuizAutosave({
     attemptId,
-    debounceMs: 3000,
+    answers: answers as Record<string, unknown>,
+    quizService: quizServiceWithSaveProgress,
+    intervalMs: 30000,
   });
+
+  // Map to compatible interface for QuizHeader
+  const saveStatus: SaveStatus = isSaving ? 'saving' : (lastSaved ? 'saved' : 'idle');
+  const isOnline = true; // QuizPlayer handles offline differently
 
   const { tabWarning } = useAntiCheat({ attemptId });
 
   useQuizHeartbeat({ attemptId, intervalMs: 30000 });
 
   // ── Answer handling ─────────────────────────────────────
+  // Note: Autosave is now handled by useQuizAutosave interval (30s)
+  // No need to call setAutoSaveAnswer on each answer change
   const handleAnswer = useCallback((questionId: string, answer: SubmitAnswer) => {
     setAnswers(prev => ({ ...prev, [questionId]: answer }));
-    setAutoSaveAnswer(questionId, answer);
-  }, [setAutoSaveAnswer]);
+  }, []);
 
   // ── Keyboard navigation ────────────────────────────────
   useEffect(() => {
@@ -152,6 +211,28 @@ export function QuizPlayer({
     );
   }
 
+  // Show skeleton while computing resume index
+  if (isResuming) {
+    return (
+      <div className="flex-1 w-full flex flex-col items-center">
+        <div className="w-full max-w-6xl space-y-6">
+          {/* Header skeleton */}
+          <div className="h-16 bg-slate-100 rounded-2xl animate-pulse" />
+          {/* Content skeleton */}
+          <div className="flex gap-6">
+            <div className="hidden lg:block w-64">
+              <div className="h-96 bg-slate-100 rounded-2xl animate-pulse" />
+            </div>
+            <div className="flex-1 space-y-6">
+              <div className="h-64 bg-slate-100 rounded-2xl animate-pulse" />
+              <div className="h-16 bg-slate-100 rounded-2xl animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!question) return null;
 
   const isLastQuestion = currentQuestionIdx === totalQuestions - 1;
@@ -173,6 +254,27 @@ export function QuizPlayer({
             </div>
           </div>
         )}
+
+        {/* ── Resume Toast ─────────────────────────── */}
+        <AnimatePresence>
+          {resumeToast.show && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed top-4 left-1/2 -translate-x-1/2 z-50"
+            >
+              <div className="flex items-center gap-3 px-5 py-3 bg-blue-50 border border-blue-200 rounded-2xl shadow-lg">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600 text-sm font-bold">{resumeToast.current}</span>
+                </div>
+                <p className="font-medium text-blue-800 text-sm">
+                  Melanjutkan dari pertanyaan {resumeToast.current}/{resumeToast.total}
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {!isOnline && (
           <div className="mb-4">

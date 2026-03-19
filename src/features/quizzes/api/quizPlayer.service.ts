@@ -64,7 +64,16 @@ export async function submitQuizAttempt(
     throw new Error(error.message || 'Failed to submit quiz');
   }
 
-  return data as QuizAttemptResult;
+  const result = data as QuizAttemptResult;
+
+  // Award XP if passed (fire-and-forget, don't block submit on XP award)
+  if (result.passed && session?.user) {
+    awardQuizXp(attemptId, session.user.id, result.score).catch((xpError) => {
+      console.error('Failed to award quiz XP:', xpError);
+    });
+  }
+
+  return result;
 }
 
 /**
@@ -157,10 +166,17 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
 
   if (questionError) throw questionError;
 
+  // Build Maps for O(1) lookup instead of O(n) find() - fixes O(n²) performance
+  const questionsMap = new Map<string, typeof questions[0]>();
+  questions.forEach((q) => questionsMap.set(q.id, q));
+
+  const answersMap = new Map<string, typeof answers[0]>();
+  answers.forEach((a) => answersMap.set(a.question_id, a));
+
   // Map and normalize the data
   return manifest.map((questionId: string, index: number) => {
-    const question = questions.find((item: any) => item.id === questionId);
-    const answer = answers.find((item: any) => item.question_id === questionId);
+    const question = questionsMap.get(questionId);
+    const answer = answersMap.get(questionId);
 
     let selectedOptionIds: string[] = [];
     let textAnswer: string | null = null;
@@ -451,5 +467,59 @@ function normalizeFinalAnswers(answers: SubmitAnswer[]) {
         ? answer.text_answer.trim()
         : (answer.selected_option_ids || []),
   }));
+}
+
+/**
+ * Award XP for passing a quiz (fire-and-forget)
+ * Called after successful quiz submission when student passes
+ */
+async function awardQuizXp(
+  attemptId: string,
+  userId: string,
+  score: number
+): Promise<void> {
+  try {
+    // Get attempt info to find quiz_id and tenant_id
+    const { data: attempt, error: attemptError } = await supabase
+      .from('quiz_attempts_v2')
+      .select('quiz_id, tenant_id, student_id')
+      .eq('id', attemptId)
+      .single();
+
+    if (attemptError || !attempt) {
+      console.error('Failed to fetch attempt for XP award:', attemptError);
+      return;
+    }
+
+    // Get quiz info to find passing_score and lesson_id
+    const { data: quiz, error: quizError } = await supabase
+      .from('quizzes')
+      .select('passing_score, lesson_id')
+      .eq('id', attempt.quiz_id)
+      .single();
+
+    if (quizError || !quiz) {
+      console.error('Failed to fetch quiz for XP award:', quizError);
+      return;
+    }
+
+    const passingScore = quiz.passing_score ?? 0;
+    const lessonId = quiz.lesson_id;
+
+    // Only award XP if score meets passing threshold
+    if (score >= passingScore && lessonId) {
+      await supabase.rpc('award_quiz_xp', {
+        p_user_id: userId,
+        p_lesson_id: lessonId,
+        p_quiz_id: attempt.quiz_id,
+        p_score: score,
+        p_passing_score: passingScore,
+        p_tenant_id: attempt.tenant_id,
+      });
+    }
+  } catch (err) {
+    // Log failure but don't throw - this is fire-and-forget
+    console.error('Error awarding quiz XP:', err);
+  }
 }
 

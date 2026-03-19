@@ -391,13 +391,15 @@ export async function replaceQuestionOptions(
  * Grade a single question attempt
  */
 export async function gradeAttemptQuestion(
-  attemptQuestionId: string,
+  attemptId: string,
+  questionId: string,
   pointsEarned: number,
   isCorrect: boolean,
   comment?: string
-): Promise<{ success: boolean; attempt_question_id: string; points_earned: number; is_correct: boolean }> {
+): Promise<{ success: boolean; attempt_id: string; question_id: string; points_earned: number; is_correct: boolean }> {
   const { data, error } = await supabase.rpc('grade_attempt_question', {
-    p_attempt_question_id: attemptQuestionId,
+    p_attempt_id: attemptId,
+    p_question_id: questionId,
     p_points_earned: pointsEarned,
     p_is_correct: isCorrect,
     p_comment: comment ?? null,
@@ -408,7 +410,7 @@ export async function gradeAttemptQuestion(
     throw new Error(error.message || 'Failed to grade question');
   }
 
-  return data as { success: boolean; attempt_question_id: string; points_earned: number; is_correct: boolean };
+  return data as { success: boolean; attempt_id: string; question_id: string; points_earned: number; is_correct: boolean };
 }
 
 /**

@@ -14,6 +14,7 @@ import {
     Download,
     BarChart3,
     Eye,
+    PenLine,
 } from 'lucide-react';
 import { supabase } from '@/src/lib/supabase';
 import { cn } from '@/src/utils/cn';
@@ -424,17 +425,25 @@ export function QuizGradebook() {
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 text-center">
-                                            {attempt.passed === true ? (
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">
-                                                    <CheckCircle2 className="w-3 h-3" /> Lulus
-                                                </span>
-                                            ) : attempt.passed === false ? (
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">
-                                                    <XCircle className="w-3 h-3" /> Tidak Lulus
-                                                </span>
-                                            ) : (
-                                                <span className="text-xs text-slate-400">Belum dinilai</span>
-                                            )}
+                                            <div className="flex flex-col items-center gap-1">
+                                                {attempt.passed === true ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">
+                                                        <CheckCircle2 className="w-3 h-3" /> Lulus
+                                                    </span>
+                                                ) : attempt.passed === false ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">
+                                                        <XCircle className="w-3 h-3" /> Tidak Lulus
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs text-slate-400">Belum dinilai</span>
+                                                )}
+                                                {attempt.status === 'submitted' && attempt.passed === null && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold">
+                                                        <PenLine className="w-2.5 h-2.5" />
+                                                        Perlu Dinilai
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-4 py-3 text-center text-sm text-slate-600">
                                             <span className="inline-flex items-center gap-1">
@@ -542,7 +551,12 @@ export function QuizGradebook() {
                     studentName={selectedStudentName}
                     score={selectedScore}
                     passed={selectedPassed}
-                    onClose={() => setSelectedAttemptId(null)}
+                    onClose={() => {
+                        setSelectedAttemptId(null);
+                        // Refresh attempts to reflect any grading changes
+                        loadAttempts();
+                    }}
+                    onGraded={loadAttempts}
                 />
             )}
         </div>

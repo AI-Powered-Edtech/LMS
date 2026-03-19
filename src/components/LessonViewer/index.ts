@@ -12,5 +12,7 @@ export { AITutorPanel } from './AITutorPanel';
 export { AITutorInput } from './AITutorInput';
 export { AITutorTyping } from './AITutorTyping';
 export { MultiBlockViewer } from './MultiBlockViewer';
+export { ScrollProgressBar } from './ScrollProgressBar';
+export { ModuleCompletionModal } from './ModuleCompletionModal';
 export { BlockRenderer } from './BlockRenderer';
 export type { ViewerState, ViewerStatus } from './useViewerReducer';

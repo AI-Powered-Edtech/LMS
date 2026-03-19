@@ -3,6 +3,7 @@
 
 export * from './useQuizTimer';
 export * from './useAutosaveAnswers';
+export * from './useQuizAutosave';
 export * from './useAntiCheat';
 export * from './useQuizHeartbeat';
 

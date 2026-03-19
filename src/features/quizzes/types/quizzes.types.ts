@@ -219,3 +219,12 @@ export interface GradeAttemptQuestionResult {
   points_earned: number;
   is_correct: boolean;
 }
+
+// ============================================
+// Discriminated Union for Quiz Answers (Type Safety)
+// ============================================
+
+export type MCQAnswer = { questionType: 'multiple_choice'; value: string };
+export type MultiSelectAnswer = { questionType: 'multiple_select'; value: string[] };
+export type EssayAnswer = { questionType: 'essay'; value: string };
+export type QuizAnswer = MCQAnswer | MultiSelectAnswer | EssayAnswer;

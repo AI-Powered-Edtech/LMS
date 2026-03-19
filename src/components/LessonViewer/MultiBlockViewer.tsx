@@ -7,17 +7,29 @@ import { BlockSkeleton } from './blocks/BlockSkeleton';
 interface MultiBlockViewerProps {
   lesson: Lesson;
   isCompleted: boolean;
+  savedVideoPosition?: number | null;
+  savedVideoBlockId?: string | null;  // which block the saved position applies to
+  onVideoTimeUpdate?: (blockId: string, seconds: number) => void;
   onProgressUpdate: (pct: number) => void;
   onCompletionMet: () => void;
   onStartViewing: () => void;
+  onResumeAnchorUpdate?: (anchor: {
+    lastBlockId: string;
+    lastBlockIndex: number;
+    lastBlockOffset: number;
+  }) => void;
 }
 
 export function MultiBlockViewer({
   lesson,
   isCompleted,
+  savedVideoPosition,
+  savedVideoBlockId,
+  onVideoTimeUpdate,
   onProgressUpdate,
   onCompletionMet,
   onStartViewing,
+  onResumeAnchorUpdate,
 }: MultiBlockViewerProps) {
   const blocks = [...(lesson.lesson_resources || [])]
     .map(b => ({ ...b, type: b.type?.toLowerCase() ?? b.type }))
@@ -26,6 +38,9 @@ export function MultiBlockViewer({
   const completedIds = useRef(new Set<string>());
   const hasCalledCompletion = useRef(false);
   const hasStarted = useRef(false);
+
+  // Active block tracking for resume functionality
+  const activeBlockRef = useRef<{ id: string; index: number } | null>(null);
 
   // Lazy mounting: only render blocks when near viewport
   // Initialize with first 3 blocks to cover above-fold content
@@ -87,6 +102,65 @@ export function MultiBlockViewer({
 
     return () => observer.disconnect();
   }, [blocks, isCompleted, markBlockComplete]);
+
+  // Active block tracking: track the most-recently-visible block using IntersectionObserver
+  // and debounced save (every 5 seconds)
+  useEffect(() => {
+    if (!onResumeAnchorUpdate || isCompleted) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Find the most recently visible block (highest visibility ratio)
+        let mostVisible: { id: string; index: number; ratio: number } | null = null;
+        
+        entries.forEach(entry => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.3) {
+            const blockId = entry.target.getAttribute('data-block-id');
+            const blockIndex = parseInt(entry.target.getAttribute('data-block-index') || '0', 10);
+            if (blockId && !isNaN(blockIndex)) {
+              if (!mostVisible || entry.intersectionRatio > mostVisible.ratio) {
+                mostVisible = { id: blockId, index: blockIndex, ratio: entry.intersectionRatio };
+              }
+            }
+          }
+        });
+
+        if (mostVisible) {
+          activeBlockRef.current = { id: mostVisible.id, index: mostVisible.index };
+        }
+      },
+      { threshold: [0.3, 0.5, 0.7, 1.0] }
+    );
+
+    blocks.forEach((block, idx) => {
+      const el = document.getElementById(`block-${block.id}`);
+      if (el) {
+        el.setAttribute('data-block-index', idx.toString());
+        observer.observe(el);
+      }
+    });
+
+    // Debounced save every 5 seconds
+    const saveInterval = setInterval(() => {
+      if (activeBlockRef.current && !isCompleted) {
+        const blockEl = document.getElementById(`block-${activeBlockRef.current.id}`);
+        if (blockEl) {
+          const rect = blockEl.getBoundingClientRect();
+          const offset = Math.round(window.scrollY - rect.top);
+          onResumeAnchorUpdate({
+            lastBlockId: activeBlockRef.current.id,
+            lastBlockIndex: activeBlockRef.current.index,
+            lastBlockOffset: offset,
+          });
+        }
+      }
+    }, 5000);
+
+    return () => {
+      observer.disconnect();
+      clearInterval(saveInterval);
+    };
+  }, [blocks, isCompleted, onResumeAnchorUpdate]);
 
   // Lazy mount observer — mount blocks 200px before they enter viewport
   useEffect(() => {
@@ -153,6 +227,12 @@ export function MultiBlockViewer({
                 quiz={quiz}
                 assignment={assignment}
                 isCompleted={isCompleted}
+                savedVideoPosition={
+                  block.type === 'video' && block.id === savedVideoBlockId 
+                    ? savedVideoPosition 
+                    : null
+                }
+                onVideoTimeUpdate={(seconds) => onVideoTimeUpdate?.(block.id, seconds)}
                 onCompletionMet={isActiveBlock ? () => markBlockComplete(block.id) : undefined}
                 onProgressUpdate={isActiveBlock ? (pct) => {
                   if (!hasStarted.current) {

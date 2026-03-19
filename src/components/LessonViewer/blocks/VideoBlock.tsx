@@ -5,9 +5,11 @@ import { parseVideoUrl, type VideoType } from '@/src/utils/videoUtils';
 interface VideoBlockProps {
     url: string;
     isCompleted: boolean;
+    savedVideoPosition?: number | null;   // seconds
     onProgressUpdate?: (percentage: number) => void;
     onCompletionMet?: () => void;
     onStartViewing?: () => void;
+    onVideoTimeUpdate?: (seconds: number) => void;  // NEW: report current time
 }
 
 /**
@@ -22,14 +24,17 @@ interface VideoBlockProps {
 export function VideoBlock({
     url,
     isCompleted,
+    savedVideoPosition,
     onProgressUpdate = () => {},
     onCompletionMet = () => {},
     onStartViewing = () => {},
+    onVideoTimeUpdate,
 }: VideoBlockProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const hasCalledCompletion = useRef(false);
     const intersectionStartTime = useRef<number | null>(null);
+    const lastReportedSecond = useRef(0);
     const [videoType, setVideoType] = useState<VideoType>('direct');
     const [embedUrl, setEmbedUrl] = useState<string | null>(null);
 
@@ -46,6 +51,7 @@ export function VideoBlock({
     }, [url]);
 
     // Progress tracking for direct videos using timeupdate
+    // Also handles video resume from saved position
     const handleTimeUpdate = useCallback(() => {
         if (!videoRef.current || videoType !== 'direct') return;
         
@@ -62,8 +68,15 @@ export function VideoBlock({
                 hasCalledCompletion.current = true;
                 onCompletionMet();
             }
+
+            // Report time update every 5 seconds to avoid flooding
+            const currentSecond = Math.floor(currentTime);
+            if (currentSecond - lastReportedSecond.current >= 5) {
+                lastReportedSecond.current = currentSecond;
+                onVideoTimeUpdate?.(currentSecond);
+            }
         }
-    }, [videoType, isCompleted, onProgressUpdate, onCompletionMet]);
+    }, [videoType, isCompleted, onProgressUpdate, onCompletionMet, onVideoTimeUpdate]);
 
     // Progress tracking for embedded videos (YouTube/Vimeo) using IntersectionObserver + timer
     useEffect(() => {
@@ -108,12 +121,22 @@ export function VideoBlock({
         };
     }, [videoType, isCompleted, onProgressUpdate, onCompletionMet, onStartViewing]);
 
-    // Handle video play event
+    // Handle play event
     const handlePlay = useCallback(() => {
         onStartViewing();
     }, [onStartViewing]);
 
+    // Handle canplay event - seek to saved position for direct videos
+    const handleCanPlay = useCallback(() => {
+        // Only seek for direct video elements (YouTube/Vimeo embeds don't allow JS seeking)
+        if (savedVideoPosition && videoRef.current && videoType === 'direct') {
+            videoRef.current.currentTime = savedVideoPosition;
+        }
+    }, [savedVideoPosition, videoType]);
+
     // Render embedded video (YouTube/Vimeo)
+    // Note: Seeking is not possible via JS for embeds due to cross-origin restrictions.
+    // The savedVideoPosition prop is silently ignored for YouTube/Vimeo embeds.
     if (videoType === 'youtube' || videoType === 'vimeo') {
         if (!embedUrl) {
             return <VideoUnavailable />;
@@ -157,6 +180,7 @@ export function VideoBlock({
                         controls
                         onTimeUpdate={handleTimeUpdate}
                         onPlay={handlePlay}
+                        onCanPlay={handleCanPlay}
                         className="absolute inset-0 w-full h-full rounded-lg"
                         controlsList="nodownload"
                     />
