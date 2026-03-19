@@ -1,3 +1,6 @@
+// Learning event tracking types (SP-12)
+export * from './events.types';
+
 // Event types for activity events
 export type ActivityEventType =
     | 'LESSON_STARTED'

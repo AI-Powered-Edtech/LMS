@@ -3,6 +3,7 @@ import type { Lesson } from '@/src/features/lessons/types';
 import { BlockRenderer } from './BlockRenderer';
 import { BLOCK_REGISTRY, isValidBlockType } from '@/src/features/lessons/blockRegistry';
 import { BlockSkeleton } from './blocks/BlockSkeleton';
+import { useOptionalLearningSession } from '@/src/features/analytics';
 
 interface MultiBlockViewerProps {
   lesson: Lesson;
@@ -41,6 +42,9 @@ export function MultiBlockViewer({
 
   // Active block tracking for resume functionality
   const activeBlockRef = useRef<{ id: string; index: number } | null>(null);
+
+  // Analytics: optional learning session for BLOCK_VIEWED events
+  const { trackEvent } = useOptionalLearningSession();
 
   // Lazy mounting: only render blocks when near viewport
   // Initialize with first 3 blocks to cover above-fold content
@@ -126,6 +130,15 @@ export function MultiBlockViewer({
         });
 
         if (mostVisible) {
+          // Emit BLOCK_VIEWED when a new block enters the viewport
+          if (activeBlockRef.current?.id !== mostVisible.id) {
+            const blockMeta = blocks.find(b => b.id === mostVisible!.id);
+            trackEvent('BLOCK_VIEWED', {
+              block_id: mostVisible.id,
+              block_type: blockMeta?.type ?? 'unknown',
+              time_spent: 0,
+            });
+          }
           activeBlockRef.current = { id: mostVisible.id, index: mostVisible.index };
         }
       },
@@ -160,7 +173,7 @@ export function MultiBlockViewer({
       observer.disconnect();
       clearInterval(saveInterval);
     };
-  }, [blocks, isCompleted, onResumeAnchorUpdate]);
+  }, [blocks, isCompleted, onResumeAnchorUpdate, trackEvent]);
 
   // Lazy mount observer — mount blocks 200px before they enter viewport
   useEffect(() => {

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { quizService, type QuizAttemptResult, type QuestionType } from '@/src/services/quizService';
 import { useQuizAutosave } from '@/src/features/quizzes/hooks/useQuizAutosave';
 import type { SubmitAnswer } from '@/src/features/quizzes/types/quizzes.types';
+import { useOptionalLearningSession } from '@/src/features/analytics';
 
 interface QuizOption {
     id: string;
@@ -53,6 +54,9 @@ export function QuizViewer({
     const [attemptId, setAttemptId] = useState<string | null>(null);
     const [attemptVersion, setAttemptVersion] = useState<number | undefined>(undefined);
     const [attemptNumber, setAttemptNumber] = useState<number | null>(null);
+
+    // Analytics: optional learning session for QUIZ_STARTED / QUIZ_SUBMITTED events
+    const { trackEvent } = useOptionalLearningSession();
 
     const attemptIdRef = useRef<string | null>(null);
     const attemptVersionRef = useRef<number | undefined>(undefined);
@@ -111,6 +115,7 @@ export function QuizViewer({
                 setAttemptId(res.attempt_id);
                 setAttemptVersion(res.version);
                 setAttemptNumber(res.attempt_number ?? null);
+                trackEvent('QUIZ_STARTED', { quiz_id: quizId, attempt: res.attempt_number ?? 1 });
                 return { id: res.attempt_id, version: res.version, attempt_number: res.attempt_number };
             } catch (err) {
                 const message = err instanceof Error ? err.message : 'Gagal memulai kuis';
@@ -191,6 +196,13 @@ export function QuizViewer({
             if (currentAttempt.attempt_number !== undefined && currentAttempt.attempt_number !== null) {
                 setAttemptNumber(currentAttempt.attempt_number);
             }
+
+            trackEvent('QUIZ_SUBMITTED', {
+                quiz_id: quizId,
+                score: gradeResult.score,
+                max_score: 100,
+                attempt: currentAttempt.attempt_number ?? 1,
+            });
 
             if (gradeResult.passed) {
                 onCompletionMet();

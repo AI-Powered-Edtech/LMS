@@ -44,6 +44,7 @@ export function BlockRenderer({
     case 'video':
       return (
         <VideoBlock
+          blockId={block.id}
           url={block.url || ''}
           isCompleted={isCompleted}
           savedVideoPosition={savedVideoPosition}

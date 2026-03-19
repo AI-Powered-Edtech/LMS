@@ -25,6 +25,7 @@ import { DiscussionBoard } from "@/src/components/Social/DiscussionBoard";
 import { MessageSquare, Info, Sparkles } from "lucide-react";
 import { Breadcrumb } from "@/src/components/ui";
 import { CourseHeader, ProgressSummary, ModuleList, type ModuleWithProgress } from "@/src/components/CourseOverview";
+import { LearningSessionProvider, useLearningSession } from "@/src/features/analytics";
 
 // ============================================================
 // Course/Module Browser — shown when no moduleId param
@@ -228,6 +229,59 @@ function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule:
 }
 
 // ============================================================
+// LessonEventTracker — emits LESSON_STARTED / LESSON_COMPLETED
+// Renders nothing. Must live inside LearningSessionProvider.
+// ============================================================
+
+function LessonEventTracker({
+  lessonStatus,
+  hasResumeProgress,
+  completedBlockCount,
+  sessionStartRef,
+}: {
+  lessonStatus: string;
+  hasResumeProgress: boolean;
+  completedBlockCount: number;
+  sessionStartRef: React.RefObject<number>;
+}) {
+  const { trackEvent } = useLearningSession();
+  const hasFiredStarted = useRef(false);
+  const hasFiredCompleted = useRef(false);
+
+  // Reset flags when lesson changes (status goes back to loading)
+  useEffect(() => {
+    if (lessonStatus === 'loading') {
+      hasFiredStarted.current = false;
+      hasFiredCompleted.current = false;
+    }
+  }, [lessonStatus]);
+
+  // LESSON_STARTED: fire once when lesson transitions to viewing/in_progress
+  useEffect(() => {
+    if (
+      !hasFiredStarted.current &&
+      (lessonStatus === 'viewing' || lessonStatus === 'in_progress')
+    ) {
+      hasFiredStarted.current = true;
+      trackEvent('LESSON_STARTED', { resume: hasResumeProgress });
+    }
+  }, [lessonStatus, hasResumeProgress, trackEvent]);
+
+  // LESSON_COMPLETED: fire once when status becomes completed
+  useEffect(() => {
+    if (!hasFiredCompleted.current && lessonStatus === 'completed') {
+      hasFiredCompleted.current = true;
+      trackEvent('LESSON_COMPLETED', {
+        time_spent: Math.round((Date.now() - (sessionStartRef.current ?? Date.now())) / 1000),
+        blocks_viewed: completedBlockCount,
+      });
+    }
+  }, [lessonStatus, completedBlockCount, sessionStartRef, trackEvent]);
+
+  return null;
+}
+
+// ============================================================
 // LessonViewer Page — State Machine Architecture
 // ============================================================
 
@@ -240,6 +294,11 @@ export function LessonViewer() {
 
   // State machine
   const { state, actions } = useViewerReducer();
+
+  // Analytics: session timing for LESSON_COMPLETED event
+  const sessionStartRef = useRef(Date.now());
+  // Reset session timer when lesson changes
+  useEffect(() => { sessionStartRef.current = Date.now(); }, [lessonId]);
 
   const isPreview = searchParams.get("preview") === "true";
   const canPreview = isPreview && (role === 'teacher' || role === 'admin');
@@ -547,7 +606,23 @@ export function LessonViewer() {
   // ============================================================
   // Render: Main Viewer Layout
   // ============================================================
+  const totalBlocks = state.lesson?.lesson_resources?.length ?? 0;
+  const completedBlockCount = totalBlocks > 0
+    ? Math.round(((state.progressPercentage ?? 0) / 100) * totalBlocks)
+    : 0;
+
   return (
+    <LearningSessionProvider
+      courseId={courseId}
+      lessonId={lessonId ?? undefined}
+      moduleId={moduleId ?? undefined}
+    >
+      <LessonEventTracker
+        lessonStatus={state.status}
+        hasResumeProgress={!!(state.progress?.last_block_id)}
+        completedBlockCount={completedBlockCount}
+        sessionStartRef={sessionStartRef}
+      />
     <div className="flex flex-col lg:flex-row h-full bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/20 p-4 lg:p-6 xl:p-8 gap-5 overflow-hidden">
       {/* Sidebar */}
       <LessonSidebar
@@ -1041,5 +1116,6 @@ export function LessonViewer() {
         </AnimatePresence>
       </div >
     </div >
+    </LearningSessionProvider>
   );
 }

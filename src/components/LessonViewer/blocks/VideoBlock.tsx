@@ -1,8 +1,10 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, Play } from 'lucide-react';
 import { parseVideoUrl, type VideoType } from '@/src/utils/videoUtils';
+import { useOptionalLearningSession } from '@/src/features/analytics';
 
 interface VideoBlockProps {
+    blockId?: string;
     url: string;
     isCompleted: boolean;
     savedVideoPosition?: number | null;   // seconds
@@ -22,6 +24,7 @@ interface VideoBlockProps {
  * - 16:9 aspect ratio wrapper
  */
 export function VideoBlock({
+    blockId,
     url,
     isCompleted,
     savedVideoPosition,
@@ -30,6 +33,7 @@ export function VideoBlock({
     onStartViewing = () => {},
     onVideoTimeUpdate,
 }: VideoBlockProps) {
+    const { trackEvent } = useOptionalLearningSession();
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const hasCalledCompletion = useRef(false);
@@ -74,9 +78,15 @@ export function VideoBlock({
             if (currentSecond - lastReportedSecond.current >= 5) {
                 lastReportedSecond.current = currentSecond;
                 onVideoTimeUpdate?.(currentSecond);
+                trackEvent('VIDEO_PROGRESS', {
+                    block_id: blockId ?? '',
+                    position: currentSecond,
+                    duration: Math.round(duration),
+                    percent: percentage,
+                });
             }
         }
-    }, [videoType, isCompleted, onProgressUpdate, onCompletionMet, onVideoTimeUpdate]);
+    }, [videoType, isCompleted, onProgressUpdate, onCompletionMet, onVideoTimeUpdate, trackEvent, blockId]);
 
     // Progress tracking for embedded videos (YouTube/Vimeo) using IntersectionObserver + timer
     useEffect(() => {

@@ -12,8 +12,14 @@
 
 SET search_path = public;
 
-CREATE TABLE IF NOT EXISTS learning_events (
+-- Drop old learning_events table (from migration 151) if it exists
+-- Old schema had: event_data, timestamp, duration_seconds, device_type, ip_address, etc.
+-- New schema: session_id-based, typed metadata, locked event types
+DROP TABLE IF EXISTS learning_events CASCADE;
+
+CREATE TABLE learning_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id uuid, -- client-generated UUID for dedup
 
   tenant_id uuid NOT NULL,
   user_id uuid NOT NULL,
@@ -76,6 +82,10 @@ CREATE INDEX IF NOT EXISTS idx_learning_events_server_ts
 CREATE INDEX IF NOT EXISTS idx_learning_events_type
   ON learning_events (event_type);
 
+-- Dedup: client-generated event_id prevents duplicate inserts on retry
+CREATE UNIQUE INDEX IF NOT EXISTS idx_learning_events_dedup
+  ON learning_events (event_id) WHERE event_id IS NOT NULL;
+
 -- ==========================================================================
 -- RLS: students can insert own events, teachers/admins can read tenant events
 -- ==========================================================================
@@ -131,11 +141,12 @@ BEGIN
   END IF;
 
   INSERT INTO learning_events (
-    tenant_id, user_id, course_id, lesson_id, module_id,
+    event_id, tenant_id, user_id, course_id, lesson_id, module_id,
     session_id, event_type, event_version,
     client_timestamp, metadata
   )
   SELECT
+    (e->>'event_id')::uuid,
     v_tenant_id,
     v_user_id,
     (e->>'course_id')::uuid,
@@ -151,7 +162,8 @@ BEGIN
     'LESSON_STARTED', 'LESSON_COMPLETED', 'BLOCK_VIEWED', 'VIDEO_PROGRESS',
     'QUIZ_STARTED', 'QUIZ_SUBMITTED', 'ASSIGNMENT_SUBMITTED', 'FILE_DOWNLOADED'
   )
-  AND e->>'session_id' IS NOT NULL;
+  AND e->>'session_id' IS NOT NULL
+  ON CONFLICT (event_id) DO NOTHING;
 
   GET DIAGNOSTICS v_inserted = ROW_COUNT;
 
