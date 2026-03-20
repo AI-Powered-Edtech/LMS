@@ -23,7 +23,7 @@ import { TextBlockEditor } from './blocks/TextBlockEditor';
 import { VideoBlockEditor } from './blocks/VideoBlockEditor';
 import { ImageBlockEditor } from './blocks/ImageBlockEditor';
 import { FileBlockEditor } from './blocks/FileBlockEditor';
-import { QuizBlockEditor } from './blocks/QuizBlockEditor';
+import { QuizBlockEditor } from '@/src/features/quizzes/components/QuizBlockEditor';
 import { AssignmentBlockEditor } from './blocks/AssignmentBlockEditor';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';

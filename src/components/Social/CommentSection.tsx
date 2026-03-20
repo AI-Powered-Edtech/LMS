@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/src/contexts/AuthContext';
-import { discussionService, Discussion } from '@/src/services/discussionService';
+import { discussionService, Discussion } from '@/src/features/discussions/api/discussionService';
 import { useToast } from '@/src/contexts/ToastContext';
 import { formatDistanceToNow } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';

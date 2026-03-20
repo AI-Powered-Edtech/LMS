@@ -15,7 +15,7 @@ import {
     MessageSquare,
     Award
 } from 'lucide-react';
-import { assignmentService, type AssignmentSubmission, type Assignment } from '@/src/services/assignmentService';
+import { assignmentService, type AssignmentSubmission, type Assignment } from '@/src/features/assignments/api/assignmentService';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { cn } from '@/src/utils/cn';
 import { motion, AnimatePresence } from 'motion/react';

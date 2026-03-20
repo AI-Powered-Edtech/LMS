@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FileText, Clock, AlertCircle, CheckCircle, Loader2, Send, Paperclip, AlertTriangle, Award, Calendar, MessageSquare } from 'lucide-react';
-import { assignmentService, AssignmentSubmission } from '@/src/services/assignmentService';
+import { assignmentService, AssignmentSubmission } from '@/src/features/assignments/api/assignmentService';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { cn } from '@/src/utils/cn';
 import { motion, AnimatePresence } from 'motion/react';

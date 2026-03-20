@@ -39,8 +39,12 @@ const Announcements = lazy(() => import("../pages/Announcements").then(m => ({ d
 const Assignments = lazy(() => import("../pages/Assignments").then(m => ({ default: m.Assignments })));
 const StudentProgress = lazy(() => import("../pages/StudentProgress").then(m => ({ default: m.StudentProgress })));
 const GroupAssignment = lazy(() => import("../pages/GroupAssignment").then(m => ({ default: m.GroupAssignment })));
+const Grades = lazy(() => import("../pages/Grades").then(m => ({ default: m.Grades })));
+const StudentAttendance = lazy(() => import("../pages/StudentAttendance").then(m => ({ default: m.StudentAttendance })));
 const QuestionBankPage = lazy(() => import("../pages/QuestionBankPage").then(m => ({ default: m.QuestionBankPage })));
 const QuizManager = lazy(() => import("../pages/QuizManager").then(m => ({ default: m.QuizManager })));
+const CourseAnalytics = lazy(() => import("../pages/CourseAnalytics").then(m => ({ default: m.CourseAnalytics })));
+const Dashboards = lazy(() => import("../pages/Dashboards").then(m => ({ default: m.Dashboards })));
 const ClassManagement = lazy(() => import("../pages/ClassManagement").then(m => ({ default: m.ClassManagement })));
 const StudentClassPage = lazy(() => import("../pages/StudentClassPage").then(m => ({ default: m.StudentClassPage })));
 const ModerationDashboard = lazy(() => import("../pages/admin/ModerationDashboard").then(m => ({ default: m.ModerationDashboard })));
@@ -383,6 +387,22 @@ export function AppRoutes() {
           }
         />
         <Route
+          path="teaching/course-analytics"
+          element={
+            <RoleRoute role={["teacher", "admin"]}>
+              <Suspense fallback={<AppLoading />}><CourseAnalytics /></Suspense>
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="teaching/dashboards"
+          element={
+            <RoleRoute role={["teacher", "admin"]}>
+              <Suspense fallback={<AppLoading />}><Dashboards /></Suspense>
+            </RoleRoute>
+          }
+        />
+        <Route
           path="teaching/classes"
           element={
             <RoleRoute role={["teacher", "admin"]}>
@@ -443,6 +463,22 @@ export function AppRoutes() {
           element={
             <RoleRoute role={["teacher", "student", "admin"]}>
               <Suspense fallback={<AppLoading />}><GroupAssignment /></Suspense>
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="grades"
+          element={
+            <RoleRoute role={["student"]}>
+              <Suspense fallback={<AppLoading />}><Grades /></Suspense>
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="attendance"
+          element={
+            <RoleRoute role={["student"]}>
+              <Suspense fallback={<AppLoading />}><StudentAttendance /></Suspense>
             </RoleRoute>
           }
         />

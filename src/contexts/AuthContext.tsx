@@ -90,6 +90,7 @@ interface AuthContextType {
     tenantId?: string,
   ) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   hasRole: (role: Role) => boolean;
 }
 
@@ -267,6 +268,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const processPendingJoinCode = async () => {
+    const pendingCode = localStorage.getItem('pendingJoinCode');
+    if (!pendingCode) return;
+    localStorage.removeItem('pendingJoinCode');
+    try {
+      await supabase.rpc('enroll_student', { p_join_code: pendingCode });
+    } catch (e) {
+      console.error('[Auth] Failed to enroll with pending join code:', e);
+    }
+  };
+
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session: s } }) => {
@@ -275,6 +287,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (s?.user) {
         fetchUserData(s.user.id)
           .then(() => processPendingInvite(s!.user.id))
+          .then(() => processPendingJoinCode())
           .finally(() => {
             setLoading(false);
           });
@@ -298,6 +311,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoadingMemberships(true);
         fetchUserData(s.user.id)
           .then(() => processPendingInvite(s!.user.id))
+          .then(() => processPendingJoinCode())
           .then(() => {
             setLoading(false);
           })
@@ -362,6 +376,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoadingMemberships(true);
   };
 
+  const signInWithGoogle = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + window.location.pathname,
+      },
+    });
+  };
+
   const hasRole = (r: Role) => roles.includes(r);
 
   const role = getPrimaryRole(roles);
@@ -387,6 +410,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signUp,
         signOut,
+        signInWithGoogle,
         hasRole,
       }}
     >

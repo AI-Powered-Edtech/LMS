@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   MessageSquare,
   ThumbsUp,
@@ -7,7 +7,6 @@ import {
   MoreHorizontal,
   Send,
   Search,
-  Filter,
   CheckCircle,
   AlertTriangle,
   ShieldCheck,
@@ -25,10 +24,14 @@ import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { cn } from "@/src/utils/cn";
 import { motion, AnimatePresence } from "motion/react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { useAuth } from "@/src/contexts/AuthContext";
 import { useSubmitReport } from "@/src/features/moderation/queries/moderationQueries";
 import { ReportModal } from "@/src/components/moderation/ReportModal";
 import { EmptyState } from "@/src/components/ui";
+import { discussionService, type Discussion } from "@/src/features/discussions/api/discussionService";
+import { useStudentXPProfile } from "@/src/features/gamification/queries/gamificationQueries";
 
 interface Comment {
   id: string;
@@ -65,84 +68,52 @@ interface Post {
 
 const CATEGORIES = ["Semua", "Matematika", "Fisika", "Kimia", "Biologi", "Pemrograman", "Umum"];
 
-const initialPosts: Post[] = [
-  {
-    id: "1",
-    author: "Budi Santoso",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Budi",
-    role: "Siswa",
-    points: 120,
-    badges: ["Siswa Aktif"],
-    time: "2 jam yang lalu",
-    title: "Bagaimana cara kerja Backpropagation pada Neural Network?",
-    category: "Pemrograman",
-    tags: ["AI", "Machine Learning", "Tugas"],
-    isAnonymous: false,
-    contextLink: { title: "Modul 1: Dasar AI", url: "/lesson" },
-    content:
-      "Saya masih bingung dengan konsep *chain rule* yang digunakan dalam backpropagation. Apakah ada yang bisa menjelaskan dengan analogi sederhana?\n\n```python\ndef backprop(error, weights):\n    # ...\n```",
-    upvotes: 24,
-    bestAnswerId: "c1",
-    comments: [
-      {
-        id: "c1",
-        author: "Pak Andi",
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Andi",
-        role: "Guru",
-        points: 5400,
-        badges: ["Verified Teacher", "Master AI"],
-        content:
-          "Bayangkan kamu sedang bermain telepon kaleng. Kesalahan pesan di ujung penerima harus dilacak kembali ke sumbernya melalui setiap simpul (node). Secara matematis, ini menggunakan aturan rantai kalkulus: $$\\frac{\\partial E}{\\partial w} = \\frac{\\partial E}{\\partial y} \\cdot \\frac{\\partial y}{\\partial w}$$",
-        upvotes: 15,
-        time: "1 jam yang lalu",
-        isBestAnswer: true,
-        replies: [
-          {
-            id: "r1",
-            author: "Budi Santoso",
-            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Budi",
-            role: "Siswa",
-            points: 120,
-            badges: ["Siswa Aktif"],
-            content:
-              "Ah, masuk akal! Jadi *chain rule* itu seperti mengukur seberapa besar setiap orang di tengah jalan mengubah pesan aslinya?",
-            upvotes: 5,
-            time: "45 menit yang lalu",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "2",
-    author: "Anonim",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Anon",
+function timeAgo(date: string): string {
+  const s = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  if (s < 60) return "Baru saja";
+  if (s < 3600) return `${Math.floor(s / 60)} menit yang lalu`;
+  if (s < 86400) return `${Math.floor(s / 3600)} jam yang lalu`;
+  return `${Math.floor(s / 86400)} hari yang lalu`;
+}
+
+function mapToPost(d: Discussion, repliesMap: Record<string, Discussion[]>): Post {
+  const isAnon = d.is_anonymous ?? false;
+  const replies = (repliesMap[d.id] ?? []).sort(
+    (a, b) => (b.is_best_answer ? 1 : 0) - (a.is_best_answer ? 1 : 0) || (b.upvotes ?? 0) - (a.upvotes ?? 0)
+  );
+  const bestReply = replies.find(r => r.is_best_answer);
+
+  return {
+    id: d.id,
+    author: isAnon ? "Anonim" : (d.author?.full_name ?? "Pengguna"),
+    avatar: isAnon
+      ? "https://api.dicebear.com/7.x/avataaars/svg?seed=Anon"
+      : (d.author?.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${d.author_id}`),
     role: "Siswa",
     points: 0,
     badges: [],
-    time: "5 jam yang lalu",
-    title: "Penyelesaian Persamaan Kuadrat Kompleks",
-    category: "Matematika",
-    tags: ["Aljabar", "Olimpiade"],
-    isAnonymous: true,
-    content:
-      "Bagaimana cara menyelesaikan persamaan kuadrat yang akarnya berupa bilangan imajiner? Contohnya: $$x^2 + 4x + 5 = 0$$",
-    upvotes: 42,
-    comments: [
-      {
-        id: "c2",
-        author: "Rina",
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rina",
-        role: "Siswa",
-        points: 850,
-        badges: ["Master Matematika"],
-        content: "Gunakan rumus ABC: $$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$. Karena diskriminannya negatif ($$16 - 20 = -4$$), akarnya adalah $$x = -2 \\pm i$$.",
-        upvotes: 35,
-        time: "2 jam yang lalu",
-      }
-    ],
-  }
-];
+    time: timeAgo(d.created_at),
+    title: d.title ?? "(Tanpa judul)",
+    content: d.content,
+    category: d.category ?? "Umum",
+    tags: d.tags ?? [],
+    upvotes: d.upvotes ?? 0,
+    isAnonymous: isAnon,
+    bestAnswerId: bestReply?.id,
+    comments: replies.map(r => ({
+      id: r.id,
+      author: r.is_anonymous ? "Anonim" : (r.author?.full_name ?? "Pengguna"),
+      avatar: r.author?.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${r.author_id}`,
+      role: "Siswa",
+      points: 0,
+      badges: [],
+      content: r.content,
+      upvotes: r.upvotes ?? 0,
+      time: timeAgo(r.created_at),
+      isBestAnswer: r.is_best_answer ?? false,
+    })),
+  };
+}
 
 function Badge({ text, type }: { text: string, type: 'teacher' | 'subject' | 'general' }) {
   return (
@@ -224,7 +195,7 @@ function CommentThread({
                 </button>
                 {showReport && (
                   <div className="absolute right-0 mt-1 w-32 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-10">
-                    <button 
+                    <button
                       onClick={() => {
                         onReport(comment.id, 'comment', comment.content, comment.author);
                         setShowReport(false);
@@ -259,7 +230,7 @@ function CommentThread({
             Balas
           </button>
           {isTeacher && !isBestAnswer && depth === 0 && onMarkBest && (
-            <button 
+            <button
               onClick={() => onMarkBest(comment.id)}
               className="text-xs font-medium text-green-600 hover:text-green-700 flex items-center gap-1"
             >
@@ -269,11 +240,11 @@ function CommentThread({
         </div>
 
         {comment.replies?.map((reply) => (
-          <CommentThread 
-            key={reply.id} 
-            comment={reply} 
-            depth={depth + 1} 
-            isTeacher={isTeacher} 
+          <CommentThread
+            key={reply.id}
+            comment={reply}
+            depth={depth + 1}
+            isTeacher={isTeacher}
             onReport={onReport}
           />
         ))}
@@ -282,14 +253,14 @@ function CommentThread({
   );
 }
 
-function PostItem({ 
-  post, 
-  isTeacher, 
+function PostItem({
+  post,
+  isTeacher,
   onMarkBest,
   onReport
-}: { 
-  post: Post, 
-  isTeacher: boolean, 
+}: {
+  post: Post,
+  isTeacher: boolean,
   onMarkBest: (postId: string, commentId: string) => void,
   onReport: (id: string, type: 'post' | 'comment', snippet: string, author: string) => void
 }) {
@@ -303,6 +274,8 @@ function PostItem({
     } else {
       setUpvoted(true);
       setDownvoted(false);
+      // Fire and forget vote RPC
+      discussionService.voteDiscussion(post.id).then(() => null, () => null);
     }
   };
 
@@ -317,7 +290,6 @@ function PostItem({
 
   const currentUpvotes = post.upvotes + (upvoted ? 1 : 0) - (downvoted ? 1 : 0);
 
-  // Sort comments so best answer is first
   const sortedComments = [...post.comments].sort((a, b) => {
     if (a.id === post.bestAnswerId) return -1;
     if (b.id === post.bestAnswerId) return 1;
@@ -333,14 +305,14 @@ function PostItem({
       <div className="p-4 md:p-6 flex gap-4 md:gap-6">
         {/* Upvote Column */}
         <div className="flex flex-col items-center gap-2 shrink-0">
-          <button 
+          <button
             onClick={handleUpvote}
             className={cn("w-8 h-8 rounded-full flex items-center justify-center transition-colors", upvoted ? "bg-blue-100 text-blue-600" : "hover:bg-blue-50 text-slate-400 hover:text-blue-600")}
           >
             <ThumbsUp className={cn("w-5 h-5", upvoted && "fill-blue-600")} />
           </button>
           <span className={cn("font-bold", upvoted ? "text-blue-600" : downvoted ? "text-red-600" : "text-slate-700")}>{currentUpvotes}</span>
-          <button 
+          <button
             onClick={handleDownvote}
             className={cn("w-8 h-8 rounded-full flex items-center justify-center transition-colors", downvoted ? "bg-red-100 text-red-600" : "hover:bg-red-50 text-slate-400 hover:text-red-600")}
           >
@@ -364,7 +336,7 @@ function PostItem({
                   </span>
                   {post.isAnonymous && isTeacher && (
                     <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full flex items-center gap-1">
-                      <EyeOff className="w-3 h-3" /> Asli: {post.author.replace("Anonim", "Siswa Asli")}
+                      <EyeOff className="w-3 h-3" /> Posting Anonim
                     </span>
                   )}
                   <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
@@ -381,7 +353,7 @@ function PostItem({
                 </span>
               </div>
             </div>
-            
+
             <div className="relative">
               <button onClick={() => setShowMenu(!showMenu)} className="text-slate-400 hover:text-slate-600">
                 <MoreHorizontal className="w-5 h-5" />
@@ -393,7 +365,7 @@ function PostItem({
                       <Share2 className="w-4 h-4" /> Push ke GCR
                     </button>
                   )}
-                  <button 
+                  <button
                     onClick={() => {
                       onReport(post.id, 'post', post.content, post.author);
                       setShowMenu(false);
@@ -421,7 +393,7 @@ function PostItem({
           <h2 className="text-xl font-bold text-slate-900 mb-2">
             {post.title}
           </h2>
-          
+
           {post.contextLink && (
             <a href={post.contextLink.url} className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-sm font-medium mb-4 hover:bg-indigo-100 transition-colors border border-indigo-100">
               <Code className="w-4 h-4" />
@@ -452,9 +424,9 @@ function PostItem({
       {sortedComments.length > 0 && (
         <div className="bg-slate-50/50 p-4 md:p-6 border-t border-slate-200 space-y-6">
           {sortedComments.map((comment: Comment) => (
-            <CommentThread 
-              key={comment.id} 
-              comment={comment} 
+            <CommentThread
+              key={comment.id}
+              comment={comment}
               isBestAnswer={comment.id === post.bestAnswerId}
               isTeacher={isTeacher}
               onMarkBest={(commentId) => onMarkBest(post.id, commentId)}
@@ -468,15 +440,33 @@ function PostItem({
 }
 
 export function Forum() {
-  const { role } = useAuth();
+  const { role, user, tenantId, profile } = useAuth();
+  const queryClient = useQueryClient();
   const submitReport = useSubmitReport();
   const isTeacher = role === 'teacher';
-  
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
+
+  const { data: xpProfile } = useStudentXPProfile(user?.id);
+
+  const { data: rawDiscussions = [] } = useQuery({
+    queryKey: ['forum-posts', tenantId],
+    queryFn: () => discussionService.fetchForumPosts(tenantId!),
+    enabled: !!tenantId,
+  });
+
+  const posts = useMemo(() => {
+    const topLevel = rawDiscussions.filter(d => !d.parent_id);
+    const repliesMap: Record<string, Discussion[]> = {};
+    rawDiscussions.filter(d => !!d.parent_id).forEach(r => {
+      const pid = r.parent_id!;
+      if (!repliesMap[pid]) repliesMap[pid] = [];
+      repliesMap[pid].push(r);
+    });
+    return topLevel.map(d => mapToPost(d, repliesMap));
+  }, [rawDiscussions]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua");
-  
-  // Report Modal State
+
   const [reportModal, setReportModal] = useState<{
     isOpen: boolean;
     contentId: string;
@@ -489,94 +479,91 @@ export function Forum() {
     contentType: 'post'
   });
 
-  // New Post State
   const [newPostTitle, setNewPostTitle] = useState("");
   const [newPostContent, setNewPostContent] = useState("");
   const [newPostCategory, setNewPostCategory] = useState("Umum");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [profanityWarning, setProfanityWarning] = useState(false);
 
-  // Simple mock profanity filter
   const checkProfanity = (text: string) => {
     const badWords = ["bodoh", "goblok", "tolol", "anjing"];
     return badWords.some(word => text.toLowerCase().includes(word));
   };
 
   const handleReport = (id: string, type: 'post' | 'comment', snippet: string, author: string) => {
-    setReportModal({
-      isOpen: true,
-      contentId: id,
-      contentType: type,
-      contentSnippet: snippet,
-      contentAuthor: author
-    });
+    setReportModal({ isOpen: true, contentId: id, contentType: type, contentSnippet: snippet, contentAuthor: author });
   };
+
+  const createPost = useMutation({
+    mutationFn: async (vars: { title: string; content: string; category: string; isAnon: boolean }) => {
+      if (!user || !tenantId) throw new Error('Not authenticated');
+      return discussionService.saveDiscussion({
+        tenant_id: tenantId,
+        author_id: user.id,
+        content: vars.content,
+        title: vars.title,
+        category: vars.category,
+        is_anonymous: vars.isAnon,
+        is_pinned: false,
+        is_edited: false,
+        is_deleted: false,
+      } as any);
+    },
+    onSuccess: (data, vars) => {
+      const isAiSuspect = vars.content.length > 200 &&
+        (vars.content.includes("tentu") || vars.content.includes("sebagai model bahasa"));
+      if (isAiSuspect) {
+        const authorName = vars.isAnon ? "Anonim" : (profile?.first_name ?? "Pengguna");
+        submitReport.mutate({
+          contentId: data.id,
+          contentType: 'post',
+          reason: 'ai_generated',
+          description: 'Terdeteksi otomatis oleh sistem AI Shield sebagai konten yang berpotensi dibuat oleh AI.',
+          contentSnippet: vars.content.substring(0, 100) + '...',
+          contentAuthor: authorName,
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['forum-posts', tenantId] });
+      setNewPostTitle("");
+      setNewPostContent("");
+      setIsAnonymous(false);
+    },
+  });
 
   const handlePost = () => {
     if (!newPostTitle.trim() || !newPostContent.trim()) return;
-    
+
     if (checkProfanity(newPostTitle) || checkProfanity(newPostContent)) {
       setProfanityWarning(true);
       setTimeout(() => setProfanityWarning(false), 3000);
       return;
     }
 
-    const postId = Math.random().toString(36).substr(2, 9);
-    const authorName = isAnonymous ? "Anonim" : (isTeacher ? "Guru" : "Siswa");
-
-    // Simulating AI Content Flagging
-    // In a real app, this would call an AI service
-    const isAiSuspect = newPostContent.length > 200 && (newPostContent.includes("tentu") || newPostContent.includes("sebagai model bahasa"));
-    
-    if (isAiSuspect) {
-      submitReport.mutate({
-        contentId: postId,
-        contentType: 'post',
-        reason: 'ai_generated',
-        description: 'Terdeteksi otomatis oleh sistem AI Shield sebagai konten yang berpotensi dibuat oleh AI.',
-        contentSnippet: newPostContent.substring(0, 100) + '...',
-        contentAuthor: authorName
-      });
-    }
-
-    const post: Post = {
-      id: postId,
-      author: authorName,
-      avatar: isAnonymous ? "https://api.dicebear.com/7.x/avataaars/svg?seed=Anon" : "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
-      role: isTeacher ? "Guru" : "Siswa",
-      points: 0,
-      badges: isTeacher ? ["Verified Teacher"] : [],
-      time: "Baru saja",
+    createPost.mutate({
       title: newPostTitle,
       content: newPostContent,
       category: newPostCategory,
-      tags: [],
-      upvotes: 0,
-      isAnonymous: isAnonymous,
-      comments: [],
-    };
-    
-    setPosts([post, ...posts]);
-    setNewPostTitle("");
-    setNewPostContent("");
-    setIsAnonymous(false);
+      isAnon: isAnonymous,
+    });
   };
 
-  const handleMarkBestAnswer = (postId: string, commentId: string) => {
-    setPosts(posts.map(post => {
-      if (post.id === postId) {
-        return { ...post, bestAnswerId: commentId };
-      }
-      return post;
-    }));
+  const handleMarkBestAnswer = async (postId: string, commentId: string) => {
+    await discussionService.setBestAnswer(postId, commentId);
+    queryClient.invalidateQueries({ queryKey: ['forum-posts', tenantId] });
   };
 
   const filteredPosts = posts.filter(post => {
-    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           post.content.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "Semua" || post.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const myAvatar = isAnonymous
+    ? "https://api.dicebear.com/7.x/avataaars/svg?seed=Anon"
+    : (profile?.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id ?? 'user'}`);
+
+  const myKP = xpProfile?.total_xp ?? 0;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 flex-1 w-full p-4 md:p-8">
@@ -590,14 +577,14 @@ export function Forum() {
             Tanya, jawab, dan belajar bersama komunitas. Dapatkan Knowledge Points (KP)!
           </p>
         </div>
-        
+
         <div className="flex items-center gap-4 bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
           <div className="text-center px-4 border-r border-slate-100">
-            <div className="text-2xl font-black text-blue-600">120</div>
+            <div className="text-2xl font-black text-blue-600">{myKP}</div>
             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">KP Saya</div>
           </div>
           <div className="px-2">
-            <Badge text="Siswa Aktif" type="general" />
+            <Badge text="Aktif" type="general" />
           </div>
         </div>
       </div>
@@ -606,9 +593,9 @@ export function Forum() {
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-          <input 
+          <input
             type="text"
-            placeholder="Cari pertanyaan atau kata kunci (misal: backpropagation)..."
+            placeholder="Cari pertanyaan atau kata kunci..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
@@ -621,8 +608,8 @@ export function Forum() {
               onClick={() => setSelectedCategory(cat)}
               className={cn(
                 "px-4 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all",
-                selectedCategory === cat 
-                  ? "bg-slate-800 text-white shadow-md" 
+                selectedCategory === cat
+                  ? "bg-slate-800 text-white shadow-md"
                   : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
               )}
             >
@@ -637,7 +624,7 @@ export function Forum() {
         <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
         <div className="flex gap-4">
           <img
-            src={isAnonymous ? "https://api.dicebear.com/7.x/avataaars/svg?seed=Anon" : "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"}
+            src={myAvatar}
             alt=""
             className="w-10 h-10 rounded-full bg-slate-100 shrink-0 hidden sm:block"
           />
@@ -657,10 +644,10 @@ export function Forum() {
               placeholder="Jelaskan pertanyaanmu secara detail... (Mendukung Markdown & LaTeX: $$x^2$$)"
               className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all resize-y"
             />
-            
+
             <AnimatePresence>
               {profanityWarning && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
                   className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 border border-red-200"
                 >
@@ -672,7 +659,7 @@ export function Forum() {
 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="flex flex-wrap items-center gap-3">
-                <select 
+                <select
                   value={newPostCategory}
                   onChange={(e) => setNewPostCategory(e.target.value)}
                   className="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
@@ -681,10 +668,10 @@ export function Forum() {
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
-                
+
                 <label className="flex items-center gap-2 text-sm font-medium text-slate-600 cursor-pointer hover:text-slate-900">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={isAnonymous}
                     onChange={(e) => setIsAnonymous(e.target.checked)}
                     className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
@@ -692,14 +679,14 @@ export function Forum() {
                   <EyeOff className="w-4 h-4" /> Tanya Anonim
                 </label>
               </div>
-              
+
               <button
                 onClick={handlePost}
-                disabled={!newPostTitle.trim() || !newPostContent.trim()}
+                disabled={!newPostTitle.trim() || !newPostContent.trim() || createPost.isPending}
                 className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-sm"
               >
                 <Send className="w-4 h-4" />
-                Posting Pertanyaan
+                {createPost.isPending ? "Memposting..." : "Posting Pertanyaan"}
               </button>
             </div>
           </div>
@@ -710,10 +697,10 @@ export function Forum() {
       <div className="space-y-6">
         {filteredPosts.length > 0 ? (
           filteredPosts.map((post) => (
-            <PostItem 
-              key={post.id} 
-              post={post} 
-              isTeacher={isTeacher} 
+            <PostItem
+              key={post.id}
+              post={post}
+              isTeacher={isTeacher}
               onMarkBest={handleMarkBestAnswer}
               onReport={handleReport}
             />
@@ -721,13 +708,13 @@ export function Forum() {
         ) : (
           <EmptyState
             icon={<MessageSquare className="w-12 h-12" />}
-            title="Tidak ada diskusi ditemukan"
-            description="Coba ubah filter atau buat diskusi baru."
+            title="Belum ada diskusi"
+            description="Jadilah yang pertama membuka diskusi di forum ini."
           />
         )}
       </div>
 
-      <ReportModal 
+      <ReportModal
         isOpen={reportModal.isOpen}
         onClose={() => setReportModal(prev => ({ ...prev, isOpen: false }))}
         contentId={reportModal.contentId}

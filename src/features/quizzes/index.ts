@@ -10,6 +10,9 @@ export * as quizPlayerService from './api/quizPlayer.service';
 export * as quizManagerService from './api/quizManager.service';
 export * as quizAssignmentService from './api/quizAssignment.service';
 
+// Backward-compat namespace (mirrors legacy services/quizService.ts export)
+export * as quizService from './api/quizzes.service';
+
 // React Query Hooks
 export * from './queries/quizPlayer.queries';
 export * from './queries/quizPlayer.mutations';

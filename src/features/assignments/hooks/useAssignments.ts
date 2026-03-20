@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { assignmentService } from "@/src/services/assignmentService";
+import { assignmentService } from '@/src/features/assignments/api/assignmentService';
 import { useAuth } from "@/src/contexts/AuthContext";
 import { AssignmentUiState, StudentSubmission, Attachment, Comment } from "../types";
 
@@ -94,7 +94,7 @@ export function useAssignments() {
                         comments: [],
                         studentSubmissions: submissions.map((s): StudentSubmission => ({
                             id: s.id,
-                            studentName: s.user_profiles?.full_name || user?.user_metadata?.full_name || "Unknown Student",
+                            studentName: (s as any).user_profiles?.full_name || user?.user_metadata?.full_name || "Siswa",
                             status: s.status as StudentSubmission['status'],
                             submittedAt: s.submitted_at,
                             grade: s.score,

@@ -11,7 +11,7 @@ import {
   TenantModuleConfig,
   SyncHistoryItem,
   SyncResult
-} from '@/src/services/administrationService';
+} from '@/src/features/administration/api/administrationService';
 
 // Default sync status for initial state (will be replaced with real data)
 const defaultSyncStatus: SyncHistoryItem[] = [

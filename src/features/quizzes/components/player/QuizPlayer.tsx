@@ -58,13 +58,15 @@ export function QuizPlayer({
 
   const totalQuestions = attemptQuestions.length;
   const question = attemptQuestions[currentQuestionIdx];
-  const store = useQuizPlayerStore();
+  const resetStore = useQuizPlayerStore(state => state.resetStore);
 
   useEffect(() => {
     // Reset store state when attempt changes
-    store.resetStore();
-    return () => store.resetStore();
-  }, [attemptId, store]);
+    // NOTE: Extract resetStore via selector (not the whole store) to avoid
+    // infinite re-render: whole-store subscription → state change → new ref → effect re-fires
+    resetStore();
+    return () => { resetStore(); };
+  }, [attemptId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Resume logic: compute current question index from saved answers on mount
   useEffect(() => {

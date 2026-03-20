@@ -8,7 +8,7 @@ vi.mock('../../lib/supabase', () => ({
     }
 }));
 
-import { quizService } from '../quizService';
+import { quizService } from '@/src/features/quizzes';
 
 describe('Quiz Service (Mocked)', () => {
     it('Should be truthy', () => {

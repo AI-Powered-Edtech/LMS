@@ -115,7 +115,14 @@ export const lessonService = {
                 ...snap.lesson,
                 course_id: snap.course_id,
                 lesson_resources: snap.resources ?? [],
-                quizzes: snap.quizzes ?? [],
+                // RPC returns questions/options keys; remap to quiz_questions/quiz_options
+                quizzes: (snap.quizzes ?? []).map((q: any) => ({
+                    ...q,
+                    quiz_questions: (q.questions ?? q.quiz_questions ?? []).map((qq: any) => ({
+                        ...qq,
+                        quiz_options: qq.options ?? qq.quiz_options ?? [],
+                    })),
+                })),
                 assignments: snap.assignments ?? [],
             } as Lesson;
         }

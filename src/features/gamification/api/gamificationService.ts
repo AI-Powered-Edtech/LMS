@@ -1,12 +1,22 @@
 /**
  * Gamification API Service
- * 
- * Provides methods for fetching user streaks, badges, and achievements.
+ *
+ * Provides methods for fetching user streaks, badges, achievements, XP, and certificates.
  * All methods require tenantId for proper multi-tenant isolation.
  */
 
 import { supabase } from '@/src/lib/supabase';
-import type { UserStreak, Badge, UserBadge } from '../types';
+import type {
+    UserStreak,
+    Badge,
+    UserBadge,
+    BadgeDefinition,
+    Certificate,
+    StudentXPProfile,
+    LeaderboardV2Entry,
+    LeaderboardSortBy,
+    LeaderboardPeriod,
+} from '../types';
 
 /**
  * Service for gamification-related API calls
@@ -14,8 +24,6 @@ import type { UserStreak, Badge, UserBadge } from '../types';
 export const gamificationService = {
     /**
      * Fetches the current streak for the authenticated user.
-     * @param userId - The user's ID
-     * @param tenantId - The tenant ID for isolation
      */
     async getUserStreak(userId: string, tenantId: string): Promise<UserStreak | null> {
         const { data, error } = await supabase
@@ -23,10 +31,10 @@ export const gamificationService = {
             .select('*')
             .eq('user_id', userId)
             .eq('tenant_id', tenantId)
-            .single();
+            .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') {
-            // Throw error but don't log to console here to allow silent fallback in UI
+        if (error) {
+            if (error.code === '42P01' || error.code === '42703') return null;
             throw error;
         }
 
@@ -34,24 +42,22 @@ export const gamificationService = {
     },
 
     /**
-     * Fetches the badges earned by the authenticated user.
-     * @param userId - The user's ID
-     * @param tenantId - The tenant ID for isolation
+     * Fetches the badges earned by the authenticated user (v1 compat).
      */
     async getUserBadges(userId: string, tenantId: string): Promise<UserBadge[]> {
         const { data, error } = await supabase
             .from('user_badges')
             .select(`
                 badge_id,
-                created_at,
+                earned_at,
                 badge:badges (*)
             `)
             .eq('user_id', userId)
             .eq('tenant_id', tenantId)
-            .order('created_at', { ascending: false });
+            .order('earned_at', { ascending: false });
 
         if (error) {
-            // Throw error but don't log to console here to allow silent fallback in UI
+            if (error.code === '42P01' || error.code === '42703') return [];
             throw error;
         }
 
@@ -59,8 +65,7 @@ export const gamificationService = {
     },
 
     /**
-     * Fetches all available badges (Global).
-     * This is a global query but cache is tenant-scoped for consistency.
+     * Fetches all available badges (v1 compat).
      */
     async getAllBadges(): Promise<Badge[]> {
         const { data, error } = await supabase
@@ -74,5 +79,147 @@ export const gamificationService = {
         }
 
         return data;
-    }
+    },
+
+    // ============================================================
+    // SP-20: Achievement System
+    // ============================================================
+
+    /** Get all badge definitions with earned status for a student */
+    async getStudentBadges(userId: string): Promise<BadgeDefinition[]> {
+        const { data, error } = await supabase.rpc('get_student_badges', {
+            p_user_id: userId,
+        });
+        if (error) {
+            if (error.code === 'PGRST202' || error.code === '42883') return [];
+            throw error;
+        }
+        return (data ?? []) as BadgeDefinition[];
+    },
+
+    /** Get student certificates */
+    async getStudentCertificates(userId: string): Promise<Certificate[]> {
+        const { data, error } = await supabase.rpc('get_student_certificates', {
+            p_user_id: userId,
+        });
+        if (error) {
+            if (error.code === 'PGRST202' || error.code === '42883') return [];
+            throw error;
+        }
+        return (data ?? []) as Certificate[];
+    },
+
+    /** Teacher issues a certificate */
+    async issueCertificate(userId: string, courseId: string) {
+        const { data, error } = await supabase.rpc('issue_certificate', {
+            p_user_id: userId,
+            p_course_id: courseId,
+        });
+        if (error) throw error;
+        return (data as any)?.[0] ?? data;
+    },
+
+    /** Create/update a badge definition (teacher) */
+    async saveBadgeDefinition(badge: {
+        id?: string;
+        name: string;
+        description: string;
+        icon_emoji: string;
+        badge_type: string;
+        criteria: Record<string, unknown>;
+        xp_reward: number;
+        rarity: string;
+        is_active: boolean;
+        tenant_id: string;
+    }) {
+        if (badge.id) {
+            const { data, error } = await supabase
+                .from('badge_definitions')
+                .update({
+                    name: badge.name,
+                    description: badge.description,
+                    icon_emoji: badge.icon_emoji,
+                    badge_type: badge.badge_type,
+                    criteria: badge.criteria,
+                    xp_reward: badge.xp_reward,
+                    rarity: badge.rarity,
+                    is_active: badge.is_active,
+                })
+                .eq('id', badge.id)
+                .select()
+                .single();
+            if (error) throw error;
+            return data;
+        } else {
+            const { data, error } = await supabase
+                .from('badge_definitions')
+                .insert({
+                    tenant_id: badge.tenant_id,
+                    name: badge.name,
+                    description: badge.description,
+                    icon_emoji: badge.icon_emoji,
+                    badge_type: badge.badge_type,
+                    criteria: badge.criteria,
+                    xp_reward: badge.xp_reward,
+                    rarity: badge.rarity,
+                    is_active: badge.is_active,
+                })
+                .select()
+                .single();
+            if (error) throw error;
+            return data;
+        }
+    },
+
+    /** Get all badge definitions for teacher management */
+    async getBadgeDefinitions(tenantId: string) {
+        const { data, error } = await supabase
+            .from('badge_definitions')
+            .select('*')
+            .or(`tenant_id.is.null,tenant_id.eq.${tenantId}`)
+            .order('created_at');
+        if (error) throw error;
+        return data ?? [];
+    },
+
+    // ============================================================
+    // SP-21: XP & Leaderboard v2
+    // ============================================================
+
+    /** Get student XP profile */
+    async getStudentXPProfile(userId: string): Promise<StudentXPProfile | null> {
+        const { data, error } = await supabase.rpc('get_student_xp_profile', {
+            p_user_id: userId,
+        });
+        if (error) {
+            if (error.code === 'PGRST202' || error.code === '42883') return null;
+            throw error;
+        }
+        const row = Array.isArray(data) ? data[0] : data;
+        if (!row) return null;
+        return {
+            ...row,
+            recent_xp: typeof row.recent_xp === 'string' ? JSON.parse(row.recent_xp) : (row.recent_xp ?? []),
+        } as StudentXPProfile;
+    },
+
+    /** Get leaderboard v2 */
+    async getLeaderboardV2(params: {
+        courseId?: string;
+        sortBy?: LeaderboardSortBy;
+        period?: LeaderboardPeriod;
+        limit?: number;
+    }): Promise<LeaderboardV2Entry[]> {
+        const { data, error } = await supabase.rpc('get_leaderboard_v2', {
+            p_course_id: params.courseId ?? null,
+            p_sort_by: params.sortBy ?? 'xp',
+            p_period: params.period ?? 'all_time',
+            p_limit: params.limit ?? 50,
+        });
+        if (error) {
+            if (error.code === 'PGRST202' || error.code === '42883') return [];
+            throw error;
+        }
+        return (data ?? []) as LeaderboardV2Entry[];
+    },
 };

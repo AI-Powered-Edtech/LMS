@@ -9,7 +9,7 @@ vi.mock('../../lib/supabase', () => ({
 }));
 
 import { supabase } from '../../lib/supabase';
-import { askTutor } from '../aiTutorService';
+import { askTutor } from '@/src/features/ai-tutor';
 
 describe('AI Tutor Service', () => {
   const mockLessonId = 'lesson-123';

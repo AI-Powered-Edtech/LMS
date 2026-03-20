@@ -1,0 +1,3 @@
+-- Already applied to remote DB via Supabase dashboard on 2026-03-19.
+-- Stub for migration history sync only.
+-- Content: assignment_submissions storage RLS policies.

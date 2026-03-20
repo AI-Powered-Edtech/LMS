@@ -3,7 +3,7 @@ import { Bell, Megaphone, Calendar as CalendarIcon, User, ChevronRight, Plus, Se
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/src/utils/cn";
 import { useAuth } from "@/src/contexts/AuthContext";
-import { Announcement as DBAnnouncement, AnnouncementRSVP } from "@/src/services/announcementService";
+import type { Announcement as DBAnnouncement, AnnouncementRSVP } from "@/src/features/announcements";
 import { useToast } from "@/src/contexts/ToastContext";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";

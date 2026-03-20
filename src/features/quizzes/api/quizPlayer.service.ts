@@ -113,6 +113,8 @@ export async function batchSaveAnswers(attemptId: string, answers: SubmitAnswer[
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
 
+  const answeredAt = new Date().toISOString();
+  
   const promises = answers.map((answer) =>
     supabase.rpc('v1_save_answer', {
       p_attempt_id: attemptId,

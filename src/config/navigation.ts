@@ -85,10 +85,10 @@ export const navigationItems: NavItem[] = [
     location: 'sidebar'
   },
   {
-    id: 'directory',
+    id: 'settings',
     name: "Pengaturan",
-    path: "/directory",
-    icon: LayoutGrid,
+    path: "/settings",
+    icon: Settings,
     roles: ['teacher', 'student'],
     location: 'sidebar'
   },
@@ -223,6 +223,31 @@ export const navigationItems: NavItem[] = [
     bg: "bg-amber-100",
     border: "border-amber-200"
   },
+  {
+    id: 'group-assignment-teacher',
+    name: "Tugas Kelompok",
+    path: "/group-assignment",
+    icon: Users,
+    roles: ['teacher'],
+    moduleId: 'group-assignment',
+    location: 'teaching-hub',
+    description: "Kelola dan pantau tugas kolaborasi kelompok siswa.",
+    color: "text-indigo-600",
+    bg: "bg-indigo-100",
+    border: "border-indigo-200"
+  },
+  {
+    id: 'leaderboard-teacher',
+    name: "Papan Peringkat",
+    path: "/leaderboard",
+    icon: Trophy,
+    roles: ['teacher'],
+    location: 'teaching-hub',
+    description: "Lihat peringkat XP dan poin siswa di kelas.",
+    color: "text-yellow-600",
+    bg: "bg-yellow-100",
+    border: "border-yellow-200"
+  },
 
   // Learning Hub Items
   {
@@ -290,6 +315,30 @@ export const navigationItems: NavItem[] = [
     color: "text-indigo-600",
     bg: "bg-indigo-100",
     border: "border-indigo-200"
+  },
+  {
+    id: 'grades-student',
+    name: "Nilai Saya",
+    path: "/grades",
+    icon: Trophy,
+    roles: ['student'],
+    location: 'learning-hub',
+    description: "Lihat nilai tugas dan simulasi proyeksi nilai akhir.",
+    color: "text-yellow-600",
+    bg: "bg-yellow-100",
+    border: "border-yellow-200"
+  },
+  {
+    id: 'attendance-student',
+    name: "Kehadiran",
+    path: "/attendance",
+    icon: Calendar,
+    roles: ['student'],
+    location: 'learning-hub',
+    description: "Rekap kehadiran berdasarkan data absensi guru.",
+    color: "text-rose-600",
+    bg: "bg-rose-100",
+    border: "border-rose-200"
   },
 
   // Social Hub Items

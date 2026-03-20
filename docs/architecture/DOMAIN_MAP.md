@@ -1,6 +1,6 @@
 # EduSync LMS — Domain Architecture Map
 
-Dokumen ini difokuskan pada pemetaan domain entitas utama EduSync. Untuk detail arsitektur pembelajaran secara keseluruhan, lihat [COURSE_ENGINE_BLUEPRINT.md](./architecture/COURSE_ENGINE_BLUEPRINT.md). Data struktur SQL dapat ditemukan di [DATABASE_SCHEMA.md](./architecture/DATABASE_SCHEMA.md).
+Dokumen ini difokuskan pada pemetaan domain entitas utama EduSync. Untuk detail arsitektur pembelajaran secara keseluruhan, lihat [COURSE_ENGINE_BLUEPRINT.md](./COURSE_ENGINE_BLUEPRINT.md). Data struktur SQL dapat ditemukan di [DATABASE_SCHEMA.md](./architecture/DATABASE_SCHEMA.md).
 
 
 ## Architecture Principles

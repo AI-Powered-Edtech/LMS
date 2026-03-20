@@ -4,14 +4,14 @@
 
 | Dimension | Status | Maturity |
 |-----------|--------|----------|
-| Database schema | 95 migrations, RLS, multi-tenant | Production-ready |
-| Migration safety | All 95 pass, schema verified | Production-ready |
-| Auth + Invite flow | 3-guard chain, accept_invitation wired | Production-ready |
-| Service layer | 35+ services, hybrid patterns | Needs consolidation |
-| Feature modules | Quizzes fully modular, rest legacy | In progress |
-| AI Tutor | Groq edge function, sessions, embeddings | MVP functional |
-| State management | 13 Contexts + React Query + Zustand | Needs reduction |
-| Performance | No lazy loading, no virtualization | Needs work |
+| Database schema | 157 migrations (001–825), RLS, multi-tenant | Production-ready |
+| Migration safety | All migrations idempotent, schema verified | Production-ready |
+| Auth + Invite flow | 3-guard chain, Google OAuth, class join-code flow | Production-ready |
+| Service layer | Feature-module services + legacy services coexist | In consolidation |
+| Feature modules | Quizzes, Analytics, Gamification, Guidance, Struggle | Mostly modular |
+| AI Tutor | Groq edge function (ai-tutor), sessions, rate limiting | MVP functional |
+| State management | AuthContext + React Query + Zustand (stores per feature) | Improving |
+| Performance | Lazy loading in routes, code splitting active | Improving |
 | Testing | Vitest + Playwright setup, minimal coverage | Needs work |
 
 ---

@@ -158,7 +158,7 @@ export const courseService = {
             .eq('course_id', courseId)
             .eq('user_id', userId)
             .eq('tenant_id', tenantId)
-            .eq('status', 'active')
+            .eq('status', 'ACTIVE')
             .maybeSingle();
 
         if (error) {

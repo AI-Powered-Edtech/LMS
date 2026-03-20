@@ -7,13 +7,22 @@ import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { useStudentProgressData } from '@/src/hooks/useStudentProgressQueries';
 import { NotificationCenter } from "../Social/NotificationCenter";
+import { NotificationBell } from "@/src/features/struggle";
+import { useStudentXPProfile } from "@/src/features/gamification/queries/gamificationQueries";
+import { LevelBadge } from "@/src/features/gamification/components/LevelBadge";
 
 export function Header() {
-  const streak = 5;
-  const hasLoggedInToday = false; // Simulasi: abu-abu jika pengguna tidak login hari itu
   const { xp } = useStudentProgressData();
-  const levelXp = Math.floor(xp / 2000 + 1) * 2000;
-  const progress = Math.min((xp / levelXp) * 100, 100);
+  const { data: xpProfile } = useStudentXPProfile();
+
+  const streak = xpProfile?.streak_current ?? 0;
+  const hasLoggedInToday = streak > 0;
+  const totalXp = (xpProfile?.total_xp || 0) > 0 ? xpProfile!.total_xp : xp;
+  const level = (xpProfile?.total_xp || 0) > 0 ? xpProfile!.level : 1;
+  const xpCurrent = xpProfile?.xp_current_level ?? 0;
+  const xpNext = xpProfile?.xp_next_level ?? 100;
+  const xpNeeded = xpNext - xpCurrent;
+  const progress = xpNeeded > 0 ? Math.min(((totalXp - xpCurrent) / xpNeeded) * 100, 100) : 100;
 
   const { role, profile, signOut } = useAuth();
   const { notifications, unreadCount } = useNotifications();
@@ -88,9 +97,10 @@ export function Header() {
             </div>
           ) : (
             <>
+              <LevelBadge level={level} size="sm" />
               <div className="flex items-center gap-1.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-500 px-2 py-1 rounded-lg font-bold text-sm">
                 <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                {xp} XP
+                {totalXp} XP
               </div>
               <div className="hidden sm:block w-32 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                 <div
@@ -104,7 +114,10 @@ export function Header() {
 
 
 
-        {/* Notification Bell */}
+        {/* Struggle Detection Bell — teacher/admin only */}
+        <NotificationBell />
+
+        {/* Social Notification Bell */}
         <NotificationCenter />
 
         {/* Profile Avatar Dropdown */}

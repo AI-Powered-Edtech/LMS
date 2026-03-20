@@ -1,6 +1,6 @@
 import { Flag } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
-import { SubmitAnswer } from '@/src/services/quizService';
+import { SubmitAnswer } from '@/src/features/quizzes';
 
 interface QuizBodyProps {
   question: any;
@@ -19,6 +19,10 @@ export function QuizBody({
   onToggleFlag,
   onAnswer
 }: QuizBodyProps) {
+
+  // Use options from question_snapshot if available (shuffled order)
+  // Otherwise fall back to quiz_options
+  const options = question.question_snapshot?.options || question.quiz_options || [];
 
   return (
     <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-8 relative">
@@ -59,7 +63,7 @@ export function QuizBody({
       {/* MCQ / TRUE_FALSE — Radio Buttons */}
       {(questionType === 'MCQ' || questionType === 'TRUE_FALSE') && (
         <div className="space-y-3">
-          {question.quiz_options?.map((option: any) => {
+          {options.map((option: any) => {
             const isSelected = currentAnswer?.selected_option_ids?.includes(option.id) ?? false;
             return (
               <button
@@ -89,7 +93,7 @@ export function QuizBody({
       {questionType === 'MULTIPLE_SELECT' && (
         <div className="space-y-3">
           <p className="text-sm text-slate-500 -mt-4 mb-4 italic">Pilih semua jawaban yang benar</p>
-          {question.quiz_options?.map((option: any) => {
+          {options.map((option: any) => {
             const currentIds = currentAnswer?.selected_option_ids || [];
             const isSelected = currentIds.includes(option.id);
             return (

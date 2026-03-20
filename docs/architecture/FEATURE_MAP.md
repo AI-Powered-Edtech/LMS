@@ -18,30 +18,58 @@ mindmap
       Course Publishing
       Course Assignment
     Lessons
+      Smart Player
       Video Lessons
       Text/Article Lessons
       Lesson Blocks
       Progress Tracking
+      AI Tutor
     Assignments
       Assignment Creation
       Submission System
       Grading & Feedback
       Rubrics
+      Group Assignments
     Quiz
       Quiz Builder
       Quiz Attempts
       Auto-Grading
       Time Limits
+      AI Essay Grading
+      Question Bank
     Gamification
-      Points System
+      XP System
+      Level Progression
       Badges & Achievements
+      Certificates
       Leaderboards
       Streaks
     Analytics
-      Teacher Dashboard
+      Teacher Dashboard v2
       Student Progress
       Course Statistics
-      At-Risk Detection
+      Engagement Scoring
+      Cohort Retention
+      Funnel Analysis
+      Path Analysis
+      Predictive Alerts
+      Struggle Detection
+    Social
+      Forum Diskusi
+      Pengumuman
+      Kalender
+    Guidance
+      In-App Walkthroughs
+      Tooltips
+      Checkpoints
+    Attendance
+      Teacher Scan
+      Student View
+    Auth
+      Email/Password
+      Google OAuth
+      Class Join Code
+      Multi-Tenant
 ```
 
 ---
@@ -220,12 +248,18 @@ stateDiagram-v2
 | Feature | Deskripsi | Status |
 |---------|-----------|--------|
 | Quiz Builder | Interface buat soal kuis | ✅ |
-| Question Types | Multiple Choice, Essay | ✅ |
+| Question Types | MCQ, True/False, Multiple Select, Short Answer, Essay | ✅ |
+| Question Bank | Repository soal yang bisa dipakai ulang | ✅ |
+| Question Randomization | Soal & pilihan diacak per attempt | ✅ |
 | Time Limits | Batasan waktu kuis | ✅ |
 | Max Attempts | Batasan percobaan | ✅ |
-| Auto-Grading | Penskoran otomatis | ✅ |
-| Quiz Attempts | Tracking percobaan siswa | ✅ |
-| Quiz Analytics | Statistik hasil kuis | ✅ |
+| Auto-Grading | Penskoran otomatis (MCQ/True-False/Multiple-Select) | ✅ |
+| AI Essay Grading | Penilaian esai via Groq (ai-grade-essay edge function) | ✅ |
+| Anti-Cheat | Tab-switch detection, heartbeat, optimistic locking | ✅ |
+| Autosave | Interval-based answer autosave (30s) | ✅ |
+| Quiz Attempts | Tracking percobaan siswa + resume support | ✅ |
+| Quiz Analytics | Statistik hasil kuis, difficulty chart | ✅ |
+| Quiz Review | Answer review screen post-submission | ✅ |
 
 ### 6.2 Quiz Attempt Flow
 
@@ -266,12 +300,13 @@ graph LR
 
 | Feature | Deskripsi | Status |
 |---------|-----------|--------|
-| Points System | Earn & deduct points | ✅ |
-| Level Progression | Level up berdasarkan XP | ✅ |
-| Badges | Achievement badges | ✅ |
-| Leaderboards | Ranking per kelas | ✅ |
-| Streaks | Daily learning streaks | ✅ |
-| Badge Rules | Auto-award berdasarkan trigger | ✅ |
+| XP Transactions | Append-only XP ledger (lesson +10, quiz +5/+25, badge, streak) | ✅ |
+| Level Progression | 10 levels (L1=0 XP → L10=5500 XP) via `compute_level()` | ✅ |
+| Badges v2 | `badge_definitions` + `student_badges`, 4 rarity tiers, 6 types | ✅ |
+| Auto-Award (pg_cron) | `check_badge_eligibility()` + `process_xp_awards()` every 5 min | ✅ |
+| Certificates | `issue_certificate()` RPC, unique cert number, teacher-issued | ✅ |
+| Leaderboard v2 | XP or streak sort, weekly/monthly/all-time periods | ✅ |
+| Streaks | Daily streak tracking, streak bonus XP (5×streak_day) | ✅ |
 
 ### 7.2 Gamification Entities
 
@@ -324,12 +359,16 @@ graph LR
 
 | Feature | Deskripsi | Status |
 |---------|-----------|--------|
-| Teacher Dashboard | Overview kelas & kursus | ✅ |
-| Course Stats | Metrik pre-aggregated | ✅ |
+| Teacher Dashboard v2 | Multi-panel analytics (engagement, lesson, course, student) | ✅ |
+| Course Stats | Metrik pre-aggregated (810–812 aggregation engine) | ✅ |
 | Student Progress | Progress individual siswa | ✅ |
-| Quiz Analytics | Statistik hasil kuis | ✅ |
-| At-Risk Detection | Identifikasi siswa bermasalah | ✅ |
-| Progress Reports | Laporan kemajuan | ✅ |
+| Engagement Scoring | 0-100 score: activity×40 + completion×30 + quiz×20 + streak×10 | ✅ |
+| Cohort Retention | Weekly retention heatmap per enrollment cohort | ✅ |
+| Funnel Analysis | Custom funnel builder (enrollment → lesson → quiz → completion) | ✅ |
+| Path Analysis | Sankey-style learning path flow diagram | ✅ |
+| Predictive Alerts | ML risk scoring → early warning panel for teachers | ✅ |
+| Struggle Detection | Real-time alerts: slow progress, low score, repeated re-watch | ✅ |
+| Course Analytics per Course | `/course-analytics/:id` page with lesson breakdown table | ✅ |
 
 ### 8.2 Analytics Data Pipeline
 
@@ -491,27 +530,80 @@ graph BT
 
 ## 11. Quick Reference
 
-### 11.1 Feature to Table Mapping
+### 13.1 Feature to Table Mapping
 
 | Feature Area | Primary Tables |
 |--------------|----------------|
 | Courses | `courses`, `course_modules`, `course_classes` |
-| Lessons | `lessons`, `lesson_resources`, `lesson_progress`, `lesson_comments` |
+| Lessons | `lessons`, `lesson_resources`, `lesson_progress` |
 | Assignments | `assignments`, `assignment_submissions`, `assignment_attachments`, `grades`, `rubrics` |
-| Quiz | `quizzes`, `quiz_questions`, `quiz_options`, `quiz_attempts`, `quiz_answers` |
-| Gamification | `user_points`, `points_ledger`, `badges`, `badge_rules`, `user_badges`, `leaderboards`, `user_streaks` |
-| Analytics | `course_stats`, `activity_events`, `user_progress` |
+| Quiz | `quizzes`, `quiz_questions`, `quiz_options`, `quiz_attempts_v2`, `quiz_attempt_questions` |
+| Gamification v2 | `badge_definitions`, `student_badges`, `certificates`, `xp_transactions`, `student_xp_summary` |
+| Analytics Engine | `student_lesson_signals`, `lesson_analytics_summary`, `course_analytics_summary`, `aggregation_state` |
+| Advanced Analytics | `predictive_alerts`, `struggle_alerts`, `funnel_definitions`, `student_cohorts` |
+| In-App Guidance | `guidance_tours`, `user_guidance_state` |
+| Attendance | `attendance_records` |
+| Discussions | `discussions` (forum + lesson comments unified) |
 
-### 11.2 Key Services
+### 13.2 Key Services / Modules
 
 | Domain | Service File |
 |--------|--------------|
-| Courses | `courseService.ts`, `courseBuilderService.ts` |
-| Lessons | `lessonService.ts`, `progressService.ts` |
-| Assignments | `assignmentService.ts` |
-| Quiz | `quizService.ts`, `quizAnalyticsService.ts` |
-| Gamification | `gamificationService.ts`, `leaderboardService.ts` |
-| Analytics | `analyticsService.ts`, `studentProgressService.ts` |
+| Courses | `src/features/courses/api/courseService.ts` |
+| Lessons | `src/services/lessonService.ts` |
+| Assignments | `src/services/assignmentService.ts` |
+| Quiz | `src/features/quizzes/api/quizPlayer.service.ts`, `quizManager.service.ts`, `quizAnalytics.service.ts` |
+| Gamification | `src/features/gamification/` |
+| Analytics | `src/features/analytics/api/analyticsService.ts` |
+| Struggle | `src/features/struggle/` |
+| Guidance | `src/features/guidance/` |
+| Forum | `src/services/discussionService.ts` |
+
+---
+
+---
+
+## 9. Domain Detail: Auth & Registration
+
+### 9.1 Feature List
+
+| Feature | Deskripsi | Status |
+|---------|-----------|--------|
+| Email/Password | Supabase Auth sign-up + sign-in | ✅ |
+| Google OAuth | `signInWithOAuth({ provider: 'google' })` | ✅ |
+| Email Verification | Supabase email confirm flow | ✅ |
+| Multi-Tenant | `handle_new_user()` trigger assigns tenant from signup metadata | ✅ |
+| Class Join Code | Student enters teacher's join code at registration → auto-enrolled | ✅ |
+| Pending Join Code | `localStorage.pendingJoinCode` processed after email verification | ✅ |
+| Pending Invite Token | `localStorage.pendingInviteToken` for teacher invite links | ✅ |
+| Default Tenant Fallback | UUID `00000000-0000-0000-0000-000000000001` seeded in migration 825 | ✅ |
+
+---
+
+## 10. Domain Detail: In-App Guidance
+
+### 10.1 Feature List
+
+| Feature | Deskripsi | Status |
+|---------|-----------|--------|
+| Walkthroughs | Multi-step guided tours anchored to DOM elements | ✅ |
+| Tooltips | Contextual help tooltips | ✅ |
+| Banner Guides | Dismissable informational banners | ✅ |
+| Checkpoints | Progress-gated hints | ✅ |
+| Completion State | Per-user tour state persisted in `user_guidance_state` | ✅ |
+
+---
+
+## 11. Domain Detail: Attendance
+
+### 11.1 Feature List
+
+| Feature | Deskripsi | Status |
+|---------|-----------|--------|
+| Teacher Scan | `ScanAttendance` page: AI-powered paper scan, class selector, save to DB | ✅ |
+| Attendance Records | `attendance_records` table: per class+date session with JSONB details | ✅ |
+| Student View | `StudentAttendance` page: matches student by first name in JSONB, shows summary + per-meeting list | ✅ |
+| Status Types | `hadir` / `sakit` / `izin` / `alpha` | ✅ |
 
 ---
 

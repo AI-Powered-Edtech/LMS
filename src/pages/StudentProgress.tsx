@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { progressService, StudentProgressData } from '@/src/services/progressService';
+import { progressService, StudentProgressData } from '@/src/features/progress/api/progressService';
 import {
   Award,
   Clock,

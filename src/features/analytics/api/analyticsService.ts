@@ -8,7 +8,20 @@ import {
     ActivityTimePoint,
     TenantAnalyticsData,
     TeacherAnalyticsData,
-    AnalyticsError
+    CourseAnalytics,
+    LessonAnalytics,
+    StudentSignal,
+    FunnelDefinition,
+    FunnelStepResult,
+    RetentionRow,
+    AnalyticsError,
+    EngagementSummaryRow,
+    EngagementTrendPoint,
+    LearningPath,
+    StudentPathStep,
+    StudentPrediction,
+    PredictionDetail,
+    PredictionSummary,
 } from '../types';
 
 /**
@@ -71,7 +84,7 @@ export const analyticsService = {
      * Refreshes the pre-aggregated course_stats.
      * Note: In a production environment this should be called by a scheduled pg_cron job,
      * but we provide it here for manual refreshes.
-     * 
+     *
      * @param courseId - The course ID to refresh stats for
      * @param tenantId - Tenant ID for defense-in-depth (currently not passed to RPC)
      * TODO: RPC should accept p_tenant_id for defense-in-depth
@@ -87,7 +100,7 @@ export const analyticsService = {
 
     /**
      * Fetches the complete analytics dashboard JSON from the RPC.
-     * 
+     *
      * @param courseId - The course ID to get analytics for
      * @param tenantId - Tenant ID for defense-in-depth (currently not passed to RPC)
      * TODO: RPC should accept p_tenant_id for defense-in-depth
@@ -105,7 +118,7 @@ export const analyticsService = {
 
     /**
      * Refresh all course stats (admin only)
-     * 
+     *
      * @param tenantId - Tenant ID for defense-in-depth (currently not passed to RPC)
      * TODO: RPC should accept p_tenant_id for defense-in-depth
      */
@@ -351,5 +364,128 @@ export const analyticsService = {
             courseEngagement,
             activityTimeline
         };
-    }
+    },
+
+    // SP-12.3: Dashboard RPC methods
+
+    async getCourseAnalyticsDashboard(courseId: string, tenantId: string): Promise<CourseAnalytics | null> {
+        const { data, error } = await supabase.rpc('get_course_analytics', { p_course_id: courseId });
+        if (error) throw parseRpcError(error);
+        return (data as CourseAnalytics[])?.[0] ?? null;
+    },
+
+    async getLessonAnalyticsDashboard(courseId: string, tenantId: string): Promise<LessonAnalytics[]> {
+        const { data, error } = await supabase.rpc('get_lesson_analytics', { p_course_id: courseId });
+        if (error) throw parseRpcError(error);
+        return (data as LessonAnalytics[]) ?? [];
+    },
+
+    async getStudentSignalsDashboard(courseId: string, tenantId: string, lessonId?: string): Promise<StudentSignal[]> {
+        const { data, error } = await supabase.rpc('get_student_signals', {
+            p_course_id: courseId,
+            p_lesson_id: lessonId ?? null,
+        });
+        if (error) throw parseRpcError(error);
+        return (data as StudentSignal[]) ?? [];
+    },
+
+    // SP-14: Funnel Analysis
+    async saveFunnelDefinition(name: string, steps: string[], courseId?: string, funnelId?: string): Promise<string> {
+        const { data, error } = await supabase.rpc('save_funnel_definition', {
+            p_name: name, p_steps: steps,
+            p_course_id: courseId ?? null,
+            p_funnel_id: funnelId ?? null,
+        });
+        if (error) throw parseRpcError(error);
+        return data as string;
+    },
+
+    async listFunnelDefinitions(courseId?: string): Promise<FunnelDefinition[]> {
+        const { data, error } = await supabase.rpc('list_funnel_definitions', { p_course_id: courseId ?? null });
+        if (error) throw parseRpcError(error);
+        return ((data as any[]) ?? []).map((r: any) => ({ ...r, steps: Array.isArray(r.steps) ? r.steps : JSON.parse(r.steps) }));
+    },
+
+    async deleteFunnelDefinition(funnelId: string): Promise<void> {
+        const { error } = await supabase.rpc('delete_funnel_definition', { p_funnel_id: funnelId });
+        if (error) throw parseRpcError(error);
+    },
+
+    async getFunnelResults(funnelId: string): Promise<FunnelStepResult[]> {
+        const { data, error } = await supabase.rpc('get_funnel_results', { p_funnel_id: funnelId });
+        if (error) throw parseRpcError(error);
+        return (data as FunnelStepResult[]) ?? [];
+    },
+
+    // SP-15: Retention & Cohort
+    async getRetentionMatrix(courseId: string, weeksBack: number = 8): Promise<RetentionRow[]> {
+        const { data, error } = await supabase.rpc('get_retention_matrix', {
+            p_course_id: courseId,
+            p_weeks_back: weeksBack,
+        });
+        if (error) throw parseRpcError(error);
+        return (data as RetentionRow[]) ?? [];
+    },
+
+    // SP-16: Engagement Scoring
+    async getEngagementSummary(courseId: string): Promise<EngagementSummaryRow[]> {
+        const { data, error } = await supabase.rpc('get_engagement_summary', { p_course_id: courseId });
+        if (error) throw parseRpcError(error);
+        return (data as EngagementSummaryRow[]) ?? [];
+    },
+
+    async getEngagementTrend(courseId: string, days: number = 30): Promise<EngagementTrendPoint[]> {
+        const { data, error } = await supabase.rpc('get_engagement_trend', {
+            p_course_id: courseId,
+            p_days: days,
+        });
+        if (error) throw parseRpcError(error);
+        return (data as EngagementTrendPoint[]) ?? [];
+    },
+
+    // SP-17: Learning Path Analysis
+    async getLearningPaths(courseId: string, minUsers: number = 1): Promise<LearningPath[]> {
+        const { data, error } = await supabase.rpc('get_learning_paths', {
+            p_course_id: courseId,
+            p_min_users: minUsers,
+        });
+        if (error) throw parseRpcError(error);
+        return (data as LearningPath[]) ?? [];
+    },
+
+    async getStudentPath(userId: string, courseId: string): Promise<StudentPathStep[]> {
+        const { data, error } = await supabase.rpc('get_student_path', {
+            p_user_id: userId,
+            p_course_id: courseId,
+        });
+        if (error) throw parseRpcError(error);
+        return (data as StudentPathStep[]) ?? [];
+    },
+
+    // SP-19: Predictive Analytics
+    async getAtRiskStudents(courseId: string, minRisk: number = 0.3): Promise<StudentPrediction[]> {
+        const { data, error } = await supabase.rpc('get_at_risk_students', {
+            p_course_id: courseId,
+            p_min_risk: minRisk,
+        });
+        if (error) throw parseRpcError(error);
+        return (data as StudentPrediction[]) ?? [];
+    },
+
+    async getStudentPrediction(userId: string, courseId: string): Promise<PredictionDetail | null> {
+        const { data, error } = await supabase.rpc('get_student_prediction', {
+            p_user_id: userId,
+            p_course_id: courseId,
+        });
+        if (error) throw parseRpcError(error);
+        return ((data as PredictionDetail[]) ?? [])[0] ?? null;
+    },
+
+    async getPredictionSummary(courseId: string): Promise<PredictionSummary | null> {
+        const { data, error } = await supabase.rpc('get_prediction_summary', {
+            p_course_id: courseId,
+        });
+        if (error) throw parseRpcError(error);
+        return ((data as PredictionSummary[]) ?? [])[0] ?? null;
+    },
 };

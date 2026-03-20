@@ -1,0 +1,4 @@
+-- Already applied to remote DB via Supabase dashboard on 2026-03-19.
+-- Stub for migration history sync only.
+-- Content: attendance_records table and RLS policies.
+-- Note: local 824_attendance_tables.sql contains the definitive version of this table.

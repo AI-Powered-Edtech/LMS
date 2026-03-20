@@ -19,8 +19,8 @@ import {
 import { supabase } from '@/src/lib/supabase';
 import { cn } from '@/src/utils/cn';
 import { AttemptDetailModal } from '@/src/components/AttemptDetailModal';
-import { quizAnalyticsService, QuestionDifficulty } from '@/src/services/quizAnalyticsService';
-import { quizService, AssignmentResultRow } from '@/src/services/quizService';
+import { quizAnalyticsService, QuestionDifficulty } from '@/src/features/quizzes/api/quizAnalyticsService';
+import { quizService, AssignmentResultRow } from '@/src/features/quizzes';
 import { useAuth } from '@/src/contexts/AuthContext';
 
 interface AssignmentOption {

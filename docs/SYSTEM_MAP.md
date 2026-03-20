@@ -499,7 +499,7 @@ CREATE POLICY "quiz_attempts_select" ON quiz_attempts
 |---------------|---------|----------|
 | `grade-quiz-attempt` | Grades quiz attempts asynchronously | Timer/cron |
 | `load-quiz-data` | Preloads quiz data for student | On quiz start |
-| `quiz-heartbeat` | Detects inactive attempts | Periodic cron |
+| `ai-grade-essay` | AI-powered essay grading via Groq | Teacher request |
 
 ### 6.5 Service Layer
 
@@ -691,10 +691,24 @@ const fetchGradebook = async (tenantId: string) => {
 | Table | Purpose | tenant_id | Key Columns |
 |-------|---------|-----------|-------------|
 | `course_stats` | Pre-aggregated course metrics | ✅ Required | `course_id`, `avg_progress`, `completion_rate`, `student_count` |
-| `learning_events` | AI Tutor event log | ✅ Required | `tenant_id`, `user_id`, `event_type`, `payload` |
+| `learning_events` | Structured event log (Smart Player + Quiz) | ✅ Required | `tenant_id`, `user_id`, `event_type`, `payload` |
 | `course_analytics_mv` | Materialized view | ✅ Required | Course-level aggregations |
 | `analytics_audit` | Access audit trail | ✅ Required | `user_id`, `action`, `timestamp` |
 | `analytics_rate_limits` | Rate limiting | ✅ Required | `user_id`, `request_count`, `window_start` |
+| `student_lesson_signals` | Per-student per-lesson aggregated signals | ✅ Required | `user_id`, `lesson_id`, `is_completed`, `best_quiz_score` |
+| `lesson_analytics_summary` | Per-lesson aggregated metrics | ✅ Required | `lesson_id`, `avg_time_spent`, `completion_rate` |
+| `course_analytics_summary` | Per-course aggregated metrics | ✅ Required | `course_id`, `avg_score`, `at_risk_count` |
+| `aggregation_state` | Watermark tracking for incremental aggregations | N/A | `job_name`, `last_processed` |
+| `predictive_alerts` | ML-generated at-risk student alerts | ✅ Required | `user_id`, `risk_level`, `risk_factors` |
+| `struggle_alerts` | Real-time student struggle signals | ✅ Required | `user_id`, `lesson_id`, `alert_type` |
+| `guidance_tours` | In-app walkthrough definitions | ✅ Required | `tenant_id`, `tour_key`, `steps` |
+| `user_guidance_state` | Per-user completion state for tours | ✅ Required | `user_id`, `tour_key`, `completed_at` |
+| `badge_definitions` | System + tenant badge definitions | Optional | `name`, `badge_type`, `criteria`, `rarity` |
+| `student_badges` | Earned badges per student | ✅ Required | `user_id`, `badge_id`, `earned_at` |
+| `certificates` | Course completion certificates | ✅ Required | `user_id`, `course_id`, `certificate_number` |
+| `xp_transactions` | Append-only XP ledger | ✅ Required | `user_id`, `xp_amount`, `source_type` |
+| `student_xp_summary` | Aggregated XP + level + streak per student | ✅ Required | `user_id`, `total_xp`, `level`, `streak_current` |
+| `attendance_records` | Teacher attendance scan sessions | ✅ Required | `class_id`, `scan_date`, `details` JSONB |
 
 ### 9.2 Key RPCs
 
@@ -707,6 +721,22 @@ const fetchGradebook = async (tenantId: string) => {
 | `check_analytics_rate_limit(user_id)` | Enforces rate limits | System |
 | `analytics_health_check()` | Diagnostic health check | Admin |
 | `test_analytics_security()` | Security test suite | Admin |
+| `aggregate_student_lesson_signals()` | Incremental aggregation (pg_cron) | System |
+| `aggregate_lesson_analytics()` | Lesson-level aggregation (pg_cron) | System |
+| `get_teacher_dashboard_v2(course_id)` | Multi-panel dashboard data | Teacher/Admin |
+| `get_student_engagement_score(user_id)` | Engagement scoring 0-100 | Teacher/Admin |
+| `detect_struggling_students(course_id)` | At-risk detection + alerts | Teacher/Admin |
+| `get_funnel_analysis(funnel_id)` | Enrollment→completion funnel | Teacher/Admin |
+| `get_cohort_retention(cohort_id)` | Cohort retention matrix | Teacher/Admin |
+| `get_path_analysis(course_id)` | Learning path flow diagram | Teacher/Admin |
+| `check_badge_eligibility(user_id)` | Evaluates + awards badges (pg_cron) | System |
+| `process_xp_awards()` | Watermark-based XP awarding (pg_cron) | System |
+| `get_student_badges(user_id)` | Earned + available badges | Authenticated |
+| `get_student_certificates(user_id)` | Course certificates | Authenticated |
+| `get_student_xp_profile(user_id)` | XP, level, streak, recent transactions | Authenticated |
+| `get_leaderboard_v2(sort_by, period)` | Sortable tenant leaderboard | Authenticated |
+| `public_lookup_class(join_code)` | Pre-registration class lookup | Anon |
+| `enroll_student(join_code)` | Validates + creates enrollment | Student |
 
 ### 9.3 RLS Policies
 
@@ -769,7 +799,8 @@ const refreshCourseStats = async (courseId: string) => {
 
 | Edge Function | Purpose |
 |---------------|---------|
-| `ai-tutor` | Main AI Tutor inference with Groq |
+| `ai-tutor` | Main AI Tutor inference via Groq (`llama-3.1-70b-versatile`) |
+| `generate-ai-content` | AI-powered quiz/content generation via Groq |
 
 ### A.4 AI System Rules
 
@@ -861,6 +892,7 @@ Before completing any implementation, verify:
 | Version | Date | Description |
 |---------|------|-------------|
 | 1.0 | 2026-03-15 | Initial System Map for all 9 modules |
+| 1.1 | 2026-03-19 | Add new tables/RPCs (810–825): aggregation engine, predictive alerts, struggle detection, in-app guidance, gamification v2 (badges, XP, leaderboard), attendance, registration helpers. Fix quiz edge functions (remove quiz-heartbeat, add ai-grade-essay, generate-ai-content). |
 
 ---
 

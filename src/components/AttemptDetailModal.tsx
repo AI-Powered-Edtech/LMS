@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, CheckCircle2, XCircle, Loader2, AlertTriangle, Save, PenLine, MessageSquare } from 'lucide-react';
-import { quizAnalyticsService, AttemptDetailAnswer } from '@/src/services/quizAnalyticsService';
+import { quizAnalyticsService, AttemptDetailAnswer } from '@/src/features/quizzes/api/quizAnalyticsService';
 import { gradeAttemptQuestion } from '@/src/features/quizzes/api/quizManager.service';
 import { cn } from '@/src/utils/cn';
 

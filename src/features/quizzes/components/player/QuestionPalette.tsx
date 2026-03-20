@@ -1,5 +1,5 @@
 import { cn } from '@/src/utils/cn';
-import { SubmitAnswer } from '@/src/services/quizService';
+import { SubmitAnswer } from '@/src/features/quizzes';
 
 interface QuestionPaletteProps {
   questions: any[];

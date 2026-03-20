@@ -14,9 +14,9 @@ import { useGradebook } from "@/src/hooks/useGradebookQueries";
 import { useAddCalendarEvent } from '@/src/hooks/useCalendarQueries';
 import { useSendNotification } from "@/src/features/notifications";
 import { useAssignments } from "@/src/features/assignments/hooks/useAssignments";
-import { assignmentService } from "@/src/services/assignmentService";
+import { assignmentService } from '@/src/features/assignments/api/assignmentService';
 import { AssignmentUiState } from "@/src/features/assignments/types";
-import { supabase } from "@/src/lib/supabase";
+
 import { SkeletonCard, EmptyState, Tabs } from "@/src/components/ui";
 import type { Tab } from "@/src/components/ui";
 
@@ -131,18 +131,7 @@ export function Assignments() {
       let fileUrl: string | null = null;
 
       if (selectedFile) {
-        const storagePath = `${tenantId}/assignments/${id}/${user.id}/${Date.now()}-${selectedFile.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('assignment-submissions')
-          .upload(storagePath, selectedFile, { upsert: false });
-
-        if (uploadError) throw uploadError;
-
-        const { data: publicData } = supabase.storage
-          .from('assignment-submissions')
-          .getPublicUrl(uploadData?.path || "");
-
-        fileUrl = publicData?.publicUrl || uploadData?.path || null;
+        fileUrl = await assignmentService.uploadSubmissionFile(selectedFile, tenantId, id, user.id);
       }
 
       await assignmentService.submitAssignment({
@@ -424,23 +413,19 @@ export function Assignments() {
                       <Clock className="w-4 h-4 text-slate-400" />
                       Tenggat: {new Date(activeAssignment.dueDate).toLocaleString('id-ID')}
                     </span>
-                    {(() => {
-                      const studentGrade = role === 'student' ? getStudentGrade('999', activeAssignment.id)?.score : null;
-                      const displayGrade = studentGrade !== undefined && studentGrade !== null ? studentGrade : activeAssignment.grade;
-
-                      if (displayGrade !== null && displayGrade !== undefined) {
-                        return (
-                          <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-100">
-                            Nilai: {displayGrade}/{activeAssignment.maxGrade}
-                          </span>
-                        );
-                      }
-                      return null;
-                    })()}
+                    {activeAssignment.grade !== null && activeAssignment.grade !== undefined && (
+                      <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-100">
+                        Nilai: {activeAssignment.grade}/{activeAssignment.maxGrade}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <h2 className="text-2xl font-bold text-slate-900 mb-4">{activeAssignment.title}</h2>
-                <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{activeAssignment.description}</p>
+                {activeAssignment.description ? (
+                  <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{activeAssignment.description}</p>
+                ) : (
+                  <p className="text-slate-400 italic text-sm">Instruksi belum diberikan. Hubungi guru untuk informasi lebih lanjut.</p>
+                )}
 
                 {/* Teacher Attachments */}
                 {(activeAssignment.attachments || []).length > 0 && (
@@ -534,22 +519,26 @@ export function Assignments() {
                                 </div>
                               )
                             ) : (
-                              (((activeAssignment.studentSubmissions || []).find((s: any) => s.studentName === 'Anda' || s.studentName === 'Siswa') as any)?.uploadedFiles || []).map((file: any, idx: number) => (
-                                <div key={idx} className="flex items-center justify-between p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                              activeAssignment.submittedAt ? (
+                                <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
                                   <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-blue-600 shadow-sm">
-                                      <FileText className="w-5 h-5" />
+                                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-emerald-600 shadow-sm">
+                                      <CheckCircle2 className="w-5 h-5" />
                                     </div>
                                     <div>
-                                      <p className="text-sm font-bold text-slate-800">{file.name}</p>
-                                      <p className="text-xs text-slate-500">{file.type.toUpperCase()}</p>
+                                      <p className="text-sm font-bold text-slate-800">Tugas diserahkan</p>
+                                      <p className="text-xs text-slate-500">
+                                        {new Date(activeAssignment.submittedAt).toLocaleString('id-ID')}
+                                      </p>
                                     </div>
                                   </div>
-                                  <button className="p-2 text-slate-400 hover:text-red-500 transition-colors">
-                                    <X className="w-4 h-4" />
-                                  </button>
                                 </div>
-                              ))
+                              ) : (
+                                <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center">
+                                  <CheckCircle2 className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                                  <p className="text-sm text-slate-400">Tidak ada file lampiran</p>
+                                </div>
+                              )
                             )}
                           </div>
 

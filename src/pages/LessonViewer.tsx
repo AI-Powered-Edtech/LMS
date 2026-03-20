@@ -5,6 +5,7 @@ import { cn } from "@/src/utils/cn";
 import { motion, AnimatePresence } from "motion/react";
 import { ErrorBoundary } from '@/src/components/common/ErrorBoundary';
 import { useAuth } from "@/src/contexts/AuthContext";
+import { useToast } from "@/src/contexts/ToastContext";
 import { supabase } from "@/src/lib/supabase";
 import { courseService } from "@/src/features/courses";
 import { lessonService, type Lesson, type LessonProgress, isLessonLocked } from "@/src/features/lessons";
@@ -26,6 +27,9 @@ import { MessageSquare, Info, Sparkles } from "lucide-react";
 import { Breadcrumb } from "@/src/components/ui";
 import { CourseHeader, ProgressSummary, ModuleList, type ModuleWithProgress } from "@/src/components/CourseOverview";
 import { LearningSessionProvider, useLearningSession } from "@/src/features/analytics";
+import { StruggleHelpPrompt } from "@/src/features/struggle";
+import { GuideRenderer } from "@/src/features/guidance";
+import { SmartNextButton, ReviewPrompt } from "@/src/features/recommendations";
 
 // ============================================================
 // Course/Module Browser — shown when no moduleId param
@@ -54,7 +58,7 @@ function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule:
 
     (async () => {
       try {
-        // 1. Fetch courses
+        // 1. Fetch course
         const { courses: coursesData } = await courseService.fetchCourses({
           tenantId,
           limit: 100,
@@ -63,7 +67,6 @@ function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule:
 
         if (!coursesData?.length) { setLoading(false); return; }
 
-        // Use the first course (single-course view when courseId is present, or first available)
         const activeCourse = coursesData[0];
         setCourse({
           id: activeCourse.id,
@@ -72,13 +75,22 @@ function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule:
           created_by: activeCourse.created_by,
         });
 
-        // 2. Fetch modules with lesson details
-        const { data: modulesData } = await supabase
-          .from('course_modules')
-          .select('id, title, order, course_id, lessons(id, duration_minutes)')
-          .eq('tenant_id', tenantId)
-          .eq('course_id', activeCourse.id)
-          .order('order', { ascending: true });
+        // 2+5. Fetch modules and instructor profile in parallel
+        const [{ data: modulesData }, { data: profileData }] = await Promise.all([
+          supabase
+            .from('course_modules')
+            .select('id, title, order, course_id, lessons(id, duration_minutes)')
+            .eq('tenant_id', tenantId)
+            .eq('course_id', activeCourse.id)
+            .order('order', { ascending: true }),
+          supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', activeCourse.created_by)
+            .single(),
+        ]);
+
+        if (profileData?.full_name) setInstructorName(profileData.full_name);
 
         if (!modulesData?.length) {
           setModules([]);
@@ -86,7 +98,7 @@ function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule:
           return;
         }
 
-        // 3. Collect all lesson IDs and fetch progress
+        // 3. Fetch lesson progress (needs lesson IDs from modules)
         const allLessonIds = (modulesData as any[]).flatMap((m: any) =>
           (m.lessons || []).map((l: any) => l.id)
         );
@@ -121,7 +133,6 @@ function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule:
           completedL += completedCount;
           totalDur += duration;
 
-          // Find the first incomplete module for "Lanjut Belajar"
           if (!foundNextIncomplete && completedCount < lessonCount) {
             setNextIncompleteModuleId(m.id);
             foundNextIncomplete = true;
@@ -141,17 +152,6 @@ function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule:
         setTotalLessons(totalL);
         setCompletedLessons(completedL);
         setTotalDuration(totalDur);
-
-        // 5. Fetch instructor name from profiles
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('id', activeCourse.created_by)
-          .single();
-
-        if (profileData?.full_name) {
-          setInstructorName(profileData.full_name);
-        }
       } catch (err) {
         console.warn('[CourseBrowser] fetch failed:', err);
       } finally {
@@ -210,6 +210,43 @@ function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule:
             completedLessons={completedLessons}
             totalDurationMinutes={totalDuration}
           />
+        )}
+
+        {/* B7: Certificate Preview Motivator */}
+        {totalLessons > 0 && (
+          <div className={cn(
+            "flex items-center gap-4 p-4 rounded-2xl border",
+            completedLessons === totalLessons
+              ? "bg-emerald-50 border-emerald-200"
+              : "bg-indigo-50 border-indigo-100"
+          )}>
+            <span className="text-3xl shrink-0">
+              {completedLessons === totalLessons ? "🎓" : "🎓"}
+            </span>
+            <div className="flex-1">
+              {completedLessons === totalLessons ? (
+                <>
+                  <p className="font-bold text-emerald-800 text-sm">Sertifikat tersedia!</p>
+                  <p className="text-xs text-emerald-600 mt-0.5">
+                    Lihat dan unduh sertifikat kamu di halaman{" "}
+                    <Link to="/profile" className="font-bold underline">Profil</Link>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-bold text-indigo-800 text-sm">Selesaikan course ini untuk mendapat Sertifikat!</p>
+                  <p className="text-xs text-indigo-600 mt-0.5">
+                    {totalLessons - completedLessons} pelajaran lagi menuju sertifikatmu
+                  </p>
+                </>
+              )}
+            </div>
+            {/* B8: XP Breakdown Preview */}
+            <div className="shrink-0 text-right">
+              <p className="text-[10px] text-slate-400 font-medium">Estimasi XP</p>
+              <p className="text-sm font-bold text-yellow-600">~{totalLessons * 10} XP</p>
+            </div>
+          </div>
         )}
 
         {modules.length > 0 ? (
@@ -287,6 +324,7 @@ function LessonEventTracker({
 
 export function LessonViewer() {
   const { user, tenantId, profile, role } = useAuth();
+  const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const { courseId } = useParams();
   const moduleId = searchParams.get("moduleId");
@@ -332,6 +370,12 @@ export function LessonViewer() {
   const [showModuleComplete, setShowModuleComplete] = useState(false);
   const moduleCompleteShownRef = useRef<string | null>(null);
 
+  // Quiz score for ReviewPrompt (SP-25)
+  const [lastQuizScore, setLastQuizScore] = useState<number | null>(null);
+
+  // XP reward animation (B6)
+  const [showXPReward, setShowXPReward] = useState(false);
+
   // ============================================================
   // D1: Compute lesson navigation state
   // ============================================================
@@ -367,7 +411,7 @@ export function LessonViewer() {
       .select('title')
       .eq('id', moduleId)
       .eq('tenant_id', tenantId)
-      .single()
+      .maybeSingle()
       .then(({ data: moduleData, error }) => {
         if (error) { console.error("Failed to load module title:", error); return; }
         if (!cancelled && moduleData?.title) {
@@ -393,20 +437,25 @@ export function LessonViewer() {
   // ============================================================
   useEffect(() => {
     if (!lessonId || !user?.id || !tenantId) return;
+    let cancelled = false;
     actions.loadLesson();
 
     Promise.all([
       lessonService.fetchLesson(lessonId, tenantId),
       lessonService.fetchProgress(lessonId, user.id, tenantId),
     ]).then(([lesson, progress]) => {
+      if (cancelled) return;
       if (lesson) {
         actions.lessonLoaded(lesson, progress);
       } else {
         actions.loadError("Pelajaran tidak ditemukan");
       }
     }).catch(err => {
+      if (cancelled) return;
       actions.loadError(err.message || "Gagal memuat pelajaran");
     });
+
+    return () => { cancelled = true; };
   }, [lessonId, user?.id, tenantId, actions]);
 
   // ============================================================
@@ -433,8 +482,8 @@ export function LessonViewer() {
   // Completion handler (state machine: COMPLETION_MET → COMPLETED)
   // ============================================================
   const handleCompletionMet = useCallback(async () => {
-    if (!state.lesson || !tenantId || state.status === 'completed') return;
-    if (process.env.NODE_ENV === 'development') {
+    if (!state.lesson || !tenantId || state.status === 'completed' || state.status === 'completing' || state.status === 'loading') return;
+    if (import.meta.env.DEV) {
       console.debug('[Lesson Completion]', { lessonId: state.lesson.id, status: state.status });
     }
     actions.completionMet();
@@ -442,6 +491,10 @@ export function LessonViewer() {
     try {
       await lessonService.completeLesson(state.lesson.id, tenantId);
       actions.completed();
+
+      // XP reward animation (B6)
+      setShowXPReward(true);
+      setTimeout(() => setShowXPReward(false), 2000);
 
       // Update sidebar progress
       if (user?.id) {
@@ -475,8 +528,9 @@ export function LessonViewer() {
       }
     } catch (err) {
       console.error("Completion failed:", err);
+      toast('Gagal menandai selesai. Coba lagi.', 'error');
     }
-  }, [state.lesson, state.status, tenantId, user?.id, actions]);
+  }, [state.lesson, state.status, tenantId, user?.id, actions, toast]);
 
   // ============================================================
   // Progress update handler
@@ -702,13 +756,12 @@ export function LessonViewer() {
                       Selesai
                     </div>
                     {nextLesson ? (
-                      <button
-                        onClick={() => handleSelectLesson(nextLesson.id)}
-                        className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-sm transition-all"
-                      >
-                        Berikutnya
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
+                      <SmartNextButton
+                        courseId={courseId ?? ''}
+                        currentLessonId={lessonId ?? ''}
+                        sequentialNextLessonId={nextLesson.id}
+                        className="rounded-full px-6 py-2.5 text-sm font-bold shadow-sm"
+                      />
                     ) : isLastLesson ? (
                       <div className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-600 font-bold text-sm shadow-sm">
                         <Award className="w-4 h-4" />
@@ -718,7 +771,7 @@ export function LessonViewer() {
                   </div>
                 ) : (
                   <button
-                    onClick={state.lesson.type !== 'video' ? handleCompletionMet : undefined}
+                    onClick={handleCompletionMet}
                     disabled={state.status === 'loading' || (state.lesson.type === 'video' && state.progressPercentage < 95)}
                     className={cn(
                       "flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm shadow-sm border transition-all",
@@ -883,6 +936,14 @@ export function LessonViewer() {
                   aria-labelledby="tab-content"
                 >
                   <ScrollProgressBar />
+                  {/* Struggle detection prompt — student-facing, self-manages visibility */}
+                  {role === 'student' && lessonId && (
+                    <StruggleHelpPrompt lessonId={lessonId} />
+                  )}
+                  {/* In-App Guidance (SP-18) — teacher-configured contextual guides */}
+                  {role === 'student' && lessonId && (
+                    <GuideRenderer targetType="lesson" targetId={lessonId} />
+                  )}
                   {/* Multi-Block Lesson Renderer */}
                   {state.lesson.lesson_resources && state.lesson.lesson_resources.length > 0 ? (
                     <MultiBlockViewer
@@ -964,16 +1025,27 @@ export function LessonViewer() {
                           );
                         }
                         return (
-                          <QuizViewer
-                            quizId={quiz.id}
-                            title={quiz.title}
-                            instructions={quiz.instructions}
-                            questions={quiz.quiz_questions}
-                            maxAttempts={quiz.max_attempts}
-                            isCompleted={state.status === 'completed'}
-                            onCompletionMet={handleCompletionMet}
-                            onStartViewing={actions.startViewing}
-                          />
+                          <div>
+                            <QuizViewer
+                              quizId={quiz.id}
+                              title={quiz.title}
+                              instructions={quiz.instructions}
+                              questions={quiz.quiz_questions}
+                              maxAttempts={quiz.max_attempts}
+                              isCompleted={state.status === 'completed'}
+                              onCompletionMet={handleCompletionMet}
+                              onStartViewing={actions.startViewing}
+                            />
+                            {state.status === 'completed' && lastQuizScore !== null && (
+                              <div className="px-8 pb-4">
+                                <ReviewPrompt
+                                  score={lastQuizScore}
+                                  lessonId={lessonId ?? ''}
+                                  quizId={quiz.id}
+                                />
+                              </div>
+                            )}
+                          </div>
                         );
                       })()}
 
@@ -1065,6 +1137,21 @@ export function LessonViewer() {
             />
           )
         }
+
+        {/* XP Reward Animation (B6) */}
+        <AnimatePresence>
+          {showXPReward && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.8 }}
+              transition={{ type: 'spring', damping: 15, stiffness: 300 }}
+              className="absolute bottom-8 right-8 z-50 pointer-events-none flex items-center gap-2 bg-yellow-400 text-yellow-900 font-extrabold text-lg px-5 py-3 rounded-2xl shadow-xl"
+            >
+              +10 XP
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Completion Celebration Overlay */}
         <AnimatePresence>

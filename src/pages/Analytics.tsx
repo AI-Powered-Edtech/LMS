@@ -23,16 +23,20 @@ import {
   Loader2,
   AlertCircle,
   WifiOff,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/src/utils/cn";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { courseService, Course } from "@/src/features/courses";
-import { AnalyticsError } from "@/src/services/analyticsService";
+import { AnalyticsError } from "@/src/features/analytics";
 import { useTeacherAnalytics, useRefreshCourseStats } from "@/src/features/analytics/queries/analyticsQueries";
+import { StruggleConfigPanel } from "@/src/features/struggle";
 
 export function Analytics() {
-  const { activeTenant } = useAuth();
+  const { activeTenant, role } = useAuth();
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
 
@@ -194,6 +198,19 @@ export function Analytics() {
           >
             <RefreshCw className={cn("w-4 h-4", refreshMutation.isPending && "animate-spin")} />
             Perbarui
+          </button>
+
+          <button
+            onClick={() => {
+              if (selectedCourseId) {
+                navigate(`/teaching/course-analytics?courseId=${selectedCourseId}`);
+              }
+            }}
+            disabled={!selectedCourseId}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 transition-all shadow-sm disabled:opacity-50"
+          >
+            <BarChart3 className="w-4 h-4" />
+            Detail Analitik
           </button>
 
           <button
@@ -484,6 +501,16 @@ export function Analytics() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Pengaturan Deteksi Kesulitan — teacher/admin only */}
+      {(role === 'teacher' || role === 'admin') && (
+        <div>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">
+            Pengaturan Deteksi
+          </h2>
+          <StruggleConfigPanel />
+        </div>
       )}
     </div>
   );

@@ -10,7 +10,7 @@ import {
     ModuleData,
     AchievementData,
     AssignmentData,
-} from '../services/studentProgressService';
+} from '@/src/features/progress/api/studentProgressService';
 import { REMEDIAL_CONTENT_MAP, RemedialContent } from '../constants/remedialContent';
 
 // Re-export types for consumers

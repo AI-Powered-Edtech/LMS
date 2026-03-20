@@ -9,7 +9,7 @@ import {
   GradebookStudent,
   GradebookAssignment,
   GradebookData,
-} from '../services/gradebookService';
+} from '@/src/features/assignments/api/gradebookService';
 
 export type { GradeStatus, GradeEntry, GradeData, GradebookData };
 export type Student = GradebookStudent;

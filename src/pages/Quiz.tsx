@@ -3,8 +3,8 @@ import { AnimatePresence } from 'motion/react';
 import { HelpCircle, Search, CheckCircle, Trophy, Zap, Loader2 } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
 import { useAuth } from '@/src/contexts/AuthContext';
-import { quizService, type QuizAttemptResult, type SubmitAnswer, type StudentQuizAssignment, type QuizAttempt } from '@/src/services/quizService';
-import { getCurrentQuestionIndex } from '../features/quizzes/api/quizPlayer.service';
+import { type QuizAttemptResult, type SubmitAnswer, type StudentQuizAssignment, type QuizAttempt } from '@/src/features/quizzes';
+import { getCurrentQuestionIndex, getAttemptQuestions } from '../features/quizzes/api/quizPlayer.service';
 import { QuizPlayer } from '../features/quizzes/components/player/QuizPlayer';
 import { AttemptDetailModal } from '@/src/components/AttemptDetailModal';
 import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary';
@@ -13,6 +13,8 @@ import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary';
 import { QuizCard } from '../features/quizzes/components/student/QuizCard';
 import { QuizAttemptCard } from '../features/quizzes/components/student/QuizAttemptCard';
 import { QuizResultsView } from '../features/quizzes/components/student/QuizResultsView';
+import { QuizAnswerReview } from '../features/quizzes/components/student/QuizAnswerReview';
+import { quizService } from '@/src/features/quizzes';
 import { StartQuizModal } from '../features/quizzes/components/student/StartQuizModal';
 
 // React Query Hooks
@@ -57,6 +59,11 @@ export function QuizModule() {
 
   // Review Mode State
   const [reviewAttempt, setReviewAttempt] = useState<{ attemptId: string; studentName: string; score: number | null; passed: boolean | null; } | null>(null);
+
+  // Answer Review State
+  const [showAnswerReview, setShowAnswerReview] = useState(false);
+  const [gradedQuestions, setGradedQuestions] = useState<any[]>([]);
+  const [isLoadingGradedQuestions, setIsLoadingGradedQuestions] = useState(false);
 
   const completedAttempts = quizAttempts.filter((attempt) =>
     attempt.status === 'SUBMITTED' || attempt.status === 'GRADED'
@@ -162,6 +169,7 @@ export function QuizModule() {
 
       setIsQuizActive(false);
       setShowResults(true);
+      setShowAnswerReview(false);
     } catch (err: any) {
       console.error("Gagal mengirim kuis", err);
       if (err.message?.includes("Time limit exceeded")) {
@@ -228,6 +236,32 @@ export function QuizModule() {
     );
   }
 
+  // Handle viewing answer review
+  const handleViewAnswers = async () => {
+    if (!currentAttemptId) return;
+    setIsLoadingGradedQuestions(true);
+    try {
+      const questions = await getAttemptQuestions(currentAttemptId);
+      setGradedQuestions(questions);
+      setShowAnswerReview(true);
+    } catch (err) {
+      console.error('Failed to load graded questions:', err);
+      alert('Gagal memuat review jawaban. Silakan coba lagi.');
+    } finally {
+      setIsLoadingGradedQuestions(false);
+    }
+  };
+
+  if (showAnswerReview && gradedQuestions.length > 0 && currentQuiz) {
+    return (
+      <QuizAnswerReview
+        questions={gradedQuestions}
+        showCorrectAnswers={currentQuiz.show_correct_answers ?? false}
+        onBack={() => setShowAnswerReview(false)}
+      />
+    );
+  }
+
   if (showResults && quizResult && currentQuiz) {
     return (
       <QuizResultsView
@@ -235,6 +269,7 @@ export function QuizModule() {
         quiz={currentQuiz}
         onRetry={() => handleStartOrResume({ ...currentQuiz, isResume: false })}
         onClose={() => { setShowResults(false); setCurrentQuizId(null); }}
+        onViewAnswers={currentQuiz.show_correct_answers ? handleViewAnswers : undefined}
       />
     );
   }

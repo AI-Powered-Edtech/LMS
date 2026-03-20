@@ -1,0 +1,409 @@
+import { supabase } from '@/src/lib/supabase';
+
+// Custom error types for administration operations
+export class AdministrationError extends Error {
+    constructor(
+        message: string,
+        public code: 'TENANT_NOT_FOUND' | 'PERMISSION_DENIED' | 'NOT_IMPLEMENTED' | 'NETWORK_ERROR' | 'UNKNOWN',
+        public originalError?: unknown
+    ) {
+        super(message);
+        this.name = 'AdministrationError';
+    }
+}
+
+// Module configuration types (from database)
+export interface ModuleInfo {
+    id: string;
+    slug: string;
+    name: string;
+    description: string | null;
+    is_core: boolean;
+    api_enabled_default: boolean;
+    created_at: string;
+}
+
+export interface TenantModuleInfo {
+    id: string;
+    tenant_id: string;
+    module_id: string;
+    is_enabled: boolean;
+    updated_at: string;
+}
+
+// Combined tenant module configuration with module details
+export interface TenantModuleConfig {
+    id: string;
+    moduleId: string;
+    slug: string;
+    name: string;
+    description: string;
+    isEnabled: boolean;
+    isCore: boolean;
+    targetRoles: ('teacher' | 'student')[];
+}
+
+// Sync history types
+export interface SyncHistoryItem {
+    id: string;
+    type: string;
+    status: 'success' | 'warning' | 'error';
+    lastSync: string;
+    records: number;
+    errorMessage?: string;
+}
+
+// Sync result types
+export interface SyncResult {
+    status: 'success' | 'warning' | 'error' | 'not_available';
+    message: string;
+    recordsSynced?: number;
+    errorMessage?: string;
+    timestamp?: string;
+}
+
+// Map database module slugs to frontend target roles
+function getTargetRolesForModule(slug: string): ('teacher' | 'student')[] {
+    const roleMapping: Record<string, ('teacher' | 'student')[]> = {
+        'gradebook': ['teacher'],
+        'quiz': ['student'],
+        'assignments': ['teacher', 'student'],
+        'calendar': ['teacher', 'student'],
+        'announcements': ['teacher', 'student'],
+        'directory': ['teacher', 'student'],
+        'ai-creator': ['teacher'],
+        'analytics': ['teacher'],
+        'attendance': ['teacher'],
+        'documents': ['teacher'],
+        'speed-grader': ['teacher'],
+        'group-assignment': ['teacher', 'student'],
+        'forum': ['teacher', 'student'],
+    };
+
+    return roleMapping[slug] || ['teacher', 'student'];
+}
+
+// Map frontend module IDs to database slugs
+const moduleIdToSlug: Record<string, string> = {
+    'gradebook': 'gradebook',
+    'quiz': 'quiz',
+    'assignments': 'assignments',
+    'calendar': 'calendar',
+    'announcements': 'announcements',
+    'directory': 'directory',
+    'ai-creator': 'ai-creator',
+    'analytics': 'analytics',
+    'attendance': 'attendance',
+    'documents': 'documents',
+    'speed-grader': 'speed-grader',
+    'group-assignment': 'group-assignment',
+    'forum': 'forum',
+};
+
+/**
+ * Parse Supabase error and return user-friendly error
+ */
+function parseSupabaseError(error: unknown): AdministrationError {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    if (errorMessage.includes('function not found') || errorMessage.includes('does not exist')) {
+        return new AdministrationError(
+            'Konfigurasi modul belum lengkap. Silakan hubungi administrator sistem.',
+            'NOT_IMPLEMENTED',
+            error
+        );
+    }
+
+    if (errorMessage.includes('unauthorized') || errorMessage.includes('permission denied')) {
+        return new AdministrationError(
+            'Anda tidak memiliki akses ke fitur ini. Hanya admin yang dapat mengakses.',
+            'PERMISSION_DENIED',
+            error
+        );
+    }
+
+    if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('timeout')) {
+        return new AdministrationError(
+            'Koneksi internet bermasalah. Silakan coba lagi.',
+            'NETWORK_ERROR',
+            error
+        );
+    }
+
+    return new AdministrationError(
+        'Terjadi kesalahan saat memuat konfigurasi. Silakan coba lagi.',
+        'UNKNOWN',
+        error
+    );
+}
+
+/**
+ * Administration Service
+ * Handles tenant module configuration and external system sync operations
+ */
+export const administrationService = {
+    /**
+     * Get all module configurations for the current tenant
+     * Queries tenant_modules joined with modules table
+     */
+    async getTenantModules(): Promise<TenantModuleConfig[]> {
+        try {
+            // First, try to get tenant_modules with module details
+            const { data: tenantModules, error: tenantError } = await supabase
+                .from('tenant_modules')
+                .select(`
+          id,
+          tenant_id,
+          module_id,
+          is_enabled,
+          updated_at,
+          modules!inner(
+            id,
+            slug,
+            name,
+            description,
+            is_core,
+            api_enabled_default,
+            created_at
+          )
+        `)
+                .order('modules.name', { ascending: true });
+
+            if (tenantError) {
+                console.error('Failed to fetch tenant modules:', tenantError);
+                throw tenantError;
+            }
+
+            if (tenantModules && tenantModules.length > 0) {
+                // Map the joined data to our interface
+                return tenantModules.map((tm: any) => ({
+                    id: tm.id,
+                    moduleId: tm.modules.id,
+                    slug: tm.modules.slug,
+                    name: tm.modules.name,
+                    description: tm.modules.description || '',
+                    isEnabled: tm.is_enabled,
+                    isCore: tm.modules.is_core,
+                    targetRoles: getTargetRolesForModule(tm.modules.slug),
+                }));
+            }
+
+            // If no tenant_modules exist, return empty array
+            return [];
+        } catch (error) {
+            console.error('Error fetching tenant modules:', error);
+            throw parseSupabaseError(error);
+        }
+    },
+
+    /**
+     * Update module enabled status for the current tenant
+     */
+    async toggleTenantModule(moduleId: string, isEnabled: boolean): Promise<void> {
+        try {
+            const { error } = await supabase
+                .from('tenant_modules')
+                .update({ is_enabled: isEnabled, updated_at: new Date().toISOString() })
+                .eq('module_id', moduleId);
+
+            if (error) {
+                console.error('Failed to update tenant module:', error);
+                throw error;
+            }
+        } catch (error) {
+            console.error('Error toggling tenant module:', error);
+            throw parseSupabaseError(error);
+        }
+    },
+
+    /**
+     * Get sync history from activity_logs table
+     * Attempts to query relevant sync-related logs
+     */
+    async getSyncHistory(): Promise<SyncHistoryItem[]> {
+        try {
+            // Try to query activity_logs for sync-related events
+            const { data, error } = await supabase
+                .from('activity_logs')
+                .select('id, tenant_id, user_id, action, metadata, created_at')
+                .ilike('action', '%sync%')
+                .order('created_at', { ascending: false })
+                .limit(50);
+
+            if (error) {
+                // If table doesn't exist or other error, return empty array
+                console.warn('No sync history available:', error.message);
+                return [];
+            }
+
+            if (data && data.length > 0) {
+                return data.map((log: any) => ({
+                    id: log.id,
+                    type: log.action || 'External Sync',
+                    status: log.metadata?.status === 'error' ? 'error' :
+                        log.metadata?.status === 'warning' ? 'warning' : 'success',
+                    lastSync: log.created_at,
+                    records: log.metadata?.records || 0,
+                    errorMessage: log.metadata?.error,
+                }));
+            }
+
+            return [];
+        } catch (error) {
+            // Return empty array on any error - sync history is optional
+            console.warn('Error fetching sync history, returning empty:', error);
+            return [];
+        }
+    },
+
+    /**
+     * Trigger external system synchronization
+     * This is a stub - actual implementation requires backend RPC
+     */
+    async syncExternalSystem(): Promise<SyncResult> {
+        // Return not_available status as backend integration is not yet implemented
+        return {
+            status: 'not_available',
+            message: 'Fitur sinkronisasi eksternal belum tersedia. Integrasi dengan PDDIKTI/Dapodik akan segera hadir.',
+        };
+    },
+
+    /**
+     * Get default module configurations (fallback when database is empty)
+     * This mirrors the hardcoded values in ModuleConfigContext
+     */
+    getDefaultModules(): TenantModuleConfig[] {
+        return [
+            {
+                id: 'default-gradebook',
+                moduleId: 'gradebook',
+                slug: 'gradebook',
+                name: 'Buku Nilai',
+                description: 'Sistem pencatatan dan rekap nilai siswa untuk guru.',
+                isEnabled: true,
+                isCore: true,
+                targetRoles: ['teacher'],
+            },
+            {
+                id: 'default-quiz',
+                moduleId: 'quiz',
+                slug: 'quiz',
+                name: 'Kuis Online',
+                description: 'Platform ujian dan kuis interaktif untuk siswa.',
+                isEnabled: true,
+                isCore: true,
+                targetRoles: ['student'],
+            },
+            {
+                id: 'default-assignments',
+                moduleId: 'assignments',
+                slug: 'assignments',
+                name: 'Pusat Tugas',
+                description: 'Manajemen pengumpulan dan penilaian tugas.',
+                isEnabled: true,
+                isCore: true,
+                targetRoles: ['teacher', 'student'],
+            },
+            {
+                id: 'default-calendar',
+                moduleId: 'calendar',
+                slug: 'calendar',
+                name: 'Jadwal & Kalender',
+                description: 'Jadwal pelajaran dan agenda akademik sekolah.',
+                isEnabled: true,
+                isCore: false,
+                targetRoles: ['teacher', 'student'],
+            },
+            {
+                id: 'default-announcements',
+                moduleId: 'announcements',
+                slug: 'announcements',
+                name: 'Pengumuman',
+                description: 'Papan informasi dan berita sekolah.',
+                isEnabled: true,
+                isCore: false,
+                targetRoles: ['teacher', 'student'],
+            },
+            {
+                id: 'default-directory',
+                moduleId: 'directory',
+                slug: 'directory',
+                name: 'Direktori Menu',
+                description: 'Akses cepat ke semua fitur dalam satu halaman.',
+                isEnabled: true,
+                isCore: false,
+                targetRoles: ['teacher', 'student'],
+            },
+            {
+                id: 'default-ai-creator',
+                moduleId: 'ai-creator',
+                slug: 'ai-creator',
+                name: 'AI Creator',
+                description: 'Buat kuis & materi otomatis dari dokumen/video.',
+                isEnabled: true,
+                isCore: false,
+                targetRoles: ['teacher'],
+            },
+            {
+                id: 'default-analytics',
+                moduleId: 'analytics',
+                slug: 'analytics',
+                name: 'Dasbor Analitik',
+                description: 'Visualisasi data & prediksi risiko siswa.',
+                isEnabled: true,
+                isCore: false,
+                targetRoles: ['teacher'],
+            },
+            {
+                id: 'default-attendance',
+                moduleId: 'attendance',
+                slug: 'attendance',
+                name: 'Scan Absensi',
+                description: 'Scan otomatis buku absensi siswa menggunakan AI.',
+                isEnabled: true,
+                isCore: false,
+                targetRoles: ['teacher'],
+            },
+            {
+                id: 'default-documents',
+                moduleId: 'documents',
+                slug: 'documents',
+                name: 'Surat & Dokumen',
+                description: 'Smart editor & approval surat berjenjang.',
+                isEnabled: true,
+                isCore: false,
+                targetRoles: ['teacher'],
+            },
+            {
+                id: 'default-speed-grader',
+                moduleId: 'speed-grader',
+                slug: 'speed-grader',
+                name: 'SpeedGrader',
+                description: 'Penilaian esai dengan matriks rubrik transparan.',
+                isEnabled: true,
+                isCore: false,
+                targetRoles: ['teacher'],
+            },
+            {
+                id: 'default-group-assignment',
+                moduleId: 'group-assignment',
+                slug: 'group-assignment',
+                name: 'Tugas Kelompok',
+                description: 'Kolaborasi tugas kelompok dengan sinkronisasi Google Classroom.',
+                isEnabled: true,
+                isCore: false,
+                targetRoles: ['teacher', 'student'],
+            },
+            {
+                id: 'default-forum',
+                moduleId: 'forum',
+                slug: 'forum',
+                name: 'Forum Diskusi',
+                description: 'Ruang tanya jawab dan kolaborasi sosial.',
+                isEnabled: true,
+                isCore: false,
+                targetRoles: ['teacher', 'student'],
+            },
+        ];
+    },
+};

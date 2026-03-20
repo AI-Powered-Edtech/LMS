@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { gradebookService } from '../gradebookService';
+import { gradebookService } from '@/src/features/assignments/api/gradebookService';
 import { supabase } from '../../lib/supabase';
 
 // Mock the Supabase client

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { FileText, Loader2, CheckCircle, AlertTriangle, Calendar } from 'lucide-react';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { useBuilder } from '@/src/contexts/BuilderContext';
-import { courseBuilderService, type AssignmentBlockData } from '@/src/services/courseBuilderService';
+import { courseBuilderService, type AssignmentBlockData } from '@/src/features/courses/api/courseBuilderService';
 import { cn } from '@/src/utils/cn';
 
 export function AssignmentBlockEditor({ blockId }: { blockId: string }) {

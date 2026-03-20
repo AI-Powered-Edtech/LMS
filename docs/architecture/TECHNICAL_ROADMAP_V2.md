@@ -6,22 +6,24 @@ This roadmap sequences all implementation work based on **risk, dependency, and 
 
 ---
 
-## Current Technical Debt Inventory
+## Technical Debt Inventory
 
-| # | Debt | Risk if Unpaid | Effort | Location |
-|---|------|---------------|--------|----------|
-| D1 | 30+ pages eagerly imported (no lazy loading) | Slow initial load, grows worse with each page | S | App.tsx |
-| D2 | 13 Context providers nested 13 deep | Unnecessary re-renders, hard to debug, tight coupling | M | contexts/ |
-| D3 | 3 calling patterns (direct Supabase, service, React Query) | Inconsistent error handling, no caching on some paths | L | services/, pages/ |
-| D4 | Legacy routes use ProtectedRoute + RoleRoute alongside new 3-guard chain | Dual guard systems, confusion about which to use | S | App.tsx, components/ |
-| D5 | Feature code scattered across pages/, services/, components/ | Hard to find related code, risk of breaking unrelated features | L | src/ |
-| D6 | No virtualization for large lists | Browser freeze on 1000+ item lists (gradebook, roster) | M | pages/ |
-| D7 | No search system | Users can't find courses, lessons, or forum posts | M | N/A (missing) |
-| D8 | AI Tutor single LLM provider (Groq only) | Service outage = AI unavailable | S | supabase/functions/ai-tutor/ |
-| D9 | No event system for notifications | Adding notification types requires changing source systems | M | Direct INSERT pattern |
-| D10 | No per-tenant AI cost tracking | Uncontrolled AI spend at scale | S | N/A (missing) |
-| D11 | TenantContext wrapper still exists with 8+ importers | Unnecessary indirection, migration incomplete | S | contexts/TenantContext.tsx |
-| D12 | No integration/E2E test coverage for critical paths | Regressions caught manually | L | tests/ |
+> Last updated: 2026-03-20. ✅ = resolved, 🔄 = in progress, ⏳ = pending.
+
+| # | Debt | Status | Risk if Unpaid | Effort | Location |
+|---|------|--------|---------------|--------|----------|
+| D1 | 30+ pages eagerly imported (no lazy loading) | ✅ Done | Slow initial load | S | routes.tsx — all pages lazy |
+| D2 | 13 Context providers nested 13 deep | ✅ Done | Re-renders, coupling | M | Now 4 contexts: Auth, Builder, Theme, Toast |
+| D3 | 3 calling patterns (direct Supabase, service, React Query) | 🔄 Partial | Inconsistent error handling | L | New features use React Query; legacy pages still mixed |
+| D4 | Legacy routes use ProtectedRoute + RoleRoute alongside 3-guard chain | 🔄 Partial | Dual guard systems | S | 3-guard chain active; some legacy routes remain |
+| D5 | Feature code scattered across pages/, services/, components/ | 🔄 Partial | Hard to find related code | L | Quizzes, Analytics, Gamification, Guidance, Struggle done |
+| D6 | No virtualization for large lists | ⏳ Pending | Browser freeze at 1000+ items | M | @tanstack/react-virtual in package.json, not yet used |
+| D7 | No search system | ⏳ Pending | Users can't find courses/lessons | M | N/A (missing) |
+| D8 | AI Tutor single LLM provider (Groq only) | ⏳ Pending | Outage = AI unavailable | S | supabase/functions/ai-tutor/ |
+| D9 | No event system for notifications | ⏳ Pending | Adding types requires code changes | M | Direct INSERT pattern |
+| D10 | No per-tenant AI cost tracking | ⏳ Pending | Uncontrolled AI spend at scale | S | N/A (missing) |
+| D11 | TenantContext wrapper still exists | ✅ Done | Unnecessary indirection | S | TenantContext.tsx deleted |
+| D12 | No integration/E2E test coverage for critical paths | ⏳ Pending | Regressions caught manually | L | tests/ |
 
 ---
 

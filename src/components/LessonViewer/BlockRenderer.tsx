@@ -4,7 +4,7 @@ import { MarkdownBlock } from './blocks/MarkdownBlock';
 import { VideoBlock } from './blocks/VideoBlock';
 import { ImageBlockViewer } from './blocks/ImageBlockViewer';
 import { FileBlockViewer } from './blocks/FileBlockViewer';
-import { QuizViewer } from './QuizViewer';
+import { QuizViewer } from '@/src/features/quizzes/components/QuizViewer';
 import { AssignmentViewer } from './AssignmentViewer';
 
 interface BlockRendererProps {

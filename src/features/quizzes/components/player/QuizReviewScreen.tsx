@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Target, CheckCircle, AlertTriangle, Flag, ArrowLeft, Send } from 'lucide-react';
-import { SubmitAnswer } from '@/src/services/quizService';
+import { SubmitAnswer } from '@/src/features/quizzes';
 import { QuestionPalette } from './QuestionPalette';
 import { cn } from '@/src/utils/cn';
 

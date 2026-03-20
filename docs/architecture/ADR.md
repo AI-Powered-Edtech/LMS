@@ -213,12 +213,13 @@ AuthGuard → TenantGuard → RoleGuard
 **Current edge functions**:
 | Function | Reason |
 |----------|--------|
-| ai-tutor | External LLM API + secrets |
-| ai-grade-essay | External LLM + tamper-proof grading |
+| ai-tutor | External LLM API (Groq) + secrets |
+| ai-grade-essay | External LLM (Groq) + tamper-proof grading |
 | grade-quiz-attempt | Tamper-proof score calculation |
 | load-quiz-data | Secure quiz data assembly (anti-cheat) |
-| process-progress-events | Batch processing |
-| generate-ai-content | External LLM API |
+| progress-events | Individual learning event validation + publish |
+| process-progress-events | Batch processing of queued events |
+| generate-ai-content | External LLM API (Groq) for AI content generation |
 
 **Rules**:
 - CRUD operations stay in the browser via Supabase client + RLS (never edge function)
@@ -227,6 +228,6 @@ AuthGuard → TenantGuard → RoleGuard
 - Cold start mitigation: keep-alive cron ping for critical functions (ai-tutor)
 
 **Consequences**:
-- Minimal edge function count (6) — most logic stays in database or browser
+- Minimal edge function count (7) — most logic stays in database or browser
 - Each edge function is independently deployable
 - Cold starts only affect non-critical paths (AI is non-critical)

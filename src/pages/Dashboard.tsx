@@ -24,9 +24,16 @@ import { Card, Badge, Button, EmptyState, SkeletonCard } from '@/src/components/
 import { JoinClassModal } from './dashboard/JoinClassModal';
 import { QuizHistoryModal } from './dashboard/QuizHistoryModal';
 import { BadgeRewardModal } from './dashboard/BadgeRewardModal';
+import { BadgeUnlockToast } from '@/src/features/gamification/components/BadgeUnlockToast';
+import { LevelUpToast } from '@/src/features/gamification/components/LevelUpToast';
+import { BadgeShowcase } from '@/src/features/gamification/components/BadgeShowcase';
+import { StreakCounter } from '@/src/features/gamification/components/StreakCounter';
+import { XPProgressBar } from '@/src/features/gamification/components/XPProgressBar';
+import { RecommendationFeed } from '@/src/features/recommendations';
+import { GuideRenderer } from '@/src/features/guidance';
 
 export function Dashboard() {
-  const { role, activeTenant } = useAuth();
+  const { role, activeTenant, user } = useAuth();
   const { xp, dailyGoal, achievements } = useStudentProgressData();
   const { mutate: addXP } = useAddXP();
   const { assignments, loading: assignmentsLoading } = useAssignments();
@@ -97,11 +104,35 @@ export function Dashboard() {
       )}
 
       <div className="max-w-7xl mx-auto w-full space-y-6">
+        {/* In-App Guidance — only shown when inside a specific course/lesson */}
+
         {/* Welcome Card */}
         <Card padding="md">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Selamat Datang, {userName}!</h1>
           <p className="text-sm sm:text-base text-slate-500 mt-1">Siap untuk melanjutkan petualangan belajarmu hari ini?</p>
         </Card>
+
+        {/* Streak & XP Motivational Card (Student Only) */}
+        {role === 'student' && (
+          <Card padding="sm">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="flex-1 flex items-center gap-4">
+                <StreakCounter compact />
+                <div className="h-8 w-px bg-slate-200 shrink-0" />
+                <XPProgressBar compact />
+              </div>
+              <p className="text-sm text-slate-500 font-medium">
+                {xp === 0
+                  ? 'Mulai belajar untuk kumpulkan XP pertamamu!'
+                  : xp < 50
+                  ? 'Terus semangat! Kamu baru mulai perjalananmu.'
+                  : xp < 200
+                  ? 'Bagus! Terus kumpulkan XP dan raih level berikutnya.'
+                  : 'Luar biasa! Kamu sudah jadi pelajar sejati!'}
+              </p>
+            </div>
+          </Card>
+        )}
 
         {/* Kelas Saya (Student Only) */}
         {role === 'student' && (
@@ -179,6 +210,20 @@ export function Dashboard() {
           )}
         </Card>
 
+        {/* Pencapaian Terbaru (Student Only) */}
+        {role === 'student' && (
+          <Card>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-amber-500" />
+                Pencapaian Terbaru
+              </h2>
+              <Link to="/profile" className="text-sm font-bold text-blue-600 hover:text-blue-700">Lihat Semua →</Link>
+            </div>
+            <BadgeShowcase compact />
+          </Card>
+        )}
+
         {/* Lanjutkan Belajar (Student Only) */}
         {role === 'student' && (
           <div className="space-y-4">
@@ -221,6 +266,11 @@ export function Dashboard() {
               </Card>
             )}
           </div>
+        )}
+
+        {/* Rekomendasi Belajar (Student Only) */}
+        {role === 'student' && user?.id && (
+          <RecommendationFeed userId={user.id} />
         )}
 
         {/* Bottom Grid: Pengumuman & Leaderboard */}
@@ -388,6 +438,8 @@ export function Dashboard() {
       />
       <QuizHistoryModal open={showQuizHistory} onClose={() => setShowQuizHistory(false)} />
       <BadgeRewardModal open={showBadgeModal} onClose={() => setShowBadgeModal(false)} />
+      <BadgeUnlockToast />
+      <LevelUpToast />
     </div>
   );
 }

@@ -3,11 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { create } from 'zustand';
 import { useAuth } from '../contexts/AuthContext';
 import { createQueryKeys } from '../lib/queryKeys';
-import { classroomService, Classroom } from '../services/classroomService';
+import { classroomService, Classroom } from '@/src/features/classroom/api/classroomService';
 
 const classroomKeys = createQueryKeys('classrooms');
 
-export type { Classroom } from '../services/classroomService';
+export type { Classroom } from '@/src/features/classroom/api/classroomService';
 
 // Zustand store for client-side state (activeClassroomId)
 interface ClassroomUIState {

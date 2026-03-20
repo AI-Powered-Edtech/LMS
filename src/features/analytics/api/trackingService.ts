@@ -65,7 +65,7 @@ async function flushEvents() {
   eventBuffer = [];
 
   try {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.debug('[Analytics] Flushing', batch.length, 'events');
     }
 

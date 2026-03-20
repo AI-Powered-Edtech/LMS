@@ -21,3 +21,6 @@ supabase/.temp/
 # testing artifacts
 playwright-report/
 test-results/
+
+# Claude Code worktrees (temporary agent clones)
+.claude/worktrees/

@@ -9,6 +9,7 @@ import { cn } from '@/src/utils/cn';
 import { useClassroom } from '@/src/hooks/useClassroomQueries';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { supabase } from '@/src/lib/supabase';
+import { classroomService } from '@/src/features/classroom/api/classroomService';
 
 interface EnrolledStudent {
   id: string;
@@ -147,8 +148,7 @@ export function ClassManagement() {
   const handleDeleteClass = async (classId: string) => {
     if (!confirm('Hapus kelas ini? Semua data enrollment akan hilang. Aksi ini tidak bisa dibatalkan.')) return;
     try {
-      const { error } = await supabase.from('classes').delete().eq('id', classId);
-      if (error) throw error;
+      await classroomService.deleteClassroom(classId);
       if (selectedClassId === classId) setSelectedClassId(null);
     } catch (err: any) {
       alert('Gagal menghapus kelas: ' + err.message);

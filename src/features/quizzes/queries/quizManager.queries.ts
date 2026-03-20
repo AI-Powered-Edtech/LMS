@@ -282,18 +282,20 @@ export function useGradeAttemptQuestion() {
 
   return useMutation({
     mutationFn: ({
-      attemptQuestionId,
+      attemptId,
+      questionId,
       pointsEarned,
       isCorrect,
       comment,
     }: {
-      attemptQuestionId: string;
+      attemptId: string;
+      questionId: string;
       pointsEarned: number;
       isCorrect: boolean;
       comment?: string;
       assignmentId: string;
       tenantId: string;
-    }) => quizManagerService.gradeAttemptQuestion(attemptQuestionId, pointsEarned, isCorrect, comment),
+    }) => quizManagerService.gradeAttemptQuestion(attemptId, questionId, pointsEarned, isCorrect, comment),
     onSuccess: (_, { assignmentId, tenantId }) => {
       queryClient.invalidateQueries({ queryKey: QuizKeys.assignmentResults(assignmentId, tenantId) });
     },

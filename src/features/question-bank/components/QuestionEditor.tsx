@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Plus, Trash2, Save, Loader2 } from 'lucide-react';
-import { questionBankService, QuestionBankItem, CreateQuestionPayload, UpdateQuestionPayload } from '@/src/services/questionBankService';
-import { QuestionType } from '@/src/services/quizService';
+import { questionBankService, QuestionBankItem, CreateQuestionPayload, UpdateQuestionPayload } from '@/src/features/question-bank/api/questionBankService';
+import { QuestionType } from '@/src/features/quizzes';
 
 interface QuestionEditorProps {
     isOpen: boolean;

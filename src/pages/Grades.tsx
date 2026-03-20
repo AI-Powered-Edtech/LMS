@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { Calculator, Trophy, Target, ArrowRight, BookOpen } from "lucide-react";
-import { cn } from "@/src/utils/cn";
+import { useState, useMemo } from "react";
+import { Calculator, Trophy, Target, BookOpen, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/src/lib/supabase";
+import { useAuth } from "@/src/contexts/AuthContext";
 
 interface Assignment {
   id: string;
@@ -8,68 +10,89 @@ interface Assignment {
   subject: string;
   maxScore: number;
   actualScore: number | null;
-  whatIfScore: number | null;
-  weight: number; // percentage of final grade
+  weight: number;
 }
 
-export function Grades() {
-  const [assignments, setAssignments] = useState<Assignment[]>([
-    { id: "1", title: "Ujian Tengah Semester", subject: "Matematika", maxScore: 100, actualScore: 85, whatIfScore: null, weight: 30 },
-    { id: "2", title: "Tugas Kelompok", subject: "Matematika", maxScore: 100, actualScore: 90, whatIfScore: null, weight: 20 },
-    { id: "3", title: "Kuis Aljabar", subject: "Matematika", maxScore: 100, actualScore: null, whatIfScore: null, weight: 10 },
-    { id: "4", title: "Ujian Akhir Semester", subject: "Matematika", maxScore: 100, actualScore: null, whatIfScore: null, weight: 40 },
-  ]);
+const DEFAULT_ASSIGNMENTS: Assignment[] = [
+  { id: "1", title: "Ujian Tengah Semester", subject: "Pelajaran", maxScore: 100, actualScore: null, weight: 30 },
+  { id: "2", title: "Tugas Kelompok",        subject: "Pelajaran", maxScore: 100, actualScore: null, weight: 20 },
+  { id: "3", title: "Kuis",                  subject: "Pelajaran", maxScore: 100, actualScore: null, weight: 10 },
+  { id: "4", title: "Ujian Akhir Semester",  subject: "Pelajaran", maxScore: 100, actualScore: null, weight: 40 },
+];
 
+export function Grades() {
+  const { user, tenantId } = useAuth();
+  const [whatIfScores, setWhatIfScores] = useState<Record<string, number | null>>({});
   const [targetGrade, setTargetGrade] = useState<number>(90);
 
-  const handleWhatIfChange = (id: string, value: string) => {
-    const numValue = value === "" ? null : Math.min(100, Math.max(0, Number(value)));
-    setAssignments(prev => prev.map(a => a.id === id ? { ...a, whatIfScore: numValue } : a));
-  };
+  const { data: submissionsData = [], isLoading } = useQuery({
+    queryKey: ['student-grades', user?.id, tenantId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('assignment_submissions')
+        .select(`id, score, status, submitted_at, assignments!inner(id, title, max_points, classes(name))`)
+        .eq('student_id', user!.id)
+        .eq('tenant_id', tenantId!)
+        .order('submitted_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!user && !!tenantId,
+  });
 
-  const calculateCurrentGrade = () => {
-    let totalWeight = 0;
-    let earnedPoints = 0;
-    
+  const assignments: Assignment[] = useMemo(() => {
+    if (submissionsData.length === 0) return DEFAULT_ASSIGNMENTS;
+    const equalWeight = Math.floor(100 / submissionsData.length);
+    return (submissionsData as any[]).map((s, i) => ({
+      id: s.id,
+      title: s.assignments.title,
+      subject: (s.assignments.classes as any)?.name ?? 'Pelajaran',
+      maxScore: s.assignments.max_points ?? 100,
+      actualScore: s.score ?? null,
+      weight: i === submissionsData.length - 1
+        ? 100 - equalWeight * (submissionsData.length - 1)
+        : equalWeight,
+    }));
+  }, [submissionsData]);
+
+  const calculateGrade = (useWhatIf: boolean) => {
+    let totalWeight = 0, earnedPoints = 0;
     assignments.forEach(a => {
-      if (a.actualScore !== null) {
+      const score = a.actualScore !== null
+        ? a.actualScore
+        : (useWhatIf ? (whatIfScores[a.id] ?? null) : null);
+      if (score !== null) {
         totalWeight += a.weight;
-        earnedPoints += (a.actualScore / a.maxScore) * a.weight;
+        earnedPoints += (score / a.maxScore) * a.weight;
       }
     });
-
     return totalWeight === 0 ? 0 : (earnedPoints / totalWeight) * 100;
   };
 
-  const calculateProjectedGrade = () => {
-    let totalWeight = 0;
-    let earnedPoints = 0;
-    
-    assignments.forEach(a => {
-      const scoreToUse = a.actualScore !== null ? a.actualScore : a.whatIfScore;
-      if (scoreToUse !== null) {
-        totalWeight += a.weight;
-        earnedPoints += (scoreToUse / a.maxScore) * a.weight;
-      }
-    });
+  const currentGrade = calculateGrade(false);
+  const projectedGrade = calculateGrade(true);
 
-    return totalWeight === 0 ? 0 : (earnedPoints / totalWeight) * 100;
-  };
-
-  const currentGrade = calculateCurrentGrade();
-  const projectedGrade = calculateProjectedGrade();
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col bg-slate-50 p-4 md:p-6 overflow-y-auto">
       <div className="max-w-4xl w-full mx-auto space-y-6">
-        
-        {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <Trophy className="w-6 h-6 text-yellow-500" />
             Simulasi Nilai (What-If Grades)
           </h1>
-          <p className="text-slate-500 mt-1">Masukkan nilai "andaikan" pada tugas yang belum dikerjakan untuk melihat proyeksi nilai akhirmu.</p>
+          <p className="text-slate-500 mt-1 text-sm">
+            {submissionsData.length > 0
+              ? `Menampilkan ${submissionsData.length} tugas dari riwayat pengirimamu.`
+              : 'Masukkan nilai "andaikan" untuk melihat proyeksi nilai akhirmu.'}
+          </p>
         </div>
 
         {/* Dashboard Cards */}
@@ -97,49 +120,49 @@ export function Grades() {
               <Target className="w-4 h-4 text-orange-500" />
             </div>
             <div className="flex items-center gap-2">
-              <input 
-                type="number" 
-                value={targetGrade} 
-                onChange={(e) => setTargetGrade(Number(e.target.value))}
+              <input
+                type="number"
+                value={targetGrade}
+                onChange={e => setTargetGrade(Number(e.target.value))}
                 className="text-4xl font-black text-slate-800 w-24 bg-transparent outline-none border-b-2 border-dashed border-slate-300 focus:border-orange-500 transition-colors"
                 min="0" max="100"
               />
               <span className="text-slate-400 font-medium">/ 100</span>
             </div>
             {projectedGrade >= targetGrade ? (
-              <p className="text-xs font-bold text-green-500 mt-2">🎉 Proyeksi mencapai target!</p>
+              <p className="text-xs font-bold text-green-500 mt-2">Proyeksi mencapai target!</p>
             ) : (
               <p className="text-xs font-bold text-orange-500 mt-2">Kurang {(targetGrade - projectedGrade).toFixed(1)} poin lagi.</p>
             )}
           </div>
         </div>
 
-        {/* Assignments List */}
+        {/* Assignments list */}
         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-5 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
             <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
               <BookOpen className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="font-bold text-slate-800">Matematika</h2>
+              <h2 className="font-bold text-slate-800">Semua Tugas</h2>
               <p className="text-xs font-medium text-slate-500">Bobot total: 100%</p>
             </div>
           </div>
 
           <div className="divide-y divide-slate-100">
-            {assignments.map(assignment => (
-              <div key={assignment.id} className="p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+            {assignments.map(a => (
+              <div key={a.id} className="p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
                 <div className="flex-1">
-                  <h3 className="font-bold text-slate-800">{assignment.title}</h3>
-                  <p className="text-xs font-medium text-slate-500 mt-1">Bobot: {assignment.weight}%</p>
+                  <h3 className="font-bold text-slate-800">{a.title}</h3>
+                  <p className="text-xs font-medium text-slate-500 mt-1">{a.subject} · Bobot: {a.weight}%</p>
                 </div>
 
                 <div className="flex items-center gap-4">
-                  {assignment.actualScore !== null ? (
+                  {a.actualScore !== null ? (
                     <div className="flex flex-col items-end">
                       <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Nilai Asli</span>
                       <div className="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl border border-slate-200">
-                        {assignment.actualScore} / {assignment.maxScore}
+                        {a.actualScore} / {a.maxScore}
                       </div>
                     </div>
                   ) : (
@@ -152,11 +175,14 @@ export function Grades() {
                         <input
                           type="number"
                           placeholder="?"
-                          value={assignment.whatIfScore === null ? "" : assignment.whatIfScore}
-                          onChange={(e) => handleWhatIfChange(assignment.id, e.target.value)}
+                          value={whatIfScores[a.id] === undefined || whatIfScores[a.id] === null ? "" : whatIfScores[a.id]!}
+                          onChange={e => {
+                            const v = e.target.value === "" ? null : Math.min(a.maxScore, Math.max(0, Number(e.target.value)));
+                            setWhatIfScores(prev => ({ ...prev, [a.id]: v }));
+                          }}
                           className="w-20 px-3 py-2 bg-blue-50 border-2 border-blue-200 focus:border-blue-500 text-blue-700 font-bold rounded-xl outline-none text-center transition-colors placeholder:text-blue-300"
                         />
-                        <span className="text-slate-400 font-medium">/ {assignment.maxScore}</span>
+                        <span className="text-slate-400 font-medium">/ {a.maxScore}</span>
                       </div>
                     </div>
                   )}
@@ -165,7 +191,6 @@ export function Grades() {
             ))}
           </div>
         </div>
-
       </div>
     </div>
   );

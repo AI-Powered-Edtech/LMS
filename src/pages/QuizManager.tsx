@@ -6,13 +6,13 @@ import {
     Save, Globe, Lock, Copy, Link as LinkIcon, Users, Calendar
 } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
-import { quizService, type QuestionType, type QuizMode } from '@/src/services/quizService';
+import { quizService, type QuestionType, type QuizMode } from '@/src/features/quizzes';
 import { QuestionSearchModal } from '@/src/features/question-bank/components/QuestionSearchModal';
 import { useClassroom } from '@/src/hooks/useClassroomQueries';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { supabase } from '@/src/lib/supabase';
-import { QuizAssignModal } from '@/src/components/Quiz/QuizAssignModal';
-import { QuizAssignmentStatus } from '@/src/components/Quiz/QuizAssignmentStatus';
+import { QuizAssignModal } from '@/src/features/quizzes/components/QuizAssignModal';
+import { QuizAssignmentStatus } from '@/src/features/quizzes/components/QuizAssignmentStatus';
 
 // ─────────────────────────────────────────────────────────
 // Types

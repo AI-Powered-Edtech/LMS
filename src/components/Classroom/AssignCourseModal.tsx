@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Check, Loader2, Users, School } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { classroomService, Classroom } from '@/src/services/classroomService';
+import { classroomService, Classroom } from '@/src/features/classroom/api/classroomService';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { cn } from '@/src/utils/cn';
 

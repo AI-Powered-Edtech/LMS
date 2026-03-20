@@ -1,0 +1,4 @@
+-- Already applied to remote DB via Supabase dashboard on 2026-03-19.
+-- Stub for migration history sync only.
+-- Content: public registration helpers (public_lookup_class, public_search_tenants).
+-- Note: local 823_public_registration_helpers.sql contains the definitive version of these functions.

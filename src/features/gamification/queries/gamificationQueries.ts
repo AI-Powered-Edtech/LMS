@@ -1,14 +1,15 @@
 /**
  * Gamification Query Hooks
- * 
+ *
  * React Query hooks for gamification data fetching.
  * Each hook owns tenantId from useAuth context.
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createQueryKeys } from '@/src/lib/queryKeys';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { gamificationService } from '../api/gamificationService';
+import type { LeaderboardSortBy, LeaderboardPeriod } from '../types';
 
 // Create query keys with tenant scoping
 const base = createQueryKeys('gamification');
@@ -20,15 +21,24 @@ const gamificationKeys = {
         [...base.all(tenantId), 'badges', userId] as const,
     allBadges: (tenantId: string) =>
         [...base.all(tenantId), 'allBadges'] as const,
+    // SP-20
+    studentBadges: (tenantId: string, userId: string) =>
+        [...base.all(tenantId), 'studentBadges', userId] as const,
+    certificates: (tenantId: string, userId: string) =>
+        [...base.all(tenantId), 'certificates', userId] as const,
+    badgeDefinitions: (tenantId: string) =>
+        [...base.all(tenantId), 'badgeDefinitions'] as const,
+    // SP-21
+    xpProfile: (tenantId: string, userId: string) =>
+        [...base.all(tenantId), 'xpProfile', userId] as const,
+    leaderboardV2: (tenantId: string, sortBy: string, period: string, courseId?: string) =>
+        [...base.all(tenantId), 'leaderboardV2', sortBy, period, courseId ?? 'all'] as const,
 };
 
-/**
- * Hook to fetch the current user's streak data.
- * Hook owns tenantId from useAuth - NOT passed as parameter.
- */
+// ---- v1 hooks (kept for backward compat) ----
+
 export function useUserStreak() {
     const { user, tenantId } = useAuth();
-    
     return useQuery({
         queryKey: gamificationKeys.streak(tenantId!, user!.id),
         queryFn: () => gamificationService.getUserStreak(user!.id, tenantId!),
@@ -36,13 +46,8 @@ export function useUserStreak() {
     });
 }
 
-/**
- * Hook to fetch the current user's earned badges.
- * Hook owns tenantId from useAuth - NOT passed as parameter.
- */
 export function useUserBadges() {
     const { user, tenantId } = useAuth();
-    
     return useQuery({
         queryKey: gamificationKeys.badges(tenantId!, user!.id),
         queryFn: () => gamificationService.getUserBadges(user!.id, tenantId!),
@@ -50,18 +55,110 @@ export function useUserBadges() {
     });
 }
 
-/**
- * Hook to fetch all available badges (global data).
- * Cache is still tenant-scoped for consistency.
- * Hook owns tenantId from useAuth - NOT passed as parameter.
- */
 export function useAllBadges() {
     const { tenantId } = useAuth();
-    
     return useQuery({
         queryKey: gamificationKeys.allBadges(tenantId!),
         queryFn: () => gamificationService.getAllBadges(),
         enabled: !!tenantId,
+    });
+}
+
+// ---- SP-20: Achievement hooks ----
+
+/** All badge definitions with earned status for current user */
+export function useStudentBadges() {
+    const { user, tenantId } = useAuth();
+    return useQuery({
+        queryKey: gamificationKeys.studentBadges(tenantId!, user!.id),
+        queryFn: () => gamificationService.getStudentBadges(user!.id),
+        enabled: !!tenantId && !!user,
+        staleTime: 60_000,
+    });
+}
+
+/** Student certificates */
+export function useStudentCertificates(userId?: string) {
+    const { user, tenantId } = useAuth();
+    const targetId = userId ?? user?.id;
+    return useQuery({
+        queryKey: gamificationKeys.certificates(tenantId!, targetId!),
+        queryFn: () => gamificationService.getStudentCertificates(targetId!),
+        enabled: !!tenantId && !!targetId,
+        staleTime: 60_000,
+    });
+}
+
+/** Badge definitions for teacher management */
+export function useBadgeDefinitions() {
+    const { tenantId } = useAuth();
+    return useQuery({
+        queryKey: gamificationKeys.badgeDefinitions(tenantId!),
+        queryFn: () => gamificationService.getBadgeDefinitions(tenantId!),
+        enabled: !!tenantId,
+    });
+}
+
+/** Save (create/update) a badge definition */
+export function useSaveBadgeDefinition() {
+    const { tenantId } = useAuth();
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (badge: Parameters<typeof gamificationService.saveBadgeDefinition>[0]) =>
+            gamificationService.saveBadgeDefinition(badge),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: gamificationKeys.badgeDefinitions(tenantId!) });
+        },
+    });
+}
+
+/** Issue certificate mutation */
+export function useIssueCertificate() {
+    const { tenantId } = useAuth();
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: (params: { userId: string; courseId: string }) =>
+            gamificationService.issueCertificate(params.userId, params.courseId),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: base.all(tenantId!) });
+        },
+    });
+}
+
+// ---- SP-21: XP & Leaderboard v2 hooks ----
+
+/** Student XP profile */
+export function useStudentXPProfile(userId?: string) {
+    const { user, tenantId } = useAuth();
+    const targetId = userId ?? user?.id;
+    return useQuery({
+        queryKey: gamificationKeys.xpProfile(tenantId!, targetId!),
+        queryFn: () => gamificationService.getStudentXPProfile(targetId!),
+        enabled: !!tenantId && !!targetId,
+        staleTime: 30_000,
+        refetchInterval: 60_000,
+    });
+}
+
+/** Leaderboard v2 with sort/period/course filtering */
+export function useLeaderboardV2(params?: {
+    sortBy?: LeaderboardSortBy;
+    period?: LeaderboardPeriod;
+    courseId?: string;
+}) {
+    const { tenantId } = useAuth();
+    const sortBy = params?.sortBy ?? 'xp';
+    const period = params?.period ?? 'all_time';
+    return useQuery({
+        queryKey: gamificationKeys.leaderboardV2(tenantId!, sortBy, period, params?.courseId),
+        queryFn: () => gamificationService.getLeaderboardV2({
+            courseId: params?.courseId,
+            sortBy,
+            period,
+        }),
+        enabled: !!tenantId,
+        staleTime: 30_000,
+        refetchInterval: 60_000,
     });
 }
 

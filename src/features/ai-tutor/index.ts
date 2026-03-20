@@ -37,3 +37,8 @@ export {
     useAskTutor,
     aiTutorKeys
 } from './queries/aiTutorQueries';
+
+// Component exports
+export { AITutorPanel } from './components/AITutorPanel';
+export { AITutorInput } from './components/AITutorInput';
+export { AITutorTyping } from './components/AITutorTyping';

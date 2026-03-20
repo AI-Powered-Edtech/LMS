@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Search, Filter, Plus, Loader2 } from 'lucide-react';
-import { questionBankService, QuestionBankItem } from '@/src/services/questionBankService';
+import { questionBankService, QuestionBankItem } from '@/src/features/question-bank/api/questionBankService';
 import { QuestionCard } from '@/src/features/question-bank/components/QuestionCard';
 import { QuestionEditor } from '@/src/features/question-bank/components/QuestionEditor';
 

@@ -43,6 +43,8 @@ EduSync operates strictly without a traditional backend server (like Node/Expres
 ## Documentation
 
 - [Domain Map](./DOMAIN_MAP.md): Overview of architectural domains.
-- [Database Architecture](./docs/DATABASE_ARCHITECTURE.md): Entity-relationship map and table definitions.
-- [User Flow](./docs/USERFLOW.md): Step-by-step learning life cycles.
-- [Engineering Roadmap](./docs/ENGINEERING_ROADMAP.md): Project phases and implementation plan.
+- [Feature Map](./FEATURE_MAP.md): Complete feature inventory across all domains.
+- [Database Architecture](../DATABASE_ARCHITECTURE.md): Entity-relationship map and table definitions.
+- [System Map](../SYSTEM_MAP.md): Module-by-module table/RPC/RLS/EdgeFunction reference.
+- [User Flow](../USERFLOW.md): Step-by-step learning life cycles.
+- [Engineering Roadmap](../ENGINEERING_ROADMAP.md): Project phases and implementation plan.

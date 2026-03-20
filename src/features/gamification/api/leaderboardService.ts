@@ -22,7 +22,7 @@ export const leaderboardService = {
         let query = supabase
             .from('leaderboards')
             .select(`
-                score,
+                points,
                 rank,
                 user_id,
                 profiles(full_name, avatar_url)
@@ -39,6 +39,8 @@ export const leaderboardService = {
         const { data, error } = await query;
 
         if (error) {
+            // Table/column doesn't exist or bad request — return empty
+            if (error.code === '42P01' || error.code === '400' || error.message?.includes('400')) return [];
             // If class_id or score column doesn't exist, try minimal query
             if (error.code === '42703') {
                 const { data: fallback, error: fbError } = await supabase
@@ -58,7 +60,11 @@ export const leaderboardService = {
             throw error;
         }
 
-        return (data as any) || [];
+        // Map points → score for LeaderboardEntry type compatibility
+        return ((data || []) as any[]).map(e => ({
+            ...e,
+            score: e.points ?? e.score ?? 0,
+        }));
     },
 
     /**

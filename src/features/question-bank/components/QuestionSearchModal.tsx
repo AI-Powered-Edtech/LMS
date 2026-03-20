@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Loader2, Plus, Filter, X } from 'lucide-react';
-import { questionBankService, QuestionBankItem } from '@/src/services/questionBankService';
+import { questionBankService, QuestionBankItem } from '@/src/features/question-bank/api/questionBankService';
 import { QuestionCard } from './QuestionCard';
 
 interface QuestionSearchModalProps {

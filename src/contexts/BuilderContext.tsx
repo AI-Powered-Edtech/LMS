@@ -15,10 +15,10 @@ import { DomainModule } from '@/src/domain/module/types';
 import { DomainLesson } from '@/src/domain/lesson/types';
 import { DomainBlock } from '@/src/domain/block/types';
 
-import { builderCourseService } from '@/src/services/builder/courseService';
-import { builderModuleService } from '@/src/services/builder/moduleService';
-import { builderLessonService } from '@/src/services/builder/lessonService';
-import { builderBlockService } from '@/src/services/builder/blockService';
+import { builderCourseService } from '@/src/features/courses/api/builder/courseService';
+import { builderModuleService } from '@/src/features/courses/api/builder/moduleService';
+import { builderLessonService } from '@/src/features/courses/api/builder/lessonService';
+import { builderBlockService } from '@/src/features/courses/api/builder/blockService';
 
 // ============================================================
 // State
