@@ -26,7 +26,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { cn } from "@/src/utils/cn";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/src/contexts/AuthContext";
 import { courseService, Course } from "@/src/features/courses";

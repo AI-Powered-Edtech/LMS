@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, BookOpen, Clock, Loader2, RefreshCw, Users } from 'lucide-react';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { courseService, Course } from '@/src/features/courses';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { AssignCourseModal } from '@/src/components/Classroom/AssignCourseModal';
 
 export const Courses: React.FC = () => {

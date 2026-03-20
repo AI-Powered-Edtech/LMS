@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Search, Loader2, Plus, Filter, X } from 'lucide-react';
 import { questionBankService, QuestionBankItem } from '@/src/features/question-bank/api/questionBankService';
 import { QuestionCard } from './QuestionCard';

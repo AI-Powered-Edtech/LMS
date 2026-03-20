@@ -66,9 +66,12 @@ const AdminHub = lazy(() => import("../pages/Hubs").then(m => ({ default: m.Admi
 const WorkspaceSelector = lazy(() => import("../pages/WorkspaceSelector").then(m => ({ default: m.WorkspaceSelector })));
 const Unauthorized = lazy(() => import("../pages/Unauthorized").then(m => ({ default: m.Unauthorized })));
 
+import TestAriaPage from '@/src/pages/TestAriaPage';
+
 export function AppRoutes() {
   return (
     <Routes>
+      <Route path="/test-aria" element={<TestAriaPage />} />
       <Route path="/login" element={<Suspense fallback={<AppLoading />}><Login /></Suspense>} />
       <Route
         path="/forgot-password"

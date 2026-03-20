@@ -6,7 +6,7 @@ import { cn } from '../../utils/cn';
 import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 export const NotificationCenter: React.FC = () => {
     const { notifications, unreadCount, loading } = useNotifications();

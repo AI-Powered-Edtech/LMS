@@ -92,6 +92,7 @@ export function BuilderSidebar() {
                     onClick={handleAddModule}
                     className="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-md shadow-indigo-100 hover:scale-105 active:scale-95"
                     title="Tambah Modul"
+                    aria-label="Tambah Modul"
                 >
                     <Plus className="w-4 h-4" />
                 </button>
@@ -165,6 +166,8 @@ export function BuilderSidebar() {
                                                                 }
                                                             }}
                                                             className="p-1 opacity-0 group-hover:opacity-100 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded transition-all"
+                                                            aria-label="Hapus modul"
+                                                            title="Hapus modul"
                                                         >
                                                             <Trash2 className="w-3 h-3" />
                                                         </button>
@@ -243,6 +246,8 @@ export function BuilderSidebar() {
                                                                                                         ? "opacity-0 group-hover/lesson:opacity-100 hover:bg-white/20 text-white" 
                                                                                                         : "opacity-0 group-hover/lesson:opacity-100 hover:bg-rose-50 text-slate-400 hover:text-rose-500"
                                                                                                 )}
+                                                                                                aria-label="Hapus materi"
+                                                                                                title="Hapus materi"
                                                                                             >
                                                                                                 <Trash2 className="w-3.5 h-3.5" />
                                                                                             </button>
