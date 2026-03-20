@@ -65,23 +65,33 @@ export function QuizModule() {
   const [gradedQuestions, setGradedQuestions] = useState<any[]>([]);
   const [isLoadingGradedQuestions, setIsLoadingGradedQuestions] = useState(false);
 
-  const completedAttempts = quizAttempts.filter((attempt) =>
-    attempt.status === 'SUBMITTED' || attempt.status === 'GRADED'
-  );
+  // Memoize completed attempts to prevent unnecessary recalculations
+  const completedAttempts = useMemo(() => {
+    return quizAttempts.filter((attempt) =>
+      attempt.status === 'SUBMITTED' || attempt.status === 'GRADED'
+    );
+  }, [quizAttempts]);
 
   // Compute total points from completed attempts
   const totalPoints = useMemo(() => {
     return completedAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0);
   }, [completedAttempts]);
 
-  const filteredQuizzes = quizzes.filter((quiz) => {
-    if (quiz.status === 'draft') return false;
-    const matchesSearch = quiz.title?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesClass = selectedClass === 'all' || quiz.class_name === selectedClass;
-    return matchesSearch && matchesClass;
-  });
+  // Memoize filtered quizzes to prevent recalculation on every render
+  const filteredQuizzes = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return quizzes.filter((quiz) => {
+      if (quiz.status === 'draft') return false;
+      const matchesSearch = quiz.title?.toLowerCase().includes(query);
+      const matchesClass = selectedClass === 'all' || quiz.class_name === selectedClass;
+      return matchesSearch && matchesClass;
+    });
+  }, [quizzes, searchQuery, selectedClass]);
 
-  const classes = [...new Set(quizzes.map((q) => q.class_name || 'Umum'))];
+  // Memoize available classes to prevent recalculation
+  const classes = useMemo(() => {
+    return [...new Set(quizzes.map((q) => q.class_name || 'Umum'))];
+  }, [quizzes]);
 
   const refreshQuizData = async () => {
     await Promise.all([refetchQuizzes(), refetchAttempts()]);
