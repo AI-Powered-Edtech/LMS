@@ -40,9 +40,16 @@ export async function askTutor(
 
     if (error) {
       console.error('[AI Tutor] Edge Function error:', error);
+      // Translate raw Supabase SDK network/invoke errors to Indonesian
+      const rawMsg: string = error.message ?? '';
+      const indonesianMsg = rawMsg.includes('Failed to send a request')
+        ? 'Tutor AI sedang tidak tersedia. Silakan coba lagi nanti.'
+        : rawMsg.includes('network') || rawMsg.includes('fetch')
+        ? 'Koneksi terputus. Periksa internet Anda.'
+        : 'Terjadi kesalahan pada sistem tutor';
       return {
         error: {
-          message: error.message || 'Terjadi kesalahan pada sistem tutor',
+          message: indonesianMsg,
           code: 'EDGE_FUNCTION_ERROR',
         },
       };
