@@ -8,6 +8,7 @@ import {
   type SubmitAnswer,
   type StudentQuizAssignment,
   type QuizAttempt,
+  type QuizAttemptQuestion,
 } from '@/src/features/quizzes'
 import { quizSubmitRateLimiter } from '@/src/utils/rateLimiter'
 import {
@@ -72,7 +73,7 @@ export function QuizModule() {
   const [currentAttemptId, setCurrentAttemptId] = useState<string | null>(null)
   const [attemptVersion, setAttemptVersion] = useState<number | undefined>(undefined)
   const [expiresAt, setExpiresAt] = useState<string | null>(null)
-  const [attemptQuestions, setAttemptQuestions] = useState<any[]>([])
+  const [attemptQuestions, setAttemptQuestions] = useState<QuizAttemptQuestion[]>([])
   const [initialAnswers, setInitialAnswers] = useState<Record<string, SubmitAnswer>>({})
   const [initialQuestionIndex, setInitialQuestionIndex] = useState<number>(0)
   const [_showReview, setShowReview] = useState(false)
@@ -91,7 +92,7 @@ export function QuizModule() {
 
   // Answer Review State
   const [showAnswerReview, setShowAnswerReview] = useState(false)
-  const [gradedQuestions, setGradedQuestions] = useState<any[]>([])
+  const [gradedQuestions, setGradedQuestions] = useState<QuizAttemptQuestion[]>([])
   const [_isLoadingGradedQuestions, setIsLoadingGradedQuestions] = useState(false)
 
   const completedAttempts = quizAttempts.filter(
@@ -116,7 +117,7 @@ export function QuizModule() {
     await Promise.all([refetchQuizzes(), refetchAttempts()])
   }
 
-  const recoverAnswers = (questions: any[]) => {
+  const recoverAnswers = (questions: QuizAttemptQuestion[]) => {
     const recovered: Record<string, SubmitAnswer> = {}
     questions.forEach((q) => {
       if (q.selected_option_ids?.length > 0 || q.text_answer) {
@@ -130,7 +131,9 @@ export function QuizModule() {
     return recovered
   }
 
-  const handleStartOrResume = async (quiz: any) => {
+  const handleStartOrResume = async (
+    quiz: StudentQuizAssignment & { isResume?: boolean; activeAttempt?: QuizAttempt }
+  ) => {
     try {
       setCurrentQuizId(quiz.id)
       setIsLoadingQuestions(true)
@@ -148,10 +151,11 @@ export function QuizModule() {
         expiredAt = startData.expires_at
       }
 
-      setCurrentAttemptId(attemptId)
+      setCurrentAttemptId(attemptId ?? null)
       setAttemptVersion(version)
-      setExpiresAt(expiredAt)
+      setExpiresAt(expiredAt ?? null)
 
+      if (!attemptId) throw new Error('No attempt ID available')
       const questions = await quizService.getAttemptQuestions(attemptId)
       setAttemptQuestions(questions)
 
@@ -185,15 +189,16 @@ export function QuizModule() {
       setShowResults(false)
       setPendingQuiz(null)
       setIsLoadingQuestions(false)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsLoadingQuestions(false)
       console.error('Failed to start/resume', err)
-      if (err.message?.includes('not enrolled'))
+      const message = err instanceof Error ? err.message : ''
+      if (message.includes('not enrolled'))
         alert('Anda tidak terdaftar di kelas untuk assignment kuis ini.')
-      else if (err.message?.includes('not yet available')) alert('Kuis ini belum dibuka.')
-      else if (err.message?.includes('no longer available'))
+      else if (message.includes('not yet available')) alert('Kuis ini belum dibuka.')
+      else if (message.includes('no longer available'))
         alert('Waktu akses kuis ini sudah berakhir.')
-      else alert(err.message || 'Gagal memulai kuis.')
+      else alert(message || 'Gagal memulai kuis.')
     }
   }
 
@@ -221,13 +226,14 @@ export function QuizModule() {
       setIsQuizActive(false)
       setShowResults(true)
       setShowAnswerReview(false)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Gagal mengirim kuis', err)
-      if (err.message?.includes('Time limit exceeded')) {
+      const message = err instanceof Error ? err.message : ''
+      if (message.includes('Time limit exceeded')) {
         alert('Waktu habis! Kuis Anda telah ditandai sebagai kedaluwarsa.')
         setIsQuizActive(false)
         refreshQuizData()
-      } else if (err.message?.includes('ATTEMPT_VERSION_CONFLICT')) {
+      } else if (message.includes('ATTEMPT_VERSION_CONFLICT')) {
         alert('Kuis ini baru saja disubmit dari tempat lain (tab/perangkat lain). Memuat ulang...')
         setIsQuizActive(false)
         refreshQuizData()

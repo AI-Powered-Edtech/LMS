@@ -1,6 +1,7 @@
 import { Star, Trophy } from 'lucide-react'
 import { motion } from 'motion/react'
 import { Modal, ModalBody, Button } from '@/src/components/ui'
+import { useReducedMotion } from '@/src/hooks/useReducedMotion'
 
 interface BadgeRewardModalProps {
   open: boolean
@@ -8,6 +9,8 @@ interface BadgeRewardModalProps {
 }
 
 export function BadgeRewardModal({ open, onClose }: BadgeRewardModalProps) {
+  const reducedMotion = useReducedMotion()
+
   return (
     <Modal open={open} onClose={onClose} size="sm">
       <ModalBody className="text-center py-8">
@@ -18,8 +21,10 @@ export function BadgeRewardModal({ open, onClose }: BadgeRewardModalProps) {
 
         <div className="relative w-48 h-48 mx-auto mb-8 perspective-1000">
           <motion.div
-            animate={{ rotateY: 360 }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+            animate={reducedMotion ? {} : { rotateY: 360 }}
+            transition={
+              reducedMotion ? { duration: 0 } : { duration: 3, repeat: Infinity, ease: 'linear' }
+            }
             className="w-full h-full preserve-3d"
           >
             <div className="absolute inset-0 backface-hidden flex items-center justify-center bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full shadow-2xl border-4 border-yellow-200">

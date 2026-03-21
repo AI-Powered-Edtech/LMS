@@ -8,7 +8,7 @@ function _makeQueryMock(resolveValue: { data: unknown; error: unknown }) {
     eq: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
     maybeSingle: vi.fn().mockResolvedValue(resolveValue),
-    then: undefined as any,
+    then: undefined as unknown,
   }
   // Allow direct resolution from the chain
   Object.defineProperty(mock, 'then', {

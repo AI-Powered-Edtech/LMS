@@ -189,7 +189,7 @@ export function SpeedGrader() {
   }, [currentStudentIdx])
 
   const saveCurrentStudent = (status: 'graded' | 'needs_revision' | 'ungraded' = 'graded') => {
-    updateGrade(currentStudent.id as any, assignmentId, totalScore, status, feedback)
+    updateGrade(currentStudent.id, assignmentId, totalScore, status, feedback)
     if (feedback.trim()) {
       addComment(assignmentId, feedback)
     }
@@ -215,7 +215,7 @@ export function SpeedGrader() {
     setSaveStatus('saving')
 
     // Update Gradebook Context
-    updateGrade(currentStudent.id as any, assignmentId, totalScore, status, feedback)
+    updateGrade(currentStudent.id, assignmentId, totalScore, status, feedback)
     if (feedback.trim()) {
       addComment(assignmentId, feedback)
     }
@@ -316,9 +316,11 @@ export function SpeedGrader() {
 
       setScores(newScores)
       setFeedback(aggregatedFeedback.trim())
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('AI Grading failed:', error)
-      alert(error.message || 'Gagal melakukan penilaian otomatis dengan AI.')
+      alert(
+        error instanceof Error ? error.message : 'Gagal melakukan penilaian otomatis dengan AI.'
+      )
     } finally {
       setIsAIGrading(false)
     }

@@ -55,8 +55,8 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
       const link = `${window.location.origin}/#/login?invite=${data.token}`
       setInviteLink(link)
       onSuccess?.()
-    } catch (err: any) {
-      setError(err.message || 'Gagal mengirim undangan.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Gagal mengirim undangan.')
     } finally {
       setLoading(false)
     }

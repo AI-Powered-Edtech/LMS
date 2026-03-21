@@ -62,7 +62,7 @@ export function AssignmentViewer({
           setSubmissionText(sub.submission_text || '')
           setMaxAttempt(sub.attempt_number || 1)
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error loading submission:', err)
       } finally {
         setIsLoading(false)
@@ -91,8 +91,8 @@ export function AssignmentViewer({
       setSubmission(result)
       setMaxAttempt(result.attempt_number || maxAttempt + 1)
       onCompletionMet()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setIsSubmitting(false)
     }

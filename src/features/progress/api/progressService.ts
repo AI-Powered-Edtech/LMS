@@ -52,26 +52,39 @@ export const progressService = {
         totalXP: data.total_xp,
         completedLessonsCount: data.completed_lessons_count,
         quizAttempts: data.quiz_attempts || [],
-        achievements: (data.achievements || []).map((a: any) => ({
-          id: a.id,
-          earned_at: a.earned_at,
-          badges: {
-            name: a.name,
-            icon: a.icon,
-          },
-        })),
-        courseProgress: (data.course_progress || []).map((cp: any) => ({
-          id: cp.id,
-          course_id: cp.course_id,
-          total_lessons: cp.total_lessons,
-          completed_lessons: cp.completed_lessons,
-          percentage: cp.percentage,
-          last_activity_type: cp.last_activity_type,
-          last_activity_at: cp.last_activity_at,
-          courses: {
-            title: cp.title,
-          },
-        })),
+        achievements: (data.achievements || []).map(
+          (a: { id: string; earned_at: string; name: string; icon: string }) => ({
+            id: a.id,
+            earned_at: a.earned_at,
+            badges: {
+              name: a.name,
+              icon: a.icon,
+            },
+          })
+        ),
+        courseProgress: (data.course_progress || []).map(
+          (cp: {
+            id: string
+            course_id: string
+            total_lessons: number
+            completed_lessons: number
+            percentage: number
+            last_activity_type: string
+            last_activity_at: string
+            title: string
+          }) => ({
+            id: cp.id,
+            course_id: cp.course_id,
+            total_lessons: cp.total_lessons,
+            completed_lessons: cp.completed_lessons,
+            percentage: cp.percentage,
+            last_activity_type: cp.last_activity_type,
+            last_activity_at: cp.last_activity_at,
+            courses: {
+              title: cp.title,
+            },
+          })
+        ),
       }
     } catch (error) {
       console.error('Error fetching student progress bundle:', error)

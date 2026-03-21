@@ -8,7 +8,20 @@ import { useAuth } from '@/src/contexts/AuthContext'
 export function ScanAttendance() {
   const { user, tenantId } = useAuth()
   const [isScanning, setIsScanning] = useState(false)
-  const [scanResult, setScanResult] = useState<any>(null)
+  const [scanResult, setScanResult] = useState<
+    | (Record<string, unknown> & {
+        total?: number
+        present: number
+        absent: number
+        late?: number
+        sick?: number
+        permit?: number
+        date?: string
+        class?: string
+        details: Array<{ name: string; status: string }>
+      })
+    | null
+  >(null)
   const [selectedClassId, setSelectedClassId] = useState<string>('')
   const [saving, setSaving] = useState(false)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
@@ -168,7 +181,7 @@ export function ScanAttendance() {
               <h3 className="text-lg font-bold text-green-900">Pemindaian Berhasil!</h3>
               <p className="text-green-800 mt-1">
                 Data absensi kelas {scanResult.class} untuk tanggal{' '}
-                {new Date(scanResult.date).toLocaleDateString('id-ID', {
+                {new Date(scanResult.date ?? '').toLocaleDateString('id-ID', {
                   weekday: 'long',
                   year: 'numeric',
                   month: 'long',
@@ -215,7 +228,7 @@ export function ScanAttendance() {
               </button>
             </div>
             <div className="divide-y divide-slate-100">
-              {scanResult.details.map((student: any, idx: number) => (
+              {scanResult.details.map((student, idx: number) => (
                 <div key={idx} className="p-4 flex items-center justify-between hover:bg-slate-50">
                   <span className="font-medium text-slate-900">{student.name}</span>
                   <span

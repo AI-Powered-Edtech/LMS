@@ -78,7 +78,7 @@ export const calendarService = {
 
         events.push({
           id: `schedule-${s.id}`,
-          title: (s as any).classes?.name ?? 'Class',
+          title: (s as unknown as { classes?: { name: string } }).classes?.name ?? 'Class',
           date: nextDate,
           time: s.start_time,
           endTime: s.end_time,

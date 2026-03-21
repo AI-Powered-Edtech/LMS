@@ -161,7 +161,7 @@ export const discussionService = {
   subscribe(
     contextId: string,
     contextType: 'announcement' | 'lesson' | 'course',
-    callback: (payload: any) => void
+    callback: (payload: unknown) => void
   ) {
     const filterColumn = `${contextType}_id`
 

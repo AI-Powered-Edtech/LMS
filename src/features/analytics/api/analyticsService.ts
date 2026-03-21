@@ -433,10 +433,10 @@ export const analyticsService = {
       p_course_id: courseId ?? null,
     })
     if (error) throw parseRpcError(error)
-    return ((data as any[]) ?? []).map((r: any) => ({
+    return ((data as Array<Record<string, unknown>>) ?? []).map((r) => ({
       ...r,
-      steps: Array.isArray(r.steps) ? r.steps : JSON.parse(r.steps),
-    }))
+      steps: Array.isArray(r.steps) ? r.steps : JSON.parse(r.steps as string),
+    })) as unknown as FunnelDefinition[]
   },
 
   async deleteFunnelDefinition(funnelId: string): Promise<void> {

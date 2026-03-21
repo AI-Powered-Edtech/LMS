@@ -1,6 +1,7 @@
 import { motion } from 'motion/react'
 import { Target, Loader2, Play } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
+import type { StudentQuizAssignment } from '@/src/features/quizzes'
 
 export function QuizCard({
   quiz,
@@ -9,16 +10,16 @@ export function QuizCard({
   onStart,
   isStarting,
 }: {
-  quiz: any
-  activeAttempt?: any
+  quiz: StudentQuizAssignment
+  activeAttempt?: { id: string } | null
   attemptsCount?: number
   onStart: () => void
   isStarting?: boolean
 }) {
-  const timeLimitMin = quiz.time_limit_minutes || 0
-  const maxAttempts = quiz.max_attempts
+  const timeLimitMin = quiz.time_limit_minutes ?? 0
+  const maxAttempts = quiz.max_attempts ?? 0
   const isAvailable = attemptsCount < maxAttempts || !maxAttempts
-  const availableUntil = quiz.due_at ? new Date(quiz.due_at) : null
+  const availableUntil = quiz.due_at != null ? new Date(quiz.due_at) : null
   const isExpired = availableUntil ? availableUntil < new Date() : false
 
   return (
@@ -82,7 +83,7 @@ export function QuizCard({
         )}
 
         <p className="text-sm text-slate-600 dark:text-slate-300 mb-6 line-clamp-2 flex-1">
-          {quiz.description}
+          {quiz.instructions}
         </p>
 
         {activeAttempt && (

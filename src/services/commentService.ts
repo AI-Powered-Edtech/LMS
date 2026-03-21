@@ -26,7 +26,7 @@ export const commentService = {
     return (data ?? []).map((d) => ({
       id: d.id,
       author:
-        `${(d as any).profiles?.first_name ?? ''} ${(d as any).profiles?.last_name ?? ''}`.trim() ||
+        `${(d as unknown as { profiles?: { first_name?: string; last_name?: string } }).profiles?.first_name ?? ''} ${(d as unknown as { profiles?: { first_name?: string; last_name?: string } }).profiles?.last_name ?? ''}`.trim() ||
         'Unknown',
       text: d.content,
       time: new Date(d.created_at).toLocaleString('id-ID'),

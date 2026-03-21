@@ -132,8 +132,8 @@ function CourseBrowser({
         }
 
         // 3. Fetch lesson progress (needs lesson IDs from modules)
-        const allLessonIds = (modulesData as any[]).flatMap((m: any) =>
-          (m.lessons || []).map((l: any) => l.id)
+        const allLessonIds = (modulesData as Array<{ lessons?: Array<{ id: string }> }>).flatMap(
+          (m) => (m.lessons || []).map((l) => l.id)
         )
 
         let completedSet = new Set<string>()
@@ -156,12 +156,26 @@ function CourseBrowser({
         let totalDur = 0
         let foundNextIncomplete = false
 
-        const modulesWithProgress: ModuleWithProgress[] = (modulesData as any[]).map((m: any) => {
+        interface ModuleRow {
+          id: string
+          title: string
+          order: number
+          lessons: Array<{
+            id: string
+            title: string
+            type: string
+            order: number
+            duration_minutes?: number
+          }>
+        }
+        const modulesWithProgress: ModuleWithProgress[] = (
+          modulesData as unknown as ModuleRow[]
+        ).map((m) => {
           const lessons = m.lessons || []
           const lessonCount = lessons.length
-          const completedCount = lessons.filter((l: any) => completedSet.has(l.id)).length
+          const completedCount = lessons.filter((l) => completedSet.has(l.id)).length
           const duration = lessons.reduce(
-            (sum: number, l: any) => sum + (l.duration_minutes || 5),
+            (sum: number, l: { duration_minutes?: number }) => sum + (l.duration_minutes || 5),
             0
           )
 

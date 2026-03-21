@@ -126,6 +126,6 @@ describe('assignmentService.submitAssignment', () => {
       }),
     })
     await assignmentService.submitAssignment(baseSubmission)
-    expect((capturedData as any).status).toBe('submitted')
+    expect((capturedData as Record<string, unknown>).status).toBe('submitted')
   })
 })

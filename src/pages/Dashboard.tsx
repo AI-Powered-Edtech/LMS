@@ -103,7 +103,9 @@ export function Dashboard() {
     : role === 'teacher'
       ? (profile?.first_name ?? 'Bapak/Ibu Guru')
       : (profile?.first_name ?? user?.user_metadata?.full_name?.split(' ')[0] ?? 'Siswa')
-  const activeCourses = Array.isArray(courses) ? courses : ((courses as any)?.courses ?? [])
+  const activeCourses = Array.isArray(courses)
+    ? courses
+    : ((courses as unknown as { courses?: unknown[] })?.courses ?? [])
   const announcementList: Announcement[] = Array.isArray(announcements) ? announcements : []
   const leaderboardList: LeaderboardEntry[] = Array.isArray(leaderboard) ? leaderboard : []
   const hasLeaderboardData = leaderboardList.length > 0
@@ -117,7 +119,7 @@ export function Dashboard() {
       setIsClaiming(false)
       import('canvas-confetti').then((m) => {
         const confetti = m.default || m
-        ;(confetti as any)({
+        ;(confetti as (opts: Record<string, unknown>) => void)({
           particleCount: 150,
           spread: 100,
           origin: { y: 0.5 },
@@ -279,8 +281,17 @@ export function Dashboard() {
               {pendingAssignments.map((task) => (
                 <div
                   key={task.id}
+                  role="button"
+                  tabIndex={0}
                   className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 hover:border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700/60 transition-colors group cursor-pointer"
                   onClick={() => navigate('/assignments')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      navigate('/assignments')
+                    }
+                  }}
+                  aria-label={`Tugas: ${task.title}`}
                 >
                   <div
                     className={cn(
@@ -363,59 +374,72 @@ export function Dashboard() {
               </div>
             ) : activeCourses.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {activeCourses.slice(0, 4).map((course: any) => (
-                  <motion.div key={course.id} whileHover={{ y: -4 }}>
-                    <Card hover onClick={() => navigate(`/courses/${course.id}`)}>
-                      <div className="aspect-video rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 mb-4 flex items-center justify-center overflow-hidden relative group/thumb">
-                        <BookOpen className="w-10 h-10 text-white/50" />
-                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent py-2 px-3 flex items-center justify-between opacity-0 group-hover/thumb:opacity-100 transition-opacity">
-                          <span className="text-white text-xs font-bold tracking-wide">
-                            Lanjutkan
-                          </span>
-                          <Play className="w-3.5 h-3.5 text-white" />
-                        </div>
-                      </div>
-                      <h3 className="font-bold text-slate-900 dark:text-white line-clamp-1 mb-1">
-                        {course.title}
-                      </h3>
-                      <div className="mt-2 mb-2">
-                        {(() => {
-                          const pct =
-                            typeof course.progress_pct === 'number'
-                              ? course.progress_pct
-                              : typeof course.progress === 'number'
-                                ? course.progress
-                                : 0
-                          const completed = course.completed_lessons ?? 0
-                          const total = course.total_lessons ?? 0
-                          return (
-                            <>
-                              <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
-                                <div
-                                  className="h-1.5 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-500"
-                                  style={{ width: `${Math.min(100, pct)}%` }}
-                                />
-                              </div>
-                              <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-1">
-                                {total > 0
-                                  ? `${completed}/${total} Pelajaran`
-                                  : pct > 0
-                                    ? `${pct}% Selesai`
-                                    : 'Mulai Belajar'}
-                              </p>
-                            </>
-                          )
-                        })()}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <Badge variant="success" size="sm">
-                          AKTIF
-                        </Badge>
-                        <ArrowRight className="w-4 h-4 text-slate-300" />
-                      </div>
-                    </Card>
-                  </motion.div>
-                ))}
+                {activeCourses
+                  .slice(0, 4)
+                  .map(
+                    (course: {
+                      id: string
+                      title?: string
+                      description?: string
+                      status?: string
+                      progress_pct?: number
+                      progress?: number
+                      completed_lessons?: number
+                      total_lessons?: number
+                    }) => (
+                      <motion.div key={course.id} whileHover={{ y: -4 }}>
+                        <Card hover onClick={() => navigate(`/courses/${course.id}`)}>
+                          <div className="aspect-video rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 mb-4 flex items-center justify-center overflow-hidden relative group/thumb">
+                            <BookOpen className="w-10 h-10 text-white/50" />
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent py-2 px-3 flex items-center justify-between opacity-0 group-hover/thumb:opacity-100 transition-opacity">
+                              <span className="text-white text-xs font-bold tracking-wide">
+                                Lanjutkan
+                              </span>
+                              <Play className="w-3.5 h-3.5 text-white" />
+                            </div>
+                          </div>
+                          <h3 className="font-bold text-slate-900 dark:text-white line-clamp-1 mb-1">
+                            {course.title}
+                          </h3>
+                          <div className="mt-2 mb-2">
+                            {(() => {
+                              const pct =
+                                typeof course.progress_pct === 'number'
+                                  ? course.progress_pct
+                                  : typeof course.progress === 'number'
+                                    ? course.progress
+                                    : 0
+                              const completed = course.completed_lessons ?? 0
+                              const total = course.total_lessons ?? 0
+                              return (
+                                <>
+                                  <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                                    <div
+                                      className="h-1.5 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-500"
+                                      style={{ width: `${Math.min(100, pct)}%` }}
+                                    />
+                                  </div>
+                                  <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-1">
+                                    {total > 0
+                                      ? `${completed}/${total} Pelajaran`
+                                      : pct > 0
+                                        ? `${pct}% Selesai`
+                                        : 'Mulai Belajar'}
+                                  </p>
+                                </>
+                              )
+                            })()}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Badge variant="success" size="sm">
+                              AKTIF
+                            </Badge>
+                            <ArrowRight className="w-4 h-4 text-slate-300" />
+                          </div>
+                        </Card>
+                      </motion.div>
+                    )
+                  )}
               </div>
             ) : (
               <Card>
@@ -459,6 +483,8 @@ export function Dashboard() {
                 {announcementList.map((ann) => (
                   <div
                     key={ann.id}
+                    role="button"
+                    tabIndex={0}
                     className={cn(
                       'p-4 rounded-2xl border transition-colors cursor-pointer',
                       ann.priority === 'high'
@@ -466,6 +492,13 @@ export function Dashboard() {
                         : 'border-slate-100 hover:bg-slate-50'
                     )}
                     onClick={() => navigate('/announcements')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        navigate('/announcements')
+                      }
+                    }}
+                    aria-label={`Pengumuman: ${ann.title}`}
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant={ann.priority === 'high' ? 'danger' : 'info'} size="sm">
@@ -529,6 +562,7 @@ export function Dashboard() {
               <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4 text-center">
                 <p className="text-sm text-red-600 dark:text-red-400">Gagal memuat leaderboard</p>
                 <button
+                  type="button"
                   onClick={() => refetchLeaderboard()}
                   className="mt-2 text-xs text-red-500 underline hover:no-underline"
                 >

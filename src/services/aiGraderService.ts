@@ -49,11 +49,11 @@ export const aiGraderService = {
       }
 
       return data as AIGradeResponse
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[AI Grader] Unexpected error:', err)
 
       // Re-throw the error with a friendly message to be handled by the UI
-      if (err.message && err.message !== 'Failed to fetch') {
+      if (err instanceof Error && err.message && err.message !== 'Failed to fetch') {
         throw err
       }
 

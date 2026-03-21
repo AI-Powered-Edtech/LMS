@@ -30,7 +30,20 @@ export function Creator() {
   const [difficulty, setDifficulty] = useState('C3')
   const [isGenerating, setIsGenerating] = useState(false)
   const [loadingText, setLoadingText] = useState('Mengekstrak teks...')
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<{
+    type?: string
+    summary?: string
+    questions: Array<{
+      id: string
+      question: string
+      text?: string
+      options?: Array<string | { id: string; text: string }>
+      correctAnswer?: string
+      answer?: string
+      explanation?: string
+      bloomLevel?: string
+    }>
+  } | null>(null)
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -111,9 +124,9 @@ export function Creator() {
       } else {
         throw new Error('Respons API tidak valid.')
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      setError(err.message || 'Terjadi kesalahan saat memproses materi.')
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat memproses materi.')
     } finally {
       setIsGenerating(false)
     }
@@ -133,7 +146,7 @@ export function Creator() {
       time: '23:59',
       type: 'quiz',
       location: 'Online',
-      description: result.summary.substring(0, 100) + '...',
+      description: (result.summary ?? '').substring(0, 100) + '...',
       priority: 'medium',
       completed: false,
       duration: 60,
@@ -405,7 +418,7 @@ export function Creator() {
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-4 pr-2">
-              {result.questions.map((q: any, i: number) => (
+              {result.questions.map((q, i: number) => (
                 <div
                   key={q.id}
                   className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 group"
@@ -421,17 +434,17 @@ export function Creator() {
                   </div>
                   {result.type === 'quiz' && q.options && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {q.options.map((opt: string, j: number) => (
+                      {q.options.map((opt, j: number) => (
                         <div
                           key={j}
                           className={cn(
                             'px-4 py-3 rounded-xl text-sm font-medium border',
-                            j === q.answer
+                            j === (q.answer as unknown as number)
                               ? 'bg-green-50 border-green-200 text-green-700'
                               : 'bg-slate-50 border-slate-200 text-slate-600'
                           )}
                         >
-                          {String.fromCharCode(65 + j)}. {opt}
+                          {String.fromCharCode(65 + j)}. {typeof opt === 'string' ? opt : opt.text}
                         </div>
                       ))}
                     </div>

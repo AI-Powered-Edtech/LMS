@@ -66,10 +66,16 @@ export function Grades() {
   const assignments: Assignment[] = useMemo(() => {
     if (submissionsData.length === 0) return DEFAULT_ASSIGNMENTS
     const equalWeight = Math.floor(100 / submissionsData.length)
-    return (submissionsData as any[]).map((s, i) => ({
+    return (
+      submissionsData as unknown as Array<{
+        id: string
+        score: number | null
+        assignments: { title: string; max_points?: number; classes?: { name?: string } | null }
+      }>
+    ).map((s, i) => ({
       id: s.id,
       title: s.assignments.title,
-      subject: (s.assignments.classes as any)?.name ?? 'Pelajaran',
+      subject: (s.assignments.classes as { name?: string } | null)?.name ?? 'Pelajaran',
       maxScore: s.assignments.max_points ?? 100,
       actualScore: s.score ?? null,
       weight:

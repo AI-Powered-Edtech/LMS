@@ -1,7 +1,14 @@
 import { CheckCircle, XCircle, Clock } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
+import type { QuizAttempt } from '@/src/features/quizzes'
 
-export function QuizAttemptCard({ attempt, onReview }: { attempt: any; onReview: () => void }) {
+export function QuizAttemptCard({
+  attempt,
+  onReview,
+}: {
+  attempt: QuizAttempt
+  onReview: () => void
+}) {
   const quizTitle = attempt.quizzes?.title || 'Kuis Tidak Diketahui'
   const passed = attempt.passed
   return (

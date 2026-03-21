@@ -30,8 +30,8 @@ export function JoinClassModal({ open, onClose, initialCode = '', onJoin }: Join
         setCode('')
         setSuccess(false)
       }, 2000)
-    } catch (err: any) {
-      setError(err.message || 'Gagal bergabung ke kelas')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Gagal bergabung ke kelas')
     } finally {
       setIsJoining(false)
     }

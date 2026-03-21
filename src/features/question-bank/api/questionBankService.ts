@@ -74,12 +74,14 @@ export const questionBankService = {
 
   async updateQuestion(payload: UpdateQuestionPayload) {
     // Prepare options with IDs if they exist
-    const formattedOptions = payload.options.map((opt: any) => ({
-      id: opt.id,
-      option_text: opt.option_text,
-      is_correct: opt.is_correct,
-      order_index: opt.order_index,
-    }))
+    const formattedOptions = payload.options.map(
+      (opt: { id?: string; option_text: string; is_correct: boolean; order_index: number }) => ({
+        id: opt.id,
+        option_text: opt.option_text,
+        is_correct: opt.is_correct,
+        order_index: opt.order_index,
+      })
+    )
 
     const { data, error } = await supabase.rpc('update_question', {
       p_question_id: payload.id,

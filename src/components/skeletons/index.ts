@@ -1,0 +1,7 @@
+export { DashboardSkeleton } from './DashboardSkeleton'
+export { CourseListSkeleton } from './CourseListSkeleton'
+export { CourseDetailSkeleton } from './CourseDetailSkeleton'
+export { SmartPlayerSkeleton } from './SmartPlayerSkeleton'
+export { QuizSkeleton } from './QuizSkeleton'
+export { LeaderboardSkeleton } from './LeaderboardSkeleton'
+export { ProfileSkeleton } from './ProfileSkeleton'

@@ -364,7 +364,11 @@ function PostItem({
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start mb-3">
             <div className="flex items-center gap-3">
-              <img src={post.avatar} alt="" className="w-10 h-10 rounded-full bg-slate-100" />
+              <img
+                src={post.avatar}
+                alt={`Foto profil ${post.author}`}
+                className="w-10 h-10 rounded-full bg-slate-100"
+              />
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-1">
                   <span className="font-bold text-slate-900">{post.author}</span>
@@ -569,7 +573,7 @@ export function Forum() {
         is_pinned: false,
         is_edited: false,
         is_deleted: false,
-      } as any)
+      })
     },
     onSuccess: (data, vars) => {
       const isAiSuspect =

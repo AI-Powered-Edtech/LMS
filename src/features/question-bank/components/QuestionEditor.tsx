@@ -113,7 +113,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
     }))
   }
 
-  const handleUpdateOption = (index: number, field: string, value: any) => {
+  const handleUpdateOption = (index: number, field: string, value: string | boolean) => {
     const newOptions = [...formData.options]
     newOptions[index] = { ...newOptions[index], [field]: value }
     setFormData((prev) => ({ ...prev, options: newOptions }))

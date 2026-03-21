@@ -179,17 +179,28 @@ export const administrationService = {
         // Filter out rows where the modules join returned null
         // (can happen if modules table has no matching row for the tenant).
         return tenantModules
-          .filter((tm: any) => tm.modules != null)
-          .map((tm: any) => ({
-            id: tm.id,
-            moduleId: tm.modules.id,
-            slug: tm.modules.slug,
-            name: tm.modules.name,
-            description: tm.modules.description || '',
-            isEnabled: tm.is_enabled,
-            isCore: tm.modules.is_core,
-            targetRoles: getTargetRolesForModule(tm.modules.slug),
-          }))
+          .filter((tm) => tm.modules != null)
+          .map((tm) => {
+            const mod = Array.isArray(tm.modules)
+              ? tm.modules[0]
+              : (tm.modules as unknown as {
+                  id: string
+                  slug: string
+                  name: string
+                  description?: string
+                  is_core: boolean
+                })
+            return {
+              id: tm.id,
+              moduleId: mod.id,
+              slug: mod.slug,
+              name: mod.name,
+              description: mod.description || '',
+              isEnabled: tm.is_enabled,
+              isCore: mod.is_core,
+              targetRoles: getTargetRolesForModule(mod.slug),
+            }
+          })
       }
 
       // If no tenant_modules exist, return empty array
@@ -244,19 +255,26 @@ export const administrationService = {
       }
 
       if (data && data.length > 0) {
-        return data.map((log: any) => ({
-          id: log.id,
-          type: log.action || 'External Sync',
-          status:
-            log.metadata?.status === 'error'
-              ? 'error'
-              : log.metadata?.status === 'warning'
-                ? 'warning'
-                : 'success',
-          lastSync: log.created_at,
-          records: log.metadata?.records || 0,
-          errorMessage: log.metadata?.error,
-        }))
+        return data.map(
+          (log: {
+            id: string
+            action: string | null
+            metadata: Record<string, unknown> | null
+            created_at: string
+          }) => ({
+            id: log.id,
+            type: log.action || 'External Sync',
+            status:
+              log.metadata?.status === 'error'
+                ? 'error'
+                : log.metadata?.status === 'warning'
+                  ? 'warning'
+                  : 'success',
+            lastSync: log.created_at,
+            records: (log.metadata?.records as number) || 0,
+            errorMessage: log.metadata?.error as string | undefined,
+          })
+        )
       }
 
       return []

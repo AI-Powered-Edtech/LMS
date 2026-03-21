@@ -42,7 +42,7 @@ export function useTenantQuery() {
    * The auto_set_tenant_id trigger also provides a DB-level fallback.
    */
   const tenantInsert = useCallback(
-    async (table: string, data: Record<string, any>) => {
+    async (table: string, data: Record<string, unknown>) => {
       const record = tenantId ? { ...data, tenant_id: tenantId } : data
       return supabase.from(table).insert(record)
     },

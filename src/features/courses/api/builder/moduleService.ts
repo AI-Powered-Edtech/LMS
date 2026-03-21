@@ -30,7 +30,7 @@ export const builderModuleService = {
   },
 
   async updateModule(moduleId: string, tenantId: string, data: { title?: string }): Promise<void> {
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     if (data.title !== undefined) updateData.title = data.title
 
     const { error } = await supabase

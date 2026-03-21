@@ -143,7 +143,7 @@ export function PPDBDashboard() {
             {['all', 'pending', 'accepted', 'rejected'].map((status) => (
               <button
                 key={status}
-                onClick={() => setFilterStatus(status as any)}
+                onClick={() => setFilterStatus(status as typeof filterStatus)}
                 className={cn(
                   'px-4 py-2 rounded-xl text-sm font-bold capitalize transition-colors whitespace-nowrap',
                   filterStatus === status

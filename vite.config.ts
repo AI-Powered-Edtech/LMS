@@ -1,12 +1,75 @@
-import tailwindcss from '@tailwindcss/vite';
-import react from '@vitejs/plugin-react';
-import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
+import tailwindcss from '@tailwindcss/vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+import { defineConfig, loadEnv } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, '.', '');
+  const env = loadEnv(mode, '.', '')
+  const isAnalyze = env.ANALYZE === 'true'
+
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['icons/favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png'],
+        manifest: {
+          name: 'EduSync LMS',
+          short_name: 'EduSync',
+          description: 'Sistem Manajemen Pembelajaran untuk sekolah Indonesia',
+          theme_color: '#2563eb',
+          background_color: '#ffffff',
+          display: 'standalone',
+          start_url: '/',
+          icons: [
+            { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+            { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+            {
+              src: '/icons/icon-512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable',
+            },
+          ],
+        },
+        workbox: {
+          navigateFallback: '/offline.html',
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'supabase-api',
+                networkTimeoutSeconds: 5,
+                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 },
+              },
+            },
+            {
+              urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'images',
+                expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              },
+            },
+            {
+              urlPattern: /\.(?:woff2?|ttf|eot)$/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'fonts',
+                expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              },
+            },
+          ],
+        },
+      }),
+      ...(isAnalyze
+        ? [visualizer({ open: true, filename: 'stats.html', gzipSize: true, brotliSize: true })]
+        : []),
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
@@ -21,21 +84,14 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks: {
-            // React core
             'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-            // Supabase client
             'vendor-supabase': ['@supabase/supabase-js'],
-            // Charts (only pulled in by analytics routes)
             'vendor-recharts': ['recharts'],
-            // Heavy PDF/export tools
-            'vendor-pdf': ['jspdf', 'html2canvas'],
-            // Math rendering
             'vendor-katex': ['katex'],
-            // Query management
             'vendor-query': ['@tanstack/react-query'],
           },
         },
       },
     },
-  };
-});
+  }
+})

@@ -23,9 +23,9 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
     try {
       const data = await quizService.getAssignmentsByQuiz(quizId, tenantId)
       setAssignments(data)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load assignments:', err)
-      setError(err.message || 'Gagal memuat status assignment')
+      setError(err instanceof Error ? err.message : 'Gagal memuat status assignment')
     } finally {
       setIsLoading(false)
     }
@@ -47,8 +47,8 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
     try {
       await quizService.removeQuizAssignment(assignmentId, tenantId)
       setAssignments((prev) => prev.filter((a) => a.id !== assignmentId))
-    } catch (err: any) {
-      alert('Gagal menghapus assignment: ' + err.message)
+    } catch (err: unknown) {
+      alert('Gagal menghapus assignment: ' + (err instanceof Error ? err.message : 'Unknown error'))
     }
   }
 
@@ -126,7 +126,8 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
               >
                 <div>
                   <h4 className="font-bold text-slate-800 flex items-center gap-2">
-                    {(assignment as any).classes?.name || 'Kelas Tidak Diketahui'}
+                    {(assignment as unknown as { classes?: { name: string } }).classes?.name ||
+                      'Kelas Tidak Diketahui'}
                     <span
                       className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${statusColors[displayStatus as keyof typeof statusColors]}`}
                     >

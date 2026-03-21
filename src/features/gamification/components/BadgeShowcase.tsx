@@ -5,21 +5,30 @@ import { useStudentBadges } from '../queries/gamificationQueries'
 import { RARITY_CONFIG } from '../types'
 import type { BadgeDefinition, BadgeRarity } from '../types'
 import { SkeletonCard } from '@/src/components/ui'
+import { useReducedMotion } from '@/src/hooks/useReducedMotion'
 
 interface BadgeShowcaseProps {
   compact?: boolean
 }
 
-function BadgeCard({ badge, compact }: { badge: BadgeDefinition; compact?: boolean }) {
+function BadgeCard({
+  badge,
+  compact,
+  reducedMotion,
+}: {
+  badge: BadgeDefinition
+  compact?: boolean
+  reducedMotion?: boolean
+}) {
   const rarity = RARITY_CONFIG[badge.rarity as BadgeRarity] ?? RARITY_CONFIG.common
   const isEarned = badge.is_earned
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.85 }}
+      initial={reducedMotion ? false : { opacity: 0, scale: 0.85 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3 }}
-      whileHover={{ scale: isEarned ? 1.07 : 1.02 }}
+      transition={reducedMotion ? { duration: 0 } : { duration: 0.3 }}
+      whileHover={reducedMotion ? undefined : { scale: isEarned ? 1.07 : 1.02 }}
       className={cn(
         'relative flex flex-col items-center gap-2 rounded-xl border-2 p-3 text-center transition-shadow cursor-default select-none',
         rarity.border,
@@ -130,6 +139,7 @@ function criteriaHint(badge: BadgeDefinition): string {
 
 export function BadgeShowcase({ compact }: BadgeShowcaseProps) {
   const { data: badges, isLoading } = useStudentBadges()
+  const reducedMotion = useReducedMotion()
 
   if (isLoading) return <SkeletonCard lines={2} />
 
@@ -151,10 +161,10 @@ export function BadgeShowcase({ compact }: BadgeShowcaseProps) {
     return (
       <div className="grid gap-3 grid-cols-4 sm:grid-cols-6">
         {earned.map((b) => (
-          <BadgeCard key={b.badge_id} badge={b} compact />
+          <BadgeCard key={b.badge_id} badge={b} compact reducedMotion={reducedMotion} />
         ))}
         {locked.map((b) => (
-          <BadgeCard key={b.badge_id} badge={b} compact />
+          <BadgeCard key={b.badge_id} badge={b} compact reducedMotion={reducedMotion} />
         ))}
       </div>
     )
@@ -169,7 +179,7 @@ export function BadgeShowcase({ compact }: BadgeShowcaseProps) {
           </p>
           <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
             {earned.map((b) => (
-              <BadgeCard key={b.badge_id} badge={b} />
+              <BadgeCard key={b.badge_id} badge={b} reducedMotion={reducedMotion} />
             ))}
           </div>
         </div>
@@ -182,7 +192,7 @@ export function BadgeShowcase({ compact }: BadgeShowcaseProps) {
           </p>
           <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
             {locked.map((b) => (
-              <BadgeCard key={b.badge_id} badge={b} />
+              <BadgeCard key={b.badge_id} badge={b} reducedMotion={reducedMotion} />
             ))}
           </div>
         </div>

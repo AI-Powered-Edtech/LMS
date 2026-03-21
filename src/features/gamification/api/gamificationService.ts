@@ -115,7 +115,7 @@ export const gamificationService = {
       p_course_id: courseId,
     })
     if (error) throw error
-    return (data as any)?.[0] ?? data
+    return (data as unknown as unknown[])?.[0] ?? data
   },
 
   /** Create/update a badge definition (teacher) */

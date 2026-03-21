@@ -96,7 +96,10 @@ export function useAssignments() {
               (s): StudentSubmission => ({
                 id: s.id,
                 studentName:
-                  (s as any).user_profiles?.full_name || user?.user_metadata?.full_name || 'Siswa',
+                  (s as unknown as { user_profiles?: { full_name: string } }).user_profiles
+                    ?.full_name ||
+                  user?.user_metadata?.full_name ||
+                  'Siswa',
                 status: s.status as StudentSubmission['status'],
                 submittedAt: s.submitted_at,
                 grade: s.score,

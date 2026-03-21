@@ -1,0 +1,27 @@
+{
+  "budgets": [
+    {
+      "name": "main",
+      "pattern": "index-*.js",
+      "maxSize": "500kB",
+      "note": "Main app chunk (largest index-*.js). Current ~485kB."
+    },
+    {
+      "name": "vendor-react",
+      "pattern": "vendor-react-*.js",
+      "maxSize": "150kB",
+      "note": "React + React-DOM. Current ~40kB."
+    },
+    {
+      "name": "vendor-supabase",
+      "pattern": "vendor-supabase-*.js",
+      "maxSize": "200kB",
+      "note": "Supabase client. Current ~171kB."
+    },
+    {
+      "name": "total-initial",
+      "maxSize": "700kB",
+      "note": "Sum of main + vendor-react + vendor-supabase. Current ~698kB."
+    }
+  ]
+}

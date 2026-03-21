@@ -46,8 +46,8 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
             due_date: data.due_date ? new Date(data.due_date).toISOString().split('T')[0] : null,
           })
         }
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Unknown error')
       } finally {
         setIsLoading(false)
       }
@@ -72,8 +72,8 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
       )
       setSavedAssignmentId(result.id)
       setAssignmentData((prev) => ({ ...prev, id: result.id }))
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setIsSaving(false)
     }

@@ -41,7 +41,7 @@ export const builderBlockService = {
   },
 
   async updateBlock(blockId: string, tenantId: string, data: Partial<DomainBlock>): Promise<void> {
-    const dbUpdate: any = {}
+    const dbUpdate: Record<string, unknown> = {}
     if (data.title !== undefined) dbUpdate.title = data.title
     if (data.url !== undefined) dbUpdate.url = data.url
     if (data.content !== undefined) dbUpdate.content = data.content

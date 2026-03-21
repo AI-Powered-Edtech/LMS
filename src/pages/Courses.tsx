@@ -65,9 +65,9 @@ export const Courses: React.FC = () => {
         limit: 50,
       })
       setCourses(fetchedCourses)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load courses:', err)
-      setError(err.message || 'Gagal memuat daftar materi.')
+      setError(err instanceof Error ? err.message : 'Gagal memuat daftar materi.')
     } finally {
       setLoading(false)
     }
@@ -88,9 +88,9 @@ export const Courses: React.FC = () => {
 
       setIsModalOpen(false)
       navigate(`/teaching/course-builder?courseId=${newCourse.id}`)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to create course:', err)
-      alert(err.message || 'Gagal membuat materi baru.')
+      alert(err instanceof Error ? err.message : 'Gagal membuat materi baru.')
     } finally {
       setIsCreating(false)
     }
@@ -311,7 +311,10 @@ interface CourseCardProps {
 }
 
 function CourseCard({ course, idx, gradientClass, onNavigate, onAssign }: CourseCardProps) {
-  const moduleCount = (course as any).modules?.length ?? (course as any).module_count ?? null
+  const moduleCount =
+    (course as Course & { modules?: unknown[]; module_count?: number }).modules?.length ??
+    (course as Course & { module_count?: number }).module_count ??
+    null
 
   return (
     <motion.div
@@ -360,7 +363,7 @@ function CourseCard({ course, idx, gradientClass, onNavigate, onAssign }: Course
         {/* Assigned classes tags */}
         {course.assigned_classes && course.assigned_classes.length > 0 && (
           <div className="mb-4 flex flex-wrap gap-1.5">
-            {course.assigned_classes.map((ac: any) => (
+            {course.assigned_classes.map((ac) => (
               <span
                 key={ac.class_id}
                 className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800"

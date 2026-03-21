@@ -231,6 +231,7 @@ export function Login() {
                   : 'Administrator akan mengaktifkan akses Anda.'}
               </p>
               <button
+                type="button"
                 onClick={() => {
                   setStep(1)
                   setMode('login')
@@ -245,7 +246,9 @@ export function Login() {
               {/* Tabs */}
               <div className="flex bg-white/5 rounded-xl p-1 mb-6">
                 <button
+                  type="button"
                   onClick={() => switchMode('login')}
+                  aria-pressed={mode === 'login'}
                   className={cn(
                     'flex-1 py-2 rounded-lg text-sm font-semibold transition-all',
                     mode === 'login'
@@ -256,7 +259,9 @@ export function Login() {
                   Masuk
                 </button>
                 <button
+                  type="button"
                   onClick={() => switchMode('register')}
+                  aria-pressed={mode === 'register'}
                   className={cn(
                     'flex-1 py-2 rounded-lg text-sm font-semibold transition-all',
                     mode === 'register'
@@ -336,32 +341,48 @@ export function Login() {
               {mode === 'login' && (
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div>
-                    <label className="block text-white/60 text-xs font-medium mb-1.5">Email</label>
+                    <label
+                      htmlFor="login-email"
+                      className="block text-white/60 text-xs font-medium mb-1.5"
+                    >
+                      Email
+                    </label>
                     <input
+                      id="login-email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="kamu@email.com"
                       required
+                      aria-describedby={error ? 'login-error' : undefined}
                       className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-white/60 text-xs font-medium mb-1.5">
+                    <label
+                      htmlFor="login-password"
+                      className="block text-white/60 text-xs font-medium mb-1.5"
+                    >
                       Password
                     </label>
                     <input
+                      id="login-password"
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
                       required
                       minLength={6}
+                      aria-describedby={error ? 'login-error' : undefined}
                       className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
                     />
                   </div>
                   {error && (
-                    <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                    <p
+                      id="login-error"
+                      role="alert"
+                      className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3"
+                    >
                       {error}
                     </p>
                   )}
@@ -380,10 +401,14 @@ export function Login() {
                 <form onSubmit={handleRegisterStep1} className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-white/60 text-xs font-medium mb-1.5">
+                      <label
+                        htmlFor="reg-first-name"
+                        className="block text-white/60 text-xs font-medium mb-1.5"
+                      >
                         Nama Depan
                       </label>
                       <input
+                        id="reg-first-name"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         placeholder="Budi"
@@ -392,10 +417,14 @@ export function Login() {
                       />
                     </div>
                     <div>
-                      <label className="block text-white/60 text-xs font-medium mb-1.5">
+                      <label
+                        htmlFor="reg-last-name"
+                        className="block text-white/60 text-xs font-medium mb-1.5"
+                      >
                         Nama Belakang
                       </label>
                       <input
+                        id="reg-last-name"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         placeholder="Santoso"
@@ -405,8 +434,14 @@ export function Login() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-white/60 text-xs font-medium mb-1.5">Email</label>
+                    <label
+                      htmlFor="reg-email"
+                      className="block text-white/60 text-xs font-medium mb-1.5"
+                    >
+                      Email
+                    </label>
                     <input
+                      id="reg-email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -417,10 +452,14 @@ export function Login() {
                     />
                   </div>
                   <div>
-                    <label className="block text-white/60 text-xs font-medium mb-1.5">
+                    <label
+                      htmlFor="reg-password"
+                      className="block text-white/60 text-xs font-medium mb-1.5"
+                    >
                       Password
                     </label>
                     <input
+                      id="reg-password"
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -431,7 +470,10 @@ export function Login() {
                     />
                   </div>
                   {error && (
-                    <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                    <p
+                      role="alert"
+                      className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3"
+                    >
                       {error}
                     </p>
                   )}
@@ -453,10 +495,14 @@ export function Login() {
               {mode === 'register' && step === 2 && (
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-white/60 text-xs font-medium mb-1.5">
+                    <label
+                      htmlFor="reg-join-code"
+                      className="block text-white/60 text-xs font-medium mb-1.5"
+                    >
                       Kode Kelas dari Guru / Tutor
                     </label>
                     <input
+                      id="reg-join-code"
                       value={joinCode}
                       onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                       placeholder="Contoh: ABC123"
@@ -491,19 +537,24 @@ export function Login() {
                   </p>
 
                   {error && (
-                    <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                    <p
+                      role="alert"
+                      className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3"
+                    >
                       {error}
                     </p>
                   )}
 
                   <div className="flex gap-3">
                     <button
+                      type="button"
                       onClick={() => setStep(1)}
                       className="flex-1 bg-white/5 hover:bg-white/10 text-white/60 rounded-xl py-3 font-semibold transition-colors text-sm"
                     >
                       Kembali
                     </button>
                     <button
+                      type="button"
                       onClick={handleRegisterSubmit}
                       disabled={submitting}
                       className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 font-semibold transition-colors text-sm"

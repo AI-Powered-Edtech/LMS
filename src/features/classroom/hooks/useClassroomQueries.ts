@@ -26,7 +26,12 @@ function useClassroomsQuery() {
 
   const query = useQuery<Classroom[]>({
     queryKey: [...classroomKeys.all(tenantId!), user?.id, role],
-    queryFn: () => classroomService.fetchClassrooms(user!.id, role as any, tenantId!),
+    queryFn: () =>
+      classroomService.fetchClassrooms(
+        user!.id,
+        role as 'student' | 'teacher' | 'admin',
+        tenantId!
+      ),
     enabled: !!user && !!tenantId,
   })
 

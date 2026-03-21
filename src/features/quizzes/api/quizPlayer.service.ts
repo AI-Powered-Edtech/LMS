@@ -176,7 +176,7 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
 
     // Normalize quiz_options for the UI
     const normalizedOptions = (question?.quiz_options || []).map(
-      (option: any, optionIndex: number) => ({
+      (option: { id: string; text: string; order?: number }, optionIndex: number) => ({
         id: option.id,
         text: option.text,
         order: option.order || optionIndex,
@@ -310,14 +310,17 @@ export async function getStudentQuizAssignments(
 
   if (error) throw error
 
-  return (data || []).map((assignment: any) => {
-    const quiz = assignment.quizzes || {}
+  return (data || []).map((assignment) => {
+    const quizArr = assignment.quizzes as unknown
+    const quiz = ((Array.isArray(quizArr) ? quizArr[0] : quizArr) as Record<string, unknown>) || {}
+    const classArr = assignment.classes as unknown
+    const cls = (Array.isArray(classArr) ? classArr[0] : classArr) as { name?: string } | null
     return {
       id: assignment.id,
       assignment_id: assignment.id,
       quiz_id: assignment.quiz_id,
       class_id: assignment.class_id,
-      class_name: assignment.classes?.name || 'Kelas',
+      class_name: cls?.name || 'Kelas',
       title: quiz.title || 'Kuis',
       instructions: quiz.instructions || null,
       mode: quiz.mode || 'graded',
@@ -325,14 +328,17 @@ export async function getStudentQuizAssignments(
       available_from: assignment.available_from ?? quiz.available_from ?? null,
       due_at: assignment.due_at ?? quiz.available_until ?? null,
       time_limit_minutes: quiz.time_limit_minutes ?? null,
-      max_attempts: assignment.max_attempts ?? quiz.max_attempts ?? null,
+      max_attempts:
+        (assignment as unknown as { max_attempts?: number }).max_attempts ??
+        quiz.max_attempts ??
+        null,
       passing_score: quiz.passing_score ?? null,
       show_correct_answers: quiz.show_correct_answers ?? false,
       quiz_questions: quiz.quiz_questions || [],
       quizzes: quiz,
-      classes: assignment.classes,
+      classes: cls,
     }
-  })
+  }) as unknown as StudentQuizAssignment[]
 }
 
 /**

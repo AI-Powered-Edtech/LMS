@@ -74,8 +74,8 @@ export function AttemptDetailModal({
         }
         setGradingScores(scores)
         setGradingComments(comments)
-      } catch (err: any) {
-        setError(err.message || 'Gagal memuat detail jawaban')
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Gagal memuat detail jawaban')
       } finally {
         setIsLoading(false)
       }
@@ -149,12 +149,12 @@ export function AttemptDetailModal({
           return next
         })
       }, 3000)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setGradingToast((prev) => ({
         ...prev,
         [answer.question_id]: {
           type: 'error',
-          message: err.message || 'Gagal menyimpan nilai',
+          message: err instanceof Error ? err.message : 'Gagal menyimpan nilai',
         },
       }))
     } finally {

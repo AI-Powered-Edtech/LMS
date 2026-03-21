@@ -112,11 +112,11 @@ export async function askTutor(
     }
 
     return { data: data as import('../types').AITutorResponse }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[AI Tutor] Unexpected error:', err)
 
     // Handle network errors
-    if (err.name === 'TypeError' && err.message.includes('fetch')) {
+    if (err instanceof TypeError && err.message.includes('fetch')) {
       return {
         error: {
           message: 'Koneksi terputus. Periksa internet Anda.',

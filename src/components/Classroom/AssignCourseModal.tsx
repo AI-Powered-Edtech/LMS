@@ -44,7 +44,7 @@ export function AssignCourseModal({
       // Fetch currently assigned classes for this course
       const currentAssignments = await classroomService.fetchAssignedClassesForCourse(courseId)
       setAssignedClassIds(currentAssignments)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load classes for assignment:', err)
       setError('Gagal memuat daftar kelas.')
     } finally {
@@ -67,7 +67,7 @@ export function AssignCourseModal({
         await classroomService.assignCourseToClass(courseId, classId, tenantId)
         setAssignedClassIds((prev) => [...prev, classId])
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to toggle class assignment:', err)
       alert('Gagal memperbarui penugasan kelas.')
     } finally {

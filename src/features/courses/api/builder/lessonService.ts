@@ -41,7 +41,7 @@ export const builderLessonService = {
     data: Partial<DomainLesson>
   ): Promise<void> {
     // Map Domain model fields back to database columns if needed
-    const dbUpdate: any = {}
+    const dbUpdate: Record<string, unknown> = {}
     if (data.title !== undefined) dbUpdate.title = data.title
     if (data.isPublished !== undefined) dbUpdate.is_published = data.isPublished
     if (data.durationMinutes !== undefined) dbUpdate.duration_minutes = data.durationMinutes

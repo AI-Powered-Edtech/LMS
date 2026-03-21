@@ -113,15 +113,28 @@ export const lessonService = {
     })
 
     if (!rpcError && rpcData?.lesson) {
-      const snap = rpcData as any
+      interface RpcSnapshot {
+        lesson: Record<string, unknown>
+        course_id: string
+        resources: unknown[]
+        quizzes: Array<
+          Record<string, unknown> & { questions?: unknown[]; quiz_questions?: unknown[] }
+        >
+        assignments: unknown[]
+      }
+      const snap = rpcData as RpcSnapshot
       return {
         ...snap.lesson,
         course_id: snap.course_id,
         lesson_resources: snap.resources ?? [],
         // RPC returns questions/options keys; remap to quiz_questions/quiz_options
-        quizzes: (snap.quizzes ?? []).map((q: any) => ({
+        quizzes: (snap.quizzes ?? []).map((q) => ({
           ...q,
-          quiz_questions: (q.questions ?? q.quiz_questions ?? []).map((qq: any) => ({
+          quiz_questions: (
+            (q.questions ?? q.quiz_questions ?? []) as Array<
+              Record<string, unknown> & { options?: unknown[]; quiz_options?: unknown[] }
+            >
+          ).map((qq) => ({
             ...qq,
             quiz_options: qq.options ?? qq.quiz_options ?? [],
           })),
@@ -341,8 +354,9 @@ export const lessonService = {
    * Prevents race conditions by using a sequential loop and a memory-level lock.
    */
   async processOfflineQueue(tenantId: string): Promise<void> {
-    if ((this as any)._isProcessingOfflineQueue) return
-    ;(this as any)._isProcessingOfflineQueue = true
+    if ((this as unknown as { _isProcessingOfflineQueue?: boolean })._isProcessingOfflineQueue)
+      return
+    ;(this as unknown as { _isProcessingOfflineQueue?: boolean })._isProcessingOfflineQueue = true
 
     try {
       let queue: ProgressQueueItem[] = await loadSecureQueue()
@@ -372,7 +386,8 @@ export const lessonService = {
         localStorage.removeItem(QUEUE_KEY)
       }
     } finally {
-      ;(this as any)._isProcessingOfflineQueue = false
+      ;(this as unknown as { _isProcessingOfflineQueue?: boolean })._isProcessingOfflineQueue =
+        false
     }
   },
 

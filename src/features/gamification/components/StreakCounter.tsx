@@ -4,6 +4,7 @@ import { Flame } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
 import { useStudentXPProfile } from '../queries/gamificationQueries'
 import { calculateStreak } from '@/src/utils/clientCompute'
+import { useReducedMotion } from '@/src/hooks/useReducedMotion'
 
 interface StreakCounterProps {
   compact?: boolean
@@ -11,6 +12,8 @@ interface StreakCounterProps {
 
 export function StreakCounter({ compact }: StreakCounterProps) {
   const { data: profile } = useStudentXPProfile()
+
+  const reducedMotion = useReducedMotion()
 
   // Optimistic streak: if server streak is 0 but user has XP activity today,
   // the 30-min cron may not have run yet — compute locally from recent_xp timestamps
@@ -51,13 +54,15 @@ export function StreakCounter({ compact }: StreakCounterProps) {
     <div className="flex items-center gap-3">
       <motion.div
         animate={
-          isActive
+          isActive && !reducedMotion
             ? {
                 scale: [1, 1.1, 1],
               }
             : {}
         }
-        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+        transition={
+          reducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity, ease: 'easeInOut' }
+        }
         className={cn(
           'flex items-center justify-center rounded-xl p-2.5',
           isActive ? 'bg-orange-100 dark:bg-orange-900/30' : 'bg-slate-100 dark:bg-slate-800'

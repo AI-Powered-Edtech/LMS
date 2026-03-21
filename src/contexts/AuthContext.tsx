@@ -172,29 +172,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('user_id', userId)
 
       if (rolesData) {
-        const userRoles = rolesData.map((r: any) => r.role.toLowerCase() as Role)
+        const userRoles = rolesData.map(
+          (r: {
+            role: string
+            tenant_id: string
+            tenants?:
+              | { id: string; name: string; slug: string; is_active: boolean }
+              | { id: string; name: string; slug: string; is_active: boolean }[]
+          }) => r.role.toLowerCase() as Role
+        )
         setRoles(userRoles)
 
         const loadedMemberships: TenantMembership[] = []
         const tenantsMap: Record<string, Tenant> = {}
 
-        rolesData.forEach((r: any) => {
-          if (r.tenants) {
-            const t = Array.isArray(r.tenants) ? r.tenants[0] : r.tenants
-            loadedMemberships.push({
-              tenant_id: r.tenant_id,
-              tenant_name: t.name,
-              tenant_logo: null,
-              role: r.role.toLowerCase() as Role,
-            })
-            tenantsMap[t.id] = {
-              id: t.id,
-              name: t.name,
-              slug: t.slug,
-              is_active: t.is_active,
+        rolesData.forEach(
+          (r: {
+            role: string
+            tenant_id: string
+            tenants?:
+              | { id: string; name: string; slug: string; is_active: boolean }
+              | { id: string; name: string; slug: string; is_active: boolean }[]
+          }) => {
+            if (r.tenants) {
+              const t = Array.isArray(r.tenants) ? r.tenants[0] : r.tenants
+              loadedMemberships.push({
+                tenant_id: r.tenant_id,
+                tenant_name: t.name,
+                tenant_logo: null,
+                role: r.role.toLowerCase() as Role,
+              })
+              tenantsMap[t.id] = {
+                id: t.id,
+                name: t.name,
+                slug: t.slug,
+                is_active: t.is_active,
+              }
             }
           }
-        })
+        )
 
         setMemberships(loadedMemberships)
         setRawTenants(tenantsMap)

@@ -138,7 +138,7 @@ export function FinanceDashboard() {
         ].map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id as typeof activeTab)}
             className={cn(
               'flex items-center gap-2 px-6 py-4 font-medium text-sm transition-colors relative whitespace-nowrap',
               activeTab === tab.id ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'

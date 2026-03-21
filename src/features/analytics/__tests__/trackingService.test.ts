@@ -20,7 +20,7 @@ describe('trackLearningEvent', () => {
   it('is callable without throwing', () => {
     expect(() => {
       trackLearningEvent({
-        eventType: 'LESSON_COMPLETED' as any,
+        eventType: 'LESSON_COMPLETED',
         sessionId: 'session-1',
         courseId: 'course-1',
         lessonId: 'lesson-1',
@@ -31,7 +31,7 @@ describe('trackLearningEvent', () => {
   it('accepts optional metadata', () => {
     expect(() => {
       trackLearningEvent({
-        eventType: 'QUIZ_COMPLETED' as any,
+        eventType: 'QUIZ_SUBMITTED',
         sessionId: 'session-1',
         metadata: { score: 90 },
       })

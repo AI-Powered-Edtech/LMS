@@ -23,8 +23,8 @@ export function VerifyEmail() {
       } else {
         setResent(true)
       }
-    } catch (err: any) {
-      setError(err.message || 'Gagal mengirim ulang email verifikasi.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Gagal mengirim ulang email verifikasi.')
     } finally {
       setResending(false)
     }

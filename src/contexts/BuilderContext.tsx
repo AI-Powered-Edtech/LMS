@@ -300,10 +300,10 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'SET_COURSE_STATUS', status: 'published' })
       dispatch({ type: 'SET_SAVING', status: 'saved' })
       toast('Kursus berhasil dipublish', 'success')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to publish course:', error)
       dispatch({ type: 'SET_SAVING', status: 'error' })
-      toast(error.message || 'Gagal mempublish kursus', 'error')
+      toast(error instanceof Error ? error.message : 'Gagal mempublish kursus', 'error')
     }
   }
   const draftCourse = useCallback(async () => {
@@ -324,9 +324,12 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
       try {
         const mod = await builderModuleService.createModule(state.courseId, title, tenantId)
         dispatch({ type: 'ADD_MODULE', module: mod })
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to add module:', err)
-        toast('Gagal menambah modul: ' + (err.message || 'Unknown error'), 'error')
+        toast(
+          'Gagal menambah modul: ' + (err instanceof Error ? err.message : 'Unknown error'),
+          'error'
+        )
       }
     },
     [state.courseId, tenantId, toast]
@@ -353,9 +356,12 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'DELETE_MODULE', moduleId })
       try {
         await builderModuleService.deleteModule(moduleId, tenantId)
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to delete module:', err)
-        toast('Gagal menghapus modul: ' + (err.message || 'Unknown error'), 'error')
+        toast(
+          'Gagal menghapus modul: ' + (err instanceof Error ? err.message : 'Unknown error'),
+          'error'
+        )
       }
     },
     [tenantId, toast]
@@ -376,10 +382,14 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
 
       try {
         await builderModuleService.reorderModules(state.courseId, moduleIds, tenantId)
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to reorder modules', error)
         dispatch({ type: 'SET_MODULES', modules: previousModules }) // Rollback
-        toast('Gagal mengubah urutan modul: ' + error.message, 'error')
+        toast(
+          'Gagal mengubah urutan modul: ' +
+            (error instanceof Error ? error.message : 'Unknown error'),
+          'error'
+        )
       }
     },
     [state.modules, state.courseId, tenantId, toast]
@@ -392,9 +402,12 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
       try {
         const lesson = await builderLessonService.createLesson(moduleId, type, title, tenantId)
         dispatch({ type: 'ADD_LESSON', moduleId, lesson })
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to add lesson:', err)
-        toast('Gagal menambah materi: ' + (err.message || 'Unknown error'), 'error')
+        toast(
+          'Gagal menambah materi: ' + (err instanceof Error ? err.message : 'Unknown error'),
+          'error'
+        )
       }
     },
     [tenantId, toast]
@@ -421,9 +434,12 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'DELETE_LESSON', lessonId })
       try {
         await builderLessonService.deleteLesson(lessonId, tenantId)
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to delete lesson:', err)
-        toast('Gagal menghapus materi: ' + (err.message || 'Unknown error'), 'error')
+        toast(
+          'Gagal menghapus materi: ' + (err instanceof Error ? err.message : 'Unknown error'),
+          'error'
+        )
       }
     },
     [tenantId, toast]
@@ -454,10 +470,14 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
       if (targetMod && tenantId) {
         try {
           await builderLessonService.reorderLessons(targetMod.id, lessonIds, tenantId)
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Failed to reorder lessons', error)
           dispatch({ type: 'SET_MODULES', modules: previousModules }) // Rollback
-          toast('Gagal mengubah urutan materi: ' + error.message, 'error')
+          toast(
+            'Gagal mengubah urutan materi: ' +
+              (error instanceof Error ? error.message : 'Unknown error'),
+            'error'
+          )
         }
       }
     },
@@ -490,9 +510,12 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
       try {
         const block = await builderBlockService.createBlock(state.activeLesson.id, type, tenantId)
         dispatch({ type: 'ADD_BLOCK', block })
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to add block:', err)
-        toast('Gagal menambah konten: ' + (err.message || 'Unknown error'), 'error')
+        toast(
+          'Gagal menambah konten: ' + (err instanceof Error ? err.message : 'Unknown error'),
+          'error'
+        )
       }
     },
     [state.activeLesson, tenantId, toast]
@@ -557,9 +580,12 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'DELETE_BLOCK', blockId })
       try {
         await builderBlockService.deleteBlock(blockId, tenantId)
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to delete block:', err)
-        toast('Gagal menghapus konten: ' + (err.message || 'Unknown error'), 'error')
+        toast(
+          'Gagal menghapus konten: ' + (err instanceof Error ? err.message : 'Unknown error'),
+          'error'
+        )
       }
     },
     [tenantId, toast]
@@ -579,10 +605,14 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
 
       try {
         await builderBlockService.reorderBlocks(state.activeLesson!.id, blockIds, tenantId!)
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to reorder blocks', error)
         dispatch({ type: 'SET_BLOCKS', blocks: previousBlocks }) // Rollback
-        toast('Gagal mengubah urutan konten: ' + error.message, 'error')
+        toast(
+          'Gagal mengubah urutan konten: ' +
+            (error instanceof Error ? error.message : 'Unknown error'),
+          'error'
+        )
       }
     },
     [state.activeLesson, tenantId, toast]
@@ -594,8 +624,9 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
 
   // ─── Flush all pending saves on unmount ───
   useEffect(() => {
+    const timers = saveTimerRef.current
     return () => {
-      saveTimerRef.current.forEach((timer) => clearTimeout(timer))
+      timers.forEach((timer) => clearTimeout(timer))
     }
   }, [])
 

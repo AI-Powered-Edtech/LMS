@@ -727,15 +727,19 @@ export function Assignments() {
                             <div className="text-sm font-bold text-slate-500">
                               {
                                 (activeAssignment.studentSubmissions || []).filter(
-                                  (s: any) => s.status === 'submitted' || s.status === 'graded'
+                                  (s: { status: string }) =>
+                                    s.status === 'submitted' || s.status === 'graded'
                                 ).length
                               }{' '}
                               / {(activeAssignment.studentSubmissions || []).length} Diserahkan
                             </div>
                           </div>
                           <div className="space-y-3">
-                            {(activeAssignment.studentSubmissions || []).map((sub: any) => {
-                              const gradeEntry = getStudentGrade(sub.id, activeAssignment.id)
+                            {(activeAssignment.studentSubmissions || []).map((sub) => {
+                              const gradeEntry = getStudentGrade(
+                                String(sub.id),
+                                activeAssignment.id
+                              )
                               const displayGrade =
                                 gradeEntry?.score !== null ? gradeEntry?.score : sub.grade
                               const isGraded = displayGrade !== null && displayGrade !== undefined

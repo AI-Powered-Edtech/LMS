@@ -41,7 +41,7 @@ const steps = ['Draft', 'Review Waka', 'TTD Kepsek', 'Terbit']
 export function DocumentManager() {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
   const [nisn, setNisn] = useState('')
-  const [studentData, setStudentData] = useState<any>(null)
+  const [studentData, setStudentData] = useState<Record<string, unknown> | null>(null)
   const [currentStep, setCurrentStep] = useState(0)
   const [content, setContent] = useState('')
 
@@ -142,16 +142,20 @@ export function DocumentManager() {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-slate-500">Nama:</span>
-                        <span className="font-bold text-slate-900">{studentData.name}</span>
+                        <span className="font-bold text-slate-900">
+                          {String(studentData.name ?? '')}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-500">Kelas:</span>
-                        <span className="font-bold text-slate-900">{studentData.className}</span>
+                        <span className="font-bold text-slate-900">
+                          {String(studentData.className ?? '')}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-500">Alamat:</span>
                         <span className="font-bold text-slate-900 truncate max-w-[150px]">
-                          {studentData.address}
+                          {String(studentData.address ?? '')}
                         </span>
                       </div>
                     </div>

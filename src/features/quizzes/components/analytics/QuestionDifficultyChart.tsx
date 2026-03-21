@@ -73,7 +73,22 @@ export function QuestionDifficultyChart({ questions, isLoading }: QuestionDiffic
     })
     .sort((a, b) => a.correctPercentage - b.correctPercentage) // Sort by difficulty (hardest first)
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean
+    payload?: Array<{
+      payload: {
+        questionText: string
+        correctPercentage: number
+        incorrectPercentage: number
+        totalAnswers: number
+        color: string
+        difficulty: string
+      }
+    }>
+  }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (

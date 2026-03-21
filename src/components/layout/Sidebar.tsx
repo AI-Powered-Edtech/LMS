@@ -40,9 +40,9 @@ export function Sidebar() {
       setNewClassroomName('')
       setIsAddingClassroom(false)
       setIsClassroomDropdownOpen(false)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[Sidebar] Failed to create class:', err)
-      alert(`Gagal membuat kelas: ${err.message || 'Terjadi kesalahan.'}`)
+      alert(`Gagal membuat kelas: ${err instanceof Error ? err.message : 'Terjadi kesalahan.'}`)
     } finally {
       setIsSavingClass(false)
     }
@@ -62,7 +62,10 @@ export function Sidebar() {
       {role === 'teacher' && (
         <div className="mb-6 px-2 relative">
           <button
+            type="button"
             onClick={() => setIsClassroomDropdownOpen(!isClassroomDropdownOpen)}
+            aria-expanded={isClassroomDropdownOpen}
+            aria-haspopup="listbox"
             className="w-full flex items-center justify-between bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 hover:bg-slate-100 dark:hover:bg-slate-700/80 transition-colors"
           >
             <div className="flex flex-col items-start truncate pr-2">
@@ -86,11 +89,14 @@ export function Sidebar() {
               <div className="max-h-48 overflow-y-auto">
                 {classrooms.map((classroom) => (
                   <button
+                    type="button"
                     key={classroom.id}
                     onClick={() => {
                       setActiveClassroomId(classroom.id)
                       setIsClassroomDropdownOpen(false)
                     }}
+                    role="option"
+                    aria-selected={activeClassroomId === classroom.id}
                     className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0"
                   >
                     <span
@@ -118,6 +124,7 @@ export function Sidebar() {
                       value={newClassroomName}
                       onChange={(e) => setNewClassroomName(e.target.value)}
                       placeholder="Nama kelas..."
+                      aria-label="Nama kelas baru"
                       className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
                       autoFocus
                     />
@@ -143,6 +150,7 @@ export function Sidebar() {
                   </form>
                 ) : (
                   <button
+                    type="button"
                     onClick={() => setIsAddingClassroom(true)}
                     className="w-full flex items-center justify-center gap-2 py-2 text-sm font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                   >
@@ -156,13 +164,14 @@ export function Sidebar() {
         </div>
       )}
 
-      <nav className="flex-1 space-y-2 overflow-y-auto hide-scrollbar">
+      <nav aria-label="Menu utama" className="flex-1 space-y-2 overflow-y-auto hide-scrollbar">
         {filteredNavItems.map((item) => {
           const isActive = location.pathname === item.path
           return (
             <Link
               key={item.path}
               to={item.path}
+              aria-current={isActive ? 'page' : undefined}
               className={cn(
                 'flex items-center gap-3 px-4 py-3 rounded-2xl font-medium transition-all duration-200',
                 isActive
@@ -186,6 +195,7 @@ export function Sidebar() {
 
       <div className="p-4 border-t border-slate-200 dark:border-slate-800">
         <button
+          type="button"
           data-testid="sidebar-signout-button"
           onClick={async () => {
             await signOut()

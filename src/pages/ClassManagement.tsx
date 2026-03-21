@@ -121,14 +121,17 @@ export function ClassManagement() {
         if (enrollmentError) throw enrollmentError // Changed `error` to `enrollmentError`
 
         setStudents(
-          (enrollmentData || []).map((e: any) => ({
-            id: e.id, // This is the enrollment ID
-            student_id: e.student.id, // Access student's ID
-            full_name: e.student.full_name || 'Unnamed', // Access student's full_name
-            email: e.student.email || '-', // Access student's email
-            enrolled_at: e.joined_at, // Changed from e.created_at to e.joined_at
-            status: 'ACTIVE', // Status is filtered to ACTIVE, so we can set it directly
-          }))
+          (enrollmentData || []).map((e) => {
+            const student = Array.isArray(e.student) ? e.student[0] : e.student
+            return {
+              id: e.id,
+              student_id: student?.id ?? '',
+              full_name: student?.full_name || 'Unnamed',
+              email: student?.email || '-',
+              enrolled_at: e.joined_at,
+              status: 'ACTIVE' as const,
+            }
+          })
         )
       } catch (err) {
         console.error('Failed to fetch students:', err)
@@ -158,8 +161,8 @@ export function ClassManagement() {
       await addClassroom(newClassName.trim())
       setNewClassName('')
       setShowCreateForm(false)
-    } catch (err: any) {
-      alert('Gagal membuat kelas: ' + err.message)
+    } catch (err: unknown) {
+      alert('Gagal membuat kelas: ' + (err instanceof Error ? err.message : 'Unknown error'))
     } finally {
       setIsCreating(false)
     }
@@ -170,8 +173,8 @@ export function ClassManagement() {
     try {
       await updateClassroom(classId, renameValue.trim())
       setRenamingClassId(null)
-    } catch (err: any) {
-      alert('Gagal mengubah nama: ' + err.message)
+    } catch (err: unknown) {
+      alert('Gagal mengubah nama: ' + (err instanceof Error ? err.message : 'Unknown error'))
     }
   }
 
@@ -185,8 +188,8 @@ export function ClassManagement() {
     try {
       await classroomService.deleteClassroom(classId)
       if (selectedClassId === classId) setSelectedClassId(null)
-    } catch (err: any) {
-      alert('Gagal menghapus kelas: ' + err.message)
+    } catch (err: unknown) {
+      alert('Gagal menghapus kelas: ' + (err instanceof Error ? err.message : 'Unknown error'))
     }
   }
 
@@ -579,8 +582,11 @@ export function ClassManagement() {
                                 ...prev,
                                 [selectedClassId!]: Math.max((prev[selectedClassId!] || 1) - 1, 0),
                               }))
-                            } catch (err: any) {
-                              alert('Gagal mengeluarkan siswa: ' + err.message)
+                            } catch (err: unknown) {
+                              alert(
+                                'Gagal mengeluarkan siswa: ' +
+                                  (err instanceof Error ? err.message : 'Unknown error')
+                              )
                             }
                           }}
                           className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0"

@@ -51,7 +51,9 @@ export const classroomService = {
       .eq('tenant_id', tenantId)
       .eq('status', 'ACTIVE')
     if (error) throw error
-    return enrollments?.map((e: any) => e.classes).filter(Boolean) ?? []
+    return (enrollments
+      ?.map((e) => (e as unknown as { classes: Classroom }).classes)
+      .filter(Boolean) ?? []) as Classroom[]
   },
 
   /**

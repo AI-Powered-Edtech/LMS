@@ -117,8 +117,8 @@ export const courseBuilderService = {
     const sorted = (modules || []).map((m) => ({
       ...m,
       description: null,
-      order_index: (m as any).order,
-      lessons: ((m as any).lessons || []).sort(
+      order_index: (m as unknown as { order: number }).order,
+      lessons: ((m as unknown as { lessons?: BuilderLesson[] }).lessons || []).sort(
         (a: BuilderLesson, b: BuilderLesson) => a.order - b.order
       ),
     })) as unknown as BuilderModule[]
@@ -171,7 +171,7 @@ export const courseBuilderService = {
     moduleId: string,
     data: { title?: string; description?: string }
   ): Promise<void> {
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     if (data.title !== undefined) updateData.title = data.title
 
     const { error } = await supabase.from('course_modules').update(updateData).eq('id', moduleId)

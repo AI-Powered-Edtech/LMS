@@ -27,7 +27,7 @@ describe('cn', () => {
   })
 
   it('handles undefined and null gracefully', () => {
-    expect(cn('base', undefined, null as any)).toBe('base')
+    expect(cn('base', undefined, null as unknown as string)).toBe('base')
   })
 
   it('handles object syntax', () => {

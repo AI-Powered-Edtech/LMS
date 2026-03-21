@@ -6,7 +6,9 @@ export const queryClient = new QueryClient({
       retry: (failureCount, error) => {
         // Never retry client errors (400-499) — they are deterministically invalid
         // Exception: 429 Too Many Requests is transient, allow 1 retry
-        const status = (error as any)?.status ?? (error as any)?.code
+        const status =
+          (error as unknown as { status?: number; code?: number })?.status ??
+          (error as unknown as { status?: number; code?: number })?.code
         if (typeof status === 'number' && status >= 400 && status < 500 && status !== 429) {
           return false
         }

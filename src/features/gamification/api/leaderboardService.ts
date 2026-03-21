@@ -55,19 +55,27 @@ export const leaderboardService = {
 
         if (fbError) throw fbError
         // Map points → score for type compatibility
-        return ((fallback || []) as any[]).map((e) => ({
+        return (
+          (fallback || []) as unknown as Array<
+            Record<string, unknown> & { score?: number; points?: number }
+          >
+        ).map((e) => ({
           ...e,
           score: e.score ?? e.points ?? 0,
-        }))
+        })) as unknown as LeaderboardEntry[]
       }
       throw error
     }
 
     // Map points → score for LeaderboardEntry type compatibility
-    return ((data || []) as any[]).map((e) => ({
+    return (
+      (data || []) as unknown as Array<
+        Record<string, unknown> & { points?: number; score?: number }
+      >
+    ).map((e) => ({
       ...e,
       score: e.points ?? e.score ?? 0,
-    }))
+    })) as unknown as LeaderboardEntry[]
   },
 
   /**
@@ -139,6 +147,6 @@ export const leaderboardService = {
       throw error
     }
 
-    return (data as any) || []
+    return (data as unknown as LeaderboardEntry[]) || []
   },
 }

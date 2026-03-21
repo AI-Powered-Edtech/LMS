@@ -34,7 +34,7 @@ describe('useTenantQuery', () => {
   describe('tenantQuery', () => {
     it('applies tenant filter when tenantId exists', () => {
       // Arrange
-      ;(useAuth as any).mockReturnValue({ tenantId: mockTenantId })
+      ;(useAuth as ReturnType<typeof vi.fn>).mockReturnValue({ tenantId: mockTenantId })
       const { result } = renderHook(() => useTenantQuery())
 
       // Act
@@ -48,7 +48,7 @@ describe('useTenantQuery', () => {
 
     it('does not apply tenant filter when tenantId is null', () => {
       // Arrange
-      ;(useAuth as any).mockReturnValue({ tenantId: null })
+      ;(useAuth as ReturnType<typeof vi.fn>).mockReturnValue({ tenantId: null })
       const { result } = renderHook(() => useTenantQuery())
 
       // Act
@@ -64,7 +64,7 @@ describe('useTenantQuery', () => {
   describe('tenantInsert', () => {
     it('injects tenant_id when tenant exists', async () => {
       // Arrange
-      ;(useAuth as any).mockReturnValue({ tenantId: mockTenantId })
+      ;(useAuth as ReturnType<typeof vi.fn>).mockReturnValue({ tenantId: mockTenantId })
       const { result } = renderHook(() => useTenantQuery())
       const dataToInsert = { title: 'Math' }
 
@@ -81,7 +81,7 @@ describe('useTenantQuery', () => {
 
     it('does not modify payload when tenantId is null', async () => {
       // Arrange
-      ;(useAuth as any).mockReturnValue({ tenantId: null })
+      ;(useAuth as ReturnType<typeof vi.fn>).mockReturnValue({ tenantId: null })
       const { result } = renderHook(() => useTenantQuery())
       const dataToInsert = { title: 'Math' }
 

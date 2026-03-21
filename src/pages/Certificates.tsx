@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import {
   Award,
   Download,
@@ -8,7 +8,7 @@ import {
   Share2,
   QrCode,
   ShieldCheck,
-  Image as ImageIcon,
+  ImageIcon,
   FileText,
   Linkedin,
   MessageCircle,
@@ -23,6 +23,7 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { useStudentCertificates } from '@/src/features/gamification'
 import type { Certificate } from '@/src/features/gamification'
 import { SkeletonCard, EmptyState } from '@/src/components/ui'
+import { supabase } from '@/src/services/supabase/client'
 
 export function Certificates() {
   const { role, profile } = useAuth()
@@ -33,8 +34,6 @@ export function Certificates() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isDownloading, setIsDownloading] = useState<string | null>(null)
   const [showShareMenu, setShowShareMenu] = useState<string | null>(null)
-
-  const certificateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
   const studentName = profile
     ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim()
@@ -56,45 +55,37 @@ export function Certificates() {
 
   const handleDownload = async (cert: Certificate, format: 'pdf' | 'png') => {
     setIsDownloading(cert.id)
-    const element = certificateRefs.current[cert.id]
-
-    if (!element) {
-      setIsDownloading(null)
-      return
-    }
 
     try {
-      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-        import('html2canvas'),
-        import('jspdf'),
-      ])
-
-      element.style.display = 'block'
-
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
+      const { data, error } = await supabase.functions.invoke('generate-pdf', {
+        body: {
+          type: 'certificate',
+          data: {
+            studentName,
+            courseTitle: cert.course_title,
+            completionDate: formatDate(cert.issued_at),
+            tenantName: 'EduSync Academy',
+            certificateNumber: cert.certificate_number,
+          },
+        },
       })
 
-      element.style.display = 'none'
+      if (error) throw error
+
+      const blob = data instanceof Blob ? data : new Blob([data], { type: 'application/pdf' })
 
       if (format === 'png') {
-        const image = canvas.toDataURL('image/png')
+        // For PNG, open the PDF in a new tab (server only generates PDF)
+        const url = URL.createObjectURL(blob)
+        window.open(url, '_blank')
+        setTimeout(() => URL.revokeObjectURL(url), 30000)
+      } else {
+        const url = URL.createObjectURL(blob)
         const link = document.createElement('a')
-        link.href = image
-        link.download = `${cert.course_title.replace(/\s+/g, '_')}_Certificate.png`
+        link.href = url
+        link.download = `${cert.course_title.replace(/\s+/g, '_')}_Sertifikat.pdf`
         link.click()
-      } else if (format === 'pdf') {
-        const imgData = canvas.toDataURL('image/png')
-        const pdf = new jsPDF({
-          orientation: 'landscape',
-          unit: 'px',
-          format: [canvas.width, canvas.height],
-        })
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height)
-        pdf.save(`${cert.course_title.replace(/\s+/g, '_')}_Certificate.pdf`)
+        setTimeout(() => URL.revokeObjectURL(url), 30000)
       }
     } catch (error) {
       console.error('Error generating certificate:', error)
@@ -409,61 +400,6 @@ export function Certificates() {
                         )}
                         PDF
                       </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Hidden Certificate Template for html2canvas */}
-                <div
-                  ref={(el) => {
-                    certificateRefs.current[cert.id] = el
-                  }}
-                  className="absolute top-0 left-0 w-[800px] h-[600px] bg-white -z-50"
-                  style={{ display: 'none' }}
-                >
-                  <div className="w-full h-full p-8 relative overflow-hidden bg-slate-50">
-                    <div className="absolute inset-0 border-[16px] border-double border-slate-200 m-4 rounded-xl"></div>
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-
-                    <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-12">
-                      <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center mb-6 shadow-lg">
-                        <Award className="w-8 h-8" />
-                      </div>
-
-                      <h1 className="text-4xl font-black text-slate-900 mb-2 tracking-tight uppercase">
-                        Sertifikat Penyelesaian
-                      </h1>
-                      <p className="text-lg text-slate-500 mb-8 font-medium">
-                        Diberikan dengan bangga kepada
-                      </p>
-
-                      <h2 className="text-5xl font-serif italic text-blue-900 mb-8 border-b-2 border-blue-200 pb-4 px-12">
-                        {studentName}
-                      </h2>
-
-                      <p className="text-slate-600 text-lg mb-2">
-                        Atas keberhasilannya menyelesaikan:
-                      </p>
-                      <h3 className="text-2xl font-bold text-slate-800 mb-6 max-w-2xl">
-                        {cert.course_title}
-                      </h3>
-
-                      <div className="flex items-center justify-between w-full mt-12 px-12">
-                        <div className="text-left">
-                          <div className="text-sm text-slate-500 mb-1">Diterbitkan oleh</div>
-                          <div className="font-bold text-slate-800">EduSync Academy</div>
-                          <div className="text-sm text-slate-500 mt-1">
-                            Tanggal: {formatDate(cert.issued_at)}
-                          </div>
-                        </div>
-
-                        <div className="text-right flex flex-col items-end">
-                          <QrCode className="w-20 h-20 text-slate-800 mb-2" />
-                          <div className="text-[10px] text-slate-400 font-mono">
-                            ID: {cert.certificate_number}
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>

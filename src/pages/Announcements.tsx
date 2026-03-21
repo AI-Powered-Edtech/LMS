@@ -115,8 +115,12 @@ export function Announcements() {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
-    target_audience: 'all_students' as any,
-    priority: 'normal' as any,
+    target_audience: 'all_students' as
+      | 'all_students'
+      | 'course_students'
+      | 'course_staff'
+      | 'system',
+    priority: 'normal' as 'normal' | 'high' | 'low',
     is_pinned: false,
     allow_comments: true,
     requires_rsvp: false,
@@ -597,7 +601,10 @@ export function Announcements() {
                     <select
                       value={formData.target_audience}
                       onChange={(e) =>
-                        setFormData({ ...formData, target_audience: e.target.value as any })
+                        setFormData({
+                          ...formData,
+                          target_audience: e.target.value as typeof formData.target_audience,
+                        })
                       }
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
                     >
@@ -612,7 +619,10 @@ export function Announcements() {
                     <select
                       value={formData.priority}
                       onChange={(e) =>
-                        setFormData({ ...formData, priority: e.target.value as any })
+                        setFormData({
+                          ...formData,
+                          priority: e.target.value as typeof formData.priority,
+                        })
                       }
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
                     >

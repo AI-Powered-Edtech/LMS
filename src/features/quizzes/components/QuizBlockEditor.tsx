@@ -69,20 +69,30 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
             shuffle_options: data.shuffle_options || false,
             status: data.status || 'draft',
             questions: (data.quiz_questions || [])
-              .sort((a: any, b: any) => a.order - b.order)
-              .map((q: any) => ({
-                id: q.id,
-                text: q.text,
-                order: q.order,
-                question_type: q.question_type || 'MCQ',
-                points: q.points ?? 1,
-                explanation: q.explanation || '',
-                options: q.quiz_options || [],
-              })),
+              .sort((a: { order: number }, b: { order: number }) => a.order - b.order)
+              .map(
+                (q: {
+                  id: string
+                  text: string
+                  order: number
+                  question_type?: string
+                  points?: number
+                  explanation?: string
+                  quiz_options?: unknown[]
+                }) => ({
+                  id: q.id,
+                  text: q.text,
+                  order: q.order,
+                  question_type: q.question_type || 'MCQ',
+                  points: q.points ?? 1,
+                  explanation: q.explanation || '',
+                  options: q.quiz_options || [],
+                })
+              ),
           })
         }
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Unknown error')
       } finally {
         setIsLoading(false)
       }
@@ -108,8 +118,8 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
       setSavedQuizId(result.quiz_id)
       setQuizStatus(targetStatus)
       setQuizData((prev) => ({ ...prev, id: result.quiz_id, status: targetStatus }))
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setIsSaving(false)
       setIsPublishing(false)

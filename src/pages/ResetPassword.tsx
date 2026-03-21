@@ -59,8 +59,8 @@ export function ResetPassword() {
         setSuccess(true)
         setTimeout(() => navigate('/'), 3000)
       }
-    } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan.')
     } finally {
       setLoading(false)
     }

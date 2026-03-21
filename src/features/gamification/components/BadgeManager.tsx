@@ -9,6 +9,19 @@ import { RARITY_CONFIG } from '../types'
 import type { BadgeRarity, BadgeType } from '../types'
 import { SkeletonCard } from '@/src/components/ui'
 
+interface BadgeDefinitionRow {
+  id: string
+  name: string
+  description: string
+  icon_emoji: string
+  badge_type: BadgeType
+  criteria: { type: string; threshold?: number } | null
+  xp_reward: number
+  rarity: BadgeRarity
+  is_active: boolean
+  tenant_id: string | null
+}
+
 const BADGE_TYPES: { value: BadgeType; label: string }[] = [
   { value: 'completion', label: 'Penyelesaian' },
   { value: 'streak', label: 'Streak' },
@@ -66,7 +79,7 @@ export function BadgeManager() {
   const saveMutation = useSaveBadgeDefinition()
   const [editing, setEditing] = useState<BadgeFormState | null>(null)
 
-  const handleEdit = (badge: any) => {
+  const handleEdit = (badge: BadgeDefinitionRow) => {
     setEditing({
       id: badge.id,
       name: badge.name,
@@ -109,8 +122,8 @@ export function BadgeManager() {
 
   if (isLoading) return <SkeletonCard lines={3} />
 
-  const tenantBadges = (badges ?? []).filter((b: any) => b.tenant_id === tenantId)
-  const systemBadges = (badges ?? []).filter((b: any) => b.tenant_id === null)
+  const tenantBadges = (badges ?? []).filter((b: BadgeDefinitionRow) => b.tenant_id === tenantId)
+  const systemBadges = (badges ?? []).filter((b: BadgeDefinitionRow) => b.tenant_id === null)
 
   return (
     <div className="space-y-6">
@@ -295,7 +308,7 @@ export function BadgeManager() {
             Badge Kustom
           </h4>
           <div className="space-y-2">
-            {tenantBadges.map((b: any) => (
+            {tenantBadges.map((b: BadgeDefinitionRow) => (
               <BadgeRow key={b.id} badge={b} onEdit={() => handleEdit(b)} />
             ))}
           </div>
@@ -308,7 +321,7 @@ export function BadgeManager() {
             Badge Sistem
           </h4>
           <div className="space-y-2">
-            {systemBadges.map((b: any) => (
+            {systemBadges.map((b: BadgeDefinitionRow) => (
               <BadgeRow key={b.id} badge={b} isSystem />
             ))}
           </div>
@@ -323,7 +336,7 @@ function BadgeRow({
   onEdit,
   isSystem,
 }: {
-  badge: any
+  badge: BadgeDefinitionRow
   onEdit?: () => void
   isSystem?: boolean
 }) {

@@ -38,8 +38,8 @@ export function ChangeRoleModal({
     try {
       await onConfirm(selectedRole)
       onClose()
-    } catch (err: any) {
-      setError(err.message || 'Gagal mengubah role.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Gagal mengubah role.')
     } finally {
       setLoading(false)
     }

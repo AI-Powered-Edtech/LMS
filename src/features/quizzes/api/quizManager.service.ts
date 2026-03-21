@@ -43,11 +43,15 @@ export async function getTeacherQuizzes(tenantId: string) {
 
   if (error) throw error
 
-  return (data || []).map((quiz: any) => ({
-    ...quiz,
-    assignment_count: (quiz.quiz_assignments || []).length,
-    question_count: (quiz.quiz_questions || []).length,
-  }))
+  return (data || []).map(
+    (
+      quiz: Record<string, unknown> & { quiz_assignments?: unknown[]; quiz_questions?: unknown[] }
+    ) => ({
+      ...quiz,
+      assignment_count: (quiz.quiz_assignments || []).length,
+      question_count: (quiz.quiz_questions || []).length,
+    })
+  )
 }
 
 /**
@@ -107,14 +111,16 @@ export async function getQuizzesByClass(classId: string, tenantId: string) {
 
   if (error) throw error
 
-  return (data || []).map((assignment: any) => ({
-    ...(assignment.quizzes || {}),
-    assignment_id: assignment.id,
-    assignment_status: assignment.status,
-    assignment_available_from: assignment.available_from,
-    assignment_due_at: assignment.due_at,
-    question_count: (assignment.quizzes?.quiz_questions || []).length,
-  }))
+  return (data || []).map(
+    (assignment: Record<string, unknown> & { quizzes?: Record<string, unknown> }) => ({
+      ...(assignment.quizzes || {}),
+      assignment_id: assignment.id,
+      assignment_status: assignment.status,
+      assignment_available_from: assignment.available_from,
+      assignment_due_at: assignment.due_at,
+      question_count: ((assignment.quizzes?.quiz_questions as unknown[]) || []).length,
+    })
+  )
 }
 
 /**
@@ -145,7 +151,7 @@ export async function getQuizWithQuestions(quizId: string, tenantId: string) {
   if (error) throw error
 
   if (data?.quiz_questions) {
-    data.quiz_questions.sort((a: any, b: any) => a.order - b.order)
+    data.quiz_questions.sort((a: { order: number }, b: { order: number }) => a.order - b.order)
   }
 
   return data

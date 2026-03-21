@@ -17,7 +17,7 @@ vi.mock('../../lib/supabase', () => {
  * and `then` makes the object awaitable with the given result.
  */
 function makeChain(resolveWith: { data: unknown; error: unknown }) {
-  const chain: Record<string, any> = {}
+  const chain: Record<string, unknown> = {}
   const methods = [
     'select',
     'eq',
@@ -37,7 +37,8 @@ function makeChain(resolveWith: { data: unknown; error: unknown }) {
   for (const m of methods) {
     chain[m] = vi.fn().mockReturnValue(chain)
   }
-  chain.then = (resolve: any, reject: any) => Promise.resolve(resolveWith).then(resolve, reject)
+  chain.then = (resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) =>
+    Promise.resolve(resolveWith).then(resolve, reject)
   return chain
 }
 
@@ -86,7 +87,7 @@ describe('Gradebook Service', () => {
       },
     ]
 
-    ;(supabase.from as any).mockImplementation((table: string) => {
+    ;(supabase.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
       switch (table) {
         case 'assignments':
           return makeChain({ data: mockAssignments, error: null })
@@ -150,7 +151,7 @@ describe('Gradebook Service', () => {
       },
     ]
 
-    ;(supabase.from as any).mockImplementation((table: string) => {
+    ;(supabase.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
       switch (table) {
         case 'assignments':
           return makeChain({ data: mockAssignments, error: null })
@@ -201,7 +202,7 @@ describe('Gradebook Service', () => {
       },
     ]
 
-    ;(supabase.from as any).mockImplementation((table: string) => {
+    ;(supabase.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
       switch (table) {
         case 'assignments':
           return makeChain({ data: [], error: null })
@@ -227,7 +228,9 @@ describe('Gradebook Service', () => {
   })
 
   it('should return empty gradebook when no students exist', async () => {
-    ;(supabase.from as any).mockImplementation(() => makeChain({ data: [], error: null }))
+    ;(supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() =>
+      makeChain({ data: [], error: null })
+    )
 
     const result = await gradebookService.fetchGradebook('tenant-123')
 
@@ -321,7 +324,7 @@ describe('Gradebook Service', () => {
       },
     ]
 
-    ;(supabase.from as any).mockImplementation((table: string) => {
+    ;(supabase.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
       switch (table) {
         case 'assignments':
           return makeChain({ data: mockAssignments, error: null })
@@ -350,13 +353,14 @@ describe('Gradebook Service', () => {
   it('should handle database errors gracefully', async () => {
     const dbError = new Error('Database connection failed')
 
-    ;(supabase.from as any).mockImplementation(() => {
-      const chain: Record<string, any> = {}
+    ;(supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+      const chain: Record<string, unknown> = {}
       const methods = ['select', 'eq', 'order', 'limit', 'match', 'range']
       for (const m of methods) {
         chain[m] = vi.fn().mockReturnValue(chain)
       }
-      chain.then = (_resolve: any, reject: any) => Promise.reject(dbError).catch(reject)
+      chain.then = (_resolve: (value: unknown) => unknown, reject?: (reason: unknown) => unknown) =>
+        Promise.reject(dbError).catch(reject)
       return chain
     })
 

@@ -58,16 +58,33 @@ export function StudentAttendance() {
   // Find this student's status in each record
   const myName = profile ? `${profile.first_name} ${profile.last_name}`.toLowerCase() : ''
 
-  const myRecords = (records as any[]).map((r) => {
+  const myRecords = (
+    records as unknown as Array<
+      Record<string, unknown> & {
+        id: string
+        scan_date: string
+        details?: Array<{ name: string; status: string }>
+        classes?: { name: string } | { name: string }[]
+        present_count?: number
+        absent_count?: number
+        sick_count?: number
+        permit_count?: number
+      }
+    >
+  ).map((r) => {
     const details: { name: string; status: string }[] = r.details ?? []
     const entry = details.find((d) => d.name?.toLowerCase().includes(myName.split(' ')[0]))
     return {
       id: r.id,
       date: r.scan_date,
-      className: r.classes?.name ?? 'Kelas',
+      className: (Array.isArray(r.classes) ? r.classes[0]?.name : r.classes?.name) ?? 'Kelas',
       status: entry?.status ?? 'hadir', // default to hadir if in the records
-      present: r.present_count,
-      total: r.present_count + r.absent_count + r.sick_count + r.permit_count,
+      present: r.present_count ?? 0,
+      total:
+        (r.present_count ?? 0) +
+        (r.absent_count ?? 0) +
+        (r.sick_count ?? 0) +
+        (r.permit_count ?? 0),
     }
   })
 

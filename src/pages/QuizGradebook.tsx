@@ -113,18 +113,23 @@ export function QuizGradebook() {
 
         if (error) throw error
 
-        const mappedAssignments = (data || []).map((assignment: any) => ({
-          id: assignment.id,
-          quiz_id: assignment.quiz_id,
-          title: assignment.quizzes?.title || 'Kuis',
-          passing_score: assignment.quizzes?.passing_score || 70,
-          max_attempts: assignment.max_attempts ?? assignment.quizzes?.max_attempts ?? null,
-        }))
+        const mappedAssignments = (data || []).map((assignment) => {
+          const quiz = Array.isArray(assignment.quizzes)
+            ? assignment.quizzes[0]
+            : assignment.quizzes
+          return {
+            id: assignment.id,
+            quiz_id: assignment.quiz_id,
+            title: quiz?.title || 'Kuis',
+            passing_score: quiz?.passing_score || 70,
+            max_attempts: assignment.max_attempts ?? quiz?.max_attempts ?? null,
+          }
+        })
 
         setAssignments(mappedAssignments)
         setSelectedAssignment('')
-      } catch (err: any) {
-        setError(err.message || 'Gagal memuat assignment kuis')
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Gagal memuat assignment kuis')
       } finally {
         setIsAssignmentLoading(false)
       }
@@ -144,8 +149,8 @@ export function QuizGradebook() {
     try {
       const data = await quizService.getAssignmentResults(selectedAssignment, activeTenant!.id)
       setAttempts(data)
-    } catch (err: any) {
-      setError(err.message || 'Gagal memuat hasil assignment')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Gagal memuat hasil assignment')
     } finally {
       setIsLoading(false)
     }

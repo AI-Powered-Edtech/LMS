@@ -93,9 +93,9 @@ describe('classroomService.createClassroom', () => {
       }),
     })
     await classroomService.createClassroom('teacher-1', 'My Class', 'tenant-1')
-    expect((capturedData as any).tenant_id).toBe('tenant-1')
-    expect((capturedData as any).teacher_id).toBe('teacher-1')
-    expect((capturedData as any).name).toBe('My Class')
+    expect((capturedData as Record<string, unknown>).tenant_id).toBe('tenant-1')
+    expect((capturedData as Record<string, unknown>).teacher_id).toBe('teacher-1')
+    expect((capturedData as Record<string, unknown>).name).toBe('My Class')
   })
 
   it('generates a join_code', async () => {
@@ -107,7 +107,7 @@ describe('classroomService.createClassroom', () => {
       }),
     })
     await classroomService.createClassroom('teacher-1', 'My Class', 'tenant-1')
-    expect((capturedData as any).join_code).toBeTruthy()
+    expect((capturedData as Record<string, unknown>).join_code).toBeTruthy()
   })
 
   it('throws on error', async () => {

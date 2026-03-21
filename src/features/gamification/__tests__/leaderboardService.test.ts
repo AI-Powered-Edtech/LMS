@@ -24,7 +24,8 @@ function makeLeaderboardChain(resolveWith: { data: unknown; error: unknown }) {
     // Return a thenable that also has .eq() for the class_id filter
     const thenable = {
       eq: vi.fn().mockResolvedValue(resolveWith),
-      then: (resolve: any, reject: any) => Promise.resolve(resolveWith).then(resolve, reject),
+      then: (resolve: (value: unknown) => unknown, reject?: (reason: unknown) => unknown) =>
+        Promise.resolve(resolveWith).then(resolve, reject),
     }
     return thenable
   })

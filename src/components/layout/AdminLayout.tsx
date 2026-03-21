@@ -15,11 +15,18 @@ export function AdminLayout() {
     <div
       className={`flex h-[100dvh] overflow-hidden font-sans flex-col transition-colors duration-300 ${theme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}
     >
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:outline-none"
+      >
+        Langsung ke konten utama
+      </a>
       <div className="flex-1 flex overflow-hidden relative">
         {!isHidden && <Sidebar />}
         <div className="flex-1 flex flex-col h-full overflow-hidden relative">
           {!isHidden && <Header />}
           <main
+            id="main-content"
             className={`flex-1 overflow-y-auto overflow-x-hidden flex flex-col ${isHidden ? 'p-0' : 'p-2 sm:p-4 md:p-8'}`}
           >
             <AnimatePresence mode="wait">

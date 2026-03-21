@@ -140,11 +140,15 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
       <div className={cn('flex gap-3', isReply && 'ml-11 mt-4')}>
         <div className="w-8 h-8 bg-slate-200 rounded-full shrink-0 overflow-hidden">
           {comment.author?.avatar_url ? (
-            <img src={comment.author.avatar_url} alt="" className="w-full h-full object-cover" />
+            <img
+              src={comment.author.avatar_url}
+              alt={`Foto profil ${comment.author?.full_name || 'pengguna'}`}
+              className="w-full h-full object-cover"
+            />
           ) : (
             <img
               src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.author?.full_name || comment.author_id}`}
-              alt=""
+              alt={`Foto profil ${comment.author?.full_name || 'pengguna'}`}
               className="w-full h-full object-cover"
             />
           )}

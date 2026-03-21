@@ -23,7 +23,7 @@ export function StudentProgress() {
         // High performance consolidation: 6 queries -> 1 RPC call
         const progressData = await progressService.getStudentProgressBundle(studentId)
         setData(progressData)
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to load student progress', err)
         setError('Gagal memuat progres siswa')
       } finally {

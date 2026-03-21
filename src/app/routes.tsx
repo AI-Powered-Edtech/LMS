@@ -241,7 +241,9 @@ export function AppRoutes() {
               index
               element={
                 <Suspense fallback={<AppLoading />}>
-                  <Dashboard />
+                  <FeatureErrorBoundary featureName="Dashboard">
+                    <Dashboard />
+                  </FeatureErrorBoundary>
                 </Suspense>
               }
             />
@@ -249,7 +251,9 @@ export function AppRoutes() {
               path="dashboard"
               element={
                 <Suspense fallback={<AppLoading />}>
-                  <Dashboard />
+                  <FeatureErrorBoundary featureName="Dashboard">
+                    <Dashboard />
+                  </FeatureErrorBoundary>
                 </Suspense>
               }
             />
@@ -337,7 +341,9 @@ export function AppRoutes() {
               path="leaderboard"
               element={
                 <Suspense fallback={<AppLoading />}>
-                  <Leaderboard />
+                  <FeatureErrorBoundary featureName="Leaderboard">
+                    <Leaderboard />
+                  </FeatureErrorBoundary>
                 </Suspense>
               }
             />
@@ -444,7 +450,9 @@ export function AppRoutes() {
               path="course-analytics"
               element={
                 <Suspense fallback={<AppLoading />}>
-                  <CourseAnalytics />
+                  <FeatureErrorBoundary featureName="Course Analytics">
+                    <CourseAnalytics />
+                  </FeatureErrorBoundary>
                 </Suspense>
               }
             />
@@ -468,7 +476,9 @@ export function AppRoutes() {
               path="analytics"
               element={
                 <Suspense fallback={<AppLoading />}>
-                  <Analytics />
+                  <FeatureErrorBoundary featureName="Analytics">
+                    <Analytics />
+                  </FeatureErrorBoundary>
                 </Suspense>
               }
             />
@@ -508,7 +518,9 @@ export function AppRoutes() {
               path="leaderboard"
               element={
                 <Suspense fallback={<AppLoading />}>
-                  <Leaderboard />
+                  <FeatureErrorBoundary featureName="Leaderboard">
+                    <Leaderboard />
+                  </FeatureErrorBoundary>
                 </Suspense>
               }
             />

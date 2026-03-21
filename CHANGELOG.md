@@ -1,5 +1,131 @@
 # EduSync LMS — Changelog
 
+## Phase 3: Polish & Optimize (2026-03-22)
+
+### Sprint 3.0 — Bundle Surgery & Performance
+
+- Removed `html2canvas` + `jspdf` (-594 kB), replaced with Supabase Edge Function `generate-pdf`
+- Added PWA support (`vite-plugin-pwa`): installable, offline fallback, runtime caching
+- Added Core Web Vitals monitoring (`web-vitals` reporting to Supabase `activity_events`)
+- Added route prefetching on hover/focus (`src/utils/prefetch.ts`)
+- Added `OptimizedImage` component with lazy loading and placeholder
+- Created bundle budget CI enforcement (`bundlesize.config.json` + CI workflow)
+- Added `pnpm analyze` for bundle visualization via `rollup-plugin-visualizer`
+- Created DB performance indexes migration (`001_performance_indexes.sql`)
+
+### Sprint 3.1 — UI/UX Foundation
+
+- Design system tokens (`src/styles/tokens.css`) with light/dark mode CSS custom properties
+- Enhanced UI components: Button (5 variants, 3 sizes), Card, Input, Modal (focus trap), Badge
+- New components: Select, Toast, Avatar, Tooltip, Spinner, MathRenderer (KaTeX)
+- Storybook setup (`.storybook/`) with 14 stories for all UI components, dark mode addon
+- 7 content-aware skeleton loading screens (`src/components/skeletons/`)
+- Error boundaries on 6 feature sections (Dashboard, Lesson Viewer, Quiz, Leaderboard, Course Analytics, Analytics)
+- `ErrorBoundary` and `ErrorFallback` reusable components
+
+### Sprint 3.2 — Accessibility & Responsiveness
+
+- WCAG 2.1 AA: skip navigation, ARIA labels/landmarks, keyboard navigation, focus indicators (`focus-visible`)
+- Responsive audit across 5 breakpoints with mobile bottom-sheet modals
+- `useReducedMotion` hook for `prefers-reduced-motion` — applied to 5 animated components
+- Minimum 44x44px touch targets on all interactive elements (Header, BottomNav, Modal, NotificationBell)
+- i18n infrastructure (`src/i18n/`) with Bahasa Indonesia string extraction ready
+
+### Sprint 3.3 — Testing & Documentation
+
+- 352 tests across 43 files — all passing (UI component tests added)
+- `docs/upgrade-guide.md` — migration path for all major dependencies
+- `docs/dependency-decisions.md` — rationale for each dependency choice
+- `docs/design-system.md` — design system documentation
+- `docs/phase3-report.md` — full exit criteria verification with build metrics
+- `docs/SETUP_GUIDE.md` — developer onboarding guide
+- `docs/business-model.md`, `docs/competitive-analysis.md`, `docs/user-personas.md`, `docs/ux-audit.md`
+- CI: bundle size enforcement, coverage reporting
+- Lint status: **26 warnings, 0 errors** (down from 225+ warnings/2 errors)
+
+### Build Metrics (Post-Phase 3)
+
+- vendor-pdf chunk: **eliminated** (was 594.76 kB)
+- Main bundle (index): 497.00 kB (150.93 kB gzip)
+- Total initial JS: ~500 kB gzip (down from ~700 kB excl. lazy)
+- PWA: v1.2.0, service worker active
+- Build time: 15.54s
+
+---
+
+## Sprint 3.2 Day 7: Accessibility Audit — WCAG 2.1 AA (2026-03-22)
+
+**Global Focus Indicator**
+
+- Ditambah `:focus-visible` outline global (`2px solid #2563eb`, offset 2px) di `index.css`
+- Dark mode variant menggunakan `#60a5fa`
+
+**Skip Navigation Link**
+
+- Ditambah link "Langsung ke konten utama" sebagai elemen fokus pertama di `StudentLayout`, `TeacherLayout`, `AdminLayout`
+- Ditambah `id="main-content"` pada elemen `<main>` di ketiga layout
+
+**Semantic HTML & ARIA**
+
+- `Sidebar`: `aria-expanded` + `aria-haspopup` pada dropdown kelas, `aria-current="page"` pada nav link aktif, `aria-label` pada nav + input kelas baru, `type="button"` pada semua non-form button
+- `BottomNav`: `aria-current="page"` pada link aktif, `aria-label` pada `<nav>`
+- `Header`: `aria-expanded` + `aria-haspopup` pada profile dropdown, `aria-label="Menu profil"`, label dark mode toggle diterjemahkan ke Bahasa Indonesia, alt text avatar diperbaiki, `type="button"` pada semua button
+- `Login.tsx`: `htmlFor`/`id` pair pada semua label-input (login + register), `role="alert"` pada pesan error, `aria-describedby` menghubungkan input ke error, `aria-pressed` pada tab switcher, `type="button"` pada non-submit button
+- `Dashboard.tsx`: Clickable div assignment/announcement ditambah `role="button"`, `tabIndex={0}`, `onKeyDown` untuk keyboard (Enter/Space), `aria-label` deskriptif
+
+**Modal Focus Trap & Labelling**
+
+- `Modal.tsx`: Focus trap sejati (Tab cycling antara elemen pertama/terakhir), `aria-labelledby` terhubung ke `ModalHeader` title via React context + `useId`, `aria-hidden="true"` pada backdrop, prop `ariaLabel` baru untuk modal tanpa header
+
+**Toast Container**
+
+- `ToastContainer`: Ditambah `aria-live="polite"` + `role="region"` pada container
+
+**Image Alt Text**
+
+- `CommentSection.tsx`: Kosong `alt=""` diganti dengan `"Foto profil {nama}"`
+- `Forum.tsx`: Kosong `alt=""` diganti dengan `"Foto profil {author}"`
+
+---
+
+## Sprint 3.2 Day 8: Responsive & Animation Performance (2026-03-22)
+
+**useReducedMotion Hook**
+
+- Dibuat `src/hooks/useReducedMotion.ts` — hook untuk mendeteksi preferensi `prefers-reduced-motion: reduce`
+- Digunakan untuk menonaktifkan animasi dekoratif bagi pengguna yang mengaktifkan pengaturan aksesibilitas
+
+**Reduced Motion — 5 Komponen Diperbaiki**
+
+- `ModuleCompletionModal` — confetti dinonaktifkan, semua spring/infinite animation dihormati
+- `BadgeRewardModal` — infinite 3D rotation dihentikan saat reduced motion
+- `StreakCounter` — infinite pulse animation dihentikan saat reduced motion
+- `BadgeShowcase` — scale entrance dan hover animation dinonaktifkan
+- `XPProgressBar` — progress bar width animation langsung tanpa transisi
+
+**Responsive: Modal Bottom-Sheet Mobile**
+
+- `Modal.tsx` — tampil sebagai bottom-sheet (`rounded-t-2xl`, `items-end`) di mobile, modal centered di `sm+`
+- Tinggi maksimum disesuaikan: `90dvh` mobile, `85vh` desktop
+
+**Touch Target Minimum 44x44px**
+
+- `Modal` close button: `p-1.5` -> `p-2.5` + `min-w/min-h [44px]`
+- `NotificationBell`: `w-9 h-9` -> `w-11 h-11` + `min-w/min-h [44px]`
+- `NotificationCenter` bell: `p-2` -> `p-2.5` + `min-w/min-h [44px]` + dark mode variants
+- `Header` profile avatar: `w-9 h-9` -> `w-11 h-11` + `min-w/min-h [44px]`
+- `Header` dark mode toggle: `p-2` -> `p-2.5` + `min-w/min-h [44px]`
+- `BottomNav` links: ditambah `min-h-[44px]` untuk touch target
+- `ModuleCompletionModal` close button: `p-2` -> `p-2.5` + `min-w/min-h [44px]`
+
+---
+
+## Developer Onboarding Guide (2026-03-22)
+
+- Dibuat `docs/SETUP_GUIDE.md` — panduan lengkap step-by-step untuk setup EduSync di Supabase project baru
+- Mencakup: prerequisite, migration, seed, custom access token hook, edge functions, pg_cron, frontend .env, troubleshooting
+- Dokumentasi struktur folder `supabase/` dan daftar edge functions beserta secret yang dibutuhkan
+
 ## Sprint 2.1 Day 4: Security Hardening (2026-03-21)
 
 **Dependency Audit**

@@ -149,8 +149,8 @@ export function UserManagement() {
       await deactivateUser(user.user_id, !user.is_active)
       setCursor(null)
       await fetchUsers()
-    } catch (err: any) {
-      alert(err.message || 'Gagal mengubah status user.')
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Gagal mengubah status user.')
     }
     setActionMenuId(null)
   }
@@ -159,8 +159,8 @@ export function UserManagement() {
     try {
       await revokeInvitation(id)
       await fetchInvitations()
-    } catch (err: any) {
-      alert(err.message || 'Gagal merevoke undangan.')
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Gagal merevoke undangan.')
     }
   }
 

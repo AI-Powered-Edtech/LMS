@@ -158,8 +158,8 @@ export const studentProgressService = {
 
     return (data ?? []).map((b) => ({
       id: b.id,
-      title: (b as any).badges?.name ?? 'Badge',
-      icon: (b as any).badges?.icon ?? 'star',
+      title: (b as unknown as { badges?: { name: string; icon: string } }).badges?.name ?? 'Badge',
+      icon: (b as unknown as { badges?: { name: string; icon: string } }).badges?.icon ?? 'star',
       unlockedAt: b.earned_at ? new Date(b.earned_at) : undefined,
     }))
   },
@@ -178,7 +178,7 @@ export const studentProgressService = {
     return (data ?? []).map((a) => ({
       id: a.id,
       title: a.title,
-      subject: (a as any).classes?.name ?? '',
+      subject: (a as unknown as { classes?: { name: string } }).classes?.name ?? '',
       dueDate: a.due_date ? new Date(a.due_date) : new Date(),
       type: 'Tugas' as const,
       urgent: a.due_date ? new Date(a.due_date).getTime() - Date.now() < 86400000 : false,

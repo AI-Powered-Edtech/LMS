@@ -43,7 +43,7 @@ export function Gradebook() {
       addAssignment({
         id,
         title: newAssignment.title,
-        type: newAssignment.type as any,
+        type: newAssignment.type as Assignment['type'],
         maxScore: Number(newAssignment.maxScore),
         date:
           newAssignment.date ||
@@ -85,7 +85,7 @@ export function Gradebook() {
   }
 
   // Calculate class stats
-  const allAverages = students.map((s) => calculateAverage(s.id as any)).filter((avg) => avg > 0)
+  const allAverages = students.map((s) => calculateAverage(s.id)).filter((avg) => avg > 0)
   const classAverage =
     allAverages.length > 0
       ? Math.round(allAverages.reduce((a, b) => a + b, 0) / allAverages.length)
@@ -97,9 +97,8 @@ export function Gradebook() {
   let lowestStudent = '-'
 
   if (allAverages.length > 0) {
-    highestStudent =
-      students.find((s) => calculateAverage(s.id as any) === highestScore)?.name || '-'
-    lowestStudent = students.find((s) => calculateAverage(s.id as any) === lowestScore)?.name || '-'
+    highestStudent = students.find((s) => calculateAverage(s.id) === highestScore)?.name || '-'
+    lowestStudent = students.find((s) => calculateAverage(s.id) === lowestScore)?.name || '-'
   }
 
   const getGradeColor = (score: number | null) => {
@@ -167,7 +166,7 @@ export function Gradebook() {
     if (editingCell) {
       const numValue = editValue === '' ? null : parseInt(editValue, 10)
       if (numValue === null || (!isNaN(numValue) && numValue >= 0 && numValue <= 100)) {
-        updateGrade(editingCell.studentId as any, editingCell.assignmentId, numValue)
+        updateGrade(editingCell.studentId, editingCell.assignmentId, numValue)
       }
       setEditingCell(null)
     }
@@ -255,7 +254,10 @@ export function Gradebook() {
                 <select
                   value={newAssignment.type}
                   onChange={(e) =>
-                    setNewAssignment({ ...newAssignment, type: e.target.value as any })
+                    setNewAssignment({
+                      ...newAssignment,
+                      type: e.target.value as Assignment['type'],
+                    })
                   }
                   className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
                 >
@@ -442,8 +444,8 @@ export function Gradebook() {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
               {filteredStudents.map((student) => {
-                const avg = calculateAverage(student.id as any)
-                const total = calculateTotal(student.id as any)
+                const avg = calculateAverage(student.id)
+                const total = calculateTotal(student.id)
                 return (
                   <tr
                     key={student.id}
@@ -484,7 +486,7 @@ export function Gradebook() {
                     {assignments.map((assignment) => {
                       const score = grades[student.id]?.[assignment.id] ?? null
                       const isEditing =
-                        editingCell?.studentId === (student.id as any) &&
+                        editingCell?.studentId === student.id &&
                         editingCell?.assignmentId === assignment.id
 
                       return (
@@ -518,11 +520,7 @@ export function Gradebook() {
                             <div
                               className="relative group/cell inline-flex items-center justify-center w-16 h-8 rounded-md cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                               onClick={() =>
-                                handleCellClick(
-                                  student.id as any,
-                                  assignment.id,
-                                  score?.score ?? null
-                                )
+                                handleCellClick(student.id, assignment.id, score?.score ?? null)
                               }
                             >
                               {score && score.score !== null ? (

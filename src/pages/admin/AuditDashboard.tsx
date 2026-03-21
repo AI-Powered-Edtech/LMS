@@ -24,7 +24,7 @@ interface AuditLog {
   target_type: string
   target_id: string | null
   target_name: string
-  details: Record<string, any>
+  details: Record<string, unknown>
   created_at: string
   total_count: number
 }
@@ -161,10 +161,12 @@ export function AuditDashboard() {
     if (log.action === 'ROLE_CHANGED' && d.old_role && d.new_role) {
       return (
         <div className="flex items-center gap-1.5 text-xs mt-1">
-          <span className="px-1.5 py-0.5 bg-slate-100 rounded font-medium">{d.old_role}</span>
+          <span className="px-1.5 py-0.5 bg-slate-100 rounded font-medium">
+            {String(d.old_role)}
+          </span>
           <ArrowRight className="w-3 h-3 text-slate-400" />
           <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">
-            {d.new_role}
+            {String(d.new_role)}
           </span>
         </div>
       )

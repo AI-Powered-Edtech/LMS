@@ -39,7 +39,7 @@ jobs:
 
       # Type check
       - name: TypeScript
-        run: npx tsc --noEmit
+        run: pnpm exec tsc --noEmit
 
       # Validate migrations
       - name: Validate migrations
@@ -58,6 +58,57 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
+
+      # Bundle size enforcement
+      - name: Bundle size check
+        run: |
+          echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Chunk | Size | Budget | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|------|--------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          # Find the largest index-*.js (main app chunk, not tiny entry shims)
+          MAIN_SIZE=$(ls -lS dist/assets/index-*.js 2>/dev/null | head -1 | awk '{print $5}')
+          VENDOR_REACT=$(ls -l dist/assets/vendor-react-*.js 2>/dev/null | awk '{print $5}' | head -1)
+          VENDOR_SUPABASE=$(ls -l dist/assets/vendor-supabase-*.js 2>/dev/null | awk '{print $5}' | head -1)
+
+          # Convert to KB (integer division)
+          MAIN_KB=$((${MAIN_SIZE:-0} / 1024))
+          REACT_KB=$((${VENDOR_REACT:-0} / 1024))
+          SUPA_KB=$((${VENDOR_SUPABASE:-0} / 1024))
+          TOTAL_KB=$((MAIN_KB + REACT_KB + SUPA_KB))
+
+          # Read budgets from bundlesize.config.json
+          MAIN_BUDGET=500
+          REACT_BUDGET=150
+          SUPA_BUDGET=200
+          TOTAL_BUDGET=700
+
+          FAIL=0
+
+          check_budget() {
+            local name=$1 size=$2 budget=$3
+            if [ "$size" -gt "$budget" ]; then
+              echo "| $name | ${size}kB | ${budget}kB | :x: OVER |" >> $GITHUB_STEP_SUMMARY
+              FAIL=1
+            else
+              echo "| $name | ${size}kB | ${budget}kB | :white_check_mark: |" >> $GITHUB_STEP_SUMMARY
+            fi
+          }
+
+          check_budget "main" "$MAIN_KB" "$MAIN_BUDGET"
+          check_budget "vendor-react" "$REACT_KB" "$REACT_BUDGET"
+          check_budget "vendor-supabase" "$SUPA_KB" "$SUPA_BUDGET"
+          check_budget "total-initial" "$TOTAL_KB" "$TOTAL_BUDGET"
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$FAIL" -eq 1 ]; then
+            echo ":warning: **Bundle size budget exceeded!** Review chunking in \`vite.config.ts\`." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo ":white_check_mark: All chunks within budget." >> $GITHUB_STEP_SUMMARY
+          fi
 
       # Upload coverage
       - name: Upload coverage

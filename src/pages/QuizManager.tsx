@@ -201,20 +201,31 @@ export function QuizManager() {
         available_from: data.available_from || '',
         due_at: data.available_until || '',
         status: data.status || 'draft',
-        questions: (data.quiz_questions || []).map((q: any) => ({
-          id: q.id,
-          text: q.text,
-          order: q.order,
-          question_type: q.question_type || 'MCQ',
-          points: q.points ?? 1,
-          explanation: q.explanation || null,
-          tenant_id: q.tenant_id,
-          options: (q.quiz_options || []).map((o: any) => ({
-            id: o.id,
-            text: o.text,
-            is_correct: o.is_correct,
-          })),
-        })),
+        questions: (data.quiz_questions || []).map(
+          (q: {
+            id: string
+            text: string
+            order: number
+            question_type?: string
+            points?: number
+            explanation?: string
+            tenant_id?: string
+            quiz_options?: Array<{ id: string; text: string; is_correct: boolean }>
+          }) => ({
+            id: q.id,
+            text: q.text,
+            order: q.order,
+            question_type: q.question_type || 'MCQ',
+            points: q.points ?? 1,
+            explanation: q.explanation || null,
+            tenant_id: q.tenant_id,
+            options: (q.quiz_options || []).map((o) => ({
+              id: o.id,
+              text: o.text,
+              is_correct: o.is_correct,
+            })),
+          })
+        ),
       })
       setEditingQuizId(quizId)
       setView('editor')
@@ -1117,10 +1128,12 @@ export function QuizManager() {
                   question_type: question.question_type as QuestionType,
                   points: 1,
                   explanation: question.explanation || null,
-                  options: (question.options || []).map((o: any) => ({
-                    text: o.option_text,
-                    is_correct: o.is_correct,
-                  })),
+                  options: (question.options || []).map(
+                    (o: { option_text: string; is_correct: boolean }) => ({
+                      text: o.option_text,
+                      is_correct: o.is_correct,
+                    })
+                  ),
                 },
               ],
             }))

@@ -44,10 +44,12 @@ export const builderCourseService = {
     if (modErr) throw new Error(modErr.message)
 
     // Sort lessons within each module
-    const sorted = (modules || []).map((m: any) => ({
+    const sorted = (modules || []).map((m) => ({
       ...m,
       description: null,
-      lessons: (m.lessons || []).sort((a: BuilderLesson, b: BuilderLesson) => a.order - b.order),
+      lessons: ((m as unknown as { lessons?: BuilderLesson[] }).lessons || []).sort(
+        (a: BuilderLesson, b: BuilderLesson) => a.order - b.order
+      ),
     }))
 
     return {

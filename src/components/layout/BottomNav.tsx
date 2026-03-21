@@ -34,7 +34,10 @@ export function BottomNav() {
   const filteredNavItems = navItems.filter((item) => item.roles.includes(role))
 
   return (
-    <nav className="md:hidden fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 bg-white/90 backdrop-blur-lg border border-slate-200/50 flex items-center justify-around px-2 z-[999] py-3 rounded-2xl shadow-lg shadow-slate-200/50">
+    <nav
+      aria-label="Navigasi utama"
+      className="md:hidden fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] left-4 right-4 bg-white/90 backdrop-blur-lg border border-slate-200/50 flex items-center justify-around px-2 z-[999] py-3 rounded-2xl shadow-lg shadow-slate-200/50"
+    >
       {filteredNavItems.map((item) => {
         const isActive =
           item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
@@ -43,8 +46,9 @@ export function BottomNav() {
           <Link
             key={item.path}
             to={item.path}
+            aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'flex flex-col items-center justify-center w-full gap-1 transition-colors relative group',
+              'flex flex-col items-center justify-center w-full min-h-[44px] gap-1 transition-colors relative group',
               isActive ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
             )}
           >

@@ -32,7 +32,11 @@ describe('useModuleConfig', () => {
 
   it('isModuleEnabled returns true for unknown module (default fallback)', () => {
     const { result } = renderHook(() => useModuleConfig())
-    expect(result.current.isModuleEnabled('unknown-module' as any)).toBe(true)
+    expect(
+      result.current.isModuleEnabled(
+        'unknown-module' as unknown as Parameters<typeof result.current.isModuleEnabled>[0]
+      )
+    ).toBe(true)
   })
 
   it('modules have required fields', () => {

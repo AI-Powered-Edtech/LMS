@@ -1,0 +1,230 @@
+/* ═══════════════════════════════════════════════════════════════
+   EduSync Design Tokens
+   Tailwind CSS v4 compatible custom properties
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Colors - Primary (Blue) ──────────────────────────────── */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a5f;
+  --color-primary-950: #172554;
+
+  /* ─── Colors - Secondary (Purple) ──────────────────────────── */
+  --color-secondary-50: #faf5ff;
+  --color-secondary-100: #f3e8ff;
+  --color-secondary-200: #e9d5ff;
+  --color-secondary-300: #d8b4fe;
+  --color-secondary-400: #c084fc;
+  --color-secondary-500: #a855f7;
+  --color-secondary-600: #9333ea;
+  --color-secondary-700: #7e22ce;
+  --color-secondary-800: #6b21a8;
+  --color-secondary-900: #581c87;
+  --color-secondary-950: #3b0764;
+
+  /* ─── Colors - Success (Green) ─────────────────────────────── */
+  --color-success-50: #ecfdf5;
+  --color-success-100: #d1fae5;
+  --color-success-200: #a7f3d0;
+  --color-success-300: #6ee7b7;
+  --color-success-400: #34d399;
+  --color-success-500: #10b981;
+  --color-success-600: #059669;
+  --color-success-700: #047857;
+  --color-success-800: #065f46;
+  --color-success-900: #064e3b;
+  --color-success-950: #022c22;
+
+  /* ─── Colors - Warning (Amber) ─────────────────────────────── */
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-200: #fde68a;
+  --color-warning-300: #fcd34d;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-warning-900: #78350f;
+  --color-warning-950: #451a03;
+
+  /* ─── Colors - Danger (Red) ────────────────────────────────── */
+  --color-danger-50: #fef2f2;
+  --color-danger-100: #fee2e2;
+  --color-danger-200: #fecaca;
+  --color-danger-300: #fca5a5;
+  --color-danger-400: #f87171;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+  --color-danger-700: #b91c1c;
+  --color-danger-800: #991b1b;
+  --color-danger-900: #7f1d1d;
+  --color-danger-950: #450a0a;
+
+  /* ─── Colors - Neutral (Slate) ─────────────────────────────── */
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+  --color-neutral-950: #020617;
+
+  /* ─── Spacing ──────────────────────────────────────────────── */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+  --spacing-4xl: 96px;
+
+  /* ─── Typography ───────────────────────────────────────────── */
+  --text-heading-1: 2.25rem;
+  --text-heading-2: 1.875rem;
+  --text-heading-3: 1.5rem;
+  --text-heading-4: 1.25rem;
+  --text-body-lg: 1.125rem;
+  --text-body: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-caption: 0.75rem;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* ─── Shadows ──────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  /* ─── Border Radius ────────────────────────────────────────── */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* ─── Transitions ──────────────────────────────────────────── */
+  --transition-fast: 150ms;
+  --transition-normal: 300ms;
+  --transition-slow: 500ms;
+
+  /* ─── Z-Index Scale ────────────────────────────────────────── */
+  --z-dropdown: 10;
+  --z-sticky: 20;
+  --z-fixed: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-popover: 60;
+  --z-toast: 70;
+}
+
+/* ─── Dark Mode Overrides ────────────────────────────────────── */
+
+.dark,
+[data-theme="dark"] {
+  /* Primary (Blue) - inverted for dark backgrounds */
+  --color-primary-50: #172554;
+  --color-primary-100: #1e3a5f;
+  --color-primary-200: #1e40af;
+  --color-primary-300: #1d4ed8;
+  --color-primary-400: #2563eb;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #60a5fa;
+  --color-primary-700: #93c5fd;
+  --color-primary-800: #bfdbfe;
+  --color-primary-900: #dbeafe;
+  --color-primary-950: #eff6ff;
+
+  /* Secondary (Purple) */
+  --color-secondary-50: #3b0764;
+  --color-secondary-100: #581c87;
+  --color-secondary-200: #6b21a8;
+  --color-secondary-300: #7e22ce;
+  --color-secondary-400: #9333ea;
+  --color-secondary-500: #a855f7;
+  --color-secondary-600: #c084fc;
+  --color-secondary-700: #d8b4fe;
+  --color-secondary-800: #e9d5ff;
+  --color-secondary-900: #f3e8ff;
+  --color-secondary-950: #faf5ff;
+
+  /* Success (Green) */
+  --color-success-50: #022c22;
+  --color-success-100: #064e3b;
+  --color-success-200: #065f46;
+  --color-success-300: #047857;
+  --color-success-400: #059669;
+  --color-success-500: #10b981;
+  --color-success-600: #34d399;
+  --color-success-700: #6ee7b7;
+  --color-success-800: #a7f3d0;
+  --color-success-900: #d1fae5;
+  --color-success-950: #ecfdf5;
+
+  /* Warning (Amber) */
+  --color-warning-50: #451a03;
+  --color-warning-100: #78350f;
+  --color-warning-200: #92400e;
+  --color-warning-300: #b45309;
+  --color-warning-400: #d97706;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #fbbf24;
+  --color-warning-700: #fcd34d;
+  --color-warning-800: #fde68a;
+  --color-warning-900: #fef3c7;
+  --color-warning-950: #fffbeb;
+
+  /* Danger (Red) */
+  --color-danger-50: #450a0a;
+  --color-danger-100: #7f1d1d;
+  --color-danger-200: #991b1b;
+  --color-danger-300: #b91c1c;
+  --color-danger-400: #dc2626;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #f87171;
+  --color-danger-700: #fca5a5;
+  --color-danger-800: #fecaca;
+  --color-danger-900: #fee2e2;
+  --color-danger-950: #fef2f2;
+
+  /* Neutral (Slate) */
+  --color-neutral-50: #020617;
+  --color-neutral-100: #0f172a;
+  --color-neutral-200: #1e293b;
+  --color-neutral-300: #334155;
+  --color-neutral-400: #475569;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #94a3b8;
+  --color-neutral-700: #cbd5e1;
+  --color-neutral-800: #e2e8f0;
+  --color-neutral-900: #f1f5f9;
+  --color-neutral-950: #f8fafc;
+
+  /* Dark shadows - higher opacity */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+}

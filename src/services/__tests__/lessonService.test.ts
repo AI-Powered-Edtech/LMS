@@ -40,7 +40,7 @@ describe('lessonService Security Fix', () => {
     ]
 
     // Mock a valid session
-    ;(supabase.auth.getSession as any).mockResolvedValue({
+    ;(supabase.auth.getSession as ReturnType<typeof vi.fn>).mockResolvedValue({
       data: { session: { user: { id: 'user-1' }, expires_at: 1000 } },
     })
 
@@ -52,8 +52,12 @@ describe('lessonService Security Fix', () => {
     localStorage.setItem('edusync_progress_queue', JSON.stringify(signedQueue))
 
     // Use queueProgressUpdate to trigger loadSecureQueue
-    ;(supabase.rpc as any).mockResolvedValue({ error: new Error('Network error') }) // Force error to use queue
-    ;(supabase.auth.getUser as any).mockResolvedValue({ data: { user: { id: 'user-1' } } })
+    ;(supabase.rpc as ReturnType<typeof vi.fn>).mockResolvedValue({
+      error: new Error('Network error'),
+    }) // Force error to use queue
+    ;(supabase.auth.getUser as ReturnType<typeof vi.fn>).mockResolvedValue({
+      data: { user: { id: 'user-1' } },
+    })
 
     await lessonService.queueProgressUpdate('456', 'tenant-1', 'started', 10)
 

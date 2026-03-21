@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { motion } from 'motion/react'
 import { Trophy, ArrowRight, X, Star } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
+import { useReducedMotion } from '@/src/hooks/useReducedMotion'
 
 interface ModuleCompletionModalProps {
   moduleTitle: string
@@ -19,9 +20,10 @@ export function ModuleCompletionModal({
   xpEarned,
 }: ModuleCompletionModalProps) {
   const firedRef = useRef(false)
+  const reducedMotion = useReducedMotion()
 
   useEffect(() => {
-    if (firedRef.current) return
+    if (firedRef.current || reducedMotion) return
     firedRef.current = true
 
     import('canvas-confetti')
@@ -38,20 +40,22 @@ export function ModuleCompletionModal({
         }, 250)
       })
       .catch(() => {})
-  }, [])
+  }, [reducedMotion])
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      initial={reducedMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      exit={reducedMotion ? undefined : { opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm"
     >
       <motion.div
-        initial={{ scale: 0.82, opacity: 0, y: 20 }}
+        initial={reducedMotion ? false : { scale: 0.82, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.82, opacity: 0, y: 20 }}
-        transition={{ type: 'spring', damping: 18, stiffness: 280 }}
+        exit={reducedMotion ? undefined : { scale: 0.82, opacity: 0, y: 20 }}
+        transition={
+          reducedMotion ? { duration: 0 } : { type: 'spring', damping: 18, stiffness: 280 }
+        }
         className={cn(
           'relative rounded-3xl p-8 shadow-2xl text-center max-w-md mx-4 w-full overflow-hidden',
           'bg-white dark:bg-slate-900',
@@ -68,7 +72,7 @@ export function ModuleCompletionModal({
         <button
           onClick={onClose}
           className={cn(
-            'absolute top-4 right-4 p-2 rounded-xl transition-colors z-10',
+            'absolute top-4 right-4 p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-colors z-10',
             'hover:bg-slate-100 dark:hover:bg-slate-800',
             'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
           )}
@@ -79,8 +83,10 @@ export function ModuleCompletionModal({
         {/* Trophy icon with pulse ring */}
         <div className="relative w-24 h-24 mx-auto mb-5">
           <motion.div
-            animate={{ scale: [1, 1.12, 1] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            animate={reducedMotion ? {} : { scale: [1, 1.12, 1] }}
+            transition={
+              reducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: 'easeInOut' }
+            }
             className="absolute inset-0 rounded-full bg-amber-200/60 dark:bg-amber-500/20"
           />
           <div
@@ -95,8 +101,10 @@ export function ModuleCompletionModal({
           </div>
           {/* Star accents */}
           <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
+            animate={reducedMotion ? {} : { rotate: 360 }}
+            transition={
+              reducedMotion ? { duration: 0 } : { duration: 6, repeat: Infinity, ease: 'linear' }
+            }
             className="absolute -top-1 -right-1"
           >
             <Star className="w-4 h-4 text-amber-400 fill-amber-400 dark:text-amber-500 dark:fill-amber-500" />
@@ -105,9 +113,9 @@ export function ModuleCompletionModal({
 
         {/* Heading */}
         <motion.h2
-          initial={{ opacity: 0, y: 6 }}
+          initial={reducedMotion ? false : { opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={reducedMotion ? { duration: 0 } : { delay: 0.1 }}
           className="text-2xl font-extrabold tracking-tight mb-1 bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent"
         >
           Modul Selesai!
@@ -115,9 +123,9 @@ export function ModuleCompletionModal({
 
         {/* Subtext */}
         <motion.p
-          initial={{ opacity: 0, y: 6 }}
+          initial={reducedMotion ? false : { opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={reducedMotion ? { duration: 0 } : { delay: 0.15 }}
           className="text-slate-500 dark:text-slate-400 mb-6 leading-relaxed"
         >
           Selamat! Anda telah menyelesaikan
@@ -127,9 +135,9 @@ export function ModuleCompletionModal({
 
         {/* Achievement pill */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={reducedMotion ? false : { opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
+          transition={reducedMotion ? { duration: 0 } : { delay: 0.2 }}
           className={cn(
             'inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold',
             xpEarned && xpEarned > 0 ? 'mb-3' : 'mb-6',
@@ -145,9 +153,9 @@ export function ModuleCompletionModal({
         {/* XP Earned */}
         {xpEarned && xpEarned > 0 ? (
           <motion.p
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={reducedMotion ? false : { opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.25 }}
+            transition={reducedMotion ? { duration: 0 } : { delay: 0.25 }}
             className="text-2xl font-black text-yellow-400 dark:text-amber-400 mb-6 tracking-tight"
           >
             +{xpEarned} XP
@@ -156,9 +164,9 @@ export function ModuleCompletionModal({
 
         {/* CTA buttons */}
         <motion.div
-          initial={{ opacity: 0, y: 6 }}
+          initial={reducedMotion ? false : { opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          transition={reducedMotion ? { duration: 0 } : { delay: 0.25 }}
           className="flex flex-col gap-3"
         >
           <button

@@ -8,6 +8,7 @@ export type {
   SubmitAnswer,
   QuizAssignment,
   QuizAttemptResult,
+  QuizAttemptQuestion,
   StudentQuizAssignment,
   QuizAttempt,
 } from './types/quizzes.types'

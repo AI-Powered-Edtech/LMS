@@ -4,6 +4,7 @@ import { cn } from '@/src/utils/cn'
 import { useStudentXPProfile } from '../queries/gamificationQueries'
 import { getLevelTier } from './LevelBadge'
 import { computeXPToNextLevel } from '@/src/utils/clientCompute'
+import { useReducedMotion } from '@/src/hooks/useReducedMotion'
 
 interface XPProgressBarProps {
   compact?: boolean
@@ -12,6 +13,7 @@ interface XPProgressBarProps {
 export function XPProgressBar({ compact }: XPProgressBarProps) {
   const { data: profile } = useStudentXPProfile()
 
+  const reducedMotion = useReducedMotion()
   const totalXP = profile?.total_xp ?? 0
   const level = profile?.level ?? 1
 
@@ -36,9 +38,9 @@ export function XPProgressBar({ compact }: XPProgressBarProps) {
         <div className="relative w-20 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
           <motion.div
             className="h-full rounded-full bg-gradient-to-r from-yellow-400 to-orange-400"
-            initial={{ width: 0 }}
+            initial={reducedMotion ? false : { width: 0 }}
             animate={{ width: `${progressPct}%` }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
+            transition={reducedMotion ? { duration: 0 } : { duration: 0.8, ease: 'easeOut' }}
           />
         </div>
         <span className="text-[10px] font-bold text-yellow-600 dark:text-yellow-500">
@@ -68,9 +70,9 @@ export function XPProgressBar({ compact }: XPProgressBarProps) {
       <div className="relative w-full h-4 bg-slate-100 dark:bg-slate-800/80 rounded-full overflow-hidden shadow-inner">
         <motion.div
           className="h-full rounded-full bg-gradient-to-r from-yellow-400 via-orange-400 to-orange-500 shadow-sm"
-          initial={{ width: 0 }}
+          initial={reducedMotion ? false : { width: 0 }}
           animate={{ width: `${progressPct}%` }}
-          transition={{ duration: 1.1, ease: [0.4, 0, 0.2, 1] }}
+          transition={reducedMotion ? { duration: 0 } : { duration: 1.1, ease: [0.4, 0, 0.2, 1] }}
         />
         {/* Shine overlay */}
         <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
