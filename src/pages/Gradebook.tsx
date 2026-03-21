@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   Search,
@@ -54,45 +54,71 @@ export function Gradebook() {
     }
   };
 
-  const filteredStudents = students.filter(s =>
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.nis.includes(searchQuery)
-  );
+  // Memoize student calculations to prevent recalculation on every render
+  const studentStats = useMemo(() => {
+    const stats: Record<string, { avg: number, total: number }> = {};
+    let allAverages: number[] = [];
+    let highestScore = 0;
+    let lowestScore = 100; // Assuming 100 is max, will be updated
+    let highestStudent = "-";
+    let lowestStudent = "-";
 
-  const calculateAverage = (studentId: string) => {
-    const studentGrades = grades[studentId];
-    if (!studentGrades) return 0;
-    const scores = Object.values(studentGrades)
-      .map(entry => entry.score)
-      .filter((score): score is number => score !== null);
-    if (scores.length === 0) return 0;
-    const sum = scores.reduce((a, b) => a + b, 0);
-    return Math.round(sum / scores.length);
-  };
+    students.forEach(student => {
+      const studentGrades = grades[student.id];
+      let avg = 0;
+      let total = 0;
 
-  const calculateTotal = (studentId: string) => {
-    const studentGrades = grades[studentId];
-    if (!studentGrades) return 0;
-    const scores = Object.values(studentGrades)
-      .map(entry => entry.score)
-      .filter((score): score is number => score !== null);
-    if (scores.length === 0) return 0;
-    return scores.reduce((a, b) => a + b, 0);
-  };
+      if (studentGrades) {
+        const scores = Object.values(studentGrades)
+          .map(entry => entry.score)
+          .filter((score): score is number => score !== null);
 
-  // Calculate class stats
-  const allAverages = students.map(s => calculateAverage(s.id as any)).filter(avg => avg > 0);
-  const classAverage = allAverages.length > 0 ? Math.round(allAverages.reduce((a, b) => a + b, 0) / allAverages.length) : 0;
-  const highestScore = allAverages.length > 0 ? Math.max(...allAverages) : 0;
-  const lowestScore = allAverages.length > 0 ? Math.min(...allAverages) : 0;
+        if (scores.length > 0) {
+          total = scores.reduce((a, b) => a + b, 0);
+          avg = Math.round(total / scores.length);
+        }
+      }
 
-  let highestStudent = "-";
-  let lowestStudent = "-";
+      stats[student.id] = { avg, total };
 
-  if (allAverages.length > 0) {
-    highestStudent = students.find(s => calculateAverage(s.id as any) === highestScore)?.name || "-";
-    lowestStudent = students.find(s => calculateAverage(s.id as any) === lowestScore)?.name || "-";
-  }
+      if (avg > 0) {
+        allAverages.push(avg);
+      }
+    });
+
+    if (allAverages.length > 0) {
+      highestScore = Math.max(...allAverages);
+      lowestScore = Math.min(...allAverages);
+
+      highestStudent = students.find(s => stats[s.id]?.avg === highestScore)?.name || "-";
+      lowestStudent = students.find(s => stats[s.id]?.avg === lowestScore)?.name || "-";
+    } else {
+      lowestScore = 0;
+    }
+
+    const classAverage = allAverages.length > 0
+      ? Math.round(allAverages.reduce((a, b) => a + b, 0) / allAverages.length)
+      : 0;
+
+    return {
+      stats,
+      classAverage,
+      highestScore,
+      lowestScore,
+      highestStudent,
+      lowestStudent
+    };
+  }, [students, grades]);
+
+  const { classAverage, highestScore, lowestScore, highestStudent, lowestStudent, stats } = studentStats;
+
+  const filteredStudents = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+    return students.filter(s =>
+      s.name.toLowerCase().includes(query) ||
+      s.nis.includes(query)
+    );
+  }, [students, searchQuery]);
 
   const getGradeColor = (score: number | null) => {
     if (score === null || score === 0) return "text-slate-400";
@@ -370,8 +396,9 @@ export function Gradebook() {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
               {filteredStudents.map(student => {
-                const avg = calculateAverage(student.id as any);
-                const total = calculateTotal(student.id as any);
+                const studentStat = stats[student.id];
+                const avg = studentStat?.avg ?? 0;
+                const total = studentStat?.total ?? 0;
                 return (
                   <tr key={student.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors group">
                     <td className="p-4 sticky left-0 bg-white dark:bg-slate-800 group-hover:bg-slate-50/50 dark:group-hover:bg-slate-700/30 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
