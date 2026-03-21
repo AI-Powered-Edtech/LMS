@@ -67,7 +67,8 @@ describe('markAsRead', () => {
   it('updates notifications table', async () => {
     const fromSpy = vi.fn().mockReturnValue({
       update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
+      eq: vi.fn().mockReturnThis(),
+      then: vi.fn().mockImplementation((cb) => cb({ error: null })),
     });
     mockFrom.mockImplementation(fromSpy);
     await markAsRead('n1', 'tenant-1');
@@ -80,7 +81,8 @@ describe('markAsRead', () => {
       update: vi.fn().mockImplementation((data) => {
         updatedData = data;
         return {
-          eq: vi.fn().mockResolvedValue({ error: null }),
+          eq: vi.fn().mockReturnThis(),
+          then: vi.fn().mockImplementation((cb) => cb({ error: null })),
         };
       }),
     });
@@ -91,7 +93,8 @@ describe('markAsRead', () => {
   it('throws on error', async () => {
     mockFrom.mockReturnValue({
       update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: { message: 'Update failed' } }),
+      eq: vi.fn().mockReturnThis(),
+      then: vi.fn().mockImplementation((cb) => cb({ error: { message: 'Update failed' } })),
     });
     await expect(markAsRead('n1', 'tenant-1')).rejects.toMatchObject({ message: 'Update failed' });
   });
@@ -103,7 +106,8 @@ describe('markAllAsRead', () => {
   it('updates all unread notifications for user', async () => {
     const fromSpy = vi.fn().mockReturnValue({
       update: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockResolvedValue({ error: null }),
+      eq: vi.fn().mockReturnThis(),
+      then: vi.fn().mockImplementation((cb) => cb({ error: null })),
     });
     mockFrom.mockImplementation(fromSpy);
     await markAllAsRead('user-1', 'tenant-1');

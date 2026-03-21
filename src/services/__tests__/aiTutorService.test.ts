@@ -60,7 +60,7 @@ describe('AI Tutor Service', () => {
 
       expect(result.data).toBeUndefined();
       expect(result.error).toEqual({
-        message: 'Edge function failed',
+        message: 'Terjadi kesalahan pada sistem tutor',
         code: 'EDGE_FUNCTION_ERROR',
       });
     });

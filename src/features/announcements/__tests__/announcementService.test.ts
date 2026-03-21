@@ -32,7 +32,8 @@ describe('announcementService.fetchAnnouncements', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
-      is: vi.fn().mockResolvedValue({ data: [], error: null }),
+      is: vi.fn().mockReturnThis(),
+      then: vi.fn().mockImplementation((cb) => cb({ data: [], error: null })),
     });
     mockFrom.mockImplementation(fromSpy);
     await announcementService.fetchAnnouncements('tenant-1');
@@ -45,7 +46,8 @@ describe('announcementService.fetchAnnouncements', () => {
       select: vi.fn().mockReturnThis(),
       eq: eqSpy,
       order: vi.fn().mockReturnThis(),
-      is: vi.fn().mockResolvedValue({ data: [], error: null }),
+      is: vi.fn().mockReturnThis(),
+      then: vi.fn().mockImplementation((cb) => cb({ data: [], error: null })),
     });
     await announcementService.fetchAnnouncements('tenant-1');
     expect(eqSpy).toHaveBeenCalledWith('tenant_id', 'tenant-1');
@@ -57,7 +59,8 @@ describe('announcementService.fetchAnnouncements', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
-      is: vi.fn().mockResolvedValue({ data: items, error: null }),
+      is: vi.fn().mockReturnThis(),
+      then: vi.fn().mockImplementation((cb) => cb({ data: items, error: null })),
     });
     const result = await announcementService.fetchAnnouncements('tenant-1');
     expect(result).toEqual(items);
@@ -68,7 +71,8 @@ describe('announcementService.fetchAnnouncements', () => {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
-      is: vi.fn().mockResolvedValue({ data: null, error: { message: 'Access denied' } }),
+      is: vi.fn().mockReturnThis(),
+      then: vi.fn().mockImplementation((cb) => cb({ data: null, error: { message: 'Access denied' } })),
     });
     await expect(announcementService.fetchAnnouncements('tenant-1')).rejects.toMatchObject({
       message: 'Access denied',

@@ -26,28 +26,19 @@ const mockQuestion = {
 describe('questionBankService.createQuestion', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('inserts into question_bank table', async () => {
-    const fromSpy = vi.fn().mockReturnValue({
-      insert: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { id: 'q1' }, error: null }),
-    });
-    mockFrom.mockImplementation(fromSpy);
+  it('calls rpc create_question', async () => {
+    mockRpc.mockResolvedValue({ data: { id: 'q1' }, error: null });
     try {
       await questionBankService.createQuestion(mockQuestion);
     } catch {
       // tolerate if additional steps fail
     }
-    const tableNames = fromSpy.mock.calls.map((call: unknown[]) => call[0]);
-    expect(tableNames.some((t: unknown) => typeof t === 'string' && t.includes('question'))).toBe(true);
+    const rpcNames = mockRpc.mock.calls.map((call: unknown[]) => call[0]);
+    expect(rpcNames.some((t: unknown) => typeof t === 'string' && t === 'create_question')).toBe(true);
   });
 
   it('throws on insert error', async () => {
-    mockFrom.mockReturnValue({
-      insert: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: { message: 'Insert failed' } }),
-    });
+    mockRpc.mockResolvedValue({ data: null, error: { message: 'Insert failed' } });
     await expect(questionBankService.createQuestion(mockQuestion)).rejects.toMatchObject({
       message: 'Insert failed',
     });
@@ -57,22 +48,14 @@ describe('questionBankService.createQuestion', () => {
 describe('questionBankService.searchQuestions', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('queries question_bank table', async () => {
-    const fromSpy = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      ilike: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      range: vi.fn().mockResolvedValue({ data: [], count: 0, error: null }),
-      limit: vi.fn().mockResolvedValue({ data: [], count: 0, error: null }),
-    });
-    mockFrom.mockImplementation(fromSpy);
+  it('calls rpc search_questions', async () => {
+    mockRpc.mockResolvedValue({ data: [], error: null });
     try {
       await questionBankService.searchQuestions({});
     } catch {
       // ok
     }
-    const tableNames = fromSpy.mock.calls.map((call: unknown[]) => call[0]);
-    expect(tableNames.some((t: unknown) => typeof t === 'string' && t.includes('question'))).toBe(true);
+    const rpcNames = mockRpc.mock.calls.map((call: unknown[]) => call[0]);
+    expect(rpcNames.some((t: unknown) => typeof t === 'string' && t === 'search_questions')).toBe(true);
   });
 });

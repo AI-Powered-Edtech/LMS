@@ -14,7 +14,8 @@ function makeLeaderboardChain(resolveWith: { data: unknown; error: unknown }) {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockResolvedValue(resolveWith),
+    limit: vi.fn().mockReturnThis(),
+    then: vi.fn().mockImplementation((cb) => cb(resolveWith)),
   };
 }
 
@@ -70,12 +71,13 @@ describe('leaderboardService.getLeaderboard', () => {
   });
 
   it('limits to top 20', async () => {
-    const limitSpy = vi.fn().mockResolvedValue({ data: [], error: null });
+    const limitSpy = vi.fn().mockReturnThis();
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       limit: limitSpy,
+      then: vi.fn().mockImplementation((cb) => cb({ data: [], error: null })),
     });
     await leaderboardService.getLeaderboard('class-1', 'tenant-1');
     expect(limitSpy).toHaveBeenCalledWith(20);

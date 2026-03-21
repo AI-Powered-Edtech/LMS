@@ -42,10 +42,13 @@ describe('courseService.fetchCourses', () => {
     mockOrder.mockReturnThis();
     mockRange.mockResolvedValue({ data: [], count: 0, error: null });
     mockSelect.mockReturnThis();
+    mockIlike.mockReturnThis();
+    mockIn.mockReturnThis();
   });
 
   it('queries the courses table', async () => {
-    mockOrder.mockResolvedValue({ data: [], count: 0, error: null });
+    mockOrder.mockReturnThis();
+    mockRange.mockResolvedValue({ data: [], count: 0, error: null });
     await courseService.fetchCourses({ tenantId: 'tenant-1', page: 1, limit: 10 });
     expect(mockFrom).toHaveBeenCalledWith('courses');
   });

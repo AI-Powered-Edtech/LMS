@@ -94,8 +94,8 @@ describe('cachedQuery', () => {
   });
 
   it('removes corrupted cache entry on queryFn error', async () => {
-    const badEntry = { data: 'partial', timestamp: Date.now(), ttlMinutes: 10 };
-    localStorage.setItem('edusync_cache_error-key2', JSON.stringify(badEntry));
+    const badEntry = 'NOT_JSON{{{';
+    localStorage.setItem('edusync_cache_error-key2', badEntry);
     const queryFn = vi.fn().mockRejectedValue(new Error('fail'));
     await expect(cachedQuery('error-key2', queryFn)).rejects.toThrow();
   });

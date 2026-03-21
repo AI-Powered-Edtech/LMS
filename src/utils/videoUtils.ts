@@ -41,12 +41,16 @@ export function parseVideoUrl(url: string): ParsedVideoUrl {
         ) {
             let videoId = '';
 
+            // Note: hostname and pathname are lowercased earlier in the function,
+            // but we need the original case for video ID.
+            const origPathname = urlObj.pathname;
+
             if (hostname === 'youtu.be') {
                 // youtu.be/VIDEO_ID
-                videoId = pathname.slice(1);
-            } else if (pathname.includes('/embed/')) {
+                videoId = origPathname.slice(1);
+            } else if (origPathname.includes('/embed/')) {
                 // youtube.com/embed/VIDEO_ID or youtube-nocookie.com/embed/VIDEO_ID
-                const match = pathname.match(/\/embed\/([^/?]+)/);
+                const match = origPathname.match(/\/embed\/([^/?]+)/);
                 videoId = match?.[1] || '';
             } else {
                 // youtube.com/watch?v=VIDEO_ID

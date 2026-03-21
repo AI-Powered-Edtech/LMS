@@ -56,10 +56,10 @@ describe('quizAnalyticsService.getQuestionDifficulty', () => {
 describe('quizAnalyticsService.exportGradebookCSV', () => {
   it('returns a CSV string', () => {
     const attempts = [
-      { student_name: 'Alice', score: 90, submitted_at: '2026-01-01', passed: true },
-      { student_name: 'Bob', score: 60, submitted_at: '2026-01-02', passed: false },
+      { profiles: { full_name: 'Alice' }, quizzes: { title: 'Q1' }, score: 90, passed: true, time_spent: 100, submitted_at: '2026-01-01T00:00:00.000Z' },
+      { profiles: { full_name: 'Bob' }, quizzes: { title: 'Q1' }, score: 60, passed: false, time_spent: 120, submitted_at: '2026-01-02T00:00:00.000Z' },
     ];
-    const csv = quizAnalyticsService.exportGradebookCSV(attempts as any);
+    const csv = quizAnalyticsService.exportGradebookCSV(attempts);
     expect(typeof csv).toBe('string');
     expect(csv).toContain('Alice');
     expect(csv).toContain('Bob');
