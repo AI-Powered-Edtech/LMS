@@ -11,11 +11,10 @@ vi.mock('../../../lib/supabase', () => ({
 }));
 
 import {
-  getStudentAssignments,
-  getAssignmentById,
+  getAssignmentsByClass,
 } from '../api/quizAssignment.service';
 
-describe('getStudentAssignments', () => {
+describe('getAssignmentsByClass', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('queries quiz_assignments table', async () => {
@@ -26,7 +25,7 @@ describe('getStudentAssignments', () => {
     });
     mockFrom.mockImplementation(fromSpy);
     try {
-      await getStudentAssignments('class-1');
+      await getAssignmentsByClass('class-1', 'tenant-1');
     } catch {
       // ok
     }
@@ -41,7 +40,7 @@ describe('getStudentAssignments', () => {
       order: vi.fn().mockResolvedValue({ data: [], error: null }),
     });
     try {
-      const result = await getStudentAssignments('class-1');
+      const result = await getAssignmentsByClass('class-1', 'tenant-1');
       expect(Array.isArray(result)).toBe(true);
     } catch {
       // function may need auth — pass
