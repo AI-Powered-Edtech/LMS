@@ -10,12 +10,12 @@ vi.mock('../../../lib/supabase', () => ({
   },
 }));
 
-import { quizzesService } from '../api/quizzes.service';
+import * as quizzesService from '../api/quizzes.service';
 
 describe('quizzesService', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  describe('getQuizById', () => {
+  describe('getQuizWithQuestions', () => {
     it('queries quizzes table with quiz ID', async () => {
       const fromSpy = vi.fn().mockReturnValue({
         select: vi.fn().mockReturnThis(),
@@ -24,7 +24,7 @@ describe('quizzesService', () => {
       });
       mockFrom.mockImplementation(fromSpy);
       try {
-        await quizzesService.getQuizById('quiz-1', 'tenant-1');
+        await quizzesService.getQuizWithQuestions('quiz-1', 'tenant-1');
       } catch {
         // ok
       }
@@ -40,7 +40,7 @@ describe('quizzesService', () => {
         single: vi.fn().mockResolvedValue({ data: quiz, error: null }),
       });
       try {
-        const result = await quizzesService.getQuizById('quiz-1', 'tenant-1');
+        const result = await quizzesService.getQuizWithQuestions('quiz-1', 'tenant-1');
         if (result) {
           expect(result.id).toBe('quiz-1');
         }
@@ -59,7 +59,7 @@ describe('quizzesService', () => {
         }),
       });
       try {
-        await expect(quizzesService.getQuizById('quiz-1', 'tenant-1')).rejects.toBeDefined();
+        await expect(quizzesService.getQuizWithQuestions('quiz-1', 'tenant-1')).rejects.toBeDefined();
       } catch {
         // function may handle 'not found' differently
       }

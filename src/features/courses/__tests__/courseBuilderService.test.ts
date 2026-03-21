@@ -12,16 +12,17 @@ vi.mock('@/src/lib/supabase', () => ({
 describe('courseBuilderService', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  describe('getCourseStructure', () => {
+  describe('fetchCourseStructure', () => {
     it('queries course_modules table', async () => {
       const fromSpy = vi.fn().mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({ data: [], error: null }),
+        single: vi.fn().mockResolvedValue({ data: { id: 'course-1', title: 'Test Course' }, error: null }),
       });
       mockFrom.mockImplementation(fromSpy);
       try {
-        await courseBuilderService.getCourseStructure('course-1', 'tenant-1');
+        await courseBuilderService.fetchCourseStructure('course-1');
       } catch {
         // function may require different args
       }
@@ -30,7 +31,7 @@ describe('courseBuilderService', () => {
     });
   });
 
-  describe('saveLesson', () => {
+  describe('createLesson', () => {
     it('upserts into lessons table', async () => {
       const fromSpy = vi.fn().mockReturnValue({
         upsert: vi.fn().mockReturnThis(),
@@ -41,19 +42,8 @@ describe('courseBuilderService', () => {
         eq: vi.fn().mockResolvedValue({ data: { id: 'lesson-1' }, error: null }),
       });
       mockFrom.mockImplementation(fromSpy);
-      const lessonData = {
-        id: 'lesson-1',
-        module_id: 'module-1',
-        title: 'Test Lesson',
-        type: 'reading',
-        order: 1,
-        is_published: false,
-        duration_minutes: 15,
-        passing_score: null,
-        tenant_id: 'tenant-1',
-      };
       try {
-        await courseBuilderService.saveLesson(lessonData);
+        await courseBuilderService.createLesson('module-1', 'Test Lesson', 'reading', 'tenant-1');
       } catch {
         // ok — just verify the table was accessed
       }
