@@ -24,3 +24,18 @@ test-results/
 
 # Claude Code worktrees (temporary agent clones)
 .claude/worktrees/
+
+# Claude agent memory (local-only, not for repo)
+.claude/agent-memory/
+claude/agent-memory/
+
+# QA state files (agent-generated, local-only)
+qa-dev-state.md
+smart-player-qa-state.md
+
+# Accidental CLI outputs
+--output
+
+# Backup files
+supabase/*.bak
+*.bak
