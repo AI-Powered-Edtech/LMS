@@ -1,13 +1,13 @@
 import { Flame, Star, UserCircle, LogOut, Moon, Sun, Activity } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
 import { useAuth, Role } from '@/src/contexts/AuthContext'
-import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '@/src/features/notifications'
+import { useNotifications } from '@/src/features/notifications'
+import { NotificationBell as AppNotificationBell } from '@/src/features/notifications'
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { useNavigate } from 'react-router-dom'
 import { useState, useRef, useEffect } from 'react'
 import { useStudentProgressData } from '@/src/features/progress/hooks/useStudentProgressQueries'
-import { NotificationCenter } from '../Social/NotificationCenter'
-import { NotificationBell } from '@/src/features/struggle'
+import { NotificationBell as StruggleBell } from '@/src/features/struggle'
 import { useStudentXPProfile } from '@/src/features/gamification/queries/gamificationQueries'
 import { LevelBadge } from '@/src/features/gamification/components/LevelBadge'
 
@@ -25,23 +25,17 @@ export function Header() {
   const progress = xpNeeded > 0 ? Math.min(((totalXp - xpCurrent) / xpNeeded) * 100, 100) : 100
 
   const { role, profile, signOut } = useAuth()
+  // Warm up realtime subscription for the current user
   useNotifications()
-  useMarkAsRead()
-  useMarkAllAsRead()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [isProfileOpen, setIsProfileOpen] = useState(false)
-  const [_isNotifOpen, setIsNotifOpen] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
-  const notifRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setIsProfileOpen(false)
-      }
-      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
-        setIsNotifOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -129,10 +123,10 @@ export function Header() {
         </button>
 
         {/* Struggle Detection Bell — teacher/admin only */}
-        <NotificationBell />
+        <StruggleBell />
 
-        {/* Social Notification Bell */}
-        <NotificationCenter />
+        {/* App Notification Bell — all roles */}
+        <AppNotificationBell />
 
         {/* Profile Avatar Dropdown */}
         <div className="relative" ref={profileRef}>

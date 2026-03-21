@@ -117,6 +117,11 @@ const AdminAnalyticsDashboard = lazy(() =>
     default: m.AdminAnalyticsDashboard,
   }))
 )
+const SystemHealth = lazy(() =>
+  import('../pages/admin/SystemHealth').then((m) => ({ default: m.SystemHealth }))
+)
+const FeatureFlagsPage = lazy(() => import('../pages/admin/FeatureFlags'))
+
 const Login = lazy(() => import('../pages/Login').then((m) => ({ default: m.Login })))
 const ForgotPassword = lazy(() =>
   import('../pages/ForgotPassword').then((m) => ({ default: m.ForgotPassword }))
@@ -141,6 +146,9 @@ const Unauthorized = lazy(() =>
   import('../pages/Unauthorized').then((m) => ({ default: m.Unauthorized }))
 )
 const NotFound = lazy(() => import('../pages/NotFound').then((m) => ({ default: m.NotFound })))
+const NotificationsPage = lazy(() =>
+  import('../pages/Notifications').then((m) => ({ default: m.Notifications }))
+)
 
 /* Parameterized redirect helpers — Navigate cannot interpolate :params */
 function RedirectCourseDetail() {
@@ -727,6 +735,22 @@ export function AppRoutes() {
                 </Suspense>
               }
             />
+            <Route
+              path="system-health"
+              element={
+                <Suspense fallback={<AppLoading />}>
+                  <SystemHealth />
+                </Suspense>
+              }
+            />
+            <Route
+              path="feature-flags"
+              element={
+                <Suspense fallback={<AppLoading />}>
+                  <FeatureFlagsPage />
+                </Suspense>
+              }
+            />
           </Route>
         </Route>
 
@@ -827,6 +851,16 @@ export function AppRoutes() {
             <RoleGuard allowedRoles={['teacher', 'student', 'admin']}>
               <Suspense fallback={<AppLoading />}>
                 <SocialHub />
+              </Suspense>
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="notifications"
+          element={
+            <RoleGuard allowedRoles={['teacher', 'student', 'admin']}>
+              <Suspense fallback={<AppLoading />}>
+                <NotificationsPage />
               </Suspense>
             </RoleGuard>
           }

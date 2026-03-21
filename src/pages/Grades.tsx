@@ -1,8 +1,12 @@
 import { useState, useMemo } from 'react'
-import { Calculator, Trophy, Target, BookOpen, Loader2 } from 'lucide-react'
+import { Calculator, Trophy, Target, BookOpen, Loader2, ChevronDown } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/src/lib/supabase'
 import { useAuth } from '@/src/contexts/AuthContext'
+import { cn } from '@/src/utils/cn'
+import { useCourses } from '@/src/features/courses/queries/courseQueries'
+import type { Course } from '@/src/features/courses/types'
+import { StudentGradeView } from '@/src/features/gradebook/components/StudentGradeView'
 
 interface Assignment {
   id: string
@@ -45,6 +49,10 @@ export function Grades() {
   const { user, tenantId } = useAuth()
   const [whatIfScores, setWhatIfScores] = useState<Record<string, number | null>>({})
   const [targetGrade, setTargetGrade] = useState<number>(90)
+
+  // Course selector for StudentGradeView
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('')
+  const coursesQuery = useCourses({ limit: 50 })
 
   const { data: submissionsData = [], isLoading } = useQuery({
     queryKey: ['student-grades', user?.id, tenantId],
@@ -110,11 +118,54 @@ export function Grades() {
     )
   }
 
+  const courses: Course[] = coursesQuery.data?.courses ?? []
+
   return (
-    <div className="h-full flex flex-col bg-slate-50 p-4 md:p-6 overflow-y-auto">
+    <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-900 p-4 md:p-6 overflow-y-auto">
       <div className="max-w-4xl w-full mx-auto space-y-6">
+        {/* ── Nilai per Kursus (Gradebook) ──────────────────────────────── */}
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm p-4 sm:p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h2 className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-blue-500" />
+              Nilai Kursus Saya
+            </h2>
+            <div className="relative">
+              <select
+                value={selectedCourseId}
+                onChange={(e) => setSelectedCourseId(e.target.value)}
+                className={cn(
+                  'appearance-none pl-3 pr-9 py-2 rounded-xl text-sm font-medium',
+                  'border border-slate-200 dark:border-slate-600',
+                  'bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200',
+                  'focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors',
+                  'min-w-[200px]'
+                )}
+              >
+                <option value="">-- Pilih Kursus --</option>
+                {courses.map((c: Course) => (
+                  <option key={c.id} value={c.id}>
+                    {c.title}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            </div>
+          </div>
+
+          {selectedCourseId ? (
+            <StudentGradeView courseId={selectedCourseId} />
+          ) : (
+            <div className="flex items-center justify-center h-20 border-2 border-dashed border-slate-200 dark:border-slate-600 rounded-xl">
+              <p className="text-sm text-slate-400 dark:text-slate-500">
+                Pilih kursus untuk melihat nilai kamu
+              </p>
+            </div>
+          )}
+        </div>
+
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Trophy className="w-6 h-6 text-yellow-500" />
             Simulasi Nilai (What-If Grades)
           </h1>

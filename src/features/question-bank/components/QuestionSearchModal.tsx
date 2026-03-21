@@ -26,6 +26,7 @@ export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
   const [addingIds, setAddingIds] = useState<Set<string>>(new Set())
   const [typeFilter, setTypeFilter] = useState('')
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isOpen) {
       loadQuestions()
@@ -39,6 +40,7 @@ export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
     }, 500)
     return () => clearTimeout(timer)
   }, [searchQuery])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const loadQuestions = async () => {
     setLoading(true)

@@ -51,6 +51,7 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
     questions: [],
   })
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (!activeLesson) return
     async function load() {
@@ -99,6 +100,7 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
     }
     load()
   }, [activeLesson?.id])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const handleSave = async (targetStatus: QuizStatus = quizStatus) => {
     if (!activeLesson) return

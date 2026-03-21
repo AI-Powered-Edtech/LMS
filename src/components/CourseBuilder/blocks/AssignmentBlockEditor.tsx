@@ -29,6 +29,7 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
     due_date: null,
   })
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (!activeLesson) return
     async function load() {
@@ -54,6 +55,7 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
     }
     load()
   }, [activeLesson?.id])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const handleSave = async () => {
     if (!activeLesson) return

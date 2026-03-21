@@ -1,5 +1,69 @@
 # EduSync LMS — Changelog
 
+## Phase 4: Excellence & Production (2026-03-22)
+
+### Sprint 4.0 — Gradebook & Notifications
+
+- Full Gradebook system: `gradebook_entries` + `gradebook_settings` tables, auto-sync RPC, teacher inline-edit UI, student grade view, CSV export
+- Notification Center with Supabase Realtime: 8 trigger types, mark-as-read, mark-all-read, notification preferences (email/push toggle, quiet hours, per-type disable)
+- `src/features/gradebook/` and `src/features/notifications/` feature modules
+- Migrations 002–003, Edge Functions: `send-email-digest`, `send-push`
+
+### Sprint 4.1 — Offline & Onboarding
+
+- Offline quiz: IndexedDB storage (`offlineStorage.ts`), retry-backoff background sync (`backgroundSync.ts`), `OfflineBanner` component, `useNetworkStatus` hook
+- Tenant onboarding: 4-step registration wizard, invite link flow (`tenant_invitations`), 7-item onboarding checklist
+- Bulk operations: CSV enrollment (PapaParse), bulk grade, `BulkActionBar` reusable component
+- Feature flags: 5 flags, rollout %, tenant-specific override, admin UI (`FeatureFlags.tsx`)
+- Migrations 004–005
+
+### Sprint 4.2 — Observability
+
+- Sentry: `initSentry()`, session replay, PII scrubbing, source maps conditional on `VITE_SENTRY_AUTH_TOKEN`
+- Production metrics: 7 `MetricName` types, `trackMetric()` + `measureAsync()` utilities, `app_metrics` table
+- System health dashboard (`SystemHealth.tsx`): DB latency, auto-refresh 60s, performance metrics
+- Health check Edge Function (public endpoint)
+- Ops docs: `backup-recovery.md`, `incident-runbook.md`, `environments.md`, `deploy-checklist.md`, `security-pentest.md`
+- Migration 006
+
+### Sprint 4.3 — Load Testing & Security
+
+- k6 load tests: smoke + stress scenarios (`tests/load/`)
+- CodeQL: `.github/workflows/codeql.yml` (JavaScript/TypeScript, weekly + on-push)
+- Auth hardening: `login_attempts` table (15-min lockout), `auth_audit_log` table — Migration 007
+- CI/CD: 4-job CI pipeline, CD deploy workflow, release automation workflow
+- Routes: `/app/admin/system-health`, `/app/admin/feature-flags`
+
+### Sprint 4.4 — Final Polish
+
+- `src/utils` coverage: **97.78%** statements / **90.69%** functions (up from ~65%)
+- ESLint: **0 warnings, 0 errors** (down from 27 → 0)
+- `featureFlags.ts`: 13 unit tests covering all evaluation paths
+- Vitest config: browser-API utilities excluded from coverage by design
+- Combined Phase 3+4 report: `docs/phase3-4-combined-report.md`
+- Overall score: **8.65 → 9.60/10**
+
+### Build Metrics (Post-Phase 4)
+
+- Main chunk (gzip): **146.91 kB** (vs 150.93 kB post-Phase 3)
+- Total tests: **365** across **44 files** (0 failures)
+- Build time: **14.44s**
+
+---
+
+## Gradebook Feature Module (2026-03-22)
+
+### `src/features/gradebook/` — new feature module
+
+- `types/index.ts` — GradebookEntry, GradebookSettings, GradebookColumn, GradebookStudent types
+- `api/gradebookApi.ts` — fetchGradebookEntries, updateGradebookEntry, upsertGradebookEntry, syncGradebook, fetchGradebookSettings, upsertGradebookSettings, exportGradebookCSV (PapaParse)
+- `queries/useGradebook.ts` — useGradebookEntries, useGradebookSettings, useUpdateGradebookEntry, useSyncGradebook, useUpsertGradebookSettings
+- `components/GradebookTable.tsx` — spreadsheet-like teacher view with inline editing, sync, CSV export, class-average footer, skeleton loading, dark mode
+- `components/StudentGradeView.tsx` — student read-only view: summary card with rank, per-item table with letter grades, dark mode
+- `pages/Gradebook.tsx` — integrated GradebookTable with course selector dropdown
+- `pages/Grades.tsx` — integrated StudentGradeView with course selector dropdown
+- Migration `supabase/migrations/002_gradebook.sql` — gradebook_entries + gradebook_settings tables, RLS, sync_gradebook_entries RPC, compute_grade_letter RPC, get_course_gradebook_summary RPC
+
 ## Phase 3: Polish & Optimize (2026-03-22)
 
 ### Sprint 3.0 — Bundle Surgery & Performance

@@ -15,10 +15,15 @@ import {
   X,
   Plus,
   Users,
+  BookOpen,
+  ChevronDown,
 } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
 import { useGradebook, Assignment } from '@/src/features/assignments/hooks/useGradebookQueries'
 import { EmptyState } from '@/src/components/ui'
+import { useCourses } from '@/src/features/courses/queries/courseQueries'
+import type { Course } from '@/src/features/courses/types'
+import { GradebookTable } from '@/src/features/gradebook/components/GradebookTable'
 
 export function Gradebook() {
   const { students, assignments, grades, updateGrade, addAssignment } = useGradebook()
@@ -35,6 +40,11 @@ export function Gradebook() {
     maxScore: 100,
     date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
   })
+
+  // Course-based gradebook (real Supabase data)
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('')
+  const coursesQuery = useCourses({ limit: 50 })
+  const courses: Course[] = coursesQuery.data?.courses ?? []
 
   const handleAddAssignment = (e: React.FormEvent) => {
     e.preventDefault()
@@ -182,6 +192,61 @@ export function Gradebook() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      {/* ── Gradebook per Kursus (data Supabase) ──────────────────────────── */}
+      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm p-4 sm:p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+              <BookOpen className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="font-bold text-slate-800 dark:text-slate-200">Nilai per Kursus</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Pilih kursus untuk melihat buku nilai lengkap
+              </p>
+            </div>
+          </div>
+
+          {/* Course selector */}
+          <div className="relative">
+            <select
+              value={selectedCourseId}
+              onChange={(e) => setSelectedCourseId(e.target.value)}
+              className={cn(
+                'appearance-none pl-3 pr-9 py-2 rounded-xl text-sm font-medium',
+                'border border-slate-200 dark:border-slate-600',
+                'bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200',
+                'focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors',
+                'min-w-[200px]'
+              )}
+            >
+              <option value="">-- Pilih Kursus --</option>
+              {courses.map((c: Course) => (
+                <option key={c.id} value={c.id}>
+                  {c.title}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          </div>
+        </div>
+
+        {selectedCourseId ? (
+          <GradebookTable courseId={selectedCourseId} />
+        ) : courses.length === 0 ? (
+          <EmptyState
+            title="Belum ada kursus"
+            description="Buat kursus terlebih dahulu untuk mulai mengelola nilai siswa."
+          />
+        ) : (
+          <div className="flex items-center justify-center h-24 border-2 border-dashed border-slate-200 dark:border-slate-600 rounded-xl">
+            <p className="text-sm text-slate-400 dark:text-slate-500">
+              Pilih kursus di atas untuk menampilkan buku nilai
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

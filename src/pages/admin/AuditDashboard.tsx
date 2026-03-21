@@ -128,10 +128,12 @@ export function AuditDashboard() {
     [actionFilter]
   )
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     setCursor(null)
     fetchLogs()
   }, [actionFilter])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr)

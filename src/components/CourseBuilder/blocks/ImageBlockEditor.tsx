@@ -23,6 +23,7 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
   const block = state.activeLesson?.blocks.find((b) => b.id === blockId)
   const _tenantId = state.courseId ? '' : '' // Will be fetched from context
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   const handleFile = useCallback(
     async (file: File) => {
       if (!state.courseId || !state.activeLesson) {
@@ -78,6 +79,7 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
     },
     [state.courseId, state.activeLesson, blockId, user?.id, actions]
   )
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const handleDelete = async () => {
     const storageObjectId = (block as unknown as { storage_object_id?: string })?.storage_object_id

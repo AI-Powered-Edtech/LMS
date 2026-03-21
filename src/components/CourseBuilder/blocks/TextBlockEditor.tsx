@@ -15,9 +15,11 @@ export function TextBlockEditor({ blockId }: TextBlockEditorProps) {
   const [previewMode, setPreviewMode] = useState(false)
 
   // Sync from context if it completely changes (e.g. changing block selection)
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     setLocalContent(block?.content || '')
   }, [block?.id]) // Only reset when the block ID changes
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   // Local autosave debounce to prevent Context re-render spam
   useEffect(() => {

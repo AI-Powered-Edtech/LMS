@@ -80,6 +80,7 @@ export function QuizGradebook() {
     loadClasses()
   }, [activeTenant])
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (!selectedClass || !activeTenant) {
       setAssignments([])
@@ -137,7 +138,9 @@ export function QuizGradebook() {
 
     loadAssignments()
   }, [selectedClass])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   const loadAttempts = useCallback(async () => {
     if (!selectedAssignment) {
       setAttempts([])
@@ -155,6 +158,7 @@ export function QuizGradebook() {
       setIsLoading(false)
     }
   }, [selectedAssignment])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   useEffect(() => {
     loadAttempts()

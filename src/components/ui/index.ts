@@ -38,3 +38,8 @@ export { OptimizedImage } from './OptimizedImage'
 export { ErrorBoundary as UIErrorBoundary } from './ErrorBoundary'
 
 export { ErrorFallback } from './ErrorFallback'
+
+export { OfflineBanner } from './OfflineBanner'
+
+export { BulkActionBar } from './BulkActionBar'
+export type { BulkAction, BulkActionBarProps } from './BulkActionBar'

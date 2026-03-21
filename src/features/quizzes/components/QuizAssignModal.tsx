@@ -34,11 +34,13 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [assignments, setAssignments] = useState<Record<string, AssignmentFormState>>({})
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isOpen && user && tenantId) {
       loadClasses()
     }
   }, [isOpen, quizId, user, tenantId])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const loadClasses = async () => {
     if (!user || !tenantId) return

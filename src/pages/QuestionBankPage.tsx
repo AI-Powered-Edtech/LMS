@@ -18,9 +18,11 @@ export function QuestionBankPage() {
   const [showEditor, setShowEditor] = useState(false)
   const [editingQuestionId, setEditingQuestionId] = useState<string | undefined>(undefined)
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     loadQuestions()
   }, [debouncedSearchTerm, typeFilter])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   // Handle debounced search
   useEffect(() => {

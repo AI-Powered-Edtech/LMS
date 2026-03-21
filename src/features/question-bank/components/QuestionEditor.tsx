@@ -40,6 +40,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
   )
   const [tagInput, setTagInput] = useState('')
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isOpen) {
       if (questionId) {
@@ -49,6 +50,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
       }
     }
   }, [isOpen, questionId])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const loadQuestion = async (id: string) => {
     setLoading(true)

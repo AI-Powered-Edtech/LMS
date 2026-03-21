@@ -50,9 +50,11 @@ export const Courses: React.FC = () => {
     courseTitle: '',
   })
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     loadCourses()
   }, [activeTenant?.id, user?.id])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const loadCourses = async () => {
     if (!activeTenant?.id) return

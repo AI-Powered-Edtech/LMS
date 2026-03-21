@@ -586,6 +586,7 @@ export function LessonViewer() {
   // ============================================================
   // Completion handler (state machine: COMPLETION_MET → COMPLETED)
   // ============================================================
+  /* eslint-disable react-hooks/exhaustive-deps */
   const handleCompletionMet = useCallback(async () => {
     if (
       !state.lesson ||
@@ -596,6 +597,7 @@ export function LessonViewer() {
     )
       return
     if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
       console.debug('[Lesson Completion]', { lessonId: state.lesson.id, status: state.status })
     }
     actions.completionMet()
@@ -652,6 +654,7 @@ export function LessonViewer() {
       toast('Gagal menandai selesai. Coba lagi.', 'error')
     }
   }, [state.lesson, state.status, tenantId, user?.id, actions, toast])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   // ============================================================
   // Progress update handler

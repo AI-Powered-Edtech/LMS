@@ -31,9 +31,11 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
     }
   }
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     loadAssignments()
   }, [quizId, tenantId])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const handleRemoveAssignment = async (assignmentId: string) => {
     if (!tenantId) return

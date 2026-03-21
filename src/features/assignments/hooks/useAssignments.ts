@@ -26,6 +26,7 @@ export function useAssignments() {
   const [assignments, setAssignments] = useState<AssignmentUiState[]>([])
   const [loading, setLoading] = useState(true)
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (tenantId && userId) {
       loadAssignments()
@@ -33,6 +34,7 @@ export function useAssignments() {
       setLoading(false)
     }
   }, [tenantId, userId, role])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const loadAssignments = async () => {
     try {

@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'motion/react'
 
 export const NotificationCenter: React.FC = () => {
-  const { notifications, unreadCount, loading } = useNotifications()
+  const { notifications, unreadCount, isLoading: loading } = useNotifications()
   const markAsReadMutation = useMarkAsRead()
   const markAllAsReadMutation = useMarkAllAsRead()
   const [isOpen, setIsOpen] = useState(false)
@@ -123,11 +123,16 @@ interface NotificationItemProps {
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onRead, onClose }) => {
-  const iconMap = {
+  const iconMap: Partial<Record<Notification['type'], string>> = {
     grade: '📜',
+    grade_posted: '📜',
     discussion_reply: '💬',
     announcement: '📢',
     system: '⚡',
+    badge_earned: '🏆',
+    assignment_due: '📚',
+    quiz_available: '📝',
+    course_enrolled: '🎓',
   }
 
   return (
@@ -138,7 +143,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onRea
       )}
     >
       <div className="flex gap-4">
-        <div className="text-2xl mt-1 select-none">{iconMap[notification.type] || '🔔'}</div>
+        <div className="text-2xl mt-1 select-none">{iconMap[notification.type] ?? '🔔'}</div>
         <div className="flex-1 space-y-1">
           <div className="flex justify-between items-start gap-2">
             <h4

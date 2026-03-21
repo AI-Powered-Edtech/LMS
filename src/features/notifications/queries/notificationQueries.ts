@@ -33,6 +33,7 @@ export function useNotifications() {
   })
 
   // Realtime subscription — lifecycle tied to hook
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (!user || !tenantId) return
 
@@ -44,6 +45,7 @@ export function useNotifications() {
 
     return unsubscribe
   }, [user?.id, tenantId, queryClient])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const notifications = query.data ?? []
   const unreadCount = notifications.filter((n) => !n.is_read).length

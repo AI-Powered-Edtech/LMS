@@ -66,6 +66,7 @@ async function flushEvents() {
 
   try {
     if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
       console.debug('[Analytics] Flushing', batch.length, 'events')
     }
 

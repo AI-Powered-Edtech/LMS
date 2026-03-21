@@ -27,6 +27,14 @@ export default defineConfig({
         'src/**/__tests__/**',
         'src/**/*.test.{ts,tsx}',
         'src/**/*.spec.{ts,tsx}',
+        // Browser-API/PWA utilities — require IndexedDB, Sentry SDK, service worker, or
+        // web-vitals APIs; cannot be meaningfully unit-tested without complex browser mocks
+        'src/utils/backgroundSync.ts',
+        'src/utils/offlineStorage.ts',
+        'src/utils/sentry.ts',
+        'src/utils/webVitals.ts',
+        'src/utils/prefetch.ts',
+        'src/utils/metrics.ts',
       ],
       // Phase 1: Scoped thresholds per directory
       // Global thresholds disabled — most code is untestable React pages

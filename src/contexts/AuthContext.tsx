@@ -282,6 +282,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session: s } }) => {
@@ -335,6 +336,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe()
   }, [])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({

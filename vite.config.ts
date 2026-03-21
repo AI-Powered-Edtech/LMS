@@ -4,10 +4,12 @@ import path from 'path'
 import { defineConfig, loadEnv } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { visualizer } from 'rollup-plugin-visualizer'
+import { sentryVitePlugin } from '@sentry/vite-plugin'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '')
   const isAnalyze = env.ANALYZE === 'true'
+  const hasSentryToken = Boolean(env.VITE_SENTRY_AUTH_TOKEN)
 
   return {
     plugins: [
@@ -69,6 +71,15 @@ export default defineConfig(({ mode }) => {
       ...(isAnalyze
         ? [visualizer({ open: true, filename: 'stats.html', gzipSize: true, brotliSize: true })]
         : []),
+      ...(hasSentryToken
+        ? [
+            sentryVitePlugin({
+              org: env.VITE_SENTRY_ORG ?? 'edusync',
+              project: env.VITE_SENTRY_PROJECT ?? 'edusync-lms',
+              authToken: env.VITE_SENTRY_AUTH_TOKEN,
+            }),
+          ]
+        : []),
     ],
     resolve: {
       alias: {
@@ -81,6 +92,7 @@ export default defineConfig(({ mode }) => {
       hmr: process.env.DISABLE_HMR !== 'true',
     },
     build: {
+      sourcemap: hasSentryToken ? true : false,
       rollupOptions: {
         output: {
           manualChunks: {

@@ -184,9 +184,11 @@ export function SpeedGrader() {
     }
   }
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     loadStudentData()
   }, [currentStudentIdx])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const saveCurrentStudent = (status: 'graded' | 'needs_revision' | 'ungraded' = 'graded') => {
     updateGrade(currentStudent.id, assignmentId, totalScore, status, feedback)

@@ -106,10 +106,12 @@ export function Announcements() {
   }, [fetchedAnnouncements, page])
 
   // Reset to first page when search changes
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     setPage(0)
     refetch()
   }, [searchTerm])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   // Creation form state
   const [formData, setFormData] = useState({

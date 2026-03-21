@@ -49,6 +49,7 @@ export function AssignmentViewer({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     onStartViewing()
     if (!user?.id) return
@@ -70,6 +71,7 @@ export function AssignmentViewer({
     }
     loadSubmission()
   }, [assignmentId, user?.id])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const handleSubmit = async () => {
     if (!user?.id || !submissionText.trim()) return

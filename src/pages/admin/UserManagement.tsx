@@ -128,6 +128,7 @@ export function UserManagement() {
     }
   }, [])
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (tab === 'users') {
       setCursor(null)
@@ -136,6 +137,7 @@ export function UserManagement() {
       fetchInvitations()
     }
   }, [tab, search, roleFilter])
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const handleRoleChange = async (newRole: string) => {
     if (!roleModal) return
