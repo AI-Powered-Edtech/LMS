@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth, Role } from "../contexts/AuthContext";
 
@@ -8,6 +9,13 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, role, loading } = useAuth();
+
+  // All hooks MUST be called before any early return (React Rules of Hooks)
+  useEffect(() => {
+    if (import.meta.env.DEV && user && allowedRoles.includes(role)) {
+      console.log(`[Render] Allowed access for role ${role} (Allowed: ${allowedRoles}). Render children.`);
+    }
+  }, [user, role, allowedRoles]);
 
   if (loading) {
     return (
@@ -36,8 +44,5 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to={redirectPath} replace />;
   }
 
-  if (import.meta.env.DEV) {
-    console.log(`[Render] Allowed access for role ${role} (Allowed: ${allowedRoles}). Render children.`);
-  }
   return <>{children}</>;
 }

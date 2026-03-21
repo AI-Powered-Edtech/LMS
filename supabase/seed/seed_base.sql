@@ -35,8 +35,41 @@
 --    - Create profiles for these users
 --    - Assign roles (TEACHER, STUDENT)
 --    - Create demo courses, modules, lessons, quizzes, and classes
+--
+-- 5. FOR DEV TENANT SETUP:
+--    This script also seeds tenant_modules for the documented dev tenant
+--    (ID: 00000000-0000-0000-0000-00000000000d, slug: 'dev') used in
+--    AUTH_SETUP_GUIDE.md. This prevents "Failed to fetch tenant modules"
+--    console errors in the admin dashboard.
 -- =============================================================================
 
+-- =============================================================================
+-- SECTION 1: Create/Verify Dev Tenant (matches AUTH_SETUP_GUIDE.md)
+-- =============================================================================
+-- Dev tenant ID: 00000000-0000-0000-0000-00000000000d (slug: 'dev')
+-- This tenant is documented in docs/AUTH_SETUP_GUIDE.md
+-- =============================================================================
+INSERT INTO tenants (id, name, slug, is_active, created_at)
+VALUES ('00000000-0000-0000-0000-00000000000d', 'EduSync Dev Tenant', 'dev', true, now())
+ON CONFLICT (id) DO NOTHING;
+
+DO $$ BEGIN RAISE NOTICE 'Dev tenant verified: 00000000-0000-0000-0000-00000000000d (slug: dev)'; END $$;
+
+-- Seed tenant_modules for dev tenant
+-- Run this after creating dev tenant and before using admin dashboard
+INSERT INTO public.tenant_modules (tenant_id, module_id, is_enabled)
+SELECT
+    '00000000-0000-0000-0000-00000000000d'::uuid,
+    m.id,
+    CASE WHEN m.is_core THEN true ELSE m.api_enabled_default END
+FROM public.modules m
+ON CONFLICT (tenant_id, module_id) DO NOTHING;
+
+DO $$ BEGIN RAISE NOTICE 'Core modules enabled for dev tenant (prevents admin console error)'; END $$;
+
+-- =============================================================================
+-- SECTION 2: Create/Verify Demo School Tenant (legacy)
+-- =============================================================================
 DO $$
 DECLARE
     v_tenant_id uuid;
