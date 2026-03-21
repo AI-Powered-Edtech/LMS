@@ -57,9 +57,13 @@ DECLARE
     v_question4_id uuid;
     v_question5_id uuid;
 
+    -- Admin user
+    v_admin_id uuid;
+
     -- Configuration
     v_teacher_email text := 'teacher@demo.edusync.com';
     v_student_email text := 'student@demo.edusync.com';
+    v_admin_email   text := 'admin@demo.edusync.com';
 BEGIN
     -- 1. Get the demo tenant
     SELECT id INTO v_tenant_id 
@@ -77,9 +81,14 @@ BEGIN
     WHERE email = v_teacher_email 
     LIMIT 1;
 
-    SELECT id INTO v_student_id 
-    FROM auth.users 
-    WHERE email = v_student_email 
+    SELECT id INTO v_student_id
+    FROM auth.users
+    WHERE email = v_student_email
+    LIMIT 1;
+
+    SELECT id INTO v_admin_id
+    FROM auth.users
+    WHERE email = v_admin_email
     LIMIT 1;
 
     IF v_teacher_id IS NULL THEN
@@ -90,7 +99,28 @@ BEGIN
         RAISE NOTICE 'Student user (%) not found in auth.users. Create user in Supabase Dashboard first!', v_student_email;
     END IF;
 
-    -- 3. Create profiles for users (if they don't exist)
+    IF v_admin_id IS NULL THEN
+        RAISE NOTICE 'Admin user (%) not found in auth.users. Skipping admin setup.', v_admin_email;
+    END IF;
+
+    -- 3. Create profiles and roles for users (if they don't exist)
+
+    -- Admin
+    IF v_admin_id IS NOT NULL THEN
+        INSERT INTO profiles (id, tenant_id, email, first_name, last_name, created_at)
+        VALUES (v_admin_id, v_tenant_id, v_admin_email, 'Demo', 'Admin', now())
+        ON CONFLICT (id) DO UPDATE SET
+            tenant_id = v_tenant_id,
+            email = EXCLUDED.email,
+            first_name = EXCLUDED.first_name,
+            last_name = EXCLUDED.last_name;
+
+        INSERT INTO user_roles (user_id, role, tenant_id)
+        VALUES (v_admin_id, 'ADMIN', v_tenant_id)
+        ON CONFLICT (user_id, tenant_id) DO UPDATE SET role = EXCLUDED.role;
+    END IF;
+
+    -- Teacher
     IF v_teacher_id IS NOT NULL THEN
         INSERT INTO profiles (id, tenant_id, email, first_name, last_name, created_at)
         VALUES (v_teacher_id, v_tenant_id, v_teacher_email, 'Demo', 'Teacher', now())
