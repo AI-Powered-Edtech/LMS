@@ -1,5 +1,66 @@
 # EduSync LMS — Changelog
 
+## Phase 1: Foundation Fix (2026-03-21) — DB Cleanup, Testing, DevOps
+
+### Sprint 1.1 — DB Cleanup + DevOps
+
+**Migration Squash**
+- Archived 181 individual migration files to `supabase/migrations/_archive/`
+- Created `supabase/migrations/000_baseline.sql` as the single authoritative schema baseline (84 tables, 194 RLS policies, 213 SQL functions)
+- Removed all `.ignored` files from the migrations directory
+
+**Seed Improvements**
+- Added primary `@edusync.dev` dev accounts with fixed UUIDs to `seed/seed_users.sql`:
+  - `teacher@edusync.dev` → `00000000-0000-0000-0000-000000000101`
+  - `student@edusync.dev` → `00000000-0000-0000-0000-000000000102`
+  - `admin@edusync.dev` → `00000000-0000-0000-0000-000000000103`
+- Created `seed/seed_gamification.sql`: XP, streaks, badges, learning events, leaderboard
+- Updated `seed/seed_demo.sql` to prefer `@edusync.dev` accounts with legacy fallback
+
+**Documentation**
+- Created `docs/schema-erd.md` with 7 Mermaid ERD diagrams (84-table inventory, cross-domain FK reference)
+
+**DevOps**
+- Created `.github/workflows/ci.yml`: type-check, build, migration validation, unit tests
+- Created `.github/pull_request_template.md` with security and RLS checklists
+- Verified `.env.example` is complete (already existed)
+
+### Sprint 1.2 — Testing
+
+**Vitest Coverage**
+- Added v8 coverage config to `vitest.config.ts` with 60% thresholds
+- Created 35+ test files covering:
+  - Utils: `clientCompute`, `videoUtils`, `cache`, `cn`, `slugify`
+  - Hooks: `useAuth`, `useQuizTimer`, `useSmartPlayer`, `useLeaderboard`, `useBadges`
+  - Feature service APIs: `analyticsService`, `gamificationService`, `quizAnalyticsService`, `assignmentService`, `courseService`, `lessonService`, `trackingService`, `aiTutorService`, `certificateService`, `attendanceService`
+
+### Sprint 1.3 — E2E + Docs
+
+**Playwright E2E**
+- Expanded `e2e/auth.spec.ts`: login visibility, form inputs, Bahasa Indonesia text, route protection
+- Expanded `e2e/core.spec.ts`: app shell integrity, navigation, mobile viewport, error handling
+- Expanded `e2e/course.spec.ts`: auth-required routes, course/lesson load integrity
+- Expanded `e2e/quiz.spec.ts`: quiz player, gradebook, result page, quiz manager auth
+- Created `e2e/admin.spec.ts`: admin dashboard, user management, settings route protection
+- Created `e2e/gamification.spec.ts`: leaderboard route protection and load integrity
+
+**Architecture Decision Records**
+- Created `docs/adr/ADR-001-supabase-centric-architecture.md`
+- Created `docs/adr/ADR-002-row-level-security-tenant-isolation.md`
+- Created `docs/adr/ADR-003-event-driven-telemetry-pipeline.md`
+- Created `docs/adr/ADR-004-frontend-state-management.md`
+
+**Docker**
+- Created `Dockerfile` (multi-stage: deps → builder → nginx runner)
+- Created `docker-compose.yml` with app service and optional e2e profile
+- Created `docker/nginx.conf` (SPA routing, gzip, security headers, `/healthz` endpoint)
+
+**Scripts**
+- Created `scripts/validate-migrations.sh`: checks RLS enablement, policy presence, tenant_id references, no DISABLE RLS, filename conventions
+- Added migration validation step to CI
+
+---
+
 ## v1.0-rc2 (2026-03-21) — Post-Ship Release Hardening
 
 ### Bug Fixes

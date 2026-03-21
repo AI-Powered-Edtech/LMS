@@ -1,0 +1,72 @@
+version: "3.9"
+
+# ============================================================
+# EduSync LMS — docker-compose
+# ============================================================
+# Usage:
+#   Development (local Supabase):
+#     cp .env.example .env.local
+#     # fill in VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY
+#     docker compose up --build
+#
+#   Production build test (simulate prod container locally):
+#     VITE_SUPABASE_URL=https://... VITE_SUPABASE_ANON_KEY=eyJ... \
+#       docker compose -f docker-compose.yml up --build
+#
+# Note: EduSync has no traditional backend. The only service
+# here is the React SPA served by nginx. All data access goes
+# directly to Supabase (hosted PostgreSQL + Auth + Edge Functions).
+# ============================================================
+
+services:
+  # ── Frontend (React SPA → nginx) ──────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+    image: edusync-lms:local
+    container_name: edusync-app
+    ports:
+      - "3000:80"
+    environment:
+      # These are build-time only (baked into the JS bundle by Vite).
+      # Setting them here has no effect at runtime — they must be
+      # passed as build args above.
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      com.edusync.service: "frontend"
+      com.edusync.environment: "local"
+
+  # ── Playwright E2E (run tests against the app container) ───
+  # Run with: docker compose --profile e2e up --build
+  e2e:
+    profiles: ["e2e"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.e2e
+    container_name: edusync-e2e
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      - BASE_URL=http://app:80
+    volumes:
+      - ./playwright-report:/app/playwright-report
+      - ./test-results:/app/test-results
+    command: ["pnpm", "test:e2e", "--reporter=html"]
+
+# ── Networks ────────────────────────────────────────────────
+networks:
+  default:
+    name: edusync-network
