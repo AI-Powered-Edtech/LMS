@@ -24,8 +24,9 @@ export function BuilderTopBar() {
             <div className="flex items-center gap-6 min-w-0">
                 <button
                     onClick={() => navigate(-1)}
-                    className="p-2.5 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-100 rounded-xl transition-all text-slate-500 group"
+                    className="p-2.5 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-100 rounded-xl transition-all text-slate-500 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                     title="Kembali"
+                    aria-label="Kembali"
                 >
                     <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
                 </button>

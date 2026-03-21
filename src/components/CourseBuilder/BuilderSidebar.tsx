@@ -90,8 +90,9 @@ export function BuilderSidebar() {
                 </div>
                 <button
                     onClick={handleAddModule}
-                    className="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-md shadow-indigo-100 hover:scale-105 active:scale-95"
+                    className="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-md shadow-indigo-100 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                     title="Tambah Modul"
+                    aria-label="Tambah Modul"
                 >
                     <Plus className="w-4 h-4" />
                 </button>
@@ -164,7 +165,8 @@ export function BuilderSidebar() {
                                                                     actions.deleteModule(mod.id);
                                                                 }
                                                             }}
-                                                            className="p-1 opacity-0 group-hover:opacity-100 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded transition-all"
+                                                            className="p-1 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                                                            aria-label="Hapus modul"
                                                         >
                                                             <Trash2 className="w-3 h-3" />
                                                         </button>
@@ -238,11 +240,12 @@ export function BuilderSidebar() {
                                                                                                     }
                                                                                                 }}
                                                                                                 className={cn(
-                                                                                                    "p-1.5 rounded-lg transition-all",
+                                                                                                    "p-1.5 rounded-lg transition-all focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500",
                                                                                                     state.activeLesson?.id === lesson.id 
                                                                                                         ? "opacity-0 group-hover/lesson:opacity-100 hover:bg-white/20 text-white" 
                                                                                                         : "opacity-0 group-hover/lesson:opacity-100 hover:bg-rose-50 text-slate-400 hover:text-rose-500"
                                                                                                 )}
+                                                                                                aria-label="Hapus pelajaran"
                                                                                             >
                                                                                                 <Trash2 className="w-3.5 h-3.5" />
                                                                                             </button>
