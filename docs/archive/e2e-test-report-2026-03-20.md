@@ -1,4 +1,5 @@
 # EduSync LMS — E2E Test Report
+
 **Date:** 2026-03-20  
 **Test Method:** Supabase REST API (teacher + student JWT tokens)  
 **Status:** ✅ ALL CRITICAL BUGS FIXED
@@ -7,15 +8,15 @@
 
 ## Migration Chain Applied
 
-| Migration | Description | Status |
-|-----------|-------------|--------|
-| 291 | Fix v1_submit_quiz_attempt grading logic (jsonb, table names) | ✅ Applied |
-| 292 | Fix analytics rate limit null tenant crash | ✅ Applied |
-| 293 | Fix v1_submit_quiz_attempt: enum values, column names (time_spent, no graded_at) | ✅ Applied |
-| 294 | Fix state machine: allow in_progress→graded; fix get_teacher_analytics auth | ✅ Applied |
-| 295 | Fix course_enrollments join: student_id → user_id | ✅ Applied |
-| 296 | Fix trigger_quiz_passed_v2: NEW.student_id; fix student_lesson_signals columns | ✅ Applied |
-| 297 | Fix trigger_quiz_passed_v2: add entity_type='quiz', entity_id=NEW.quiz_id | ✅ Applied |
+| Migration | Description                                                                      | Status     |
+| --------- | -------------------------------------------------------------------------------- | ---------- |
+| 291       | Fix v1_submit_quiz_attempt grading logic (jsonb, table names)                    | ✅ Applied |
+| 292       | Fix analytics rate limit null tenant crash                                       | ✅ Applied |
+| 293       | Fix v1_submit_quiz_attempt: enum values, column names (time_spent, no graded_at) | ✅ Applied |
+| 294       | Fix state machine: allow in_progress→graded; fix get_teacher_analytics auth      | ✅ Applied |
+| 295       | Fix course_enrollments join: student_id → user_id                                | ✅ Applied |
+| 296       | Fix trigger_quiz_passed_v2: NEW.student_id; fix student_lesson_signals columns   | ✅ Applied |
+| 297       | Fix trigger_quiz_passed_v2: add entity_type='quiz', entity_id=NEW.quiz_id        | ✅ Applied |
 
 ---
 
@@ -26,6 +27,7 @@
 **Result:** `score=100, passed=true, correct=3/3, status=graded`
 
 **Root causes fixed (4 migrations):**
+
 1. Wrong enum: `'MULTIPLE_CHOICE'` → `'MCQ', 'TRUE_FALSE', 'MULTIPLE_SELECT'` (migration 293)
 2. Wrong column: `time_spent_seconds` → `time_spent`, removed non-existent `graded_at` (migration 293)
 3. State machine: `in_progress → graded` was blocked (migration 294)
@@ -41,6 +43,7 @@
 **Result:** Returns 5 rows with `student_id`, `student_name`, `completion_pct`, `struggle_score`, `time_spent_minutes`, `last_active`, `quiz_avg_score`
 
 **Root causes fixed (3 migrations):**
+
 1. `has_role()` fails when JWT missing tenant claim → use `user_roles` table directly with profile fallback (migration 294)
 2. `course_enrollments.student_id` doesn't exist → `user_id` (migration 295)
 3. `student_lesson_signals` wrong columns: `time_spent_seconds`→`total_time_spent`, `last_event_at`→`last_accessed_at`, `quiz_avg_score`→`latest_quiz_score` (migration 296)

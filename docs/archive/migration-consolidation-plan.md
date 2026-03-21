@@ -1,4 +1,5 @@
 # EduSync LMS — Migration Consolidation Plan
+
 # 125 Migrations → 10 Core Migrations
 
 > **Status**: Planning document — not yet executed.
@@ -10,6 +11,7 @@
 ## Why Consolidate?
 
 The current 125 migration files have grown organically through:
+
 - Feature development sprints (quiz engine v1 → v2, gamification phases 1–5)
 - Bug fixes applied as new migrations instead of amending earlier ones
 - Chaotic numbering: `01_`, `093_`, `261_`, `801_` mixed with `.ignored` files
@@ -59,18 +61,18 @@ flowchart TB
 
 Target directory: `supabase/squashed/`
 
-| File | Domain | Source Migrations |
-|------|--------|-------------------|
-| `core_00_foundation.sql` | Extensions, types, enums | 01 (partial) |
-| `core_01_auth_schema.sql` | tenants, profiles, user_roles, auth hooks | 01, 03, 25, 74, 801 |
-| `core_02_learning_schema.sql` | courses, modules, lessons, resources, progress | 01, 03, 05, 09, 23, 093, 161 |
-| `core_03_classroom_schema.sql` | classes, enrollments, schedules, announcements | 01, 05, 16, 43, 44, 72 |
-| `core_04_assessment_schema.sql` | assignments, submissions, quiz engine v2 | 01, 12, 15, 53–71, 76–84, 90–94 |
-| `core_05_social_analytics.sql` | discussions, activity_events, analytics tables | 01, 10–14, 26–38, 121, 141, 151 |
-| `core_06_gamification.sql` | badges, points, leaderboards, streaks | 42, 50–52, 465, 475, 485, 095 |
-| `core_07_helper_functions.sql` | All SECURITY DEFINER utility functions & RPCs | Across all migrations |
-| `core_08_rls_policies.sql` | ALL RLS policies (clean, has_role() only) | 06, 87–89, 96 (final state) |
-| `core_09_admin_infrastructure.sql` | admin_audit_logs, invitations, admin RPCs | 95, 97, 98 |
+| File                               | Domain                                         | Source Migrations               |
+| ---------------------------------- | ---------------------------------------------- | ------------------------------- |
+| `core_00_foundation.sql`           | Extensions, types, enums                       | 01 (partial)                    |
+| `core_01_auth_schema.sql`          | tenants, profiles, user_roles, auth hooks      | 01, 03, 25, 74, 801             |
+| `core_02_learning_schema.sql`      | courses, modules, lessons, resources, progress | 01, 03, 05, 09, 23, 093, 161    |
+| `core_03_classroom_schema.sql`     | classes, enrollments, schedules, announcements | 01, 05, 16, 43, 44, 72          |
+| `core_04_assessment_schema.sql`    | assignments, submissions, quiz engine v2       | 01, 12, 15, 53–71, 76–84, 90–94 |
+| `core_05_social_analytics.sql`     | discussions, activity_events, analytics tables | 01, 10–14, 26–38, 121, 141, 151 |
+| `core_06_gamification.sql`         | badges, points, leaderboards, streaks          | 42, 50–52, 465, 475, 485, 095   |
+| `core_07_helper_functions.sql`     | All SECURITY DEFINER utility functions & RPCs  | Across all migrations           |
+| `core_08_rls_policies.sql`         | ALL RLS policies (clean, has_role() only)      | 06, 87–89, 96 (final state)     |
+| `core_09_admin_infrastructure.sql` | admin_audit_logs, invitations, admin RPCs      | 95, 97, 98                      |
 
 ---
 
@@ -83,6 +85,7 @@ Target directory: `supabase/squashed/`
 **Purpose**: Extensions, custom types, and ENUMs. Must run first — everything else depends on these types.
 
 **Contents:**
+
 - `CREATE EXTENSION IF NOT EXISTS` for: `pg_graphql`, `pg_stat_statements`, `pgcrypto`, `uuid-ossp`, `vector`, `supabase_vault`
 - `CREATE TYPE public.app_role AS ENUM ('STUDENT', 'TEACHER', 'ADMIN')`
 - `CREATE TYPE public.activity_event_type AS ENUM (...)`
@@ -94,6 +97,7 @@ Target directory: `supabase/squashed/`
 **Source migrations**: `01_migration.sql` lines 1–100
 
 **Schema decisions**:
+
 - All ENUMs kept UPPERCASE to match `app_role` convention
 - `app_role` stays as 3 values: `STUDENT`, `TEACHER`, `ADMIN`
 - `PLATFORM_ADMIN` is intentionally excluded (future migration 100+)
@@ -105,6 +109,7 @@ Target directory: `supabase/squashed/`
 **Purpose**: The identity and tenancy layer. Everything auth-related.
 
 **Tables:**
+
 ```sql
 public.tenants          (id, name, slug, is_active, created_at, updated_at)
 public.profiles         (id → auth.users, email, first_name, last_name, avatar_url, tenant_id → tenants)
@@ -112,12 +117,14 @@ public.user_roles       (id, user_id → profiles, role app_role, tenant_id → 
 ```
 
 **Unique constraints:**
+
 ```sql
 UNIQUE (user_id, tenant_id)   -- on user_roles (required by accept_invitation ON CONFLICT)
 UNIQUE (slug)                 -- on tenants
 ```
 
 **Auth hooks & triggers:**
+
 ```sql
 -- JWT hook: injects tenant_id into access token
 public.custom_access_token_hook(event jsonb) → jsonb   [from migration 801]
@@ -132,6 +139,7 @@ CREATE TRIGGER on_auth_user_created
 ```
 
 **Indexes:**
+
 ```sql
 idx_profiles_tenant_id          ON profiles(tenant_id)
 idx_profiles_email              ON profiles(email)
@@ -144,6 +152,7 @@ idx_user_roles_user_tenant_role ON user_roles(user_id, tenant_id, role)   -- cov
 **Source migrations**: `01_migration.sql`, `03_add_tenant_id.sql`, `25_multi_tenant_hardening.sql`, `74_demo_seed_data.sql`, `801_fix_jwt_tenant_injection.sql`, `98_admin_security_hardening.sql`
 
 **Schema decisions**:
+
 - `handle_new_user` uses dynamic tenant lookup — NOT the hardcoded UUID `000...001`
 - `profiles.id` references `auth.users(id)` directly (not a separate UUID)
 - RLS is enabled but policies are defined in `core_08_rls_policies.sql`
@@ -155,6 +164,7 @@ idx_user_roles_user_tenant_role ON user_roles(user_id, tenant_id, role)   -- cov
 **Purpose**: The core learning content layer.
 
 **Tables:**
+
 ```
 courses              (id, tenant_id, title, description, status, created_by, ...)
 course_modules       (id, tenant_id, course_id, title, order, ...)
@@ -168,6 +178,7 @@ course_stats         (id, tenant_id, course_id, total_enrolled, avg_progress, ..
 ```
 
 **Triggers:**
+
 ```sql
 -- Auto-recompute course_progress when lesson_progress changes
 on_lesson_progress_completed_insert
@@ -180,6 +191,7 @@ on_lesson_progress_completed_update
 `161_course_distribution_flow.sql`, `24_distribution_stability.sql`
 
 **Schema decisions**:
+
 - Use final `course_enrollments` schema from migration 05 with status enum
 - `course_progress.percentage` is computed by trigger, not user-supplied
 - `course_stats` is pre-aggregated; refreshed by `refresh_course_stats()` RPC
@@ -192,6 +204,7 @@ on_lesson_progress_completed_update
 **Purpose**: The classroom / class management layer.
 
 **Tables:**
+
 ```
 classes              (id, tenant_id, name, teacher_id, course_id, join_code, max_students, ...)
 enrollments          (id, tenant_id, class_id, student_id, status, joined_at, ...)
@@ -205,6 +218,7 @@ notifications        (id, tenant_id, user_id, type, title, body, is_read, ...)
 `43_migration.sql`, `44_migration.sql`, `72_assignments_schema_sync.sql`
 
 **Schema decisions**:
+
 - `classes.join_code` is generated by `generate_join_code()` helper function
 - `enrollments` uses `enrollment_status` ENUM (`ACTIVE`, `INACTIVE`, `DROPPED`)
 - Notifications are tenant-scoped; system-generated via triggers
@@ -218,6 +232,7 @@ notifications        (id, tenant_id, user_id, type, title, body, is_read, ...)
 **Sub-domains:**
 
 #### Assignments
+
 ```
 assignments              (id, tenant_id, class_id, course_id, title, due_date, is_published, ...)
 assignment_submissions   (id, tenant_id, assignment_id, student_id, submission_text, score, ...)
@@ -225,6 +240,7 @@ grades                   (id, tenant_id, submission_id, teacher_id, score, feedb
 ```
 
 #### Quiz Engine v2 (final schema from migration 71+)
+
 ```
 quizzes                  (id, tenant_id, class_id, title, time_limit_minutes, max_attempts, ...)
 quiz_questions           (id, tenant_id, quiz_id, question_text, type, position, question_bank_id, ...)
@@ -237,6 +253,7 @@ question_stats           (question_id, quiz_id, correct_count, total_attempts, .
 ```
 
 #### Question Bank
+
 ```
 question_bank            (id, tenant_id, question_text, type, difficulty, ...)
 question_options         (id, question_id, option_text, is_correct, ...)
@@ -248,6 +265,7 @@ question_bank_usage      (question_bank_id, quiz_id, quiz_question_id, ...)
 `22_add_quiz_is_published.sql`, `53–71_quiz_*`, `76–84_quiz_*`, `90–94_quiz_*`, `355_assignment_feedback.sql`
 
 **Schema decisions**:
+
 - Use quiz engine **v2 snapshot architecture** from migration 71 (`quiz_attempt_questions` table)
 - `question_stats` uses **composite PK** `(question_id, quiz_id)` — from migration 71 reconciliation
 - `question_bank_id` FK on `quiz_questions` is nullable (direct vs bank-backed authoring)
@@ -261,6 +279,7 @@ question_bank_usage      (question_bank_id, quiz_id, quiz_question_id, ...)
 **Purpose**: Social features (discussions) + full analytics engine.
 
 **Social tables:**
+
 ```
 discussions              (id, tenant_id, course_id, author_id, title, body, ...)
 discussion_replies       (id, tenant_id, discussion_id, author_id, body, ...)
@@ -268,6 +287,7 @@ activity_events          (id, tenant_id, user_id, event_type, class_id, course_i
 ```
 
 **Analytics tables:**
+
 ```
 course_analytics_mv      (materialized view — refreshed by cron/RPC)
 analytics_audit          (id, tenant_id, user_id, action, created_at, ...)
@@ -287,6 +307,7 @@ learning_events          (id, tenant_id, user_id, lesson_id, event_type, ...)
 `155_quiz_attempt_refactor.sql`, `261_security_hardening.sql`
 
 **Schema decisions**:
+
 - Analytics tables use `has_role()` in RLS — NOT `auth.jwt() ->> 'role'`
 - `course_analytics_mv` is a materialized view refreshed `CONCURRENTLY` every 5 min via pg_cron
 - Circuit breaker state machine: `closed` → `open` → `half_open`
@@ -294,6 +315,7 @@ learning_events          (id, tenant_id, user_id, lesson_id, event_type, ...)
 - `activity_events` uses `activity_event_type` ENUM
 
 **Analytics data flow:**
+
 ```
 lesson_progress INSERT/UPDATE
   → trigger: recompute_course_progress_trigger()
@@ -310,6 +332,7 @@ lesson_progress INSERT/UPDATE
 **Purpose**: Badges, points, leaderboards, weekly boards, streaks.
 
 **Tables:**
+
 ```
 badges                   (id, name, description, icon, xp_reward, criteria jsonb, ...)  -- global catalog
 user_badges              (id, tenant_id, user_id, badge_id, earned_at, ...)
@@ -325,6 +348,7 @@ user_streaks             (id, tenant_id, user_id, current_streak, longest_streak
 `83_fix_enroll_student_user_points.sql`
 
 **Schema decisions**:
+
 - `badges` table is **global** (no `tenant_id`) — shared badge catalog
 - `user_badges` and `user_points` are **tenant-scoped**
 - Badge awarding is done via `SECURITY DEFINER` function `award_badge_if_qualified()`
@@ -338,6 +362,7 @@ user_streaks             (id, tenant_id, user_id, current_streak, longest_streak
 **Purpose**: All reusable SECURITY DEFINER utility functions and RPC entry points. This file has NO table definitions — only functions.
 
 **Auth helpers:**
+
 ```sql
 public.get_my_tenant_id() → uuid                    -- JWT first, profiles fallback
 public.get_my_roles() → app_role[]                  -- all roles for current user (cross-tenant)
@@ -346,6 +371,7 @@ public.get_my_profile() → json                      -- profile + memberships i
 ```
 
 **Class helpers:**
+
 ```sql
 public.generate_join_code() → text                  -- generates random 6-char join code
 public.create_class(name, course_id, ...) → uuid    -- creates class + sets teacher
@@ -358,12 +384,14 @@ public.is_course_creator(course_id) → boolean
 ```
 
 **Invitation helpers:**
+
 ```sql
 public.validate_invitation(p_token text) → json     -- callable by anon [migration 97]
 public.accept_invitation(p_token text) → json       -- callable by authenticated [migration 97]
 ```
 
 **Learning helpers:**
+
 ```sql
 public.mark_lesson_complete(lesson_id uuid) → void
 public.update_lesson_progress_monotonic(...) → void
@@ -371,6 +399,7 @@ public.recompute_course_progress(user_id, course_id) → void
 ```
 
 **Analytics RPCs:**
+
 ```sql
 public.refresh_course_stats(course_id) → void       -- fixed in migration 96
 public.refresh_all_course_stats() → integer         -- fixed in migration 96
@@ -383,6 +412,7 @@ public.analytics_health_check() → json
 ```
 
 **Quiz Engine RPCs:**
+
 ```sql
 public.start_quiz_attempt(quiz_id) → json
 public.submit_quiz_attempt(attempt_id, answers, version) → json
@@ -395,6 +425,7 @@ public.get_question(id) → json
 ```
 
 **Admin RPCs:**
+
 ```sql
 public.log_admin_action(action, ...) → uuid
 public.admin_list_tenants(...) → table              -- fixed in migration 98 (own tenant only)
@@ -405,6 +436,7 @@ public.admin_list_users(...) → table
 ```
 
 **Triggers (functions only — bindings in respective schema files):**
+
 ```sql
 public.handle_new_user() → trigger                  -- fixed in migration 98
 public.handle_updated_at() → trigger
@@ -422,6 +454,7 @@ public.award_badge_if_qualified() → trigger
 **Source migrations**: Across virtually all 125 migrations; the FINAL version of each function wins.
 
 **Schema decisions**:
+
 - Every function has `SET search_path TO 'public'` or `'public', 'extensions'`
 - All SECURITY DEFINER functions use `has_role()` for authorization — never `auth.jwt() ->> 'role'`
 - `get_my_profile()` is new in migration 97; replaces the two-query pattern in AuthContext
@@ -434,6 +467,7 @@ public.award_badge_if_qualified() → trigger
 for data access rules. It runs AFTER all schema files so every table exists.
 
 **Structure within the file:**
+
 ```sql
 -- 1. Enable RLS on every table
 -- 2. Drop all existing policies (clean slate)
@@ -446,6 +480,7 @@ for data access rules. It runs AFTER all schema files so every table exists.
 ```
 
 **Canonical pattern used throughout:**
+
 ```sql
 -- SELECT — any tenant member
 CREATE POLICY "{table}_select_tenant"
@@ -463,6 +498,7 @@ CREATE POLICY "{table}_insert_staff"
 ```
 
 **Policy naming convention**: `{table}_{operation}_{who}`
+
 - `courses_select_tenant`
 - `courses_insert_staff`
 - `courses_update_owner`
@@ -471,6 +507,7 @@ CREATE POLICY "{table}_insert_staff"
 - `lesson_progress_select_staff`
 
 **NEVER used in this file:**
+
 ```sql
 auth.jwt() ->> 'role'       -- BANNED: role not in JWT
 current_setting('app.current_tenant', ...)  -- BANNED: use get_my_tenant_id()
@@ -481,6 +518,7 @@ current_setting('app.current_tenant', ...)  -- BANNED: use get_my_tenant_id()
 `96_rls_jwt_role_fix.sql` (final state of all policies)
 
 **Schema decisions**:
+
 - This file represents the FINAL desired RLS state — earlier migrations' policies are overwritten
 - `tenants` table: members can SELECT their own tenant only (`id = get_my_tenant_id()`)
 - `badges` table (global): any authenticated user can SELECT; only ADMIN can INSERT/UPDATE/DELETE
@@ -494,12 +532,14 @@ current_setting('app.current_tenant', ...)  -- BANNED: use get_my_tenant_id()
 **Purpose**: Admin-specific tables, audit logging, and invitation system.
 
 **Tables:**
+
 ```sql
 admin_audit_logs     (id, tenant_id, admin_user_id, action, target_user_id, metadata, ip_address, ...)
 user_invitations     (id, tenant_id, email, invited_by, role, token, status, expires_at, accepted_at, ...)
 ```
 
 **RPCs** (defined here since they only apply when admin tables exist):
+
 ```sql
 public.log_admin_action(action, target_user_id, ...) → uuid
 public.admin_list_tenants(...) → table              -- scoped to own tenant
@@ -512,6 +552,7 @@ public.accept_invitation(token) → json              -- authenticated only
 ```
 
 **RLS policies** (included in this file, not `core_08`, because these tables are optional):
+
 ```sql
 -- admin_audit_logs: admins can view, service_role can insert
 -- user_invitations: admins can CRUD, anon/authenticated access via SECURITY DEFINER RPCs only
@@ -521,6 +562,7 @@ public.accept_invitation(token) → json              -- authenticated only
 `98_admin_security_hardening.sql`
 
 **Schema decisions**:
+
 - `admin_list_tenants` scoped to caller's own tenant (fixed in migration 98)
 - `validate_invitation` callable by `anon` role (unauthenticated user during registration)
 - `user_invitations.token` is 64-char hex from `gen_random_bytes(32)` — cryptographically secure
@@ -530,136 +572,136 @@ public.accept_invitation(token) → json              -- authenticated only
 
 ## Migration → Core Mapping Table
 
-| Original Migration | Core File | Notes |
-|--------------------|-----------|-------|
-| `01_migration.sql` | core_00 + core_01 + core_02 + core_03 + core_04 + core_05 | Baseline dump — split across all domains |
-| `02_enhance_quiz_security.sql` | core_04 | Early quiz security — absorbed into quiz engine v2 |
-| `03_add_tenant_id.sql` | core_01 + core_02 | tenant_id additions — schema already includes them |
-| `04_add_indexes.sql` | core_02 | Indexes included in respective schema files |
-| `05_create_enrollments.sql` | core_02 + core_03 | Enrollments schema |
-| `06_rls_policies.sql` | core_08 | REPLACED entirely — old policies used jwt role |
-| `07_scheduled_processor.sql` | core_05 | Analytics cron setup |
-| `08_ai_tutor_foundation.sql` | core_05 | AI tutor tables |
-| `08_quiz_analytics.ignored` | SKIP | Superseded |
-| `09_course_progress_engine.sql` | core_02 + core_07 | Progress engine |
-| `09_rag_architecture_foundation.ignored` | SKIP | Superseded by migration 20 |
-| `10_learning_analytics.sql` | core_05 + core_07 | Analytics RPCs |
-| `11_production_hardening.sql` | core_07 | RPCs fixed in migration 96 |
-| `12_assignment_system.sql` | core_04 | Assignment tables |
-| `12_fix_analytics_security.ignored` | SKIP | Superseded |
-| `121_fix_analytics_security.sql` | core_07 | Analytics RPC — still has jwt role issue (P1) |
-| `13_add_analytics_indexes.sql` | core_05 | Indexes in schema file |
-| `13_assignment_refinement.ignored` | SKIP | Superseded |
-| `131_assignment_refinement.sql` | core_04 | Assignment refinements |
-| `14_analytics_cron_job.sql` | core_05 + core_07 | Cron + RPCs |
-| `14_social_system.ignored` | SKIP | Superseded |
-| `141_social_system.sql` | core_05 | Social tables |
-| `15_assignment_system_hardening.sql` | core_04 | Assignment hardening |
-| `15_learning_events.ignored` | SKIP | Superseded |
-| `151_learning_events.sql` | core_05 | Learning events |
-| `155_quiz_attempt_refactor.sql` | core_04 | Quiz attempt schema |
-| `16_announcement_system.sql` | core_03 | Announcements |
-| `16_course_distribution_flow.ignored` | SKIP | Superseded |
-| `161_course_distribution_flow.sql` | core_02 | Course→class assignment |
-| `165_quiz_heartbeat.sql` | core_04 | Quiz heartbeat column |
-| `17_social_hub_standardization.sql` | core_05 | Social standardization |
-| `175_quiz_security_hardening.sql` | core_04 | Quiz security |
-| `18_restore_ai_tutor_foundation.sql` | core_05 | AI tutor restore |
-| `185_quiz_cheating_detection.sql` | core_04 | Anti-cheat columns |
-| `19_restore_fts_schema.sql` | core_05 | Full-text search |
-| `20_remove_rag_infrastructure.sql` | SKIP | RAG removed — not in squashed |
-| `21_cleanup_rag_artifacts.sql` | SKIP | RAG cleanup — not in squashed |
-| `22_add_quiz_is_published.sql` | core_04 | `is_published` column |
-| `23_progress_engine_fixes.sql` | core_02 + core_07 | Progress fixes |
-| `24_distribution_stability.sql` | core_02 | Distribution stability |
-| `25_multi_tenant_hardening.sql` | core_01 | Tenant hardening |
-| `26_analytics_retry_logic.sql` | core_07 | Analytics RPC update |
-| `26_security_hardening.ignored` | SKIP | Superseded |
-| `261_security_hardening.sql` | core_05 + core_08 | Security hardening |
-| `271_performance_tuning.sql` | core_05 | Performance indexes |
-| `27_course_analytics_mv.sql` | core_05 | Materialized view |
-| `27_performance_tuning.ignored` | SKIP | Superseded |
-| `28_analytics_audit_trail.sql` | core_05 + core_08 | Audit trail — fixed in 96 |
-| `28_schema_cleanup.ignored` | SKIP | Superseded |
-| `281_schema_cleanup.sql` | core_02 + core_03 | Schema cleanup |
-| `29_analytics_pagination.sql` | core_07 | Pagination RPC |
-| `30_analytics_rate_limiting.sql` | core_05 + core_07 | Rate limiting |
-| `31_analytics_monitoring.sql` | core_05 + core_07 | Prometheus-style metrics |
-| `32_analytics_health_check.sql` | core_07 | Health check RPC |
-| `33_analytics_security_tests.sql` | core_07 | Security test RPC |
-| `34_analytics_circuit_breaker.sql` | core_05 + core_08 | Circuit breaker — fixed in 96 |
-| `35_learning_insights.sql` | core_05 | `course_insights` table |
-| `355_assignment_feedback.sql` | core_04 | Assignment feedback columns |
-| `36_final_refinement.sql` | core_08 | RLS optimization sweep |
-| `37_comprehensive_reinforcement.sql` | core_08 | Global RLS reinforcement |
-| `38_final_polish.sql` | core_08 | Final schema alignment |
-| `39_iron_shell_hardening.sql` | core_08 | Iron shell RLS sweep |
-| `40_leaderboard_hardening.sql` | core_06 + core_08 | Leaderboard hardening |
-| `41_leaderboards_rls.sql` | core_08 | Leaderboard policies |
-| `42_level_system.sql` | core_06 | User levels table |
-| `43_migration.sql` | core_03 | Notifications schema |
-| `44_migration.sql` | core_03 | Notifications triggers |
-| `45_quiz_analytics_events.sql` | core_04 | Quiz analytics events |
-| `46_quiz_production_excellence.sql` | core_04 | Quiz production hardening |
-| `465_weekly_leaderboards.sql` | core_06 | Weekly leaderboard snapshots |
-| `47_quiz_heartbeat_system.sql` | core_04 | Quiz heartbeat system |
-| `475_badge_system.sql` | core_06 | Badges + user_badges tables |
-| `48_quiz_final_hardening.sql` | core_04 | Quiz hardening |
-| `485_user_streak_system.sql` | core_06 | User streaks |
-| `49_quiz_resume_index.sql` | core_04 | Quiz resume index |
-| `50_gamification_phase3_streaks.sql` | core_06 + core_07 | Streak RPC |
-| `51_gamification_phase4_badges.sql` | core_06 + core_07 | `award_badge_if_qualified()` |
-| `52_gamification_phase5_weekly_leaderboard.sql` | core_06 + core_07 | Weekly snapshot cron |
-| `53_quiz_schema_corrections.sql` | core_04 | Quiz schema corrections |
-| `54_add_assignment_score_and_seed_demo.sql` | core_04 | `max_score` column (schema only) |
-| `55_add_is_demo_flag.sql` | core_04 | `is_demo` flag |
-| `56_quiz_rls_sync.sql` | core_08 | Quiz RLS sync |
-| `57_start_quiz_rpc_fix.sql` | core_07 | start_quiz_attempt fix |
-| `58_seed_demo_questions.sql` | SKIP | Seed data — separate seed file |
-| `59_fix_quiz_answers_constraint.sql` | core_04 | Constraint fix |
-| `60_fix_quiz_attempt_column_name.sql` | core_04 | Column rename |
-| `61_fix_award_badge_function.sql` | core_07 | Badge function NULL fix |
-| `62_fix_quiz_expiration_and_resume.sql` | core_04 + core_07 | Expiry + resume |
-| `63_quiz_engine_schema.sql` | core_04 | Quiz engine v2 schema foundation |
-| `64_quiz_engine_rpc.sql` | core_07 | start/submit/grade RPCs |
-| `65_quiz_engine_rls.sql` | core_08 | Quiz engine RLS |
-| `66_quiz_engine_hardening.sql` | core_04 + core_07 | Quiz hardening |
-| `67_quiz_engine_rpc_patches.sql` | core_07 | Optimistic locking patches |
-| `68_question_bank_migrations.sql` | core_04 | Question bank schema |
-| `69_question_bank_rpc.sql` | core_07 | Question bank RPCs |
-| `71_schema_reconciliation.sql` | core_04 + core_07 | **Canonical composite PK fix** — must use this version |
-| `72_assignments_schema_sync.sql` | core_03 + core_04 | Schema sync |
-| `73_demo_seed_data.sql` | SKIP | Seed data — separate seed file |
-| `74_demo_seed_data.sql` | SKIP | Seed data — separate seed file |
-| `75_security_audit_fixes.sql` | core_06 + core_08 | Leaderboard + user_badges RLS |
-| `76_quiz_engine_phase1.sql` | core_07 | Quiz engine phase 1 RPCs |
-| `77_quiz_analytics_rpc.sql` | core_07 | Quiz analytics RPCs |
-| `78_quiz_audit_fixes.sql` | core_07 | Quiz audit fixes |
-| `79_quiz_engine_v1_rpcs.sql` | core_07 | v1 compat RPCs |
-| `80_fix_quiz_attempt_number.sql` | core_04 | Attempt number fix |
-| `801_fix_jwt_tenant_injection.sql` | core_01 + core_07 | **Canonical JWT hook** |
-| `801_teacher_dashboard_results_v1.sql` | core_07 | Teacher dashboard bundle RPC |
-| `81_quiz_assignments_schema.sql` | core_04 | Quiz assignment linking |
-| `82_class_assignment_quiz_v2_refactor.sql` | core_03 + core_04 | **Major v2 refactor** |
-| `83_fix_enroll_student_user_points.sql` | core_07 | Enrollment + points fix |
-| `84_quiz_v1_v2_consolidation.ignored` | SKIP | Superseded |
-| `87_rls_standardization.sql` | core_08 | `has_role()` standardization |
-| `88_rls_standardization_complete.sql` | core_08 | RLS standardization pt.2 |
-| `89_rls_analytics_gamification_fix.sql` | core_08 | Gamification RLS fixes |
-| `90_quiz_engine_hardening.sql` | core_04 + core_07 | Quiz hardening |
-| `91_quiz_performance_indexes.sql` | core_04 | Quiz performance indexes |
-| `92_quiz_triggers_v2_and_remediation.sql` | core_07 | Quiz v2 triggers |
-| `93_single_active_attempt_guard.sql` | core_04 | Single-attempt constraint |
-| `094_rag_architecture_foundation.sql` | SKIP | RAG removed in migration 20 |
-| `094_rag_architecture_foundation.sql` | SKIP | RAG removed in migration 20 |
-| `095_gamification_system.sql` | core_06 | Gamification foundation |
-| `093_course_progress_engine.sql` | core_02 + core_07 | Progress engine v2 |
-| `94_quiz_autosave_history_timer.sql` | core_04 + core_07 | Autosave + history |
-| `95_admin_infrastructure.sql` | core_09 | Admin tables + RPCs |
-| `96_rls_jwt_role_fix.sql` | core_08 | **P0 fix** — absorbed into final RLS state |
-| `97_missing_rpcs_and_fixes.sql` | core_07 + core_09 | validate/accept invitation + get_my_profile |
-| `98_admin_security_hardening.sql` | core_01 + core_07 + core_09 | handle_new_user fix + admin security |
-| `diagnostic_quiz_schema.sql` | SKIP | Diagnostic only — never apply |
+| Original Migration                              | Core File                                                 | Notes                                                  |
+| ----------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------ |
+| `01_migration.sql`                              | core_00 + core_01 + core_02 + core_03 + core_04 + core_05 | Baseline dump — split across all domains               |
+| `02_enhance_quiz_security.sql`                  | core_04                                                   | Early quiz security — absorbed into quiz engine v2     |
+| `03_add_tenant_id.sql`                          | core_01 + core_02                                         | tenant_id additions — schema already includes them     |
+| `04_add_indexes.sql`                            | core_02                                                   | Indexes included in respective schema files            |
+| `05_create_enrollments.sql`                     | core_02 + core_03                                         | Enrollments schema                                     |
+| `06_rls_policies.sql`                           | core_08                                                   | REPLACED entirely — old policies used jwt role         |
+| `07_scheduled_processor.sql`                    | core_05                                                   | Analytics cron setup                                   |
+| `08_ai_tutor_foundation.sql`                    | core_05                                                   | AI tutor tables                                        |
+| `08_quiz_analytics.ignored`                     | SKIP                                                      | Superseded                                             |
+| `09_course_progress_engine.sql`                 | core_02 + core_07                                         | Progress engine                                        |
+| `09_rag_architecture_foundation.ignored`        | SKIP                                                      | Superseded by migration 20                             |
+| `10_learning_analytics.sql`                     | core_05 + core_07                                         | Analytics RPCs                                         |
+| `11_production_hardening.sql`                   | core_07                                                   | RPCs fixed in migration 96                             |
+| `12_assignment_system.sql`                      | core_04                                                   | Assignment tables                                      |
+| `12_fix_analytics_security.ignored`             | SKIP                                                      | Superseded                                             |
+| `121_fix_analytics_security.sql`                | core_07                                                   | Analytics RPC — still has jwt role issue (P1)          |
+| `13_add_analytics_indexes.sql`                  | core_05                                                   | Indexes in schema file                                 |
+| `13_assignment_refinement.ignored`              | SKIP                                                      | Superseded                                             |
+| `131_assignment_refinement.sql`                 | core_04                                                   | Assignment refinements                                 |
+| `14_analytics_cron_job.sql`                     | core_05 + core_07                                         | Cron + RPCs                                            |
+| `14_social_system.ignored`                      | SKIP                                                      | Superseded                                             |
+| `141_social_system.sql`                         | core_05                                                   | Social tables                                          |
+| `15_assignment_system_hardening.sql`            | core_04                                                   | Assignment hardening                                   |
+| `15_learning_events.ignored`                    | SKIP                                                      | Superseded                                             |
+| `151_learning_events.sql`                       | core_05                                                   | Learning events                                        |
+| `155_quiz_attempt_refactor.sql`                 | core_04                                                   | Quiz attempt schema                                    |
+| `16_announcement_system.sql`                    | core_03                                                   | Announcements                                          |
+| `16_course_distribution_flow.ignored`           | SKIP                                                      | Superseded                                             |
+| `161_course_distribution_flow.sql`              | core_02                                                   | Course→class assignment                                |
+| `165_quiz_heartbeat.sql`                        | core_04                                                   | Quiz heartbeat column                                  |
+| `17_social_hub_standardization.sql`             | core_05                                                   | Social standardization                                 |
+| `175_quiz_security_hardening.sql`               | core_04                                                   | Quiz security                                          |
+| `18_restore_ai_tutor_foundation.sql`            | core_05                                                   | AI tutor restore                                       |
+| `185_quiz_cheating_detection.sql`               | core_04                                                   | Anti-cheat columns                                     |
+| `19_restore_fts_schema.sql`                     | core_05                                                   | Full-text search                                       |
+| `20_remove_rag_infrastructure.sql`              | SKIP                                                      | RAG removed — not in squashed                          |
+| `21_cleanup_rag_artifacts.sql`                  | SKIP                                                      | RAG cleanup — not in squashed                          |
+| `22_add_quiz_is_published.sql`                  | core_04                                                   | `is_published` column                                  |
+| `23_progress_engine_fixes.sql`                  | core_02 + core_07                                         | Progress fixes                                         |
+| `24_distribution_stability.sql`                 | core_02                                                   | Distribution stability                                 |
+| `25_multi_tenant_hardening.sql`                 | core_01                                                   | Tenant hardening                                       |
+| `26_analytics_retry_logic.sql`                  | core_07                                                   | Analytics RPC update                                   |
+| `26_security_hardening.ignored`                 | SKIP                                                      | Superseded                                             |
+| `261_security_hardening.sql`                    | core_05 + core_08                                         | Security hardening                                     |
+| `271_performance_tuning.sql`                    | core_05                                                   | Performance indexes                                    |
+| `27_course_analytics_mv.sql`                    | core_05                                                   | Materialized view                                      |
+| `27_performance_tuning.ignored`                 | SKIP                                                      | Superseded                                             |
+| `28_analytics_audit_trail.sql`                  | core_05 + core_08                                         | Audit trail — fixed in 96                              |
+| `28_schema_cleanup.ignored`                     | SKIP                                                      | Superseded                                             |
+| `281_schema_cleanup.sql`                        | core_02 + core_03                                         | Schema cleanup                                         |
+| `29_analytics_pagination.sql`                   | core_07                                                   | Pagination RPC                                         |
+| `30_analytics_rate_limiting.sql`                | core_05 + core_07                                         | Rate limiting                                          |
+| `31_analytics_monitoring.sql`                   | core_05 + core_07                                         | Prometheus-style metrics                               |
+| `32_analytics_health_check.sql`                 | core_07                                                   | Health check RPC                                       |
+| `33_analytics_security_tests.sql`               | core_07                                                   | Security test RPC                                      |
+| `34_analytics_circuit_breaker.sql`              | core_05 + core_08                                         | Circuit breaker — fixed in 96                          |
+| `35_learning_insights.sql`                      | core_05                                                   | `course_insights` table                                |
+| `355_assignment_feedback.sql`                   | core_04                                                   | Assignment feedback columns                            |
+| `36_final_refinement.sql`                       | core_08                                                   | RLS optimization sweep                                 |
+| `37_comprehensive_reinforcement.sql`            | core_08                                                   | Global RLS reinforcement                               |
+| `38_final_polish.sql`                           | core_08                                                   | Final schema alignment                                 |
+| `39_iron_shell_hardening.sql`                   | core_08                                                   | Iron shell RLS sweep                                   |
+| `40_leaderboard_hardening.sql`                  | core_06 + core_08                                         | Leaderboard hardening                                  |
+| `41_leaderboards_rls.sql`                       | core_08                                                   | Leaderboard policies                                   |
+| `42_level_system.sql`                           | core_06                                                   | User levels table                                      |
+| `43_migration.sql`                              | core_03                                                   | Notifications schema                                   |
+| `44_migration.sql`                              | core_03                                                   | Notifications triggers                                 |
+| `45_quiz_analytics_events.sql`                  | core_04                                                   | Quiz analytics events                                  |
+| `46_quiz_production_excellence.sql`             | core_04                                                   | Quiz production hardening                              |
+| `465_weekly_leaderboards.sql`                   | core_06                                                   | Weekly leaderboard snapshots                           |
+| `47_quiz_heartbeat_system.sql`                  | core_04                                                   | Quiz heartbeat system                                  |
+| `475_badge_system.sql`                          | core_06                                                   | Badges + user_badges tables                            |
+| `48_quiz_final_hardening.sql`                   | core_04                                                   | Quiz hardening                                         |
+| `485_user_streak_system.sql`                    | core_06                                                   | User streaks                                           |
+| `49_quiz_resume_index.sql`                      | core_04                                                   | Quiz resume index                                      |
+| `50_gamification_phase3_streaks.sql`            | core_06 + core_07                                         | Streak RPC                                             |
+| `51_gamification_phase4_badges.sql`             | core_06 + core_07                                         | `award_badge_if_qualified()`                           |
+| `52_gamification_phase5_weekly_leaderboard.sql` | core_06 + core_07                                         | Weekly snapshot cron                                   |
+| `53_quiz_schema_corrections.sql`                | core_04                                                   | Quiz schema corrections                                |
+| `54_add_assignment_score_and_seed_demo.sql`     | core_04                                                   | `max_score` column (schema only)                       |
+| `55_add_is_demo_flag.sql`                       | core_04                                                   | `is_demo` flag                                         |
+| `56_quiz_rls_sync.sql`                          | core_08                                                   | Quiz RLS sync                                          |
+| `57_start_quiz_rpc_fix.sql`                     | core_07                                                   | start_quiz_attempt fix                                 |
+| `58_seed_demo_questions.sql`                    | SKIP                                                      | Seed data — separate seed file                         |
+| `59_fix_quiz_answers_constraint.sql`            | core_04                                                   | Constraint fix                                         |
+| `60_fix_quiz_attempt_column_name.sql`           | core_04                                                   | Column rename                                          |
+| `61_fix_award_badge_function.sql`               | core_07                                                   | Badge function NULL fix                                |
+| `62_fix_quiz_expiration_and_resume.sql`         | core_04 + core_07                                         | Expiry + resume                                        |
+| `63_quiz_engine_schema.sql`                     | core_04                                                   | Quiz engine v2 schema foundation                       |
+| `64_quiz_engine_rpc.sql`                        | core_07                                                   | start/submit/grade RPCs                                |
+| `65_quiz_engine_rls.sql`                        | core_08                                                   | Quiz engine RLS                                        |
+| `66_quiz_engine_hardening.sql`                  | core_04 + core_07                                         | Quiz hardening                                         |
+| `67_quiz_engine_rpc_patches.sql`                | core_07                                                   | Optimistic locking patches                             |
+| `68_question_bank_migrations.sql`               | core_04                                                   | Question bank schema                                   |
+| `69_question_bank_rpc.sql`                      | core_07                                                   | Question bank RPCs                                     |
+| `71_schema_reconciliation.sql`                  | core_04 + core_07                                         | **Canonical composite PK fix** — must use this version |
+| `72_assignments_schema_sync.sql`                | core_03 + core_04                                         | Schema sync                                            |
+| `73_demo_seed_data.sql`                         | SKIP                                                      | Seed data — separate seed file                         |
+| `74_demo_seed_data.sql`                         | SKIP                                                      | Seed data — separate seed file                         |
+| `75_security_audit_fixes.sql`                   | core_06 + core_08                                         | Leaderboard + user_badges RLS                          |
+| `76_quiz_engine_phase1.sql`                     | core_07                                                   | Quiz engine phase 1 RPCs                               |
+| `77_quiz_analytics_rpc.sql`                     | core_07                                                   | Quiz analytics RPCs                                    |
+| `78_quiz_audit_fixes.sql`                       | core_07                                                   | Quiz audit fixes                                       |
+| `79_quiz_engine_v1_rpcs.sql`                    | core_07                                                   | v1 compat RPCs                                         |
+| `80_fix_quiz_attempt_number.sql`                | core_04                                                   | Attempt number fix                                     |
+| `801_fix_jwt_tenant_injection.sql`              | core_01 + core_07                                         | **Canonical JWT hook**                                 |
+| `801_teacher_dashboard_results_v1.sql`          | core_07                                                   | Teacher dashboard bundle RPC                           |
+| `81_quiz_assignments_schema.sql`                | core_04                                                   | Quiz assignment linking                                |
+| `82_class_assignment_quiz_v2_refactor.sql`      | core_03 + core_04                                         | **Major v2 refactor**                                  |
+| `83_fix_enroll_student_user_points.sql`         | core_07                                                   | Enrollment + points fix                                |
+| `84_quiz_v1_v2_consolidation.ignored`           | SKIP                                                      | Superseded                                             |
+| `87_rls_standardization.sql`                    | core_08                                                   | `has_role()` standardization                           |
+| `88_rls_standardization_complete.sql`           | core_08                                                   | RLS standardization pt.2                               |
+| `89_rls_analytics_gamification_fix.sql`         | core_08                                                   | Gamification RLS fixes                                 |
+| `90_quiz_engine_hardening.sql`                  | core_04 + core_07                                         | Quiz hardening                                         |
+| `91_quiz_performance_indexes.sql`               | core_04                                                   | Quiz performance indexes                               |
+| `92_quiz_triggers_v2_and_remediation.sql`       | core_07                                                   | Quiz v2 triggers                                       |
+| `93_single_active_attempt_guard.sql`            | core_04                                                   | Single-attempt constraint                              |
+| `094_rag_architecture_foundation.sql`           | SKIP                                                      | RAG removed in migration 20                            |
+| `094_rag_architecture_foundation.sql`           | SKIP                                                      | RAG removed in migration 20                            |
+| `095_gamification_system.sql`                   | core_06                                                   | Gamification foundation                                |
+| `093_course_progress_engine.sql`                | core_02 + core_07                                         | Progress engine v2                                     |
+| `94_quiz_autosave_history_timer.sql`            | core_04 + core_07                                         | Autosave + history                                     |
+| `95_admin_infrastructure.sql`                   | core_09                                                   | Admin tables + RPCs                                    |
+| `96_rls_jwt_role_fix.sql`                       | core_08                                                   | **P0 fix** — absorbed into final RLS state             |
+| `97_missing_rpcs_and_fixes.sql`                 | core_07 + core_09                                         | validate/accept invitation + get_my_profile            |
+| `98_admin_security_hardening.sql`               | core_01 + core_07 + core_09                               | handle_new_user fix + admin security                   |
+| `diagnostic_quiz_schema.sql`                    | SKIP                                                      | Diagnostic only — never apply                          |
 
 ---
 
@@ -710,6 +752,7 @@ New features go into `99_`, `100_`, etc.
 ### Staging / QA Environment
 
 Staging should mirror production exactly:
+
 - Apply incremental migrations from `96_` onwards (same as production)
 - Never use squashed files on a DB that already has schema
 
@@ -728,6 +771,7 @@ supabase/migrations/100_<feature_name>.sql
 **Naming convention**: `{number}_{snake_case_description}.sql`
 
 **Rules:**
+
 1. Numbers must be strictly sequential — check the current highest number first
 2. Never reuse or backfill numbers
 3. Each migration must be idempotent where possible (`IF NOT EXISTS`, `OR REPLACE`, `DROP IF EXISTS`)
@@ -760,6 +804,7 @@ NOTIFY pgrst, 'reload schema';
 ### Keeping Squashed Files in Sync
 
 When a new incremental migration (`99_+`) adds or modifies:
+
 - A **table** → update the relevant `core_0N_*schema*.sql`
 - A **function or RPC** → update `core_07_helper_functions.sql`
 - An **RLS policy** → update `core_08_rls_policies.sql`
@@ -782,13 +827,13 @@ Coordinate via the team migration register (see below).
 
 Maintain this table in your team wiki / Notion to prevent collisions:
 
-| Number | Feature | Author | Status |
-|--------|---------|--------|--------|
-| 96 | RLS JWT role fix | Done | ✅ merged |
-| 97 | Missing RPCs + invitation system | Done | ✅ merged |
-| 98 | Admin security hardening | Done | ✅ merged |
-| 99 | _Reserved — claim before starting_ | | |
-| 100 | _Reserved_ | | |
+| Number | Feature                            | Author | Status    |
+| ------ | ---------------------------------- | ------ | --------- |
+| 96     | RLS JWT role fix                   | Done   | ✅ merged |
+| 97     | Missing RPCs + invitation system   | Done   | ✅ merged |
+| 98     | Admin security hardening           | Done   | ✅ merged |
+| 99     | _Reserved — claim before starting_ |        |           |
+| 100    | _Reserved_                         |        |           |
 
 ---
 
@@ -804,6 +849,7 @@ git commit -m "chore: remove superseded .ignored migration files"
 ```
 
 Files to remove:
+
 ```
 08_quiz_analytics.ignored
 09_rag_architecture_foundation.ignored
@@ -864,24 +910,24 @@ graph TD
 
 ## Estimated Build Effort
 
-| File | Complexity | Estimated Hours |
-|------|-----------|-----------------|
-| `core_00_foundation.sql` | Low | 0.5h |
-| `core_01_auth_schema.sql` | Medium | 2h |
-| `core_02_learning_schema.sql` | High | 4h |
-| `core_03_classroom_schema.sql` | Medium | 2h |
-| `core_04_assessment_schema.sql` | Very High | 8h (quiz engine v2 is large) |
-| `core_05_social_analytics.sql` | High | 4h |
-| `core_06_gamification.sql` | Medium | 2h |
-| `core_07_helper_functions.sql` | Very High | 6h (many RPCs to reconcile) |
-| `core_08_rls_policies.sql` | High | 4h (systematic, but thorough) |
-| `core_09_admin_infrastructure.sql` | Medium | 2h |
-| **Total** | | **~35 hours** |
+| File                               | Complexity | Estimated Hours               |
+| ---------------------------------- | ---------- | ----------------------------- |
+| `core_00_foundation.sql`           | Low        | 0.5h                          |
+| `core_01_auth_schema.sql`          | Medium     | 2h                            |
+| `core_02_learning_schema.sql`      | High       | 4h                            |
+| `core_03_classroom_schema.sql`     | Medium     | 2h                            |
+| `core_04_assessment_schema.sql`    | Very High  | 8h (quiz engine v2 is large)  |
+| `core_05_social_analytics.sql`     | High       | 4h                            |
+| `core_06_gamification.sql`         | Medium     | 2h                            |
+| `core_07_helper_functions.sql`     | Very High  | 6h (many RPCs to reconcile)   |
+| `core_08_rls_policies.sql`         | High       | 4h (systematic, but thorough) |
+| `core_09_admin_infrastructure.sql` | Medium     | 2h                            |
+| **Total**                          |            | **~35 hours**                 |
 
 > This effort is a one-time investment. The payoff is: new devs can spin up a correct
 > local environment in under 2 minutes instead of debugging 125-migration ordering issues.
 
 ---
 
-*Document maintained alongside `docs/architecture/AUTH_ARCHITECTURE.md`.*
-*When migrations 96–98 are applied to production, update the "Migration Number Register" above.*
+_Document maintained alongside `docs/architecture/AUTH_ARCHITECTURE.md`._
+_When migrations 96–98 are applied to production, update the "Migration Number Register" above._
