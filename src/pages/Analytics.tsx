@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react'
 import {
   Radar,
   RadarChart,
@@ -7,12 +7,11 @@ import {
   PolarRadiusAxis,
   ResponsiveContainer,
   Tooltip,
-} from "recharts";
+} from 'recharts'
 import {
   AlertTriangle,
   Clock,
   Filter,
-  ArrowUpDown,
   Eye,
   Sparkles,
   RefreshCw,
@@ -24,151 +23,163 @@ import {
   AlertCircle,
   WifiOff,
   BarChart3,
-} from "lucide-react";
-import { cn } from "@/src/utils/cn";
-import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/src/contexts/AuthContext";
-import { courseService, Course } from "@/src/features/courses";
-import { AnalyticsError } from "@/src/features/analytics";
-import { useTeacherAnalytics, useRefreshCourseStats } from "@/src/features/analytics/queries/analyticsQueries";
-import { StruggleConfigPanel } from "@/src/features/struggle";
+} from 'lucide-react'
+import { cn } from '@/src/utils/cn'
+import { motion, AnimatePresence } from 'motion/react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { courseService, Course } from '@/src/features/courses'
+import { AnalyticsError } from '@/src/features/analytics'
+import {
+  useTeacherAnalytics,
+  useRefreshCourseStats,
+} from '@/src/features/analytics/queries/analyticsQueries'
+import { StruggleConfigPanel } from '@/src/features/struggle'
 
 export function Analytics() {
-  const { activeTenant, role } = useAuth();
-  const navigate = useNavigate();
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const { activeTenant, role } = useAuth()
+  const navigate = useNavigate()
+  const [courses, setCourses] = useState<Course[]>([])
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('')
 
   // Use React Query hooks for analytics data
-  const { data, isLoading, error, refetch } = useTeacherAnalytics(selectedCourseId);
-  const refreshMutation = useRefreshCourseStats();
+  const { data, isLoading, error, refetch } = useTeacherAnalytics(selectedCourseId)
+  const refreshMutation = useRefreshCourseStats()
 
-  const [filter, setFilter] = useState("Semua");
-  const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [filter, setFilter] = useState('Semua')
+  const [expandedRow, setExpandedRow] = useState<string | null>(null)
 
   // Load courses for tenant
   useEffect(() => {
     async function loadCourses() {
-      if (!activeTenant?.id) return;
+      if (!activeTenant?.id) return
       try {
-        const result = await courseService.fetchCourses({ tenantId: activeTenant.id, limit: 50 });
-        setCourses(result.courses);
+        const result = await courseService.fetchCourses({ tenantId: activeTenant.id, limit: 50 })
+        setCourses(result.courses)
         if (result.courses.length > 0) {
-          setSelectedCourseId(result.courses[0].id);
+          setSelectedCourseId(result.courses[0].id)
         }
       } catch (err) {
-        console.error("Failed to load courses", err);
+        console.error('Failed to load courses', err)
       }
     }
-    loadCourses();
-  }, [activeTenant?.id]);
+    loadCourses()
+  }, [activeTenant?.id])
 
   // Handle error state from query
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
     if (error) {
       if (error instanceof AnalyticsError) {
         switch (error.code) {
           case 'PERMISSION_DENIED':
-            setErrorMessage('Anda tidak memiliki akses ke analitik kursus ini. Hanya guru dan admin yang dapat melihat.');
-            break;
+            setErrorMessage(
+              'Anda tidak memiliki akses ke analitik kursus ini. Hanya guru dan admin yang dapat melihat.'
+            )
+            break
           case 'RPC_NOT_FOUND':
-            setErrorMessage('Konfigurasi analitik belum lengkap. Silakan hubungi administrator sistem.');
-            break;
+            setErrorMessage(
+              'Konfigurasi analitik belum lengkap. Silakan hubungi administrator sistem.'
+            )
+            break
           case 'COURSE_NOT_FOUND':
-            setErrorMessage('Kursus tidak ditemukan atau telah dihapus.');
-            break;
+            setErrorMessage('Kursus tidak ditemukan atau telah dihapus.')
+            break
           case 'TENANT_MISMATCH':
-            setErrorMessage('Akses ditolak. Kursus tidak termasuk dalam organisasi Anda.');
-            break;
+            setErrorMessage('Akses ditolak. Kursus tidak termasuk dalam organisasi Anda.')
+            break
           case 'NETWORK_ERROR':
-            setErrorMessage('Koneksi internet bermasalah. Silakan periksa koneksi Anda dan coba lagi.');
-            break;
+            setErrorMessage(
+              'Koneksi internet bermasalah. Silakan periksa koneksi Anda dan coba lagi.'
+            )
+            break
           default:
-            setErrorMessage(error.message);
+            setErrorMessage(error.message)
         }
       } else {
-        setErrorMessage("Gagal memuat analitik. Pastikan module dan quiz terhubung ke progress.");
+        setErrorMessage('Gagal memuat analitik. Pastikan module dan quiz terhubung ke progress.')
       }
     } else {
-      setErrorMessage(null);
+      setErrorMessage(null)
     }
-  }, [error]);
+  }, [error])
 
   const handleManualRefresh = async () => {
-    if (!selectedCourseId) return;
+    if (!selectedCourseId) return
     try {
-      await refreshMutation.mutateAsync(selectedCourseId);
-      refetch();
+      await refreshMutation.mutateAsync(selectedCourseId)
+      refetch()
     } catch (err: unknown) {
-      console.error("Failed to refresh analytics", err);
+      console.error('Failed to refresh analytics', err)
 
-      let errorMessage = "Gagal memperbarui data analitik manual.";
+      let errorMessage = 'Gagal memperbarui data analitik manual.'
 
       if (err instanceof AnalyticsError) {
         switch (err.code) {
           case 'PERMISSION_DENIED':
-            errorMessage = 'Anda tidak memiliki akses untuk memperbarui analitik.';
-            break;
+            errorMessage = 'Anda tidak memiliki akses untuk memperbarui analitik.'
+            break
           case 'RPC_NOT_FOUND':
-            errorMessage = 'Fungsi refresh belum tersedia. Hubungi administrator.';
-            break;
+            errorMessage = 'Fungsi refresh belum tersedia. Hubungi administrator.'
+            break
           case 'NETWORK_ERROR':
-            errorMessage = 'Koneksi internet bermasalah.';
-            break;
+            errorMessage = 'Koneksi internet bermasalah.'
+            break
         }
       }
 
-      alert(errorMessage);
+      alert(errorMessage)
     }
-  };
+  }
 
-  const [aiInsightMessage, setAiInsightMessage] = useState<string | null>(null);
+  const [aiInsightMessage, setAiInsightMessage] = useState<string | null>(null)
 
   const handleAnalyzeWithAI = async () => {
-    setAiInsightMessage("Fitur AI Analytics In-Depth sedang dalam pengembangan. Gunakan AI Tutor untuk pertanyaan spesifik.");
-    setTimeout(() => setAiInsightMessage(null), 4000);
-  };
+    setAiInsightMessage(
+      'Fitur AI Analytics In-Depth sedang dalam pengembangan. Gunakan AI Tutor untuk pertanyaan spesifik.'
+    )
+    setTimeout(() => setAiInsightMessage(null), 4000)
+  }
 
-  if (!activeTenant) return null;
+  if (!activeTenant) return null
 
-  const radarData = data?.module_completion.map(m => ({
-    subject: m.title.length > 15 ? m.title.substring(0, 15) + '...' : m.title,
-    Completion: Math.round(m.completion_rate),
-    fullMark: 100
-  })) || [];
+  const radarData =
+    data?.module_completion.map((m) => ({
+      subject: m.title.length > 15 ? m.title.substring(0, 15) + '...' : m.title,
+      Completion: Math.round(m.completion_rate),
+      fullMark: 100,
+    })) || []
 
-  const studentsToShow = data?.students.top.concat(data?.students.at_risk || []) || [];
+  const studentsToShow = data?.students.top.concat(data?.students.at_risk || []) || []
 
   // Quick status heuristic for UI
-  const getStatus = (progress: number, lastActive: string | null) => {
-    if (progress < 40) return "Kritis";
-    if (progress < 70) return "Pemantauan";
-    return "Aman";
-  };
+  const getStatus = (progress: number, _lastActive: string | null) => {
+    if (progress < 40) return 'Kritis'
+    if (progress < 70) return 'Pemantauan'
+    return 'Aman'
+  }
 
   const filteredStudents = studentsToShow.filter((s) => {
-    if (filter === "Semua") return true;
-    return getStatus(s.progress, s.last_active) === filter;
-  });
+    if (filter === 'Semua') return true
+    return getStatus(s.progress, s.last_active) === filter
+  })
 
   // Helper function to format last updated time
   const formatLastUpdated = (timestamp: string | null) => {
-    if (!timestamp) return "Belum pernah dihitung";
+    if (!timestamp) return 'Belum pernah dihitung'
 
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMinutes = Math.round(diffMs / (1000 * 60));
-    const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMinutes = Math.round(diffMs / (1000 * 60))
+    const diffHours = Math.round(diffMs / (1000 * 60 * 60))
 
-    if (diffMinutes < 1) return "Baru saja";
-    if (diffMinutes < 60) return `${diffMinutes} menit yang lalu`;
-    if (diffHours < 24) return `${diffHours} jam yang lalu`;
-    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-  };
+    if (diffMinutes < 1) return 'Baru saja'
+    if (diffMinutes < 60) return `${diffMinutes} menit yang lalu`
+    if (diffHours < 24) return `${diffHours} jam yang lalu`
+    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 p-6">
@@ -189,8 +200,10 @@ export function Analytics() {
             className="bg-white border text-sm border-slate-200 text-slate-700 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-2.5 shadow-sm"
           >
             {courses.length === 0 && <option value="">Tidak ada kursus</option>}
-            {courses.map(c => (
-              <option key={c.id} value={c.id}>{c.title}</option>
+            {courses.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.title}
+              </option>
             ))}
           </select>
 
@@ -199,14 +212,14 @@ export function Analytics() {
             disabled={refreshMutation.isPending || isLoading || !selectedCourseId}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-all shadow-sm disabled:opacity-50"
           >
-            <RefreshCw className={cn("w-4 h-4", refreshMutation.isPending && "animate-spin")} />
+            <RefreshCw className={cn('w-4 h-4', refreshMutation.isPending && 'animate-spin')} />
             Perbarui
           </button>
 
           <button
             onClick={() => {
               if (selectedCourseId) {
-                navigate(`/teaching/course-analytics?courseId=${selectedCourseId}`);
+                navigate(`/teaching/course-analytics?courseId=${selectedCourseId}`)
               }
             }}
             disabled={!selectedCourseId}
@@ -272,9 +285,15 @@ export function Analytics() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Terdaftar</p>
-                <h3 className="text-2xl font-bold text-slate-900 mt-1">{data.overview.total_enrolled}</h3>
-                <p className="text-xs text-slate-400 mt-1">{data.overview.active_students} aktif berturut-turut</p>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  Total Terdaftar
+                </p>
+                <h3 className="text-2xl font-bold text-slate-900 mt-1">
+                  {data.overview.total_enrolled}
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  {data.overview.active_students} aktif berturut-turut
+                </p>
               </div>
               <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
                 <Users className="w-6 h-6" />
@@ -284,8 +303,12 @@ export function Analytics() {
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-500">Rata-rata Progress</p>
-                <h3 className="text-2xl font-bold text-slate-900 mt-1">{data.overview.total_enrolled > 0 ? Math.round(data.overview.avg_progress) : 0}%</h3>
-                <p className="text-xs text-slate-400 mt-1">Tingkat penyelesaian {Math.round(data.overview.lesson_completion_rate)}%</p>
+                <h3 className="text-2xl font-bold text-slate-900 mt-1">
+                  {data.overview.total_enrolled > 0 ? Math.round(data.overview.avg_progress) : 0}%
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Tingkat penyelesaian {Math.round(data.overview.lesson_completion_rate)}%
+                </p>
               </div>
               <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
                 <Activity className="w-6 h-6" />
@@ -294,9 +317,15 @@ export function Analytics() {
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Rata-rata Nilai Kuis</p>
-                <h3 className="text-2xl font-bold text-slate-900 mt-1">{Math.round(data.overview.avg_quiz_score)}%</h3>
-                <p className="text-xs text-slate-400 mt-1">Tingkat kelulusan {Math.round(data.overview.quiz_pass_rate)}%</p>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  Rata-rata Nilai Kuis
+                </p>
+                <h3 className="text-2xl font-bold text-slate-900 mt-1">
+                  {Math.round(data.overview.avg_quiz_score)}%
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Tingkat kelulusan {Math.round(data.overview.quiz_pass_rate)}%
+                </p>
               </div>
               <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
                 <Award className="w-6 h-6" />
@@ -306,7 +335,9 @@ export function Analytics() {
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-500">Siswa At-Risk</p>
-                <h3 className="text-2xl font-bold text-red-600 mt-1">{data.overview.at_risk_count}</h3>
+                <h3 className="text-2xl font-bold text-red-600 mt-1">
+                  {data.overview.at_risk_count}
+                </h3>
                 <p className="text-xs text-slate-400 mt-1">Butuh intervensi segera</p>
               </div>
               <div className="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center">
@@ -318,10 +349,10 @@ export function Analytics() {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Radar Chart for Module Completion */}
             <div className="lg:col-span-1 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-              <h2 className="text-xl font-bold text-slate-800 mb-2">
-                Penyelesaian Modul
-              </h2>
-              <p className="text-sm text-slate-500 mb-4">Tingkat penyelesaian rata-rata tiap modul dalam kursus ini.</p>
+              <h2 className="text-xl font-bold text-slate-800 mb-2">Penyelesaian Modul</h2>
+              <p className="text-sm text-slate-500 mb-4">
+                Tingkat penyelesaian rata-rata tiap modul dalam kursus ini.
+              </p>
 
               {radarData.length > 0 ? (
                 <div className="h-80 w-full -ml-4">
@@ -330,14 +361,9 @@ export function Analytics() {
                       <PolarGrid stroke="#e2e8f0" />
                       <PolarAngleAxis
                         dataKey="subject"
-                        tick={{ fill: "#64748b", fontSize: 11, fontWeight: 600 }}
+                        tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
                       />
-                      <PolarRadiusAxis
-                        angle={30}
-                        domain={[0, 100]}
-                        tick={false}
-                        axisLine={false}
-                      />
+                      <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                       <Radar
                         name="Completion (%)"
                         dataKey="Completion"
@@ -347,11 +373,11 @@ export function Analytics() {
                       />
                       <Tooltip
                         contentStyle={{
-                          borderRadius: "12px",
-                          border: "none",
-                          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+                          borderRadius: '12px',
+                          border: 'none',
+                          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
                         }}
-                        itemStyle={{ fontWeight: "bold" }}
+                        itemStyle={{ fontWeight: 'bold' }}
                       />
                     </RadarChart>
                   </ResponsiveContainer>
@@ -389,78 +415,113 @@ export function Analytics() {
                 <table className="w-full text-sm text-left text-slate-600">
                   <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
                     <tr>
-                      <th scope="col" className="px-6 py-4 font-bold">Nama Siswa</th>
-                      <th scope="col" className="px-6 py-4 font-bold text-center">Progress</th>
-                      <th scope="col" className="px-6 py-4 font-bold text-center">Terakhir Aktif</th>
-                      <th scope="col" className="px-6 py-4 font-bold text-center">Saran Intervensi</th>
-                      <th scope="col" className="px-6 py-4 font-bold text-right">Detail</th>
+                      <th scope="col" className="px-6 py-4 font-bold">
+                        Nama Siswa
+                      </th>
+                      <th scope="col" className="px-6 py-4 font-bold text-center">
+                        Progress
+                      </th>
+                      <th scope="col" className="px-6 py-4 font-bold text-center">
+                        Terakhir Aktif
+                      </th>
+                      <th scope="col" className="px-6 py-4 font-bold text-center">
+                        Saran Intervensi
+                      </th>
+                      <th scope="col" className="px-6 py-4 font-bold text-right">
+                        Detail
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredStudents.length > 0 ? (
                       filteredStudents.map((student) => {
-                        const status = getStatus(student.progress, student.last_active);
-                        const isKritis = status === "Kritis";
-                        const isPemantauan = status === "Pemantauan";
-                        const isExpanded = expandedRow === student.student_id;
+                        const status = getStatus(student.progress, student.last_active)
+                        const isKritis = status === 'Kritis'
+                        const isPemantauan = status === 'Pemantauan'
+                        const isExpanded = expandedRow === student.student_id
 
-                        let relativeDate = "-";
+                        let relativeDate = '-'
                         if (student.last_active) {
-                          const diffMs = new Date().getTime() - new Date(student.last_active).getTime();
-                          const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-                          if (diffDays === 0) relativeDate = "Hari ini";
-                          else if (diffDays === 1) relativeDate = "Kemarin";
-                          else relativeDate = `${diffDays} hari lalu`;
+                          const diffMs =
+                            new Date().getTime() - new Date(student.last_active).getTime()
+                          const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24))
+                          if (diffDays === 0) relativeDate = 'Hari ini'
+                          else if (diffDays === 1) relativeDate = 'Kemarin'
+                          else relativeDate = `${diffDays} hari lalu`
                         }
 
                         return (
                           <React.Fragment key={student.student_id}>
                             <tr
                               className={cn(
-                                "border-b border-slate-100 transition-colors",
-                                isKritis && !isExpanded ? "bg-red-50/30 hover:bg-red-50/80" : "hover:bg-slate-50"
+                                'border-b border-slate-100 transition-colors',
+                                isKritis && !isExpanded
+                                  ? 'bg-red-50/30 hover:bg-red-50/80'
+                                  : 'hover:bg-slate-50'
                               )}
                             >
                               <td className="px-6 py-4 font-semibold text-slate-900">
                                 {student.name}
-                                {isKritis && <span className="ml-2 inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
+                                {isKritis && (
+                                  <span className="ml-2 inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                                )}
                               </td>
                               <td className="px-6 py-4 text-center">
                                 <div className="flex flex-col items-center">
-                                  <span className={cn("font-bold text-base", isKritis ? "text-red-600" : "text-slate-700")}>
+                                  <span
+                                    className={cn(
+                                      'font-bold text-base',
+                                      isKritis ? 'text-red-600' : 'text-slate-700'
+                                    )}
+                                  >
                                     {Math.round(student.progress)}%
                                   </span>
                                   <div className="w-16 h-1.5 bg-slate-100 rounded-full mt-1 overflow-hidden">
                                     <div
-                                      className={cn("h-full rounded-full", isKritis ? "bg-red-500" : "bg-indigo-500")}
+                                      className={cn(
+                                        'h-full rounded-full',
+                                        isKritis ? 'bg-red-500' : 'bg-indigo-500'
+                                      )}
                                       style={{ width: `${student.progress}%` }}
                                     />
                                   </div>
                                 </div>
                               </td>
                               <td className="px-6 py-4 text-center">
-                                <span className={cn(
-                                  "inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium",
-                                  relativeDate === "-" || relativeDate.includes("hari lalu") && parseInt(relativeDate) > 7
-                                    ? "bg-red-100 text-red-700"
-                                    : "bg-slate-100 text-slate-600"
-                                )}>
+                                <span
+                                  className={cn(
+                                    'inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium',
+                                    relativeDate === '-' ||
+                                      (relativeDate.includes('hari lalu') &&
+                                        parseInt(relativeDate) > 7)
+                                      ? 'bg-red-100 text-red-700'
+                                      : 'bg-slate-100 text-slate-600'
+                                  )}
+                                >
                                   <Clock className="w-3.5 h-3.5" />
                                   {relativeDate}
                                 </span>
                               </td>
                               <td className="px-6 py-4 text-center">
                                 {isKritis ? (
-                                  <span className="text-xs font-medium text-red-600 border border-red-200 bg-red-50 px-2 py-1 rounded">Intervensi Aktif</span>
+                                  <span className="text-xs font-medium text-red-600 border border-red-200 bg-red-50 px-2 py-1 rounded">
+                                    Intervensi Aktif
+                                  </span>
                                 ) : isPemantauan ? (
-                                  <span className="text-xs font-medium text-amber-600 border border-amber-200 bg-amber-50 px-2 py-1 rounded">Pantau</span>
+                                  <span className="text-xs font-medium text-amber-600 border border-amber-200 bg-amber-50 px-2 py-1 rounded">
+                                    Pantau
+                                  </span>
                                 ) : (
-                                  <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded">Aman</span>
+                                  <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded">
+                                    Aman
+                                  </span>
                                 )}
                               </td>
                               <td className="px-6 py-4 text-right">
                                 <button
-                                  onClick={() => setExpandedRow(isExpanded ? null : student.student_id)}
+                                  onClick={() =>
+                                    setExpandedRow(isExpanded ? null : student.student_id)
+                                  }
                                   className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                                   title="Lihat Detail Log"
                                 >
@@ -472,20 +533,29 @@ export function Analytics() {
                               {isExpanded && (
                                 <motion.tr
                                   initial={{ opacity: 0, height: 0 }}
-                                  animate={{ opacity: 1, height: "auto" }}
+                                  animate={{ opacity: 1, height: 'auto' }}
                                   exit={{ opacity: 0, height: 0 }}
                                   className="bg-slate-50/80 border-b border-slate-200"
                                 >
                                   <td colSpan={5} className="px-6 py-4">
                                     <div className="bg-white p-4 rounded-xl border border-slate-200 text-sm shadow-sm flex items-start gap-3">
-                                      <AlertTriangle className={cn("w-5 h-5 shrink-0 mt-0.5", isKritis ? "text-red-500" : "text-amber-500")} />
+                                      <AlertTriangle
+                                        className={cn(
+                                          'w-5 h-5 shrink-0 mt-0.5',
+                                          isKritis ? 'text-red-500' : 'text-amber-500'
+                                        )}
+                                      />
                                       <div>
                                         <p className="font-semibold text-slate-800 mb-1">
-                                          Sistem mendeteksi bahwa {student.name} {isKritis ? "sangat tertinggal" : "sedikit tertinggal"} dari target kelas.
+                                          Sistem mendeteksi bahwa {student.name}{' '}
+                                          {isKritis ? 'sangat tertinggal' : 'sedikit tertinggal'}{' '}
+                                          dari target kelas.
                                         </p>
                                         <p className="text-slate-600 mb-3">
-                                          Tingkat penyelesaian kursus: {Math.round(student.progress)}%.
-                                          Disarankan untuk menghubungi siswa melalui fitur pesan atau melakukan check-in pada sesi berikutnya.
+                                          Tingkat penyelesaian kursus:{' '}
+                                          {Math.round(student.progress)}%. Disarankan untuk
+                                          menghubungi siswa melalui fitur pesan atau melakukan
+                                          check-in pada sesi berikutnya.
                                         </p>
                                         <button className="text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 px-3 py-1.5 rounded-lg transition-colors">
                                           Kirim Pesan Otomatis (Segera Hadir)
@@ -497,7 +567,7 @@ export function Analytics() {
                               )}
                             </AnimatePresence>
                           </React.Fragment>
-                        );
+                        )
                       })
                     ) : (
                       <tr>
@@ -524,5 +594,5 @@ export function Analytics() {
         </div>
       )}
     </div>
-  );
+  )
 }

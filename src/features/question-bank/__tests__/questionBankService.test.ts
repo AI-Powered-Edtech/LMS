@@ -1,15 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { questionBankService } from '../api/questionBankService';
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { questionBankService } from '../api/questionBankService'
 
-const mockFrom = vi.fn();
-const mockRpc = vi.fn();
+const mockRpc = vi.fn()
 
 vi.mock('@/src/lib/supabase', () => ({
   supabase: {
-    from: (...args: unknown[]) => mockFrom(...args),
+    from: vi.fn(),
     rpc: (...args: unknown[]) => mockRpc(...args),
   },
-}));
+}))
 
 const mockQuestion = {
   type: 'MCQ' as const,
@@ -21,58 +20,43 @@ const mockQuestion = {
     { option_text: '4', is_correct: true, order_index: 1 },
   ],
   tags: ['math', 'basics'],
-};
+}
 
 describe('questionBankService.createQuestion', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks())
 
   it('inserts into question_bank table', async () => {
-    const fromSpy = vi.fn().mockReturnValue({
-      insert: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: { id: 'q1' }, error: null }),
-    });
-    mockFrom.mockImplementation(fromSpy);
-    try {
-      await questionBankService.createQuestion(mockQuestion);
-    } catch {
-      // tolerate if additional steps fail
-    }
-    const tableNames = fromSpy.mock.calls.map((call: unknown[]) => call[0]);
-    expect(tableNames.some((t: unknown) => typeof t === 'string' && t.includes('question'))).toBe(true);
-  });
+    mockRpc.mockResolvedValue({ data: { id: 'q1' }, error: null })
+    await questionBankService.createQuestion(mockQuestion)
+    expect(mockRpc).toHaveBeenCalledWith(
+      'create_question',
+      expect.objectContaining({
+        p_question_text: 'What is 2+2?',
+        p_question_type: 'MCQ',
+      })
+    )
+  })
 
   it('throws on insert error', async () => {
-    mockFrom.mockReturnValue({
-      insert: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockResolvedValue({ data: null, error: { message: 'Insert failed' } }),
-    });
+    mockRpc.mockResolvedValue({ data: null, error: { message: 'Insert failed' } })
     await expect(questionBankService.createQuestion(mockQuestion)).rejects.toMatchObject({
       message: 'Insert failed',
-    });
-  });
-});
+    })
+  })
+})
 
 describe('questionBankService.searchQuestions', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks())
 
   it('queries question_bank table', async () => {
-    const fromSpy = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      ilike: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      range: vi.fn().mockResolvedValue({ data: [], count: 0, error: null }),
-      limit: vi.fn().mockResolvedValue({ data: [], count: 0, error: null }),
-    });
-    mockFrom.mockImplementation(fromSpy);
-    try {
-      await questionBankService.searchQuestions({});
-    } catch {
-      // ok
-    }
-    const tableNames = fromSpy.mock.calls.map((call: unknown[]) => call[0]);
-    expect(tableNames.some((t: unknown) => typeof t === 'string' && t.includes('question'))).toBe(true);
-  });
-});
+    mockRpc.mockResolvedValue({ data: [], error: null })
+    await questionBankService.searchQuestions({})
+    expect(mockRpc).toHaveBeenCalledWith(
+      'search_questions',
+      expect.objectContaining({
+        p_limit: 20,
+        p_offset: 0,
+      })
+    )
+  })
+})

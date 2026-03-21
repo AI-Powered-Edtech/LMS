@@ -1,15 +1,15 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 export function NotFound() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   useEffect(() => {
-    document.title = '404 — EduSync';
+    document.title = '404 — EduSync'
     return () => {
-      document.title = 'EduSync';
-    };
-  }, []);
+      document.title = 'EduSync'
+    }
+  }, [])
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
@@ -38,5 +38,5 @@ export function NotFound() {
         </button>
       </div>
     </div>
-  );
+  )
 }

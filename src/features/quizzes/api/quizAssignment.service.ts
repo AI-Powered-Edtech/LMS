@@ -1,8 +1,8 @@
 // Quiz Assignment Service - Assignment Management API
 // Extracted from quizService.ts for the Quiz Engine Refactor
 
-import { supabase } from '../../../lib/supabase';
-import type { QuizAssignment, AssignmentUpsertInput } from '../types/quizzes.types';
+import { supabase } from '../../../lib/supabase'
+import type { QuizAssignment, AssignmentUpsertInput } from '../types/quizzes.types'
 
 // ============================================
 // Helper Functions
@@ -13,12 +13,12 @@ function deriveAssignmentStatus(
   availableFrom?: string | null,
   dueAt?: string | null
 ): 'draft' | 'active' | 'scheduled' | 'ended' {
-  if (quizStatus !== 'published') return 'draft';
+  if (quizStatus !== 'published') return 'draft'
 
-  const now = Date.now();
-  if (dueAt && new Date(dueAt).getTime() < now) return 'ended';
-  if (availableFrom && new Date(availableFrom).getTime() > now) return 'scheduled';
-  return 'active';
+  const now = Date.now()
+  if (dueAt && new Date(dueAt).getTime() < now) return 'ended'
+  if (availableFrom && new Date(availableFrom).getTime() > now) return 'scheduled'
+  return 'active'
 }
 
 // ============================================
@@ -33,16 +33,18 @@ export async function assignQuizToClasses(
   tenantId: string,
   assignments: AssignmentUpsertInput[]
 ) {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   // Get quiz details
   const { data: quiz, error: quizError } = await supabase
     .from('quizzes')
     .select('status, max_attempts')
     .eq('id', quizId)
-    .single();
+    .single()
 
-  if (quizError) throw quizError;
+  if (quizError) throw quizError
 
   // Create assignment rows
   const rows = assignments.map((assignment) => ({
@@ -54,13 +56,13 @@ export async function assignQuizToClasses(
     due_at: assignment.due_at ?? null,
     max_attempts: assignment.max_attempts ?? quiz.max_attempts ?? null,
     status: deriveAssignmentStatus(quiz.status, assignment.available_from, assignment.due_at),
-  }));
+  }))
 
   const { error } = await supabase
     .from('quiz_assignments')
-    .upsert(rows, { onConflict: 'quiz_id,class_id' });
+    .upsert(rows, { onConflict: 'quiz_id,class_id' })
 
-  if (error) throw error;
+  if (error) throw error
 }
 
 /**
@@ -69,19 +71,21 @@ export async function assignQuizToClasses(
 export async function getAssignmentsByQuiz(quizId: string, tenantId: string) {
   const { data, error } = await supabase
     .from('quiz_assignments')
-    .select(`
+    .select(
+      `
       *,
       classes (
         id,
         name
       )
-    `)
+    `
+    )
     .eq('quiz_id', quizId)
     .eq('tenant_id', tenantId)
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true })
 
-  if (error) throw error;
-  return data as QuizAssignment[];
+  if (error) throw error
+  return data as QuizAssignment[]
 }
 
 /**
@@ -90,7 +94,8 @@ export async function getAssignmentsByQuiz(quizId: string, tenantId: string) {
 export async function getAssignmentsByClass(classId: string, tenantId: string) {
   const { data, error } = await supabase
     .from('quiz_assignments')
-    .select(`
+    .select(
+      `
       *,
       classes (
         id,
@@ -106,32 +111,13 @@ export async function getAssignmentsByClass(classId: string, tenantId: string) {
         max_attempts,
         quiz_questions (id)
       )
-    `)
+    `
+    )
     .eq('class_id', classId)
-    .eq('tenant_id', tenantId);
+    .eq('tenant_id', tenantId)
 
-  if (error) throw error;
-  return data;
-}
-
-/**
- * Update a quiz assignment
- */
-export async function updateQuizAssignment(assignmentId: string, updates: Record<string, unknown>, tenantId: string) {
-  // Normalize available_until -> due_at if needed
-  const normalizedUpdates = { ...updates } as Record<string, unknown>;
-  if ('available_until' in normalizedUpdates && !('due_at' in normalizedUpdates)) {
-    normalizedUpdates.due_at = normalizedUpdates.available_until;
-    delete normalizedUpdates.available_until;
-  }
-
-  const { error } = await supabase
-    .from('quiz_assignments')
-    .update(normalizedUpdates)
-    .eq('id', assignmentId)
-    .eq('tenant_id', tenantId);
-
-  if (error) throw error;
+  if (error) throw error
+  return data
 }
 
 /**
@@ -142,7 +128,7 @@ export async function removeQuizAssignment(assignmentId: string, tenantId: strin
     .from('quiz_assignments')
     .delete()
     .eq('id', assignmentId)
-    .eq('tenant_id', tenantId);
+    .eq('tenant_id', tenantId)
 
-  if (error) throw error;
+  if (error) throw error
 }

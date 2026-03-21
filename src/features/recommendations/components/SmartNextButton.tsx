@@ -1,41 +1,46 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Sparkles, Loader2 } from 'lucide-react';
-import { cn } from '@/src/utils/cn';
-import { useRecommendations, useRecordRecommendationAction } from '../queries/recommendationQueries';
-import { useAuth } from '@/src/contexts/AuthContext';
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { ArrowRight, Sparkles, Loader2 } from 'lucide-react'
+import { cn } from '@/src/utils/cn'
+import { useRecommendations, useRecordRecommendationAction } from '../queries/recommendationQueries'
+import { useAuth } from '@/src/contexts/AuthContext'
 
 interface SmartNextButtonProps {
-  courseId: string;
-  currentLessonId: string;
-  sequentialNextLessonId?: string;
-  className?: string;
+  courseId: string
+  currentLessonId: string
+  sequentialNextLessonId?: string
+  className?: string
 }
 
-export function SmartNextButton({ courseId, currentLessonId, sequentialNextLessonId, className }: SmartNextButtonProps) {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const currentModuleId = searchParams.get('moduleId');
-  const { data: recommendations, isLoading: isLoadingRecs } = useRecommendations(user?.id ?? '', 10);
-  const { mutate: recordAction } = useRecordRecommendationAction();
+export function SmartNextButton({
+  courseId,
+  currentLessonId: _currentLessonId,
+  sequentialNextLessonId,
+  className,
+}: SmartNextButtonProps) {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const currentModuleId = searchParams.get('moduleId')
+  const { data: recommendations, isLoading: isLoadingRecs } = useRecommendations(user?.id ?? '', 10)
+  const { mutate: recordAction } = useRecordRecommendationAction()
 
   const nextLessonRec = recommendations?.find(
-    r => r.recommendation_type === 'next_lesson' && r.course_id === courseId
-  );
+    (r) => r.recommendation_type === 'next_lesson' && r.course_id === courseId
+  )
 
-  const targetId = nextLessonRec?.target_id ?? sequentialNextLessonId;
-  const hasSmartRec = !!nextLessonRec;
+  const targetId = nextLessonRec?.target_id ?? sequentialNextLessonId
+  const hasSmartRec = !!nextLessonRec
 
   const handleClick = () => {
     if (nextLessonRec) {
-      recordAction({ id: nextLessonRec.id, action: 'accepted' });
+      recordAction({ id: nextLessonRec.id, action: 'accepted' })
     }
     if (targetId && currentModuleId) {
-      navigate(`/courses/${courseId}?moduleId=${currentModuleId}&lessonId=${targetId}`);
+      navigate(`/courses/${courseId}?moduleId=${currentModuleId}&lessonId=${targetId}`)
     } else {
-      navigate(`/courses/${courseId}`);
+      navigate(`/courses/${courseId}`)
     }
-  };
+  }
 
   if (isLoadingRecs) {
     return (
@@ -50,10 +55,10 @@ export function SmartNextButton({ courseId, currentLessonId, sequentialNextLesso
         <Loader2 className="h-4 w-4 animate-spin" />
         <span>Memuat...</span>
       </button>
-    );
+    )
   }
 
-  if (!targetId && !sequentialNextLessonId) return null;
+  if (!targetId && !sequentialNextLessonId) return null
 
   return (
     <button
@@ -71,5 +76,5 @@ export function SmartNextButton({ courseId, currentLessonId, sequentialNextLesso
       <span>Pelajaran Berikutnya</span>
       <ArrowRight className="h-4 w-4" />
     </button>
-  );
+  )
 }

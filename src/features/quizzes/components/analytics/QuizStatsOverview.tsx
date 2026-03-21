@@ -1,28 +1,28 @@
 // Quiz Stats Overview Component
 // Shows summary statistics cards for a quiz
 
-import { Users, Trophy, Clock, Target, TrendingUp } from 'lucide-react';
-import { cn } from '../../../../utils/cn';
+import { Users, Trophy, Clock, TrendingUp } from 'lucide-react'
+import { cn } from '../../../../utils/cn'
 
 // Format time helper
 function formatTime(seconds: number): string {
   if (seconds < 60) {
-    return `${seconds}s`;
+    return `${seconds}s`
   }
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
   if (minutes < 60) {
-    return remainingSeconds > 0 ? `${minutes}m ${remainingSeconds}s` : `${minutes}m`;
+    return remainingSeconds > 0 ? `${minutes}m ${remainingSeconds}s` : `${minutes}m`
   }
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`
 }
-import type { QuizStats } from '../../api/quizAnalytics.service';
+import type { QuizStats } from '../../api/quizAnalytics.service'
 
 interface QuizStatsOverviewProps {
-  stats: QuizStats | null;
-  isLoading?: boolean;
+  stats: QuizStats | null
+  isLoading?: boolean
 }
 
 export function QuizStatsOverview({ stats, isLoading }: QuizStatsOverviewProps) {
@@ -37,16 +37,18 @@ export function QuizStatsOverview({ stats, isLoading }: QuizStatsOverviewProps) 
           </div>
         ))}
       </div>
-    );
+    )
   }
 
   if (!stats) {
     return (
       <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
         <p className="text-slate-500">Belum ada data statistik untuk kuis ini.</p>
-        <p className="text-sm text-slate-400 mt-1">Statistik akan muncul setelah siswa mengerjakan kuis.</p>
+        <p className="text-sm text-slate-400 mt-1">
+          Statistik akan muncul setelah siswa mengerjakan kuis.
+        </p>
       </div>
-    );
+    )
   }
 
   const cards = [
@@ -78,26 +80,33 @@ export function QuizStatsOverview({ stats, isLoading }: QuizStatsOverviewProps) 
       color: 'bg-purple-100 text-purple-600',
       subtitle: `Terendah: ${stats.lowest_score}%`,
     },
-  ];
+  ]
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {cards.map((card, index) => {
-        const Icon = card.icon;
+        const Icon = card.icon
         return (
           <div
             key={index}
             className="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-md transition-shadow"
           >
-            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-3", card.color)}>
+            <div
+              className={cn(
+                'w-10 h-10 rounded-xl flex items-center justify-center mb-3',
+                card.color
+              )}
+            >
               <Icon className="w-5 h-5" />
             </div>
             <p className="text-2xl font-black text-slate-800">{card.value}</p>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">{card.label}</p>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">
+              {card.label}
+            </p>
             <p className="text-xs text-slate-400 mt-1">{card.subtitle}</p>
           </div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 import {
   BarChart3,
   Users,
@@ -14,8 +14,7 @@ import {
   LayoutGrid,
   Clock,
   BarChart,
-  PieChart
-} from 'lucide-react';
+} from 'lucide-react'
 import {
   LineChart,
   Line,
@@ -29,29 +28,23 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend
-} from 'recharts';
-import { cn } from '@/src/utils/cn';
-import { useTenantAnalytics } from '@/src/features/analytics/queries/analyticsQueries';
-import {
-  TenantAnalyticsData,
-  CourseEngagement,
-  ActivityTimePoint
-} from '@/src/features/analytics';
+  Legend,
+} from 'recharts'
+import { cn } from '@/src/utils/cn'
+import { useTenantAnalytics } from '@/src/features/analytics/queries/analyticsQueries'
+import { CourseEngagement, ActivityTimePoint } from '@/src/features/analytics'
 
 // Color palette for charts
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
-
 interface MetricCardProps {
-  title: string;
-  value: number | string;
-  icon: React.ElementType;
+  title: string
+  value: number | string
+  icon: React.ElementType
   trend?: {
-    value: number;
-    isPositive: boolean;
-  };
-  color: string;
-  bgColor: string;
+    value: number
+    isPositive: boolean
+  }
+  color: string
+  bgColor: string
 }
 
 function MetricCard({ title, value, icon: Icon, trend, color, bgColor }: MetricCardProps) {
@@ -80,7 +73,7 @@ function MetricCard({ title, value, icon: Icon, trend, color, bgColor }: MetricC
         </p>
       </div>
     </div>
-  );
+  )
 }
 
 function LoadingState() {
@@ -89,7 +82,7 @@ function LoadingState() {
       <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
       <p className="mt-4 text-slate-500 font-medium">Memuat data analitik...</p>
     </div>
-  );
+  )
 }
 
 function EmptyState() {
@@ -100,16 +93,16 @@ function EmptyState() {
       </div>
       <h3 className="mt-4 text-lg font-semibold text-slate-900">Belum Ada Data</h3>
       <p className="mt-2 text-slate-500 text-center max-w-md">
-        Data analitik akan muncul setelah ada aktivitas pembelajaran di platform.
-        Pastikan siswa telah enroll dan menyelesaikan lesson.
+        Data analitik akan muncul setelah ada aktivitas pembelajaran di platform. Pastikan siswa
+        telah enroll dan menyelesaikan lesson.
       </p>
     </div>
-  );
+  )
 }
 
 interface ErrorStateProps {
-  message: string;
-  onRetry: () => void;
+  message: string
+  onRetry: () => void
 }
 
 function ErrorState({ message, onRetry }: ErrorStateProps) {
@@ -128,18 +121,18 @@ function ErrorState({ message, onRetry }: ErrorStateProps) {
         Coba Lagi
       </button>
     </div>
-  );
+  )
 }
 
 interface ActivityTimelineChartProps {
-  data: ActivityTimePoint[];
+  data: ActivityTimePoint[]
 }
 
 function ActivityTimelineChart({ data }: ActivityTimelineChartProps) {
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' });
-  };
+    const date = new Date(dateStr)
+    return date.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })
+  }
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
@@ -156,20 +149,15 @@ function ActivityTimelineChart({ data }: ActivityTimelineChartProps) {
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-            <XAxis
-              dataKey="date"
-              tickFormatter={formatDate}
-              stroke="#94A3B8"
-              fontSize={12}
-            />
+            <XAxis dataKey="date" tickFormatter={formatDate} stroke="#94A3B8" fontSize={12} />
             <YAxis stroke="#94A3B8" fontSize={12} />
             <Tooltip
-              labelFormatter={formatDate}
+              labelFormatter={(label: unknown) => formatDate(String(label))}
               contentStyle={{
                 backgroundColor: '#fff',
                 border: '1px solid #E2E8F0',
                 borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
               }}
             />
             <Legend />
@@ -204,22 +192,23 @@ function ActivityTimelineChart({ data }: ActivityTimelineChartProps) {
         </ResponsiveContainer>
       </div>
     </div>
-  );
+  )
 }
 
 interface CourseEngagementChartProps {
-  data: CourseEngagement[];
+  data: CourseEngagement[]
 }
 
 function CourseEngagementChart({ data }: CourseEngagementChartProps) {
   const chartData = data.slice(0, 6).map((course) => ({
-    name: course.courseName.length > 20
-      ? course.courseName.substring(0, 20) + '...'
-      : course.courseName,
+    name:
+      course.courseName.length > 20
+        ? course.courseName.substring(0, 20) + '...'
+        : course.courseName,
     students: course.enrolled,
     active: course.activeStudents,
-    progress: course.avgProgress
-  }));
+    progress: course.avgProgress,
+  }))
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
@@ -237,19 +226,13 @@ function CourseEngagementChart({ data }: CourseEngagementChartProps) {
           <RechartsBarChart data={chartData} layout="vertical">
             <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
             <XAxis type="number" stroke="#94A3B8" fontSize={12} />
-            <YAxis
-              dataKey="name"
-              type="category"
-              width={120}
-              stroke="#94A3B8"
-              fontSize={11}
-            />
+            <YAxis dataKey="name" type="category" width={120} stroke="#94A3B8" fontSize={11} />
             <Tooltip
               contentStyle={{
                 backgroundColor: '#fff',
                 border: '1px solid #E2E8F0',
                 borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
               }}
             />
             <Legend />
@@ -259,25 +242,27 @@ function CourseEngagementChart({ data }: CourseEngagementChartProps) {
         </ResponsiveContainer>
       </div>
     </div>
-  );
+  )
 }
 
 interface StudentParticipationChartProps {
-  totalEnrolled: number;
-  activeStudents: number;
+  totalEnrolled: number
+  activeStudents: number
 }
 
-function StudentParticipationChart({ totalEnrolled, activeStudents }: StudentParticipationChartProps) {
-  const inactiveStudents = Math.max(0, totalEnrolled - activeStudents);
+function StudentParticipationChart({
+  totalEnrolled,
+  activeStudents,
+}: StudentParticipationChartProps) {
+  const inactiveStudents = Math.max(0, totalEnrolled - activeStudents)
 
   const data = [
     { name: 'Aktif', value: activeStudents, color: '#10B981' },
-    { name: 'Tidak Aktif', value: inactiveStudents, color: '#94A3B8' }
-  ];
+    { name: 'Tidak Aktif', value: inactiveStudents, color: '#94A3B8' },
+  ]
 
-  const participationRate = totalEnrolled > 0
-    ? Math.round((activeStudents / totalEnrolled) * 100)
-    : 0;
+  const participationRate =
+    totalEnrolled > 0 ? Math.round((activeStudents / totalEnrolled) * 100) : 0
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
@@ -301,7 +286,9 @@ function StudentParticipationChart({ totalEnrolled, activeStudents }: StudentPar
               outerRadius={90}
               paddingAngle={5}
               dataKey="value"
-              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              label={({ name, percent }: { name?: string; percent?: number }) =>
+                `${name ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`
+              }
               labelLine={false}
             >
               {data.map((entry, index) => (
@@ -313,7 +300,7 @@ function StudentParticipationChart({ totalEnrolled, activeStudents }: StudentPar
                 backgroundColor: '#fff',
                 border: '1px solid #E2E8F0',
                 borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
               }}
             />
           </RechartsPieChart>
@@ -324,17 +311,17 @@ function StudentParticipationChart({ totalEnrolled, activeStudents }: StudentPar
         <p className="text-sm text-slate-500">Tingkat Partisipasi</p>
       </div>
     </div>
-  );
+  )
 }
 
 export function AdminAnalyticsDashboard() {
-  const { data: analytics, isLoading, error, refetch } = useTenantAnalytics();
-  const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const { data: analytics, isLoading, error, refetch } = useTenantAnalytics()
+  const [isRefreshing, setIsRefreshing] = React.useState(false)
 
   const handleRefresh = () => {
-    setIsRefreshing(true);
-    refetch();
-  };
+    setIsRefreshing(true)
+    refetch()
+  }
 
   // Loading state
   if (isLoading) {
@@ -342,28 +329,38 @@ export function AdminAnalyticsDashboard() {
       <div className="max-w-7xl mx-auto p-4 md:p-8">
         <LoadingState />
       </div>
-    );
+    )
   }
 
   // Error state
   if (error) {
     return (
       <div className="max-w-7xl mx-auto p-4 md:p-8">
-        <ErrorState message={error instanceof Error ? error.message : 'Gagal memuat data analitik. Silakan coba lagi.'} onRetry={() => refetch()} />
+        <ErrorState
+          message={
+            error instanceof Error
+              ? error.message
+              : 'Gagal memuat data analitik. Silakan coba lagi.'
+          }
+          onRetry={() => refetch()}
+        />
       </div>
-    );
+    )
   }
 
   // Empty state - no data
-  if (!analytics || (analytics.overview.totalCourses === 0 && analytics.overview.totalEnrolled === 0)) {
+  if (
+    !analytics ||
+    (analytics.overview.totalCourses === 0 && analytics.overview.totalEnrolled === 0)
+  ) {
     return (
       <div className="max-w-7xl mx-auto p-4 md:p-8">
         <EmptyState />
       </div>
-    );
+    )
   }
 
-  const { overview, activityMetrics, courseEngagement, activityTimeline } = analytics;
+  const { overview, activityMetrics, courseEngagement, activityTimeline } = analytics
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
@@ -374,9 +371,7 @@ export function AdminAnalyticsDashboard() {
             <BarChart3 className="w-8 h-8 text-blue-600" />
             Dashboard Analitik
           </h1>
-          <p className="text-slate-500 mt-1">
-            Pantau aktivitas pembelajaran di seluruh organisasi
-          </p>
+          <p className="text-slate-500 mt-1">Pantau aktivitas pembelajaran di seluruh organisasi</p>
         </div>
         <div className="flex items-center gap-3">
           {overview.lastRefreshedAt && (
@@ -486,18 +481,22 @@ export function AdminAnalyticsDashboard() {
                 <Activity className="w-5 h-5 text-purple-600" />
                 <span className="text-slate-700">Total Event (30 Hari)</span>
               </div>
-              <span className="text-xl font-bold text-slate-900">{activityMetrics.totalEvents.toLocaleString('id-ID')}</span>
+              <span className="text-xl font-bold text-slate-900">
+                {activityMetrics.totalEvents.toLocaleString('id-ID')}
+              </span>
             </div>
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
               <div className="flex items-center gap-3">
                 <FileCheck className="w-5 h-5 text-amber-600" />
                 <span className="text-slate-700">Lesson Selesai</span>
               </div>
-              <span className="text-xl font-bold text-slate-900">{activityMetrics.lessonCompletions.toLocaleString('id-ID')}</span>
+              <span className="text-xl font-bold text-slate-900">
+                {activityMetrics.lessonCompletions.toLocaleString('id-ID')}
+              </span>
             </div>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

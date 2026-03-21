@@ -1,50 +1,53 @@
-import { useState } from 'react';
-import { Save, Loader2 } from 'lucide-react';
-import { cn } from '@/src/utils/cn';
-import { useSaveReport } from '../queries/reportQueries';
-import type { ReportType, ReportSchedule, ExportFormat } from '../types';
+import { useState } from 'react'
+import { Save, Loader2 } from 'lucide-react'
+import { cn } from '@/src/utils/cn'
+import { useSaveReport } from '../queries/reportQueries'
+import type { ReportType, ReportSchedule, ExportFormat } from '../types'
 
 const REPORT_TYPE_OPTIONS: { value: ReportType; label: string }[] = [
   { value: 'student_list', label: 'Daftar Siswa' },
   { value: 'course_summary', label: 'Ringkasan Kursus' },
   { value: 'engagement', label: 'Engagement Siswa' },
-];
+]
 
 const SCHEDULE_OPTIONS: { value: ReportSchedule; label: string }[] = [
   { value: 'none', label: 'Manual (tidak terjadwal)' },
   { value: 'weekly', label: 'Mingguan' },
   { value: 'monthly', label: 'Bulanan' },
-];
+]
 
 const FORMAT_OPTIONS: { value: ExportFormat; label: string }[] = [
   { value: 'csv', label: 'CSV' },
   { value: 'pdf', label: 'PDF' },
-];
+]
 
 interface ReportSchedulerProps {
-  onSaved?: () => void;
+  onSaved?: () => void
 }
 
 export function ReportScheduler({ onSaved }: ReportSchedulerProps) {
-  const [name, setName] = useState('');
-  const [reportType, setReportType] = useState<ReportType>('student_list');
-  const [schedule, setSchedule] = useState<ReportSchedule>('none');
-  const [exportFormat, setExportFormat] = useState<ExportFormat>('csv');
-  const [saved, setSaved] = useState(false);
+  const [name, setName] = useState('')
+  const [reportType, setReportType] = useState<ReportType>('student_list')
+  const [schedule, setSchedule] = useState<ReportSchedule>('none')
+  const [exportFormat, setExportFormat] = useState<ExportFormat>('csv')
+  const [saved, setSaved] = useState(false)
 
-  const { mutate: saveReport, isPending } = useSaveReport();
+  const { mutate: saveReport, isPending } = useSaveReport()
 
   const handleSave = () => {
-    if (!name.trim()) return;
-    saveReport({ name, reportType, schedule, exportFormat }, {
-      onSuccess: () => {
-        setSaved(true);
-        setName('');
-        setTimeout(() => setSaved(false), 2000);
-        onSaved?.();
-      },
-    });
-  };
+    if (!name.trim()) return
+    saveReport(
+      { name, reportType, schedule, exportFormat },
+      {
+        onSuccess: () => {
+          setSaved(true)
+          setName('')
+          setTimeout(() => setSaved(false), 2000)
+          onSaved?.()
+        },
+      }
+    )
+  }
 
   return (
     <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-6 space-y-4">
@@ -56,7 +59,7 @@ export function ReportScheduler({ onSaved }: ReportSchedulerProps) {
           <input
             type="text"
             value={name}
-            onChange={e => setName(e.target.value)}
+            onChange={(e) => setName(e.target.value)}
             placeholder="Misal: Daftar Siswa Bulan Ini"
             className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:border-indigo-400 focus:outline-none"
           />
@@ -66,11 +69,13 @@ export function ReportScheduler({ onSaved }: ReportSchedulerProps) {
           <label className="block text-xs font-semibold text-slate-500 mb-1">Jenis Laporan</label>
           <select
             value={reportType}
-            onChange={e => setReportType(e.target.value as ReportType)}
+            onChange={(e) => setReportType(e.target.value as ReportType)}
             className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:border-indigo-400 focus:outline-none"
           >
-            {REPORT_TYPE_OPTIONS.map(o => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+            {REPORT_TYPE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
             ))}
           </select>
         </div>
@@ -79,11 +84,13 @@ export function ReportScheduler({ onSaved }: ReportSchedulerProps) {
           <label className="block text-xs font-semibold text-slate-500 mb-1">Jadwal</label>
           <select
             value={schedule}
-            onChange={e => setSchedule(e.target.value as ReportSchedule)}
+            onChange={(e) => setSchedule(e.target.value as ReportSchedule)}
             className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:border-indigo-400 focus:outline-none"
           >
-            {SCHEDULE_OPTIONS.map(o => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+            {SCHEDULE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
             ))}
           </select>
         </div>
@@ -92,11 +99,13 @@ export function ReportScheduler({ onSaved }: ReportSchedulerProps) {
           <label className="block text-xs font-semibold text-slate-500 mb-1">Format Export</label>
           <select
             value={exportFormat}
-            onChange={e => setExportFormat(e.target.value as ExportFormat)}
+            onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
             className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:border-indigo-400 focus:outline-none"
           >
-            {FORMAT_OPTIONS.map(o => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+            {FORMAT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
             ))}
           </select>
         </div>
@@ -118,5 +127,5 @@ export function ReportScheduler({ onSaved }: ReportSchedulerProps) {
         </button>
       </div>
     </div>
-  );
+  )
 }

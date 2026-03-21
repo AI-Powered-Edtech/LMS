@@ -1,63 +1,63 @@
-import { Flame, Star, UserCircle, LogOut, Bell, Moon, Sun, Activity } from "lucide-react";
-import { cn } from "@/src/utils/cn";
-import { useAuth, Role } from "@/src/contexts/AuthContext";
-import { useNotifications, useMarkAsRead, useMarkAllAsRead } from "@/src/features/notifications";
-import { useTheme } from "@/src/contexts/ThemeContext";
-import { useNavigate } from "react-router-dom";
-import { useState, useRef, useEffect } from "react";
-import { useStudentProgressData } from '@/src/hooks/useStudentProgressQueries';
-import { NotificationCenter } from "../Social/NotificationCenter";
-import { NotificationBell } from "@/src/features/struggle";
-import { useStudentXPProfile } from "@/src/features/gamification/queries/gamificationQueries";
-import { LevelBadge } from "@/src/features/gamification/components/LevelBadge";
+import { Flame, Star, UserCircle, LogOut, Moon, Sun, Activity } from 'lucide-react'
+import { cn } from '@/src/utils/cn'
+import { useAuth, Role } from '@/src/contexts/AuthContext'
+import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '@/src/features/notifications'
+import { useTheme } from '@/src/contexts/ThemeContext'
+import { useNavigate } from 'react-router-dom'
+import { useState, useRef, useEffect } from 'react'
+import { useStudentProgressData } from '@/src/features/progress/hooks/useStudentProgressQueries'
+import { NotificationCenter } from '../Social/NotificationCenter'
+import { NotificationBell } from '@/src/features/struggle'
+import { useStudentXPProfile } from '@/src/features/gamification/queries/gamificationQueries'
+import { LevelBadge } from '@/src/features/gamification/components/LevelBadge'
 
 export function Header() {
-  const { xp } = useStudentProgressData();
-  const { data: xpProfile } = useStudentXPProfile();
+  const { xp } = useStudentProgressData()
+  const { data: xpProfile } = useStudentXPProfile()
 
-  const streak = xpProfile?.streak_current ?? 0;
-  const hasLoggedInToday = streak > 0;
-  const totalXp = (xpProfile?.total_xp || 0) > 0 ? xpProfile!.total_xp : xp;
-  const level = (xpProfile?.total_xp || 0) > 0 ? xpProfile!.level : 1;
-  const xpCurrent = xpProfile?.xp_current_level ?? 0;
-  const xpNext = xpProfile?.xp_next_level ?? 100;
-  const xpNeeded = xpNext - xpCurrent;
-  const progress = xpNeeded > 0 ? Math.min(((totalXp - xpCurrent) / xpNeeded) * 100, 100) : 100;
+  const streak = xpProfile?.streak_current ?? 0
+  const hasLoggedInToday = streak > 0
+  const totalXp = (xpProfile?.total_xp || 0) > 0 ? xpProfile!.total_xp : xp
+  const level = (xpProfile?.total_xp || 0) > 0 ? xpProfile!.level : 1
+  const xpCurrent = xpProfile?.xp_current_level ?? 0
+  const xpNext = xpProfile?.xp_next_level ?? 100
+  const xpNeeded = xpNext - xpCurrent
+  const progress = xpNeeded > 0 ? Math.min(((totalXp - xpCurrent) / xpNeeded) * 100, 100) : 100
 
-  const { role, profile, signOut } = useAuth();
-  const { notifications, unreadCount } = useNotifications();
-  const markAsReadMutation = useMarkAsRead();
-  const markAllAsReadMutation = useMarkAllAsRead();
-  const { theme, toggleTheme } = useTheme();
-  const navigate = useNavigate();
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const profileRef = useRef<HTMLDivElement>(null);
-  const notifRef = useRef<HTMLDivElement>(null);
+  const { role, profile, signOut } = useAuth()
+  useNotifications()
+  useMarkAsRead()
+  useMarkAllAsRead()
+  const { theme, toggleTheme } = useTheme()
+  const navigate = useNavigate()
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [_isNotifOpen, setIsNotifOpen] = useState(false)
+  const profileRef = useRef<HTMLDivElement>(null)
+  const notifRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
-        setIsProfileOpen(false);
+        setIsProfileOpen(false)
       }
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
-        setIsNotifOpen(false);
+        setIsNotifOpen(false)
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const handleLogout = async () => {
-    await signOut();
-    navigate('/login');
-  };
+    await signOut()
+    navigate('/login')
+  }
 
   const roleLabels: Record<Role, string> = {
     student: 'Siswa',
     teacher: 'Guru',
-    admin: 'Administrator'
-  };
+    admin: 'Administrator',
+  }
 
   return (
     <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4 md:px-8 transition-colors duration-300">
@@ -74,16 +74,16 @@ export function Header() {
         <div className="flex items-center gap-2">
           <Flame
             className={cn(
-              "w-6 h-6 transition-all duration-300",
+              'w-6 h-6 transition-all duration-300',
               hasLoggedInToday
-                ? "text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]"
-                : "text-slate-300 dark:text-slate-600 fill-slate-300 dark:fill-slate-600",
+                ? 'text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]'
+                : 'text-slate-300 dark:text-slate-600 fill-slate-300 dark:fill-slate-600'
             )}
           />
           <span
             className={cn(
-              "font-bold",
-              hasLoggedInToday ? "text-orange-600" : "text-slate-400 dark:text-slate-500",
+              'font-bold',
+              hasLoggedInToday ? 'text-orange-600' : 'text-slate-400 dark:text-slate-500'
             )}
           >
             {streak}
@@ -114,15 +114,17 @@ export function Header() {
           )}
         </div>
 
-
-
         {/* Dark Mode Toggle */}
         <button
           onClick={toggleTheme}
           aria-label="Toggle dark mode"
           className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
         >
-          {theme === 'dark' ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-slate-500" />}
+          {theme === 'dark' ? (
+            <Sun className="w-5 h-5 text-amber-400" />
+          ) : (
+            <Moon className="w-5 h-5 text-slate-500" />
+          )}
         </button>
 
         {/* Struggle Detection Bell — teacher/admin only */}
@@ -155,7 +157,10 @@ export function Header() {
               </div>
               <div className="p-2 space-y-1">
                 <button
-                  onClick={() => { navigate('/profile'); setIsProfileOpen(false); }}
+                  onClick={() => {
+                    navigate('/profile')
+                    setIsProfileOpen(false)
+                  }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-left"
                 >
                   <UserCircle className="w-4 h-4" />
@@ -175,5 +180,5 @@ export function Header() {
         </div>
       </div>
     </header>
-  );
+  )
 }

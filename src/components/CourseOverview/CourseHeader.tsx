@@ -1,14 +1,19 @@
-import { BookOpen, PlayCircle, User } from "lucide-react";
-import { motion } from "motion/react";
+import { BookOpen, PlayCircle, User } from 'lucide-react'
+import { motion } from 'motion/react'
 
 interface CourseHeaderProps {
-  course: { title: string; description: string | null };
-  instructorName?: string;
-  onContinueLearning: () => void;
-  hasProgress: boolean;
+  course: { title: string; description: string | null }
+  instructorName?: string
+  onContinueLearning: () => void
+  hasProgress: boolean
 }
 
-export function CourseHeader({ course, instructorName, onContinueLearning, hasProgress }: CourseHeaderProps) {
+export function CourseHeader({
+  course,
+  instructorName,
+  onContinueLearning,
+  hasProgress,
+}: CourseHeaderProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -36,7 +41,9 @@ export function CourseHeader({ course, instructorName, onContinueLearning, hasPr
           {instructorName && (
             <div className="flex items-center gap-2 text-sm text-slate-400 ml-[52px]">
               <User className="w-4 h-4" />
-              <span>Pengajar: <span className="text-slate-600 font-medium">{instructorName}</span></span>
+              <span>
+                Pengajar: <span className="text-slate-600 font-medium">{instructorName}</span>
+              </span>
             </div>
           )}
         </div>
@@ -48,9 +55,9 @@ export function CourseHeader({ course, instructorName, onContinueLearning, hasPr
           className="flex items-center gap-2.5 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-shadow shrink-0"
         >
           <PlayCircle className="w-5 h-5" />
-          {hasProgress ? "Lanjut Belajar" : "Mulai Belajar"}
+          {hasProgress ? 'Lanjut Belajar' : 'Mulai Belajar'}
         </motion.button>
       </div>
     </motion.div>
-  );
+  )
 }

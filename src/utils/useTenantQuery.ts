@@ -1,6 +1,6 @@
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
-import { useCallback } from 'react';
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
+import { useCallback } from 'react'
 
 /**
  * useTenantQuery — defense-in-depth helper for tenant-scoped queries.
@@ -19,35 +19,35 @@ import { useCallback } from 'react';
  *   await tenantInsert('classes', { name: 'English 101', teacher_id: userId });
  */
 export function useTenantQuery() {
-    const { tenantId } = useAuth();
+  const { tenantId } = useAuth()
 
-    /**
-     * Returns a Supabase query builder pre-filtered by tenant_id.
-     * Falls back to an unfiltered query if tenantId is not available
-     * (RLS will still enforce isolation).
-     */
-    const tenantQuery = useCallback(
-        (table: string) => {
-            const query = supabase.from(table);
-            if (tenantId) {
-                return query.select('*').eq('tenant_id', tenantId);
-            }
-            return query.select('*');
-        },
-        [tenantId]
-    );
+  /**
+   * Returns a Supabase query builder pre-filtered by tenant_id.
+   * Falls back to an unfiltered query if tenantId is not available
+   * (RLS will still enforce isolation).
+   */
+  const tenantQuery = useCallback(
+    (table: string) => {
+      const query = supabase.from(table)
+      if (tenantId) {
+        return query.select('*').eq('tenant_id', tenantId)
+      }
+      return query.select('*')
+    },
+    [tenantId]
+  )
 
-    /**
-     * Inserts a record with tenant_id automatically added.
-     * The auto_set_tenant_id trigger also provides a DB-level fallback.
-     */
-    const tenantInsert = useCallback(
-        async (table: string, data: Record<string, any>) => {
-            const record = tenantId ? { ...data, tenant_id: tenantId } : data;
-            return supabase.from(table).insert(record);
-        },
-        [tenantId]
-    );
+  /**
+   * Inserts a record with tenant_id automatically added.
+   * The auto_set_tenant_id trigger also provides a DB-level fallback.
+   */
+  const tenantInsert = useCallback(
+    async (table: string, data: Record<string, any>) => {
+      const record = tenantId ? { ...data, tenant_id: tenantId } : data
+      return supabase.from(table).insert(record)
+    },
+    [tenantId]
+  )
 
-    return { tenantId, tenantQuery, tenantInsert };
+  return { tenantId, tenantQuery, tenantInsert }
 }

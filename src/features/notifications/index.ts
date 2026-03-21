@@ -1,12 +1,11 @@
 /**
  * Notifications Feature Module
- * 
- * Exports:
- * - Types
- * - React Query hooks
- * - Service functions
  */
 
-export type { Notification, NotificationType } from './types';
-export * from './api/notificationService';
-export * from './queries/notificationQueries';
+export type { Notification } from './types'
+export {
+  useNotifications,
+  useMarkAsRead,
+  useMarkAllAsRead,
+  useSendNotification,
+} from './queries/notificationQueries'

@@ -1,16 +1,16 @@
-import { motion } from 'motion/react';
-import { X, Play, Clock, AlertTriangle, Loader2 } from 'lucide-react';
-import type { StudentQuizAssignment } from '../../types/quizzes.types';
+import { motion } from 'motion/react'
+import { X, Play, Clock, AlertTriangle, Loader2 } from 'lucide-react'
+import type { StudentQuizAssignment } from '../../types/quizzes.types'
 
 interface PendingQuiz extends StudentQuizAssignment {
-  isResume?: boolean;
+  isResume?: boolean
 }
 
 interface StartQuizModalProps {
-  pendingQuiz: PendingQuiz;
-  isStarting: boolean;
-  onClose: () => void;
-  onStart: (quiz: PendingQuiz) => void;
+  pendingQuiz: PendingQuiz
+  isStarting: boolean
+  onClose: () => void
+  onStart: (quiz: PendingQuiz) => void
 }
 
 export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: StartQuizModalProps) {
@@ -48,18 +48,24 @@ export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: St
         <div className="space-y-3 mb-6">
           <div className="flex items-center justify-between py-3 px-4 bg-slate-50 rounded-xl">
             <span className="text-sm font-medium text-slate-500">Jumlah Soal</span>
-            <span className="font-bold text-slate-800">{pendingQuiz.quiz_questions?.length || 0} soal</span>
+            <span className="font-bold text-slate-800">
+              {pendingQuiz.quiz_questions?.length || 0} soal
+            </span>
           </div>
-          {(pendingQuiz.time_limit_minutes > 0) && (
+          {(pendingQuiz.time_limit_minutes ?? 0) > 0 && (
             <div className="flex items-center justify-between py-3 px-4 bg-slate-50 rounded-xl">
               <span className="text-sm font-medium text-slate-500">Batas Waktu</span>
-              <span className="font-bold text-slate-800">{pendingQuiz.time_limit_minutes} menit</span>
+              <span className="font-bold text-slate-800">
+                {pendingQuiz.time_limit_minutes} menit
+              </span>
             </div>
           )}
           {pendingQuiz.max_attempts && (
             <div className="flex items-center justify-between py-3 px-4 bg-slate-50 rounded-xl">
               <span className="text-sm font-medium text-slate-500">Kesempatan</span>
-              <span className="font-bold text-slate-800">{pendingQuiz.max_attempts}× percobaan</span>
+              <span className="font-bold text-slate-800">
+                {pendingQuiz.max_attempts}× percobaan
+              </span>
             </div>
           )}
         </div>
@@ -69,7 +75,10 @@ export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: St
             <Clock className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
             <div className="text-sm text-blue-700">
               <p className="font-bold mb-1">Anda memiliki kuis yang masih berjalan.</p>
-              <p>Waktu yang tersisa akan dilanjutkan dari sisa waktu sebelumnya. Harap segera diselesaikan.</p>
+              <p>
+                Waktu yang tersisa akan dilanjutkan dari sisa waktu sebelumnya. Harap segera
+                diselesaikan.
+              </p>
             </div>
           </div>
         ) : (
@@ -77,7 +86,10 @@ export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: St
             <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
             <div className="text-sm text-amber-700">
               <p className="font-bold mb-1">Peringatan Waktu!</p>
-              <p>Setelah Anda menekan tombol mulai, timer akan langsung berjalan. Waktu tidak dapat dihentikan sementara.</p>
+              <p>
+                Setelah Anda menekan tombol mulai, timer akan langsung berjalan. Waktu tidak dapat
+                dihentikan sementara.
+              </p>
             </div>
           </div>
         )}
@@ -94,11 +106,21 @@ export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: St
             disabled={isStarting}
             className="flex-1 px-4 py-3 rounded-xl font-bold text-white bg-slate-900 hover:bg-slate-800 flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
           >
-            {isStarting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
-            {isStarting ? (pendingQuiz.isResume ? 'Melanjutkan...' : 'Memulai...') : (pendingQuiz.isResume ? 'Lanjutkan Kuis' : 'Mulai Kuis')}
+            {isStarting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Play className="w-4 h-4 fill-current" />
+            )}
+            {isStarting
+              ? pendingQuiz.isResume
+                ? 'Melanjutkan...'
+                : 'Memulai...'
+              : pendingQuiz.isResume
+                ? 'Lanjutkan Kuis'
+                : 'Mulai Kuis'}
           </button>
         </div>
       </motion.div>
     </motion.div>
-  );
+  )
 }

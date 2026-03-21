@@ -1,10 +1,10 @@
-import { Star, Trophy } from 'lucide-react';
-import { motion } from 'motion/react';
-import { Modal, ModalBody, Button } from '@/src/components/ui';
+import { Star, Trophy } from 'lucide-react'
+import { motion } from 'motion/react'
+import { Modal, ModalBody, Button } from '@/src/components/ui'
 
 interface BadgeRewardModalProps {
-  open: boolean;
-  onClose: () => void;
+  open: boolean
+  onClose: () => void
 }
 
 export function BadgeRewardModal({ open, onClose }: BadgeRewardModalProps) {
@@ -12,7 +12,9 @@ export function BadgeRewardModal({ open, onClose }: BadgeRewardModalProps) {
     <Modal open={open} onClose={onClose} size="sm">
       <ModalBody className="text-center py-8">
         <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Reward Claimed!</h3>
-        <p className="text-slate-500 dark:text-slate-400 mb-8">You earned 10 XP for logging in today.</p>
+        <p className="text-slate-500 dark:text-slate-400 mb-8">
+          You earned 10 XP for logging in today.
+        </p>
 
         <div className="relative w-48 h-48 mx-auto mb-8 perspective-1000">
           <motion.div
@@ -34,5 +36,5 @@ export function BadgeRewardModal({ open, onClose }: BadgeRewardModalProps) {
         </Button>
       </ModalBody>
     </Modal>
-  );
+  )
 }

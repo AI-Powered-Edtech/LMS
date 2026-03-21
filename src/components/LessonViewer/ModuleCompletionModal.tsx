@@ -1,14 +1,14 @@
-import { useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Trophy, ArrowRight, X, Star } from 'lucide-react';
-import { cn } from '@/src/utils/cn';
+import { useEffect, useRef } from 'react'
+import { motion } from 'motion/react'
+import { Trophy, ArrowRight, X, Star } from 'lucide-react'
+import { cn } from '@/src/utils/cn'
 
 interface ModuleCompletionModalProps {
-  moduleTitle: string;
-  onContinue: () => void;
-  onClose: () => void;
-  hasNextModule: boolean;
-  xpEarned?: number;
+  moduleTitle: string
+  onContinue: () => void
+  onClose: () => void
+  hasNextModule: boolean
+  xpEarned?: number
 }
 
 export function ModuleCompletionModal({
@@ -18,20 +18,27 @@ export function ModuleCompletionModal({
   hasNextModule,
   xpEarned,
 }: ModuleCompletionModalProps) {
-  const firedRef = useRef(false);
+  const firedRef = useRef(false)
 
   useEffect(() => {
-    if (firedRef.current) return;
-    firedRef.current = true;
+    if (firedRef.current) return
+    firedRef.current = true
 
-    import('canvas-confetti').then(({ default: confetti }) => {
-      confetti({ particleCount: 120, spread: 80, origin: { y: 0.55 }, colors: ['#6366f1', '#3b82f6', '#f59e0b', '#10b981', '#f43f5e'] });
-      setTimeout(() => {
-        confetti({ particleCount: 60, spread: 55, origin: { y: 0.5, x: 0.2 }, angle: 60 });
-        confetti({ particleCount: 60, spread: 55, origin: { y: 0.5, x: 0.8 }, angle: 120 });
-      }, 250);
-    }).catch(() => {});
-  }, []);
+    import('canvas-confetti')
+      .then(({ default: confetti }) => {
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.55 },
+          colors: ['#6366f1', '#3b82f6', '#f59e0b', '#10b981', '#f43f5e'],
+        })
+        setTimeout(() => {
+          confetti({ particleCount: 60, spread: 55, origin: { y: 0.5, x: 0.2 }, angle: 60 })
+          confetti({ particleCount: 60, spread: 55, origin: { y: 0.5, x: 0.8 }, angle: 120 })
+        }, 250)
+      })
+      .catch(() => {})
+  }, [])
 
   return (
     <motion.div
@@ -76,12 +83,14 @@ export function ModuleCompletionModal({
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             className="absolute inset-0 rounded-full bg-amber-200/60 dark:bg-amber-500/20"
           />
-          <div className={cn(
-            'relative w-24 h-24 rounded-full flex items-center justify-center',
-            'bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/30',
-            'border-2 border-amber-200 dark:border-amber-700/50',
-            'shadow-lg shadow-amber-100 dark:shadow-amber-900/20'
-          )}>
+          <div
+            className={cn(
+              'relative w-24 h-24 rounded-full flex items-center justify-center',
+              'bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/30',
+              'border-2 border-amber-200 dark:border-amber-700/50',
+              'shadow-lg shadow-amber-100 dark:shadow-amber-900/20'
+            )}
+          >
             <Trophy className="w-11 h-11 text-amber-500 dark:text-amber-400" />
           </div>
           {/* Star accents */}
@@ -111,7 +120,8 @@ export function ModuleCompletionModal({
           transition={{ delay: 0.15 }}
           className="text-slate-500 dark:text-slate-400 mb-6 leading-relaxed"
         >
-          Selamat! Anda telah menyelesaikan<br />
+          Selamat! Anda telah menyelesaikan
+          <br />
           <span className="font-semibold text-slate-700 dark:text-slate-200">{moduleTitle}</span>
         </motion.p>
 
@@ -173,5 +183,5 @@ export function ModuleCompletionModal({
         </motion.div>
       </motion.div>
     </motion.div>
-  );
+  )
 }

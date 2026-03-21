@@ -1,51 +1,63 @@
-import { useEffect } from "react";
+import { useEffect } from 'react'
 import {
-  Mail, Award, Flame, Star, Trophy, Edit3,
-  GraduationCap, ShieldCheck, CheckCircle, BookOpen,
-} from "lucide-react";
-import { cn } from "@/src/utils/cn";
-import { useAuth } from "@/src/contexts/AuthContext";
-import { BadgeShowcase } from "@/src/features/gamification/components/BadgeShowcase";
-import { CertificateViewer } from "@/src/features/gamification/components/CertificateViewer";
-import { XPProgressBar } from "@/src/features/gamification/components/XPProgressBar";
-import { StreakCounter } from "@/src/features/gamification/components/StreakCounter";
-import { useStudentXPProfile, useStudentCertificates } from "@/src/features/gamification/queries/gamificationQueries";
-import { useStudentProgressData } from "@/src/hooks/useStudentProgressQueries";
-import { motion } from "framer-motion";
+  Mail,
+  Award,
+  Flame,
+  Star,
+  Trophy,
+  Edit3,
+  GraduationCap,
+  ShieldCheck,
+  CheckCircle,
+  BookOpen,
+} from 'lucide-react'
+import { cn } from '@/src/utils/cn'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { BadgeShowcase } from '@/src/features/gamification/components/BadgeShowcase'
+import { CertificateViewer } from '@/src/features/gamification/components/CertificateViewer'
+import { XPProgressBar } from '@/src/features/gamification/components/XPProgressBar'
+import { StreakCounter } from '@/src/features/gamification/components/StreakCounter'
+import {
+  useStudentXPProfile,
+  useStudentCertificates,
+} from '@/src/features/gamification/queries/gamificationQueries'
+import { useStudentProgressData } from '@/src/features/progress/hooks/useStudentProgressQueries'
+import { motion } from 'motion/react'
 
 export function Profile() {
-  const { user, role, profile } = useAuth();
+  const { user, role, profile } = useAuth()
 
   useEffect(() => {
-    document.title = 'Profil — EduSync';
-    return () => { document.title = 'EduSync'; };
-  }, []);
-  const isTeacher = role === 'teacher';
+    document.title = 'Profil — EduSync'
+    return () => {
+      document.title = 'EduSync'
+    }
+  }, [])
+  const isTeacher = role === 'teacher'
 
   // Real data hooks (safe to call unconditionally)
-  const { data: xpProfile } = useStudentXPProfile();
-  const { data: certificates = [] } = useStudentCertificates();
-  const { assignments } = useStudentProgressData();
+  const { data: xpProfile } = useStudentXPProfile()
+  const { data: certificates = [] } = useStudentCertificates()
+  const { assignments } = useStudentProgressData()
 
   // Derived identity
-  const displayName = profile?.first_name && profile?.last_name
-    ? `${profile.first_name} ${profile.last_name}`
-    : user?.user_metadata?.full_name ?? 'Pengguna';
-  const displayEmail = user?.email ?? '';
-  const avatarUrl = profile?.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id ?? 'default'}`;
+  const displayName =
+    profile?.first_name && profile?.last_name
+      ? `${profile.first_name} ${profile.last_name}`
+      : (user?.user_metadata?.full_name ?? 'Pengguna')
+  const displayEmail = user?.email ?? ''
+  const avatarUrl =
+    profile?.avatar_url ??
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id ?? 'default'}`
 
   // Role label
-  const roleLabel = role === 'teacher'
-    ? 'Guru'
-    : role === 'admin'
-      ? 'Admin'
-      : 'Siswa';
+  const roleLabel = role === 'teacher' ? 'Guru' : role === 'admin' ? 'Admin' : 'Siswa'
 
   // Student stats from real data
-  const totalXP = xpProfile?.total_xp ?? 0;
-  const currentStreak = xpProfile?.streak_current ?? 0;
-  const assignmentCount = assignments?.length ?? 0;
-  const certificateCount = certificates?.length ?? 0;
+  const totalXP = xpProfile?.total_xp ?? 0
+  const currentStreak = xpProfile?.streak_current ?? 0
+  const assignmentCount = assignments?.length ?? 0
+  const certificateCount = certificates?.length ?? 0
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6 pb-24 md:pb-8">
@@ -66,12 +78,14 @@ export function Profile() {
             className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center text-center relative overflow-hidden"
           >
             {/* Hero gradient banner */}
-            <div className={cn(
-              "absolute top-0 left-0 w-full h-28",
-              isTeacher
-                ? "bg-gradient-to-r from-emerald-500 to-teal-600"
-                : "bg-gradient-to-r from-indigo-500 via-blue-500 to-purple-600"
-            )} />
+            <div
+              className={cn(
+                'absolute top-0 left-0 w-full h-28',
+                isTeacher
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-600'
+                  : 'bg-gradient-to-r from-indigo-500 via-blue-500 to-purple-600'
+              )}
+            />
 
             {/* Avatar */}
             <div className="relative mt-12 mb-4 z-10">
@@ -92,12 +106,14 @@ export function Profile() {
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">{displayName}</h2>
 
               <div className="flex items-center justify-center gap-2 mt-2 mb-3 flex-wrap">
-                <span className={cn(
-                  "px-2.5 py-0.5 rounded-full text-xs font-bold border",
-                  isTeacher
-                    ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-700"
-                    : "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-700"
-                )}>
+                <span
+                  className={cn(
+                    'px-2.5 py-0.5 rounded-full text-xs font-bold border',
+                    isTeacher
+                      ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-700'
+                      : 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-700'
+                  )}
+                >
                   {roleLabel}
                 </span>
                 {isTeacher && (
@@ -138,7 +154,7 @@ export function Profile() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 // ─── Student Overview ────────────────────────────────────────────────────────
@@ -149,10 +165,10 @@ function StudentOverview({
   totalXP,
   currentStreak,
 }: {
-  assignmentCount: number;
-  certificateCount: number;
-  totalXP: number;
-  currentStreak: number;
+  assignmentCount: number
+  certificateCount: number
+  totalXP: number
+  currentStreak: number
 }) {
   return (
     <>
@@ -216,7 +232,7 @@ function StudentOverview({
         <CertificateViewer />
       </div>
     </>
-  );
+  )
 }
 
 // ─── Teacher Overview ────────────────────────────────────────────────────────
@@ -230,7 +246,8 @@ function TeacherOverview({ displayName }: { displayName: string }) {
           Selamat Datang, {displayName}
         </h2>
         <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-          Gunakan menu navigasi untuk mengelola kelas, melihat analitik, dan memberi nilai tugas siswa.
+          Gunakan menu navigasi untuk mengelola kelas, melihat analitik, dan memberi nilai tugas
+          siswa.
         </p>
       </div>
 
@@ -243,13 +260,14 @@ function TeacherOverview({ displayName }: { displayName: string }) {
           <div>
             <h3 className="font-bold text-slate-900 dark:text-white mb-1">Tips Mengajar</h3>
             <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              Unggah materi pembelajaran yang kaya konten untuk meningkatkan keterlibatan siswa dan mendorong hasil belajar yang lebih baik.
+              Unggah materi pembelajaran yang kaya konten untuk meningkatkan keterlibatan siswa dan
+              mendorong hasil belajar yang lebih baik.
             </p>
           </div>
         </div>
       </div>
     </>
-  );
+  )
 }
 
 // ─── Stat Card ───────────────────────────────────────────────────────────────
@@ -261,18 +279,18 @@ function StatCard({
   label,
   unit,
 }: {
-  icon: React.ReactNode;
-  iconBg: string;
-  value: number;
-  label: string;
-  unit?: string;
+  icon: React.ReactNode
+  iconBg: string
+  value: number
+  label: string
+  unit?: string
 }) {
   return (
     <motion.div
       whileHover={{ y: -2 }}
       className="bg-white dark:bg-slate-800 p-4 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center justify-center text-center gap-2 transition-shadow hover:shadow-md dark:hover:shadow-slate-900/40"
     >
-      <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", iconBg)}>
+      <div className={cn('w-10 h-10 rounded-full flex items-center justify-center', iconBg)}>
         {icon}
       </div>
       <div>
@@ -280,9 +298,10 @@ function StatCard({
           {value.toLocaleString('id-ID')}
         </p>
         <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mt-0.5">
-          {label}{unit ? ` ${unit}` : ''}
+          {label}
+          {unit ? ` ${unit}` : ''}
         </p>
       </div>
     </motion.div>
-  );
+  )
 }

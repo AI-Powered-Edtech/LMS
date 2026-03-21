@@ -1,14 +1,14 @@
-import { cn } from '@/src/utils/cn';
-import { AutosaveIndicator, SaveStatus } from './AutosaveIndicator';
-import { QuizTimerDisplay } from './QuizTimerDisplay';
+import { cn } from '@/src/utils/cn'
+import { AutosaveIndicator, SaveStatus } from './AutosaveIndicator'
+import { QuizTimerDisplay } from './QuizTimerDisplay'
 
 interface QuizHeaderProps {
-  title: string;
-  currentQuestionIdx: number;
-  totalQuestions: number;
-  saveStatus: SaveStatus;
-  isOnline: boolean;
-  timeLeft: number | null;
+  title: string
+  currentQuestionIdx: number
+  totalQuestions: number
+  saveStatus: SaveStatus
+  isOnline: boolean
+  timeLeft: number | null
 }
 
 export function QuizHeader({
@@ -19,15 +19,17 @@ export function QuizHeader({
   isOnline,
   timeLeft,
 }: QuizHeaderProps) {
-  const progress = ((currentQuestionIdx + 1) / totalQuestions) * 100;
+  const progress = ((currentQuestionIdx + 1) / totalQuestions) * 100
 
   return (
-    <div className={cn(
-      'mb-6 rounded-2xl border overflow-hidden',
-      'bg-white dark:bg-slate-900',
-      'border-slate-200 dark:border-slate-700',
-      'shadow-sm',
-    )}>
+    <div
+      className={cn(
+        'mb-6 rounded-2xl border overflow-hidden',
+        'bg-white dark:bg-slate-900',
+        'border-slate-200 dark:border-slate-700',
+        'shadow-sm'
+      )}
+    >
       {/* Progress bar — full width strip at top */}
       <div className="h-1 bg-slate-100 dark:bg-slate-800">
         <div
@@ -43,10 +45,12 @@ export function QuizHeader({
             {title}
           </h1>
           <div className="flex items-center gap-2.5 mt-1.5 flex-wrap">
-            <span className={cn(
-              'text-xs font-semibold px-2 py-0.5 rounded-md',
-              'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
-            )}>
+            <span
+              className={cn(
+                'text-xs font-semibold px-2 py-0.5 rounded-md',
+                'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+              )}
+            >
               Soal {currentQuestionIdx + 1} dari {totalQuestions}
             </span>
             <AutosaveIndicator status={!isOnline ? 'offline' : saveStatus} />
@@ -61,5 +65,5 @@ export function QuizHeader({
         )}
       </div>
     </div>
-  );
+  )
 }

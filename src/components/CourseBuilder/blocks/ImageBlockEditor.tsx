@@ -1,129 +1,132 @@
-import { useState, useRef, useCallback } from 'react';
-import { useBuilder } from '@/src/contexts/BuilderContext';
-import { useAuth } from '@/src/contexts/AuthContext';
-import { storageService } from '@/src/features/storage';
-import { ImagePlus, Loader2 } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react'
+import { useBuilder } from '@/src/contexts/BuilderContext'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { storageService } from '@/src/features/storage'
+import { ImagePlus, Loader2 } from 'lucide-react'
 
 interface ImageBlockEditorProps {
-  blockId: string;
+  blockId: string
 }
 
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 
 export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
-  const { state, actions } = useBuilder();
-  const { user, tenantId: authTenantId } = useAuth();
-  const [isUploading, setIsUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isDragOver, setIsDragOver] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const { state, actions } = useBuilder()
+  const { user, tenantId: authTenantId } = useAuth()
+  const [isUploading, setIsUploading] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [isDragOver, setIsDragOver] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const block = state.activeLesson?.blocks.find(b => b.id === blockId);
-  const tenantId = state.courseId ? '' : ''; // Will be fetched from context
+  const block = state.activeLesson?.blocks.find((b) => b.id === blockId)
+  const _tenantId = state.courseId ? '' : '' // Will be fetched from context
 
-  const handleFile = useCallback(async (file: File) => {
-    if (!state.courseId || !state.activeLesson) {
-      setError('Course or lesson not loaded');
-      return;
-    }
+  const handleFile = useCallback(
+    async (file: File) => {
+      if (!state.courseId || !state.activeLesson) {
+        setError('Course or lesson not loaded')
+        return
+      }
 
-    setError(null);
+      setError(null)
 
-    // Validate file type
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      setError('Format gambar tidak valid. Gunakan JPG, PNG, WebP, atau GIF.');
-      return;
-    }
+      // Validate file type
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+        setError('Format gambar tidak valid. Gunakan JPG, PNG, WebP, atau GIF.')
+        return
+      }
 
-    // Validate file size
-    if (file.size > MAX_IMAGE_SIZE) {
-      setError('Ukuran gambar maksimal 5MB.');
-      return;
-    }
+      // Validate file size
+      if (file.size > MAX_IMAGE_SIZE) {
+        setError('Ukuran gambar maksimal 5MB.')
+        return
+      }
 
-    // Show preview
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewUrl(objectUrl);
-    setIsUploading(true);
+      // Show preview
+      const objectUrl = URL.createObjectURL(file)
+      setPreviewUrl(objectUrl)
+      setIsUploading(true)
 
-    try {
-      const result = await storageService.uploadFile(file, {
-        tenantId: authTenantId || '',
-        courseId: state.courseId,
-        lessonId: state.activeLesson.id,
-        blockId: blockId,
-        bucket: 'course-images',
-        uploadedBy: user?.id || '',
-      });
+      try {
+        const result = await storageService.uploadFile(file, {
+          tenantId: authTenantId || '',
+          courseId: state.courseId,
+          lessonId: state.activeLesson.id,
+          blockId: blockId,
+          bucket: 'course-images',
+          uploadedBy: user?.id || '',
+        })
 
-      actions.updateBlock(blockId, {
-        url: result.publicUrl,
-      });
-      // Note: storage_object_id will be added to DomainBlock type later if needed
+        actions.updateBlock(blockId, {
+          url: result.publicUrl,
+        })
+        // Note: storage_object_id will be added to DomainBlock type later if needed
 
-      // Release preview URL after successful upload
-      URL.revokeObjectURL(objectUrl);
-      setPreviewUrl(null);
-    } catch (err) {
-      // Release preview URL on error
-      URL.revokeObjectURL(objectUrl);
-      setPreviewUrl(null);
-      setError(err instanceof Error ? err.message : 'Gagal mengunggah gambar.');
-    } finally {
-      setIsUploading(false);
-    }
-  }, [state.courseId, state.activeLesson, blockId, user?.id, actions]);
+        // Release preview URL after successful upload
+        URL.revokeObjectURL(objectUrl)
+        setPreviewUrl(null)
+      } catch (err) {
+        // Release preview URL on error
+        URL.revokeObjectURL(objectUrl)
+        setPreviewUrl(null)
+        setError(err instanceof Error ? err.message : 'Gagal mengunggah gambar.')
+      } finally {
+        setIsUploading(false)
+      }
+    },
+    [state.courseId, state.activeLesson, blockId, user?.id, actions]
+  )
 
   const handleDelete = async () => {
-    const storageObjectId = (block as unknown as { storage_object_id?: string })?.storage_object_id;
-    
+    const storageObjectId = (block as unknown as { storage_object_id?: string })?.storage_object_id
+
     if (storageObjectId) {
       try {
-        await storageService.deleteFile(storageObjectId);
+        await storageService.deleteFile(storageObjectId)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Gagal menghapus gambar.');
-        return;
+        setError(err instanceof Error ? err.message : 'Gagal menghapus gambar.')
+        return
       }
     }
-    
-    actions.updateBlock(blockId, { url: null });
-  };
+
+    actions.updateBlock(blockId, { url: null })
+  }
 
   const handleReplace = () => {
-    inputRef.current?.click();
-  };
+    inputRef.current?.click()
+  }
 
   const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
+    e.preventDefault()
+    setIsDragOver(true)
+  }
 
   const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
+    e.preventDefault()
+    setIsDragOver(false)
+  }
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const file = e.dataTransfer.files[0];
+    e.preventDefault()
+    setIsDragOver(false)
+    const file = e.dataTransfer.files[0]
     if (file) {
-      handleFile(file);
+      handleFile(file)
     }
-  };
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
-      handleFile(file);
+      handleFile(file)
     }
-  };
+  }
 
-  if (!block) return null;
+  if (!block) return null
 
-  const blockUrl = block.url;
+  const blockUrl = block.url
 
   // Uploaded state - show image preview
   if (blockUrl) {
@@ -136,7 +139,7 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
             className="w-full max-h-[400px] object-contain"
           />
         </div>
-        
+
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
             <button
@@ -158,11 +161,9 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
           </div>
         </div>
 
-        {error && (
-          <p className="text-sm text-red-600">{error}</p>
-        )}
+        {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
-    );
+    )
   }
 
   // Empty state / Uploading state
@@ -207,16 +208,12 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
             <p className="text-sm text-slate-600 mb-1">
               Seret gambar ke sini atau klik untuk memilih
             </p>
-            <p className="text-xs text-slate-400">
-              JPG, PNG, WebP, GIF (maks. 5MB)
-            </p>
+            <p className="text-xs text-slate-400">JPG, PNG, WebP, GIF (maks. 5MB)</p>
           </>
         )}
       </div>
 
-      {error && (
-        <p className="text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
-  );
+  )
 }

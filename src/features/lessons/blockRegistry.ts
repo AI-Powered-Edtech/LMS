@@ -1,17 +1,17 @@
-import type { ComponentType } from 'react';
-import { Type, Video, Image, File, HelpCircle, FileText } from 'lucide-react';
+import type { ComponentType } from 'react'
+import { Type, Video, Image, File, HelpCircle, FileText } from 'lucide-react'
 
 export interface BlockDefinition {
   /** Indonesian UI label shown in builder menus */
-  label: string;
+  label: string
   /** Lucide icon component */
-  icon: ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>
   /** Tailwind classes for the block card accent in the builder */
-  color: string;
+  color: string
   /** Whether this block type stores a URL (video, image, file) */
-  hasUrl: boolean;
+  hasUrl: boolean
   /** How lesson progress is tracked for this block type */
-  completionRule: 'scroll' | 'watch' | 'submit' | 'view';
+  completionRule: 'scroll' | 'watch' | 'submit' | 'view'
 }
 
 export const BLOCK_REGISTRY = {
@@ -57,9 +57,7 @@ export const BLOCK_REGISTRY = {
     hasUrl: false,
     completionRule: 'submit',
   },
-} as const satisfies Record<string, BlockDefinition>;
+} as const satisfies Record<string, BlockDefinition>
 
-export type BlockType = keyof typeof BLOCK_REGISTRY;
-export const BLOCK_TYPES = Object.keys(BLOCK_REGISTRY) as BlockType[];
-export const isValidBlockType = (type: string): type is BlockType =>
-  type in BLOCK_REGISTRY;
+export type BlockType = keyof typeof BLOCK_REGISTRY
+export const isValidBlockType = (type: string): type is BlockType => type in BLOCK_REGISTRY

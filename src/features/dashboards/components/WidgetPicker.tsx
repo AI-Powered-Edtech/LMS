@@ -1,20 +1,60 @@
-import { X, BarChart2, PieChart, TrendingUp, Map, Funnel, Table, Radio, Trophy, Activity, Target } from 'lucide-react';
-import type { WidgetType } from '../types';
+import { X, BarChart2, PieChart, TrendingUp, Map, Radio, Trophy, Target } from 'lucide-react'
+import type { WidgetType } from '../types'
 
 interface WidgetPickerProps {
-  onSelect: (type: WidgetType) => void;
-  onClose: () => void;
+  onSelect: (type: WidgetType) => void
+  onClose: () => void
 }
 
-const WIDGET_OPTIONS: { type: WidgetType; label: string; description: string; icon: React.ReactNode }[] = [
-  { type: 'metric_card', label: 'Metrik Angka', description: 'Tampilkan satu angka penting (total siswa, dll)', icon: <Target className="h-6 w-6" /> },
-  { type: 'pie_chart', label: 'Pie Chart Segmen', description: 'Distribusi segmentasi siswa', icon: <PieChart className="h-6 w-6" /> },
-  { type: 'engagement_trend', label: 'Tren Engagement', description: 'Grafik tren engagement harian', icon: <TrendingUp className="h-6 w-6" /> },
-  { type: 'risk_radar', label: 'Radar Risiko', description: 'Scatter plot risiko churn siswa', icon: <Radio className="h-6 w-6" /> },
-  { type: 'heatmap', label: 'Retention Heatmap', description: 'Matriks retensi kohort mingguan', icon: <Map className="h-6 w-6" /> },
-  { type: 'funnel', label: 'Funnel Analisis', description: 'Funnel konversi langkah belajar', icon: <BarChart2 className="h-6 w-6" /> },
-  { type: 'leaderboard', label: 'Leaderboard', description: 'Peringkat siswa berdasarkan XP', icon: <Trophy className="h-6 w-6" /> },
-];
+const WIDGET_OPTIONS: {
+  type: WidgetType
+  label: string
+  description: string
+  icon: React.ReactNode
+}[] = [
+  {
+    type: 'metric_card',
+    label: 'Metrik Angka',
+    description: 'Tampilkan satu angka penting (total siswa, dll)',
+    icon: <Target className="h-6 w-6" />,
+  },
+  {
+    type: 'pie_chart',
+    label: 'Pie Chart Segmen',
+    description: 'Distribusi segmentasi siswa',
+    icon: <PieChart className="h-6 w-6" />,
+  },
+  {
+    type: 'engagement_trend',
+    label: 'Tren Engagement',
+    description: 'Grafik tren engagement harian',
+    icon: <TrendingUp className="h-6 w-6" />,
+  },
+  {
+    type: 'risk_radar',
+    label: 'Radar Risiko',
+    description: 'Scatter plot risiko churn siswa',
+    icon: <Radio className="h-6 w-6" />,
+  },
+  {
+    type: 'heatmap',
+    label: 'Retention Heatmap',
+    description: 'Matriks retensi kohort mingguan',
+    icon: <Map className="h-6 w-6" />,
+  },
+  {
+    type: 'funnel',
+    label: 'Funnel Analisis',
+    description: 'Funnel konversi langkah belajar',
+    icon: <BarChart2 className="h-6 w-6" />,
+  },
+  {
+    type: 'leaderboard',
+    label: 'Leaderboard',
+    description: 'Peringkat siswa berdasarkan XP',
+    icon: <Trophy className="h-6 w-6" />,
+  },
+]
 
 export function WidgetPicker({ onSelect, onClose }: WidgetPickerProps) {
   return (
@@ -33,7 +73,10 @@ export function WidgetPicker({ onSelect, onClose }: WidgetPickerProps) {
           {WIDGET_OPTIONS.map((opt) => (
             <button
               key={opt.type}
-              onClick={() => { onSelect(opt.type); onClose(); }}
+              onClick={() => {
+                onSelect(opt.type)
+                onClose()
+              }}
               className="flex flex-col items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all text-center group"
             >
               <div className="text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
@@ -52,5 +95,5 @@ export function WidgetPicker({ onSelect, onClose }: WidgetPickerProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }

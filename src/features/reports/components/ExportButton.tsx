@@ -1,40 +1,46 @@
-import { useState } from 'react';
-import { Download, Loader2 } from 'lucide-react';
-import { cn } from '@/src/utils/cn';
-import Papa from 'papaparse';
+import { useState } from 'react'
+import { Download, Loader2 } from 'lucide-react'
+import { cn } from '@/src/utils/cn'
+import Papa from 'papaparse'
 
 interface ExportButtonProps {
-  data: Record<string, unknown>[];
-  filename: string;
-  format?: 'csv' | 'pdf';
-  label?: string;
-  className?: string;
+  data: Record<string, unknown>[]
+  filename: string
+  format?: 'csv' | 'pdf'
+  label?: string
+  className?: string
 }
 
-export function ExportButton({ data, filename, format = 'csv', label, className }: ExportButtonProps) {
-  const [isExporting, setIsExporting] = useState(false);
+export function ExportButton({
+  data,
+  filename,
+  format = 'csv',
+  label,
+  className,
+}: ExportButtonProps) {
+  const [isExporting, setIsExporting] = useState(false)
 
   const handleExport = async () => {
-    if (data.length === 0) return;
-    setIsExporting(true);
+    if (data.length === 0) return
+    setIsExporting(true)
 
     try {
       if (format === 'csv') {
-        const csv = Papa.unparse(data);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${filename}.csv`;
-        link.click();
-        URL.revokeObjectURL(url);
+        const csv = Papa.unparse(data)
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${filename}.csv`
+        link.click()
+        URL.revokeObjectURL(url)
       } else if (format === 'pdf') {
-        window.print();
+        window.print()
       }
     } finally {
-      setIsExporting(false);
+      setIsExporting(false)
     }
-  };
+  }
 
   return (
     <button
@@ -53,5 +59,5 @@ export function ExportButton({ data, filename, format = 'csv', label, className 
       )}
       {label ?? (format === 'csv' ? 'Export CSV' : 'Export PDF')}
     </button>
-  );
+  )
 }

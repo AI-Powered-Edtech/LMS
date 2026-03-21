@@ -1,54 +1,56 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useClassroom } from '@/src/hooks/useClassroomQueries';
-import { courseService, Course } from '@/src/features/courses';
-import { useAuth } from '@/src/contexts/AuthContext';
-import { ArrowLeft, BookOpen, Play, GraduationCap } from 'lucide-react';
-import { cn } from '@/src/utils/cn';
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
+import { courseService, Course } from '@/src/features/courses'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { ArrowLeft, BookOpen, Play, GraduationCap } from 'lucide-react'
 
 export function StudentClassPage() {
-  const { classId } = useParams();
-  const navigate = useNavigate();
-  const { classrooms } = useClassroom();
-  const { tenantId } = useAuth();
-  
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  const currentClass = classrooms.find(c => c.id === classId);
+  const { classId } = useParams()
+  const navigate = useNavigate()
+  const { classrooms } = useClassroom()
+  const { tenantId } = useAuth()
+
+  const [courses, setCourses] = useState<Course[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const currentClass = classrooms.find((c) => c.id === classId)
 
   useEffect(() => {
     async function loadClassData() {
-      if (!tenantId || !classId) return;
+      if (!tenantId || !classId) return
       try {
-        setLoading(true);
-        const { courses } = await courseService.fetchCourses({ tenantId, limit: 100 });
-        const classCourses = courses.filter(course => 
-          course.assigned_classes?.some(ac => ac.class_id === classId)
-        );
-        setCourses(classCourses);
+        setLoading(true)
+        const { courses } = await courseService.fetchCourses({ tenantId, limit: 100 })
+        const classCourses = courses.filter((course) =>
+          course.assigned_classes?.some((ac: { class_id: string }) => ac.class_id === classId)
+        )
+        setCourses(classCourses)
       } catch (err) {
-        console.error('Failed to load class courses:', err);
+        console.error('Failed to load class courses:', err)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
     }
-    
+
     if (currentClass) {
-      loadClassData();
+      loadClassData()
     }
-  }, [classId, tenantId, currentClass]);
+  }, [classId, tenantId, currentClass])
 
   if (!currentClass) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <GraduationCap className="w-16 h-16 text-slate-300 mb-4" />
         <h2 className="text-xl font-bold text-slate-800">Kelas tidak ditemukan</h2>
-        <button onClick={() => navigate('/dashboard')} className="mt-4 text-indigo-600 font-bold hover:underline">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="mt-4 text-indigo-600 font-bold hover:underline"
+        >
           Kembali ke Dashboard
         </button>
       </div>
-    );
+    )
   }
 
   return (
@@ -81,7 +83,7 @@ export function StudentClassPage() {
               <BookOpen className="w-6 h-6 text-indigo-500" />
               <h2 className="text-xl font-bold text-slate-800">Materi Pembelajaran</h2>
             </div>
-            
+
             {loading ? (
               <div className="p-8 text-center bg-white rounded-3xl border border-slate-200">
                 <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -92,8 +94,8 @@ export function StudentClassPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4">
-                {courses.map(course => (
-                  <div 
+                {courses.map((course) => (
+                  <div
                     key={course.id}
                     onClick={() => navigate(`/courses/${course.id}`)}
                     className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group flex items-start gap-4"
@@ -117,5 +119,5 @@ export function StudentClassPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

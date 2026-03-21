@@ -1,13 +1,13 @@
-import { HubView } from "@/src/components/HubView";
-import { navigationItems } from "@/src/config/navigation";
-import { useAuth } from "@/src/contexts/AuthContext";
+import { HubView } from '@/src/components/HubView'
+import { navigationItems } from '@/src/config/navigation'
+import { useAuth } from '@/src/contexts/AuthContext'
 
 export function TeachingHub() {
-  const { role } = useAuth();
+  const { role } = useAuth()
 
-  const items = navigationItems.filter(item =>
-    item.location === 'teaching-hub' && item.roles.includes(role)
-  );
+  const items = navigationItems.filter(
+    (item) => item.location === 'teaching-hub' && item.roles.includes(role)
+  )
 
   return (
     <HubView
@@ -15,15 +15,15 @@ export function TeachingHub() {
       description="Kelola kelas, nilai, dan absensi siswa."
       items={items}
     />
-  );
+  )
 }
 
 export function SocialHub() {
-  const { role } = useAuth();
+  const { role } = useAuth()
 
-  const items = navigationItems.filter(item =>
-    item.location === 'social-hub' && item.roles.includes(role)
-  );
+  const items = navigationItems.filter(
+    (item) => item.location === 'social-hub' && item.roles.includes(role)
+  )
 
   return (
     <HubView
@@ -31,15 +31,15 @@ export function SocialHub() {
       description="Forum diskusi, jadwal, dan pengumuman sekolah."
       items={items}
     />
-  );
+  )
 }
 
 export function GamificationHub() {
-  const { role } = useAuth();
+  const { role } = useAuth()
 
-  const items = navigationItems.filter(item =>
-    item.location === 'gamification-hub' && item.roles.includes(role)
-  );
+  const items = navigationItems.filter(
+    (item) => item.location === 'gamification-hub' && item.roles.includes(role)
+  )
 
   return (
     <HubView
@@ -47,15 +47,15 @@ export function GamificationHub() {
       description="Lihat pencapaian, sertifikat, dan mainkan kuis."
       items={items}
     />
-  );
+  )
 }
 
 export function AdminHub() {
-  const { role } = useAuth();
+  const { role } = useAuth()
 
-  const items = navigationItems.filter(item =>
-    item.location === 'admin-hub' && item.roles.includes(role)
-  );
+  const items = navigationItems.filter(
+    (item) => item.location === 'admin-hub' && item.roles.includes(role)
+  )
 
   return (
     <HubView
@@ -63,5 +63,5 @@ export function AdminHub() {
       description="Kelola keuangan, PPDB, dan dokumen administrasi."
       items={items}
     />
-  );
+  )
 }

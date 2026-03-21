@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo } from 'react'
 import {
   MessageSquare,
   ThumbsUp,
@@ -16,95 +16,100 @@ import {
   BookOpen,
   Code,
   Flag,
-  GraduationCap
-} from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import "katex/dist/katex.min.css";
-import { cn } from "@/src/utils/cn";
-import { motion, AnimatePresence } from "motion/react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+  GraduationCap,
+} from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkMath from 'remark-math'
+import rehypeKatex from 'rehype-katex'
+import 'katex/dist/katex.min.css'
+import { cn } from '@/src/utils/cn'
+import { motion, AnimatePresence } from 'motion/react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { useAuth } from "@/src/contexts/AuthContext";
-import { useSubmitReport } from "@/src/features/moderation/queries/moderationQueries";
-import { ReportModal } from "@/src/components/moderation/ReportModal";
-import { EmptyState } from "@/src/components/ui";
-import { discussionService, type Discussion } from "@/src/features/discussions/api/discussionService";
-import { useStudentXPProfile } from "@/src/features/gamification/queries/gamificationQueries";
+import { useAuth } from '@/src/contexts/AuthContext'
+import { useSubmitReport } from '@/src/features/moderation/queries/moderationQueries'
+import { ReportModal } from '@/src/components/moderation/ReportModal'
+import { EmptyState } from '@/src/components/ui'
+import {
+  discussionService,
+  type Discussion,
+} from '@/src/features/discussions/api/discussionService'
+import { useStudentXPProfile } from '@/src/features/gamification/queries/gamificationQueries'
 
 interface Comment {
-  id: string;
-  author: string;
-  avatar: string;
-  role: string;
-  points: number;
-  badges: string[];
-  content: string;
-  upvotes: number;
-  time: string;
-  isBestAnswer?: boolean;
-  replies?: Comment[];
+  id: string
+  author: string
+  avatar: string
+  role: string
+  points: number
+  badges: string[]
+  content: string
+  upvotes: number
+  time: string
+  isBestAnswer?: boolean
+  replies?: Comment[]
 }
 
 interface Post {
-  id: string;
-  author: string;
-  avatar: string;
-  role: string;
-  points: number;
-  badges: string[];
-  time: string;
-  title: string;
-  content: string;
-  category: string;
-  tags: string[];
-  upvotes: number;
-  isAnonymous: boolean;
-  contextLink?: { title: string; url: string };
-  bestAnswerId?: string;
-  comments: Comment[];
+  id: string
+  author: string
+  avatar: string
+  role: string
+  points: number
+  badges: string[]
+  time: string
+  title: string
+  content: string
+  category: string
+  tags: string[]
+  upvotes: number
+  isAnonymous: boolean
+  contextLink?: { title: string; url: string }
+  bestAnswerId?: string
+  comments: Comment[]
 }
 
-const CATEGORIES = ["Semua", "Matematika", "Fisika", "Kimia", "Biologi", "Pemrograman", "Umum"];
+const CATEGORIES = ['Semua', 'Matematika', 'Fisika', 'Kimia', 'Biologi', 'Pemrograman', 'Umum']
 
 function timeAgo(date: string): string {
-  const s = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
-  if (s < 60) return "Baru saja";
-  if (s < 3600) return `${Math.floor(s / 60)} menit yang lalu`;
-  if (s < 86400) return `${Math.floor(s / 3600)} jam yang lalu`;
-  return `${Math.floor(s / 86400)} hari yang lalu`;
+  const s = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
+  if (s < 60) return 'Baru saja'
+  if (s < 3600) return `${Math.floor(s / 60)} menit yang lalu`
+  if (s < 86400) return `${Math.floor(s / 3600)} jam yang lalu`
+  return `${Math.floor(s / 86400)} hari yang lalu`
 }
 
 function mapToPost(d: Discussion, repliesMap: Record<string, Discussion[]>): Post {
-  const isAnon = d.is_anonymous ?? false;
+  const isAnon = d.is_anonymous ?? false
   const replies = (repliesMap[d.id] ?? []).sort(
-    (a, b) => (b.is_best_answer ? 1 : 0) - (a.is_best_answer ? 1 : 0) || (b.upvotes ?? 0) - (a.upvotes ?? 0)
-  );
-  const bestReply = replies.find(r => r.is_best_answer);
+    (a, b) =>
+      (b.is_best_answer ? 1 : 0) - (a.is_best_answer ? 1 : 0) || (b.upvotes ?? 0) - (a.upvotes ?? 0)
+  )
+  const bestReply = replies.find((r) => r.is_best_answer)
 
   return {
     id: d.id,
-    author: isAnon ? "Anonim" : (d.author?.full_name ?? "Pengguna"),
+    author: isAnon ? 'Anonim' : (d.author?.full_name ?? 'Pengguna'),
     avatar: isAnon
-      ? "https://api.dicebear.com/7.x/avataaars/svg?seed=Anon"
+      ? 'https://api.dicebear.com/7.x/avataaars/svg?seed=Anon'
       : (d.author?.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${d.author_id}`),
-    role: "Siswa",
+    role: 'Siswa',
     points: 0,
     badges: [],
     time: timeAgo(d.created_at),
-    title: d.title ?? "(Tanpa judul)",
+    title: d.title ?? '(Tanpa judul)',
     content: d.content,
-    category: d.category ?? "Umum",
+    category: d.category ?? 'Umum',
     tags: d.tags ?? [],
     upvotes: d.upvotes ?? 0,
     isAnonymous: isAnon,
     bestAnswerId: bestReply?.id,
-    comments: replies.map(r => ({
+    comments: replies.map((r) => ({
       id: r.id,
-      author: r.is_anonymous ? "Anonim" : (r.author?.full_name ?? "Pengguna"),
-      avatar: r.author?.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${r.author_id}`,
-      role: "Siswa",
+      author: r.is_anonymous ? 'Anonim' : (r.author?.full_name ?? 'Pengguna'),
+      avatar:
+        r.author?.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${r.author_id}`,
+      role: 'Siswa',
       points: 0,
       badges: [],
       content: r.content,
@@ -112,22 +117,26 @@ function mapToPost(d: Discussion, repliesMap: Record<string, Discussion[]>): Pos
       time: timeAgo(r.created_at),
       isBestAnswer: r.is_best_answer ?? false,
     })),
-  };
+  }
 }
 
-function Badge({ text, type }: { text: string, type: 'teacher' | 'subject' | 'general' }) {
+function Badge({ text, type }: { text: string; type: 'teacher' | 'subject' | 'general' }) {
   return (
-    <span className={cn(
-      "inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider",
-      type === 'teacher' ? "bg-purple-100 text-purple-700 border border-purple-200" :
-      type === 'subject' ? "bg-amber-100 text-amber-700 border border-amber-200" :
-      "bg-slate-100 text-slate-600 border border-slate-200"
-    )}>
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider',
+        type === 'teacher'
+          ? 'bg-purple-100 text-purple-700 border border-purple-200'
+          : type === 'subject'
+            ? 'bg-amber-100 text-amber-700 border border-amber-200'
+            : 'bg-slate-100 text-slate-600 border border-slate-200'
+      )}
+    >
       {type === 'teacher' && <ShieldCheck className="w-3 h-3" />}
       {type === 'subject' && <Award className="w-3 h-3" />}
       {text}
     </span>
-  );
+  )
 }
 
 function CommentThread({
@@ -136,35 +145,37 @@ function CommentThread({
   isBestAnswer = false,
   onMarkBest,
   isTeacher,
-  onReport
+  onReport,
 }: {
-  comment: Comment;
-  depth?: number;
-  isBestAnswer?: boolean;
-  onMarkBest?: (id: string) => void;
-  isTeacher: boolean;
-  onReport: (id: string, type: 'comment', snippet: string, author: string) => void;
+  comment: Comment
+  depth?: number
+  isBestAnswer?: boolean
+  onMarkBest?: (id: string) => void
+  isTeacher: boolean
+  onReport: (id: string, type: 'comment', snippet: string, author: string) => void
 }) {
-  const [upvoted, setUpvoted] = useState(false);
-  const [showReport, setShowReport] = useState(false);
+  const [upvoted, setUpvoted] = useState(false)
+  const [showReport, setShowReport] = useState(false)
 
   return (
-    <div className={cn("flex gap-3", depth > 0 && "ml-6 md:ml-12 mt-4")}>
+    <div className={cn('flex gap-3', depth > 0 && 'ml-6 md:ml-12 mt-4')}>
       <div className="flex flex-col items-center">
         <img
           src={comment.avatar}
           alt=""
-          className={cn("rounded-full bg-slate-100", depth === 0 ? "w-10 h-10" : "w-8 h-8")}
+          className={cn('rounded-full bg-slate-100', depth === 0 ? 'w-10 h-10' : 'w-8 h-8')}
         />
         {comment.replies && comment.replies.length > 0 && (
           <div className="w-0.5 flex-1 bg-slate-200 my-2 rounded-full" />
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <div className={cn(
-          "p-4 rounded-2xl rounded-tl-none border transition-all",
-          isBestAnswer ? "bg-green-50 border-green-200 shadow-sm" : "bg-slate-50 border-slate-100"
-        )}>
+        <div
+          className={cn(
+            'p-4 rounded-2xl rounded-tl-none border transition-all',
+            isBestAnswer ? 'bg-green-50 border-green-200 shadow-sm' : 'bg-slate-50 border-slate-100'
+          )}
+        >
           {isBestAnswer && (
             <div className="flex items-center gap-1.5 text-green-700 text-xs font-bold mb-3 bg-green-100/50 w-fit px-2 py-1 rounded-lg">
               <CheckCircle className="w-4 h-4" />
@@ -174,31 +185,42 @@ function CommentThread({
           <div className="flex justify-between items-start mb-2">
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-1">
-                <span className="font-bold text-slate-800 text-sm">
-                  {comment.author}
-                </span>
+                <span className="font-bold text-slate-800 text-sm">{comment.author}</span>
                 <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
                   <GraduationCap className="w-3 h-3" /> {comment.points} KP
                 </span>
               </div>
               <div className="flex flex-wrap gap-1">
                 {comment.badges.map((badge, i) => (
-                  <Badge key={i} text={badge} type={badge.includes("Teacher") ? 'teacher' : badge.includes("Master") ? 'subject' : 'general'} />
+                  <Badge
+                    key={i}
+                    text={badge}
+                    type={
+                      badge.includes('Teacher')
+                        ? 'teacher'
+                        : badge.includes('Master')
+                          ? 'subject'
+                          : 'general'
+                    }
+                  />
                 ))}
               </div>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-400">{comment.time}</span>
               <div className="relative">
-                <button onClick={() => setShowReport(!showReport)} className="text-slate-400 hover:text-slate-600">
+                <button
+                  onClick={() => setShowReport(!showReport)}
+                  className="text-slate-400 hover:text-slate-600"
+                >
                   <MoreHorizontal className="w-4 h-4" />
                 </button>
                 {showReport && (
                   <div className="absolute right-0 mt-1 w-32 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-10">
                     <button
                       onClick={() => {
-                        onReport(comment.id, 'comment', comment.content, comment.author);
-                        setShowReport(false);
+                        onReport(comment.id, 'comment', comment.content, comment.author)
+                        setShowReport(false)
                       }}
                       className="w-full text-left px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-50 flex items-center gap-2"
                     >
@@ -219,16 +241,14 @@ function CommentThread({
           <button
             onClick={() => setUpvoted(!upvoted)}
             className={cn(
-              "flex items-center gap-1.5 text-xs font-medium transition-colors",
-              upvoted ? "text-blue-600" : "text-slate-500 hover:text-slate-700",
+              'flex items-center gap-1.5 text-xs font-medium transition-colors',
+              upvoted ? 'text-blue-600' : 'text-slate-500 hover:text-slate-700'
             )}
           >
-            <ThumbsUp className={cn("w-4 h-4", upvoted && "fill-blue-600")} />
+            <ThumbsUp className={cn('w-4 h-4', upvoted && 'fill-blue-600')} />
             {comment.upvotes + (upvoted ? 1 : 0)}
           </button>
-          <button className="text-xs font-medium text-slate-500 hover:text-slate-700">
-            Balas
-          </button>
+          <button className="text-xs font-medium text-slate-500 hover:text-slate-700">Balas</button>
           {isTeacher && !isBestAnswer && depth === 0 && onMarkBest && (
             <button
               onClick={() => onMarkBest(comment.id)}
@@ -250,51 +270,54 @@ function CommentThread({
         ))}
       </div>
     </div>
-  );
+  )
 }
 
 function PostItem({
   post,
   isTeacher,
   onMarkBest,
-  onReport
+  onReport,
 }: {
-  post: Post,
-  isTeacher: boolean,
-  onMarkBest: (postId: string, commentId: string) => void,
+  post: Post
+  isTeacher: boolean
+  onMarkBest: (postId: string, commentId: string) => void
   onReport: (id: string, type: 'post' | 'comment', snippet: string, author: string) => void
 }) {
-  const [upvoted, setUpvoted] = useState(false);
-  const [downvoted, setDownvoted] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
+  const [upvoted, setUpvoted] = useState(false)
+  const [downvoted, setDownvoted] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
 
   const handleUpvote = () => {
     if (upvoted) {
-      setUpvoted(false);
+      setUpvoted(false)
     } else {
-      setUpvoted(true);
-      setDownvoted(false);
+      setUpvoted(true)
+      setDownvoted(false)
       // Fire and forget vote RPC
-      discussionService.voteDiscussion(post.id).then(() => null, () => null);
+      discussionService.voteDiscussion(post.id).then(
+        () => null,
+        () => null
+      )
     }
-  };
+  }
 
   const handleDownvote = () => {
     if (downvoted) {
-      setDownvoted(false);
+      setDownvoted(false)
     } else {
-      setDownvoted(true);
-      setUpvoted(false);
+      setDownvoted(true)
+      setUpvoted(false)
     }
-  };
+  }
 
-  const currentUpvotes = post.upvotes + (upvoted ? 1 : 0) - (downvoted ? 1 : 0);
+  const currentUpvotes = post.upvotes + (upvoted ? 1 : 0) - (downvoted ? 1 : 0)
 
   const sortedComments = [...post.comments].sort((a, b) => {
-    if (a.id === post.bestAnswerId) return -1;
-    if (b.id === post.bestAnswerId) return 1;
-    return b.upvotes - a.upvotes;
-  });
+    if (a.id === post.bestAnswerId) return -1
+    if (b.id === post.bestAnswerId) return 1
+    return b.upvotes - a.upvotes
+  })
 
   return (
     <motion.div
@@ -307,16 +330,33 @@ function PostItem({
         <div className="flex flex-col items-center gap-2 shrink-0">
           <button
             onClick={handleUpvote}
-            className={cn("w-8 h-8 rounded-full flex items-center justify-center transition-colors", upvoted ? "bg-blue-100 text-blue-600" : "hover:bg-blue-50 text-slate-400 hover:text-blue-600")}
+            className={cn(
+              'w-8 h-8 rounded-full flex items-center justify-center transition-colors',
+              upvoted
+                ? 'bg-blue-100 text-blue-600'
+                : 'hover:bg-blue-50 text-slate-400 hover:text-blue-600'
+            )}
           >
-            <ThumbsUp className={cn("w-5 h-5", upvoted && "fill-blue-600")} />
+            <ThumbsUp className={cn('w-5 h-5', upvoted && 'fill-blue-600')} />
           </button>
-          <span className={cn("font-bold", upvoted ? "text-blue-600" : downvoted ? "text-red-600" : "text-slate-700")}>{currentUpvotes}</span>
+          <span
+            className={cn(
+              'font-bold',
+              upvoted ? 'text-blue-600' : downvoted ? 'text-red-600' : 'text-slate-700'
+            )}
+          >
+            {currentUpvotes}
+          </span>
           <button
             onClick={handleDownvote}
-            className={cn("w-8 h-8 rounded-full flex items-center justify-center transition-colors", downvoted ? "bg-red-100 text-red-600" : "hover:bg-red-50 text-slate-400 hover:text-red-600")}
+            className={cn(
+              'w-8 h-8 rounded-full flex items-center justify-center transition-colors',
+              downvoted
+                ? 'bg-red-100 text-red-600'
+                : 'hover:bg-red-50 text-slate-400 hover:text-red-600'
+            )}
           >
-            <ThumbsDown className={cn("w-5 h-5", downvoted && "fill-red-600")} />
+            <ThumbsDown className={cn('w-5 h-5', downvoted && 'fill-red-600')} />
           </button>
         </div>
 
@@ -324,16 +364,10 @@ function PostItem({
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start mb-3">
             <div className="flex items-center gap-3">
-              <img
-                src={post.avatar}
-                alt=""
-                className="w-10 h-10 rounded-full bg-slate-100"
-              />
+              <img src={post.avatar} alt="" className="w-10 h-10 rounded-full bg-slate-100" />
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <span className="font-bold text-slate-900">
-                    {post.author}
-                  </span>
+                  <span className="font-bold text-slate-900">{post.author}</span>
                   {post.isAnonymous && isTeacher && (
                     <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full flex items-center gap-1">
                       <EyeOff className="w-3 h-3" /> Posting Anonim
@@ -345,17 +379,28 @@ function PostItem({
                 </div>
                 <div className="flex flex-wrap gap-1 mb-1">
                   {post.badges.map((badge, i) => (
-                    <Badge key={i} text={badge} type={badge.includes("Teacher") ? 'teacher' : badge.includes("Master") ? 'subject' : 'general'} />
+                    <Badge
+                      key={i}
+                      text={badge}
+                      type={
+                        badge.includes('Teacher')
+                          ? 'teacher'
+                          : badge.includes('Master')
+                            ? 'subject'
+                            : 'general'
+                      }
+                    />
                   ))}
                 </div>
-                <span className="text-sm text-slate-500">
-                  {post.time}
-                </span>
+                <span className="text-sm text-slate-500">{post.time}</span>
               </div>
             </div>
 
             <div className="relative">
-              <button onClick={() => setShowMenu(!showMenu)} className="text-slate-400 hover:text-slate-600">
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="text-slate-400 hover:text-slate-600"
+              >
                 <MoreHorizontal className="w-5 h-5" />
               </button>
               {showMenu && (
@@ -367,8 +412,8 @@ function PostItem({
                   )}
                   <button
                     onClick={() => {
-                      onReport(post.id, 'post', post.content, post.author);
-                      setShowMenu(false);
+                      onReport(post.id, 'post', post.content, post.author)
+                      setShowMenu(false)
                     }}
                     className="w-full text-left px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 flex items-center gap-2"
                   >
@@ -383,19 +428,23 @@ function PostItem({
             <span className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-lg border border-blue-100 flex items-center gap-1">
               <BookOpen className="w-3 h-3" /> {post.category}
             </span>
-            {post.tags.map(tag => (
-              <span key={tag} className="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-lg flex items-center gap-1">
+            {post.tags.map((tag) => (
+              <span
+                key={tag}
+                className="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-lg flex items-center gap-1"
+              >
                 <Tag className="w-3 h-3" /> {tag}
               </span>
             ))}
           </div>
 
-          <h2 className="text-xl font-bold text-slate-900 mb-2">
-            {post.title}
-          </h2>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">{post.title}</h2>
 
           {post.contextLink && (
-            <a href={post.contextLink.url} className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-sm font-medium mb-4 hover:bg-indigo-100 transition-colors border border-indigo-100">
+            <a
+              href={post.contextLink.url}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-sm font-medium mb-4 hover:bg-indigo-100 transition-colors border border-indigo-100"
+            >
               <Code className="w-4 h-4" />
               Konteks: {post.contextLink.title}
             </a>
@@ -436,67 +485,80 @@ function PostItem({
         </div>
       )}
     </motion.div>
-  );
+  )
 }
 
 export function Forum() {
-  const { role, user, tenantId, profile } = useAuth();
-  const queryClient = useQueryClient();
-  const submitReport = useSubmitReport();
-  const isTeacher = role === 'teacher';
+  const { role, user, tenantId, profile } = useAuth()
+  const queryClient = useQueryClient()
+  const submitReport = useSubmitReport()
+  const isTeacher = role === 'teacher'
 
-  const { data: xpProfile } = useStudentXPProfile(user?.id);
+  const { data: xpProfile } = useStudentXPProfile(user?.id)
 
   const { data: rawDiscussions = [] } = useQuery({
     queryKey: ['forum-posts', tenantId],
     queryFn: () => discussionService.fetchForumPosts(tenantId!),
     enabled: !!tenantId,
-  });
+  })
 
   const posts = useMemo(() => {
-    const topLevel = rawDiscussions.filter(d => !d.parent_id);
-    const repliesMap: Record<string, Discussion[]> = {};
-    rawDiscussions.filter(d => !!d.parent_id).forEach(r => {
-      const pid = r.parent_id!;
-      if (!repliesMap[pid]) repliesMap[pid] = [];
-      repliesMap[pid].push(r);
-    });
-    return topLevel.map(d => mapToPost(d, repliesMap));
-  }, [rawDiscussions]);
+    const topLevel = rawDiscussions.filter((d) => !d.parent_id)
+    const repliesMap: Record<string, Discussion[]> = {}
+    rawDiscussions
+      .filter((d) => !!d.parent_id)
+      .forEach((r) => {
+        const pid = r.parent_id!
+        if (!repliesMap[pid]) repliesMap[pid] = []
+        repliesMap[pid].push(r)
+      })
+    return topLevel.map((d) => mapToPost(d, repliesMap))
+  }, [rawDiscussions])
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Semua");
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('Semua')
 
   const [reportModal, setReportModal] = useState<{
-    isOpen: boolean;
-    contentId: string;
-    contentType: 'post' | 'comment';
-    contentSnippet?: string;
-    contentAuthor?: string;
+    isOpen: boolean
+    contentId: string
+    contentType: 'post' | 'comment'
+    contentSnippet?: string
+    contentAuthor?: string
   }>({
     isOpen: false,
     contentId: '',
-    contentType: 'post'
-  });
+    contentType: 'post',
+  })
 
-  const [newPostTitle, setNewPostTitle] = useState("");
-  const [newPostContent, setNewPostContent] = useState("");
-  const [newPostCategory, setNewPostCategory] = useState("Umum");
-  const [isAnonymous, setIsAnonymous] = useState(false);
-  const [profanityWarning, setProfanityWarning] = useState(false);
+  const [newPostTitle, setNewPostTitle] = useState('')
+  const [newPostContent, setNewPostContent] = useState('')
+  const [newPostCategory, setNewPostCategory] = useState('Umum')
+  const [isAnonymous, setIsAnonymous] = useState(false)
+  const [profanityWarning, setProfanityWarning] = useState(false)
 
   const checkProfanity = (text: string) => {
-    const badWords = ["bodoh", "goblok", "tolol", "anjing"];
-    return badWords.some(word => text.toLowerCase().includes(word));
-  };
+    const badWords = ['bodoh', 'goblok', 'tolol', 'anjing']
+    return badWords.some((word) => text.toLowerCase().includes(word))
+  }
 
   const handleReport = (id: string, type: 'post' | 'comment', snippet: string, author: string) => {
-    setReportModal({ isOpen: true, contentId: id, contentType: type, contentSnippet: snippet, contentAuthor: author });
-  };
+    setReportModal({
+      isOpen: true,
+      contentId: id,
+      contentType: type,
+      contentSnippet: snippet,
+      contentAuthor: author,
+    })
+  }
 
   const createPost = useMutation({
-    mutationFn: async (vars: { title: string; content: string; category: string; isAnon: boolean }) => {
-      if (!user || !tenantId) throw new Error('Not authenticated');
+    mutationFn: async (vars: {
+      title: string
+      content: string
+      category: string
+      isAnon: boolean
+    }) => {
+      if (!user || !tenantId) throw new Error('Not authenticated')
       return discussionService.saveDiscussion({
         tenant_id: tenantId,
         author_id: user.id,
@@ -507,36 +569,38 @@ export function Forum() {
         is_pinned: false,
         is_edited: false,
         is_deleted: false,
-      } as any);
+      } as any)
     },
     onSuccess: (data, vars) => {
-      const isAiSuspect = vars.content.length > 200 &&
-        (vars.content.includes("tentu") || vars.content.includes("sebagai model bahasa"));
+      const isAiSuspect =
+        vars.content.length > 200 &&
+        (vars.content.includes('tentu') || vars.content.includes('sebagai model bahasa'))
       if (isAiSuspect) {
-        const authorName = vars.isAnon ? "Anonim" : (profile?.first_name ?? "Pengguna");
+        const authorName = vars.isAnon ? 'Anonim' : (profile?.first_name ?? 'Pengguna')
         submitReport.mutate({
           contentId: data.id,
           contentType: 'post',
           reason: 'ai_generated',
-          description: 'Terdeteksi otomatis oleh sistem AI Shield sebagai konten yang berpotensi dibuat oleh AI.',
+          description:
+            'Terdeteksi otomatis oleh sistem AI Shield sebagai konten yang berpotensi dibuat oleh AI.',
           contentSnippet: vars.content.substring(0, 100) + '...',
           contentAuthor: authorName,
-        });
+        })
       }
-      queryClient.invalidateQueries({ queryKey: ['forum-posts', tenantId] });
-      setNewPostTitle("");
-      setNewPostContent("");
-      setIsAnonymous(false);
+      queryClient.invalidateQueries({ queryKey: ['forum-posts', tenantId] })
+      setNewPostTitle('')
+      setNewPostContent('')
+      setIsAnonymous(false)
     },
-  });
+  })
 
   const handlePost = () => {
-    if (!newPostTitle.trim() || !newPostContent.trim()) return;
+    if (!newPostTitle.trim() || !newPostContent.trim()) return
 
     if (checkProfanity(newPostTitle) || checkProfanity(newPostContent)) {
-      setProfanityWarning(true);
-      setTimeout(() => setProfanityWarning(false), 3000);
-      return;
+      setProfanityWarning(true)
+      setTimeout(() => setProfanityWarning(false), 3000)
+      return
     }
 
     createPost.mutate({
@@ -544,26 +608,28 @@ export function Forum() {
       content: newPostContent,
       category: newPostCategory,
       isAnon: isAnonymous,
-    });
-  };
+    })
+  }
 
   const handleMarkBestAnswer = async (postId: string, commentId: string) => {
-    await discussionService.setBestAnswer(postId, commentId);
-    queryClient.invalidateQueries({ queryKey: ['forum-posts', tenantId] });
-  };
+    await discussionService.setBestAnswer(postId, commentId)
+    queryClient.invalidateQueries({ queryKey: ['forum-posts', tenantId] })
+  }
 
-  const filteredPosts = posts.filter(post => {
-    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          post.content.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === "Semua" || post.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredPosts = posts.filter((post) => {
+    const matchesSearch =
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.content.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesCategory = selectedCategory === 'Semua' || post.category === selectedCategory
+    return matchesSearch && matchesCategory
+  })
 
   const myAvatar = isAnonymous
-    ? "https://api.dicebear.com/7.x/avataaars/svg?seed=Anon"
-    : (profile?.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id ?? 'user'}`);
+    ? 'https://api.dicebear.com/7.x/avataaars/svg?seed=Anon'
+    : (profile?.avatar_url ??
+      `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id ?? 'user'}`)
 
-  const myKP = xpProfile?.total_xp ?? 0;
+  const myKP = xpProfile?.total_xp ?? 0
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 flex-1 w-full p-4 md:p-8">
@@ -571,7 +637,9 @@ export function Forum() {
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
             Ruang Diskusi
-            <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full font-bold">Beta</span>
+            <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full font-bold">
+              Beta
+            </span>
           </h1>
           <p className="text-slate-500 mt-2">
             Tanya, jawab, dan belajar bersama komunitas. Dapatkan Knowledge Points (KP)!
@@ -581,7 +649,9 @@ export function Forum() {
         <div className="flex items-center gap-4 bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
           <div className="text-center px-4 border-r border-slate-100">
             <div className="text-2xl font-black text-blue-600">{myKP}</div>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">KP Saya</div>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              KP Saya
+            </div>
           </div>
           <div className="px-2">
             <Badge text="Aktif" type="general" />
@@ -602,15 +672,15 @@ export function Forum() {
           />
         </div>
         <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
-          {CATEGORIES.map(cat => (
+          {CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={cn(
-                "px-4 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all",
+                'px-4 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all',
                 selectedCategory === cat
-                  ? "bg-slate-800 text-white shadow-md"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                  ? 'bg-slate-800 text-white shadow-md'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
               )}
             >
               {cat}
@@ -648,11 +718,14 @@ export function Forum() {
             <AnimatePresence>
               {profanityWarning && (
                 <motion.div
-                  initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
                   className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 border border-red-200"
                 >
                   <AlertTriangle className="w-4 h-4" />
-                  Pesan Anda mengandung kata-kata yang tidak pantas. Harap gunakan bahasa yang sopan.
+                  Pesan Anda mengandung kata-kata yang tidak pantas. Harap gunakan bahasa yang
+                  sopan.
                 </motion.div>
               )}
             </AnimatePresence>
@@ -664,8 +737,10 @@ export function Forum() {
                   onChange={(e) => setNewPostCategory(e.target.value)}
                   className="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
                 >
-                  {CATEGORIES.filter(c => c !== "Semua").map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
+                  {CATEGORIES.filter((c) => c !== 'Semua').map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
                   ))}
                 </select>
 
@@ -686,7 +761,7 @@ export function Forum() {
                 className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-sm"
               >
                 <Send className="w-4 h-4" />
-                {createPost.isPending ? "Memposting..." : "Posting Pertanyaan"}
+                {createPost.isPending ? 'Memposting...' : 'Posting Pertanyaan'}
               </button>
             </div>
           </div>
@@ -716,12 +791,12 @@ export function Forum() {
 
       <ReportModal
         isOpen={reportModal.isOpen}
-        onClose={() => setReportModal(prev => ({ ...prev, isOpen: false }))}
+        onClose={() => setReportModal((prev) => ({ ...prev, isOpen: false }))}
         contentId={reportModal.contentId}
         contentType={reportModal.contentType}
         contentSnippet={reportModal.contentSnippet}
         contentAuthor={reportModal.contentAuthor}
       />
     </div>
-  );
+  )
 }

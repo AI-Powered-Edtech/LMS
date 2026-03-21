@@ -1,38 +1,38 @@
-import { useState } from 'react';
-import { Plus, Edit2, Trash2, Share2, Star, Loader2 } from 'lucide-react';
-import { cn } from '@/src/utils/cn';
-import { motion } from 'motion/react';
-import { useDashboards, useDeleteDashboard } from '../queries/dashboardQueries';
-import type { DashboardConfig } from '../types';
+import { useState } from 'react'
+import { Plus, Edit2, Trash2, Share2, Star, Loader2 } from 'lucide-react'
+import { cn } from '@/src/utils/cn'
+import { motion } from 'motion/react'
+import { useDashboards, useDeleteDashboard } from '../queries/dashboardQueries'
+import type { DashboardConfig } from '../types'
 
 interface DashboardListProps {
-  onEdit: (dashboard: DashboardConfig) => void;
-  onCreate: () => void;
-  onView: (dashboard: DashboardConfig) => void;
+  onEdit: (dashboard: DashboardConfig) => void
+  onCreate: () => void
+  onView: (dashboard: DashboardConfig) => void
 }
 
 export function DashboardList({ onEdit, onCreate, onView }: DashboardListProps) {
-  const { data: dashboards, isLoading } = useDashboards();
-  const { mutate: deleteDashboard, isPending: isDeleting } = useDeleteDashboard();
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { data: dashboards, isLoading } = useDashboards()
+  const { mutate: deleteDashboard, isPending: isDeleting } = useDeleteDashboard()
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const handleDelete = (id: string) => {
-    if (!confirm('Hapus dashboard ini?')) return;
-    setDeletingId(id);
+    if (!confirm('Hapus dashboard ini?')) return
+    setDeletingId(id)
     deleteDashboard(id, {
       onSettled: () => setDeletingId(null),
-    });
-  };
+    })
+  }
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
         <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
       </div>
-    );
+    )
   }
 
-  const list = dashboards ?? [];
+  const list = dashboards ?? []
 
   return (
     <div className="space-y-6">
@@ -107,7 +107,7 @@ export function DashboardList({ onEdit, onCreate, onView }: DashboardListProps) 
               {/* Actions */}
               <div
                 className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800"
-                onClick={e => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
               >
                 <button
                   onClick={() => onEdit(dashboard)}
@@ -140,5 +140,5 @@ export function DashboardList({ onEdit, onCreate, onView }: DashboardListProps) 
         </div>
       )}
     </div>
-  );
+  )
 }

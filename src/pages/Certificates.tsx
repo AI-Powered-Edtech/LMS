@@ -1,111 +1,127 @@
-import { useState, useRef } from "react";
+import { useState, useRef } from 'react'
 import {
-  Award, Download, Search, Calendar as CalendarIcon,
-  CheckCircle, Share2, QrCode, Link as LinkIcon, ShieldCheck,
-  Image as ImageIcon, FileText, Linkedin, MessageCircle,
-  Plus, Users, LayoutTemplate, Settings, Loader2
-} from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
-import { cn } from "@/src/utils/cn";
-import { useAuth } from "@/src/contexts/AuthContext";
-import { useStudentCertificates, useIssueCertificate } from "@/src/features/gamification";
-import type { Certificate } from "@/src/features/gamification";
-import { useCourses } from "@/src/features/courses";
-import { SkeletonCard, EmptyState } from "@/src/components/ui";
+  Award,
+  Download,
+  Search,
+  Calendar as CalendarIcon,
+  CheckCircle,
+  Share2,
+  QrCode,
+  ShieldCheck,
+  Image as ImageIcon,
+  FileText,
+  Linkedin,
+  MessageCircle,
+  Plus,
+  Users,
+  LayoutTemplate,
+  Settings,
+  Loader2,
+} from 'lucide-react'
+import { motion, AnimatePresence } from 'motion/react'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { useStudentCertificates } from '@/src/features/gamification'
+import type { Certificate } from '@/src/features/gamification'
+import { SkeletonCard, EmptyState } from '@/src/components/ui'
 
 export function Certificates() {
-  const { role, profile, user } = useAuth();
-  const isTeacher = role === 'teacher';
+  const { role, profile } = useAuth()
+  const isTeacher = role === 'teacher'
 
-  const { data: certificates = [], isLoading } = useStudentCertificates();
-  const { data: courses = [] } = useCourses({ limit: 100 });
+  const { data: certificates = [], isLoading } = useStudentCertificates()
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isDownloading, setIsDownloading] = useState<string | null>(null);
-  const [showShareMenu, setShowShareMenu] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('')
+  const [isDownloading, setIsDownloading] = useState<string | null>(null)
+  const [showShareMenu, setShowShareMenu] = useState<string | null>(null)
 
-  const certificateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const certificateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
-  const studentName = profile ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim() : 'Siswa';
+  const studentName = profile
+    ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim()
+    : 'Siswa'
 
   const filteredCertificates = certificates.filter((cert) =>
     cert.course_title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  )
 
-  const highlightedCert = certificates.length > 0 ? certificates[0] : null;
+  const highlightedCert = certificates.length > 0 ? certificates[0] : null
 
   const formatDate = (iso: string) => {
-    return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-  };
+    return new Date(iso).toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+  }
 
   const handleDownload = async (cert: Certificate, format: 'pdf' | 'png') => {
-    setIsDownloading(cert.id);
-    const element = certificateRefs.current[cert.id];
+    setIsDownloading(cert.id)
+    const element = certificateRefs.current[cert.id]
 
     if (!element) {
-      setIsDownloading(null);
-      return;
+      setIsDownloading(null)
+      return
     }
 
     try {
       const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
         import('html2canvas'),
         import('jspdf'),
-      ]);
+      ])
 
-      element.style.display = 'block';
+      element.style.display = 'block'
 
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
-      });
+        backgroundColor: '#ffffff',
+      })
 
-      element.style.display = 'none';
+      element.style.display = 'none'
 
       if (format === 'png') {
-        const image = canvas.toDataURL("image/png");
-        const link = document.createElement('a');
-        link.href = image;
-        link.download = `${cert.course_title.replace(/\s+/g, '_')}_Certificate.png`;
-        link.click();
+        const image = canvas.toDataURL('image/png')
+        const link = document.createElement('a')
+        link.href = image
+        link.download = `${cert.course_title.replace(/\s+/g, '_')}_Certificate.png`
+        link.click()
       } else if (format === 'pdf') {
-        const imgData = canvas.toDataURL('image/png');
+        const imgData = canvas.toDataURL('image/png')
         const pdf = new jsPDF({
           orientation: 'landscape',
           unit: 'px',
-          format: [canvas.width, canvas.height]
-        });
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save(`${cert.course_title.replace(/\s+/g, '_')}_Certificate.pdf`);
+          format: [canvas.width, canvas.height],
+        })
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height)
+        pdf.save(`${cert.course_title.replace(/\s+/g, '_')}_Certificate.pdf`)
       }
     } catch (error) {
-      console.error("Error generating certificate:", error);
-      alert("Gagal mengunduh sertifikat. Silakan coba lagi.");
+      console.error('Error generating certificate:', error)
+      alert('Gagal mengunduh sertifikat. Silakan coba lagi.')
     } finally {
-      setIsDownloading(null);
+      setIsDownloading(null)
     }
-  };
+  }
 
   const handleShare = (platform: string, cert: Certificate) => {
-    const text = `Saya baru saja mendapatkan sertifikat "${cert.course_title}" di EduSync! Lihat portofolio saya.`;
-    const url = `https://edusync.app/verify/${cert.certificate_number}`;
+    const text = `Saya baru saja mendapatkan sertifikat "${cert.course_title}" di EduSync! Lihat portofolio saya.`
+    const url = `https://edusync.app/verify/${cert.certificate_number}`
 
-    let shareUrl = '';
+    let shareUrl = ''
     if (platform === 'linkedin') {
-      shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+      shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
     } else if (platform === 'whatsapp') {
-      shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`;
+      shareUrl = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`
     } else if (platform === 'twitter') {
-      shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+      shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
     }
 
     if (shareUrl) {
-      window.open(shareUrl, '_blank');
+      window.open(shareUrl, '_blank')
     }
-    setShowShareMenu(null);
-  };
+    setShowShareMenu(null)
+  }
 
   // --- Teacher View ---
   if (isTeacher) {
@@ -137,7 +153,8 @@ export function Certificates() {
             </div>
             <h2 className="text-xl font-bold text-slate-900 mb-2">Template Builder</h2>
             <p className="text-slate-500 text-sm mb-6">
-              Desain layout sertifikat dengan fitur drag-and-drop. Atur posisi logo, teks dinamis (Nama, Nilai), dan tanda tangan digital.
+              Desain layout sertifikat dengan fitur drag-and-drop. Atur posisi logo, teks dinamis
+              (Nama, Nilai), dan tanda tangan digital.
             </p>
             <button className="w-full py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors border border-indigo-200">
               Buka Editor Visual
@@ -148,9 +165,12 @@ export function Certificates() {
             <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-4">
               <Users className="w-6 h-6" />
             </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Penerbitan Massal (Bulk Issuance)</h2>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">
+              Penerbitan Massal (Bulk Issuance)
+            </h2>
             <p className="text-slate-500 text-sm mb-6">
-              Terbitkan sertifikat secara otomatis untuk seluruh siswa dalam satu kelas yang telah memenuhi KKM atau menyelesaikan modul.
+              Terbitkan sertifikat secara otomatis untuk seluruh siswa dalam satu kelas yang telah
+              memenuhi KKM atau menyelesaikan modul.
             </p>
             <button className="w-full py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors border border-emerald-200">
               Pilih Kelas & Terbitkan
@@ -158,7 +178,7 @@ export function Certificates() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   // --- Student View ---
@@ -172,7 +192,7 @@ export function Certificates() {
           <SkeletonCard lines={4} />
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -180,9 +200,7 @@ export function Certificates() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-            Sertifikat Saya
-          </h1>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Sertifikat Saya</h1>
           <p className="text-slate-500 mt-2">
             Portofolio digital yang memvalidasi pencapaian akademik Anda.
           </p>
@@ -204,11 +222,16 @@ export function Certificates() {
               <div className="space-y-3 mb-8">
                 <div className="flex items-center gap-3 text-slate-300">
                   <ShieldCheck className="w-5 h-5 text-blue-400" />
-                  <span>Diterbitkan oleh <strong className="text-white">EduSync Academy</strong></span>
+                  <span>
+                    Diterbitkan oleh <strong className="text-white">EduSync Academy</strong>
+                  </span>
                 </div>
                 <div className="flex items-center gap-3 text-slate-300">
                   <CalendarIcon className="w-5 h-5 text-blue-400" />
-                  <span>Diberikan pada <strong className="text-white">{formatDate(highlightedCert.issued_at)}</strong></span>
+                  <span>
+                    Diberikan pada{' '}
+                    <strong className="text-white">{formatDate(highlightedCert.issued_at)}</strong>
+                  </span>
                 </div>
                 <div className="flex items-center gap-3 text-slate-300">
                   <CheckCircle className="w-5 h-5 text-green-400" />
@@ -222,7 +245,11 @@ export function Certificates() {
                   disabled={isDownloading === highlightedCert.id}
                   className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold flex items-center gap-2 transition-colors disabled:opacity-70"
                 >
-                  {isDownloading === highlightedCert.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileText className="w-5 h-5" />}
+                  {isDownloading === highlightedCert.id ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <FileText className="w-5 h-5" />
+                  )}
                   Unduh PDF
                 </button>
                 <button
@@ -239,10 +266,16 @@ export function Certificates() {
             <div className="w-full md:w-1/3 shrink-0 flex flex-col items-center justify-center bg-white/5 rounded-2xl p-6 border border-white/10 backdrop-blur-md">
               <QrCode className="w-32 h-32 text-white opacity-80 mb-4" />
               <div className="text-center">
-                <div className="text-xs text-slate-400 uppercase tracking-widest mb-1">ID Sertifikat Resmi</div>
-                <div className="font-mono font-bold text-blue-300">{highlightedCert.certificate_number}</div>
+                <div className="text-xs text-slate-400 uppercase tracking-widest mb-1">
+                  ID Sertifikat Resmi
+                </div>
+                <div className="font-mono font-bold text-blue-300">
+                  {highlightedCert.certificate_number}
+                </div>
               </div>
-              <p className="text-xs text-slate-400 text-center mt-4">Pindai QR untuk verifikasi keaslian di platform EduSync.</p>
+              <p className="text-xs text-slate-400 text-center mt-4">
+                Pindai QR untuk verifikasi keaslian di platform EduSync.
+              </p>
             </div>
           </div>
         </div>
@@ -331,13 +364,22 @@ export function Certificates() {
                             className="absolute bottom-full left-0 mb-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-20"
                           >
                             <div className="p-2 space-y-1">
-                              <button onClick={() => handleShare('linkedin', cert)} className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-colors">
+                              <button
+                                onClick={() => handleShare('linkedin', cert)}
+                                className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-colors"
+                              >
                                 <Linkedin className="w-4 h-4" /> LinkedIn
                               </button>
-                              <button onClick={() => handleShare('whatsapp', cert)} className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-green-50 hover:text-green-700 rounded-xl transition-colors">
+                              <button
+                                onClick={() => handleShare('whatsapp', cert)}
+                                className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-green-50 hover:text-green-700 rounded-xl transition-colors"
+                              >
                                 <MessageCircle className="w-4 h-4" /> WhatsApp
                               </button>
-                              <button onClick={() => handleShare('twitter', cert)} className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-sky-50 hover:text-sky-700 rounded-xl transition-colors">
+                              <button
+                                onClick={() => handleShare('twitter', cert)}
+                                className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-sky-50 hover:text-sky-700 rounded-xl transition-colors"
+                              >
                                 <Share2 className="w-4 h-4" /> Twitter / X
                               </button>
                             </div>
@@ -360,7 +402,11 @@ export function Certificates() {
                         disabled={isDownloading === cert.id}
                         className="px-4 py-2.5 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors border border-slate-200 hover:border-blue-200"
                       >
-                        {isDownloading === cert.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                        {isDownloading === cert.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Download className="w-4 h-4" />
+                        )}
                         PDF
                       </button>
                     </div>
@@ -369,7 +415,9 @@ export function Certificates() {
 
                 {/* Hidden Certificate Template for html2canvas */}
                 <div
-                  ref={el => { certificateRefs.current[cert.id] = el; }}
+                  ref={(el) => {
+                    certificateRefs.current[cert.id] = el
+                  }}
                   className="absolute top-0 left-0 w-[800px] h-[600px] bg-white -z-50"
                   style={{ display: 'none' }}
                 >
@@ -382,26 +430,38 @@ export function Certificates() {
                         <Award className="w-8 h-8" />
                       </div>
 
-                      <h1 className="text-4xl font-black text-slate-900 mb-2 tracking-tight uppercase">Sertifikat Penyelesaian</h1>
-                      <p className="text-lg text-slate-500 mb-8 font-medium">Diberikan dengan bangga kepada</p>
+                      <h1 className="text-4xl font-black text-slate-900 mb-2 tracking-tight uppercase">
+                        Sertifikat Penyelesaian
+                      </h1>
+                      <p className="text-lg text-slate-500 mb-8 font-medium">
+                        Diberikan dengan bangga kepada
+                      </p>
 
                       <h2 className="text-5xl font-serif italic text-blue-900 mb-8 border-b-2 border-blue-200 pb-4 px-12">
                         {studentName}
                       </h2>
 
-                      <p className="text-slate-600 text-lg mb-2">Atas keberhasilannya menyelesaikan:</p>
-                      <h3 className="text-2xl font-bold text-slate-800 mb-6 max-w-2xl">{cert.course_title}</h3>
+                      <p className="text-slate-600 text-lg mb-2">
+                        Atas keberhasilannya menyelesaikan:
+                      </p>
+                      <h3 className="text-2xl font-bold text-slate-800 mb-6 max-w-2xl">
+                        {cert.course_title}
+                      </h3>
 
                       <div className="flex items-center justify-between w-full mt-12 px-12">
                         <div className="text-left">
                           <div className="text-sm text-slate-500 mb-1">Diterbitkan oleh</div>
                           <div className="font-bold text-slate-800">EduSync Academy</div>
-                          <div className="text-sm text-slate-500 mt-1">Tanggal: {formatDate(cert.issued_at)}</div>
+                          <div className="text-sm text-slate-500 mt-1">
+                            Tanggal: {formatDate(cert.issued_at)}
+                          </div>
                         </div>
 
                         <div className="text-right flex flex-col items-end">
                           <QrCode className="w-20 h-20 text-slate-800 mb-2" />
-                          <div className="text-[10px] text-slate-400 font-mono">ID: {cert.certificate_number}</div>
+                          <div className="text-[10px] text-slate-400 font-mono">
+                            ID: {cert.certificate_number}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -416,12 +476,10 @@ export function Certificates() {
           <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 border-dashed">
             <Award className="w-16 h-16 text-slate-300 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-slate-700 mb-2">Tidak ditemukan</h3>
-            <p className="text-slate-500">
-              Sertifikat yang Anda cari tidak ditemukan.
-            </p>
+            <p className="text-slate-500">Sertifikat yang Anda cari tidak ditemukan.</p>
           </div>
         )}
       </div>
     </div>
-  );
+  )
 }

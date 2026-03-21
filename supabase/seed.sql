@@ -29,3 +29,10 @@
 
 -- 4. Gamification data (XP events, streaks, badges, leaderboard)
 \i seed/seed_gamification.sql
+
+-- =============================================================================
+-- NOT included: seed/quiz_seed.sql
+-- Reason: Legacy file, not idempotent (no ON CONFLICT guards), and its quiz
+-- data overlaps with seed_demo.sql which already seeds 3 quizzes with questions
+-- and options. Including it would create duplicates on repeated runs.
+-- =============================================================================

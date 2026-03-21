@@ -1,17 +1,17 @@
-import { cn } from '@/src/utils/cn';
+import { cn } from '@/src/utils/cn'
 
 export interface Tab {
-  id: string;
-  label: string;
-  icon?: React.ReactNode;
-  count?: number;
+  id: string
+  label: string
+  icon?: React.ReactNode
+  count?: number
 }
 
 export interface TabsProps {
-  tabs: Tab[];
-  activeTab: string;
-  onChange: (tabId: string) => void;
-  className?: string;
+  tabs: Tab[]
+  activeTab: string
+  onChange: (tabId: string) => void
+  className?: string
 }
 
 export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
@@ -24,7 +24,7 @@ export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
       role="tablist"
     >
       {tabs.map((tab) => {
-        const isActive = tab.id === activeTab;
+        const isActive = tab.id === activeTab
         return (
           <button
             key={tab.id}
@@ -54,8 +54,8 @@ export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
               </span>
             )}
           </button>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

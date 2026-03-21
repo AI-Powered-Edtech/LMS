@@ -1,58 +1,58 @@
-import { useState } from 'react';
-import { Loader2, Trash2, Download, Play, Calendar, FileText } from 'lucide-react';
-import { cn } from '@/src/utils/cn';
-import { motion } from 'motion/react';
-import { useReports, useDeleteReport, useGenerateReportData } from '../queries/reportQueries';
-import { ExportButton } from './ExportButton';
-import type { ScheduledReport } from '../types';
+import { useState } from 'react'
+import { Loader2, Trash2, Play, Calendar, FileText } from 'lucide-react'
+import { cn } from '@/src/utils/cn'
+import { motion } from 'motion/react'
+import { useReports, useDeleteReport, useGenerateReportData } from '../queries/reportQueries'
+import { ExportButton } from './ExportButton'
+import type { ScheduledReport } from '../types'
 
 const REPORT_TYPE_LABELS: Record<string, string> = {
   dashboard: 'Dashboard',
   student_list: 'Daftar Siswa',
   course_summary: 'Ringkasan Kursus',
   engagement: 'Engagement',
-};
+}
 
 const SCHEDULE_LABELS: Record<string, string> = {
   none: 'Manual',
   weekly: 'Mingguan',
   monthly: 'Bulanan',
-};
+}
 
 export function ReportList() {
-  const { data: reports, isLoading } = useReports();
-  const { mutate: deleteReport, isPending: isDeleting } = useDeleteReport();
-  const { mutate: generateData, isPending: isGenerating } = useGenerateReportData();
-  const [generatedData, setGeneratedData] = useState<Record<string, Record<string, unknown>[]>>({});
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [generatingId, setGeneratingId] = useState<string | null>(null);
+  const { data: reports, isLoading } = useReports()
+  const { mutate: deleteReport, isPending: isDeleting } = useDeleteReport()
+  const { mutate: generateData, isPending: isGenerating } = useGenerateReportData()
+  const [generatedData, setGeneratedData] = useState<Record<string, Record<string, unknown>[]>>({})
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [generatingId, setGeneratingId] = useState<string | null>(null)
 
   const handleDelete = (id: string) => {
-    if (!confirm('Hapus laporan ini?')) return;
-    setDeletingId(id);
-    deleteReport(id, { onSettled: () => setDeletingId(null) });
-  };
+    if (!confirm('Hapus laporan ini?')) return
+    setDeletingId(id)
+    deleteReport(id, { onSettled: () => setDeletingId(null) })
+  }
 
   const handleGenerate = (report: ScheduledReport) => {
-    setGeneratingId(report.id);
+    setGeneratingId(report.id)
     generateData(report.id, {
       onSuccess: (data) => {
-        setGeneratedData(prev => ({ ...prev, [report.id]: data }));
-        setGeneratingId(null);
+        setGeneratedData((prev) => ({ ...prev, [report.id]: data }))
+        setGeneratingId(null)
       },
       onError: () => setGeneratingId(null),
-    });
-  };
+    })
+  }
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
       </div>
-    );
+    )
   }
 
-  const list = reports ?? [];
+  const list = reports ?? []
 
   if (list.length === 0) {
     return (
@@ -60,13 +60,13 @@ export function ReportList() {
         <FileText className="h-10 w-10" />
         <p className="text-sm font-medium">Belum ada laporan tersimpan</p>
       </div>
-    );
+    )
   }
 
   return (
     <div className="space-y-3">
       {list.map((report, i) => {
-        const reportData = generatedData[report.id];
+        const reportData = generatedData[report.id]
         return (
           <motion.div
             key={report.id}
@@ -77,16 +77,20 @@ export function ReportList() {
           >
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h4 className="font-semibold text-slate-800 dark:text-white text-sm">{report.name}</h4>
+                <h4 className="font-semibold text-slate-800 dark:text-white text-sm">
+                  {report.name}
+                </h4>
                 <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-400">
                   {REPORT_TYPE_LABELS[report.report_type] ?? report.report_type}
                 </span>
-                <span className={cn(
-                  'flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
-                  report.schedule === 'none'
-                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                    : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                )}>
+                <span
+                  className={cn(
+                    'flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
+                    report.schedule === 'none'
+                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                      : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                  )}
+                >
                   <Calendar className="h-3 w-3" />
                   {SCHEDULE_LABELS[report.schedule]}
                 </span>
@@ -140,8 +144,8 @@ export function ReportList() {
               </button>
             </div>
           </motion.div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

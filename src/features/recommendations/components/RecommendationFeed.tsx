@@ -1,9 +1,9 @@
-import { useNavigate } from 'react-router-dom';
-import { Loader2, Sparkles, Lightbulb } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { cn } from '@/src/utils/cn';
-import { useRecommendations, useRecordRecommendationAction } from '../queries/recommendationQueries';
-import type { Recommendation, RecommendationType } from '../types';
+import { useNavigate } from 'react-router-dom'
+import { Loader2, Sparkles, Lightbulb } from 'lucide-react'
+import { motion, AnimatePresence } from 'motion/react'
+import { cn } from '@/src/utils/cn'
+import { useRecommendations, useRecordRecommendationAction } from '../queries/recommendationQueries'
+import type { Recommendation, RecommendationType } from '../types'
 
 const TYPE_ICONS: Record<RecommendationType, string> = {
   next_lesson: '📖',
@@ -11,7 +11,7 @@ const TYPE_ICONS: Record<RecommendationType, string> = {
   practice_weak_topic: '💪',
   take_break: '☕',
   continue_course: '🎯',
-};
+}
 
 const TYPE_LABELS: Record<RecommendationType, string> = {
   next_lesson: 'Lanjut Belajar',
@@ -19,7 +19,7 @@ const TYPE_LABELS: Record<RecommendationType, string> = {
   practice_weak_topic: 'Latihan Lagi',
   take_break: 'Istirahat Dulu',
   continue_course: 'Lanjut Kursus',
-};
+}
 
 const TYPE_ACCENTS: Record<RecommendationType, string> = {
   next_lesson: 'border-l-4 border-blue-500 bg-blue-50/30 dark:bg-blue-950/20',
@@ -27,29 +27,29 @@ const TYPE_ACCENTS: Record<RecommendationType, string> = {
   practice_weak_topic: 'border-l-4 border-orange-500 bg-orange-50/30 dark:bg-orange-950/20',
   take_break: 'border-l-4 border-purple-500 bg-purple-50/30 dark:bg-purple-950/20',
   continue_course: 'border-l-4 border-green-500 bg-green-50/30 dark:bg-green-950/20',
-};
+}
 
 const CONFIDENCE_BADGE = (conf: number): string => {
-  if (conf >= 0.8) return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
-  if (conf >= 0.6) return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
-  return 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
-};
+  if (conf >= 0.8) return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+  if (conf >= 0.6) return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+  return 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+}
 
 interface RecommendationCardProps {
-  rec: Recommendation;
-  onAccept: (id: string) => void;
-  onDismiss: (id: string) => void;
+  rec: Recommendation
+  onAccept: (id: string) => void
+  onDismiss: (id: string) => void
 }
 
 function RecommendationCard({ rec, onAccept, onDismiss }: RecommendationCardProps) {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const handleAccept = () => {
-    onAccept(rec.id);
+    onAccept(rec.id)
     if (rec.course_id) {
-      navigate(`/courses/${rec.course_id}`);
+      navigate(`/courses/${rec.course_id}`)
     }
-  };
+  }
 
   return (
     <motion.div
@@ -67,7 +67,12 @@ function RecommendationCard({ rec, onAccept, onDismiss }: RecommendationCardProp
           <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
             {TYPE_LABELS[rec.recommendation_type]}
           </span>
-          <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full', CONFIDENCE_BADGE(rec.confidence))}>
+          <span
+            className={cn(
+              'text-[10px] font-bold px-2 py-0.5 rounded-full',
+              CONFIDENCE_BADGE(rec.confidence)
+            )}
+          >
             {Math.round(rec.confidence * 100)}% cocok
           </span>
         </div>
@@ -88,34 +93,34 @@ function RecommendationCard({ rec, onAccept, onDismiss }: RecommendationCardProp
         </div>
       </div>
     </motion.div>
-  );
+  )
 }
 
 interface RecommendationFeedProps {
-  userId: string;
+  userId: string
 }
 
 export function RecommendationFeed({ userId }: RecommendationFeedProps) {
-  const { data: recommendations, isLoading } = useRecommendations(userId);
-  const { mutate: recordAction } = useRecordRecommendationAction();
+  const { data: recommendations, isLoading } = useRecommendations(userId)
+  const { mutate: recordAction } = useRecordRecommendationAction()
 
   const handleAccept = (id: string) => {
-    recordAction({ id, action: 'accepted' });
-  };
+    recordAction({ id, action: 'accepted' })
+  }
 
   const handleDismiss = (id: string) => {
-    recordAction({ id, action: 'dismissed' });
-  };
+    recordAction({ id, action: 'dismissed' })
+  }
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
       </div>
-    );
+    )
   }
 
-  const list = recommendations ?? [];
+  const list = recommendations ?? []
 
   return (
     <div className="space-y-3">
@@ -126,8 +131,12 @@ export function RecommendationFeed({ userId }: RecommendationFeedProps) {
       {list.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-700 p-8 text-center">
           <Lightbulb className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-          <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Tidak ada rekomendasi saat ini. Terus belajar!</p>
-          <p className="text-xs text-slate-300 dark:text-slate-600 mt-1">Terus belajar untuk mendapat saran yang lebih personal!</p>
+          <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
+            Tidak ada rekomendasi saat ini. Terus belajar!
+          </p>
+          <p className="text-xs text-slate-300 dark:text-slate-600 mt-1">
+            Terus belajar untuk mendapat saran yang lebih personal!
+          </p>
         </div>
       ) : (
         <AnimatePresence>
@@ -142,5 +151,5 @@ export function RecommendationFeed({ userId }: RecommendationFeedProps) {
         </AnimatePresence>
       )}
     </div>
-  );
+  )
 }

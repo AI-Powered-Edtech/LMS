@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { motion } from 'motion/react';
+import { useState } from 'react'
+import { motion } from 'motion/react'
 import {
   CreditCard,
   Search,
@@ -12,9 +12,9 @@ import {
   Wallet,
   Banknote,
   Receipt,
-  X
-} from 'lucide-react';
-import { cn } from '@/src/utils/cn';
+  X,
+} from 'lucide-react'
+import { cn } from '@/src/utils/cn'
 
 // --- MOCK DATA & UTILS ---
 const formatCurrency = (amount: number) => {
@@ -22,46 +22,61 @@ const formatCurrency = (amount: number) => {
     style: 'currency',
     currency: 'IDR',
     minimumFractionDigits: 0,
-  }).format(amount);
-};
+  }).format(amount)
+}
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('id-ID', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
-  });
-};
+  })
+}
 
 const getStatusLabel = (status: string) => {
   switch (status) {
-    case 'paid': return 'Lunas';
-    case 'pending': return 'Menunggu';
-    case 'partial': return 'Sebagian';
-    case 'overdue': return 'Jatuh Tempo';
-    default: return status;
+    case 'paid':
+      return 'Lunas'
+    case 'pending':
+      return 'Menunggu'
+    case 'partial':
+      return 'Sebagian'
+    case 'overdue':
+      return 'Jatuh Tempo'
+    default:
+      return status
   }
-};
+}
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'paid': return 'bg-green-100 text-green-700 border-green-200';
-    case 'pending': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-    case 'partial': return 'bg-blue-100 text-blue-700 border-blue-200';
-    case 'overdue': return 'bg-red-100 text-red-700 border-red-200';
-    default: return 'bg-slate-100 text-slate-700 border-slate-200';
+    case 'paid':
+      return 'bg-green-100 text-green-700 border-green-200'
+    case 'pending':
+      return 'bg-yellow-100 text-yellow-700 border-yellow-200'
+    case 'partial':
+      return 'bg-blue-100 text-blue-700 border-blue-200'
+    case 'overdue':
+      return 'bg-red-100 text-red-700 border-red-200'
+    default:
+      return 'bg-slate-100 text-slate-700 border-slate-200'
   }
-};
+}
 
 const getInvoiceTypeLabel = (type: string) => {
   switch (type) {
-    case 'tuition': return 'SPP';
-    case 'building': return 'Uang Gedung';
-    case 'books': return 'Buku';
-    case 'extracurricular': return 'Ekstrakurikuler';
-    default: return type;
+    case 'tuition':
+      return 'SPP'
+    case 'building':
+      return 'Uang Gedung'
+    case 'books':
+      return 'Buku'
+    case 'extracurricular':
+      return 'Ekstrakurikuler'
+    default:
+      return type
   }
-};
+}
 
 const invoices = [
   {
@@ -75,7 +90,15 @@ const invoices = [
     status: 'paid',
     dueDate: '2026-10-10',
     paymentMethod: 'Transfer Bank',
-    items: [{ id: 1, description: 'SPP Bulan Oktober 2026', quantity: 1, unitPrice: 500000, total: 500000 }]
+    items: [
+      {
+        id: 1,
+        description: 'SPP Bulan Oktober 2026',
+        quantity: 1,
+        unitPrice: 500000,
+        total: 500000,
+      },
+    ],
   },
   {
     id: 'INV-2026-002',
@@ -88,7 +111,15 @@ const invoices = [
     status: 'pending',
     dueDate: '2026-11-01',
     paymentMethod: null,
-    items: [{ id: 1, description: 'Cicilan Uang Gedung (2/4)', quantity: 1, unitPrice: 2500000, total: 2500000 }]
+    items: [
+      {
+        id: 1,
+        description: 'Cicilan Uang Gedung (2/4)',
+        quantity: 1,
+        unitPrice: 2500000,
+        total: 2500000,
+      },
+    ],
   },
   {
     id: 'INV-2026-003',
@@ -101,9 +132,17 @@ const invoices = [
     status: 'overdue',
     dueDate: '2026-09-15',
     paymentMethod: null,
-    items: [{ id: 1, description: 'Paket Buku Semester Ganjil', quantity: 1, unitPrice: 850000, total: 850000 }]
-  }
-];
+    items: [
+      {
+        id: 1,
+        description: 'Paket Buku Semester Ganjil',
+        quantity: 1,
+        unitPrice: 850000,
+        total: 850000,
+      },
+    ],
+  },
+]
 
 const payments = [
   {
@@ -112,38 +151,49 @@ const payments = [
     transactionId: 'TRX-998877',
     amount: 500000,
     method: 'Transfer Bank',
-    paidAt: '2026-10-05T10:30:00Z'
-  }
-];
+    paidAt: '2026-10-05T10:30:00Z',
+  },
+]
 
 const paymentMethods = [
-  { id: 'bank_transfer', name: 'Transfer Bank', icon: Banknote, description: 'BCA, Mandiri, BNI, BRI' },
+  {
+    id: 'bank_transfer',
+    name: 'Transfer Bank',
+    icon: Banknote,
+    description: 'BCA, Mandiri, BNI, BRI',
+  },
   { id: 'e_wallet', name: 'E-Wallet', icon: Wallet, description: 'GoPay, OVO, DANA, LinkAja' },
   { id: 'qris', name: 'QRIS', icon: QrCode, description: 'Scan QR code' },
-];
+]
 
 // --- COMPONENTS ---
 export function BillingDashboard() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [selectedInvoice, setSelectedInvoice] = useState<typeof invoices[0] | null>(null);
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
-  const [activeTab, setActiveTab] = useState<'invoices' | 'payments'>('invoices');
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedStatus, setSelectedStatus] = useState<string>('all')
+  const [selectedInvoice, setSelectedInvoice] = useState<(typeof invoices)[0] | null>(null)
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false)
+  const [activeTab, setActiveTab] = useState<'invoices' | 'payments'>('invoices')
 
   const filteredInvoices = invoices.filter((inv) => {
     const matchesSearch =
       inv.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inv.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = selectedStatus === 'all' || inv.status === selectedStatus;
-    return matchesSearch && matchesStatus;
-  });
+      inv.id.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesStatus = selectedStatus === 'all' || inv.status === selectedStatus
+    return matchesSearch && matchesStatus
+  })
 
   const stats = {
     total: invoices.reduce((acc, inv) => acc + inv.totalAmount, 0),
-    paid: invoices.filter((inv) => inv.status === 'paid').reduce((acc, inv) => acc + inv.totalAmount, 0),
-    pending: invoices.filter((inv) => inv.status === 'pending').reduce((acc, inv) => acc + inv.totalAmount, 0),
-    overdue: invoices.filter((inv) => inv.status === 'overdue').reduce((acc, inv) => acc + inv.totalAmount, 0),
-  };
+    paid: invoices
+      .filter((inv) => inv.status === 'paid')
+      .reduce((acc, inv) => acc + inv.totalAmount, 0),
+    pending: invoices
+      .filter((inv) => inv.status === 'pending')
+      .reduce((acc, inv) => acc + inv.totalAmount, 0),
+    overdue: invoices
+      .filter((inv) => inv.status === 'overdue')
+      .reduce((acc, inv) => acc + inv.totalAmount, 0),
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
@@ -151,9 +201,7 @@ export function BillingDashboard() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Keuangan & Pembayaran</h1>
-          <p className="text-slate-500 mt-1">
-            Kelola tagihan dan pembayaran siswa
-          </p>
+          <p className="text-slate-500 mt-1">Kelola tagihan dan pembayaran siswa</p>
         </div>
         <div className="flex gap-2">
           <button className="flex items-center px-4 py-2 border border-slate-200 rounded-xl font-medium text-slate-700 hover:bg-slate-50 transition-colors">
@@ -227,8 +275,8 @@ export function BillingDashboard() {
             className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <select 
-          value={selectedStatus} 
+        <select
+          value={selectedStatus}
           onChange={(e) => setSelectedStatus(e.target.value)}
           className="w-full md:w-48 px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
         >
@@ -243,15 +291,25 @@ export function BillingDashboard() {
       {/* Tabs */}
       <div className="space-y-4">
         <div className="flex gap-2 p-1 bg-slate-100 rounded-xl w-fit">
-          <button 
+          <button
             onClick={() => setActiveTab('invoices')}
-            className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-all", activeTab === 'invoices' ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700")}
+            className={cn(
+              'px-4 py-2 text-sm font-medium rounded-lg transition-all',
+              activeTab === 'invoices'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+            )}
           >
             Tagihan
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('payments')}
-            className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-all", activeTab === 'payments' ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700")}
+            className={cn(
+              'px-4 py-2 text-sm font-medium rounded-lg transition-all',
+              activeTab === 'payments'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+            )}
           >
             Riwayat Pembayaran
           </button>
@@ -294,8 +352,15 @@ export function BillingDashboard() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-lg text-slate-900 mb-1">{formatCurrency(invoice.totalAmount)}</p>
-                      <span className={cn("px-2.5 py-1 text-xs font-bold rounded-full border", getStatusColor(invoice.status))}>
+                      <p className="font-bold text-lg text-slate-900 mb-1">
+                        {formatCurrency(invoice.totalAmount)}
+                      </p>
+                      <span
+                        className={cn(
+                          'px-2.5 py-1 text-xs font-bold rounded-full border',
+                          getStatusColor(invoice.status)
+                        )}
+                      >
                         {getStatusLabel(invoice.status)}
                       </span>
                     </div>
@@ -315,7 +380,7 @@ export function BillingDashboard() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="divide-y divide-slate-100">
               {payments.map((payment) => {
-                const invoice = invoices.find((inv) => inv.id === payment.invoiceId);
+                const invoice = invoices.find((inv) => inv.id === payment.invoiceId)
                 return (
                   <div key={payment.id} className="p-4 hover:bg-slate-50 transition-colors">
                     <div className="flex items-center justify-between">
@@ -343,7 +408,7 @@ export function BillingDashboard() {
                       </div>
                     </div>
                   </div>
-                );
+                )
               })}
             </div>
           </div>
@@ -353,14 +418,17 @@ export function BillingDashboard() {
       {/* Invoice Detail Dialog Overlay */}
       {selectedInvoice && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]"
           >
             <div className="flex items-center justify-between p-6 border-b border-slate-100">
               <h2 className="text-xl font-bold text-slate-900">Detail Tagihan</h2>
-              <button onClick={() => setSelectedInvoice(null)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+              <button
+                onClick={() => setSelectedInvoice(null)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -368,8 +436,8 @@ export function BillingDashboard() {
               <InvoiceDetail
                 invoice={selectedInvoice}
                 onPay={() => {
-                  setSelectedInvoice(null);
-                  setShowPaymentDialog(true);
+                  setSelectedInvoice(null)
+                  setShowPaymentDialog(true)
                 }}
               />
             </div>
@@ -380,14 +448,17 @@ export function BillingDashboard() {
       {/* Payment Dialog Overlay */}
       {showPaymentDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]"
           >
             <div className="flex items-center justify-between p-6 border-b border-slate-100">
               <h2 className="text-xl font-bold text-slate-900">Pembayaran</h2>
-              <button onClick={() => setShowPaymentDialog(false)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+              <button
+                onClick={() => setShowPaymentDialog(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -398,10 +469,10 @@ export function BillingDashboard() {
         </div>
       )}
     </div>
-  );
+  )
 }
 
-function InvoiceDetail({ invoice, onPay }: { invoice: typeof invoices[0]; onPay: () => void }) {
+function InvoiceDetail({ invoice, onPay }: { invoice: (typeof invoices)[0]; onPay: () => void }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -409,7 +480,12 @@ function InvoiceDetail({ invoice, onPay }: { invoice: typeof invoices[0]; onPay:
           <h3 className="text-2xl font-bold text-slate-900">{invoice.id}</h3>
           <p className="text-slate-500 text-sm mt-1">Jatuh tempo: {formatDate(invoice.dueDate)}</p>
         </div>
-        <span className={cn("px-3 py-1 text-sm font-bold rounded-full border", getStatusColor(invoice.status))}>
+        <span
+          className={cn(
+            'px-3 py-1 text-sm font-bold rounded-full border',
+            getStatusColor(invoice.status)
+          )}
+        >
           {getStatusLabel(invoice.status)}
         </span>
       </div>
@@ -424,11 +500,15 @@ function InvoiceDetail({ invoice, onPay }: { invoice: typeof invoices[0]; onPay:
           <p className="font-medium text-slate-900">{getInvoiceTypeLabel(invoice.type)}</p>
         </div>
         <div>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Deskripsi</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+            Deskripsi
+          </p>
           <p className="font-medium text-slate-900">{invoice.description}</p>
         </div>
         <div>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Metode Pembayaran</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+            Metode Pembayaran
+          </p>
           <p className="font-medium text-slate-900">{invoice.paymentMethod || '-'}</p>
         </div>
       </div>
@@ -465,17 +545,20 @@ function InvoiceDetail({ invoice, onPay }: { invoice: typeof invoices[0]; onPay:
       </div>
 
       {invoice.status !== 'paid' && (
-        <button onClick={onPay} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-200">
+        <button
+          onClick={onPay}
+          className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-200"
+        >
           <CreditCard className="w-5 h-5" />
           Bayar Sekarang
         </button>
       )}
     </div>
-  );
+  )
 }
 
 function PaymentForm({ onClose }: { onClose: () => void }) {
-  const [selectedMethod, setSelectedMethod] = useState('bank_transfer');
+  const [selectedMethod, setSelectedMethod] = useState('bank_transfer')
 
   return (
     <div className="space-y-6">
@@ -483,8 +566,8 @@ function PaymentForm({ onClose }: { onClose: () => void }) {
         <h4 className="font-bold text-slate-900 mb-4">Pilih Metode Pembayaran</h4>
         <div className="space-y-3">
           {paymentMethods.map((method) => {
-            const Icon = method.icon;
-            const isSelected = selectedMethod === method.id;
+            const Icon = method.icon
+            const isSelected = selectedMethod === method.id
             return (
               <label
                 key={method.id}
@@ -495,40 +578,55 @@ function PaymentForm({ onClose }: { onClose: () => void }) {
                     : 'border-slate-200 hover:border-blue-200 bg-white'
                 )}
               >
-                <input 
-                  type="radio" 
-                  name="paymentMethod" 
+                <input
+                  type="radio"
+                  name="paymentMethod"
                   value={method.id}
                   checked={isSelected}
                   onChange={() => setSelectedMethod(method.id)}
                   className="w-4 h-4 text-blue-600 border-slate-300 focus:ring-blue-500"
                 />
                 <div className="flex items-center gap-4 flex-1">
-                  <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors", isSelected ? "bg-blue-100" : "bg-slate-100")}>
-                    <Icon className={cn("w-5 h-5", isSelected ? "text-blue-600" : "text-slate-500")} />
+                  <div
+                    className={cn(
+                      'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors',
+                      isSelected ? 'bg-blue-100' : 'bg-slate-100'
+                    )}
+                  >
+                    <Icon
+                      className={cn('w-5 h-5', isSelected ? 'text-blue-600' : 'text-slate-500')}
+                    />
                   </div>
                   <div className="flex-1">
-                    <div className={cn("font-bold", isSelected ? "text-blue-900" : "text-slate-700")}>
+                    <div
+                      className={cn('font-bold', isSelected ? 'text-blue-900' : 'text-slate-700')}
+                    >
                       {method.name}
                     </div>
                     <p className="text-sm text-slate-500 mt-0.5">{method.description}</p>
                   </div>
                 </div>
               </label>
-            );
+            )
           })}
         </div>
       </div>
 
       <div className="flex gap-3 pt-4 border-t border-slate-100">
-        <button onClick={onClose} className="flex-1 py-3 px-4 border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors">
+        <button
+          onClick={onClose}
+          className="flex-1 py-3 px-4 border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors"
+        >
           Batal
         </button>
-        <button onClick={onClose} className="flex-1 py-3 px-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200 flex items-center justify-center gap-2">
+        <button
+          onClick={onClose}
+          className="flex-1 py-3 px-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200 flex items-center justify-center gap-2"
+        >
           <CheckCircle className="w-5 h-5" />
           Konfirmasi
         </button>
       </div>
     </div>
-  );
+  )
 }

@@ -1,92 +1,124 @@
-import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Clock, MapPin, Video, Calendar as CalendarIcon, Plus, List, Grid, CheckCircle2, Circle, AlertCircle, Paperclip, X, Bell } from "lucide-react";
-import { cn } from "@/src/utils/cn";
-import { motion, AnimatePresence } from "motion/react";
-import { useAuth } from "@/src/contexts/AuthContext";
-import { useSendNotification } from "@/src/features/notifications";
-import { useCalendarEvents, useUpdateCalendarEvent, CalendarEvent } from '@/src/hooks/useCalendarQueries';
-import { useCalendarStore } from '@/src/hooks/useCalendarQueries';
-import { SkeletonCard } from "@/src/components/ui";
+import { useState } from 'react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  MapPin,
+  Video,
+  Calendar as CalendarIcon,
+  Plus,
+  List,
+  Grid,
+  CheckCircle2,
+  Circle,
+  AlertCircle,
+  Paperclip,
+  X,
+  Bell,
+} from 'lucide-react'
+import { cn } from '@/src/utils/cn'
+import { motion, AnimatePresence } from 'motion/react'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { useSendNotification } from '@/src/features/notifications'
+import {
+  useCalendarEvents,
+  useUpdateCalendarEvent,
+  CalendarEvent,
+} from '@/src/features/calendar/hooks/useCalendarQueries'
+import { useCalendarStore } from '@/src/features/calendar/hooks/useCalendarQueries'
+import { SkeletonCard } from '@/src/components/ui'
 
-type EventType = "exam" | "assignment" | "event" | "quiz";
-type Priority = "low" | "medium" | "high";
+type EventType = 'exam' | 'assignment' | 'event' | 'quiz'
+type Priority = 'low' | 'medium' | 'high'
 
-const daysOfWeek = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+const daysOfWeek = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
 
 export function Calendar() {
-  const { role, user } = useAuth();
-  const sendNotification = useSendNotification();
-  const { events, addEvent, updateEvent } = useCalendarStore();
-  const { data: fetchedEvents, isLoading } = useCalendarEvents();
-  const { updateEvent: updateEventMutate } = useUpdateCalendarEvent();
+  const { user } = useAuth()
+  const sendNotification = useSendNotification()
+  const { events, addEvent } = useCalendarStore()
+  const { data: fetchedEvents, isLoading } = useCalendarEvents()
+  const { updateEvent: updateEventMutate } = useUpdateCalendarEvent()
 
   // Use fetched events if available, otherwise use store events
-  const displayEvents = fetchedEvents || events;
+  const displayEvents = fetchedEvents || events
 
   // Default to March 2026 based on current time context
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 2, 1));
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(2026, 2, 4));
-  const [view, setView] = useState<"month" | "agenda">("month");
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 2, 1))
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(2026, 2, 4))
+  const [view, setView] = useState<'month' | 'agenda'>('month')
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
   const [newEvent, setNewEvent] = useState<Partial<CalendarEvent>>({
-    title: "",
-    type: "event",
-    priority: "medium",
-    time: "09:00",
-    endTime: "10:00",
+    title: '',
+    type: 'event',
+    priority: 'medium',
+    time: '09:00',
+    endTime: '10:00',
     duration: 60,
-    location: "",
-    description: ""
-  });
+    location: '',
+    description: '',
+  })
 
-  const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
-  const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+  const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate()
+  const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay()
 
-  const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-  const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  const prevMonth = () =>
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))
+  const nextMonth = () =>
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))
 
-  const daysInMonth = getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth());
-  const firstDay = getFirstDayOfMonth(currentDate.getFullYear(), currentDate.getMonth());
+  const daysInMonth = getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth())
+  const firstDay = getFirstDayOfMonth(currentDate.getFullYear(), currentDate.getMonth())
 
-  const blanks = Array.from({ length: firstDay }, (_, i) => i);
-  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const blanks = Array.from({ length: firstDay }, (_, i) => i)
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1)
 
   const getEventsForDate = (date: number, month: number, year: number) => {
     return displayEvents.filter(
-      (e) => e.date.getDate() === date && e.date.getMonth() === month && e.date.getFullYear() === year
-    );
-  };
+      (e) =>
+        e.date.getDate() === date && e.date.getMonth() === month && e.date.getFullYear() === year
+    )
+  }
 
   const selectedEvents = selectedDate
     ? getEventsForDate(selectedDate.getDate(), selectedDate.getMonth(), selectedDate.getFullYear())
-    : [];
+    : []
 
   const getEventColor = (type: string) => {
     switch (type) {
-      case "exam": return "bg-red-500 text-red-700 border-red-200";
-      case "assignment": return "bg-orange-500 text-orange-700 border-orange-200";
-      case "quiz": return "bg-blue-500 text-blue-700 border-blue-200";
-      case "event": return "bg-purple-500 text-purple-700 border-purple-200";
-      default: return "bg-slate-500 text-slate-700 border-slate-200";
+      case 'exam':
+        return 'bg-red-500 text-red-700 border-red-200'
+      case 'assignment':
+        return 'bg-orange-500 text-orange-700 border-orange-200'
+      case 'quiz':
+        return 'bg-blue-500 text-blue-700 border-blue-200'
+      case 'event':
+        return 'bg-purple-500 text-purple-700 border-purple-200'
+      default:
+        return 'bg-slate-500 text-slate-700 border-slate-200'
     }
-  };
+  }
 
   const getPriorityIcon = (priority?: string) => {
     switch (priority) {
-      case "high": return <AlertCircle className="w-4 h-4 text-red-500" />;
-      case "medium": return <AlertCircle className="w-4 h-4 text-orange-500" />;
-      case "low": return <AlertCircle className="w-4 h-4 text-blue-500" />;
-      default: return null;
+      case 'high':
+        return <AlertCircle className="w-4 h-4 text-red-500" />
+      case 'medium':
+        return <AlertCircle className="w-4 h-4 text-orange-500" />
+      case 'low':
+        return <AlertCircle className="w-4 h-4 text-blue-500" />
+      default:
+        return null
     }
-  };
+  }
 
   const toggleCompletion = (id: string) => {
-    const event = displayEvents.find(e => e.id === id);
+    const event = displayEvents.find((e) => e.id === id)
     if (event) {
-      updateEventMutate(id, { completed: !event.completed });
+      updateEventMutate(id, { completed: !event.completed })
     }
-  };
+  }
 
   if (isLoading) {
     return (
@@ -94,67 +126,74 @@ export function Calendar() {
         <SkeletonCard lines={1} />
         <SkeletonCard lines={6} />
       </div>
-    );
+    )
   }
 
   const handleAddEvent = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newEvent.title || !selectedDate) return;
+    e.preventDefault()
+    if (!newEvent.title || !selectedDate) return
 
     const eventToAdd: Omit<CalendarEvent, 'id'> = {
       title: newEvent.title,
       date: selectedDate,
-      time: newEvent.time || "00:00",
+      time: newEvent.time || '00:00',
       endDate: newEvent.endDate || selectedDate,
       endTime: newEvent.endTime,
       duration: newEvent.duration,
-      type: (newEvent.type as EventType) || "event",
-      location: newEvent.location || "",
-      description: newEvent.description || "",
-      priority: (newEvent.priority as Priority) || "medium",
-      completed: false
-    };
+      type: (newEvent.type as EventType) || 'event',
+      location: newEvent.location || '',
+      description: newEvent.description || '',
+      priority: (newEvent.priority as Priority) || 'medium',
+      completed: false,
+    }
 
-    addEvent(eventToAdd);
+    addEvent(eventToAdd)
 
     if (eventToAdd.type === 'exam') {
       sendNotification.mutate({
         userId: user!.id,
         type: 'exam',
         title: 'Ujian Baru Dijadwalkan',
-        message: `${eventToAdd.title} dijadwalkan pada ${eventToAdd.date.toLocaleDateString('id-ID')} pukul ${eventToAdd.time}`
-      });
+        message: `${eventToAdd.title} dijadwalkan pada ${eventToAdd.date.toLocaleDateString('id-ID')} pukul ${eventToAdd.time}`,
+      })
     }
 
-    setIsAddModalOpen(false);
-    setNewEvent({ title: "", type: "event", priority: "medium", time: "09:00", endTime: "10:00", duration: 60, location: "", description: "" });
-  };
+    setIsAddModalOpen(false)
+    setNewEvent({
+      title: '',
+      type: 'event',
+      priority: 'medium',
+      time: '09:00',
+      endTime: '10:00',
+      duration: 60,
+      location: '',
+      description: '',
+    })
+  }
 
   // Calculate countdown for upcoming events
   const getCountdown = (eventDate: Date) => {
-    const today = new Date(2026, 2, 4); // Mock today
-    const diffTime = eventDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const today = new Date(2026, 2, 4) // Mock today
+    const diffTime = eventDate.getTime() - today.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
-    if (diffDays === 0) return "Hari ini";
-    if (diffDays === 1) return "Besok";
-    if (diffDays > 1 && diffDays <= 7) return `H-${diffDays}`;
-    return null;
-  };
+    if (diffDays === 0) return 'Hari ini'
+    if (diffDays === 1) return 'Besok'
+    if (diffDays > 1 && diffDays <= 7) return `H-${diffDays}`
+    return null
+  }
 
   // Sort events for agenda view
   const allUpcomingEvents = [...events]
-    .filter(e => e.date.getTime() >= new Date(2026, 2, 4).getTime())
-    .sort((a, b) => a.date.getTime() - b.date.getTime());
+    .filter((e) => e.date.getTime() >= new Date(2026, 2, 4).getTime())
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-12">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-            Jadwal & Kalender
-          </h1>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Jadwal & Kalender</h1>
           <p className="text-slate-500 mt-2">
             Kelola tugas, ujian, dan acara penting Anda dalam satu tempat.
           </p>
@@ -162,20 +201,24 @@ export function Calendar() {
         <div className="flex items-center gap-3">
           <div className="flex bg-slate-100 p-1 rounded-xl">
             <button
-              onClick={() => setView("month")}
+              onClick={() => setView('month')}
               className={cn(
-                "px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all",
-                view === "month" ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                'px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all',
+                view === 'month'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
               )}
             >
               <Grid className="w-4 h-4" />
               Bulan
             </button>
             <button
-              onClick={() => setView("agenda")}
+              onClick={() => setView('agenda')}
               className={cn(
-                "px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all",
-                view === "agenda" ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                'px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all',
+                view === 'agenda'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
               )}
             >
               <List className="w-4 h-4" />
@@ -195,21 +238,29 @@ export function Calendar() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Main Content Area */}
         <div className="lg:col-span-8 space-y-6">
-
-          {view === "month" ? (
+          {view === 'month' ? (
             <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-slate-800">
-                  {currentDate.toLocaleString("id-ID", { month: "long", year: "numeric" })}
+                  {currentDate.toLocaleString('id-ID', { month: 'long', year: 'numeric' })}
                 </h2>
                 <div className="flex items-center gap-2">
-                  <button onClick={prevMonth} className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-600">
+                  <button
+                    onClick={prevMonth}
+                    className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-600"
+                  >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
-                  <button onClick={() => setCurrentDate(new Date(2026, 2, 1))} className="px-4 py-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-600 font-bold text-sm">
+                  <button
+                    onClick={() => setCurrentDate(new Date(2026, 2, 1))}
+                    className="px-4 py-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-600 font-bold text-sm"
+                  >
                     Hari Ini
                   </button>
-                  <button onClick={nextMonth} className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-600">
+                  <button
+                    onClick={nextMonth}
+                    className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-600"
+                  >
                     <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
@@ -217,7 +268,10 @@ export function Calendar() {
 
               <div className="grid grid-cols-7 gap-2 mb-2">
                 {daysOfWeek.map((day) => (
-                  <div key={day} className="text-center font-bold text-slate-400 text-sm py-2 uppercase tracking-wider">
+                  <div
+                    key={day}
+                    className="text-center font-bold text-slate-400 text-sm py-2 uppercase tracking-wider"
+                  >
                     {day}
                   </div>
                 ))}
@@ -225,28 +279,45 @@ export function Calendar() {
 
               <div className="grid grid-cols-7 gap-2">
                 {blanks.map((blank) => (
-                  <div key={`blank-${blank}`} className="aspect-square p-2 border border-transparent rounded-2xl bg-slate-50/50" />
+                  <div
+                    key={`blank-${blank}`}
+                    className="aspect-square p-2 border border-transparent rounded-2xl bg-slate-50/50"
+                  />
                 ))}
                 {days.map((day) => {
-                  const dateEvents = getEventsForDate(day, currentDate.getMonth(), currentDate.getFullYear());
-                  const isSelected = selectedDate?.getDate() === day && selectedDate?.getMonth() === currentDate.getMonth() && selectedDate?.getFullYear() === currentDate.getFullYear();
-                  const isToday = day === 4 && currentDate.getMonth() === 2 && currentDate.getFullYear() === 2026; // Mock today
+                  const dateEvents = getEventsForDate(
+                    day,
+                    currentDate.getMonth(),
+                    currentDate.getFullYear()
+                  )
+                  const isSelected =
+                    selectedDate?.getDate() === day &&
+                    selectedDate?.getMonth() === currentDate.getMonth() &&
+                    selectedDate?.getFullYear() === currentDate.getFullYear()
+                  const isToday =
+                    day === 4 && currentDate.getMonth() === 2 && currentDate.getFullYear() === 2026 // Mock today
 
                   return (
                     <button
                       key={day}
-                      onClick={() => setSelectedDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))}
+                      onClick={() =>
+                        setSelectedDate(
+                          new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
+                        )
+                      }
                       className={cn(
-                        "aspect-square p-2 border rounded-2xl flex flex-col items-center justify-start gap-1 transition-all relative group",
-                        isSelected ? "border-blue-500 bg-blue-50 shadow-sm" : "border-slate-100 hover:border-blue-200 hover:bg-slate-50",
-                        isToday && !isSelected && "border-blue-200 bg-blue-50/30"
+                        'aspect-square p-2 border rounded-2xl flex flex-col items-center justify-start gap-1 transition-all relative group',
+                        isSelected
+                          ? 'border-blue-500 bg-blue-50 shadow-sm'
+                          : 'border-slate-100 hover:border-blue-200 hover:bg-slate-50',
+                        isToday && !isSelected && 'border-blue-200 bg-blue-50/30'
                       )}
                     >
                       <span
                         className={cn(
-                          "text-sm font-bold w-8 h-8 flex items-center justify-center rounded-full mt-1",
-                          isSelected ? "bg-blue-600 text-white" : "text-slate-700",
-                          isToday && !isSelected && "text-blue-600 bg-blue-100"
+                          'text-sm font-bold w-8 h-8 flex items-center justify-center rounded-full mt-1',
+                          isSelected ? 'bg-blue-600 text-white' : 'text-slate-700',
+                          isToday && !isSelected && 'text-blue-600 bg-blue-100'
                         )}
                       >
                         {day}
@@ -256,8 +327,10 @@ export function Calendar() {
                           <div
                             key={i}
                             className={cn(
-                              "text-[10px] font-bold px-1.5 py-0.5 rounded truncate w-full text-left",
-                              e.completed ? "bg-slate-100 text-slate-400 line-through" : getEventColor(e.type).replace('border-', 'bg-opacity-20 ')
+                              'text-[10px] font-bold px-1.5 py-0.5 rounded truncate w-full text-left',
+                              e.completed
+                                ? 'bg-slate-100 text-slate-400 line-through'
+                                : getEventColor(e.type).replace('border-', 'bg-opacity-20 ')
                             )}
                           >
                             {e.title}
@@ -270,7 +343,7 @@ export function Calendar() {
                         )}
                       </div>
                     </button>
-                  );
+                  )
                 })}
               </div>
             </div>
@@ -279,7 +352,7 @@ export function Calendar() {
               <h2 className="text-xl font-bold text-slate-800 mb-6">Agenda Mendatang</h2>
               <div className="space-y-4">
                 {allUpcomingEvents.map((event, index) => {
-                  const countdown = getCountdown(event.date);
+                  const countdown = getCountdown(event.date)
                   return (
                     <motion.div
                       key={event.id}
@@ -287,20 +360,34 @@ export function Calendar() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
                       className={cn(
-                        "flex gap-4 p-4 rounded-2xl border transition-all",
-                        event.completed ? "bg-slate-50 border-slate-100 opacity-75" : "bg-white border-slate-200 hover:border-blue-300 hover:shadow-md"
+                        'flex gap-4 p-4 rounded-2xl border transition-all',
+                        event.completed
+                          ? 'bg-slate-50 border-slate-100 opacity-75'
+                          : 'bg-white border-slate-200 hover:border-blue-300 hover:shadow-md'
                       )}
                     >
                       <div className="flex flex-col items-center justify-center min-w-[60px] px-2 border-r border-slate-100">
-                        <span className="text-xs font-bold text-slate-400 uppercase">{daysOfWeek[event.date.getDay()]}</span>
-                        <span className="text-2xl font-black text-slate-800">{event.date.getDate()}</span>
-                        <span className="text-xs font-bold text-slate-500">{event.date.toLocaleString('id-ID', { month: 'short' })}</span>
+                        <span className="text-xs font-bold text-slate-400 uppercase">
+                          {daysOfWeek[event.date.getDay()]}
+                        </span>
+                        <span className="text-2xl font-black text-slate-800">
+                          {event.date.getDate()}
+                        </span>
+                        <span className="text-xs font-bold text-slate-500">
+                          {event.date.toLocaleString('id-ID', { month: 'short' })}
+                        </span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-4">
                           <div>
                             <div className="flex items-center gap-2 mb-1">
-                              <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider", getEventColor(event.type).split(' ')[0], "text-white")}>
+                              <span
+                                className={cn(
+                                  'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider',
+                                  getEventColor(event.type).split(' ')[0],
+                                  'text-white'
+                                )}
+                              >
                                 {event.type}
                               </span>
                               {countdown && !event.completed && (
@@ -311,7 +398,12 @@ export function Calendar() {
                               )}
                               {getPriorityIcon(event.priority)}
                             </div>
-                            <h4 className={cn("font-bold text-lg truncate", event.completed ? "text-slate-500 line-through" : "text-slate-900")}>
+                            <h4
+                              className={cn(
+                                'font-bold text-lg truncate',
+                                event.completed ? 'text-slate-500 line-through' : 'text-slate-900'
+                              )}
+                            >
                               {event.title}
                             </h4>
                           </div>
@@ -334,7 +426,11 @@ export function Calendar() {
                             {event.time} {event.endTime ? `- ${event.endTime}` : ''}
                           </div>
                           <div className="flex items-center gap-1.5">
-                            {event.location.includes("Zoom") ? <Video className="w-4 h-4 text-slate-400" /> : <MapPin className="w-4 h-4 text-slate-400" />}
+                            {event.location.includes('Zoom') ? (
+                              <Video className="w-4 h-4 text-slate-400" />
+                            ) : (
+                              <MapPin className="w-4 h-4 text-slate-400" />
+                            )}
                             <span className="truncate max-w-[150px]">{event.location}</span>
                           </div>
                           {event.hasAttachment && (
@@ -346,7 +442,7 @@ export function Calendar() {
                         </div>
                       </div>
                     </motion.div>
-                  );
+                  )
                 })}
               </div>
             </div>
@@ -361,12 +457,12 @@ export function Calendar() {
               <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                 <CalendarIcon className="w-5 h-5 text-blue-500" />
                 {selectedDate
-                  ? selectedDate.toLocaleDateString("id-ID", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                  })
-                  : "Pilih Tanggal"}
+                  ? selectedDate.toLocaleDateString('id-ID', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long',
+                    })
+                  : 'Pilih Tanggal'}
               </h3>
               {selectedDate && (
                 <button
@@ -382,7 +478,7 @@ export function Calendar() {
             <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
               {selectedEvents.length > 0 ? (
                 selectedEvents.map((event, index) => {
-                  const countdown = getCountdown(event.date);
+                  const countdown = getCountdown(event.date)
                   return (
                     <motion.div
                       key={event.id}
@@ -390,13 +486,21 @@ export function Calendar() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
                       className={cn(
-                        "bg-white p-5 rounded-2xl border shadow-sm transition-all",
-                        event.completed ? "border-slate-100 opacity-75" : "border-slate-200 hover:border-blue-300 hover:shadow-md"
+                        'bg-white p-5 rounded-2xl border shadow-sm transition-all',
+                        event.completed
+                          ? 'border-slate-100 opacity-75'
+                          : 'border-slate-200 hover:border-blue-300 hover:shadow-md'
                       )}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider", getEventColor(event.type).split(' ')[0], "text-white")}>
+                          <span
+                            className={cn(
+                              'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider',
+                              getEventColor(event.type).split(' ')[0],
+                              'text-white'
+                            )}
+                          >
                             {event.type}
                           </span>
                           {countdown && !event.completed && (
@@ -408,22 +512,37 @@ export function Calendar() {
                         </div>
                         {(event.type === 'assignment' || event.type === 'exam') && (
                           <button onClick={() => toggleCompletion(event.id)} className="shrink-0">
-                            {event.completed ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <Circle className="w-5 h-5 text-slate-300" />}
+                            {event.completed ? (
+                              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                            ) : (
+                              <Circle className="w-5 h-5 text-slate-300" />
+                            )}
                           </button>
                         )}
                       </div>
 
-                      <h4 className={cn("font-bold text-slate-900 leading-tight mb-3", event.completed && "line-through text-slate-500")}>
+                      <h4
+                        className={cn(
+                          'font-bold text-slate-900 leading-tight mb-3',
+                          event.completed && 'line-through text-slate-500'
+                        )}
+                      >
                         {event.title}
                       </h4>
 
                       <div className="space-y-2 text-sm text-slate-600 bg-slate-50 p-3 rounded-xl">
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4 text-slate-400" />
-                          <span className="font-medium">{event.time} {event.endTime ? `- ${event.endTime}` : ''}</span>
+                          <span className="font-medium">
+                            {event.time} {event.endTime ? `- ${event.endTime}` : ''}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          {event.location.includes("Zoom") ? <Video className="w-4 h-4 text-slate-400" /> : <MapPin className="w-4 h-4 text-slate-400" />}
+                          {event.location.includes('Zoom') ? (
+                            <Video className="w-4 h-4 text-slate-400" />
+                          ) : (
+                            <MapPin className="w-4 h-4 text-slate-400" />
+                          )}
                           <span className="font-medium">{event.location}</span>
                         </div>
                       </div>
@@ -443,7 +562,7 @@ export function Calendar() {
                         </div>
                       )}
                     </motion.div>
-                  );
+                  )
                 })
               ) : (
                 <div className="h-full flex flex-col items-center justify-center text-center text-slate-500 space-y-4">
@@ -524,8 +643,14 @@ export function Calendar() {
                       <label className="text-sm font-bold text-slate-700">Tanggal Berakhir</label>
                       <input
                         type="date"
-                        value={newEvent.endDate ? newEvent.endDate.toISOString().split('T')[0] : selectedDate?.toISOString().split('T')[0]}
-                        onChange={(e) => setNewEvent({ ...newEvent, endDate: new Date(e.target.value) })}
+                        value={
+                          newEvent.endDate
+                            ? newEvent.endDate.toISOString().split('T')[0]
+                            : selectedDate?.toISOString().split('T')[0]
+                        }
+                        onChange={(e) =>
+                          setNewEvent({ ...newEvent, endDate: new Date(e.target.value) })
+                        }
                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                       />
                     </div>
@@ -539,12 +664,16 @@ export function Calendar() {
                       />
                     </div>
                     <div className="space-y-1.5 col-span-2">
-                      <label className="text-sm font-bold text-slate-700">Durasi Pengerjaan (menit)</label>
+                      <label className="text-sm font-bold text-slate-700">
+                        Durasi Pengerjaan (menit)
+                      </label>
                       <input
                         type="number"
                         min="1"
                         value={newEvent.duration}
-                        onChange={(e) => setNewEvent({ ...newEvent, duration: parseInt(e.target.value) })}
+                        onChange={(e) =>
+                          setNewEvent({ ...newEvent, duration: parseInt(e.target.value) })
+                        }
                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                       />
                     </div>
@@ -556,7 +685,9 @@ export function Calendar() {
                     <label className="text-sm font-bold text-slate-700">Kategori</label>
                     <select
                       value={newEvent.type}
-                      onChange={(e) => setNewEvent({ ...newEvent, type: e.target.value as EventType })}
+                      onChange={(e) =>
+                        setNewEvent({ ...newEvent, type: e.target.value as EventType })
+                      }
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
                     >
                       <option value="event">Acara Umum</option>
@@ -569,7 +700,9 @@ export function Calendar() {
                     <label className="text-sm font-bold text-slate-700">Prioritas</label>
                     <select
                       value={newEvent.priority}
-                      onChange={(e) => setNewEvent({ ...newEvent, priority: e.target.value as Priority })}
+                      onChange={(e) =>
+                        setNewEvent({ ...newEvent, priority: e.target.value as Priority })
+                      }
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
                     >
                       <option value="low">Rendah</option>
@@ -622,5 +755,5 @@ export function Calendar() {
         )}
       </AnimatePresence>
     </div>
-  );
+  )
 }

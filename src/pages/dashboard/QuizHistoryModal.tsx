@@ -1,9 +1,9 @@
-import { AlertTriangle } from 'lucide-react';
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button, EmptyState } from '@/src/components/ui';
+import { AlertTriangle } from 'lucide-react'
+import { Modal, ModalHeader, ModalBody, ModalFooter, Button, EmptyState } from '@/src/components/ui'
 
 interface QuizHistoryModalProps {
-  open: boolean;
-  onClose: () => void;
+  open: boolean
+  onClose: () => void
 }
 
 export function QuizHistoryModal({ open, onClose }: QuizHistoryModalProps) {
@@ -21,5 +21,5 @@ export function QuizHistoryModal({ open, onClose }: QuizHistoryModalProps) {
         <Button onClick={onClose}>Tutup</Button>
       </ModalFooter>
     </Modal>
-  );
+  )
 }

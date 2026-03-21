@@ -1,11 +1,11 @@
-import { Loader2, Check, AlertCircle, WifiOff } from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
-import { cn } from '@/src/utils/cn';
+import { Loader2, Check, AlertCircle, WifiOff } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { cn } from '@/src/utils/cn'
 
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'offline';
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'offline'
 
 interface AutosaveIndicatorProps {
-  status: SaveStatus;
+  status: SaveStatus
 }
 
 const CONFIG = {
@@ -29,10 +29,13 @@ const CONFIG = {
     label: 'Offline — jawaban tersimpan lokal',
     icon: <WifiOff className="w-3.5 h-3.5" />,
   },
-} satisfies Record<Exclude<SaveStatus, 'idle'>, { wrapper: string; label: string; icon: React.ReactNode }>;
+} satisfies Record<
+  Exclude<SaveStatus, 'idle'>,
+  { wrapper: string; label: string; icon: React.ReactNode }
+>
 
 export function AutosaveIndicator({ status }: AutosaveIndicatorProps) {
-  const config = status !== 'idle' ? CONFIG[status] : null;
+  const config = status !== 'idle' ? CONFIG[status] : null
 
   return (
     <AnimatePresence mode="wait">
@@ -49,7 +52,7 @@ export function AutosaveIndicator({ status }: AutosaveIndicatorProps) {
             status === 'saved' && 'border-green-200 dark:border-green-700',
             status === 'error' && 'border-red-200 dark:border-red-700',
             status === 'offline' && 'border-amber-200 dark:border-amber-700',
-            config.wrapper,
+            config.wrapper
           )}
         >
           {config.icon}
@@ -57,5 +60,5 @@ export function AutosaveIndicator({ status }: AutosaveIndicatorProps) {
         </motion.div>
       )}
     </AnimatePresence>
-  );
+  )
 }

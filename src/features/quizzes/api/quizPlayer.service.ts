@@ -1,7 +1,7 @@
 // Quiz Player Service - Student-facing API
 // Extracted from quizService.ts for the Quiz Engine Refactor
 
-import { supabase } from '../../../lib/supabase';
+import { supabase } from '../../../lib/supabase'
 import type {
   StartQuizAttemptInput,
   SubmitAnswer,
@@ -11,7 +11,7 @@ import type {
   StudentQuizAssignment,
   QuizAttempt,
   QuestionType,
-} from '../types/quizzes.types';
+} from '../types/quizzes.types'
 
 // ============================================
 // Quiz Player Service
@@ -20,24 +20,28 @@ import type {
 /**
  * Start a new quiz attempt or recover an existing one
  */
-export async function startQuizAttempt(input: StartQuizAttemptInput): Promise<StartQuizAttemptResult> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Not authenticated');
+export async function startQuizAttempt(
+  input: StartQuizAttemptInput
+): Promise<StartQuizAttemptResult> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session) throw new Error('Not authenticated')
 
-  const quizId = typeof input === 'string' ? input : input.quizId;
-  const assignmentId = typeof input === 'string' ? null : (input.assignmentId ?? null);
+  const quizId = typeof input === 'string' ? input : input.quizId
+  const assignmentId = typeof input === 'string' ? null : (input.assignmentId ?? null)
 
   const { data, error } = await supabase.rpc('v1_start_quiz_attempt', {
     p_quiz_id: quizId,
     p_assignment_id: assignmentId,
-  });
+  })
 
   if (error) {
-    console.error('Error starting quiz:', error);
-    throw new Error(error.message || 'Failed to start quiz');
+    console.error('Error starting quiz:', error)
+    throw new Error(error.message || 'Failed to start quiz')
   }
 
-  return data as StartQuizAttemptResult;
+  return data as StartQuizAttemptResult
 }
 
 /**
@@ -48,73 +52,50 @@ export async function submitQuizAttempt(
   answers: SubmitAnswer[],
   version?: number
 ): Promise<QuizAttemptResult> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Not authenticated');
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session) throw new Error('Not authenticated')
 
-  const normalizedAnswers = normalizeFinalAnswers(answers);
+  const normalizedAnswers = normalizeFinalAnswers(answers)
 
   const { data, error } = await supabase.rpc('v1_submit_quiz_attempt', {
     p_attempt_id: attemptId,
     p_final_answers: normalizedAnswers,
     p_telemetry_data: version ? { client_version: version } : {},
-  });
+  })
 
   if (error) {
-    console.error('Error submitting quiz:', error);
-    throw new Error(error.message || 'Failed to submit quiz');
+    console.error('Error submitting quiz:', error)
+    throw new Error(error.message || 'Failed to submit quiz')
   }
 
-  const result = data as QuizAttemptResult;
+  const result = data as QuizAttemptResult
 
   // Award XP if passed (fire-and-forget, don't block submit on XP award)
   if (result.passed && session?.user) {
     awardQuizXp(attemptId, session.user.id, result.score).catch((xpError) => {
-      console.error('Failed to award quiz XP:', xpError);
-    });
+      console.error('Failed to award quiz XP:', xpError)
+    })
   }
 
-  return result;
-}
-
-/**
- * Save a single answer (for immediate save)
- */
-export async function saveQuizAnswer(
-  attemptId: string,
-  questionId: string,
-  answer: { selected_option_ids?: string[]; text_answer?: string; selected_option_id?: string }
-): Promise<boolean> {
-  let selectedOptionIds: string[] = [];
-  if (answer.selected_option_ids && answer.selected_option_ids.length > 0) {
-    selectedOptionIds = answer.selected_option_ids;
-  } else if (answer.selected_option_id) {
-    selectedOptionIds = [answer.selected_option_id];
-  }
-
-  const { error } = await supabase.rpc('v1_save_answer', {
-    p_attempt_id: attemptId,
-    p_question_id: questionId,
-    p_selected_option_ids: selectedOptionIds,
-    p_text_answer: answer.text_answer || null,
-  });
-
-  if (error) {
-    console.error('Error saving quiz answer:', error);
-    throw error;
-  }
-
-  return true;
+  return result
 }
 
 /**
  * Batch save multiple answers (for autosave)
  */
-export async function batchSaveAnswers(attemptId: string, answers: SubmitAnswer[]): Promise<boolean> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Not authenticated');
+export async function batchSaveAnswers(
+  attemptId: string,
+  answers: SubmitAnswer[]
+): Promise<boolean> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session) throw new Error('Not authenticated')
 
-  const answeredAt = new Date().toISOString();
-  
+  const _answeredAt = new Date().toISOString()
+
   const promises = answers.map((answer) =>
     supabase.rpc('v1_save_answer', {
       p_attempt_id: attemptId,
@@ -122,10 +103,10 @@ export async function batchSaveAnswers(attemptId: string, answers: SubmitAnswer[
       p_selected_option_ids: answer.selected_option_ids || [],
       p_text_answer: answer.text_answer || null,
     })
-  );
+  )
 
-  await Promise.all(promises);
-  return true;
+  await Promise.all(promises)
+  return true
 }
 
 /**
@@ -137,25 +118,26 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
     .from('quiz_attempts_v2')
     .select('question_manifest')
     .eq('id', attemptId)
-    .single();
+    .single()
 
-  if (attemptError) throw attemptError;
+  if (attemptError) throw attemptError
 
   // Get all existing answers for this attempt
   const { data: answers, error: answersError } = await supabase
     .from('quiz_attempt_questions_v2')
     .select('*')
-    .eq('attempt_id', attemptId);
+    .eq('attempt_id', attemptId)
 
-  if (answersError) throw answersError;
+  if (answersError) throw answersError
 
-  const manifest = attempt.question_manifest || [];
-  if (manifest.length === 0) return [];
+  const manifest = attempt.question_manifest || []
+  if (manifest.length === 0) return []
 
   // Fetch all questions in the manifest
   const { data: questions, error: questionError } = await supabase
     .from('quiz_questions')
-    .select(`
+    .select(
+      `
       id,
       text,
       explanation,
@@ -163,40 +145,43 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
       question_type,
       points,
       quiz_options ( id, text )
-    `)
-    .in('id', manifest);
+    `
+    )
+    .in('id', manifest)
 
-  if (questionError) throw questionError;
+  if (questionError) throw questionError
 
   // Build Maps for O(1) lookup instead of O(n) find() - fixes O(n²) performance
-  const questionsMap = new Map<string, typeof questions[0]>();
-  questions.forEach((q) => questionsMap.set(q.id, q));
+  const questionsMap = new Map<string, (typeof questions)[0]>()
+  questions.forEach((q) => questionsMap.set(q.id, q))
 
-  const answersMap = new Map<string, typeof answers[0]>();
-  answers.forEach((a) => answersMap.set(a.question_id, a));
+  const answersMap = new Map<string, (typeof answers)[0]>()
+  answers.forEach((a) => answersMap.set(a.question_id, a))
 
   // Map and normalize the data
   return manifest.map((questionId: string, index: number) => {
-    const question = questionsMap.get(questionId);
-    const answer = answersMap.get(questionId);
+    const question = questionsMap.get(questionId)
+    const answer = answersMap.get(questionId)
 
-    let selectedOptionIds: string[] = [];
-    let textAnswer: string | null = null;
+    let selectedOptionIds: string[] = []
+    let textAnswer: string | null = null
 
     if (answer?.student_answers) {
       if (Array.isArray(answer.student_answers)) {
-        selectedOptionIds = answer.student_answers as string[];
+        selectedOptionIds = answer.student_answers as string[]
       } else if (typeof answer.student_answers === 'string') {
-        textAnswer = answer.student_answers;
+        textAnswer = answer.student_answers
       }
     }
 
     // Normalize quiz_options for the UI
-    const normalizedOptions = (question?.quiz_options || []).map((option: any, optionIndex: number) => ({
-      id: option.id,
-      text: option.text,
-      order: option.order || optionIndex,
-    }));
+    const normalizedOptions = (question?.quiz_options || []).map(
+      (option: any, optionIndex: number) => ({
+        id: option.id,
+        text: option.text,
+        order: option.order || optionIndex,
+      })
+    )
 
     return {
       id: answer?.attempt_id ? `${answer.attempt_id}-${questionId}` : `${attemptId}-${questionId}`,
@@ -223,8 +208,8 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
         explanation: question?.explanation || null,
         options: normalizedOptions,
       },
-    } satisfies QuizAttemptQuestion;
-  });
+    } satisfies QuizAttemptQuestion
+  })
 }
 
 /**
@@ -239,10 +224,10 @@ export async function recordCheatingSignal(
     p_attempt_id: attemptId,
     p_signal_type: signalType,
     p_metadata: metadata,
-  });
+  })
 
   if (error) {
-    console.error('Error recording cheating signal:', error);
+    console.error('Error recording cheating signal:', error)
   }
 }
 
@@ -252,22 +237,26 @@ export async function recordCheatingSignal(
 export async function recordHeartbeat(attemptId: string): Promise<boolean> {
   const { data, error } = await supabase.rpc('record_quiz_heartbeat', {
     p_attempt_id: attemptId,
-  });
+  })
 
   if (error) {
-    console.error('Heartbeat error:', error);
-    return false;
+    console.error('Heartbeat error:', error)
+    return false
   }
 
-  return !!data;
+  return !!data
 }
 
 /**
  * Get all quiz assignments for the current student
  */
-export async function getStudentQuizAssignments(tenantId: string): Promise<StudentQuizAssignment[]> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Not authenticated');
+export async function getStudentQuizAssignments(
+  tenantId: string
+): Promise<StudentQuizAssignment[]> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session) throw new Error('Not authenticated')
 
   // Get student's enrolled classes
   const { data: enrollments, error: enrollmentError } = await supabase
@@ -275,17 +264,18 @@ export async function getStudentQuizAssignments(tenantId: string): Promise<Stude
     .select('class_id')
     .eq('student_id', session.user.id)
     .eq('tenant_id', tenantId)
-    .eq('status', 'ACTIVE');
+    .eq('status', 'ACTIVE')
 
-  if (enrollmentError) throw enrollmentError;
+  if (enrollmentError) throw enrollmentError
 
-  const classIds = (enrollments || []).map((item) => item.class_id).filter(Boolean);
-  if (classIds.length === 0) return [];
+  const classIds = (enrollments || []).map((item) => item.class_id).filter(Boolean)
+  if (classIds.length === 0) return []
 
   // Get quiz assignments for those classes
   const { data, error } = await supabase
     .from('quiz_assignments')
-    .select(`
+    .select(
+      `
       id,
       quiz_id,
       class_id,
@@ -310,17 +300,18 @@ export async function getStudentQuizAssignments(tenantId: string): Promise<Stude
         available_until,
         quiz_questions ( id )
       )
-    `)
+    `
+    )
     .eq('tenant_id', tenantId)
     .in('class_id', classIds)
     .eq('quizzes.status', 'published')
     .eq('status', 'active')
-    .order('available_from', { ascending: true });
+    .order('available_from', { ascending: true })
 
-  if (error) throw error;
+  if (error) throw error
 
   return (data || []).map((assignment: any) => {
-    const quiz = assignment.quizzes || {};
+    const quiz = assignment.quizzes || {}
     return {
       id: assignment.id,
       assignment_id: assignment.id,
@@ -329,7 +320,7 @@ export async function getStudentQuizAssignments(tenantId: string): Promise<Stude
       class_name: assignment.classes?.name || 'Kelas',
       title: quiz.title || 'Kuis',
       instructions: quiz.instructions || null,
-      mode: (quiz.mode || 'graded'),
+      mode: quiz.mode || 'graded',
       status: assignment.status,
       available_from: assignment.available_from ?? quiz.available_from ?? null,
       due_at: assignment.due_at ?? quiz.available_until ?? null,
@@ -340,27 +331,23 @@ export async function getStudentQuizAssignments(tenantId: string): Promise<Stude
       quiz_questions: quiz.quiz_questions || [],
       quizzes: quiz,
       classes: assignment.classes,
-    };
-  });
-}
-
-/**
- * Get all quizzes (alias for assignments)
- */
-export async function getAllQuizzes(tenantId: string) {
-  return getStudentQuizAssignments(tenantId);
+    }
+  })
 }
 
 /**
  * Get all attempts for the current user
  */
 export async function getUserAttempts(tenantId: string): Promise<QuizAttempt[]> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Not authenticated');
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session) throw new Error('Not authenticated')
 
   const { data, error } = await supabase
     .from('quiz_attempts_v2')
-    .select(`
+    .select(
+      `
       *,
       quizzes (
         title,
@@ -376,62 +363,14 @@ export async function getUserAttempts(tenantId: string): Promise<QuizAttempt[]> 
           name
         )
       )
-    `)
+    `
+    )
     .eq('student_id', session.user.id)
     .eq('tenant_id', tenantId)
-    .order('started_at', { ascending: false });
-
-  if (error) throw error;
-  return (data || []) as QuizAttempt[];
-}
-
-/**
- * Get active attempt for a quiz (for resume functionality)
- */
-export async function getActiveAttempt(
-  quizId: string,
-  tenantId: string,
-  assignmentId?: string | null
-): Promise<QuizAttempt | null> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Not authenticated');
-
-  let query = supabase
-    .from('quiz_attempts_v2')
-    .select(`
-      *,
-      quizzes (
-        title,
-        passing_score,
-        mode,
-        show_correct_answers
-      ),
-      quiz_assignments:assignment_id (
-        id,
-        class_id,
-        classes (
-          id,
-          name
-        )
-      )
-    `)
-    .eq('student_id', session.user.id)
-    .eq('tenant_id', tenantId)
-    .eq('status', 'IN_PROGRESS');
-
-  if (assignmentId) {
-    query = query.eq('assignment_id', assignmentId);
-  } else if (quizId !== 'all') {
-    query = query.eq('quiz_id', quizId).is('assignment_id', null);
-  }
-
-  const { data, error } = await query
     .order('started_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
 
-  if (error) throw error;
-  return data as QuizAttempt | null;
+  if (error) throw error
+  return (data || []) as QuizAttempt[]
 }
 
 // ============================================
@@ -447,18 +386,18 @@ export function getCurrentQuestionIndex(
   questions: QuizAttemptQuestion[],
   answers: Record<string, SubmitAnswer>
 ): number {
-  if (!questions || questions.length === 0) return 0;
-  
+  if (!questions || questions.length === 0) return 0
+
   // Find first unanswered question
   const unansweredIdx = questions.findIndex((q) => {
-    const answer = answers[q.question_id];
-    const hasSelectedAnswer = answer?.selected_option_ids && answer.selected_option_ids.length > 0;
-    const hasTextAnswer = answer?.text_answer && answer.text_answer.trim().length > 0;
-    return !hasSelectedAnswer && !hasTextAnswer;
-  });
-  
+    const answer = answers[q.question_id]
+    const hasSelectedAnswer = answer?.selected_option_ids && answer.selected_option_ids.length > 0
+    const hasTextAnswer = answer?.text_answer && answer.text_answer.trim().length > 0
+    return !hasSelectedAnswer && !hasTextAnswer
+  })
+
   // If all answered, return last question index, otherwise return first unanswered
-  return unansweredIdx === -1 ? questions.length - 1 : unansweredIdx;
+  return unansweredIdx === -1 ? questions.length - 1 : unansweredIdx
 }
 
 function normalizeFinalAnswers(answers: SubmitAnswer[]) {
@@ -467,30 +406,26 @@ function normalizeFinalAnswers(answers: SubmitAnswer[]) {
     student_answers:
       answer.text_answer && answer.text_answer.trim().length > 0
         ? answer.text_answer.trim()
-        : (answer.selected_option_ids || []),
-  }));
+        : answer.selected_option_ids || [],
+  }))
 }
 
 /**
  * Award XP for passing a quiz (fire-and-forget)
  * Called after successful quiz submission when student passes
  */
-async function awardQuizXp(
-  attemptId: string,
-  userId: string,
-  score: number
-): Promise<void> {
+async function awardQuizXp(attemptId: string, userId: string, score: number): Promise<void> {
   try {
     // Get attempt info to find quiz_id and tenant_id
     const { data: attempt, error: attemptError } = await supabase
       .from('quiz_attempts_v2')
       .select('quiz_id, tenant_id, student_id')
       .eq('id', attemptId)
-      .single();
+      .single()
 
     if (attemptError || !attempt) {
-      console.error('Failed to fetch attempt for XP award:', attemptError);
-      return;
+      console.error('Failed to fetch attempt for XP award:', attemptError)
+      return
     }
 
     // Get quiz info to find passing_score and lesson_id
@@ -498,15 +433,15 @@ async function awardQuizXp(
       .from('quizzes')
       .select('passing_score, lesson_id')
       .eq('id', attempt.quiz_id)
-      .single();
+      .single()
 
     if (quizError || !quiz) {
-      console.error('Failed to fetch quiz for XP award:', quizError);
-      return;
+      console.error('Failed to fetch quiz for XP award:', quizError)
+      return
     }
 
-    const passingScore = quiz.passing_score ?? 0;
-    const lessonId = quiz.lesson_id;
+    const passingScore = quiz.passing_score ?? 0
+    const lessonId = quiz.lesson_id
 
     // Only award XP if score meets passing threshold
     if (score >= passingScore && lessonId) {
@@ -517,11 +452,10 @@ async function awardQuizXp(
         p_score: score,
         p_passing_score: passingScore,
         p_tenant_id: attempt.tenant_id,
-      });
+      })
     }
   } catch (err) {
     // Log failure but don't throw - this is fire-and-forget
-    console.error('Error awarding quiz XP:', err);
+    console.error('Error awarding quiz XP:', err)
   }
 }
-

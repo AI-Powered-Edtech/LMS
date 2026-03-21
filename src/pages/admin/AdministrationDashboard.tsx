@@ -1,167 +1,212 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'
 import {
-  Building2, RefreshCw, CheckCircle, AlertTriangle,
-  Database, Server, Users, GraduationCap, FileText,
-  Settings, Activity, ToggleLeft, ToggleRight, LayoutGrid,
-  Loader2, AlertCircle
-} from 'lucide-react';
-import { cn } from '@/src/utils/cn';
+  Building2,
+  RefreshCw,
+  CheckCircle,
+  AlertTriangle,
+  Database,
+  Server,
+  Users,
+  GraduationCap,
+  FileText,
+  Settings,
+  Activity,
+  ToggleLeft,
+  ToggleRight,
+  LayoutGrid,
+  Loader2,
+  AlertCircle,
+} from 'lucide-react'
+import { cn } from '@/src/utils/cn'
 import {
   administrationService,
   TenantModuleConfig,
   SyncHistoryItem,
-  SyncResult
-} from '@/src/features/administration/api/administrationService';
+  SyncResult,
+} from '@/src/features/administration/api/administrationService'
 
 // Default sync status for initial state (will be replaced with real data)
 const defaultSyncStatus: SyncHistoryItem[] = [
-  { id: '1', type: 'Data Siswa', lastSync: new Date().toISOString(), status: 'success', records: 0 },
-  { id: '2', type: 'Data Guru & Staf', lastSync: new Date().toISOString(), status: 'success', records: 0 },
-  { id: '3', type: 'Data Kelas & Jadwal', lastSync: new Date().toISOString(), status: 'warning', records: 0 },
-  { id: '4', type: 'Nilai & Rapor', lastSync: new Date().toISOString(), status: 'success', records: 0 },
-  { id: '5', type: 'Keuangan & SPP', lastSync: new Date().toISOString(), status: 'success', records: 0 },
-];
+  {
+    id: '1',
+    type: 'Data Siswa',
+    lastSync: new Date().toISOString(),
+    status: 'success',
+    records: 0,
+  },
+  {
+    id: '2',
+    type: 'Data Guru & Staf',
+    lastSync: new Date().toISOString(),
+    status: 'success',
+    records: 0,
+  },
+  {
+    id: '3',
+    type: 'Data Kelas & Jadwal',
+    lastSync: new Date().toISOString(),
+    status: 'warning',
+    records: 0,
+  },
+  {
+    id: '4',
+    type: 'Nilai & Rapor',
+    lastSync: new Date().toISOString(),
+    status: 'success',
+    records: 0,
+  },
+  {
+    id: '5',
+    type: 'Keuangan & SPP',
+    lastSync: new Date().toISOString(),
+    status: 'success',
+    records: 0,
+  },
+]
 
 export function AdministrationDashboard() {
   // State for modules
-  const [modules, setModules] = useState<TenantModuleConfig[]>([]);
-  const [modulesLoading, setModulesLoading] = useState(true);
-  const [modulesError, setModulesError] = useState<string | null>(null);
+  const [modules, setModules] = useState<TenantModuleConfig[]>([])
+  const [modulesLoading, setModulesLoading] = useState(true)
+  const [modulesError, setModulesError] = useState<string | null>(null)
 
   // State for sync operations
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [syncMessage, setSyncMessage] = useState<{
+    type: 'success' | 'error' | 'info'
+    text: string
+  } | null>(null)
 
   // State for sync history
-  const [syncHistory, setSyncHistory] = useState<SyncHistoryItem[]>([]);
-  const [syncHistoryLoading, setSyncHistoryLoading] = useState(true);
+  const [syncHistory, setSyncHistory] = useState<SyncHistoryItem[]>([])
+  const [syncHistoryLoading, setSyncHistoryLoading] = useState(true)
 
   // Fetch modules on mount
   const fetchModules = useCallback(async () => {
     try {
-      setModulesLoading(true);
-      setModulesError(null);
+      setModulesLoading(true)
+      setModulesError(null)
 
-      const data = await administrationService.getTenantModules();
+      const data = await administrationService.getTenantModules()
 
       // If no data from database, use defaults
       if (data.length === 0) {
-        setModules(administrationService.getDefaultModules());
+        setModules(administrationService.getDefaultModules())
       } else {
-        setModules(data);
+        setModules(data)
       }
     } catch (error) {
-      console.error('Failed to fetch modules:', error);
-      setModulesError('Gagal memuat konfigurasi modul. Menggunakan default.');
+      console.error('Failed to fetch modules:', error)
+      setModulesError('Gagal memuat konfigurasi modul. Menggunakan default.')
       // Fallback to defaults on error
-      setModules(administrationService.getDefaultModules());
+      setModules(administrationService.getDefaultModules())
     } finally {
-      setModulesLoading(false);
+      setModulesLoading(false)
     }
-  }, []);
+  }, [])
 
   // Fetch sync history on mount
   const fetchSyncHistory = useCallback(async () => {
     try {
-      setSyncHistoryLoading(true);
-      const data = await administrationService.getSyncHistory();
+      setSyncHistoryLoading(true)
+      const data = await administrationService.getSyncHistory()
 
       if (data.length > 0) {
-        setSyncHistory(data);
+        setSyncHistory(data)
       } else {
         // Use default sync status when no history available
-        setSyncHistory(defaultSyncStatus);
+        setSyncHistory(defaultSyncStatus)
       }
     } catch (error) {
-      console.error('Failed to fetch sync history:', error);
+      console.error('Failed to fetch sync history:', error)
       // Use defaults on error
-      setSyncHistory(defaultSyncStatus);
+      setSyncHistory(defaultSyncStatus)
     } finally {
-      setSyncHistoryLoading(false);
+      setSyncHistoryLoading(false)
     }
-  }, []);
+  }, [])
 
   // Initial data fetch
   useEffect(() => {
-    fetchModules();
-    fetchSyncHistory();
-  }, [fetchModules, fetchSyncHistory]);
+    fetchModules()
+    fetchSyncHistory()
+  }, [fetchModules, fetchSyncHistory])
 
   // Toggle module handler
   const handleToggleModule = async (moduleId: string) => {
-    const module = modules.find(m => m.moduleId === moduleId);
-    if (!module) return;
+    const module = modules.find((m) => m.moduleId === moduleId)
+    if (!module) return
 
-    const newEnabledState = !module.isEnabled;
+    const newEnabledState = !module.isEnabled
 
     // Optimistic update
-    setModules(prev => prev.map(m =>
-      m.moduleId === moduleId ? { ...m, isEnabled: newEnabledState } : m
-    ));
+    setModules((prev) =>
+      prev.map((m) => (m.moduleId === moduleId ? { ...m, isEnabled: newEnabledState } : m))
+    )
 
     try {
-      await administrationService.toggleTenantModule(moduleId, newEnabledState);
+      await administrationService.toggleTenantModule(moduleId, newEnabledState)
     } catch (error) {
-      console.error('Failed to toggle module:', error);
+      console.error('Failed to toggle module:', error)
       // Revert on error
-      setModules(prev => prev.map(m =>
-        m.moduleId === moduleId ? { ...m, isEnabled: !newEnabledState } : m
-      ));
+      setModules((prev) =>
+        prev.map((m) => (m.moduleId === moduleId ? { ...m, isEnabled: !newEnabledState } : m))
+      )
     }
-  };
+  }
 
   // Sync handler
   const handleSync = async () => {
-    setIsSyncing(true);
-    setSyncMessage(null);
+    setIsSyncing(true)
+    setSyncMessage(null)
 
     try {
-      const result: SyncResult = await administrationService.syncExternalSystem();
+      const result: SyncResult = await administrationService.syncExternalSystem()
 
       if (result.status === 'not_available') {
         setSyncMessage({
           type: 'info',
-          text: result.message
-        });
+          text: result.message,
+        })
       } else if (result.status === 'success') {
         setSyncMessage({
           type: 'success',
-          text: `Sinkronisasi berhasil! ${result.recordsSynced || 0} data diperbarui.`
-        });
+          text: `Sinkronisasi berhasil! ${result.recordsSynced || 0} data diperbarui.`,
+        })
         // Refresh sync history
-        fetchSyncHistory();
+        fetchSyncHistory()
       } else {
         setSyncMessage({
           type: 'error',
-          text: result.errorMessage || 'Sinkronisasi gagal. Silakan coba lagi.'
-        });
+          text: result.errorMessage || 'Sinkronisasi gagal. Silakan coba lagi.',
+        })
       }
     } catch (error) {
-      console.error('Sync failed:', error);
+      console.error('Sync failed:', error)
       setSyncMessage({
         type: 'error',
-        text: 'Terjadi kesalahan saat sinkronisasi. Silakan coba lagi.'
-      });
+        text: 'Terjadi kesalahan saat sinkronisasi. Silakan coba lagi.',
+      })
     } finally {
-      setIsSyncing(false);
+      setIsSyncing(false)
     }
-  };
+  }
 
   // Format relative time
   const formatRelativeTime = (dateString: string): string => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
 
-    if (diffMins < 1) return 'Baru saja';
-    if (diffMins < 60) return `${diffMins} menit yang lalu`;
-    if (diffHours < 24) return `${diffHours} jam yang lalu`;
-    if (diffDays === 1) return 'Kemarin';
-    return `${diffDays} hari yang lalu`;
-  };
+    if (diffMins < 1) return 'Baru saja'
+    if (diffMins < 60) return `${diffMins} menit yang lalu`
+    if (diffHours < 24) return `${diffHours} jam yang lalu`
+    if (diffDays === 1) return 'Kemarin'
+    return `${diffDays} hari yang lalu`
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
@@ -187,7 +232,7 @@ export function AdministrationDashboard() {
             disabled={isSyncing}
             className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl flex items-center gap-2 hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
           >
-            <RefreshCw className={cn("w-4 h-4", isSyncing && "animate-spin")} />
+            <RefreshCw className={cn('w-4 h-4', isSyncing && 'animate-spin')} />
             {isSyncing ? 'Menyinkronkan...' : 'Sinkronisasi Data'}
           </button>
         </div>
@@ -195,12 +240,14 @@ export function AdministrationDashboard() {
 
       {/* Sync Message Toast */}
       {syncMessage && (
-        <div className={cn(
-          "p-4 rounded-xl border flex items-center gap-3",
-          syncMessage.type === 'success' && "bg-green-50 text-green-700 border-green-200",
-          syncMessage.type === 'error' && "bg-red-50 text-red-700 border-red-200",
-          syncMessage.type === 'info' && "bg-blue-50 text-blue-700 border-blue-200"
-        )}>
+        <div
+          className={cn(
+            'p-4 rounded-xl border flex items-center gap-3',
+            syncMessage.type === 'success' && 'bg-green-50 text-green-700 border-green-200',
+            syncMessage.type === 'error' && 'bg-red-50 text-red-700 border-red-200',
+            syncMessage.type === 'info' && 'bg-blue-50 text-blue-700 border-blue-200'
+          )}
+        >
           {syncMessage.type === 'success' && <CheckCircle className="w-5 h-5" />}
           {syncMessage.type === 'error' && <AlertCircle className="w-5 h-5" />}
           {syncMessage.type === 'info' && <Activity className="w-5 h-5" />}
@@ -217,7 +264,9 @@ export function AdministrationDashboard() {
             </div>
             <div>
               <h3 className="text-lg font-bold text-slate-900">Konfigurasi Modul & Fitur</h3>
-              <p className="text-sm text-slate-500">Aktifkan atau nonaktifkan fitur sesuai kebutuhan sekolah.</p>
+              <p className="text-sm text-slate-500">
+                Aktifkan atau nonaktifkan fitur sesuai kebutuhan sekolah.
+              </p>
             </div>
           </div>
 
@@ -238,13 +287,19 @@ export function AdministrationDashboard() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {modules.map((module) => (
-                <div key={module.moduleId} className="flex items-start justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <div
+                  key={module.moduleId}
+                  className="flex items-start justify-between p-4 bg-slate-50 rounded-xl border border-slate-200"
+                >
                   <div className="flex-1 pr-4">
                     <h4 className="font-bold text-slate-900 text-sm mb-1">{module.name}</h4>
                     <p className="text-xs text-slate-500 mb-2">{module.description}</p>
                     <div className="flex gap-1 flex-wrap">
-                      {module.targetRoles.map(role => (
-                        <span key={role} className="text-[10px] uppercase font-bold px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded">
+                      {module.targetRoles.map((role) => (
+                        <span
+                          key={role}
+                          className="text-[10px] uppercase font-bold px-1.5 py-0.5 bg-slate-200 text-slate-600 rounded"
+                        >
                           {role === 'teacher' ? 'Guru' : 'Siswa'}
                         </span>
                       ))}
@@ -253,8 +308,8 @@ export function AdministrationDashboard() {
                   <button
                     onClick={() => handleToggleModule(module.moduleId)}
                     className={cn(
-                      "shrink-0 transition-colors",
-                      module.isEnabled ? "text-blue-600" : "text-slate-400"
+                      'shrink-0 transition-colors',
+                      module.isEnabled ? 'text-blue-600' : 'text-slate-400'
                     )}
                   >
                     {module.isEnabled ? (
@@ -296,21 +351,29 @@ export function AdministrationDashboard() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Token API</p>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                Token API
+              </p>
               <p className="font-mono text-slate-900 truncate">••••••••••••••••</p>
             </div>
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Terakhir Sinkronisasi</p>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                Terakhir Sinkronisasi
+              </p>
               <p className="font-medium text-slate-900">
                 {syncHistory.length > 0 ? formatRelativeTime(syncHistory[0].lastSync) : '-'}
               </p>
             </div>
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Versi Aplikasi</p>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                Versi Aplikasi
+              </p>
               <p className="font-medium text-slate-900">v2.4.0 (Build 20260301)</p>
             </div>
             <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Server Status</p>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                Server Status
+              </p>
               <p className="font-medium text-green-600 flex items-center gap-2">
                 <Server className="w-4 h-4" /> Operational (99.9% Uptime)
               </p>
@@ -370,25 +433,44 @@ export function AdministrationDashboard() {
                 {syncHistory.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/50">
                     <td className="px-6 py-4 font-bold text-slate-900 flex items-center gap-2">
-                      {item.type === 'Data Siswa' ? <GraduationCap className="w-4 h-4 text-blue-500" /> :
-                        item.type === 'Data Guru & Staf' ? <Users className="w-4 h-4 text-purple-500" /> :
-                          <Database className="w-4 h-4 text-slate-500" />}
+                      {item.type === 'Data Siswa' ? (
+                        <GraduationCap className="w-4 h-4 text-blue-500" />
+                      ) : item.type === 'Data Guru & Staf' ? (
+                        <Users className="w-4 h-4 text-purple-500" />
+                      ) : (
+                        <Database className="w-4 h-4 text-slate-500" />
+                      )}
                       {item.type}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={cn(
-                        "px-2.5 py-1 rounded-full text-xs font-bold border flex items-center w-fit gap-1",
-                        item.status === 'success' ? "bg-green-50 text-green-700 border-green-200" :
-                          item.status === 'warning' ? "bg-yellow-50 text-yellow-700 border-yellow-200" :
-                            "bg-red-50 text-red-700 border-red-200"
-                      )}>
-                        {item.status === 'success' ? <CheckCircle className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
-                        {item.status === 'success' ? 'Berhasil' :
-                          item.status === 'warning' ? 'Peringatan' : 'Gagal'}
+                      <span
+                        className={cn(
+                          'px-2.5 py-1 rounded-full text-xs font-bold border flex items-center w-fit gap-1',
+                          item.status === 'success'
+                            ? 'bg-green-50 text-green-700 border-green-200'
+                            : item.status === 'warning'
+                              ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                              : 'bg-red-50 text-red-700 border-red-200'
+                        )}
+                      >
+                        {item.status === 'success' ? (
+                          <CheckCircle className="w-3 h-3" />
+                        ) : (
+                          <AlertTriangle className="w-3 h-3" />
+                        )}
+                        {item.status === 'success'
+                          ? 'Berhasil'
+                          : item.status === 'warning'
+                            ? 'Peringatan'
+                            : 'Gagal'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-600">{formatRelativeTime(item.lastSync)}</td>
-                    <td className="px-6 py-4 font-mono text-slate-600">{item.records > 0 ? item.records.toLocaleString() : '-'}</td>
+                    <td className="px-6 py-4 text-slate-600">
+                      {formatRelativeTime(item.lastSync)}
+                    </td>
+                    <td className="px-6 py-4 font-mono text-slate-600">
+                      {item.records > 0 ? item.records.toLocaleString() : '-'}
+                    </td>
                     <td className="px-6 py-4">
                       <button
                         onClick={handleSync}
@@ -414,5 +496,5 @@ export function AdministrationDashboard() {
         )}
       </div>
     </div>
-  );
+  )
 }

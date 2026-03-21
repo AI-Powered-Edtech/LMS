@@ -1,53 +1,53 @@
-import { useState, useEffect } from 'react';
-import { X, RotateCcw } from 'lucide-react';
+import { useState, useEffect } from 'react'
+import { X, RotateCcw } from 'lucide-react'
 
 interface ImageBlockViewerProps {
-  url: string;
-  alt: string;
+  url: string
+  alt: string
 }
 
 export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const [isZoomed, setIsZoomed] = useState(false);
+  const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
+  const [isZoomed, setIsZoomed] = useState(false)
 
   const handleLoad = () => {
-    setIsLoading(false);
-    setHasError(false);
-  };
+    setIsLoading(false)
+    setHasError(false)
+  }
 
   const handleError = () => {
-    setIsLoading(false);
-    setHasError(true);
-  };
+    setIsLoading(false)
+    setHasError(true)
+  }
 
   const handleRetry = () => {
-    setIsLoading(true);
-    setHasError(false);
+    setIsLoading(true)
+    setHasError(false)
     // Force reload by adding a cache-busting query param
-    const img = new Image();
-    img.src = `${url}${url.includes('?') ? '&' : '?'}_t=${Date.now()}`;
-  };
+    const img = new Image()
+    img.src = `${url}${url.includes('?') ? '&' : '?'}_t=${Date.now()}`
+  }
 
   // Handle escape key for lightbox
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isZoomed) {
-        setIsZoomed(false);
+        setIsZoomed(false)
       }
-    };
+    }
 
     if (isZoomed) {
-      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('keydown', handleKeyDown)
       // Prevent body scroll when zoomed
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden'
     }
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
-    };
-  }, [isZoomed]);
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [isZoomed])
 
   if (hasError) {
     return (
@@ -61,16 +61,14 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
           Coba Lagi
         </button>
       </div>
-    );
+    )
   }
 
   return (
     <>
       <div className="relative">
-        {isLoading && (
-          <div className="animate-pulse bg-slate-200 rounded-xl w-full h-[300px]" />
-        )}
-        
+        {isLoading && <div className="animate-pulse bg-slate-200 rounded-xl w-full h-[300px]" />}
+
         <img
           src={url}
           alt={alt}
@@ -84,7 +82,7 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
             hover:opacity-90
           `}
         />
-        
+
         {alt && !isLoading && !hasError && (
           <p className="mt-2 text-sm text-slate-500 text-center">{alt}</p>
         )}
@@ -92,7 +90,7 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
 
       {/* Full-screen lightbox overlay */}
       {isZoomed && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
           onClick={() => setIsZoomed(false)}
         >
@@ -102,14 +100,14 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
           >
             <X className="w-6 h-6" />
           </button>
-          
+
           <img
             src={url}
             alt={alt}
             className="max-w-[90vw] max-h-[90vh] object-contain"
             onClick={(e) => e.stopPropagation()}
           />
-          
+
           {alt && (
             <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-sm text-white/80 text-center">
               {alt}
@@ -118,5 +116,5 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
         </div>
       )}
     </>
-  );
+  )
 }

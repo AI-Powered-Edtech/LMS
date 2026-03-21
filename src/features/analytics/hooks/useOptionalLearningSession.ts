@@ -1,16 +1,16 @@
-import { useContext } from 'react';
-import { LearningSessionContext } from '../context/LearningSessionContext';
-import type { LearningEventType, EventMetadata } from '../types/events.types';
+import { useContext } from 'react'
+import { LearningSessionContext } from '../context/LearningSessionContext'
+import type { LearningEventType, EventMetadata } from '../types/events.types'
 
 interface LearningSessionValue {
-  sessionId: string;
-  trackEvent: (eventType: LearningEventType, metadata?: EventMetadata) => void;
+  sessionId: string
+  trackEvent: (eventType: LearningEventType, metadata?: EventMetadata) => void
 }
 
 const NOOP_SESSION: LearningSessionValue = {
   sessionId: '',
   trackEvent: () => {},
-};
+}
 
 /**
  * Safe version of useLearningSession that returns a noop when
@@ -20,6 +20,6 @@ const NOOP_SESSION: LearningSessionValue = {
  * (e.g. MultiBlockViewer, VideoBlock, QuizViewer).
  */
 export function useOptionalLearningSession(): LearningSessionValue {
-  const ctx = useContext(LearningSessionContext);
-  return ctx ?? NOOP_SESSION;
+  const ctx = useContext(LearningSessionContext)
+  return ctx ?? NOOP_SESSION
 }

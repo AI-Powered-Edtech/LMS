@@ -1,9 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { recommendationService } from '../api/recommendationService';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { recommendationService } from '../api/recommendationService'
 
-export const RECOMMENDATION_KEYS = {
+const RECOMMENDATION_KEYS = {
   user: (userId: string) => ['recommendations', userId] as const,
-};
+}
 
 export function useRecommendations(userId: string, limit = 5) {
   return useQuery({
@@ -11,16 +11,16 @@ export function useRecommendations(userId: string, limit = 5) {
     queryFn: () => recommendationService.getRecommendations(userId, limit),
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
-  });
+  })
 }
 
 export function useRecordRecommendationAction() {
-  const qc = useQueryClient();
+  const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, action }: { id: string; action: 'accepted' | 'dismissed' }) =>
       recommendationService.recordAction(id, action),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['recommendations'] });
+      qc.invalidateQueries({ queryKey: ['recommendations'] })
     },
-  });
+  })
 }

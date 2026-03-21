@@ -1,22 +1,22 @@
-import { useState, useEffect } from 'react';
-import { WifiOff } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useState, useEffect } from 'react'
+import { WifiOff } from 'lucide-react'
+import { motion, AnimatePresence } from 'motion/react'
 
 export function OfflineIndicator() {
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine)
 
   useEffect(() => {
-    const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
+    const handleOnline = () => setIsOffline(false)
+    const handleOffline = () => setIsOffline(true)
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
 
   return (
     <AnimatePresence>
@@ -33,11 +33,13 @@ export function OfflineIndicator() {
             </div>
             <div>
               <span className="font-bold">Anda sedang offline.</span>
-              <span className="font-medium text-slate-300 hidden sm:inline ml-1">Progress disimpan secara lokal.</span>
+              <span className="font-medium text-slate-300 hidden sm:inline ml-1">
+                Progress disimpan secara lokal.
+              </span>
             </div>
           </div>
         </motion.div>
       )}
     </AnimatePresence>
-  );
+  )
 }

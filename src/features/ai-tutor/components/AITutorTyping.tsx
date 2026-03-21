@@ -1,17 +1,17 @@
 /**
  * AI Tutor Typing Indicator
- * 
+ *
  * Animated loading indicator shown while AI is generating a response.
  */
 
-import { motion } from "motion/react";
-import { Sparkles } from "lucide-react";
+import { motion } from 'motion/react'
+import { Sparkles } from 'lucide-react'
 
 interface AITutorTypingProps {
-  message?: string;
+  message?: string
 }
 
-export function AITutorTyping({ message = "AI sedang berpikir..." }: AITutorTypingProps) {
+export function AITutorTyping({ message = 'AI sedang berpikir...' }: AITutorTypingProps) {
   return (
     <div className="flex items-start gap-3 p-4">
       {/* Avatar */}
@@ -29,7 +29,7 @@ export function AITutorTyping({ message = "AI sedang berpikir..." }: AITutorTypi
               duration: 0.6,
               repeat: Infinity,
               delay: 0,
-              ease: "easeInOut",
+              ease: 'easeInOut',
             }}
           />
           <motion.div
@@ -39,7 +39,7 @@ export function AITutorTyping({ message = "AI sedang berpikir..." }: AITutorTypi
               duration: 0.6,
               repeat: Infinity,
               delay: 0.15,
-              ease: "easeInOut",
+              ease: 'easeInOut',
             }}
           />
           <motion.div
@@ -49,16 +49,14 @@ export function AITutorTyping({ message = "AI sedang berpikir..." }: AITutorTypi
               duration: 0.6,
               repeat: Infinity,
               delay: 0.3,
-              ease: "easeInOut",
+              ease: 'easeInOut',
             }}
           />
         </div>
       </div>
 
       {/* Optional message */}
-      {message && (
-        <span className="text-xs text-slate-400 mt-1">{message}</span>
-      )}
+      {message && <span className="text-xs text-slate-400 mt-1">{message}</span>}
     </div>
-  );
+  )
 }

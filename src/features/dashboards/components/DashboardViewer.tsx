@@ -1,9 +1,9 @@
-import type { DashboardConfig } from '../types';
-import { WidgetRenderer } from './WidgetRenderer';
+import type { DashboardConfig } from '../types'
+import { WidgetRenderer } from './WidgetRenderer'
 
 interface DashboardViewerProps {
-  dashboard: DashboardConfig;
-  courseId?: string;
+  dashboard: DashboardConfig
+  courseId?: string
 }
 
 export function DashboardViewer({ dashboard, courseId }: DashboardViewerProps) {
@@ -12,7 +12,7 @@ export function DashboardViewer({ dashboard, courseId }: DashboardViewerProps) {
       <div className="flex items-center justify-center p-16 text-slate-400 text-sm">
         Dashboard ini belum memiliki widget.
       </div>
-    );
+    )
   }
 
   return (
@@ -39,5 +39,5 @@ export function DashboardViewer({ dashboard, courseId }: DashboardViewerProps) {
         ))}
       </div>
     </div>
-  );
+  )
 }

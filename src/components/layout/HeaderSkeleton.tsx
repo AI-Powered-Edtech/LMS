@@ -1,9 +1,9 @@
-import { useTheme } from "@/src/contexts/ThemeContext";
+import { useTheme } from '@/src/contexts/ThemeContext'
 
 export function HeaderSkeleton() {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-  const pulse = isDark ? 'bg-slate-700' : 'bg-slate-200';
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+  const pulse = isDark ? 'bg-slate-700' : 'bg-slate-200'
 
   return (
     <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4 md:px-8">
@@ -21,12 +21,21 @@ export function HeaderSkeleton() {
         {/* Streak skeleton */}
         <div className={`w-12 h-6 rounded-lg animate-pulse ${pulse}`} />
         {/* XP skeleton */}
-        <div className={`w-16 h-6 rounded-lg animate-pulse ${pulse}`} style={{ animationDelay: '100ms' }} />
+        <div
+          className={`w-16 h-6 rounded-lg animate-pulse ${pulse}`}
+          style={{ animationDelay: '100ms' }}
+        />
         {/* Notification bell skeleton */}
-        <div className={`w-9 h-9 rounded-full animate-pulse ${pulse}`} style={{ animationDelay: '200ms' }} />
+        <div
+          className={`w-9 h-9 rounded-full animate-pulse ${pulse}`}
+          style={{ animationDelay: '200ms' }}
+        />
         {/* Avatar skeleton */}
-        <div className={`w-9 h-9 rounded-full animate-pulse ${pulse}`} style={{ animationDelay: '300ms' }} />
+        <div
+          className={`w-9 h-9 rounded-full animate-pulse ${pulse}`}
+          style={{ animationDelay: '300ms' }}
+        />
       </div>
     </header>
-  );
+  )
 }

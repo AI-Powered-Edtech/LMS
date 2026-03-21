@@ -1,33 +1,33 @@
-import { useState } from 'react';
-import { ArrowLeft, LayoutDashboard } from 'lucide-react';
-import { DashboardBuilder, DashboardList, DashboardViewer } from '@/src/features/dashboards';
-import type { DashboardConfig } from '@/src/features/dashboards';
+import { useState } from 'react'
+import { ArrowLeft, LayoutDashboard } from 'lucide-react'
+import { DashboardBuilder, DashboardList, DashboardViewer } from '@/src/features/dashboards'
+import type { DashboardConfig } from '@/src/features/dashboards'
 
-type View = 'list' | 'create' | 'edit' | 'view';
+type View = 'list' | 'create' | 'edit' | 'view'
 
 export function Dashboards() {
-  const [view, setView] = useState<View>('list');
-  const [selectedDashboard, setSelectedDashboard] = useState<DashboardConfig | null>(null);
+  const [view, setView] = useState<View>('list')
+  const [selectedDashboard, setSelectedDashboard] = useState<DashboardConfig | null>(null)
 
   const handleCreate = () => {
-    setSelectedDashboard(null);
-    setView('create');
-  };
+    setSelectedDashboard(null)
+    setView('create')
+  }
 
   const handleEdit = (dashboard: DashboardConfig) => {
-    setSelectedDashboard(dashboard);
-    setView('edit');
-  };
+    setSelectedDashboard(dashboard)
+    setView('edit')
+  }
 
   const handleView = (dashboard: DashboardConfig) => {
-    setSelectedDashboard(dashboard);
-    setView('view');
-  };
+    setSelectedDashboard(dashboard)
+    setView('view')
+  }
 
   const handleBack = () => {
-    setView('list');
-    setSelectedDashboard(null);
-  };
+    setView('list')
+    setSelectedDashboard(null)
+  }
 
   return (
     <div className="flex flex-col flex-1 w-full h-full overflow-y-auto custom-scrollbar scroll-smooth bg-slate-50/50 dark:bg-slate-950 p-4 md:p-8">
@@ -61,11 +61,7 @@ export function Dashboards() {
 
         {/* Content */}
         {view === 'list' && (
-          <DashboardList
-            onCreate={handleCreate}
-            onEdit={handleEdit}
-            onView={handleView}
-          />
+          <DashboardList onCreate={handleCreate} onEdit={handleEdit} onView={handleView} />
         )}
 
         {(view === 'create' || view === 'edit') && (
@@ -90,5 +86,5 @@ export function Dashboards() {
         )}
       </div>
     </div>
-  );
+  )
 }

@@ -1,9 +1,9 @@
-import { cn } from '@/src/utils/cn';
+import { cn } from '@/src/utils/cn'
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: 'info' | 'success' | 'warning' | 'danger' | 'neutral';
-  size?: 'sm' | 'md';
-  icon?: React.ReactNode;
+  variant?: 'info' | 'success' | 'warning' | 'danger' | 'neutral'
+  size?: 'sm' | 'md'
+  icon?: React.ReactNode
 }
 
 const variants = {
@@ -12,12 +12,12 @@ const variants = {
   warning: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
   danger: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
   neutral: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
-} as const;
+} as const
 
 const sizes = {
   sm: 'text-xs px-2 py-0.5 gap-1',
   md: 'text-sm px-2.5 py-1 gap-1.5',
-} as const;
+} as const
 
 export function Badge({
   variant = 'neutral',
@@ -40,5 +40,5 @@ export function Badge({
       {icon}
       {children}
     </span>
-  );
+  )
 }

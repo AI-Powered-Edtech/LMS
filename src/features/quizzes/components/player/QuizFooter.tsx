@@ -1,12 +1,12 @@
-import { ArrowLeft, ArrowRight, CheckSquare } from 'lucide-react';
-import { cn } from '@/src/utils/cn';
+import { ArrowLeft, ArrowRight, CheckSquare } from 'lucide-react'
+import { cn } from '@/src/utils/cn'
 
 interface QuizFooterProps {
-  currentQuestionIdx: number;
-  isLastQuestion: boolean;
-  onPrevious: () => void;
-  onNext: () => void;
-  onFinish: () => void;
+  currentQuestionIdx: number
+  isLastQuestion: boolean
+  onPrevious: () => void
+  onNext: () => void
+  onFinish: () => void
 }
 
 export function QuizFooter({
@@ -16,7 +16,7 @@ export function QuizFooter({
   onNext,
   onFinish,
 }: QuizFooterProps) {
-  const isFirst = currentQuestionIdx === 0;
+  const isFirst = currentQuestionIdx === 0
 
   return (
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4 pb-6">
@@ -36,7 +36,7 @@ export function QuizFooter({
                 'hover:bg-slate-50 dark:hover:bg-slate-700',
                 'hover:border-slate-300 dark:hover:border-slate-500',
                 'shadow-sm',
-              ],
+              ]
         )}
       >
         <ArrowLeft className="w-4 h-4" />
@@ -53,7 +53,7 @@ export function QuizFooter({
             'hover:from-blue-700 hover:to-indigo-700',
             'shadow-md shadow-blue-200 dark:shadow-blue-900/40',
             'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
-            'dark:shadow-blue-900/30',
+            'dark:shadow-blue-900/30'
           )}
         >
           <CheckSquare className="w-4 h-4" />
@@ -68,7 +68,7 @@ export function QuizFooter({
             'hover:from-blue-700 hover:to-indigo-700',
             'shadow-md shadow-blue-200 dark:shadow-blue-900/40',
             'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
-            'dark:shadow-blue-900/30',
+            'dark:shadow-blue-900/30'
           )}
         >
           Selanjutnya
@@ -76,5 +76,5 @@ export function QuizFooter({
         </button>
       )}
     </div>
-  );
+  )
 }

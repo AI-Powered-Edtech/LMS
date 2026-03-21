@@ -1,17 +1,17 @@
-import { Award, Download, Calendar } from 'lucide-react';
-import { cn } from '@/src/utils/cn';
-import { useStudentCertificates } from '../queries/gamificationQueries';
-import { useAuth } from '@/src/contexts/AuthContext';
-import { SkeletonCard, EmptyState } from '@/src/components/ui';
-import type { Certificate } from '../types';
+import { Award, Download, Calendar } from 'lucide-react'
+import { cn } from '@/src/utils/cn'
+import { useStudentCertificates } from '../queries/gamificationQueries'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { SkeletonCard, EmptyState } from '@/src/components/ui'
+import type { Certificate } from '../types'
 
 function CertificateCard({ cert }: { cert: Certificate }) {
-    const { activeTenant, profile } = useAuth();
+  const { activeTenant, profile } = useAuth()
 
-    const handlePrint = () => {
-        const w = window.open('', '_blank');
-        if (!w) return;
-        w.document.write(`
+  const handlePrint = () => {
+    const w = window.open('', '_blank')
+    if (!w) return
+    w.document.write(`
             <!DOCTYPE html>
             <html><head><title>Sertifikat - ${cert.certificate_number}</title>
             <style>
@@ -39,64 +39,72 @@ function CertificateCard({ cert }: { cert: Certificate }) {
                 </p>
             </div>
             </body></html>
-        `);
-        w.document.close();
-        setTimeout(() => { w.print(); }, 300);
-    };
+        `)
+    w.document.close()
+    setTimeout(() => {
+      w.print()
+    }, 300)
+  }
 
-    return (
-        <div className="group relative overflow-hidden rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-slate-900 p-5 transition-shadow hover:shadow-md">
-            <div className="absolute top-0 right-0 h-24 w-24 -translate-y-6 translate-x-6 rounded-full bg-amber-100/50 dark:bg-amber-900/20" />
+  return (
+    <div className="group relative overflow-hidden rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/20 dark:to-slate-900 p-5 transition-shadow hover:shadow-md">
+      <div className="absolute top-0 right-0 h-24 w-24 -translate-y-6 translate-x-6 rounded-full bg-amber-100/50 dark:bg-amber-900/20" />
 
-            <div className="relative space-y-3">
-                <div className="flex items-start justify-between">
-                    <div>
-                        <h4 className="font-bold text-slate-900 dark:text-white">{cert.course_title}</h4>
-                        <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
-                            <Calendar className="h-3 w-3" />
-                            {new Date(cert.issued_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                        </p>
-                    </div>
-                    <Award className="h-8 w-8 text-amber-500 shrink-0" />
-                </div>
-
-                <p className="text-[11px] font-mono text-slate-400">{cert.certificate_number}</p>
-
-                <button
-                    onClick={handlePrint}
-                    className={cn(
-                        'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold',
-                        'bg-amber-100 text-amber-700 hover:bg-amber-200',
-                        'dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50',
-                        'transition-colors',
-                    )}
-                >
-                    <Download className="h-3.5 w-3.5" />
-                    Cetak PDF
-                </button>
-            </div>
+      <div className="relative space-y-3">
+        <div className="flex items-start justify-between">
+          <div>
+            <h4 className="font-bold text-slate-900 dark:text-white">{cert.course_title}</h4>
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+              <Calendar className="h-3 w-3" />
+              {new Date(cert.issued_at).toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </p>
+          </div>
+          <Award className="h-8 w-8 text-amber-500 shrink-0" />
         </div>
-    );
+
+        <p className="text-[11px] font-mono text-slate-400">{cert.certificate_number}</p>
+
+        <button
+          onClick={handlePrint}
+          className={cn(
+            'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold',
+            'bg-amber-100 text-amber-700 hover:bg-amber-200',
+            'dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50',
+            'transition-colors'
+          )}
+        >
+          <Download className="h-3.5 w-3.5" />
+          Cetak PDF
+        </button>
+      </div>
+    </div>
+  )
 }
 
 export function CertificateViewer({ userId }: { userId?: string }) {
-    const { data: certs, isLoading } = useStudentCertificates(userId);
+  const { data: certs, isLoading } = useStudentCertificates(userId)
 
-    if (isLoading) return <SkeletonCard lines={2} />;
+  if (isLoading) return <SkeletonCard lines={2} />
 
-    if (!certs || certs.length === 0) {
-        return (
-            <EmptyState
-                icon={<Award className="h-10 w-10" />}
-                title="Belum ada sertifikat"
-                description="Selesaikan kursus untuk mendapatkan sertifikat."
-            />
-        );
-    }
-
+  if (!certs || certs.length === 0) {
     return (
-        <div className="grid gap-4 sm:grid-cols-2">
-            {certs.map(cert => <CertificateCard key={cert.id} cert={cert} />)}
-        </div>
-    );
+      <EmptyState
+        icon={<Award className="h-10 w-10" />}
+        title="Belum ada sertifikat"
+        description="Selesaikan kursus untuk mendapatkan sertifikat."
+      />
+    )
+  }
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {certs.map((cert) => (
+        <CertificateCard key={cert.id} cert={cert} />
+      ))}
+    </div>
+  )
 }

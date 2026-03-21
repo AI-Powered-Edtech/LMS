@@ -1,29 +1,29 @@
-import { BookOpen, Circle } from 'lucide-react';
-import { cn } from '@/src/utils/cn';
-import { useCourseDashboard } from '../queries/analyticsQueries';
+import { BookOpen, Circle } from 'lucide-react'
+import { cn } from '@/src/utils/cn'
+import { useCourseDashboard } from '../queries/analyticsQueries'
 
 interface LiveLessonMapProps {
-  courseId: string;
-  activeLessonIds: Set<string>;
+  courseId: string
+  activeLessonIds: Set<string>
 }
 
 export function LiveLessonMap({ courseId, activeLessonIds }: LiveLessonMapProps) {
-  const { data: courseData, isLoading } = useCourseDashboard(courseId);
+  const { data: courseData, isLoading } = useCourseDashboard(courseId)
 
   if (isLoading) {
     return (
       <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
         <div className="animate-pulse space-y-2">
-          {[1, 2, 3].map(i => (
+          {[1, 2, 3].map((i) => (
             <div key={i} className="h-10 bg-slate-100 dark:bg-slate-800 rounded-lg" />
           ))}
         </div>
       </div>
-    );
+    )
   }
 
   if (!courseData) {
-    return null;
+    return null
   }
 
   return (
@@ -39,7 +39,7 @@ export function LiveLessonMap({ courseId, activeLessonIds }: LiveLessonMapProps)
             Belum ada siswa yang aktif di pelajaran manapun
           </p>
         ) : (
-          Array.from(activeLessonIds).map(lessonId => (
+          Array.from(activeLessonIds).map((lessonId) => (
             <div
               key={lessonId}
               className={cn(
@@ -59,5 +59,5 @@ export function LiveLessonMap({ courseId, activeLessonIds }: LiveLessonMapProps)
         )}
       </div>
     </div>
-  );
+  )
 }

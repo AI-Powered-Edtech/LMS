@@ -1,28 +1,39 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { X, AlertTriangle, Flag, CheckCircle } from 'lucide-react';
-import { useSubmitReport, ReportReason, ContentType } from '@/src/features/moderation/queries/moderationQueries';
+import React, { useState } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
+import { X, AlertTriangle, Flag, CheckCircle } from 'lucide-react'
+import {
+  useSubmitReport,
+  ReportReason,
+  ContentType,
+} from '@/src/features/moderation/queries/moderationQueries'
 
 interface ReportModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  contentId: string;
-  contentType: ContentType;
-  contentSnippet?: string;
-  contentAuthor?: string;
+  isOpen: boolean
+  onClose: () => void
+  contentId: string
+  contentType: ContentType
+  contentSnippet?: string
+  contentAuthor?: string
 }
 
-export function ReportModal({ isOpen, onClose, contentId, contentType, contentSnippet, contentAuthor }: ReportModalProps) {
-  const submitReport = useSubmitReport();
-  const [reason, setReason] = useState<ReportReason>('inappropriate');
-  const [description, setDescription] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+export function ReportModal({
+  isOpen,
+  onClose,
+  contentId,
+  contentType,
+  contentSnippet,
+  contentAuthor,
+}: ReportModalProps) {
+  const submitReport = useSubmitReport()
+  const [reason, setReason] = useState<ReportReason>('inappropriate')
+  const [description, setDescription] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
+    e.preventDefault()
+    setIsSubmitting(true)
+
     // Simulate network delay
     setTimeout(() => {
       submitReport.mutate({
@@ -31,27 +42,43 @@ export function ReportModal({ isOpen, onClose, contentId, contentType, contentSn
         reason,
         description,
         contentSnippet,
-        contentAuthor
-      });
-      setIsSubmitting(false);
-      setIsSuccess(true);
-      
+        contentAuthor,
+      })
+      setIsSubmitting(false)
+      setIsSuccess(true)
+
       setTimeout(() => {
-        setIsSuccess(false);
-        onClose();
-        setDescription('');
-        setReason('inappropriate');
-      }, 2000);
-    }, 1000);
-  };
+        setIsSuccess(false)
+        onClose()
+        setDescription('')
+        setReason('inappropriate')
+      }, 2000)
+    }, 1000)
+  }
 
   const reasons: { value: ReportReason; label: string; desc: string }[] = [
-    { value: 'ai_generated', label: 'Konten AI', desc: 'Konten terlihat dibuat oleh AI tanpa atribusi atau tidak relevan.' },
-    { value: 'inappropriate', label: 'Tidak Pantas', desc: 'Mengandung kata-kata kasar, SARA, atau konten dewasa.' },
-    { value: 'spam', label: 'Spam / Iklan', desc: 'Promosi produk atau layanan yang tidak relevan.' },
-    { value: 'harassment', label: 'Pelecehan', desc: 'Menyerang atau merendahkan individu atau kelompok.' },
+    {
+      value: 'ai_generated',
+      label: 'Konten AI',
+      desc: 'Konten terlihat dibuat oleh AI tanpa atribusi atau tidak relevan.',
+    },
+    {
+      value: 'inappropriate',
+      label: 'Tidak Pantas',
+      desc: 'Mengandung kata-kata kasar, SARA, atau konten dewasa.',
+    },
+    {
+      value: 'spam',
+      label: 'Spam / Iklan',
+      desc: 'Promosi produk atau layanan yang tidak relevan.',
+    },
+    {
+      value: 'harassment',
+      label: 'Pelecehan',
+      desc: 'Menyerang atau merendahkan individu atau kelompok.',
+    },
     { value: 'other', label: 'Lainnya', desc: 'Alasan lain yang tidak tercantum di atas.' },
-  ];
+  ]
 
   return (
     <AnimatePresence>
@@ -69,7 +96,9 @@ export function ReportModal({ isOpen, onClose, contentId, contentType, contentSn
                   <CheckCircle className="w-8 h-8" />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-2">Laporan Terkirim</h3>
-                <p className="text-slate-500">Terima kasih telah membantu menjaga komunitas kami tetap aman.</p>
+                <p className="text-slate-500">
+                  Terima kasih telah membantu menjaga komunitas kami tetap aman.
+                </p>
               </div>
             ) : (
               <>
@@ -78,26 +107,33 @@ export function ReportModal({ isOpen, onClose, contentId, contentType, contentSn
                     <Flag className="w-4 h-4 text-red-500" />
                     Laporkan Konten
                   </h3>
-                  <button onClick={onClose} className="p-1 hover:bg-slate-200 rounded-full transition-colors">
+                  <button
+                    onClick={onClose}
+                    className="p-1 hover:bg-slate-200 rounded-full transition-colors"
+                  >
                     <X className="w-5 h-5 text-slate-500" />
                   </button>
                 </div>
-                
+
                 <form onSubmit={handleSubmit} className="p-4 space-y-4">
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm text-slate-600">
                     <p className="font-medium mb-1 text-slate-900">Konten yang dilaporkan:</p>
-                    <p className="italic line-clamp-2">"{contentSnippet || 'Konten tidak tersedia'}"</p>
+                    <p className="italic line-clamp-2">
+                      "{contentSnippet || 'Konten tidak tersedia'}"
+                    </p>
                   </div>
 
                   <div className="space-y-3">
-                    <label className="block text-sm font-bold text-slate-700">Alasan Pelaporan</label>
+                    <label className="block text-sm font-bold text-slate-700">
+                      Alasan Pelaporan
+                    </label>
                     <div className="grid gap-2">
                       {reasons.map((r) => (
-                        <label 
+                        <label
                           key={r.value}
                           className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                            reason === r.value 
-                              ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-500' 
+                            reason === r.value
+                              ? 'bg-blue-50 border-blue-200 ring-1 ring-blue-500'
                               : 'bg-white border-slate-200 hover:border-blue-300'
                           }`}
                         >
@@ -110,7 +146,9 @@ export function ReportModal({ isOpen, onClose, contentId, contentType, contentSn
                             className="mt-1 w-4 h-4 text-blue-600 border-slate-300 focus:ring-blue-500"
                           />
                           <div>
-                            <span className="block text-sm font-bold text-slate-900">{r.label}</span>
+                            <span className="block text-sm font-bold text-slate-900">
+                              {r.label}
+                            </span>
                             <span className="block text-xs text-slate-500 mt-0.5">{r.desc}</span>
                           </div>
                         </label>
@@ -119,7 +157,9 @@ export function ReportModal({ isOpen, onClose, contentId, contentType, contentSn
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Deskripsi Tambahan (Opsional)</label>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">
+                      Deskripsi Tambahan (Opsional)
+                    </label>
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
@@ -158,5 +198,5 @@ export function ReportModal({ isOpen, onClose, contentId, contentType, contentSn
         </div>
       )}
     </AnimatePresence>
-  );
+  )
 }

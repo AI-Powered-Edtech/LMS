@@ -1,154 +1,156 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback } from 'react'
 import {
   UploadCloud,
   FileText,
   Settings,
   Sparkles,
-  Save,
   Edit2,
   Calendar as CalendarIcon,
   BookOpen,
-} from "lucide-react";
-import { cn } from "@/src/utils/cn";
-import { motion, AnimatePresence } from "motion/react";
-import { useAuth } from "@/src/contexts/AuthContext";
+} from 'lucide-react'
+import { cn } from '@/src/utils/cn'
+import { motion, AnimatePresence } from 'motion/react'
+import { useAuth } from '@/src/contexts/AuthContext'
 // TODO: AI generation will be routed through backend API (Phase 5)
-import { useAddCalendarEvent } from '@/src/hooks/useCalendarQueries';
-import { useSendNotification } from "@/src/features/notifications";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/src/lib/supabase";
-
-
+import { useAddCalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
+import { useSendNotification } from '@/src/features/notifications'
+import { useNavigate } from 'react-router-dom'
+import { supabase } from '@/src/lib/supabase'
 
 export function Creator() {
-  const { user } = useAuth();
-  const { addEvent } = useAddCalendarEvent();
-  const sendNotification = useSendNotification();
-  const navigate = useNavigate();
+  const { user } = useAuth()
+  const { addEvent } = useAddCalendarEvent()
+  const sendNotification = useSendNotification()
+  const navigate = useNavigate()
 
-  const [isDragging, setIsDragging] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [assignmentType, setAssignmentType] = useState("quiz"); // quiz, reading, writing
-  const [questionCount, setQuestionCount] = useState(10);
-  const [difficulty, setDifficulty] = useState("C3");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [loadingText, setLoadingText] = useState("Mengekstrak teks...");
-  const [result, setResult] = useState<any>(null);
+  const [isDragging, setIsDragging] = useState(false)
+  const [file, setFile] = useState<File | null>(null)
+  const [assignmentType, setAssignmentType] = useState('quiz') // quiz, reading, writing
+  const [questionCount, setQuestionCount] = useState(10)
+  const [difficulty, setDifficulty] = useState('C3')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [loadingText, setLoadingText] = useState('Mengekstrak teks...')
+  const [result, setResult] = useState<any>(null)
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
+    e.preventDefault()
+    setIsDragging(true)
+  }, [])
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
+    e.preventDefault()
+    setIsDragging(false)
+  }, [])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
+    e.preventDefault()
+    setIsDragging(false)
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const droppedFile = e.dataTransfer.files[0];
+      const droppedFile = e.dataTransfer.files[0]
       // Validation
       if (droppedFile.size > 50 * 1024 * 1024) {
-        alert("Ukuran file maksimal 50MB");
-        return;
+        alert('Ukuran file maksimal 50MB')
+        return
       }
       const validTypes = [
-        "application/pdf",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "video/mp4",
-        "text/plain",
-        "text/csv"
-      ];
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'video/mp4',
+        'text/plain',
+        'text/csv',
+      ]
       if (!validTypes.includes(droppedFile.type)) {
-        alert("Format file tidak didukung. Gunakan .pdf, .docx, .txt, atau .mp4");
-        return;
+        alert('Format file tidak didukung. Gunakan .pdf, .docx, .txt, atau .mp4')
+        return
       }
-      setFile(droppedFile);
+      setFile(droppedFile)
     }
-  }, []);
+  }, [])
 
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null)
 
   const handleGenerate = async () => {
-    if (!file) return;
-    setIsGenerating(true);
-    setError(null);
-    setLoadingText("Membaca file...");
+    if (!file) return
+    setIsGenerating(true)
+    setError(null)
+    setLoadingText('Membaca file...')
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("assignmentType", assignmentType);
-      formData.append("questionCount", questionCount.toString());
-      formData.append("difficulty", difficulty);
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('assignmentType', assignmentType)
+      formData.append('questionCount', questionCount.toString())
+      formData.append('difficulty', difficulty)
 
-      const { data, error: supaError } = await supabase.functions.invoke("generate-ai-content", {
+      const { data, error: supaError } = await supabase.functions.invoke('generate-ai-content', {
         body: formData,
-      });
+      })
 
       if (supaError) {
-        console.error("Supabase edge function error:", supaError);
+        console.error('Supabase edge function error:', supaError)
         // Specifically catch a common indication of a 404 from invoke
-        if (supaError.message && (supaError.message.includes('404') || supaError.message.includes('not found') || supaError.message.includes('FetchError'))) {
-          throw new Error("⚠️ Layanan AI (Backend API) belum tersedia saat ini.");
+        if (
+          supaError.message &&
+          (supaError.message.includes('404') ||
+            supaError.message.includes('not found') ||
+            supaError.message.includes('FetchError'))
+        ) {
+          throw new Error('⚠️ Layanan AI (Backend API) belum tersedia saat ini.')
         }
-        throw new Error(supaError.message || "Gagal memproses materi dengan AI.");
+        throw new Error(supaError.message || 'Gagal memproses materi dengan AI.')
       }
 
       if (data?.error) {
-        throw new Error(data.error);
+        throw new Error(data.error)
       }
 
       // Check if response contains expected data structure
       if (data && data.questions && Array.isArray(data.questions)) {
-        setResult(data);
+        setResult(data)
       } else {
-        throw new Error("Respons API tidak valid.");
+        throw new Error('Respons API tidak valid.')
       }
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || "Terjadi kesalahan saat memproses materi.");
+      console.error(err)
+      setError(err.message || 'Terjadi kesalahan saat memproses materi.')
     } finally {
-      setIsGenerating(false);
+      setIsGenerating(false)
     }
-  };
+  }
 
   const handleSaveToCalendar = () => {
-    if (!result) return;
+    if (!result) return
 
     // Mock date: 3 days from now
-    const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 3);
-    dueDate.setHours(23, 59, 0, 0);
+    const dueDate = new Date()
+    dueDate.setDate(dueDate.getDate() + 3)
+    dueDate.setHours(23, 59, 0, 0)
 
     addEvent({
       title: `Kuis: ${file?.name.split('.')[0] || 'Materi Baru'}`,
       date: dueDate,
-      time: "23:59",
-      type: "quiz",
-      location: "Online",
-      description: result.summary.substring(0, 100) + "...",
-      priority: "medium",
+      time: '23:59',
+      type: 'quiz',
+      location: 'Online',
+      description: result.summary.substring(0, 100) + '...',
+      priority: 'medium',
       completed: false,
-      duration: 60
-    });
+      duration: 60,
+    })
 
     sendNotification.mutate({
-      userId: user.id,
+      userId: user!.id,
       type: 'assignment',
       title: 'Kuis Dijadwalkan',
-      message: 'Kuis telah ditambahkan ke kalender siswa.'
-    });
+      message: 'Kuis telah ditambahkan ke kalender siswa.',
+    })
 
-    navigate('/calendar');
-  };
+    navigate('/calendar')
+  }
 
   const handleAddToCourse = () => {
-    if (!result) return;
+    if (!result) return
     navigate('/teaching/course-builder', {
       state: {
         action: result.type === 'quiz' ? 'add-quiz' : 'add-assignment',
@@ -156,11 +158,11 @@ export function Creator() {
           title: file?.name.split('.')[0] || 'AI Generated Content',
           type: result.type,
           questions: result.questions,
-          summary: result.summary
-        }
-      }
-    });
-  };
+          summary: result.summary,
+        },
+      },
+    })
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -192,11 +194,11 @@ export function Creator() {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               className={cn(
-                "h-64 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-6 text-center transition-all duration-200",
+                'h-64 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-6 text-center transition-all duration-200',
                 isDragging
-                  ? "border-blue-500 bg-blue-50 scale-[1.02]"
-                  : "border-slate-300 bg-slate-50 hover:bg-slate-100",
-                file && "border-green-500 bg-green-50",
+                  ? 'border-blue-500 bg-blue-50 scale-[1.02]'
+                  : 'border-slate-300 bg-slate-50 hover:bg-slate-100',
+                file && 'border-green-500 bg-green-50'
               )}
             >
               {file ? (
@@ -217,13 +219,11 @@ export function Creator() {
                 <>
                   <UploadCloud
                     className={cn(
-                      "w-12 h-12 mb-4 transition-colors",
-                      isDragging ? "text-blue-500" : "text-slate-400",
+                      'w-12 h-12 mb-4 transition-colors',
+                      isDragging ? 'text-blue-500' : 'text-slate-400'
                     )}
                   />
-                  <p className="font-bold text-slate-700">
-                    Tarik & Lepas file di sini
-                  </p>
+                  <p className="font-bold text-slate-700">Tarik & Lepas file di sini</p>
                   <p className="text-sm text-slate-500 mt-2">
                     Mendukung .pdf, .docx, .mp4 (Maks 50MB)
                   </p>
@@ -244,23 +244,21 @@ export function Creator() {
 
             <div className="space-y-8">
               <div>
-                <label className="font-bold text-slate-700 block mb-3">
-                  Jenis Tugas
-                </label>
+                <label className="font-bold text-slate-700 block mb-3">Jenis Tugas</label>
                 <div className="grid grid-cols-3 gap-3">
                   {[
                     { id: 'quiz', label: 'Kuis (PG)' },
                     { id: 'reading', label: 'Reading' },
-                    { id: 'writing', label: 'Writing' }
+                    { id: 'writing', label: 'Writing' },
                   ].map((type) => (
                     <button
                       key={type.id}
                       onClick={() => setAssignmentType(type.id)}
                       className={cn(
-                        "px-4 py-3 rounded-xl border text-sm font-medium text-center transition-all",
+                        'px-4 py-3 rounded-xl border text-sm font-medium text-center transition-all',
                         assignmentType === type.id
-                          ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
-                          : "border-slate-200 hover:border-slate-300 text-slate-600"
+                          ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
+                          : 'border-slate-200 hover:border-slate-300 text-slate-600'
                       )}
                     >
                       {type.label}
@@ -281,7 +279,7 @@ export function Creator() {
                 <input
                   type="range"
                   min="1"
-                  max={assignmentType === 'writing' ? "3" : "50"}
+                  max={assignmentType === 'writing' ? '3' : '50'}
                   value={assignmentType === 'writing' ? Math.min(questionCount, 3) : questionCount}
                   onChange={(e) => setQuestionCount(Number(e.target.value))}
                   className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
@@ -294,28 +292,28 @@ export function Creator() {
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    "C1-Mengingat",
-                    "C2-Memahami",
-                    "C3-Mengaplikasikan",
-                    "C4-Menganalisis",
-                    "C5-Mengevaluasi",
-                    "C6-Mencipta",
+                    'C1-Mengingat',
+                    'C2-Memahami',
+                    'C3-Mengaplikasikan',
+                    'C4-Menganalisis',
+                    'C5-Mengevaluasi',
+                    'C6-Mencipta',
                   ].map((level) => {
-                    const code = level.split("-")[0];
+                    const code = level.split('-')[0]
                     return (
                       <button
                         key={code}
                         onClick={() => setDifficulty(code)}
                         className={cn(
-                          "px-4 py-3 rounded-xl border text-sm font-medium text-left transition-all",
+                          'px-4 py-3 rounded-xl border text-sm font-medium text-left transition-all',
                           difficulty === code
-                            ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
-                            : "border-slate-200 hover:border-slate-300 text-slate-600",
+                            ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
+                            : 'border-slate-200 hover:border-slate-300 text-slate-600'
                         )}
                       >
                         {level}
                       </button>
-                    );
+                    )
                   })}
                 </div>
               </div>
@@ -333,10 +331,10 @@ export function Creator() {
                 onClick={handleGenerate}
                 disabled={!file || isGenerating}
                 className={cn(
-                  "w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg",
+                  'w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg',
                   !file || isGenerating
-                    ? "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
-                    : "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 active:scale-95 shadow-blue-200",
+                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
+                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 active:scale-95 shadow-blue-200'
                 )}
               >
                 {isGenerating ? (
@@ -364,7 +362,11 @@ export function Creator() {
           {/* Left: Summary */}
           <div className="md:col-span-1 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col min-h-[300px] md:min-h-0">
             <h2 className="text-xl font-bold text-slate-800 mb-4">
-              {result.type === 'reading' ? 'Teks Bacaan' : result.type === 'writing' ? 'Konteks Topik' : 'Rangkuman Materi'}
+              {result.type === 'reading'
+                ? 'Teks Bacaan'
+                : result.type === 'writing'
+                  ? 'Konteks Topik'
+                  : 'Rangkuman Materi'}
             </h2>
             <div className="flex-1 overflow-y-auto pr-2 text-slate-600 leading-relaxed">
               {result.summary}
@@ -381,7 +383,8 @@ export function Creator() {
           <div className="md:col-span-2 bg-slate-100 p-4 md:p-6 rounded-3xl border border-slate-200 flex flex-col min-h-[500px] md:min-h-0">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 sm:gap-0">
               <h2 className="text-xl font-bold text-slate-800">
-                {result.type === 'writing' ? 'Daftar Topik' : 'Daftar Soal'} ({result.questions.length})
+                {result.type === 'writing' ? 'Daftar Topik' : 'Daftar Soal'} (
+                {result.questions.length})
               </h2>
               <div className="flex gap-2 w-full sm:w-auto">
                 <button
@@ -422,10 +425,10 @@ export function Creator() {
                         <div
                           key={j}
                           className={cn(
-                            "px-4 py-3 rounded-xl text-sm font-medium border",
+                            'px-4 py-3 rounded-xl text-sm font-medium border',
                             j === q.answer
-                              ? "bg-green-50 border-green-200 text-green-700"
-                              : "bg-slate-50 border-slate-200 text-slate-600",
+                              ? 'bg-green-50 border-green-200 text-green-700'
+                              : 'bg-slate-50 border-slate-200 text-slate-600'
                           )}
                         >
                           {String.fromCharCode(65 + j)}. {opt}
@@ -436,7 +439,9 @@ export function Creator() {
                   {result.type !== 'quiz' && q.answer && (
                     <div className="mt-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
                       <p className="text-sm font-bold text-slate-700 mb-1">
-                        {result.type === 'reading' ? 'Kunci Jawaban / Poin Penting:' : 'Kriteria Penilaian / Rubrik:'}
+                        {result.type === 'reading'
+                          ? 'Kunci Jawaban / Poin Penting:'
+                          : 'Kriteria Penilaian / Rubrik:'}
                       </p>
                       <p className="text-sm text-slate-600">{q.answer}</p>
                     </div>
@@ -463,9 +468,7 @@ export function Creator() {
                   <Sparkles className="w-6 h-6 text-blue-600 animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">
-                    AI sedang bekerja...
-                  </h3>
+                  <h3 className="text-xl font-bold text-slate-900">AI sedang bekerja...</h3>
                   <p className="text-slate-500">{loadingText}</p>
                 </div>
               </div>
@@ -473,17 +476,11 @@ export function Creator() {
               <div className="space-y-6">
                 {/* Skeleton Card */}
                 {[1, 2].map((i) => (
-                  <div
-                    key={i}
-                    className="border border-slate-100 rounded-2xl p-5 space-y-4"
-                  >
+                  <div key={i} className="border border-slate-100 rounded-2xl p-5 space-y-4">
                     <div className="h-6 bg-slate-200 rounded-md w-3/4 animate-pulse" />
                     <div className="grid grid-cols-2 gap-3">
                       {[1, 2, 3, 4].map((j) => (
-                        <div
-                          key={j}
-                          className="h-12 bg-slate-100 rounded-xl animate-pulse"
-                        />
+                        <div key={j} className="h-12 bg-slate-100 rounded-xl animate-pulse" />
                       ))}
                     </div>
                   </div>
@@ -494,5 +491,5 @@ export function Creator() {
         )}
       </AnimatePresence>
     </div>
-  );
+  )
 }

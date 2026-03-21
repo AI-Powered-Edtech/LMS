@@ -1,92 +1,78 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { announcementService } from '../api/announcementService';
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { announcementService } from '../api/announcementService'
 
-const mockFrom = vi.fn();
+const mockFrom = vi.fn()
 
 vi.mock('../../../lib/supabase', () => ({
   supabase: {
     from: (...args: unknown[]) => mockFrom(...args),
   },
-}));
+}))
 
-function makeAnnouncementChain(resolveValue: { data: unknown; error: unknown }) {
-  return {
-    select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    or: vi.fn().mockReturnThis(),
-    is: vi.fn().mockReturnThis(),
-    ilike: vi.fn().mockReturnThis(),
-    range: vi.fn().mockReturnThis(),
-    // last call in chain resolves the promise
-    // We handle by making the last method return the resolved value
-    then: undefined as any,
-  };
+/**
+ * Build a fully chainable Supabase query mock.
+ * Every method returns `this` so any chain order works,
+ * and `then` makes the object awaitable with the given result.
+ */
+function makeChain(resolveWith: { data: unknown; error: unknown }) {
+  const chain: Record<string, any> = {}
+  const methods = [
+    'select',
+    'eq',
+    'order',
+    'is',
+    'or',
+    'ilike',
+    'range',
+    'limit',
+    'in',
+    'single',
+    'maybeSingle',
+  ]
+  for (const m of methods) {
+    chain[m] = vi.fn().mockReturnValue(chain)
+  }
+  chain.then = (resolve: any, reject: any) => Promise.resolve(resolveWith).then(resolve, reject)
+  return chain
 }
 
 describe('announcementService.fetchAnnouncements', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks())
 
   it('queries announcements table', async () => {
-    const fromSpy = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      is: vi.fn().mockResolvedValue({ data: [], error: null }),
-    });
-    mockFrom.mockImplementation(fromSpy);
-    await announcementService.fetchAnnouncements('tenant-1');
-    expect(fromSpy).toHaveBeenCalledWith('announcements');
-  });
+    const chain = makeChain({ data: [], error: null })
+    mockFrom.mockReturnValue(chain)
+    await announcementService.fetchAnnouncements('tenant-1')
+    expect(mockFrom).toHaveBeenCalledWith('announcements')
+  })
 
   it('applies tenant_id filter', async () => {
-    const eqSpy = vi.fn().mockReturnThis();
-    mockFrom.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: eqSpy,
-      order: vi.fn().mockReturnThis(),
-      is: vi.fn().mockResolvedValue({ data: [], error: null }),
-    });
-    await announcementService.fetchAnnouncements('tenant-1');
-    expect(eqSpy).toHaveBeenCalledWith('tenant_id', 'tenant-1');
-  });
+    const chain = makeChain({ data: [], error: null })
+    mockFrom.mockReturnValue(chain)
+    await announcementService.fetchAnnouncements('tenant-1')
+    expect(chain.eq).toHaveBeenCalledWith('tenant_id', 'tenant-1')
+  })
 
   it('returns announcements on success', async () => {
-    const items = [{ id: 'a1', title: 'Test', tenant_id: 'tenant-1' }];
-    mockFrom.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      is: vi.fn().mockResolvedValue({ data: items, error: null }),
-    });
-    const result = await announcementService.fetchAnnouncements('tenant-1');
-    expect(result).toEqual(items);
-  });
+    const items = [{ id: 'a1', title: 'Test', tenant_id: 'tenant-1' }]
+    const chain = makeChain({ data: items, error: null })
+    mockFrom.mockReturnValue(chain)
+    const result = await announcementService.fetchAnnouncements('tenant-1')
+    expect(result).toEqual(items)
+  })
 
   it('throws on error', async () => {
-    mockFrom.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      is: vi.fn().mockResolvedValue({ data: null, error: { message: 'Access denied' } }),
-    });
+    const chain = makeChain({ data: null, error: { message: 'Access denied' } })
+    mockFrom.mockReturnValue(chain)
     await expect(announcementService.fetchAnnouncements('tenant-1')).rejects.toMatchObject({
       message: 'Access denied',
-    });
-  });
+    })
+  })
 
   it('uses course_id filter when provided', async () => {
-    const orSpy = vi.fn().mockReturnThis();
-    mockFrom.mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      or: orSpy,
-      is: vi.fn().mockReturnThis(),
-      ilike: vi.fn().mockReturnThis(),
-      range: vi.fn().mockResolvedValue({ data: [], error: null }),
-    });
-    await announcementService.fetchAnnouncements('tenant-1', { courseId: 'course-1' });
-    expect(orSpy).toHaveBeenCalledWith(`course_id.eq.course-1,course_id.is.null`);
-  });
-});
+    const chain = makeChain({ data: [], error: null })
+    mockFrom.mockReturnValue(chain)
+    await announcementService.fetchAnnouncements('tenant-1', { courseId: 'course-1' })
+    expect(chain.or).toHaveBeenCalledWith(`course_id.eq.course-1,course_id.is.null`)
+  })
+})

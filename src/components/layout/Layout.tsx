@@ -1,11 +1,11 @@
-import { useAuth } from "@/src/contexts/AuthContext";
-import { StudentLayout } from "./StudentLayout";
-import { TeacherLayout } from "./TeacherLayout";
-import { AdminLayout } from "./AdminLayout";
-import { OfflineBanner } from "./OfflineBanner";
+import { useAuth } from '@/src/contexts/AuthContext'
+import { StudentLayout } from './StudentLayout'
+import { TeacherLayout } from './TeacherLayout'
+import { AdminLayout } from './AdminLayout'
+import { OfflineBanner } from './OfflineBanner'
 
 export function Layout() {
-  const { role } = useAuth();
+  const { role } = useAuth()
 
   return (
     <>
@@ -14,5 +14,5 @@ export function Layout() {
       {role === 'teacher' && <TeacherLayout />}
       {role === 'admin' && <AdminLayout />}
     </>
-  );
+  )
 }

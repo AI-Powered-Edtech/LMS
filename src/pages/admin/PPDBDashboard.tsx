@@ -1,29 +1,78 @@
-import React, { useState } from 'react';
-import { 
-  UserPlus, Users, CheckCircle, XCircle, Clock, 
-  Search, Filter, Download, ChevronRight, FileText,
-  GraduationCap
-} from 'lucide-react';
-import { cn } from '@/src/utils/cn';
+import React, { useState } from 'react'
+import {
+  UserPlus,
+  Users,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Search,
+  Download,
+  ChevronRight,
+  FileText,
+} from 'lucide-react'
+import { cn } from '@/src/utils/cn'
 
 const applicants = [
-  { id: 'REG-2026-001', name: 'Siti Aminah', prevSchool: 'SMP Negeri 1 Jakarta', avgScore: 92.5, status: 'pending', date: '2026-05-10', email: 'siti.aminah@email.com' },
-  { id: 'REG-2026-002', name: 'Rudi Hartono', prevSchool: 'SMP Swasta Harapan', avgScore: 88.0, status: 'accepted', date: '2026-05-11', email: 'rudi.h@email.com' },
-  { id: 'REG-2026-003', name: 'Dewi Lestari', prevSchool: 'SMP Negeri 5 Bandung', avgScore: 75.5, status: 'rejected', date: '2026-05-12', email: 'dewi.l@email.com' },
-  { id: 'REG-2026-004', name: 'Ahmad Fauzi', prevSchool: 'MTS Al-Ikhlas', avgScore: 90.0, status: 'pending', date: '2026-05-12', email: 'ahmad.f@email.com' },
-  { id: 'REG-2026-005', name: 'Bunga Citra', prevSchool: 'SMP International', avgScore: 95.0, status: 'accepted', date: '2026-05-13', email: 'bunga.c@email.com' },
-];
+  {
+    id: 'REG-2026-001',
+    name: 'Siti Aminah',
+    prevSchool: 'SMP Negeri 1 Jakarta',
+    avgScore: 92.5,
+    status: 'pending',
+    date: '2026-05-10',
+    email: 'siti.aminah@email.com',
+  },
+  {
+    id: 'REG-2026-002',
+    name: 'Rudi Hartono',
+    prevSchool: 'SMP Swasta Harapan',
+    avgScore: 88.0,
+    status: 'accepted',
+    date: '2026-05-11',
+    email: 'rudi.h@email.com',
+  },
+  {
+    id: 'REG-2026-003',
+    name: 'Dewi Lestari',
+    prevSchool: 'SMP Negeri 5 Bandung',
+    avgScore: 75.5,
+    status: 'rejected',
+    date: '2026-05-12',
+    email: 'dewi.l@email.com',
+  },
+  {
+    id: 'REG-2026-004',
+    name: 'Ahmad Fauzi',
+    prevSchool: 'MTS Al-Ikhlas',
+    avgScore: 90.0,
+    status: 'pending',
+    date: '2026-05-12',
+    email: 'ahmad.f@email.com',
+  },
+  {
+    id: 'REG-2026-005',
+    name: 'Bunga Citra',
+    prevSchool: 'SMP International',
+    avgScore: 95.0,
+    status: 'accepted',
+    date: '2026-05-13',
+    email: 'bunga.c@email.com',
+  },
+]
 
 export function PPDBDashboard() {
-  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'accepted' | 'rejected'>(
+    'all'
+  )
+  const [searchQuery, setSearchQuery] = useState('')
 
-  const filteredApplicants = applicants.filter(app => {
-    const matchesStatus = filterStatus === 'all' || app.status === filterStatus;
-    const matchesSearch = app.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          app.id.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesStatus && matchesSearch;
-  });
+  const filteredApplicants = applicants.filter((app) => {
+    const matchesStatus = filterStatus === 'all' || app.status === filterStatus
+    const matchesSearch =
+      app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.id.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesStatus && matchesSearch
+  })
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
@@ -96,21 +145,27 @@ export function PPDBDashboard() {
                 key={status}
                 onClick={() => setFilterStatus(status as any)}
                 className={cn(
-                  "px-4 py-2 rounded-xl text-sm font-bold capitalize transition-colors whitespace-nowrap",
-                  filterStatus === status 
-                    ? "bg-slate-900 text-white" 
-                    : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                  'px-4 py-2 rounded-xl text-sm font-bold capitalize transition-colors whitespace-nowrap',
+                  filterStatus === status
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
                 )}
               >
-                {status === 'all' ? 'Semua' : status === 'pending' ? 'Menunggu' : status === 'accepted' ? 'Diterima' : 'Ditolak'}
+                {status === 'all'
+                  ? 'Semua'
+                  : status === 'pending'
+                    ? 'Menunggu'
+                    : status === 'accepted'
+                      ? 'Diterima'
+                      : 'Ditolak'}
               </button>
             ))}
           </div>
           <div className="relative w-full md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Cari nama atau ID..." 
+            <input
+              type="text"
+              placeholder="Cari nama atau ID..."
               className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -143,24 +198,43 @@ export function PPDBDashboard() {
                   </td>
                   <td className="px-6 py-4 text-slate-600">{app.prevSchool}</td>
                   <td className="px-6 py-4">
-                    <span className={cn(
-                      "font-bold",
-                      app.avgScore >= 90 ? "text-green-600" : app.avgScore >= 80 ? "text-blue-600" : "text-slate-600"
-                    )}>
+                    <span
+                      className={cn(
+                        'font-bold',
+                        app.avgScore >= 90
+                          ? 'text-green-600'
+                          : app.avgScore >= 80
+                            ? 'text-blue-600'
+                            : 'text-slate-600'
+                      )}
+                    >
                       {app.avgScore}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-slate-600">{app.date}</td>
                   <td className="px-6 py-4">
-                    <span className={cn(
-                      "px-2.5 py-1 rounded-full text-xs font-bold border flex items-center w-fit gap-1",
-                      app.status === 'accepted' ? "bg-green-50 text-green-700 border-green-200" :
-                      app.status === 'pending' ? "bg-yellow-50 text-yellow-700 border-yellow-200" :
-                      "bg-red-50 text-red-700 border-red-200"
-                    )}>
-                      {app.status === 'accepted' ? <CheckCircle className="w-3 h-3" /> :
-                       app.status === 'pending' ? <Clock className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                      {app.status === 'accepted' ? 'Diterima' : app.status === 'pending' ? 'Menunggu' : 'Ditolak'}
+                    <span
+                      className={cn(
+                        'px-2.5 py-1 rounded-full text-xs font-bold border flex items-center w-fit gap-1',
+                        app.status === 'accepted'
+                          ? 'bg-green-50 text-green-700 border-green-200'
+                          : app.status === 'pending'
+                            ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                            : 'bg-red-50 text-red-700 border-red-200'
+                      )}
+                    >
+                      {app.status === 'accepted' ? (
+                        <CheckCircle className="w-3 h-3" />
+                      ) : app.status === 'pending' ? (
+                        <Clock className="w-3 h-3" />
+                      ) : (
+                        <XCircle className="w-3 h-3" />
+                      )}
+                      {app.status === 'accepted'
+                        ? 'Diterima'
+                        : app.status === 'pending'
+                          ? 'Menunggu'
+                          : 'Ditolak'}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -175,5 +249,5 @@ export function PPDBDashboard() {
         </div>
       </div>
     </div>
-  );
+  )
 }

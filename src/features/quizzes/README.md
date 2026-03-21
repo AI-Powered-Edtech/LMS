@@ -23,17 +23,18 @@ src/features/quizzes/
 **Complete** — Phase 5 (Quiz Engine Refactor) is done.
 
 All quiz logic lives in this module. Entry pages:
+
 - `src/pages/Quiz.tsx` — quiz player page (student-facing)
 - `src/pages/QuizManager.tsx` — quiz creation/management (teacher-facing)
 
 ## Key RPCs
 
-| RPC | Purpose |
-|-----|---------|
-| `v1_start_quiz_attempt(p_quiz_id)` | Start or resume a quiz attempt |
-| `v1_save_partial_answers(p_attempt_id, p_answers)` | Autosave in-progress answers |
-| `v1_submit_quiz_attempt(p_attempt_id, p_final_answers)` | Submit and auto-grade attempt |
-| `v1_get_quiz_results(p_attempt_id)` | Fetch attempt results |
+| RPC                                                     | Purpose                        |
+| ------------------------------------------------------- | ------------------------------ |
+| `v1_start_quiz_attempt(p_quiz_id)`                      | Start or resume a quiz attempt |
+| `v1_save_partial_answers(p_attempt_id, p_answers)`      | Autosave in-progress answers   |
+| `v1_submit_quiz_attempt(p_attempt_id, p_final_answers)` | Submit and auto-grade attempt  |
+| `v1_get_quiz_results(p_attempt_id)`                     | Fetch attempt results          |
 
 ## Related Documentation
 

@@ -1,24 +1,24 @@
-import type { LessonResource } from '@/src/features/lessons/types';
-import type { Quiz, Assignment } from '@/src/features/lessons/types';
-import { MarkdownBlock } from './blocks/MarkdownBlock';
-import { VideoBlock } from './blocks/VideoBlock';
-import { ImageBlockViewer } from './blocks/ImageBlockViewer';
-import { FileBlockViewer } from './blocks/FileBlockViewer';
-import { QuizViewer } from '@/src/features/quizzes/components/QuizViewer';
-import { AssignmentViewer } from './AssignmentViewer';
+import type { LessonResource } from '@/src/features/lessons/types'
+import type { Quiz, Assignment } from '@/src/features/lessons/types'
+import { MarkdownBlock } from './blocks/MarkdownBlock'
+import { VideoBlock } from './blocks/VideoBlock'
+import { ImageBlockViewer } from './blocks/ImageBlockViewer'
+import { FileBlockViewer } from './blocks/FileBlockViewer'
+import { QuizViewer } from '@/src/features/quizzes/components/QuizViewer'
+import { AssignmentViewer } from './AssignmentViewer'
 
 interface BlockRendererProps {
-  block: LessonResource;
+  block: LessonResource
   /** Matched quiz (if block.type === 'quiz') */
-  quiz?: Quiz;
+  quiz?: Quiz
   /** Matched assignment (if block.type === 'assignment') */
-  assignment?: Assignment;
-  isCompleted: boolean;
-  savedVideoPosition?: number | null;
-  onVideoTimeUpdate?: (seconds: number) => void;
-  onCompletionMet?: () => void;
-  onProgressUpdate?: (pct: number) => void;
-  onStartViewing?: () => void;
+  assignment?: Assignment
+  isCompleted: boolean
+  savedVideoPosition?: number | null
+  onVideoTimeUpdate?: (seconds: number) => void
+  onCompletionMet?: () => void
+  onProgressUpdate?: (pct: number) => void
+  onStartViewing?: () => void
 }
 
 export function BlockRenderer({
@@ -32,14 +32,14 @@ export function BlockRenderer({
   onProgressUpdate,
   onStartViewing,
 }: BlockRendererProps) {
-  const type = block.type?.toLowerCase();
+  const type = block.type?.toLowerCase()
   switch (type) {
     case 'text':
       return (
         <div className="px-6 py-4">
           <MarkdownBlock content={block.content || ''} />
         </div>
-      );
+      )
 
     case 'video':
       return (
@@ -53,37 +53,27 @@ export function BlockRenderer({
           onStartViewing={onStartViewing ?? (() => {})}
           onVideoTimeUpdate={onVideoTimeUpdate}
         />
-      );
+      )
 
     case 'image':
-      if (!block.url) return (
-        <div className="px-6 py-4 text-sm text-slate-500 italic">
-          Gambar tidak tersedia.
-        </div>
-      );
+      if (!block.url)
+        return <div className="px-6 py-4 text-sm text-slate-500 italic">Gambar tidak tersedia.</div>
       return (
         <div className="px-6 py-4">
-          <ImageBlockViewer
-            url={block.url}
-            alt={block.title || ''}
-          />
+          <ImageBlockViewer url={block.url} alt={block.title || ''} />
         </div>
-      );
+      )
 
     case 'file':
       return (
         <div className="px-6 py-4">
-          <FileBlockViewer
-            url={block.url || ''}
-            title={block.title}
-          />
+          <FileBlockViewer url={block.url || ''} title={block.title} />
         </div>
-      );
+      )
 
     case 'quiz':
-      if (!quiz) return (
-        <div className="px-6 py-4 text-slate-500 text-sm">Kuis tidak ditemukan.</div>
-      );
+      if (!quiz)
+        return <div className="px-6 py-4 text-slate-500 text-sm">Kuis tidak ditemukan.</div>
       return (
         <QuizViewer
           quizId={quiz.id}
@@ -96,12 +86,11 @@ export function BlockRenderer({
           onCompletionMet={onCompletionMet ?? (() => {})}
           onStartViewing={onStartViewing ?? (() => {})}
         />
-      );
+      )
 
     case 'assignment':
-      if (!assignment) return (
-        <div className="px-6 py-4 text-slate-500 text-sm">Tugas tidak ditemukan.</div>
-      );
+      if (!assignment)
+        return <div className="px-6 py-4 text-slate-500 text-sm">Tugas tidak ditemukan.</div>
       return (
         <AssignmentViewer
           assignmentId={assignment.id}
@@ -115,7 +104,7 @@ export function BlockRenderer({
           onCompletionMet={onCompletionMet ?? (() => {})}
           onStartViewing={onStartViewing ?? (() => {})}
         />
-      );
+      )
 
     default:
       if (import.meta.env.DEV) {
@@ -123,8 +112,8 @@ export function BlockRenderer({
           <div className="px-6 py-4 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg m-4">
             Tipe blok tidak dikenal: <strong>{block.type}</strong>
           </div>
-        );
+        )
       }
-      return null;
+      return null
   }
 }

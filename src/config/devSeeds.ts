@@ -1,9 +1,5 @@
 /**
- * devSeeds.ts
- * 
- * Contains seed data constants strictly intended for the development environment.
- * Do not use these constants in production logic without thorough safety checks
- * (e.g., import.meta.env.DEV).
+ * @deprecated Import from '@/src/shared/config/devSeeds' instead.
+ * This file is kept for backward compatibility during the migration period.
  */
-
-export const DEV_SEED_VIDEO = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+export { DEV_SEED_VIDEO } from '../shared/config/devSeeds'

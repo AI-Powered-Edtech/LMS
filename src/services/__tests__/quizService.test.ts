@@ -1,17 +1,17 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('../../lib/supabase', () => ({
-    supabase: {
-        auth: { getSession: vi.fn(), getUser: vi.fn() },
-        rpc: vi.fn(),
-        from: vi.fn()
-    }
-}));
+  supabase: {
+    auth: { getSession: vi.fn(), getUser: vi.fn() },
+    rpc: vi.fn(),
+    from: vi.fn(),
+  },
+}))
 
-import { quizService } from '@/src/features/quizzes';
+import { quizService } from '@/src/features/quizzes'
 
 describe('Quiz Service (Mocked)', () => {
-    it('Should be truthy', () => {
-        expect(quizService).toBeTruthy();
-    });
-});
+  it('Should be truthy', () => {
+    expect(quizService).toBeTruthy()
+  })
+})

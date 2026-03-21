@@ -1,14 +1,14 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { cn } from '@/src/utils/cn';
-import { X } from 'lucide-react';
+import { useEffect, useRef, useCallback } from 'react'
+import { cn } from '@/src/utils/cn'
+import { X } from 'lucide-react'
 
 /* ─── Modal ────────────────────────────────────────────────── */
 
 export interface ModalProps {
-  open: boolean;
-  onClose: () => void;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-  children: React.ReactNode;
+  open: boolean
+  onClose: () => void
+  size?: 'sm' | 'md' | 'lg' | 'xl'
+  children: React.ReactNode
 }
 
 const modalSizes = {
@@ -16,49 +16,49 @@ const modalSizes = {
   md: 'max-w-md',
   lg: 'max-w-lg',
   xl: 'max-w-xl',
-} as const;
+} as const
 
 export function Modal({ open, onClose, size = 'md', children }: ModalProps) {
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onClose()
     },
     [onClose]
-  );
+  )
 
   // Focus trap + escape key
   useEffect(() => {
-    if (!open) return;
+    if (!open) return
 
-    document.addEventListener('keydown', handleKeyDown);
-    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleKeyDown)
+    document.body.style.overflow = 'hidden'
 
     // Focus first focusable element
     const timer = setTimeout(() => {
       const focusable = contentRef.current?.querySelector<HTMLElement>(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
-      focusable?.focus();
-    }, 50);
+      )
+      focusable?.focus()
+    }, 50)
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
-      clearTimeout(timer);
-    };
-  }, [open, handleKeyDown]);
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = ''
+      clearTimeout(timer)
+    }
+  }, [open, handleKeyDown])
 
-  if (!open) return null;
+  if (!open) return null
 
   return (
     <div
       ref={overlayRef}
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={(e) => {
-        if (e.target === overlayRef.current) onClose();
+        if (e.target === overlayRef.current) onClose()
       }}
     >
       {/* Backdrop */}
@@ -80,15 +80,15 @@ export function Modal({ open, onClose, size = 'md', children }: ModalProps) {
         {children}
       </div>
     </div>
-  );
+  )
 }
 
 /* ─── ModalHeader ──────────────────────────────────────────── */
 
 export interface ModalHeaderProps {
-  title: string;
-  onClose?: () => void;
-  className?: string;
+  title: string
+  onClose?: () => void
+  className?: string
 }
 
 export function ModalHeader({ title, onClose, className }: ModalHeaderProps) {
@@ -110,29 +110,25 @@ export function ModalHeader({ title, onClose, className }: ModalHeaderProps) {
         </button>
       )}
     </div>
-  );
+  )
 }
 
 /* ─── ModalBody ────────────────────────────────────────────── */
 
 export interface ModalBodyProps {
-  children: React.ReactNode;
-  className?: string;
+  children: React.ReactNode
+  className?: string
 }
 
 export function ModalBody({ children, className }: ModalBodyProps) {
-  return (
-    <div className={cn('px-6 py-4 overflow-y-auto flex-1', className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn('px-6 py-4 overflow-y-auto flex-1', className)}>{children}</div>
 }
 
 /* ─── ModalFooter ──────────────────────────────────────────── */
 
 export interface ModalFooterProps {
-  children: React.ReactNode;
-  className?: string;
+  children: React.ReactNode
+  className?: string
 }
 
 export function ModalFooter({ children, className }: ModalFooterProps) {
@@ -145,5 +141,5 @@ export function ModalFooter({ children, className }: ModalFooterProps) {
     >
       {children}
     </div>
-  );
+  )
 }

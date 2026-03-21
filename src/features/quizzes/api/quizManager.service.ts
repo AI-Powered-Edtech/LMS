@@ -1,8 +1,8 @@
 // Quiz Manager Service - Teacher-facing API
 // Extracted from quizService.ts for the Quiz Engine Refactor
 
-import { supabase } from '../../../lib/supabase';
-import type { QuestionType, QuizMode, AssignmentUpsertInput } from '../types/quizzes.types';
+import { supabase } from '../../../lib/supabase'
+import type { QuestionType, QuizMode } from '../types/quizzes.types'
 
 // ============================================
 // Helper Functions
@@ -13,12 +13,12 @@ function deriveAssignmentStatus(
   availableFrom?: string | null,
   dueAt?: string | null
 ): 'draft' | 'active' | 'scheduled' | 'ended' {
-  if (quizStatus !== 'published') return 'draft';
+  if (quizStatus !== 'published') return 'draft'
 
-  const now = Date.now();
-  if (dueAt && new Date(dueAt).getTime() < now) return 'ended';
-  if (availableFrom && new Date(availableFrom).getTime() > now) return 'scheduled';
-  return 'active';
+  const now = Date.now()
+  if (dueAt && new Date(dueAt).getTime() < now) return 'ended'
+  if (availableFrom && new Date(availableFrom).getTime() > now) return 'scheduled'
+  return 'active'
 }
 
 // ============================================
@@ -31,21 +31,23 @@ function deriveAssignmentStatus(
 export async function getTeacherQuizzes(tenantId: string) {
   const { data, error } = await supabase
     .from('quizzes')
-    .select(`
+    .select(
+      `
       *,
       quiz_assignments ( id, class_id ),
       quiz_questions ( id )
-    `)
+    `
+    )
     .eq('tenant_id', tenantId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
 
-  if (error) throw error;
+  if (error) throw error
 
   return (data || []).map((quiz: any) => ({
     ...quiz,
     assignment_count: (quiz.quiz_assignments || []).length,
     question_count: (quiz.quiz_questions || []).length,
-  }));
+  }))
 }
 
 /**
@@ -54,19 +56,21 @@ export async function getTeacherQuizzes(tenantId: string) {
 export async function getQuizzesByCourse(courseId: string, tenantId: string) {
   const { data, error } = await supabase
     .from('quizzes')
-    .select(`
+    .select(
+      `
       *,
       quiz_questions (
         id, text, "order", question_type, points,
         quiz_options (id, text)
       )
-    `)
+    `
+    )
     .eq('course_id', courseId)
     .eq('tenant_id', tenantId)
-    .eq('status', 'published');
+    .eq('status', 'published')
 
-  if (error) throw error;
-  return data;
+  if (error) throw error
+  return data
 }
 
 /**
@@ -75,7 +79,8 @@ export async function getQuizzesByCourse(courseId: string, tenantId: string) {
 export async function getQuizzesByClass(classId: string, tenantId: string) {
   const { data, error } = await supabase
     .from('quiz_assignments')
-    .select(`
+    .select(
+      `
       *,
       quizzes (
         id,
@@ -94,12 +99,13 @@ export async function getQuizzesByClass(classId: string, tenantId: string) {
         shuffle_options,
         quiz_questions ( id )
       )
-    `)
+    `
+    )
     .eq('class_id', classId)
     .eq('tenant_id', tenantId)
-    .order('available_from', { ascending: false });
+    .order('available_from', { ascending: false })
 
-  if (error) throw error;
+  if (error) throw error
 
   return (data || []).map((assignment: any) => ({
     ...(assignment.quizzes || {}),
@@ -108,7 +114,7 @@ export async function getQuizzesByClass(classId: string, tenantId: string) {
     assignment_available_from: assignment.available_from,
     assignment_due_at: assignment.due_at,
     question_count: (assignment.quizzes?.quiz_questions || []).length,
-  }));
+  }))
 }
 
 /**
@@ -117,7 +123,8 @@ export async function getQuizzesByClass(classId: string, tenantId: string) {
 export async function getQuizWithQuestions(quizId: string, tenantId: string) {
   const { data, error } = await supabase
     .from('quizzes')
-    .select(`
+    .select(
+      `
       *,
       quiz_questions (
         id,
@@ -129,41 +136,42 @@ export async function getQuizWithQuestions(quizId: string, tenantId: string) {
         tenant_id,
         quiz_options ( id, text, is_correct )
       )
-    `)
+    `
+    )
     .eq('id', quizId)
     .eq('tenant_id', tenantId)
-    .single();
+    .single()
 
-  if (error) throw error;
+  if (error) throw error
 
   if (data?.quiz_questions) {
-    data.quiz_questions.sort((a: any, b: any) => a.order - b.order);
+    data.quiz_questions.sort((a: any, b: any) => a.order - b.order)
   }
 
-  return data;
+  return data
 }
 
 /**
  * Create a new quiz
  */
 export async function createQuiz(payload: {
-  title: string;
-  class_id: string;
-  course_id?: string;
-  tenant_id: string;
-  instructions?: string;
-  mode?: QuizMode;
-  time_limit_minutes?: number;
-  max_attempts?: number;
-  passing_score?: number;
-  shuffle_questions?: boolean;
-  shuffle_options?: boolean;
-  show_correct_answers?: boolean;
-  available_from?: string | null;
-  due_at?: string | null;
-  available_until?: string | null;
+  title: string
+  class_id: string
+  course_id?: string
+  tenant_id: string
+  instructions?: string
+  mode?: QuizMode
+  time_limit_minutes?: number
+  max_attempts?: number
+  passing_score?: number
+  shuffle_questions?: boolean
+  shuffle_options?: boolean
+  show_correct_answers?: boolean
+  available_from?: string | null
+  due_at?: string | null
+  available_until?: string | null
 }) {
-  const dueAt = payload.due_at ?? payload.available_until ?? null;
+  const dueAt = payload.due_at ?? payload.available_until ?? null
 
   const { data, error } = await supabase
     .from('quizzes')
@@ -186,14 +194,13 @@ export async function createQuiz(payload: {
       status: 'draft',
     })
     .select()
-    .single();
+    .single()
 
-  if (error) throw error;
+  if (error) throw error
 
   // Auto-create assignment for the origin class
-  const { error: assignError } = await supabase
-    .from('quiz_assignments')
-    .upsert({
+  const { error: assignError } = await supabase.from('quiz_assignments').upsert(
+    {
       quiz_id: data.id,
       class_id: payload.class_id,
       tenant_id: payload.tenant_id,
@@ -201,27 +208,33 @@ export async function createQuiz(payload: {
       due_at: dueAt,
       max_attempts: payload.max_attempts || 3,
       status: 'draft',
-    }, { onConflict: 'quiz_id,class_id' });
+    },
+    { onConflict: 'quiz_id,class_id' }
+  )
 
   if (assignError) {
-    console.error('Failed to auto-create quiz assignment:', assignError);
-    throw assignError;
+    console.error('Failed to auto-create quiz assignment:', assignError)
+    throw assignError
   }
 
-  return data;
+  return data
 }
 
 /**
  * Update quiz details
  */
-export async function updateQuiz(quizId: string, updates: Record<string, unknown>, tenantId: string) {
+export async function updateQuiz(
+  quizId: string,
+  updates: Record<string, unknown>,
+  tenantId: string
+) {
   const { error } = await supabase
     .from('quizzes')
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('id', quizId)
-    .eq('tenant_id', tenantId);
+    .eq('tenant_id', tenantId)
 
-  if (error) throw error;
+  if (error) throw error
 }
 
 /**
@@ -232,32 +245,36 @@ export async function deleteQuiz(quizId: string, tenantId: string) {
     .from('quizzes')
     .delete()
     .eq('id', quizId)
-    .eq('tenant_id', tenantId);
+    .eq('tenant_id', tenantId)
 
-  if (error) throw error;
+  if (error) throw error
 }
 
 /**
  * Set quiz status (draft/published)
  */
-export async function setQuizStatus(quizId: string, status: 'draft' | 'published', tenantId: string) {
+export async function setQuizStatus(
+  quizId: string,
+  status: 'draft' | 'published',
+  tenantId: string
+) {
   const { error } = await supabase
     .from('quizzes')
     .update({ status, updated_at: new Date().toISOString() })
     .eq('id', quizId)
-    .eq('tenant_id', tenantId);
+    .eq('tenant_id', tenantId)
 
-  if (error) throw error;
+  if (error) throw error
 
   // Update all related assignment statuses
   const { data: assignments, error: assignmentError } = await supabase
     .from('quiz_assignments')
     .select('id, available_from, due_at')
-    .eq('quiz_id', quizId);
+    .eq('quiz_id', quizId)
 
-  if (assignmentError) throw assignmentError;
+  if (assignmentError) throw assignmentError
 
-  if (!assignments || assignments.length === 0) return;
+  if (!assignments || assignments.length === 0) return
 
   await Promise.all(
     assignments.map((assignment) =>
@@ -268,7 +285,7 @@ export async function setQuizStatus(quizId: string, status: 'draft' | 'published
         })
         .eq('id', assignment.id)
     )
-  );
+  )
 }
 
 // ============================================
@@ -282,12 +299,12 @@ export async function addQuestionToQuiz(
   quizId: string,
   tenantId: string,
   question: {
-    text: string;
-    question_type: QuestionType;
-    points?: number;
-    explanation?: string;
-    order: number;
-    options?: { text: string; is_correct: boolean }[];
+    text: string
+    question_type: QuestionType
+    points?: number
+    explanation?: string
+    order: number
+    options?: { text: string; is_correct: boolean }[]
   }
 ) {
   const { data: questionRow, error: questionError } = await supabase
@@ -302,53 +319,42 @@ export async function addQuestionToQuiz(
       order: question.order,
     })
     .select()
-    .single();
+    .single()
 
-  if (questionError) throw questionError;
+  if (questionError) throw questionError
 
   // Add options if provided
   if (question.options && question.options.length > 0) {
-    const { error: optionError } = await supabase
-      .from('quiz_options')
-      .insert(
-        question.options.map((option) => ({
-          question_id: questionRow.id,
-          text: option.text,
-          is_correct: option.is_correct,
-          tenant_id: tenantId,
-        }))
-      );
+    const { error: optionError } = await supabase.from('quiz_options').insert(
+      question.options.map((option) => ({
+        question_id: questionRow.id,
+        text: option.text,
+        is_correct: option.is_correct,
+        tenant_id: tenantId,
+      }))
+    )
 
-    if (optionError) throw optionError;
+    if (optionError) throw optionError
   }
 
-  return questionRow;
+  return questionRow
 }
 
 /**
  * Update a quiz question
  */
-export async function updateQuizQuestion(questionId: string, updates: Record<string, unknown>, tenantId: string) {
+export async function updateQuizQuestion(
+  questionId: string,
+  updates: Record<string, unknown>,
+  tenantId: string
+) {
   const { error } = await supabase
     .from('quiz_questions')
     .update(updates)
     .eq('id', questionId)
-    .eq('tenant_id', tenantId);
+    .eq('tenant_id', tenantId)
 
-  if (error) throw error;
-}
-
-/**
- * Delete a quiz question
- */
-export async function deleteQuizQuestion(questionId: string, tenantId: string) {
-  const { error } = await supabase
-    .from('quiz_questions')
-    .delete()
-    .eq('id', questionId)
-    .eq('tenant_id', tenantId);
-
-  if (error) throw error;
+  if (error) throw error
 }
 
 /**
@@ -364,22 +370,20 @@ export async function replaceQuestionOptions(
     .from('quiz_options')
     .delete()
     .eq('question_id', questionId)
-    .eq('tenant_id', tenantId);
+    .eq('tenant_id', tenantId)
 
   // Insert new options
   if (options.length > 0) {
-    const { error } = await supabase
-      .from('quiz_options')
-      .insert(
-        options.map((option) => ({
-          question_id: questionId,
-          text: option.text,
-          is_correct: option.is_correct,
-          tenant_id: tenantId,
-        }))
-      );
+    const { error } = await supabase.from('quiz_options').insert(
+      options.map((option) => ({
+        question_id: questionId,
+        text: option.text,
+        is_correct: option.is_correct,
+        tenant_id: tenantId,
+      }))
+    )
 
-    if (error) throw error;
+    if (error) throw error
   }
 }
 
@@ -396,39 +400,53 @@ export async function gradeAttemptQuestion(
   pointsEarned: number,
   isCorrect: boolean,
   comment?: string
-): Promise<{ success: boolean; attempt_id: string; question_id: string; points_earned: number; is_correct: boolean }> {
+): Promise<{
+  success: boolean
+  attempt_id: string
+  question_id: string
+  points_earned: number
+  is_correct: boolean
+}> {
   const { data, error } = await supabase.rpc('grade_attempt_question', {
     p_attempt_id: attemptId,
     p_question_id: questionId,
     p_points_earned: pointsEarned,
     p_is_correct: isCorrect,
     p_comment: comment ?? null,
-  });
+  })
 
   if (error) {
-    console.error('Error grading question:', error);
-    throw new Error(error.message || 'Failed to grade question');
+    console.error('Error grading question:', error)
+    throw new Error(error.message || 'Failed to grade question')
   }
 
-  return data as { success: boolean; attempt_id: string; question_id: string; points_earned: number; is_correct: boolean };
+  return data as {
+    success: boolean
+    attempt_id: string
+    question_id: string
+    points_earned: number
+    is_correct: boolean
+  }
 }
 
 /**
  * Get assignment results (all student attempts)
  */
 export async function getAssignmentResults(assignmentId: string, tenantId: string) {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Not authenticated');
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session) throw new Error('Not authenticated')
 
   const { data, error } = await supabase.rpc('v1_get_assignment_results', {
     p_assignment_id: assignmentId,
     p_tenant_id: tenantId,
-  });
+  })
 
   if (error) {
-    console.error('Error fetching assignment results:', error);
-    throw new Error(error.message || 'Failed to fetch assignment results');
+    console.error('Error fetching assignment results:', error)
+    throw new Error(error.message || 'Failed to fetch assignment results')
   }
 
-  return (data || []);
+  return data || []
 }

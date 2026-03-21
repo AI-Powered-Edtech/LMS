@@ -1,11 +1,11 @@
-import { cn } from '@/src/utils/cn';
+import { cn } from '@/src/utils/cn'
 
 interface BlockSkeletonProps {
-  type: string;
+  type: string
 }
 
 export function BlockSkeleton({ type }: BlockSkeletonProps) {
-  const base = 'animate-pulse bg-slate-200 dark:bg-slate-700 rounded';
+  const base = 'animate-pulse bg-slate-200 dark:bg-slate-700 rounded'
 
   switch (type) {
     case 'video':
@@ -15,13 +15,13 @@ export function BlockSkeleton({ type }: BlockSkeletonProps) {
             <div className="w-12 h-12 rounded-full bg-slate-300 dark:bg-slate-600" />
           </div>
         </div>
-      );
+      )
     case 'image':
       return (
         <div className="px-6 py-4">
           <div className={cn(base, 'w-full h-64')} />
         </div>
-      );
+      )
     case 'quiz':
     case 'assignment':
       return (
@@ -31,7 +31,7 @@ export function BlockSkeleton({ type }: BlockSkeletonProps) {
           <div className={cn(base, 'h-4 w-3/4')} />
           <div className={cn(base, 'h-10 w-32 mt-4')} />
         </div>
-      );
+      )
     case 'text':
     default:
       return (
@@ -40,6 +40,6 @@ export function BlockSkeleton({ type }: BlockSkeletonProps) {
           <div className={cn(base, 'h-4 w-5/6')} />
           <div className={cn(base, 'h-4 w-4/6')} />
         </div>
-      );
+      )
   }
 }

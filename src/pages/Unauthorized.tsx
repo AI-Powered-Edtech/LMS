@@ -1,9 +1,9 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ShieldX, ArrowLeft, Home } from 'lucide-react';
+import React from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ShieldX, ArrowLeft, Home } from 'lucide-react'
 
 export function Unauthorized() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
@@ -37,5 +37,5 @@ export function Unauthorized() {
         </div>
       </div>
     </div>
-  );
+  )
 }

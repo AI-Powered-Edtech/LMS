@@ -1,50 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 
 interface ChangeRoleModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: (newRole: string) => Promise<void>;
-  userName: string;
-  currentRoles: string[];
+  isOpen: boolean
+  onClose: () => void
+  onConfirm: (newRole: string) => Promise<void>
+  userName: string
+  currentRoles: string[]
 }
 
 const ROLES = [
   { value: 'STUDENT', label: '🎓 Student', desc: 'Akses kelas dan materi' },
   { value: 'TEACHER', label: '👩‍🏫 Teacher', desc: 'Kelola kelas dan nilai' },
   { value: 'ADMIN', label: '🛡️ Admin', desc: 'Kelola seluruh sekolah' },
-];
+]
 
-export function ChangeRoleModal({ isOpen, onClose, onConfirm, userName, currentRoles }: ChangeRoleModalProps) {
-  const [selectedRole, setSelectedRole] = useState(currentRoles[0] || 'STUDENT');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+export function ChangeRoleModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  userName,
+  currentRoles,
+}: ChangeRoleModalProps) {
+  const [selectedRole, setSelectedRole] = useState(currentRoles[0] || 'STUDENT')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
-  const primaryRole = currentRoles[0] || 'STUDENT';
-  const isDowngrade = (primaryRole === 'ADMIN' && selectedRole !== 'ADMIN') ||
-    (primaryRole === 'TEACHER' && selectedRole === 'STUDENT');
+  const primaryRole = currentRoles[0] || 'STUDENT'
+  const isDowngrade =
+    (primaryRole === 'ADMIN' && selectedRole !== 'ADMIN') ||
+    (primaryRole === 'TEACHER' && selectedRole === 'STUDENT')
 
   const handleConfirm = async () => {
-    setError('');
-    setLoading(true);
+    setError('')
+    setLoading(true)
     try {
-      await onConfirm(selectedRole);
-      onClose();
+      await onConfirm(selectedRole)
+      onClose()
     } catch (err: any) {
-      setError(err.message || 'Gagal mengubah role.');
+      setError(err.message || 'Gagal mengubah role.')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
-
+    <div
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-bold text-slate-900">Ubah Role</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl">✕</button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl">
+            ✕
+          </button>
         </div>
 
         <div className="mb-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
@@ -57,7 +71,7 @@ export function ChangeRoleModal({ isOpen, onClose, onConfirm, userName, currentR
         </div>
 
         <div className="space-y-2 mb-4">
-          {ROLES.map(r => (
+          {ROLES.map((r) => (
             <button
               key={r.value}
               onClick={() => setSelectedRole(r.value)}
@@ -68,13 +82,17 @@ export function ChangeRoleModal({ isOpen, onClose, onConfirm, userName, currentR
               }`}
             >
               <div>
-                <p className={`text-sm font-semibold ${selectedRole === r.value ? 'text-blue-700' : 'text-slate-700'}`}>
+                <p
+                  className={`text-sm font-semibold ${selectedRole === r.value ? 'text-blue-700' : 'text-slate-700'}`}
+                >
                   {r.label}
                 </p>
                 <p className="text-xs text-slate-500">{r.desc}</p>
               </div>
               {r.value === primaryRole && (
-                <span className="text-[10px] uppercase font-bold px-2 py-0.5 bg-slate-200 text-slate-600 rounded">Current</span>
+                <span className="text-[10px] uppercase font-bold px-2 py-0.5 bg-slate-200 text-slate-600 rounded">
+                  Current
+                </span>
               )}
             </button>
           ))}
@@ -83,7 +101,8 @@ export function ChangeRoleModal({ isOpen, onClose, onConfirm, userName, currentR
         {isDowngrade && (
           <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
             <p className="text-xs text-amber-700 font-medium">
-              ⚠️ Ini adalah <strong>downgrade</strong>. User akan kehilangan akses fitur {primaryRole}.
+              ⚠️ Ini adalah <strong>downgrade</strong>. User akan kehilangan akses fitur{' '}
+              {primaryRole}.
             </p>
           </div>
         )}
@@ -111,5 +130,5 @@ export function ChangeRoleModal({ isOpen, onClose, onConfirm, userName, currentR
         </div>
       </div>
     </div>
-  );
+  )
 }

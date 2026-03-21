@@ -1,42 +1,41 @@
 // Quiz Player - Orchestrator component
 // Part of the Quiz Engine Refactor
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
-import { Eye, WifiOff } from 'lucide-react';
-import { cn } from '@/src/utils/cn';
-import type { SubmitAnswer, QuizAttemptQuestion } from '../../types/quizzes.types';
-import { useQuizTimer } from '../../hooks/useQuizTimer';
-import { useQuizAutosave } from '../../hooks/useQuizAutosave';
-import type { SaveStatus } from '../../types/quizzes.types';
-import { useAntiCheat } from '../../hooks/useAntiCheat';
-import { useQuizHeartbeat } from '../../hooks/useQuizHeartbeat';
-import { useQuizPlayerStore } from '../../store/quizPlayer.store';
-import * as quizPlayerService from '../../api/quizPlayer.service';
-import { getCurrentQuestionIndex } from '../../api/quizPlayer.service';
-import { QuizHeader } from './QuizHeader';
-import { QuizBody } from './QuizBody';
-import { QuizFooter } from './QuizFooter';
-import { QuestionPalette } from './QuestionPalette';
-import { QuizReviewScreen } from './QuizReviewScreen';
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import { Eye, WifiOff } from 'lucide-react'
+import { cn } from '@/src/utils/cn'
+import type { SubmitAnswer, QuizAttemptQuestion } from '../../types/quizzes.types'
+import { useQuizTimer } from '../../hooks/useQuizTimer'
+import { useQuizAutosave } from '../../hooks/useQuizAutosave'
+import type { SaveStatus } from '../../types/quizzes.types'
+import { useAntiCheat } from '../../hooks/useAntiCheat'
+import { useQuizHeartbeat } from '../../hooks/useQuizHeartbeat'
+import { useQuizPlayerStore } from '../../store/quizPlayer.store'
+import * as quizPlayerService from '../../api/quizPlayer.service'
+import { getCurrentQuestionIndex } from '../../api/quizPlayer.service'
+import { QuizHeader } from './QuizHeader'
+import { QuizBody } from './QuizBody'
+import { QuizFooter } from './QuizFooter'
+import { QuestionPalette } from './QuestionPalette'
+import { QuizReviewScreen } from './QuizReviewScreen'
 
 interface QuizPlayerProps {
-  attemptId: string;
-  expiresAt: string | null;
+  attemptId: string
+  expiresAt: string | null
   quiz: {
-    id: string;
-    title: string;
-    time_limit_minutes?: number;
-  };
-  attemptQuestions: QuizAttemptQuestion[];
-  initialAnswers?: Record<string, SubmitAnswer>;
-  initialQuestionIndex?: number;
-  onSubmit: (answers: Record<string, SubmitAnswer>) => void;
-  isSubmitting: boolean;
+    id: string
+    title: string
+    time_limit_minutes?: number
+  }
+  attemptQuestions: QuizAttemptQuestion[]
+  initialAnswers?: Record<string, SubmitAnswer>
+  initialQuestionIndex?: number
+  onSubmit: (answers: Record<string, SubmitAnswer>) => void
+  isSubmitting: boolean
 }
 
-// Legacy SaveStatus for compatibility
-export type { SaveStatus };
+// SaveStatus imported from types for internal use
 
 export function QuizPlayer({
   attemptId,
@@ -48,83 +47,92 @@ export function QuizPlayer({
   onSubmit,
   isSubmitting,
 }: QuizPlayerProps) {
-  const [currentQuestionIdx, setCurrentQuestionIdx] = useState(initialQuestionIndex);
-  const [flagged, setFlagged] = useState<Set<string>>(new Set());
-  const [showReview, setShowReview] = useState(false);
-  const [answers, setAnswers] = useState<Record<string, SubmitAnswer>>(initialAnswers);
-  const [isResuming, setIsResuming] = useState(false);
-  const [resumeToast, setResumeToast] = useState<{ show: boolean; current: number; total: number }>({ show: false, current: 0, total: 0 });
+  const [currentQuestionIdx, setCurrentQuestionIdx] = useState(initialQuestionIndex)
+  const [flagged, setFlagged] = useState<Set<string>>(new Set())
+  const [showReview, setShowReview] = useState(false)
+  const [answers, setAnswers] = useState<Record<string, SubmitAnswer>>(initialAnswers)
+  const [isResuming, setIsResuming] = useState(false)
+  const [resumeToast, setResumeToast] = useState<{ show: boolean; current: number; total: number }>(
+    { show: false, current: 0, total: 0 }
+  )
 
-  const totalQuestions = attemptQuestions.length;
-  const question = attemptQuestions[currentQuestionIdx];
-  const resetStore = useQuizPlayerStore(state => state.resetStore);
+  const totalQuestions = attemptQuestions.length
+  const question = attemptQuestions[currentQuestionIdx]
+  const resetStore = useQuizPlayerStore((state) => state.resetStore)
 
   useEffect(() => {
     // Reset store state when attempt changes
     // NOTE: Extract resetStore via selector (not the whole store) to avoid
     // infinite re-render: whole-store subscription → state change → new ref → effect re-fires
-    resetStore();
-    return () => { resetStore(); };
-  }, [attemptId]); // eslint-disable-line react-hooks/exhaustive-deps
+    resetStore()
+    return () => {
+      resetStore()
+    }
+  }, [attemptId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Resume logic: compute current question index from saved answers on mount
   useEffect(() => {
     const computeResumeIndex = async () => {
       // Check if there's a saved attempt (initialAnswers has content)
-      const hasSavedAnswers = Object.keys(initialAnswers).length > 0;
+      const hasSavedAnswers = Object.keys(initialAnswers).length > 0
       if (!hasSavedAnswers || attemptQuestions.length === 0) {
-        return;
+        return
       }
 
-      setIsResuming(true);
+      setIsResuming(true)
 
       try {
         // Compute the current question index from saved answers
-        const resumeIndex = getCurrentQuestionIndex(attemptQuestions, initialAnswers);
-        
+        const resumeIndex = getCurrentQuestionIndex(attemptQuestions, initialAnswers)
+
         // Only update if the computed index is different from initial
         if (resumeIndex > 0 && resumeIndex !== initialQuestionIndex) {
-          setCurrentQuestionIdx(resumeIndex);
+          setCurrentQuestionIdx(resumeIndex)
           // Show toast notification
-          setResumeToast({ 
-            show: true, 
-            current: resumeIndex + 1, 
-            total: attemptQuestions.length 
-          });
+          setResumeToast({
+            show: true,
+            current: resumeIndex + 1,
+            total: attemptQuestions.length,
+          })
           // Auto-hide toast after 2 seconds
           setTimeout(() => {
-            setResumeToast(prev => ({ ...prev, show: false }));
-          }, 2000);
+            setResumeToast((prev) => ({ ...prev, show: false }))
+          }, 2000)
         }
       } catch (error) {
         // Gracefully fallback to initial index on error
-        console.error('Failed to compute resume index:', error);
+        console.error('Failed to compute resume index:', error)
       } finally {
-        setIsResuming(false);
+        setIsResuming(false)
       }
-    };
+    }
 
-    computeResumeIndex();
-  }, [attemptId, attemptQuestions, initialAnswers, initialQuestionIndex]);
+    computeResumeIndex()
+  }, [attemptId, attemptQuestions, initialAnswers, initialQuestionIndex])
 
   // ── Hooks composition ───────────────────────────────────
-  const { timeLeft, isCritical, progressColor } = useQuizTimer({
+  const { timeLeft, progressColor } = useQuizTimer({
     expiresAt,
     timeLimitMinutes: quiz.time_limit_minutes || 10,
     onTimeUp: () => onSubmit(answers),
-  });
+  })
 
   // Create a saveProgress wrapper for the quiz service
-  const quizServiceWithSaveProgress = useMemo(() => ({
-    saveProgress: async (attemptId: string, answers: Record<string, unknown>) => {
-      const submitAnswers: SubmitAnswer[] = Object.entries(answers).map(([questionId, answer]) => ({
-        question_id: questionId,
-        selected_option_ids: (answer as SubmitAnswer).selected_option_ids || [],
-        text_answer: (answer as SubmitAnswer).text_answer,
-      }));
-      await quizPlayerService.batchSaveAnswers(attemptId, submitAnswers);
-    },
-  }), []);
+  const quizServiceWithSaveProgress = useMemo(
+    () => ({
+      saveProgress: async (attemptId: string, answers: Record<string, unknown>) => {
+        const submitAnswers: SubmitAnswer[] = Object.entries(answers).map(
+          ([questionId, answer]) => ({
+            question_id: questionId,
+            selected_option_ids: (answer as SubmitAnswer).selected_option_ids || [],
+            text_answer: (answer as SubmitAnswer).text_answer,
+          })
+        )
+        await quizPlayerService.batchSaveAnswers(attemptId, submitAnswers)
+      },
+    }),
+    []
+  )
 
   // Use interval-based autosave (replaces debounced autosave + heartbeat dedup)
   const { lastSaved, isSaving } = useQuizAutosave({
@@ -132,67 +140,67 @@ export function QuizPlayer({
     answers: answers as Record<string, unknown>,
     quizService: quizServiceWithSaveProgress,
     intervalMs: 30000,
-  });
+  })
 
   // Map to compatible interface for QuizHeader
-  const saveStatus: SaveStatus = isSaving ? 'saving' : (lastSaved ? 'saved' : 'idle');
-  const isOnline = true; // QuizPlayer handles offline differently
+  const saveStatus: SaveStatus = isSaving ? 'saving' : lastSaved ? 'saved' : 'idle'
+  const isOnline = true // QuizPlayer handles offline differently
 
-  const { tabWarning } = useAntiCheat({ attemptId });
+  const { tabWarning } = useAntiCheat({ attemptId })
 
-  useQuizHeartbeat({ attemptId, intervalMs: 30000 });
+  useQuizHeartbeat({ attemptId, intervalMs: 30000 })
 
   // ── Answer handling ─────────────────────────────────────
   // Note: Autosave is now handled by useQuizAutosave interval (30s)
   // No need to call setAutoSaveAnswer on each answer change
   const handleAnswer = useCallback((questionId: string, answer: SubmitAnswer) => {
-    setAnswers(prev => ({ ...prev, [questionId]: answer }));
-  }, []);
+    setAnswers((prev) => ({ ...prev, [questionId]: answer }))
+  }, [])
 
   // ── Keyboard navigation ────────────────────────────────
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName || '')) return;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName || '')) return
 
       if (e.key === 'ArrowRight' && currentQuestionIdx < totalQuestions - 1 && !showReview) {
-        setCurrentQuestionIdx(i => i + 1);
+        setCurrentQuestionIdx((i) => i + 1)
       }
       if (e.key === 'ArrowLeft' && currentQuestionIdx > 0 && !showReview) {
-        setCurrentQuestionIdx(i => i - 1);
+        setCurrentQuestionIdx((i) => i - 1)
       }
       if (e.key.toLowerCase() === 'f' && question && !showReview) {
-        setFlagged(prev => {
-          const next = new Set(prev);
-          if (next.has(question.question_id)) next.delete(question.question_id);
-          else next.add(question.question_id);
-          return next;
-        });
+        setFlagged((prev) => {
+          const next = new Set(prev)
+          if (next.has(question.question_id)) next.delete(question.question_id)
+          else next.add(question.question_id)
+          return next
+        })
       }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [currentQuestionIdx, totalQuestions, question, showReview]);
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [currentQuestionIdx, totalQuestions, question, showReview])
 
   // ── beforeunload warning ────────────────────────────────
   useEffect(() => {
-    if (showReview) return;
+    if (showReview) return
     const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [showReview]);
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [showReview])
 
   // ── Flag toggle ───────────────────────────────────────
   const toggleFlag = (id: string) => {
-    setFlagged(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
+    setFlagged((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   // ── Review Screen ───────────────────────────────────────
   if (showReview) {
@@ -204,12 +212,12 @@ export function QuizPlayer({
         onBack={() => setShowReview(false)}
         onSubmit={() => onSubmit(answers)}
         onJump={(index) => {
-          setCurrentQuestionIdx(index);
-          setShowReview(false);
+          setCurrentQuestionIdx(index)
+          setShowReview(false)
         }}
         isSubmitting={isSubmitting}
       />
-    );
+    )
   }
 
   // Show skeleton while computing resume index
@@ -231,14 +239,14 @@ export function QuizPlayer({
           </div>
         </div>
       </div>
-    );
+    )
   }
 
-  if (!question) return null;
+  if (!question) return null
 
-  const isLastQuestion = currentQuestionIdx === totalQuestions - 1;
-  const questionType = question.question_type || 'MCQ';
-  const currentAnswer = answers[question.question_id];
+  const isLastQuestion = currentQuestionIdx === totalQuestions - 1
+  const questionType = question.question_type || 'MCQ'
+  const currentAnswer = answers[question.question_id]
 
   return (
     <div className="flex-1 w-full flex flex-col items-center px-4 md:px-6 lg:px-8">
@@ -283,14 +291,16 @@ export function QuizPlayer({
               <WifiOff className="w-5 h-5 text-amber-600 shrink-0" />
               <div>
                 <p className="font-bold text-amber-800 text-sm">Koneksi terputus</p>
-                <p className="text-xs text-amber-600">Jawaban Anda disimpan secara lokal dan akan disinkronkan saat online</p>
+                <p className="text-xs text-amber-600">
+                  Jawaban Anda disimpan secara lokal dan akan disinkronkan saat online
+                </p>
               </div>
             </div>
           </div>
         )}
 
         {/* ── Header ────────────────────────────────────── */}
-        <QuizHeader 
+        <QuizHeader
           title={quiz.title}
           currentQuestionIdx={currentQuestionIdx}
           totalQuestions={totalQuestions}
@@ -334,7 +344,7 @@ export function QuizPlayer({
             {/* Progress bar */}
             <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
-                className={cn("h-full transition-all duration-300 rounded-full", progressColor)}
+                className={cn('h-full transition-all duration-300 rounded-full', progressColor)}
                 style={{ width: `${((currentQuestionIdx + 1) / totalQuestions) * 100}%` }}
               />
             </div>
@@ -348,7 +358,7 @@ export function QuizPlayer({
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
               >
-                <QuizBody 
+                <QuizBody
                   question={question}
                   questionType={questionType}
                   currentAnswer={currentAnswer}
@@ -360,16 +370,16 @@ export function QuizPlayer({
             </AnimatePresence>
 
             {/* Navigation Controls */}
-            <QuizFooter 
+            <QuizFooter
               currentQuestionIdx={currentQuestionIdx}
               isLastQuestion={isLastQuestion}
-              onPrevious={() => setCurrentQuestionIdx(i => i - 1)}
-              onNext={() => setCurrentQuestionIdx(i => i + 1)}
+              onPrevious={() => setCurrentQuestionIdx((i) => i - 1)}
+              onNext={() => setCurrentQuestionIdx((i) => i + 1)}
               onFinish={() => setShowReview(true)}
             />
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

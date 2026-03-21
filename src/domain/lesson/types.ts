@@ -1,11 +1,4 @@
-export interface DomainLesson {
-    id: string;
-    moduleId: string;
-    title: string;
-    type: string;
-    orderIndex: number;
-    isPublished: boolean;
-    durationMinutes: number | null;
-    passingScore: number | null;
-    tenantId: string;
-}
+/**
+ * @deprecated Import from '@/src/shared/types/lessonTypes' instead.
+ */
+export type { DomainLesson } from '@/src/shared/types/lessonTypes'

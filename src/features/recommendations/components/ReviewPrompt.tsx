@@ -1,47 +1,49 @@
-import { useState } from 'react';
-import { AlertTriangle, RotateCcw, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '@/src/contexts/AuthContext';
-import { useRecommendations, useRecordRecommendationAction } from '../queries/recommendationQueries';
+import { useState } from 'react'
+import { AlertTriangle, RotateCcw, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'motion/react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { useRecommendations, useRecordRecommendationAction } from '../queries/recommendationQueries'
 
 interface ReviewPromptProps {
-  score: number;
-  lessonId: string;
-  quizId?: string;
+  score: number
+  lessonId: string
+  quizId?: string
 }
 
-export function ReviewPrompt({ score, lessonId, quizId }: ReviewPromptProps) {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const currentModuleId = searchParams.get('moduleId');
-  const [dismissed, setDismissed] = useState(false);
-  const { data: recommendations } = useRecommendations(user?.id ?? '', 10);
-  const { mutate: recordAction } = useRecordRecommendationAction();
+export function ReviewPrompt({ score, lessonId, quizId: _quizId }: ReviewPromptProps) {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const currentModuleId = searchParams.get('moduleId')
+  const [dismissed, setDismissed] = useState(false)
+  const { data: recommendations } = useRecommendations(user?.id ?? '', 10)
+  const { mutate: recordAction } = useRecordRecommendationAction()
 
   // Only show if score < 60
-  if (score >= 60 || dismissed) return null;
+  if (score >= 60 || dismissed) return null
 
   const reviewRec = recommendations?.find(
-    r => r.recommendation_type === 'review_quiz' && r.target_id === lessonId
-  );
+    (r) => r.recommendation_type === 'review_quiz' && r.target_id === lessonId
+  )
 
   const handleReview = () => {
     if (reviewRec) {
-      recordAction({ id: reviewRec.id, action: 'accepted' });
+      recordAction({ id: reviewRec.id, action: 'accepted' })
     }
-    const courseTarget = reviewRec?.course_id ?? '';
-    const params = currentModuleId ? `moduleId=${currentModuleId}&lessonId=${lessonId}` : `lessonId=${lessonId}`;
-    navigate(`/courses/${courseTarget}?${params}`);
-  };
+    const courseTarget = reviewRec?.course_id ?? ''
+    const params = currentModuleId
+      ? `moduleId=${currentModuleId}&lessonId=${lessonId}`
+      : `lessonId=${lessonId}`
+    navigate(`/courses/${courseTarget}?${params}`)
+  }
 
   const handleDismiss = () => {
     if (reviewRec) {
-      recordAction({ id: reviewRec.id, action: 'dismissed' });
+      recordAction({ id: reviewRec.id, action: 'dismissed' })
     }
-    setDismissed(true);
-  };
+    setDismissed(true)
+  }
 
   return (
     <AnimatePresence>
@@ -80,5 +82,5 @@ export function ReviewPrompt({ score, lessonId, quizId }: ReviewPromptProps) {
         </div>
       </motion.div>
     </AnimatePresence>
-  );
+  )
 }

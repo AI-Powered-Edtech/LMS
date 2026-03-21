@@ -1,10 +1,4 @@
-import { DomainLesson } from '../lesson/types';
-
-export interface DomainModule {
-    id: string;
-    courseId: string;
-    title: string;
-    orderIndex: number;
-    tenantId: string;
-    lessons: DomainLesson[];
-}
+/**
+ * @deprecated Import from '@/src/shared/types/moduleTypes' instead.
+ */
+export type { DomainModule } from '@/src/shared/types/moduleTypes'

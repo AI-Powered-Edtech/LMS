@@ -1,8 +1,8 @@
-import type { Lesson, LessonProgress } from '../types';
+import type { Lesson, LessonProgress } from '../types'
 
 /**
  * Determines if a lesson is locked based on the completion status of the previous lesson.
- * 
+ *
  * @param lessons - Array of all lessons in order
  * @param progress - Record of lesson progress by lesson ID
  * @param index - Index of the lesson to check
@@ -16,15 +16,15 @@ export function isLessonLocked(
   role?: string
 ): boolean {
   // Teachers and admins can access all lessons
-  if (role === 'teacher' || role === 'admin') return false;
-  
+  if (role === 'teacher' || role === 'admin') return false
+
   // First lesson is never locked
-  if (index === 0) return false;
-  
+  if (index === 0) return false
+
   // Check if the previous lesson is completed
-  const prevLesson = lessons[index - 1];
-  if (!prevLesson) return false;
-  
-  const prevProgress = progress[prevLesson.id];
-  return !prevProgress?.completed;
+  const prevLesson = lessons[index - 1]
+  if (!prevLesson) return false
+
+  const prevProgress = progress[prevLesson.id]
+  return !prevProgress?.completed
 }

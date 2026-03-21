@@ -1,31 +1,31 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react'
 
 export function ScrollProgressBar() {
-  const [progress, setProgress] = useState(0);
-  const rafRef = useRef(0);
+  const [progress, setProgress] = useState(0)
+  const rafRef = useRef(0)
 
   useEffect(() => {
     function handleScroll() {
-      cancelAnimationFrame(rafRef.current);
+      cancelAnimationFrame(rafRef.current)
       rafRef.current = requestAnimationFrame(() => {
-        const scrollTop = window.scrollY;
-        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollTop = window.scrollY
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight
         if (docHeight <= 0) {
-          setProgress(0);
-          return;
+          setProgress(0)
+          return
         }
-        setProgress(Math.min((scrollTop / docHeight) * 100, 100));
-      });
+        setProgress(Math.min((scrollTop / docHeight) * 100, 100))
+      })
     }
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      cancelAnimationFrame(rafRef.current);
-    };
-  }, []);
+      window.removeEventListener('scroll', handleScroll)
+      cancelAnimationFrame(rafRef.current)
+    }
+  }, [])
 
   return (
     <div className="sticky top-0 z-30 w-full h-[3px] bg-slate-100/80 dark:bg-slate-800/80">
@@ -41,5 +41,5 @@ export function ScrollProgressBar() {
         />
       )}
     </div>
-  );
+  )
 }

@@ -1,22 +1,14 @@
-import { useState, useRef, useCallback } from 'react';
-import { useBuilder } from '@/src/contexts/BuilderContext';
-import { useAuth } from '@/src/contexts/AuthContext';
-import { storageService } from '@/src/features/storage';
-import { 
-  FileUp, 
-  Loader2, 
-  FileText, 
-  Presentation, 
-  Sheet, 
-  Archive, 
-  File 
-} from 'lucide-react';
+import { useState, useRef, useCallback } from 'react'
+import { useBuilder } from '@/src/contexts/BuilderContext'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { storageService } from '@/src/features/storage'
+import { FileUp, Loader2, FileText, Presentation, Sheet, Archive, File } from 'lucide-react'
 
 interface FileBlockEditorProps {
-  blockId: string;
+  blockId: string
 }
 
-const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
 
 const ALLOWED_FILE_TYPES = [
   'application/pdf',
@@ -27,194 +19,195 @@ const ALLOWED_FILE_TYPES = [
   'application/vnd.ms-excel',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   'application/zip',
-];
+]
 
 function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 function getFileIcon(url: string | null) {
-  if (!url) return <File className="w-8 h-8 text-slate-400" />;
-  
-  const extension = url.split('.').pop()?.toLowerCase() || '';
-  
+  if (!url) return <File className="w-8 h-8 text-slate-400" />
+
+  const extension = url.split('.').pop()?.toLowerCase() || ''
+
   switch (extension) {
     case 'pdf':
-      return <FileText className="w-8 h-8 text-red-500" />;
+      return <FileText className="w-8 h-8 text-red-500" />
     case 'doc':
     case 'docx':
-      return <FileText className="w-8 h-8 text-blue-500" />;
+      return <FileText className="w-8 h-8 text-blue-500" />
     case 'ppt':
     case 'pptx':
-      return <Presentation className="w-8 h-8 text-orange-500" />;
+      return <Presentation className="w-8 h-8 text-orange-500" />
     case 'xls':
     case 'xlsx':
-      return <Sheet className="w-8 h-8 text-green-500" />;
+      return <Sheet className="w-8 h-8 text-green-500" />
     case 'zip':
     case 'rar':
-      return <Archive className="w-8 h-8 text-purple-500" />;
+      return <Archive className="w-8 h-8 text-purple-500" />
     default:
-      return <File className="w-8 h-8 text-slate-400" />;
+      return <File className="w-8 h-8 text-slate-400" />
   }
 }
 
 function getFileTypeLabel(url: string | null): string {
-  if (!url) return 'File';
-  
-  const extension = url.split('.').pop()?.toLowerCase() || '';
-  
+  if (!url) return 'File'
+
+  const extension = url.split('.').pop()?.toLowerCase() || ''
+
   switch (extension) {
     case 'pdf':
-      return 'PDF';
+      return 'PDF'
     case 'doc':
     case 'docx':
-      return 'Word';
+      return 'Word'
     case 'ppt':
     case 'pptx':
-      return 'PowerPoint';
+      return 'PowerPoint'
     case 'xls':
     case 'xlsx':
-      return 'Excel';
+      return 'Excel'
     case 'zip':
     case 'rar':
-      return 'ZIP';
+      return 'ZIP'
     default:
-      return 'File';
+      return 'File'
   }
 }
 
 export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
-  const { state, actions } = useBuilder();
-  const { user, tenantId: authTenantId } = useAuth();
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadFileName, setUploadFileName] = useState<string | null>(null);
-  const [uploadFileSize, setUploadFileSize] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isDragOver, setIsDragOver] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const { state, actions } = useBuilder()
+  const { user, tenantId: authTenantId } = useAuth()
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadFileName, setUploadFileName] = useState<string | null>(null)
+  const [uploadFileSize, setUploadFileSize] = useState<number | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [isDragOver, setIsDragOver] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const block = state.activeLesson?.blocks.find(b => b.id === blockId);
+  const block = state.activeLesson?.blocks.find((b) => b.id === blockId)
 
-  const handleFile = useCallback(async (file: File) => {
-    if (!state.courseId || !state.activeLesson) {
-      setError('Course or lesson not loaded');
-      return;
-    }
+  const handleFile = useCallback(
+    async (file: File) => {
+      if (!state.courseId || !state.activeLesson) {
+        setError('Course or lesson not loaded')
+        return
+      }
 
-    setError(null);
+      setError(null)
 
-    // Validate file type
-    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-      setError('Format file tidak valid.');
-      return;
-    }
+      // Validate file type
+      if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+        setError('Format file tidak valid.')
+        return
+      }
 
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
-      setError('Ukuran file maksimal 20MB.');
-      return;
-    }
+      // Validate file size
+      if (file.size > MAX_FILE_SIZE) {
+        setError('Ukuran file maksimal 20MB.')
+        return
+      }
 
-    // Show uploading state
-    setUploadFileName(file.name);
-    setUploadFileSize(file.size);
-    setIsUploading(true);
+      // Show uploading state
+      setUploadFileName(file.name)
+      setUploadFileSize(file.size)
+      setIsUploading(true)
 
-    try {
-      const result = await storageService.uploadFile(file, {
-        tenantId: authTenantId || '',
-        courseId: state.courseId,
-        lessonId: state.activeLesson.id,
-        blockId: blockId,
-        bucket: 'course-files',
-        uploadedBy: user?.id || '',
-      });
+      try {
+        const result = await storageService.uploadFile(file, {
+          tenantId: authTenantId || '',
+          courseId: state.courseId,
+          lessonId: state.activeLesson.id,
+          blockId: blockId,
+          bucket: 'course-files',
+          uploadedBy: user?.id || '',
+        })
 
-      actions.updateBlock(blockId, {
-        url: result.publicUrl,
-        title: file.name,
-      });
+        actions.updateBlock(blockId, {
+          url: result.publicUrl,
+          title: file.name,
+        })
 
-      setUploadFileName(null);
-      setUploadFileSize(null);
-    } catch (err) {
-      setUploadFileName(null);
-      setUploadFileSize(null);
-      setError(err instanceof Error ? err.message : 'Gagal mengunggah file.');
-    } finally {
-      setIsUploading(false);
-    }
-  }, [state.courseId, state.activeLesson, blockId, authTenantId, user?.id, actions]);
+        setUploadFileName(null)
+        setUploadFileSize(null)
+      } catch (err) {
+        setUploadFileName(null)
+        setUploadFileSize(null)
+        setError(err instanceof Error ? err.message : 'Gagal mengunggah file.')
+      } finally {
+        setIsUploading(false)
+      }
+    },
+    [state.courseId, state.activeLesson, blockId, authTenantId, user?.id, actions]
+  )
 
   const handleDelete = async () => {
-    const storageObjectId = (block as unknown as { storage_object_id?: string })?.storage_object_id;
-    
+    const storageObjectId = (block as unknown as { storage_object_id?: string })?.storage_object_id
+
     if (storageObjectId) {
       try {
-        await storageService.deleteFile(storageObjectId);
+        await storageService.deleteFile(storageObjectId)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Gagal menghapus file.');
-        return;
+        setError(err instanceof Error ? err.message : 'Gagal menghapus file.')
+        return
       }
     }
-    
-    actions.updateBlock(blockId, { url: null, title: null });
-  };
+
+    actions.updateBlock(blockId, { url: null, title: null })
+  }
 
   const handleReplace = () => {
-    inputRef.current?.click();
-  };
+    inputRef.current?.click()
+  }
 
   const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
+    e.preventDefault()
+    setIsDragOver(true)
+  }
 
   const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
+    e.preventDefault()
+    setIsDragOver(false)
+  }
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const file = e.dataTransfer.files[0];
+    e.preventDefault()
+    setIsDragOver(false)
+    const file = e.dataTransfer.files[0]
     if (file) {
-      handleFile(file);
+      handleFile(file)
     }
-  };
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
-      handleFile(file);
+      handleFile(file)
     }
-  };
+  }
 
-  if (!block) return null;
+  if (!block) return null
 
-  const blockUrl = block.url;
-  
+  const blockUrl = block.url
+
   // Extract file name from block
-  const fileName = block.title || (blockUrl ? blockUrl.split('/').pop() || 'File' : null);
-  const fileTypeLabel = getFileTypeLabel(blockUrl);
+  const fileName = block.title || (blockUrl ? blockUrl.split('/').pop() || 'File' : null)
+  const fileTypeLabel = getFileTypeLabel(blockUrl)
 
   // Uploaded state - show file card
   if (blockUrl) {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
-          <div className="p-2 bg-white rounded-lg shadow-sm">
-            {getFileIcon(blockUrl)}
-          </div>
+          <div className="p-2 bg-white rounded-lg shadow-sm">{getFileIcon(blockUrl)}</div>
           <div className="flex-1 min-w-0">
             <p className="font-medium text-slate-800 truncate">{fileName}</p>
             <p className="text-sm text-slate-500">{fileTypeLabel}</p>
           </div>
         </div>
-        
+
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
             <button
@@ -236,11 +229,9 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
           </div>
         </div>
 
-        {error && (
-          <p className="text-sm text-red-600">{error}</p>
-        )}
+        {error && <p className="text-sm text-red-600">{error}</p>}
       </div>
-    );
+    )
   }
 
   // Empty state / Uploading state
@@ -280,19 +271,13 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
             <div className="p-3 bg-white rounded-xl shadow-sm mb-3">
               <FileUp className="w-8 h-8 text-orange-500" />
             </div>
-            <p className="text-sm text-slate-600 mb-1">
-              Pilih file untuk diunggah
-            </p>
-            <p className="text-xs text-slate-400">
-              PDF, Word, PowerPoint, Excel, ZIP (maks. 20MB)
-            </p>
+            <p className="text-sm text-slate-600 mb-1">Pilih file untuk diunggah</p>
+            <p className="text-xs text-slate-400">PDF, Word, PowerPoint, Excel, ZIP (maks. 20MB)</p>
           </>
         )}
       </div>
 
-      {error && (
-        <p className="text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
-  );
+  )
 }

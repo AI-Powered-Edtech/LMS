@@ -1,32 +1,29 @@
-import { useRef, useState, useEffect } from 'react';
-import { Bell } from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
-import { useAuth } from '@/src/contexts/AuthContext';
-import { useUnreadAlertCount } from '../queries/useStruggleQueries';
-import { StruggleAlertPanel } from './StruggleAlertPanel';
+import { useRef, useState, useEffect } from 'react'
+import { Bell } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { useUnreadAlertCount } from '../queries/useStruggleQueries'
+import { StruggleAlertPanel } from './StruggleAlertPanel'
 
 export function NotificationBell() {
-  const { role } = useAuth();
-  const unreadCount = useUnreadAlertCount();
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const { role } = useAuth()
+  const unreadCount = useUnreadAlertCount()
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Close on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
-        setOpen(false);
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
       }
     }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
 
   // Only render for teacher / admin
-  if (role !== 'teacher' && role !== 'admin') return null;
+  if (role !== 'teacher' && role !== 'admin') return null
 
   return (
     <div className="relative" ref={containerRef}>
@@ -62,5 +59,5 @@ export function NotificationBell() {
         )}
       </AnimatePresence>
     </div>
-  );
+  )
 }
