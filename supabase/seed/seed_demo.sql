@@ -60,10 +60,10 @@ DECLARE
     -- Admin user
     v_admin_id uuid;
 
-    -- Configuration
-    v_teacher_email text := 'teacher@demo.edusync.com';
-    v_student_email text := 'student@demo.edusync.com';
-    v_admin_email   text := 'admin@demo.edusync.com';
+    -- Configuration: prefer @edusync.dev (CLAUDE.md canonical), fall back to legacy
+    v_teacher_email text := 'teacher@edusync.dev';
+    v_student_email text := 'student@edusync.dev';
+    v_admin_email   text := 'admin@edusync.dev';
 BEGIN
     -- 1. Get the demo tenant
     SELECT id INTO v_tenant_id 
@@ -75,21 +75,21 @@ BEGIN
         RAISE EXCEPTION 'Demo tenant not found. Run seed_base.sql first!';
     END IF;
 
-    -- 2. Get user IDs from auth.users
-    SELECT id INTO v_teacher_id 
-    FROM auth.users 
-    WHERE email = v_teacher_email 
-    LIMIT 1;
+    -- 2. Get user IDs from auth.users (prefer @edusync.dev, fall back to legacy @demo.edusync.com)
+    SELECT id INTO v_teacher_id FROM auth.users WHERE email = v_teacher_email LIMIT 1;
+    IF v_teacher_id IS NULL THEN
+        SELECT id INTO v_teacher_id FROM auth.users WHERE email = 'teacher@demo.edusync.com' LIMIT 1;
+    END IF;
 
-    SELECT id INTO v_student_id
-    FROM auth.users
-    WHERE email = v_student_email
-    LIMIT 1;
+    SELECT id INTO v_student_id FROM auth.users WHERE email = v_student_email LIMIT 1;
+    IF v_student_id IS NULL THEN
+        SELECT id INTO v_student_id FROM auth.users WHERE email = 'student@demo.edusync.com' LIMIT 1;
+    END IF;
 
-    SELECT id INTO v_admin_id
-    FROM auth.users
-    WHERE email = v_admin_email
-    LIMIT 1;
+    SELECT id INTO v_admin_id FROM auth.users WHERE email = v_admin_email LIMIT 1;
+    IF v_admin_id IS NULL THEN
+        SELECT id INTO v_admin_id FROM auth.users WHERE email = 'admin@demo.edusync.com' LIMIT 1;
+    END IF;
 
     IF v_teacher_id IS NULL THEN
         RAISE NOTICE 'Teacher user (%) not found in auth.users. Create user in Supabase Dashboard first!', v_teacher_email;
