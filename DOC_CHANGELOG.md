@@ -2,6 +2,33 @@
 
 ---
 
+## 2026-03-21
+
+### Full Documentation Audit Pass
+
+**Created (new files):**
+- `README.md` — Full project overview: stack, env vars, setup, structure, route reference
+- `CLAUDE.md` — Claude engineering guide: conventions, gotchas, documentation policy
+- `CONTRIBUTING.md` — Developer guide: branch strategy, commit conventions, checklist
+- `DEPLOYMENT.md` — Deployment guide: Supabase setup, migration order, hosting
+- `CHANGELOG.md` — Version history: v1.0-rc release notes
+- `docs/ARCHITECTURE.md` — System architecture: frontend, routing, multi-tenant, feature modules, edge functions
+- `docs/DATABASE.md` — Database reference: key tables, column gotchas, RPCs, triggers, pg_cron, migration milestones
+- `docs/AUTH.md` — Auth guide: JWT claims, AuthContext API, signUp flow, known limitations
+- `docs/SECURITY.md` — Security model: RLS patterns, 5 security fixes (migration 836), remediation history
+- `docs/GAMIFICATION.md` — Gamification: XP, levels, badges, leaderboard v2, streaks, struggle score
+- `docs/ANALYTICS.md` — Analytics: architecture, engagement segments, struggle detection, pg_cron, SQL gotchas
+- `docs/TESTING.md` — Testing guide: accounts, known limitations, ship criteria, post-ship backlog
+
+**Updated (stale content fixed):**
+- `docs/USERFLOW.md` — Rewrote all route paths to use hash routing (`/#/`); updated flows to match current Smart Player and quiz architecture
+- `src/features/quizzes/README.md` — Updated from "Phase 1 Scaffolding In Progress" to accurate "Complete" status with actual RPC reference
+
+**Audit findings:**
+- All other existing docs (`DATABASE_ARCHITECTURE.md`, `AUTH_SETUP_GUIDE.md`, `ENGINEERING_ROADMAP.md`, `RLS_POLICIES.md`, `TENANT_ARCHITECTURE.md`, `TENANT_SECURITY_AUDIT.md`, `SYSTEM_MAP.md`, `MIGRATION_RESET_GUIDE.md`) verified as CURRENT
+
+---
+
 ## 2026-03-20
 
 ### docs/MIGRATION_RESET_GUIDE.md

@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { PlayCircle, Sparkles, AlertTriangle, Lock, FileText, MessageSquare } from 'lucide-react';
+import { PlayCircle, Sparkles, AlertTriangle, Lock, FileText, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
 import { motion, AnimatePresence } from 'motion/react';
 import type { LessonResource } from '@/src/features/lessons';
@@ -42,7 +42,7 @@ export function VideoViewer({
     const [currentTime, setCurrentTime] = useState(0);
     const [maxWatchedTime, setMaxWatchedTime] = useState(savedPosition);
     const [isSeeding, setIsSeeding] = useState(false);
-    const [isStalled, setIsStalled] = useState(false); // New state for buffering/network issue
+    const [isStalled, setIsStalled] = useState(false);
     const hasCalledCompletion = useRef(false);
 
     // Session restore: seek to saved position
@@ -67,7 +67,6 @@ export function VideoViewer({
             const percentage = Math.round((Math.max(time, maxWatchedTime) / duration) * 100);
             onProgressUpdate(percentage, Math.floor(time));
 
-            // Completion: 95% watched
             if (percentage >= 95 && !isCompleted && !hasCalledCompletion.current) {
                 hasCalledCompletion.current = true;
                 onCompletionMet();
@@ -75,7 +74,6 @@ export function VideoViewer({
         }
     }, [maxWatchedTime, isCompleted, onProgressUpdate, onCompletionMet]);
 
-    // Anti-skip: prevent seeking beyond maxWatchedTime
     const handleSeeking = useCallback(() => {
         if (videoRef.current && videoRef.current.currentTime > maxWatchedTime + 1) {
             videoRef.current.currentTime = maxWatchedTime;
@@ -104,7 +102,6 @@ export function VideoViewer({
         }
     };
 
-    // Video buffering/network error handling
     const handleWaitingOrStalled = useCallback(() => {
         setIsStalled(true);
     }, []);
@@ -113,11 +110,9 @@ export function VideoViewer({
         setIsStalled(false);
     }, []);
 
-    // Global online recovery listener
     useEffect(() => {
         const handleOnline = () => {
             if (videoRef.current && isStalled) {
-                console.log("[VideoViewer] Back online, recovering video playback...");
                 const currentPos = videoRef.current.currentTime;
                 videoRef.current.load();
                 videoRef.current.currentTime = currentPos;
@@ -132,34 +127,39 @@ export function VideoViewer({
         <div className="w-full h-full overflow-y-auto custom-scrollbar flex flex-col lg:flex-row md:gap-8 max-w-[1400px] mx-auto p-6 md:p-10">
             {/* Empty State */}
             {!videoUrl ? (
-                <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 border border-slate-200 rounded-2xl p-8 text-center min-h-[400px]">
-                    <div className="w-16 h-16 bg-white border border-slate-200 shadow-sm rounded-2xl flex items-center justify-center mb-4">
-                        <AlertTriangle className="w-8 h-8 text-slate-400" />
+                <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-8 text-center min-h-[400px]">
+                    <div className="w-16 h-16 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-2xl flex items-center justify-center mb-4">
+                        <AlertTriangle className="w-8 h-8 text-slate-400 dark:text-slate-500" />
                     </div>
-                    <h2 className="text-xl font-bold text-slate-800 mb-2">Video Belum Tersedia</h2>
-                    <p className="text-slate-500 max-w-md mb-6">
+                    <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">Video Belum Tersedia</h2>
+                    <p className="text-slate-500 dark:text-slate-400 max-w-md mb-6">
                         Materi video untuk pelajaran ini belum ditambahkan. Jika Anda adalah instruktur, silakan masukkan URL video terlebih dahulu.
                     </p>
 
                     {import.meta.env.DEV && onSeedDummyVideo && (
-                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl max-w-md w-full">
-                            <p className="text-sm text-yellow-800 font-medium mb-3">
-                                🛠️ Development Mode Only
+                        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-xl max-w-md w-full">
+                            <p className="text-sm text-yellow-800 dark:text-yellow-300 font-medium mb-3">
+                                Mode Pengembang
                             </p>
                             <button
                                 onClick={handleSeedClick}
                                 disabled={isSeeding}
                                 className="w-full bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                             >
-                                {isSeeding ? "Seeding..." : "Seed Dummy Video (BigBuckBunny)"}
+                                {isSeeding ? "Memuat..." : "Isi Video Dummy (BigBuckBunny)"}
                             </button>
                         </div>
                     )}
                 </div>
             ) : (
-                /* Video Player */
                 <div className="flex-1 flex flex-col min-w-0">
-                    <div className="aspect-video bg-slate-900 rounded-2xl overflow-hidden shadow-xl border border-slate-200/50 relative group">
+                    {/* Video player wrapper */}
+                    <div className={cn(
+                        'aspect-video rounded-2xl overflow-hidden shadow-xl border relative group',
+                        'bg-slate-900',
+                        'border-slate-200/50 dark:border-slate-700/50',
+                        isCompleted && 'ring-2 ring-green-400/60 dark:ring-green-500/50'
+                    )}>
                         <video
                             ref={videoRef}
                             src={videoUrl}
@@ -191,35 +191,70 @@ export function VideoViewer({
                             )}
                         </AnimatePresence>
 
+                        {/* Completion badge overlay */}
+                        <AnimatePresence>
+                            {isCompleted && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    transition={{ type: 'spring', damping: 18, stiffness: 280 }}
+                                    className="absolute top-3 left-3 z-10 flex items-center gap-1.5 bg-green-500/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg"
+                                >
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    Video Selesai
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Anti-skip hint */}
                         {!isCompleted && !isStalled && (
                             <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                 <Sparkles className="w-3 h-3 text-yellow-400" />
-                                Tonton hingga selesai (skip dinonaktifkan)
+                                Tonton hingga selesai (lewati dinonaktifkan)
                             </div>
                         )}
                     </div>
 
-                    <div className="mt-6 bg-gradient-to-r from-white to-slate-50/50 p-6 rounded-2xl border border-slate-100 w-full mb-6 lg:mb-0 shadow-sm">
+                    {/* Info panel */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.15, duration: 0.3 }}
+                        className={cn(
+                            'mt-6 p-6 rounded-2xl border w-full mb-6 lg:mb-0 shadow-sm',
+                            'bg-gradient-to-r from-white to-slate-50/50 border-slate-100',
+                            'dark:from-slate-800 dark:to-slate-900/50 dark:border-slate-700'
+                        )}
+                    >
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-bold text-slate-800 text-base">Tentang Video Ini</h3>
-                            <button className="hidden sm:flex items-center gap-2 text-blue-600 bg-blue-50 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors">
+                            <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base">Tentang Video Ini</h3>
+                            <button className="hidden sm:flex items-center gap-2 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">
                                 <MessageSquare className="w-4 h-4" />
                                 Tanyakan di Ruang Diskusi
                             </button>
                         </div>
-                        <p className="text-slate-600 text-sm leading-relaxed">
+                        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
                             Pastikan Anda menonton hingga akhir agar sistem mencatat progres Anda secara otomatis.
                         </p>
-                    </div>
+                    </motion.div>
                 </div>
             )}
 
-            {/* Transcripts */}
+            {/* Transcripts panel */}
             {transcripts && transcripts.length > 0 && (
-                <div className="w-full lg:w-96 bg-white rounded-2xl border border-slate-200 flex flex-col h-[500px] shrink-0 sticky top-0 mt-6 lg:mt-0">
-                    <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-white rounded-t-2xl z-10 shrink-0">
-                        <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-blue-500" />
+                <div className={cn(
+                    'w-full lg:w-96 rounded-2xl border flex flex-col h-[500px] shrink-0 sticky top-0 mt-6 lg:mt-0',
+                    'bg-white dark:bg-slate-900',
+                    'border-slate-200 dark:border-slate-700'
+                )}>
+                    <div className={cn(
+                        'p-5 border-b flex items-center justify-between rounded-t-2xl z-10 shrink-0',
+                        'bg-white dark:bg-slate-900',
+                        'border-slate-100 dark:border-slate-800'
+                    )}>
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-blue-500 dark:text-blue-400" />
                             Transkrip Interaktif
                         </h3>
                     </div>
@@ -236,23 +271,27 @@ export function VideoViewer({
                                     onClick={() => handleTranscriptClick(transcript.time)}
                                     disabled={isLocked}
                                     className={cn(
-                                        "w-full text-left p-4 rounded-xl transition-all text-sm border",
+                                        'w-full text-left p-4 rounded-xl transition-all text-sm border',
                                         isActive
-                                            ? "bg-blue-50 border-blue-200"
-                                            : "bg-white border-transparent hover:border-slate-200",
-                                        isLocked && "opacity-60 cursor-not-allowed hover:bg-transparent"
+                                            ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-700'
+                                            : 'bg-white dark:bg-slate-800/50 border-transparent hover:border-slate-200 dark:hover:border-slate-700',
+                                        isLocked && 'opacity-60 cursor-not-allowed hover:bg-transparent dark:hover:bg-transparent'
                                     )}
                                 >
                                     <span className={cn(
-                                        "text-xs font-bold block mb-1.5 flex items-center gap-1.5",
-                                        isActive ? "text-blue-600" : "text-blue-400/70"
+                                        'text-xs font-bold block mb-1.5 flex items-center gap-1.5',
+                                        isActive
+                                            ? 'text-blue-600 dark:text-blue-400'
+                                            : 'text-blue-400/70 dark:text-blue-500/60'
                                     )}>
                                         {Math.floor(transcript.time / 60)}:{(transcript.time % 60).toString().padStart(2, '0')}
-                                        {isLocked && <Lock className="w-3 h-3 text-slate-400" />}
+                                        {isLocked && <Lock className="w-3 h-3 text-slate-400 dark:text-slate-600" />}
                                     </span>
                                     <span className={cn(
-                                        "leading-relaxed",
-                                        isActive ? "text-slate-800 font-medium" : "text-slate-500"
+                                        'leading-relaxed',
+                                        isActive
+                                            ? 'text-slate-800 dark:text-slate-100 font-medium'
+                                            : 'text-slate-500 dark:text-slate-400'
                                     )}>
                                         {transcript.text}
                                     </span>

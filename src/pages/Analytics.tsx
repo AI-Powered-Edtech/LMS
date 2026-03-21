@@ -125,8 +125,11 @@ export function Analytics() {
     }
   };
 
+  const [aiInsightMessage, setAiInsightMessage] = useState<string | null>(null);
+
   const handleAnalyzeWithAI = async () => {
-    alert("⚠️ Fitur AI Analytics In-Depth sedang dalam pengembangan. Gunakan AI Tutor untuk pertanyaan spesifik.");
+    setAiInsightMessage("Fitur AI Analytics In-Depth sedang dalam pengembangan. Gunakan AI Tutor untuk pertanyaan spesifik.");
+    setTimeout(() => setAiInsightMessage(null), 4000);
   };
 
   if (!activeTenant) return null;
@@ -171,8 +174,8 @@ export function Analytics() {
     <div className="max-w-7xl mx-auto space-y-8 p-6">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-            Learning Analytics Engine
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+            Mesin Analitik Pembelajaran
           </h1>
           <p className="text-slate-500 mt-2">
             Pantau perkembangan komprehensif siswa menggunakan data teragregasi.
@@ -223,6 +226,14 @@ export function Analytics() {
         </div>
       </div>
 
+      {/* AI Insight coming-soon toast */}
+      {aiInsightMessage && (
+        <div className="flex items-center gap-3 p-4 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-xl text-sm font-medium">
+          <Sparkles className="w-5 h-5 shrink-0" />
+          {aiInsightMessage}
+        </div>
+      )}
+
       {/* Last Updated Info - Show when data is loaded */}
       {data && (
         <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 px-4 py-2 rounded-lg">
@@ -261,7 +272,7 @@ export function Analytics() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-500">Total Enrolled</p>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Terdaftar</p>
                 <h3 className="text-2xl font-bold text-slate-900 mt-1">{data.overview.total_enrolled}</h3>
                 <p className="text-xs text-slate-400 mt-1">{data.overview.active_students} aktif berturut-turut</p>
               </div>
@@ -273,8 +284,8 @@ export function Analytics() {
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-slate-500">Rata-rata Progress</p>
-                <h3 className="text-2xl font-bold text-slate-900 mt-1">{Math.round(data.overview.avg_progress)}%</h3>
-                <p className="text-xs text-slate-400 mt-1">Completion rate {Math.round(data.overview.lesson_completion_rate)}%</p>
+                <h3 className="text-2xl font-bold text-slate-900 mt-1">{data.overview.total_enrolled > 0 ? Math.round(data.overview.avg_progress) : 0}%</h3>
+                <p className="text-xs text-slate-400 mt-1">Tingkat penyelesaian {Math.round(data.overview.lesson_completion_rate)}%</p>
               </div>
               <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
                 <Activity className="w-6 h-6" />
@@ -283,9 +294,9 @@ export function Analytics() {
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-500">Rata-rata Quiz Score</p>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Rata-rata Nilai Kuis</p>
                 <h3 className="text-2xl font-bold text-slate-900 mt-1">{Math.round(data.overview.avg_quiz_score)}%</h3>
-                <p className="text-xs text-slate-400 mt-1">Pass rate {Math.round(data.overview.quiz_pass_rate)}%</p>
+                <p className="text-xs text-slate-400 mt-1">Tingkat kelulusan {Math.round(data.overview.quiz_pass_rate)}%</p>
               </div>
               <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
                 <Award className="w-6 h-6" />
@@ -357,7 +368,7 @@ export function Analytics() {
             <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
               <div className="p-6 border-b border-slate-100 flex justify-between items-center">
                 <h2 className="text-xl font-bold text-slate-800">
-                  Daftar Siswa (Top & At-Risk)
+                  Daftar Siswa (Terbaik & Berisiko)
                 </h2>
                 <div className="flex items-center gap-2">
                   <Filter className="w-5 h-5 text-slate-400" />
@@ -442,7 +453,7 @@ export function Analytics() {
                                 {isKritis ? (
                                   <span className="text-xs font-medium text-red-600 border border-red-200 bg-red-50 px-2 py-1 rounded">Intervensi Aktif</span>
                                 ) : isPemantauan ? (
-                                  <span className="text-xs font-medium text-amber-600 border border-amber-200 bg-amber-50 px-2 py-1 rounded">Monitor</span>
+                                  <span className="text-xs font-medium text-amber-600 border border-amber-200 bg-amber-50 px-2 py-1 rounded">Pantau</span>
                                 ) : (
                                   <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded">Aman</span>
                                 )}

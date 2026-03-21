@@ -11,9 +11,9 @@ export function BuilderTopBar() {
 
     const statusConfig = {
         idle: { icon: null, text: '', color: '' },
-        saving: { icon: <Loader2 className="w-3.5 h-3.5 animate-spin" />, text: 'Saving...', color: 'text-amber-500' },
-        saved: { icon: <CheckCircle className="w-3.5 h-3.5" />, text: 'Saved', color: 'text-emerald-500' },
-        error: { icon: <AlertCircle className="w-3.5 h-3.5" />, text: 'Save failed', color: 'text-red-500' },
+        saving: { icon: <Loader2 className="w-3.5 h-3.5 animate-spin" />, text: 'Menyimpan...', color: 'text-amber-500' },
+        saved: { icon: <CheckCircle className="w-3.5 h-3.5" />, text: 'Tersimpan', color: 'text-emerald-500' },
+        error: { icon: <AlertCircle className="w-3.5 h-3.5" />, text: 'Gagal menyimpan', color: 'text-red-500' },
     };
 
     const status = statusConfig[state.savingStatus];
@@ -43,7 +43,7 @@ export function BuilderTopBar() {
                                 ? 'bg-emerald-500 text-white shadow-emerald-100'
                                 : 'bg-amber-400 text-amber-900 shadow-amber-100'
                         )}>
-                            {state.courseStatus === 'published' ? 'Published' : 'Draft'}
+                            {state.courseStatus === 'published' ? 'Dipublikasi' : state.courseStatus === 'archived' ? 'Arsip' : 'Draf'}
                         </div>
                     </div>
                     {state.courseDescription && (
@@ -72,7 +72,7 @@ export function BuilderTopBar() {
                     disabled={!state.courseId}
                     className="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200/60 hover:text-indigo-600 hover:bg-white hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
                     <Eye className="w-4 h-4" />
-                    Preview
+                    Pratinjau
                 </button>
 
                 {/* Publish/Draft Toggle Button */}
@@ -80,17 +80,14 @@ export function BuilderTopBar() {
                     <button
                         onClick={() => actions.draftCourse()}
                         className="px-5 py-2.5 text-sm font-bold text-amber-600 bg-white border border-amber-200/60 hover:bg-amber-50 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm">
-                        BATALKAN PUBLISH
+                        BATALKAN PUBLIKASI
                     </button>
                 ) : (
                     <button
-                        onClick={async () => {
-                            await actions.publishCourse();
-                            setIsAssignModalOpen(true);
-                        }}
+                        onClick={() => actions.publishCourse()}
                         className="px-6 py-2.5 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100 hover:shadow-indigo-200 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 group">
                         <Save className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                        PUBLISH
+                        Publikasi
                     </button>
                 )}
 
@@ -99,7 +96,7 @@ export function BuilderTopBar() {
                     className="px-5 py-2.5 text-sm font-black text-white bg-slate-900 hover:bg-black shadow-xl shadow-slate-200 hover:shadow-slate-300 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2"
                 >
                     <Users className="w-4 h-4" />
-                    ASSIGN
+                    Bagikan
                 </button>
             </div>
 

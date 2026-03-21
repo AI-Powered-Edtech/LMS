@@ -25,16 +25,16 @@ export function WorkspaceSelector() {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-900 p-4">
         <div className="max-w-md w-full bg-slate-800 rounded-xl p-8 border border-slate-700 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">No Workspace Access</h2>
+          <h2 className="text-2xl font-bold text-white mb-4">Tidak Ada Akses Workspace</h2>
           <p className="text-slate-400 mb-6">
-            Your account is not associated with any active workspaces. Please contact your administrator.
+            Akun Anda tidak terdaftar di sekolah mana pun. Silakan hubungi administrator sekolah Anda.
           </p>
           <button
             onClick={() => signOut()}
             className="flex items-center justify-center space-x-2 w-full px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
           >
             <LogOut size={18} />
-            <span>Sign Out</span>
+            <span>Keluar</span>
           </button>
         </div>
       </div>
@@ -45,9 +45,9 @@ export function WorkspaceSelector() {
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Select Workspace</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">Pilih Workspace</h1>
           <p className="text-slate-400">
-            Choose an organization to continue
+            Pilih organisasi sekolah untuk melanjutkan
           </p>
         </div>
 
@@ -63,7 +63,7 @@ export function WorkspaceSelector() {
                   {membership.tenant_name}
                 </h3>
                 <p className="text-slate-400 mt-1 capitalize">
-                  Role: {membership.role}
+                  Peran: {membership.role}
                 </p>
               </div>
               <div className="h-10 w-10 bg-slate-700 rounded-full flex items-center justify-center group-hover:bg-blue-500/20 group-hover:text-blue-400 text-slate-400 transition-colors">
@@ -79,7 +79,7 @@ export function WorkspaceSelector() {
             className="text-slate-500 hover:text-slate-300 transition-colors flex items-center justify-center space-x-2 mx-auto"
           >
             <LogOut size={16} />
-            <span>Sign out instead</span>
+            <span>Keluar dari akun</span>
           </button>
         </div>
       </div>

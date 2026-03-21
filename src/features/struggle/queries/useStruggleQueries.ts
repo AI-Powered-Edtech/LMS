@@ -64,8 +64,7 @@ export function useStruggleAlerts(options?: {
     queryKey: struggleKeys.alerts(tenantId!, options),
     queryFn: () => struggleService.getStruggleAlerts(tenantId!, options),
     enabled: !!tenantId,
-    staleTime: 30 * 1000, // 30 seconds
-    refetchInterval: 30 * 1000, // poll every 30s for fresh alerts
+    staleTime: 5 * 60 * 1000, // 5 minutes — struggle alerts don't need 30s freshness
   });
 }
 

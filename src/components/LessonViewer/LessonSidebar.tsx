@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle, Circle, PlayCircle, FileText, AlertTriangle, Lock, ChevronRight, ArrowLeft, X, Clock } from 'lucide-react';
+import { CheckCircle, Circle, PlayCircle, FileText, HelpCircle, Lock, ChevronRight, ArrowLeft, X, Clock } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
 import type { Lesson, LessonProgress } from '@/src/features/lessons';
 import { isLessonLocked, getLessonDuration, getModuleDuration, formatDuration } from '@/src/features/lessons';
@@ -22,7 +22,7 @@ interface LessonSidebarProps {
 const typeIcons: Record<string, React.FC<{ className?: string }>> = {
     video: PlayCircle,
     article: FileText,
-    quiz: AlertTriangle,
+    quiz: HelpCircle,
 };
 
 const typeLabels: Record<string, string> = {
@@ -68,16 +68,26 @@ export function LessonSidebar({ moduleTitle, lessons, progress, activeLessonId, 
                         <X className="w-5 h-5 text-slate-600" />
                     </button>
                 )}
-                <h2 className="font-bold text-slate-900 text-lg mb-3 leading-snug">{moduleTitle || "Daftar Pelajaran"}</h2>
-                <div className="flex items-center gap-3">
-                    <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                            className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-500"
-                            style={{ width: `${lessons.length > 0 ? (completedCount / lessons.length) * 100 : 0}%` }}
-                        />
-                    </div>
-                    <span className="text-sm font-bold text-slate-500">{completedCount}/{lessons.length}</span>
-                </div>
+                <h2 className="font-bold text-slate-900 dark:text-slate-100 text-lg mb-3 leading-snug">{moduleTitle || "Daftar Pelajaran"}</h2>
+                {lessons.length > 0 && (() => {
+                    const progressPct = Math.round((completedCount / lessons.length) * 100);
+                    return (
+                        <>
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                                    {progressPct}% Selesai
+                                </span>
+                                <span className="text-xs text-slate-400 dark:text-slate-500">{completedCount}/{lessons.length}</span>
+                            </div>
+                            <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-500"
+                                    style={{ width: `${progressPct}%` }}
+                                />
+                            </div>
+                        </>
+                    );
+                })()}
                 {lessons.length > 0 && (
                     <p className="text-xs text-slate-400 mt-2">
                         {lessons.length} pelajaran &bull; {formatDuration(getModuleDuration(lessons))}
@@ -144,10 +154,10 @@ export function LessonSidebar({ moduleTitle, lessons, progress, activeLessonId, 
                                         className={cn(
                                             "w-full text-left p-4 rounded-xl transition-all flex items-start gap-4 group border outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
                                             isActive
-                                                ? "bg-blue-50 border-blue-200/80 shadow-md shadow-blue-100/50 ring-1 ring-blue-100"
+                                                ? "bg-gradient-to-r from-blue-50 to-indigo-50/40 dark:from-blue-900/30 dark:to-indigo-900/20 border-blue-200/80 dark:border-blue-700/60 shadow-md shadow-blue-100/50 dark:shadow-blue-900/20 ring-1 ring-blue-100 dark:ring-blue-800/50"
                                                 : isLocked
-                                                    ? "bg-slate-50 border-slate-100 cursor-not-allowed opacity-60"
-                                                    : "bg-white border-slate-100 hover:border-slate-200 hover:shadow-sm"
+                                                    ? "bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 cursor-not-allowed opacity-60"
+                                                    : "bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 hover:shadow-sm dark:hover:bg-slate-700/50"
                                         )}
                                     >
                                         {/* Status Icon */}
@@ -166,7 +176,7 @@ export function LessonSidebar({ moduleTitle, lessons, progress, activeLessonId, 
                                         <div className="flex-1 min-w-0">
                                             <p className={cn(
                                                 "text-sm font-bold leading-snug mb-2",
-                                                isActive ? "text-blue-900" : "text-slate-700 group-hover:text-slate-900"
+                                                isActive ? "text-blue-900 dark:text-blue-100" : "text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white"
                                             )}>
                                                 {lesson.title}
                                             </p>
@@ -180,16 +190,12 @@ export function LessonSidebar({ moduleTitle, lessons, progress, activeLessonId, 
                                                     {formatDuration(getLessonDuration(lesson))}
                                                 </span>
 
-                                                {lesson.passing_score ? (
+                                                {lesson.passing_score && lesson.type === 'quiz' ? (
                                                     <span className={cn(
                                                         "text-[10px] font-bold px-2 py-0.5 rounded-md",
                                                         isActive ? "bg-orange-100 text-orange-600" : "bg-slate-100 text-slate-500"
                                                     )}>
                                                         Min. Skor: {lesson.passing_score}
-                                                    </span>
-                                                ) : lesson.type === 'video' && isActive ? (
-                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-orange-100 text-orange-600">
-                                                        Min. Skor: 80
                                                     </span>
                                                 ) : null}
                                             </div>

@@ -65,6 +65,7 @@ const GamificationHub = lazy(() => import("../pages/Hubs").then(m => ({ default:
 const AdminHub = lazy(() => import("../pages/Hubs").then(m => ({ default: m.AdminHub })));
 const WorkspaceSelector = lazy(() => import("../pages/WorkspaceSelector").then(m => ({ default: m.WorkspaceSelector })));
 const Unauthorized = lazy(() => import("../pages/Unauthorized").then(m => ({ default: m.Unauthorized })));
+const NotFound = lazy(() => import("../pages/NotFound").then(m => ({ default: m.NotFound })));
 
 export function AppRoutes() {
   return (
@@ -261,7 +262,7 @@ export function AppRoutes() {
         <Route
           path="leaderboard"
           element={
-            <RoleRoute role="student">
+            <RoleRoute role={["student", "teacher"]}>
               <Suspense fallback={<AppLoading />}><Leaderboard /></Suspense>
             </RoleRoute>
           }
@@ -566,7 +567,7 @@ export function AppRoutes() {
         />
 
         {/* 404 catch-all for unknown paths within authenticated layout */}
-        <Route path="*" element={<Navigate to="/app" replace />} />
+        <Route path="*" element={<Suspense fallback={<AppLoading />}><NotFound /></Suspense>} />
       </Route>
 
       {/* 404 catch-all for unknown top-level paths */}

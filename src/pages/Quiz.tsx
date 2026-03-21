@@ -263,6 +263,9 @@ export function QuizModule() {
   }
 
   if (showResults && quizResult && currentQuiz) {
+    const attemptsUsedForQuiz = quizAttempts.filter(
+      a => a.quiz_id === currentQuiz.quiz_id && (a.status === 'SUBMITTED' || a.status === 'GRADED')
+    ).length;
     return (
       <QuizResultsView
         result={quizResult}
@@ -270,6 +273,9 @@ export function QuizModule() {
         onRetry={() => handleStartOrResume({ ...currentQuiz, isResume: false })}
         onClose={() => { setShowResults(false); setCurrentQuizId(null); }}
         onViewAnswers={currentQuiz.show_correct_answers ? handleViewAnswers : undefined}
+        passingScore={currentQuiz.passing_score ?? undefined}
+        maxAttempts={currentQuiz.max_attempts ?? undefined}
+        attemptsUsed={attemptsUsedForQuiz}
       />
     );
   }

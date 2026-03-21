@@ -148,7 +148,10 @@ export const administrationService = {
      */
     async getTenantModules(): Promise<TenantModuleConfig[]> {
         try {
-            // First, try to get tenant_modules with module details
+            // Fetch tenant_modules joined with module details.
+            // Uses a regular (left) join so that a missing modules row does not
+            // cause an RLS-driven error — rows without a matching module are
+            // simply filtered out in the map below.
             const { data: tenantModules, error: tenantError } = await supabase
                 .from('tenant_modules')
                 .select(`
@@ -157,7 +160,7 @@ export const administrationService = {
           module_id,
           is_enabled,
           updated_at,
-          modules!inner(
+          modules(
             id,
             slug,
             name,
@@ -167,31 +170,37 @@ export const administrationService = {
             created_at
           )
         `)
-                .order('modules.name', { ascending: true });
+                .order('module_id', { ascending: true });
 
             if (tenantError) {
-                console.error('Failed to fetch tenant modules:', tenantError);
+                // Log as warn — missing tenant_modules seed data is a setup
+                // issue, not an application error; callers fall back to defaults.
+                console.warn('tenant_modules fetch returned an error (likely no seed data):', tenantError.message);
                 throw tenantError;
             }
 
             if (tenantModules && tenantModules.length > 0) {
-                // Map the joined data to our interface
-                return tenantModules.map((tm: any) => ({
-                    id: tm.id,
-                    moduleId: tm.modules.id,
-                    slug: tm.modules.slug,
-                    name: tm.modules.name,
-                    description: tm.modules.description || '',
-                    isEnabled: tm.is_enabled,
-                    isCore: tm.modules.is_core,
-                    targetRoles: getTargetRolesForModule(tm.modules.slug),
-                }));
+                // Map the joined data to our interface.
+                // Filter out rows where the modules join returned null
+                // (can happen if modules table has no matching row for the tenant).
+                return tenantModules
+                    .filter((tm: any) => tm.modules != null)
+                    .map((tm: any) => ({
+                        id: tm.id,
+                        moduleId: tm.modules.id,
+                        slug: tm.modules.slug,
+                        name: tm.modules.name,
+                        description: tm.modules.description || '',
+                        isEnabled: tm.is_enabled,
+                        isCore: tm.modules.is_core,
+                        targetRoles: getTargetRolesForModule(tm.modules.slug),
+                    }));
             }
 
             // If no tenant_modules exist, return empty array
             return [];
         } catch (error) {
-            console.error('Error fetching tenant modules:', error);
+            console.warn('Tenant modules unavailable, caller will use defaults:', error instanceof Error ? error.message : error);
             throw parseSupabaseError(error);
         }
     },

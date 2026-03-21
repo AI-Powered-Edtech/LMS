@@ -8,6 +8,13 @@
 
 > Setiap developer menggunakan **Supabase project sendiri**. Ikuti langkah berikut dari awal sebelum menjalankan aplikasi.
 
+git clone → npm install → cp .env.example .env → isi credentials
+→ supabase link --project-ref <REF>
+→ supabase db push --include-all
+→ jalankan seed di SQL Editor
+→ npm run dev → login
+
+
 ### Langkah 1: Buat Project Supabase Baru
 
 1. Buka **https://supabase.com/dashboard**

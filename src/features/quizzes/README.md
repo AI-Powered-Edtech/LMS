@@ -1,42 +1,41 @@
 # Quizzes Feature Module
 
-This module contains the scaffolding for the Quizzes feature refactor (Phase 2).
+This module is the canonical home for all quiz-related logic in EduSync.
 
 ## Architecture
 
-This module follows the feature-based architecture pattern:
-
 ```
 src/features/quizzes/
-├── api/           # API calls (RPCs, Supabase queries)
+├── api/           # Supabase RPC calls (v1_start_quiz_attempt, v1_submit_quiz_attempt, etc.)
 ├── queries/       # React Query hooks
-├── hooks/         # Custom React hooks
-├── store/         # Zustand state management
+├── hooks/         # Custom React hooks (useQuizTimer, useAutosave, etc.)
+├── store/         # Zustand state management for quiz player state
 ├── types/         # TypeScript interfaces
 ├── components/    # React components
+│   ├── analytics/ # QuizStatsOverview
+│   ├── player/    # QuizPlayer, QuizHeader, QuizBody, QuizFooter, QuizReviewScreen
+│   └── student/   # QuizCard, QuizResultsView, StartQuizModal
 └── utils/         # Utility functions
 ```
 
 ## Status
 
-**Phase 1: Scaffolding** - In Progress
+**Complete** — Phase 5 (Quiz Engine Refactor) is done.
 
-The current implementation of quizzes is located in:
-- `src/pages/Quiz.tsx` - Quiz player/taking
-- `src/pages/QuizManager.tsx` - Quiz creation/management
-- `src/services/quizService.ts` - Quiz API service
+All quiz logic lives in this module. Entry pages:
+- `src/pages/Quiz.tsx` — quiz player page (student-facing)
+- `src/pages/QuizManager.tsx` — quiz creation/management (teacher-facing)
 
-## Migration Plan
+## Key RPCs
 
-During Phase 2, logic will be migrated from the existing pages to this feature module:
-
-1. Move API calls from `quizService.ts` to `api/quizzes.service.ts`
-2. Create React Query hooks in `queries/quizzes.queries.ts`
-3. Create Zustand store in `store/quizzes.store.ts` for quiz player state
-4. Migrate components to `components/`
-5. Update imports in pages to use new feature module
+| RPC | Purpose |
+|-----|---------|
+| `v1_start_quiz_attempt(p_quiz_id)` | Start or resume a quiz attempt |
+| `v1_save_partial_answers(p_attempt_id, p_answers)` | Autosave in-progress answers |
+| `v1_submit_quiz_attempt(p_attempt_id, p_final_answers)` | Submit and auto-grade attempt |
+| `v1_get_quiz_results(p_attempt_id)` | Fetch attempt results |
 
 ## Related Documentation
 
-- [QUIZ_FEATURE_ARCHITECTURE.md](../../../docs/architecture/QUIZ_FEATURE_ARCHITECTURE.md)
-- [FRONTEND_REFactor_ROADMAP.md](../../../docs/architecture/FRONTEND_REFactor_ROADMAP.md)
+- [docs/DATABASE_ARCHITECTURE.md](../../../docs/DATABASE_ARCHITECTURE.md) — Quiz engine schema
+- [docs/architecture/QUIZ_SYSTEM_ARCHITECTURE.md](../../../docs/architecture/QUIZ_SYSTEM_ARCHITECTURE.md)

@@ -26,14 +26,15 @@ import {
   Settings,
   BookOpen,
   Gamepad2,
-  Briefcase
+  Briefcase,
+  type LucideIcon,
 } from "lucide-react";
 
 export interface NavItem {
   id: string;
   name: string;
   path: string;
-  icon: any;
+  icon: LucideIcon;
   roles: string[];
   moduleId?: string;
   location: 'sidebar' | 'directory' | 'learning-hub' | 'teaching-hub' | 'social-hub' | 'gamification-hub' | 'admin-hub';
@@ -50,7 +51,7 @@ export const navigationItems: NavItem[] = [
   // Teacher Sidebar
   {
     id: 'dashboard-teacher',
-    name: "Teaching Hub",
+    name: "Pusat Mengajar",
     path: "/teacher-dashboard",
     icon: GraduationCap,
     roles: ['teacher'],

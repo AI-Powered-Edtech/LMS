@@ -65,7 +65,6 @@ export function ProgressReporter({
     // Handle online and beforeunload events
     useEffect(() => {
         const handleOnline = () => {
-            console.log('[ProgressReporter] Connection restored, processing offline queue...');
             lessonService.processOfflineQueue(tenantId);
         };
 

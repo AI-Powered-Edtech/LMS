@@ -365,15 +365,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     // Clear localStorage - only store tenant_id hint, not full objects
     localStorage.removeItem("activeTenantId");
-    await supabase.auth.signOut();
+    // Clear state eagerly so UI reacts immediately
     setProfile(null);
     setTenantId(null);
     setMemberships([]);
     setActiveTenantState(null);
     setRawTenants({});
     setRoles([]);
-    setLoading(true);
-    setLoadingMemberships(true);
+    // onAuthStateChange will fire after signOut and set loading=false
+    await supabase.auth.signOut();
   };
 
   const signInWithGoogle = async () => {

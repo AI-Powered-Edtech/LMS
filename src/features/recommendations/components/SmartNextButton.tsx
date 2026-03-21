@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
 import { useRecommendations, useRecordRecommendationAction } from '../queries/recommendationQueries';
 import { useAuth } from '@/src/contexts/AuthContext';
@@ -16,7 +16,7 @@ export function SmartNextButton({ courseId, currentLessonId, sequentialNextLesso
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const currentModuleId = searchParams.get('moduleId');
-  const { data: recommendations } = useRecommendations(user?.id ?? '', 10);
+  const { data: recommendations, isLoading: isLoadingRecs } = useRecommendations(user?.id ?? '', 10);
   const { mutate: recordAction } = useRecordRecommendationAction();
 
   const nextLessonRec = recommendations?.find(
@@ -36,6 +36,22 @@ export function SmartNextButton({ courseId, currentLessonId, sequentialNextLesso
       navigate(`/courses/${courseId}`);
     }
   };
+
+  if (isLoadingRecs) {
+    return (
+      <button
+        disabled
+        className={cn(
+          'flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold text-sm opacity-70 cursor-wait',
+          'bg-indigo-600 text-white',
+          className
+        )}
+      >
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span>Memuat...</span>
+      </button>
+    );
+  }
 
   if (!targetId && !sequentialNextLessonId) return null;
 

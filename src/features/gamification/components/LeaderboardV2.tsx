@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Trophy, Flame, TrendingUp, Calendar, Filter } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '@/src/utils/cn';
@@ -6,6 +6,7 @@ import { useAuth } from '@/src/contexts/AuthContext';
 import { useLeaderboardV2 } from '../queries/gamificationQueries';
 import { LevelBadge } from './LevelBadge';
 import { SkeletonCard, EmptyState } from '@/src/components/ui';
+import { rankLeaderboard } from '@/src/utils/clientCompute';
 import type { LeaderboardSortBy, LeaderboardPeriod, LeaderboardV2Entry } from '../types';
 
 const PERIODS: { value: LeaderboardPeriod; label: string; icon: typeof TrendingUp }[] = [
@@ -21,6 +22,19 @@ const SORT_OPTIONS: { value: LeaderboardSortBy; label: string }[] = [
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 
+const rankColors: Record<number, string> = {
+    1: 'bg-gradient-to-br from-yellow-400 to-amber-500 text-white',
+    2: 'bg-gradient-to-br from-slate-300 to-slate-400 text-white',
+    3: 'bg-gradient-to-br from-amber-600 to-amber-700 text-white',
+};
+const rankEmojis: Record<number, string> = { 1: '🥇', 2: '🥈', 3: '🥉' };
+
+const rankRowColors: Record<number, string> = {
+    1: 'bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border border-yellow-200 dark:border-yellow-800/50',
+    2: 'bg-gradient-to-r from-slate-50 to-slate-100/50 dark:from-slate-800/50 border border-slate-200 dark:border-slate-700/50',
+    3: 'bg-gradient-to-r from-orange-50 to-amber-50/50 dark:from-orange-900/20 border border-orange-200/50 dark:border-orange-800/30',
+};
+
 export function LeaderboardV2() {
     const { user } = useAuth();
     const [period, setPeriod] = useState<LeaderboardPeriod>('all_time');
@@ -28,7 +42,18 @@ export function LeaderboardV2() {
     const currentUserRef = useRef<HTMLDivElement>(null);
 
     const { data: entries, isLoading } = useLeaderboardV2({ sortBy, period });
-    const list = entries ?? [];
+
+    // Client-side re-sort for instant UI response when user switches sort tabs
+    // No new API call needed — uses cached data from useLeaderboardV2
+    const rankedEntries = useMemo(() => {
+        if (!entries) return [];
+        return rankLeaderboard(
+            entries.map(e => ({ ...e, id: e.user_id, total_xp: e.value, streak_current: e.streak })),
+            sortBy
+        );
+    }, [entries, sortBy]);
+
+    const list = rankedEntries;
 
     const isCurrentUser = (e: LeaderboardV2Entry) => e.user_id === user?.id;
     const currentUserEntry = list.find(isCurrentUser);
@@ -46,7 +71,19 @@ export function LeaderboardV2() {
             <div className="space-y-4">
                 <SkeletonCard lines={2} />
                 <div className="grid grid-cols-3 gap-4"><SkeletonCard /><SkeletonCard /><SkeletonCard /></div>
-                <SkeletonCard lines={4} />
+                <div className="space-y-3">
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="flex items-center gap-3 p-3 rounded-xl">
+                            <div className="animate-pulse bg-slate-200 dark:bg-slate-700 rounded-full w-7 h-7 shrink-0" />
+                            <div className="animate-pulse bg-slate-200 dark:bg-slate-700 rounded-full w-9 h-9 shrink-0" />
+                            <div className="flex-1 space-y-1.5">
+                                <div className="animate-pulse bg-slate-200 dark:bg-slate-700 rounded h-3 w-32" />
+                                <div className="animate-pulse bg-slate-200 dark:bg-slate-700 rounded h-2.5 w-20" />
+                            </div>
+                            <div className="animate-pulse bg-slate-200 dark:bg-slate-700 rounded h-3 w-12 shrink-0" />
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }
@@ -110,13 +147,15 @@ export function LeaderboardV2() {
             ) : (
                 <>
                     {/* Podium (top 3) */}
-                    <div className="flex justify-center items-end gap-2 md:gap-6 h-56">
+                    <div className="overflow-x-auto">
+                    <div className="flex justify-center items-end gap-2 md:gap-6 h-56 min-w-[280px]">
                         {/* 2nd */}
                         {list[1] && <PodiumCard entry={list[1]} rank={2} isCurrent={isCurrentUser(list[1])} sortBy={sortBy} />}
                         {/* 1st */}
                         {list[0] && <PodiumCard entry={list[0]} rank={1} isCurrent={isCurrentUser(list[0])} sortBy={sortBy} />}
                         {/* 3rd */}
                         {list[2] && <PodiumCard entry={list[2]} rank={3} isCurrent={isCurrentUser(list[2])} sortBy={sortBy} />}
+                    </div>
                     </div>
 
                     {/* Rest of list */}
@@ -133,15 +172,26 @@ export function LeaderboardV2() {
                                         'flex items-center gap-3 p-3 rounded-xl transition-colors',
                                         isCurrentUser(entry)
                                             ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800'
-                                            : 'hover:bg-slate-50 dark:hover:bg-slate-800/50',
+                                            : entry.rank <= 3 && rankRowColors[entry.rank]
+                                                ? rankRowColors[entry.rank]
+                                                : 'hover:bg-slate-50 dark:hover:bg-slate-800/50',
                                     )}
                                 >
-                                    <span className={cn(
-                                        'w-7 text-center font-bold text-sm',
-                                        isCurrentUser(entry) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400',
-                                    )}>
-                                        {entry.rank}
-                                    </span>
+                                    {entry.rank <= 3 && rankColors[entry.rank] && !isCurrentUser(entry) ? (
+                                        <span className={cn(
+                                            'w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0',
+                                            rankColors[entry.rank],
+                                        )}>
+                                            {rankEmojis[entry.rank]}
+                                        </span>
+                                    ) : (
+                                        <span className={cn(
+                                            'w-7 text-center font-bold text-sm',
+                                            isCurrentUser(entry) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400',
+                                        )}>
+                                            {entry.rank}
+                                        </span>
+                                    )}
                                     <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0">
                                         <img
                                             src={entry.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.student_name}`}

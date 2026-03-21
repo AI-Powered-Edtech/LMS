@@ -9,10 +9,9 @@ export function Onboarding() {
   const { role } = useAuth();
 
   useEffect(() => {
+    if (!role) return; // Wait for auth to resolve before checking
     const hasOnboarded = localStorage.getItem(`onboarded_${role}`);
-    if (!hasOnboarded) {
-      setIsOpen(true);
-    }
+    setIsOpen(!hasOnboarded);
   }, [role]);
 
   const handleComplete = () => {

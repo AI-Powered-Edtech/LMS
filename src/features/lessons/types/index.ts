@@ -46,6 +46,7 @@ export interface Quiz {
     instructions: string | null;
     time_limit_minutes: number | null;
     max_attempts: number;
+    passing_score?: number | null;
     quiz_questions: QuizQuestion[];
 }
 

@@ -74,8 +74,10 @@ export function Header() {
         <div className="flex items-center gap-2">
           <Flame
             className={cn(
-              "w-6 h-6",
-              hasLoggedInToday ? "text-orange-500 fill-orange-500" : "text-slate-300 dark:text-slate-600 fill-slate-300 dark:fill-slate-600",
+              "w-6 h-6 transition-all duration-300",
+              hasLoggedInToday
+                ? "text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]"
+                : "text-slate-300 dark:text-slate-600 fill-slate-300 dark:fill-slate-600",
             )}
           />
           <span
@@ -91,20 +93,20 @@ export function Header() {
         {/* Stats/Metrics */}
         <div className="flex items-center gap-3">
           {role === 'teacher' ? (
-            <div className="flex items-center gap-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-500 px-3 py-1.5 rounded-lg font-bold text-sm">
+            <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-lg font-bold text-sm border border-blue-200/50 dark:border-blue-700/30">
               <Activity className="w-4 h-4" />
-              35 Students
+              Guru
             </div>
           ) : (
             <>
               <LevelBadge level={level} size="sm" />
-              <div className="flex items-center gap-1.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-500 px-2 py-1 rounded-lg font-bold text-sm">
+              <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 text-yellow-700 dark:text-yellow-500 px-2.5 py-1 rounded-lg font-bold text-sm border border-yellow-200/50 dark:border-yellow-700/30">
                 <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
                 {totalXp} XP
               </div>
               <div className="hidden sm:block w-32 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-yellow-400 rounded-full transition-all duration-500 ease-out"
+                  className="h-full bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -113,6 +115,15 @@ export function Header() {
         </div>
 
 
+
+        {/* Dark Mode Toggle */}
+        <button
+          onClick={toggleTheme}
+          aria-label="Toggle dark mode"
+          className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        >
+          {theme === 'dark' ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-slate-500" />}
+        </button>
 
         {/* Struggle Detection Bell — teacher/admin only */}
         <NotificationBell />

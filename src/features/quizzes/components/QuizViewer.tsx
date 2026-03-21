@@ -32,6 +32,7 @@ interface QuizViewerProps {
     instructions: string | null;
     questions: QuizQuestion[];
     maxAttempts: number;
+    passingScore?: number;
     isCompleted: boolean;
     onCompletionMet: () => void;
     onStartViewing: () => void;
@@ -43,6 +44,7 @@ export function QuizViewer({
     instructions,
     questions,
     maxAttempts,
+    passingScore = 0,
     isCompleted,
     onCompletionMet,
     onStartViewing,
@@ -408,6 +410,23 @@ export function QuizViewer({
                         </>
                     )}
 
+                    {!result.passed && !result.has_ungraded && (
+                        <div className="mt-3 space-y-1">
+                            {passingScore > 0 && (
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    Skor minimal untuk lulus:{' '}
+                                    <span className="font-bold">{passingScore}%</span>
+                                </p>
+                            )}
+                            {hasAttemptsLeft && maxAttempts > 0 && (
+                                <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                                    Anda dapat mengulang kuis ini{' '}
+                                    <span className="font-bold">{maxAttempts - (attemptNumber ?? 1)}</span>{' '}
+                                    kali lagi
+                                </p>
+                            )}
+                        </div>
+                    )}
                     {!result.passed && !result.has_ungraded && hasAttemptsLeft && (
                         <button
                             onClick={handleRetry}
@@ -431,7 +450,7 @@ export function QuizViewer({
         <div className="p-6 md:p-10 max-w-3xl mx-auto w-full h-full overflow-y-auto custom-scrollbar">
             <div className="flex items-center gap-2 text-orange-500 font-bold mb-2">
                 <AlertTriangle className="w-5 h-5" />
-                Kuis: {title}
+                {title.startsWith('Kuis') ? title : `Kuis: ${title}`}
             </div>
 
             {instructions && (

@@ -110,7 +110,6 @@ export function useModuleConfig() {
   const toggleModule = useCallback((id: ModuleId) => {
     // Note: This updates state but changes are not persisted
     // If persistence is needed, consider using localStorage or Zustand
-    console.log('[useModuleConfig] toggleModule called:', id);
   }, []);
 
   const isModuleEnabled = useCallback((id: ModuleId): boolean => {

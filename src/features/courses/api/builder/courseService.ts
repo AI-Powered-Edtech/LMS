@@ -24,7 +24,7 @@ export const builderCourseService = {
             .eq('tenant_id', tenantId)
             .single();
 
-        if (courseErr || !course) throw new Error('Course not found');
+        if (courseErr || !course) throw new Error('Materi tidak ditemukan');
 
         const { data: modules, error: modErr } = await supabase
             .from('course_modules')

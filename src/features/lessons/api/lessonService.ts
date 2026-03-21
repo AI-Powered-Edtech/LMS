@@ -348,7 +348,6 @@ export const lessonService = {
                 await saveSecureQueue(remainingQueue);
             } else {
                 localStorage.removeItem(QUEUE_KEY);
-                console.log('[Offline Queue] Flushed successfully');
             }
         } finally {
             (this as any)._isProcessingOfflineQueue = false;

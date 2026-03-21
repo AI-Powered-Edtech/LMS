@@ -64,7 +64,7 @@ export function Announcements() {
       time: format(new Date(db.created_at), 'HH:mm', { locale: localeId }) + ' WIB',
       location: db.location || undefined,
       contactPerson: db.contact_person || undefined,
-      isRead: true, // Placeholder logic
+      isRead: false, // Default unread; no backend read-tracking available yet
       rsvpStatus: db.rsvp_status === 'yes' ? 'attending' :
         db.rsvp_status === 'no' ? 'not_attending' : 'pending'
     }));
@@ -173,15 +173,15 @@ export function Announcements() {
   });
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-12">
+    <div className="max-w-5xl mx-auto space-y-8 pb-12 px-4 md:px-6 lg:px-8 dark:text-white">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
             <Megaphone className="w-8 h-8 text-blue-600" />
             Pengumuman
           </h1>
-          <p className="text-slate-500 mt-2">
+          <p className="text-slate-500 dark:text-slate-400 mt-2">
             Informasi penting, jadwal, dan pembaruan dari sekolah.
           </p>
         </div>
@@ -197,7 +197,7 @@ export function Announcements() {
       </div>
 
       {/* Filters & Search */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <input
@@ -205,7 +205,7 @@ export function Announcements() {
             placeholder="Cari pengumuman..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-700 dark:text-white dark:border-slate-600 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
           />
         </div>
         <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 custom-scrollbar">
@@ -253,9 +253,9 @@ export function Announcements() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
             className={cn(
-              "bg-white rounded-3xl border transition-all duration-300 hover:shadow-md relative overflow-hidden group",
-              !announcement.isRead ? "border-blue-200 shadow-sm" : "border-slate-200",
-              announcement.is_pinned && "border-amber-200 ring-1 ring-amber-100"
+              "bg-white dark:bg-slate-800 rounded-3xl border transition-all duration-300 hover:shadow-md relative overflow-hidden group",
+              !announcement.isRead ? "border-blue-200 dark:border-blue-700 shadow-sm" : "border-slate-200 dark:border-slate-700",
+              announcement.is_pinned && "border-amber-200 dark:border-amber-700 ring-1 ring-amber-100 dark:ring-amber-900/30"
             )}
           >
             {/* Unread Indicator */}
@@ -294,20 +294,20 @@ export function Announcements() {
               {/* Title & Content */}
               <h2 className={cn(
                 "text-2xl font-bold mb-4",
-                !announcement.isRead ? "text-slate-900" : "text-slate-800"
+                !announcement.isRead ? "text-slate-900 dark:text-white" : "text-slate-800 dark:text-slate-200"
               )}>
                 {announcement.title}
               </h2>
 
-              <div className="prose prose-slate max-w-none mb-6">
-                <p className="whitespace-pre-wrap text-slate-600 leading-relaxed">
+              <div className="prose prose-slate dark:prose-invert max-w-none mb-6">
+                <p className="whitespace-pre-wrap text-slate-600 dark:text-slate-300 leading-relaxed">
                   {announcement.content}
                 </p>
               </div>
 
               {/* Metadata Grid (Time, Location, Contact) */}
               {(announcement.time || announcement.location || announcement.contactPerson) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-2xl border border-slate-100 dark:border-slate-600">
                   {announcement.time && (
                     <div className="flex items-start gap-3">
                       <Clock className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
@@ -386,13 +386,13 @@ export function Announcements() {
               )}
 
               {/* Footer: Author, Read Receipts, Actions */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-slate-100">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-slate-100 dark:border-slate-700">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
                     <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${announcement.author}`} alt="" className="w-full h-full object-cover" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-slate-900">{announcement.author}</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">{announcement.author}</p>
                     {role === 'teacher' && announcement.readCount && (
                       <p className="text-xs font-medium text-slate-500 flex items-center gap-1 mt-0.5">
                         <Eye className="w-3.5 h-3.5" /> Dibaca oleh {announcement.readCount.read}/{announcement.readCount.total}
@@ -455,12 +455,12 @@ export function Announcements() {
         )}
 
         {filteredAnnouncements.length === 0 && (
-          <div className="text-center py-20 bg-white rounded-3xl border border-slate-200">
-            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Megaphone className="w-10 h-10 text-slate-300" />
+          <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700">
+            <div className="w-20 h-20 bg-slate-50 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Megaphone className="w-10 h-10 text-slate-300 dark:text-slate-500" />
             </div>
-            <h3 className="text-xl font-bold text-slate-700 mb-2">Tidak ada pengumuman</h3>
-            <p className="text-slate-500 max-w-md mx-auto">
+            <h3 className="text-xl font-bold text-slate-700 dark:text-slate-200 mb-2">Tidak ada pengumuman</h3>
+            <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto">
               Belum ada pengumuman baru yang sesuai dengan filter atau pencarian Anda.
             </p>
           </div>
@@ -475,10 +475,10 @@ export function Announcements() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col"
+              className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col"
             >
-              <div className="flex items-center justify-between p-6 border-b border-slate-100 shrink-0">
-                <h2 className="text-xl font-bold text-slate-900">Buat Pengumuman Baru</h2>
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-700 shrink-0">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Buat Pengumuman Baru</h2>
                 <button
                   onClick={() => setIsCreateModalOpen(false)}
                   className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
@@ -605,7 +605,7 @@ export function Announcements() {
                 </div>
               </div>
 
-              <div className="p-6 border-t border-slate-100 shrink-0 flex items-center justify-between bg-slate-50">
+              <div className="p-6 border-t border-slate-100 dark:border-slate-700 shrink-0 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50">
                 <button className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-bold text-sm px-4 py-2 rounded-xl hover:bg-slate-200 transition-colors">
                   <Paperclip className="w-4 h-4" /> Tambah Lampiran
                 </button>

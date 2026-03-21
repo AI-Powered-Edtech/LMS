@@ -96,7 +96,7 @@ export const courseBuilderService = {
             .eq('id', courseId)
             .single();
 
-        if (courseErr || !course) throw new Error('Course not found');
+        if (courseErr || !course) throw new Error('Materi tidak ditemukan');
 
         const { data: modules, error: modErr } = await supabase
             .from('course_modules')

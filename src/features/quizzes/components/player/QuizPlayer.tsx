@@ -14,7 +14,6 @@ import { useQuizHeartbeat } from '../../hooks/useQuizHeartbeat';
 import { useQuizPlayerStore } from '../../store/quizPlayer.store';
 import * as quizPlayerService from '../../api/quizPlayer.service';
 import { getCurrentQuestionIndex } from '../../api/quizPlayer.service';
-// Presentational components - temporarily import from pages/quiz
 import { QuizHeader } from './QuizHeader';
 import { QuizBody } from './QuizBody';
 import { QuizFooter } from './QuizFooter';
@@ -164,8 +163,8 @@ export function QuizPlayer({
       if (e.key.toLowerCase() === 'f' && question && !showReview) {
         setFlagged(prev => {
           const next = new Set(prev);
-          if (next.has(question.id)) next.delete(question.id);
-          else next.add(question.id);
+          if (next.has(question.question_id)) next.delete(question.question_id);
+          else next.add(question.question_id);
           return next;
         });
       }
@@ -216,7 +215,7 @@ export function QuizPlayer({
   // Show skeleton while computing resume index
   if (isResuming) {
     return (
-      <div className="flex-1 w-full flex flex-col items-center">
+      <div className="flex-1 w-full flex flex-col items-center px-4 md:px-6 lg:px-8">
         <div className="w-full max-w-6xl space-y-6">
           {/* Header skeleton */}
           <div className="h-16 bg-slate-100 rounded-2xl animate-pulse" />
@@ -239,10 +238,10 @@ export function QuizPlayer({
 
   const isLastQuestion = currentQuestionIdx === totalQuestions - 1;
   const questionType = question.question_type || 'MCQ';
-  const currentAnswer = answers[question.id];
+  const currentAnswer = answers[question.question_id];
 
   return (
-    <div className="flex-1 w-full flex flex-col items-center">
+    <div className="flex-1 w-full flex flex-col items-center px-4 md:px-6 lg:px-8">
       <div className="w-full max-w-6xl">
         {/* ── Floating Warnings ─────────────────────────── */}
         {tabWarning && (
@@ -353,7 +352,7 @@ export function QuizPlayer({
                   question={question}
                   questionType={questionType}
                   currentAnswer={currentAnswer}
-                  isFlagged={flagged.has(question.id)}
+                  isFlagged={flagged.has(question.question_id)}
                   onToggleFlag={toggleFlag}
                   onAnswer={handleAnswer}
                 />

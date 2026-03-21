@@ -1,7 +1,19 @@
 import { motion } from 'motion/react';
 import { X, Play, Clock, AlertTriangle, Loader2 } from 'lucide-react';
+import type { StudentQuizAssignment } from '../../types/quizzes.types';
 
-export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: any) {
+interface PendingQuiz extends StudentQuizAssignment {
+  isResume?: boolean;
+}
+
+interface StartQuizModalProps {
+  pendingQuiz: PendingQuiz;
+  isStarting: boolean;
+  onClose: () => void;
+  onStart: (quiz: PendingQuiz) => void;
+}
+
+export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: StartQuizModalProps) {
   return (
     <motion.div
       initial={{ opacity: 0 }}

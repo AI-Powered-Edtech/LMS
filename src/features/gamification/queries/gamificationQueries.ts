@@ -9,6 +9,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createQueryKeys } from '@/src/lib/queryKeys';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { gamificationService } from '../api/gamificationService';
+import { cachedQuery, CacheKeys } from '@/src/utils/cache';
 import type { LeaderboardSortBy, LeaderboardPeriod } from '../types';
 
 // Create query keys with tenant scoping
@@ -71,9 +72,13 @@ export function useStudentBadges() {
     const { user, tenantId } = useAuth();
     return useQuery({
         queryKey: gamificationKeys.studentBadges(tenantId!, user!.id),
-        queryFn: () => gamificationService.getStudentBadges(user!.id),
+        queryFn: () => cachedQuery(
+            CacheKeys.badges(user!.id),
+            () => gamificationService.getStudentBadges(user!.id),
+            10
+        ),
         enabled: !!tenantId && !!user,
-        staleTime: 60_000,
+        staleTime: 10 * 60 * 1000,
     });
 }
 
@@ -133,10 +138,13 @@ export function useStudentXPProfile(userId?: string) {
     const targetId = userId ?? user?.id;
     return useQuery({
         queryKey: gamificationKeys.xpProfile(tenantId!, targetId!),
-        queryFn: () => gamificationService.getStudentXPProfile(targetId!),
+        queryFn: () => cachedQuery(
+            CacheKeys.xpProfile(targetId!),
+            () => gamificationService.getStudentXPProfile(targetId!),
+            10
+        ),
         enabled: !!tenantId && !!targetId,
-        staleTime: 30_000,
-        refetchInterval: 60_000,
+        staleTime: 5 * 60 * 1000,
     });
 }
 
@@ -151,14 +159,17 @@ export function useLeaderboardV2(params?: {
     const period = params?.period ?? 'all_time';
     return useQuery({
         queryKey: gamificationKeys.leaderboardV2(tenantId!, sortBy, period, params?.courseId),
-        queryFn: () => gamificationService.getLeaderboardV2({
-            courseId: params?.courseId,
-            sortBy,
-            period,
-        }),
+        queryFn: () => cachedQuery(
+            CacheKeys.leaderboard(params?.courseId ?? 'global', period),
+            () => gamificationService.getLeaderboardV2({
+                courseId: params?.courseId,
+                sortBy,
+                period,
+            }),
+            5
+        ),
         enabled: !!tenantId,
-        staleTime: 30_000,
-        refetchInterval: 60_000,
+        staleTime: 5 * 60 * 1000,
     });
 }
 

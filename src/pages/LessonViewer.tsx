@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, Link, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2, AlertTriangle, CheckCircle, Award, BookOpen, PlayCircle, ChevronRight, Layers, Clock, FileText, HelpCircle, Menu } from "lucide-react";
+import { ArrowLeft, Loader2, AlertTriangle, CheckCircle, Award, BookOpen, PlayCircle, ChevronLeft, ChevronRight, Layers, Clock, FileText, HelpCircle, Menu } from "lucide-react";
 import { cn } from "@/src/utils/cn";
 import { motion, AnimatePresence } from "motion/react";
 import { ErrorBoundary } from '@/src/components/common/ErrorBoundary';
@@ -45,6 +45,8 @@ interface CourseData {
 function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule: (moduleId: string) => void; tenantId: string; courseId?: string }) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const [course, setCourse] = useState<CourseData | null>(null);
   const [modules, setModules] = useState<ModuleWithProgress[]>([]);
   const [totalLessons, setTotalLessons] = useState(0);
@@ -55,6 +57,8 @@ function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule:
 
   useEffect(() => {
     if (!user?.id) return;
+    setLoading(true);
+    setFetchError(null);
 
     (async () => {
       try {
@@ -153,12 +157,13 @@ function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule:
         setCompletedLessons(completedL);
         setTotalDuration(totalDur);
       } catch (err) {
-        console.warn('[CourseBrowser] fetch failed:', err);
+        console.error('[CourseBrowser] fetch failed:', err);
+        setFetchError('Gagal memuat materi. Periksa koneksi internet kamu dan coba lagi.');
       } finally {
         setLoading(false);
       }
     })();
-  }, [tenantId, courseId, user?.id]);
+  }, [tenantId, courseId, user?.id, retryCount]);
 
   const handleContinueLearning = useCallback(() => {
     if (nextIncompleteModuleId) {
@@ -180,15 +185,35 @@ function CourseBrowser({ onSelectModule, tenantId, courseId }: { onSelectModule:
     );
   }
 
+  if (fetchError) {
+    return (
+      <div className="flex items-center justify-center h-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+        <div className="text-center p-8 max-w-sm">
+          <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-3xl flex items-center justify-center mx-auto mb-5">
+            <AlertTriangle className="w-10 h-10 text-red-400" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200 mb-2">Gagal Memuat Materi</h2>
+          <p className="text-slate-400 dark:text-slate-500 text-sm mb-5">{fetchError}</p>
+          <button
+            onClick={() => setRetryCount(c => c + 1)}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-colors"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!course) {
     return (
-      <div className="flex items-center justify-center h-full bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="flex items-center justify-center h-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
         <div className="text-center p-8">
-          <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-5">
-            <BookOpen className="w-10 h-10 text-slate-300" />
+          <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-5">
+            <BookOpen className="w-10 h-10 text-slate-300 dark:text-slate-600" />
           </div>
-          <h2 className="text-xl font-bold text-slate-700 mb-2">Belum Ada Materi</h2>
-          <p className="text-slate-400">Kursus dan modul akan muncul di sini setelah guru membuatnya.</p>
+          <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200 mb-2">Belum Ada Materi</h2>
+          <p className="text-slate-400 dark:text-slate-500">Kursus dan modul akan muncul di sini setelah guru membuatnya.</p>
         </div>
       </div>
     );
@@ -380,8 +405,11 @@ export function LessonViewer() {
   // D1: Compute lesson navigation state
   // ============================================================
   const currentLessonIndex = moduleLessons.findIndex(l => l.id === lessonId);
-  const nextLesson = currentLessonIndex >= 0 && currentLessonIndex < moduleLessons.length - 1 
-    ? moduleLessons[currentLessonIndex + 1] 
+  const nextLesson = currentLessonIndex >= 0 && currentLessonIndex < moduleLessons.length - 1
+    ? moduleLessons[currentLessonIndex + 1]
+    : null;
+  const prevLesson = currentLessonIndex > 0
+    ? moduleLessons[currentLessonIndex - 1] ?? null
     : null;
   const isLastLesson = currentLessonIndex >= 0 && currentLessonIndex === moduleLessons.length - 1;
   const completedLessonCount = moduleLessons.filter(l => moduleProgress[l.id]?.completed).length;
@@ -696,8 +724,8 @@ export function LessonViewer() {
         {/* Top Bar */}
         {state.lesson && (
           <div className="bg-gradient-to-r from-white to-slate-50/50 border-b border-slate-100 flex flex-col shrink-0 dark:from-slate-900 dark:to-slate-800 dark:border-slate-700">
-            <div className="px-8 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex-1 min-w-0 pr-4">
+            <div className="px-8 py-6 flex flex-col gap-3">
+              <div className="min-w-0">
                 <div className="flex items-center gap-2 mb-3">
                   {/* Mobile hamburger button */}
                   <button
@@ -745,10 +773,21 @@ export function LessonViewer() {
                           <AlertTriangle className="w-4 h-4" />}
                   <span className="capitalize">{state.lesson.type}</span>
                 </div>
-                <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 truncate tracking-tight leading-tight">{state.lesson.title}</h1>
+                <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 break-words tracking-tight leading-tight">{state.lesson.title}</h1>
               </div>
 
-              <div className="shrink-0 flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
+                {/* Prev lesson button */}
+                {prevLesson && (
+                  <button
+                    onClick={() => handleSelectLesson(prevLesson.id)}
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-slate-200 bg-white dark:bg-slate-800 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-semibold text-sm shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Sebelumnya
+                  </button>
+                )}
+
                 {state.status === 'completed' ? (
                   <div className="flex items-center gap-2 flex-wrap">
                     <div className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-green-200 bg-green-50 text-green-600 font-bold text-sm shadow-sm transition-all hover:bg-green-100">
@@ -1032,6 +1071,7 @@ export function LessonViewer() {
                               instructions={quiz.instructions}
                               questions={quiz.quiz_questions}
                               maxAttempts={quiz.max_attempts}
+                              passingScore={quiz.passing_score ?? 0}
                               isCompleted={state.status === 'completed'}
                               onCompletionMet={handleCompletionMet}
                               onStartViewing={actions.startViewing}
@@ -1124,6 +1164,37 @@ export function LessonViewer() {
           </ErrorBoundary>
         </div>
 
+        {/* Bottom Navigation — prev/next between lessons (hidden for quiz type which has its own nav) */}
+        {state.lesson && state.lesson.type !== 'quiz' && (prevLesson || nextLesson) && activeTab === 'content' && (
+          <div className="shrink-0 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 px-6 py-4 flex items-center justify-between gap-3">
+            {prevLesson ? (
+              <button
+                onClick={() => handleSelectLesson(prevLesson.id)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Pelajaran Sebelumnya
+              </button>
+            ) : (
+              <div />
+            )}
+            {nextLesson ? (
+              <button
+                onClick={() => handleSelectLesson(nextLesson.id)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold text-sm transition-all shadow-sm"
+              >
+                Pelajaran Berikutnya
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            ) : isLastLesson ? (
+              <div className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 font-semibold text-sm">
+                <Award className="w-4 h-4" />
+                Modul Selesai!
+              </div>
+            ) : null}
+          </div>
+        )}
+
         {/* Progress Reporter (invisible — syncs to Supabase every 5s) */}
         {
           state.lesson && tenantId && (
@@ -1193,6 +1264,7 @@ export function LessonViewer() {
             <ModuleCompletionModal
               moduleTitle={moduleTitle}
               hasNextModule={!isLastLesson}
+              xpEarned={50}
               onContinue={() => {
                 setShowModuleComplete(false);
                 setSearchParams({});

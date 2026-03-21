@@ -419,8 +419,8 @@ export function QuizManager() {
 
     if (!activeClassroomId) {
         return (
-            <div className="max-w-4xl mx-auto">
-                <h1 className="text-2xl font-bold text-slate-900 mb-4">Manajemen Kuis</h1>
+            <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8">
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Manajemen Kuis</h1>
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                     <HelpCircle className="w-12 h-12 mb-3 opacity-30" />
                     <p className="font-medium text-slate-500">Pilih kelas terlebih dahulu</p>
@@ -434,11 +434,11 @@ export function QuizManager() {
 
     if (view === 'list') {
         return (
-            <div className="max-w-5xl mx-auto space-y-6">
+            <div className="max-w-5xl mx-auto space-y-6 px-4 md:px-6 lg:px-8">
                 {/* Header */}
                 <div className="flex items-start justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
                             <Link to="/teacher-dashboard" className="p-2 -ml-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-500 hover:text-slate-900">
                                 <ArrowLeft className="w-5 h-5" />
                             </Link>
@@ -540,27 +540,48 @@ export function QuizManager() {
 
                 {/* Quiz Cards */}
                 {isLoading ? (
-                    <div className="flex items-center justify-center py-20 text-slate-400 gap-2">
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        <span className="text-sm">Memuat kuis...</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 animate-pulse">
+                                <div className="flex items-start justify-between gap-3 mb-3">
+                                    <div className="flex-1 space-y-2">
+                                        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
+                                        <div className="h-3 bg-slate-100 dark:bg-slate-700/60 rounded w-1/3" />
+                                    </div>
+                                    <div className="h-6 w-16 bg-slate-100 dark:bg-slate-700/60 rounded-full" />
+                                </div>
+                                <div className="flex items-center gap-4 mt-4">
+                                    <div className="h-3 bg-slate-100 dark:bg-slate-700/60 rounded w-14" />
+                                    <div className="h-3 bg-slate-100 dark:bg-slate-700/60 rounded w-14" />
+                                    <div className="h-3 bg-slate-100 dark:bg-slate-700/60 rounded w-14" />
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 ) : quizzes.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl">
-                        <HelpCircle className="w-12 h-12 mb-3 opacity-30" />
-                        <p className="font-medium text-slate-500">Belum ada kuis</p>
-                        <p className="text-sm mt-1">Klik "Buat Kuis Baru" untuk memulai.</p>
+                    <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-800 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
+                        <HelpCircle className="w-12 h-12 mb-3 text-slate-300 dark:text-slate-600" />
+                        <p className="font-bold text-slate-700 dark:text-slate-300">Belum ada kuis</p>
+                        <p className="text-sm mt-1 text-slate-400 dark:text-slate-500">Klik "Buat Kuis Baru" untuk memulai.</p>
+                        <button
+                            onClick={openNewQuiz}
+                            className="mt-5 min-h-[44px] flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Buat Kuis Baru
+                        </button>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {quizzes.map(quiz => (
                             <div
                                 key={quiz.id}
-                                className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group cursor-pointer"
+                                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group cursor-pointer"
                                 onClick={() => openEditQuiz(quiz.id)}
                             >
                                 <div className="flex items-start justify-between gap-3 mb-3">
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="font-bold text-slate-800 truncate">{quiz.title}</h3>
+                                        <h3 className="font-bold text-slate-800 dark:text-slate-100 truncate">{quiz.title}</h3>
                                         <div className="flex items-center gap-2 mt-1">
                                             <span className={cn(
                                                 'inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full',
@@ -668,7 +689,7 @@ export function QuizManager() {
     // ─── QUIZ EDITOR VIEW ───────────────────────────────────
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="max-w-4xl mx-auto space-y-6 px-4 md:px-6 lg:px-8">
             {/* Editor Header */}
             <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -679,7 +700,7 @@ export function QuizManager() {
                         <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
-                        <h2 className="font-bold text-xl text-slate-900">
+                        <h2 className="font-bold text-xl text-slate-900 dark:text-white">
                             {editingQuizId ? 'Edit Kuis' : 'Buat Kuis Baru'}
                         </h2>
                         {isPublished && (
@@ -724,8 +745,8 @@ export function QuizManager() {
             )}
 
             {/* Quiz Settings */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Pengaturan Kuis</h3>
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm space-y-4">
+                <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pengaturan Kuis</h3>
 
                 <div>
                     <label className="block text-xs font-bold text-slate-500 mb-1">Judul Kuis</label>
@@ -819,9 +840,9 @@ export function QuizManager() {
             </div>
 
             {/* Questions Section */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm space-y-4">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">
+                    <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                         Daftar Soal
                         <span className="ml-2 text-xs font-normal text-slate-400">({form.questions.length} soal)</span>
                     </h3>

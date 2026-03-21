@@ -1,7 +1,9 @@
+import { useMemo } from 'react';
 import { motion } from 'motion/react';
 import { Flame } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
 import { useStudentXPProfile } from '../queries/gamificationQueries';
+import { calculateStreak } from '@/src/utils/clientCompute';
 
 interface StreakCounterProps {
     compact?: boolean;
@@ -10,7 +12,15 @@ interface StreakCounterProps {
 export function StreakCounter({ compact }: StreakCounterProps) {
     const { data: profile } = useStudentXPProfile();
 
-    const streak = profile?.streak_current ?? 0;
+    // Optimistic streak: if server streak is 0 but user has XP activity today,
+    // the 30-min cron may not have run yet — compute locally from recent_xp timestamps
+    const optimisticStreak = useMemo(() => {
+        if (!profile?.recent_xp || profile.streak_current > 0) return profile?.streak_current ?? 0;
+        const completions = profile.recent_xp.map(t => ({ completed_at: t.created_at }));
+        return calculateStreak(completions).current;
+    }, [profile]);
+
+    const streak = optimisticStreak;
     const longest = profile?.streak_longest ?? 0;
     const isActive = streak > 0;
 

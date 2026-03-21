@@ -91,6 +91,7 @@ export function BlockRenderer({
           instructions={quiz.instructions}
           questions={quiz.quiz_questions}
           maxAttempts={quiz.max_attempts}
+          passingScore={quiz.passing_score ?? 0}
           isCompleted={isCompleted}
           onCompletionMet={onCompletionMet ?? (() => {})}
           onStartViewing={onStartViewing ?? (() => {})}
@@ -117,6 +118,13 @@ export function BlockRenderer({
       );
 
     default:
+      if (import.meta.env.DEV) {
+        return (
+          <div className="px-6 py-4 text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg m-4">
+            Tipe blok tidak dikenal: <strong>{block.type}</strong>
+          </div>
+        );
+      }
       return null;
   }
 }

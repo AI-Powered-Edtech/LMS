@@ -33,7 +33,13 @@ import { RecommendationFeed } from '@/src/features/recommendations';
 import { GuideRenderer } from '@/src/features/guidance';
 
 export function Dashboard() {
-  const { role, activeTenant, user } = useAuth();
+  const { role, activeTenant, user, profile } = useAuth();
+
+  useEffect(() => {
+    document.title = 'Dashboard — EduSync';
+    return () => { document.title = 'EduSync'; };
+  }, []);
+
   const { xp, dailyGoal, achievements } = useStudentProgressData();
   const { mutate: addXP } = useAddXP();
   const { assignments, loading: assignmentsLoading } = useAssignments();
@@ -42,7 +48,7 @@ export function Dashboard() {
   // React Query hooks for previously hardcoded data
   const { data: courses, isLoading: loadingCourses } = useCourses({ limit: 4 });
   const { data: announcements, isLoading: loadingAnnouncements } = useAnnouncements({ limit: 2, status: 'published' });
-  const { data: leaderboard, isLoading: loadingLeaderboard } = useLeaderboard(activeClassroomId);
+  const { data: leaderboard, isLoading: loadingLeaderboard, isError: leaderboardError, refetch: refetchLeaderboard } = useLeaderboard(activeClassroomId);
 
   const [showBadgeModal, setShowBadgeModal] = useState(false);
   const [showQuizHistory, setShowQuizHistory] = useState(false);
@@ -68,7 +74,11 @@ export function Dashboard() {
   const hubItems = navigationItems.filter(item =>
     item.location === 'learning-hub' && item.roles.includes(role)
   );
-  const userName = impersonatedStudent ? impersonatedStudent.name : (role === 'teacher' ? 'Bapak/Ibu Guru' : 'Siswa');
+  const userName = impersonatedStudent
+    ? impersonatedStudent.name
+    : role === 'teacher'
+    ? (profile?.first_name ?? 'Bapak/Ibu Guru')
+    : (profile?.first_name ?? user?.user_metadata?.full_name?.split(' ')[0] ?? 'Siswa');
   const activeCourses = Array.isArray(courses) ? courses : (courses as any)?.courses ?? [];
   const announcementList: Announcement[] = Array.isArray(announcements) ? announcements : [];
   const leaderboardList: LeaderboardEntry[] = Array.isArray(leaderboard) ? leaderboard : [];
@@ -97,9 +107,9 @@ export function Dashboard() {
         <div className="absolute top-0 left-0 right-0 z-50 bg-amber-100 border-b border-amber-200 px-4 py-3 flex items-center justify-between text-amber-900 shadow-sm">
           <div className="flex items-center gap-2 font-medium">
             <Eye className="w-4 h-4" />
-            <span>Viewing as <span className="font-bold">{impersonatedStudent.name}</span></span>
+            <span>Melihat sebagai <span className="font-bold">{impersonatedStudent.name}</span></span>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>Exit Student View</Button>
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>Keluar Tampilan Siswa</Button>
         </div>
       )}
 
@@ -107,10 +117,36 @@ export function Dashboard() {
         {/* In-App Guidance — only shown when inside a specific course/lesson */}
 
         {/* Welcome Card */}
-        <Card padding="md">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Selamat Datang, {userName}!</h1>
-          <p className="text-sm sm:text-base text-slate-500 mt-1">Siap untuk melanjutkan petualangan belajarmu hari ini?</p>
-        </Card>
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 dark:from-blue-700 dark:via-blue-800 dark:to-indigo-900 p-6 sm:p-8 shadow-lg">
+          {/* Decorative circles */}
+          <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5" />
+          <div className="absolute -bottom-12 -right-16 w-56 h-56 rounded-full bg-white/5" />
+          <div className="relative z-10">
+            <p className="text-blue-200 text-sm font-medium mb-1">
+              {(() => {
+                const hour = new Date().getHours();
+                if (hour < 10) return '🌅 Selamat pagi';
+                if (hour < 14) return '☀️ Selamat siang';
+                if (hour < 18) return '🌤️ Selamat sore';
+                return '🌙 Selamat malam';
+              })()}
+            </p>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-1">{userName}!</h1>
+            <p className="text-blue-200 text-sm sm:text-base">Siap untuk melanjutkan petualangan belajarmu hari ini?</p>
+            {role === 'teacher' && (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-4">
+                <Link to="/teaching-hub" className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors backdrop-blur-sm">
+                  <BookOpen className="w-4 h-4" />
+                  Kelola Materi
+                </Link>
+                <Link to="/assignments" className="inline-flex items-center gap-2 bg-white text-blue-700 text-sm font-bold px-4 py-2 rounded-xl hover:bg-blue-50 transition-colors shadow-sm">
+                  <Plus className="w-4 h-4" />
+                  Buat Tugas
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Streak & XP Motivational Card (Student Only) */}
         {role === 'student' && (
@@ -138,7 +174,7 @@ export function Dashboard() {
         {role === 'student' && (
           <Card>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Users className="w-5 h-5 text-indigo-500" />
                 Kelas Saya
               </h2>
@@ -172,7 +208,7 @@ export function Dashboard() {
         {/* Tugas Mendekati Deadline */}
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-orange-500" />
               Tugas Mendekati Deadline
             </h2>
@@ -186,7 +222,7 @@ export function Dashboard() {
           ) : pendingAssignments.length > 0 ? (
             <div className="space-y-3">
               {pendingAssignments.map((task) => (
-                <div key={task.id} className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors group cursor-pointer" onClick={() => navigate('/assignments')}>
+                <div key={task.id} className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 hover:border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700/60 transition-colors group cursor-pointer" onClick={() => navigate('/assignments')}>
                   <div className={cn("w-3 h-3 rounded-full shrink-0", task.status === 'late' ? "bg-red-500 animate-pulse" : "bg-yellow-400")} />
                   <div className="flex-1">
                     <h3 className="font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{task.title}</h3>
@@ -214,7 +250,7 @@ export function Dashboard() {
         {role === 'student' && (
           <Card>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-amber-500" />
                 Pencapaian Terbaru
               </h2>
@@ -228,7 +264,7 @@ export function Dashboard() {
         {role === 'student' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Play className="w-5 h-5 text-indigo-500" />
                 Lanjutkan Belajar
               </h2>
@@ -243,11 +279,43 @@ export function Dashboard() {
                 {activeCourses.slice(0, 4).map((course: any) => (
                   <motion.div key={course.id} whileHover={{ y: -4 }}>
                     <Card hover onClick={() => navigate(`/courses/${course.id}`)}>
-                      <div className="aspect-video rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 mb-4 flex items-center justify-center overflow-hidden relative">
+                      <div className="aspect-video rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 mb-4 flex items-center justify-center overflow-hidden relative group/thumb">
                         <BookOpen className="w-10 h-10 text-white/50" />
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent py-2 px-3 flex items-center justify-between opacity-0 group-hover/thumb:opacity-100 transition-opacity">
+                          <span className="text-white text-xs font-bold tracking-wide">Lanjutkan</span>
+                          <Play className="w-3.5 h-3.5 text-white" />
+                        </div>
                       </div>
-                      <h3 className="font-bold text-slate-900 line-clamp-1 mb-1">{course.title}</h3>
-                      <div className="flex items-center justify-between mt-2">
+                      <h3 className="font-bold text-slate-900 dark:text-white line-clamp-1 mb-1">{course.title}</h3>
+                      <div className="mt-2 mb-2">
+                        {(() => {
+                          const pct = typeof course.progress_pct === 'number'
+                            ? course.progress_pct
+                            : typeof course.progress === 'number'
+                            ? course.progress
+                            : 0;
+                          const completed = course.completed_lessons ?? 0;
+                          const total = course.total_lessons ?? 0;
+                          return (
+                            <>
+                              <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                                <div
+                                  className="h-1.5 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-500"
+                                  style={{ width: `${Math.min(100, pct)}%` }}
+                                />
+                              </div>
+                              <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-1">
+                                {total > 0
+                                  ? `${completed}/${total} Pelajaran`
+                                  : pct > 0
+                                  ? `${pct}% Selesai`
+                                  : 'Mulai Belajar'}
+                              </p>
+                            </>
+                          );
+                        })()}
+                      </div>
+                      <div className="flex items-center justify-between">
                         <Badge variant="success" size="sm">AKTIF</Badge>
                         <ArrowRight className="w-4 h-4 text-slate-300" />
                       </div>
@@ -278,7 +346,7 @@ export function Dashboard() {
           {/* Pengumuman (FROM API) */}
           <Card>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Megaphone className="w-5 h-5 text-purple-500" />
                 Pengumuman Terbaru
               </h2>
@@ -301,7 +369,7 @@ export function Dashboard() {
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant={ann.priority === 'high' ? 'danger' : 'info'} size="sm">
-                        {ann.priority === 'high' ? 'URGENT' : 'INFO'}
+                        {ann.priority === 'high' ? 'PENTING' : 'INFO'}
                       </Badge>
                       <span className={cn("text-xs font-medium", ann.priority === 'high' ? "text-red-500" : "text-slate-500")}>
                         {new Date(ann.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
@@ -324,14 +392,24 @@ export function Dashboard() {
           {/* Leaderboard (FROM API) */}
           <Card>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-yellow-500" />
                 Leaderboard Snapshot
               </h2>
               <Link to="/leaderboard" className="text-sm font-bold text-blue-600 hover:text-blue-700">Lihat Peringkat</Link>
             </div>
-            {loadingLeaderboard ? (
-              <SkeletonCard lines={3} />
+            {leaderboardError ? (
+              <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4 text-center">
+                <p className="text-sm text-red-600 dark:text-red-400">Gagal memuat leaderboard</p>
+                <button
+                  onClick={() => refetchLeaderboard()}
+                  className="mt-2 text-xs text-red-500 underline hover:no-underline"
+                >
+                  Coba lagi
+                </button>
+              </div>
+            ) : loadingLeaderboard ? (
+              <div className="h-32 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
             ) : hasLeaderboardData ? (
               <div className="flex flex-col justify-center items-center text-center p-4 sm:p-6 bg-gradient-to-b from-yellow-50 to-white dark:from-yellow-900/10 dark:to-slate-900 rounded-2xl border border-yellow-100 dark:border-yellow-900/30">
                 <div className="w-20 h-20 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mb-4 shadow-inner border-4 border-white dark:border-slate-800">
@@ -365,7 +443,7 @@ export function Dashboard() {
           {/* XP Progress */}
           <Card>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-slate-900 dark:text-white">XP Progress</h3>
+              <h3 className="font-bold text-slate-900 dark:text-white">Progres XP</h3>
             </div>
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 flex items-center justify-center shrink-0">
@@ -373,7 +451,7 @@ export function Dashboard() {
               </div>
               <div className="flex-1">
                 <div className="flex justify-between items-end mb-1">
-                  <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Daily Goal</span>
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Target Harian</span>
                   <span className="text-xs font-bold text-slate-400">{xp % dailyGoal}/{dailyGoal} XP</span>
                 </div>
                 <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2">
@@ -382,9 +460,9 @@ export function Dashboard() {
               </div>
             </div>
             <div className="h-24 flex items-end justify-between gap-1 pt-4 border-t border-slate-100 dark:border-slate-700 mt-auto">
-              {['Th', 'F', 'Sa', 'Su', 'M', 'Tu', 'W'].map((day, i) => (
+              {['Kam', 'Jum', 'Sab', 'Min', 'Sen', 'Sel', 'Rab'].map((day, i) => (
                 <div key={i} className="flex flex-col items-center gap-2 flex-1">
-                  <div className="w-full bg-yellow-100 dark:bg-yellow-900/30 rounded-t-sm" style={{ height: i === 1 ? '60%' : i === 2 ? '40%' : i === 5 ? '80%' : '10%' }} />
+                  <div className="w-full bg-yellow-100 dark:bg-yellow-900/30 rounded-t-sm" style={{ height: '25%' }} />
                   <span className="text-[10px] font-bold text-slate-400">{day}</span>
                 </div>
               ))}

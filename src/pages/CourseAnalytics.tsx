@@ -10,7 +10,7 @@ export function CourseAnalytics() {
 
     if (!courseId) {
         return (
-            <div className="mx-auto max-w-7xl p-6">
+            <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8 py-6 dark:bg-slate-900 dark:text-white">
                 <EmptyState
                     icon={<BarChart3 className="h-12 w-12" />}
                     title="Kursus tidak ditemukan"
@@ -25,8 +25,8 @@ export function CourseAnalytics() {
     }
 
     return (
-        <div>
-            <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
+        <div className="dark:bg-slate-900 dark:text-white">
+            <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
                 <button
                     onClick={() => navigate(-1)}
                     className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"

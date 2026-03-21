@@ -76,7 +76,7 @@ export function QuizStatsOverview({ stats, isLoading }: QuizStatsOverviewProps) 
       value: formatTime(stats.avg_time_seconds),
       icon: Clock,
       color: 'bg-purple-100 text-purple-600',
-      subtitle: `Terbaik: ${stats.lowest_score}%`,
+      subtitle: `Terendah: ${stats.lowest_score}%`,
     },
   ];
 

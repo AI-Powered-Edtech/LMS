@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import {
   Users, Plus, Clock,
   ChevronRight, BookOpen, CheckCircle2, AlertCircle,
-  FileText, BarChart3, Settings, PenTool
+  FileText, BarChart3, Settings, PenTool, RefreshCw
 } from 'lucide-react';
 import { cn } from '@/src/utils/cn';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useClassroom } from '@/src/hooks/useClassroomQueries';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { useAssignments } from '@/src/features/assignments/hooks/useAssignments';
@@ -17,7 +19,16 @@ export function TeacherDashboard() {
   const { classrooms, activeClassroomId, setActiveClassroomId, loading: classroomsLoading } = useClassroom();
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { assignments } = useAssignments();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  async function handleRefreshData() {
+    setIsRefreshing(true);
+    await queryClient.invalidateQueries({ queryKey: ['analytics'] });
+    // Brief visual feedback before re-enabling
+    setTimeout(() => setIsRefreshing(false), 1000);
+  }
 
   // Real pending grading count from assignments
   const pendingGradingCount = assignments.reduce((acc, a) => {
@@ -33,7 +44,7 @@ export function TeacherDashboard() {
   const userName = profile ? `${profile.first_name} ${profile.last_name}`.trim() || 'Guru' : 'Guru';
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6 sm:space-y-8 pb-20 sm:pb-12">
+    <div className="w-full max-w-7xl mx-auto space-y-6 sm:space-y-8 pb-20 sm:pb-12 px-4 md:px-6 lg:px-8 dark:bg-slate-900 dark:text-white">
       {/* Header */}
       <Card>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -44,6 +55,14 @@ export function TeacherDashboard() {
             <p className="text-slate-500 dark:text-slate-400 mt-1">Berikut adalah ringkasan kelas dan tugas Anda hari ini.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="secondary"
+              icon={<RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />}
+              onClick={handleRefreshData}
+              disabled={isRefreshing}
+            >
+              Perbarui Data
+            </Button>
             <Button icon={<BookOpen className="w-4 h-4" />} onClick={() => navigate('/teaching/courses')}>
               Kelola Materi
             </Button>
@@ -107,11 +126,11 @@ export function TeacherDashboard() {
         </div>
 
         {classroomsLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map(i => <SkeletonCard key={i} lines={3} />)}
           </div>
         ) : classrooms.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {classrooms.map(classroom => (
               <Card key={classroom.id} padding="none" hover className="overflow-hidden flex flex-col">
                 <div className="p-6 border-b border-slate-100 dark:border-slate-700">
