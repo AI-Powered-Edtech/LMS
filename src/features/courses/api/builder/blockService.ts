@@ -9,7 +9,7 @@ export const builderBlockService = {
   async fetchLessonBlocks(lessonId: string, tenantId: string): Promise<DomainBlock[]> {
     const { data, error } = await supabase
       .from('lesson_resources')
-      .select('*')
+      .select('id, lesson_id, tenant_id, order_index, type, url, title, content, metadata')
       .eq('lesson_id', lessonId)
       .eq('tenant_id', tenantId)
       .order('order_index', { ascending: true })

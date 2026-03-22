@@ -19,7 +19,9 @@ export const announcementService = {
       .from('announcements')
       .select(
         `
-                *,
+                id, tenant_id, course_id, title, content, priority, target_audience,
+                status, is_pinned, allow_comments, requires_rsvp, location, contact_person,
+                created_by, created_at, updated_at,
                 author:created_by (
                     full_name,
                     avatar_url
@@ -58,7 +60,7 @@ export const announcementService = {
       throw error
     }
 
-    return data as Announcement[]
+    return (data as unknown) as Announcement[]
   },
 
   /**
@@ -69,7 +71,9 @@ export const announcementService = {
       .from('announcements')
       .select(
         `
-                *,
+                id, tenant_id, course_id, title, content, priority, target_audience,
+                status, is_pinned, allow_comments, requires_rsvp, location, contact_person,
+                created_by, created_at, updated_at,
                 author:created_by (
                     full_name,
                     avatar_url
@@ -81,7 +85,7 @@ export const announcementService = {
       .single()
 
     if (error) throw error
-    return data as Announcement
+    return (data as unknown) as Announcement
   },
 
   /**
@@ -152,7 +156,7 @@ export const announcementService = {
   async getUserRSVP(announcementId: string, userId: string, tenantId: string) {
     const { data, error } = await supabase
       .from('announcement_rsvps')
-      .select('*')
+      .select('id, tenant_id, announcement_id, user_id, response, responded_at')
       .eq('announcement_id', announcementId)
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)

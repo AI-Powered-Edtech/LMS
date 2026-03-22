@@ -25,7 +25,7 @@ export const classroomService = {
     if (role === 'teacher') {
       const { data, error } = await supabase
         .from('classes')
-        .select('*')
+        .select('id, name, course_id, teacher_id, join_code, max_students, created_at')
         .eq('teacher_id', userId)
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
@@ -36,7 +36,7 @@ export const classroomService = {
     if (role === 'admin') {
       const { data, error } = await supabase
         .from('classes')
-        .select('*')
+        .select('id, name, course_id, teacher_id, join_code, max_students, created_at')
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
       if (error) throw error
@@ -46,7 +46,7 @@ export const classroomService = {
     // Student: fetch via enrollments
     const { data: enrollments, error } = await supabase
       .from('enrollments')
-      .select('class_id, classes(*)')
+      .select('class_id, classes( id, name, course_id, teacher_id, join_code, max_students, created_at )')
       .eq('student_id', userId)
       .eq('tenant_id', tenantId)
       .eq('status', 'ACTIVE')

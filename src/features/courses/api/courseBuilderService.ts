@@ -314,7 +314,9 @@ export const courseBuilderService = {
       .from('quizzes')
       .select(
         `
-                *,
+                id, lesson_id, tenant_id, title, instructions, max_attempts, passing_score,
+                shuffle_questions, shuffle_options, time_limit_minutes, status, mode,
+                show_correct_answers, available_from, available_until,
                 quiz_questions (
                     id, text, "order", question_type, points, explanation,
                     quiz_options (id, text, is_correct)
@@ -362,7 +364,10 @@ export const courseBuilderService = {
   // ─── Assignment ──────────────────────────────────────────
 
   async getAssignmentByLesson(lessonId: string, tenantId?: string) {
-    let query = supabase.from('assignments').select('*').eq('lesson_id', lessonId)
+    let query = supabase
+      .from('assignments')
+      .select('id, lesson_id, course_id, tenant_id, title, instructions, max_points, max_attempts, is_published, due_date, created_at')
+      .eq('lesson_id', lessonId)
 
     if (tenantId) query = query.eq('tenant_id', tenantId)
 

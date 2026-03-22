@@ -28,7 +28,7 @@ export const gamificationService = {
   async getUserStreak(userId: string, tenantId: string): Promise<UserStreak | null> {
     const { data, error } = await supabase
       .from('user_streaks')
-      .select('*')
+      .select('user_id, tenant_id, current_streak, longest_streak, last_activity_date, updated_at')
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)
       .maybeSingle()
@@ -178,7 +178,7 @@ export const gamificationService = {
   async getBadgeDefinitions(tenantId: string) {
     const { data, error } = await supabase
       .from('badge_definitions')
-      .select('*')
+      .select('id, tenant_id, name, description, icon_emoji, badge_type, criteria, xp_reward, rarity, is_active, created_at')
       .or(`tenant_id.is.null,tenant_id.eq.${tenantId}`)
       .order('created_at')
     if (error) throw error

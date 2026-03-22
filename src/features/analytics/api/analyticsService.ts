@@ -149,7 +149,7 @@ export const analyticsService = {
   async getTenantAnalyticsOverview(tenantId: string): Promise<TenantAnalyticsOverview> {
     const { data, error } = await supabase
       .from('course_stats')
-      .select('*')
+      .select('course_id, tenant_id, total_enrolled, active_students, avg_progress, avg_quiz_score, last_refreshed_at')
       .eq('tenant_id', tenantId)
 
     if (error) {
@@ -252,7 +252,7 @@ export const analyticsService = {
     // First get course stats
     const { data: statsData, error: statsError } = await supabase
       .from('course_stats')
-      .select('*')
+      .select('course_id, tenant_id, total_enrolled, active_students, avg_progress, avg_quiz_score')
       .eq('tenant_id', tenantId)
 
     if (statsError) {

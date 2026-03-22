@@ -22,7 +22,7 @@ export const builderCourseService = {
   }> {
     const { data: course, error: courseErr } = await supabase
       .from('courses')
-      .select('*')
+      .select('id, title, description, status, created_at, updated_at, tenant_id')
       .eq('id', courseId)
       .eq('tenant_id', tenantId)
       .single()
@@ -33,8 +33,8 @@ export const builderCourseService = {
       .from('course_modules')
       .select(
         `
-        *,
-        lessons (*)
+        id, title, description, "order", course_id, tenant_id,
+        lessons ( id, title, "order", type, is_published, duration_minutes, passing_score, tenant_id )
       `
       )
       .eq('course_id', courseId)
