@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import {
   FileText,
   RefreshCw,
@@ -199,6 +200,10 @@ export function AuditDashboard() {
         .toUpperCase()
         .slice(0, 2) || '??'
     )
+  }
+
+  if (loading && logs.length === 0) {
+    return <AdministrationSkeleton />
   }
 
   return (

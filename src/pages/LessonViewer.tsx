@@ -27,6 +27,7 @@ import {
   type LessonProgress,
   isLessonLocked,
 } from '@/src/features/lessons'
+import { LessonSkeleton } from '@/src/features/lessons/components/LessonSkeleton'
 import {
   VideoViewer,
   ArticleViewer,
@@ -221,14 +222,7 @@ function CourseBrowser({
   }, [nextIncompleteModuleId, modules, onSelectModule])
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 text-blue-500 animate-spin mx-auto mb-4" />
-          <p className="text-slate-500 font-medium">Memuat materi...</p>
-        </div>
-      </div>
-    )
+    return <LessonSkeleton />
   }
 
   if (fetchError) {

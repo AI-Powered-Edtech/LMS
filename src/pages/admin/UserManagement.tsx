@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import {
   Users,
   Search,
@@ -182,6 +183,10 @@ export function UserManagement() {
 
   const getInitials = (first: string, last: string) => {
     return `${(first || '?')[0]}${(last || '')[0] || ''}`.toUpperCase()
+  }
+
+  if (loading && users.length === 0 && invitations.length === 0) {
+    return <AdministrationSkeleton />
   }
 
   return (

@@ -7,6 +7,7 @@ import { cn } from '@/src/utils/cn'
 import { useCourses } from '@/src/features/courses/queries/courseQueries'
 import type { Course } from '@/src/features/courses/types'
 import { StudentGradeView } from '@/src/features/gradebook/components/StudentGradeView'
+import { GradebookSkeleton } from '@/src/features/gradebook/components/GradebookSkeleton'
 
 interface Assignment {
   id: string
@@ -111,11 +112,7 @@ export function Grades() {
   const projectedGrade = calculateGrade(true)
 
   if (isLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-      </div>
-    )
+    return <GradebookSkeleton />
   }
 
   const courses: Course[] = coursesQuery.data?.courses ?? []

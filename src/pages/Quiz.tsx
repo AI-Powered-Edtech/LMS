@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { AnimatePresence } from 'motion/react'
 import { HelpCircle, Search, CheckCircle, Trophy, Zap, Loader2 } from 'lucide-react'
+import { QuizSkeleton } from '@/src/features/quizzes/components/QuizSkeleton'
 import { cn } from '@/src/utils/cn'
 import { useAuth } from '@/src/contexts/AuthContext'
 import {
@@ -246,11 +247,7 @@ export function QuizModule() {
   const currentQuiz = quizzes.find((q) => q.id === currentQuizId)
 
   if (isLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-      </div>
-    )
+    return <QuizSkeleton />
   }
 
   if (isLoadingQuestions) {

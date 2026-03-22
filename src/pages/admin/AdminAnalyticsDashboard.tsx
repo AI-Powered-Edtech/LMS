@@ -1,4 +1,5 @@
 import React from 'react'
+import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import {
   BarChart3,
   Users,
@@ -325,11 +326,7 @@ export function AdminAnalyticsDashboard() {
 
   // Loading state
   if (isLoading) {
-    return (
-      <div className="max-w-7xl mx-auto p-4 md:p-8">
-        <LoadingState />
-      </div>
-    )
+    return <AdministrationSkeleton />
   }
 
   // Error state

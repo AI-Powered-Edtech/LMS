@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { progressService, StudentProgressData } from '@/src/features/progress/api/progressService'
 import { Award, TrendingUp, BookOpen, BarChart2 } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
+import { ProgressSkeleton } from '@/src/features/progress/components/ProgressSkeleton'
 
 export function StudentProgress() {
   const { studentId } = useParams()
@@ -35,12 +36,7 @@ export function StudentProgress() {
   }, [studentId])
 
   if (loading) {
-    return (
-      <div className="flex-1 w-full flex flex-col items-center justify-center p-12 text-slate-500">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-blue-500 rounded-full animate-spin mb-4" />
-        <p>Memuat profil siswa...</p>
-      </div>
-    )
+    return <ProgressSkeleton />
   }
 
   if (error || !data) {

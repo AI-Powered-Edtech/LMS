@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Flag, Save, RefreshCw, ToggleLeft, ToggleRight, AlertCircle } from 'lucide-react'
+import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import { cn } from '@/src/utils/cn'
 import { supabase } from '@/src/services/supabase/client'
 import { FeatureFlag, invalidateFlagCache } from '@/src/utils/featureFlags'
@@ -97,6 +98,10 @@ export default function FeatureFlagsPage() {
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
+
+  if (loading && flags.length === 0) {
+    return <AdministrationSkeleton />
+  }
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">

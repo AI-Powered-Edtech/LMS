@@ -6,6 +6,7 @@ import {
 } from '@/src/features/question-bank/api/questionBankService'
 import { QuestionCard } from '@/src/features/question-bank/components/QuestionCard'
 import { QuestionEditor } from '@/src/features/question-bank/components/QuestionEditor'
+import { QuestionBankSkeleton } from '@/src/features/question-bank/components/QuestionBankSkeleton'
 
 export function QuestionBankPage() {
   const [questions, setQuestions] = useState<QuestionBankItem[]>([])
@@ -68,6 +69,10 @@ export function QuestionBankPage() {
       console.error('Failed to delete question:', error)
       alert('Gagal menghapus soal.')
     }
+  }
+
+  if (loading && questions.length === 0) {
+    return <QuestionBankSkeleton />
   }
 
   return (

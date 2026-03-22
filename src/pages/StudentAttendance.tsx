@@ -3,6 +3,7 @@ import { Calendar, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react
 import { supabase } from '@/src/lib/supabase'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { EmptyState } from '@/src/components/ui'
+import { ProgressSkeleton } from '@/src/features/progress/components/ProgressSkeleton'
 
 const STATUS_CONFIG = {
   hadir: {
@@ -54,6 +55,10 @@ export function StudentAttendance() {
     },
     enabled: !!tenantId && !!user,
   })
+
+  if (isLoading) {
+    return <ProgressSkeleton />
+  }
 
   // Find this student's status in each record
   const myName = profile ? `${profile.first_name} ${profile.last_name}`.toLowerCase() : ''

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import {
   Building2,
   RefreshCw,
@@ -206,6 +207,10 @@ export function AdministrationDashboard() {
     if (diffHours < 24) return `${diffHours} jam yang lalu`
     if (diffDays === 1) return 'Kemarin'
     return `${diffDays} hari yang lalu`
+  }
+
+  if (modulesLoading && modules.length === 0) {
+    return <AdministrationSkeleton />
   }
 
   return (
