@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   FileText,
   Search,
@@ -21,6 +21,7 @@ import { cn } from '@/src/utils/cn'
 import { motion, AnimatePresence } from 'motion/react'
 import { supabase } from '@/src/lib/supabase'
 import { GradebookSkeleton } from '@/src/features/gradebook/components/GradebookSkeleton'
+import { VirtualTable } from '@/src/components/ui/VirtualTable'
 
 export function AssignmentGradebook() {
   const { user, tenantId } = useAuth()
@@ -100,6 +101,94 @@ export function AssignmentGradebook() {
   if (loading) {
     return <GradebookSkeleton />
   }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const submissionColumns = useMemo(() => [
+    {
+      key: 'student',
+      header: 'Siswa',
+      render: (sub: AssignmentSubmission) => (
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xs font-bold">
+            {Array.isArray(sub.user_profiles)
+              ? sub.user_profiles[0]?.full_name?.charAt(0)
+              : sub.user_profiles?.full_name?.charAt(0) || '?'}
+          </div>
+          <span className="font-bold text-slate-700">
+            {Array.isArray(sub.user_profiles)
+              ? sub.user_profiles[0]?.full_name
+              : sub.user_profiles?.full_name || 'Siswa'}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'submitted_at',
+      header: 'Tanggal Pengiriman',
+      render: (sub: AssignmentSubmission) => (
+        <span className="text-sm text-slate-500">
+          {new Date(sub.submitted_at).toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'long',
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (sub: AssignmentSubmission) => (
+        <span
+          className={cn(
+            'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest',
+            sub.status === 'graded'
+              ? 'bg-emerald-100 text-emerald-700'
+              : 'bg-blue-100 text-blue-700'
+          )}
+        >
+          {sub.status === 'graded' ? (
+            <>
+              <CheckCircle className="w-2.5 h-2.5" /> Dinilai
+            </>
+          ) : (
+            <>
+              <Clock className="w-2.5 h-2.5" /> Sedang Diperiksa
+            </>
+          )}
+        </span>
+      ),
+    },
+    {
+      key: 'score',
+      header: 'Nilai',
+      render: (sub: AssignmentSubmission) => (
+        <span
+          className={cn(
+            'font-bold',
+            sub.status === 'graded' ? 'text-emerald-600' : 'text-slate-300'
+          )}
+        >
+          {sub.status === 'graded'
+            ? `${sub.score}/${selectedAssignment?.max_points}`
+            : '-'}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Aksi',
+      render: (sub: AssignmentSubmission) => (
+        <button
+          onClick={() => handleOpenGrading(sub)}
+          className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all transform active:scale-95 shadow-md shadow-blue-500/20"
+        >
+          {sub.status === 'graded' ? 'Edit Nilai' : 'Nilai Sekarang'}
+        </button>
+      ),
+    },
+  ], [selectedAssignment, handleOpenGrading])
 
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
@@ -195,105 +284,25 @@ export function AssignmentGradebook() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    <th className="px-8 py-4">Siswa</th>
-                    <th className="px-8 py-4">Tanggal Pengiriman</th>
-                    <th className="px-8 py-4">Status</th>
-                    <th className="px-8 py-4">Nilai</th>
-                    <th className="px-8 py-4">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {loadingSubmissions ? (
-                    <tr>
-                      <td colSpan={5} className="px-8 py-12 text-center text-slate-400">
-                        <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
-                        Memuat pengiriman...
-                      </td>
-                    </tr>
-                  ) : submissions.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={5}
-                        className="px-8 py-12 text-center text-slate-500 font-medium italic"
-                      >
-                        Belum ada siswa yang mengirimkan tugas.
-                      </td>
-                    </tr>
-                  ) : (
-                    submissions.map((sub: AssignmentSubmission) => (
-                      <tr key={sub.id} className="hover:bg-blue-50 transition-colors group">
-                        <td className="px-8 py-5">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xs font-bold">
-                              {Array.isArray(sub.user_profiles)
-                                ? sub.user_profiles[0]?.full_name?.charAt(0)
-                                : sub.user_profiles?.full_name?.charAt(0) || '?'}
-                            </div>
-                            <span className="font-bold text-slate-700">
-                              {Array.isArray(sub.user_profiles)
-                                ? sub.user_profiles[0]?.full_name
-                                : sub.user_profiles?.full_name || 'Unknown Student'}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-8 py-5 text-sm text-slate-500">
-                          {new Date(sub.submitted_at).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'long',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </td>
-                        <td className="px-8 py-5">
-                          <span
-                            className={cn(
-                              'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest',
-                              sub.status === 'graded'
-                                ? 'bg-emerald-100 text-emerald-700'
-                                : 'bg-blue-100 text-blue-700'
-                            )}
-                          >
-                            {sub.status === 'graded' ? (
-                              <>
-                                <CheckCircle className="w-2.5 h-2.5" /> Dinilai
-                              </>
-                            ) : (
-                              <>
-                                <Clock className="w-2.5 h-2.5" /> Sedang Diperiksa
-                              </>
-                            )}
-                          </span>
-                        </td>
-                        <td className="px-8 py-5">
-                          <span
-                            className={cn(
-                              'font-bold',
-                              sub.status === 'graded' ? 'text-emerald-600' : 'text-slate-300'
-                            )}
-                          >
-                            {sub.status === 'graded'
-                              ? `${sub.score}/${selectedAssignment.max_points}`
-                              : '-'}
-                          </span>
-                        </td>
-                        <td className="px-8 py-5">
-                          <button
-                            onClick={() => handleOpenGrading(sub)}
-                            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all transform active:scale-95 shadow-md shadow-blue-500/20"
-                          >
-                            {sub.status === 'graded' ? 'Edit Nilai' : 'Nilai Sekarang'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+            {loadingSubmissions ? (
+              <div className="px-8 py-12 text-center text-slate-400">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                Memuat pengiriman...
+              </div>
+            ) : (
+              <VirtualTable<AssignmentSubmission>
+                data={submissions}
+                columns={submissionColumns}
+                rowHeight={52}
+                maxHeight={550}
+                getRowKey={(sub) => sub.id}
+                emptyState={
+                  <div className="px-8 py-12 text-center text-slate-500 font-medium italic">
+                    Belum ada siswa yang mengirimkan tugas.
+                  </div>
+                }
+              />
+            )}
           </div>
         </div>
       )}

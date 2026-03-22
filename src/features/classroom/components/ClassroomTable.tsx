@@ -1,5 +1,7 @@
+import { useMemo } from 'react'
 import { cn } from '@/src/utils/cn'
 import { Skeleton } from '@/src/components/ui/Skeleton'
+import { VirtualTable } from '@/src/components/ui/VirtualTable'
 
 interface Column<T> {
   key: keyof T
@@ -14,15 +16,10 @@ interface ClassroomTableProps<T extends Record<string, unknown>> {
   className?: string
 }
 
-/**
- * Tabel data untuk Kelas.
- */
-export function ClassroomTable<T extends Record<string, unknown>>({
+function TableSkeleton<T extends Record<string, unknown>>({
   columns,
-  data,
-  isLoading,
   className,
-}: ClassroomTableProps<T>) {
+}: Pick<ClassroomTableProps<T>, 'columns' | 'className'>) {
   return (
     <div
       className={cn(
@@ -44,30 +41,54 @@ export function ClassroomTable<T extends Record<string, unknown>>({
           </tr>
         </thead>
         <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-100 dark:divide-slate-700">
-          {isLoading
-            ? Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i}>
-                  {columns.map((col) => (
-                    <td key={String(col.key)} className="px-4 py-3">
-                      <Skeleton className="h-4 w-full" />
-                    </td>
-                  ))}
-                </tr>
-              ))
-            : data.map((row, i) => (
-                <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                  {columns.map((col) => (
-                    <td
-                      key={String(col.key)}
-                      className="px-4 py-3 text-slate-700 dark:text-slate-200"
-                    >
-                      {col.render ? col.render(row[col.key], row) : String(row[col.key] ?? '')}
-                    </td>
-                  ))}
-                </tr>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <tr key={i}>
+              {columns.map((col) => (
+                <td key={String(col.key)} className="px-4 py-3">
+                  <Skeleton className="h-4 w-full" />
+                </td>
               ))}
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
+  )
+}
+
+/**
+ * Tabel data untuk Kelas.
+ */
+export function ClassroomTable<T extends Record<string, unknown>>({
+  columns,
+  data,
+  isLoading,
+  className,
+}: ClassroomTableProps<T>) {
+  const vtColumns = useMemo(
+    () =>
+      columns.map((col) => ({
+        key: String(col.key),
+        header: col.label,
+        render: (row: T, _index: number) =>
+          col.render ? col.render(row[col.key], row) : String(row[col.key] ?? ''),
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [columns]
+  )
+
+  if (isLoading) {
+    return <TableSkeleton columns={columns} className={className} />
+  }
+
+  return (
+    <VirtualTable<T>
+      data={data}
+      columns={vtColumns}
+      rowHeight={56}
+      maxHeight={520}
+      getRowKey={(row, i) => (row as { id?: string }).id ?? String(i)}
+      className={cn('rounded-2xl border border-slate-200 dark:border-slate-700', className)}
+    />
   )
 }

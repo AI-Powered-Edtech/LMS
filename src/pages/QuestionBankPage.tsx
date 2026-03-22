@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { BookOpen, Search, Filter, Plus, Loader2 } from 'lucide-react'
 import {
   questionBankService,
@@ -18,6 +19,14 @@ export function QuestionBankPage() {
   // Editor modal state
   const [showEditor, setShowEditor] = useState(false)
   const [editingQuestionId, setEditingQuestionId] = useState<string | undefined>(undefined)
+
+  const parentRef = useRef<HTMLDivElement>(null)
+  const virtualizer = useVirtualizer({
+    count: questions.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 80,
+    overscan: 5,
+  })
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
@@ -146,10 +155,30 @@ export function QuestionBankPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {questions.map((q) => (
-            <QuestionCard key={q.id} question={q} onEdit={handleEdit} onDelete={handleDelete} />
-          ))}
+        <div ref={parentRef} className="overflow-auto" style={{ maxHeight: '70vh' }}>
+          <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
+            {virtualizer.getVirtualItems().map((vRow) => {
+              const q = questions[vRow.index]
+              return (
+                <div
+                  key={q.id}
+                  ref={virtualizer.measureElement}
+                  data-index={vRow.index}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    transform: `translateY(${vRow.start}px)`,
+                  }}
+                >
+                  <div className="pb-4">
+                    <QuestionCard question={q} onEdit={handleEdit} onDelete={handleDelete} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 
