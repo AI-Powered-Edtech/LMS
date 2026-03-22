@@ -102,7 +102,7 @@ export function AssignmentGradebook() {
     return <GradebookSkeleton />
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   const submissionColumns = useMemo(() => [
     {
       key: 'student',

@@ -96,23 +96,49 @@ export function QuizModule() {
   const [gradedQuestions, setGradedQuestions] = useState<QuizAttemptQuestion[]>([])
   const [_isLoadingGradedQuestions, setIsLoadingGradedQuestions] = useState(false)
 
-  const completedAttempts = quizAttempts.filter(
-    (attempt) => attempt.status === 'SUBMITTED' || attempt.status === 'GRADED'
-  )
+  const completedAttempts = useMemo(() => {
+    return quizAttempts.filter(
+      (attempt) => attempt.status === 'SUBMITTED' || attempt.status === 'GRADED'
+    )
+  }, [quizAttempts])
 
   // Compute total points from completed attempts
   const totalPoints = useMemo(() => {
     return completedAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0)
   }, [completedAttempts])
 
-  const filteredQuizzes = quizzes.filter((quiz) => {
-    if (quiz.status === 'draft') return false
-    const matchesSearch = quiz.title?.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesClass = selectedClass === 'all' || quiz.class_name === selectedClass
-    return matchesSearch && matchesClass
-  })
+  const filteredQuizzes = useMemo(() => {
+    return quizzes.filter((quiz) => {
+      if (quiz.status === 'draft') return false
+      const matchesSearch = quiz.title?.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesClass = selectedClass === 'all' || quiz.class_name === selectedClass
+      return matchesSearch && matchesClass
+    })
+  }, [quizzes, searchQuery, selectedClass])
 
-  const classes = [...new Set(quizzes.map((q) => q.class_name || 'Umum'))]
+  const classes = useMemo(() => {
+    return [...new Set(quizzes.map((q) => q.class_name || 'Umum'))]
+  }, [quizzes])
+
+  // Precompute attempts stats for rendering cards
+  const attemptStatsByAssignment = useMemo(() => {
+    const stats: Record<string, { activeAttempt?: QuizAttempt; count: number }> = {}
+
+    for (const attempt of quizAttempts) {
+      if (!attempt.assignment_id) continue
+
+      if (!stats[attempt.assignment_id]) {
+        stats[attempt.assignment_id] = { count: 0 }
+      }
+
+      stats[attempt.assignment_id].count++
+
+      if (attempt.status === 'IN_PROGRESS') {
+        stats[attempt.assignment_id].activeAttempt = attempt
+      }
+    }
+    return stats
+  }, [quizAttempts])
 
   const refreshQuizData = async () => {
     await Promise.all([refetchQuizzes(), refetchAttempts()])
@@ -471,12 +497,9 @@ export function QuizModule() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredQuizzes.length > 0 ? (
             filteredQuizzes.map((quiz) => {
-              const activeAttempt = quizAttempts.find(
-                (a) => a.assignment_id === quiz.assignment_id && a.status === 'IN_PROGRESS'
-              )
-              const attemptsCount = quizAttempts.filter(
-                (a) => a.assignment_id === quiz.assignment_id
-              ).length
+              const stats = quiz.assignment_id ? attemptStatsByAssignment[quiz.assignment_id] : undefined
+              const activeAttempt = stats?.activeAttempt
+              const attemptsCount = stats?.count || 0
 
               return (
                 <QuizCard
