@@ -4,6 +4,7 @@ import { Loader2, Plus, AlertCircle, Trash2, Calendar } from 'lucide-react'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { useAuth } from '@/src/contexts/AuthContext'
+import { useToast } from '@/src/hooks/useToast'
 
 interface QuizAssignmentStatusProps {
   quizId: string
@@ -12,6 +13,7 @@ interface QuizAssignmentStatusProps {
 
 export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentStatusProps) {
   const { tenantId } = useAuth()
+  const { addToast } = useToast()
   const [assignments, setAssignments] = useState<QuizAssignment[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -24,7 +26,7 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
       const data = await quizService.getAssignmentsByQuiz(quizId, tenantId)
       setAssignments(data)
     } catch (err: unknown) {
-      console.error('Failed to load assignments:', err)
+      if (import.meta.env.DEV) console.error('Failed to load assignments:', err)
       setError(err instanceof Error ? err.message : 'Gagal memuat status assignment')
     } finally {
       setIsLoading(false)
@@ -50,7 +52,11 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
       await quizService.removeQuizAssignment(assignmentId, tenantId)
       setAssignments((prev) => prev.filter((a) => a.id !== assignmentId))
     } catch (err: unknown) {
-      alert('Gagal menghapus assignment: ' + (err instanceof Error ? err.message : 'Unknown error'))
+      addToast({
+        type: 'error',
+        message:
+          'Gagal menghapus assignment: ' + (err instanceof Error ? err.message : 'Unknown error'),
+      })
     }
   }
 

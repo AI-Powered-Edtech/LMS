@@ -1,3 +1,5 @@
+import { OptimizedImage } from '@/src/components/ui'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState } from 'react'
 import {
   FileText,
@@ -39,6 +41,7 @@ const templates = [
 const steps = ['Draft', 'Review Waka', 'TTD Kepsek', 'Terbit']
 
 export function DocumentManager() {
+  usePageTitle('Document Manager')
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
   const [nisn, setNisn] = useState('')
   const [studentData, setStudentData] = useState<Record<string, unknown> | null>(null)
@@ -230,7 +233,7 @@ export function DocumentManager() {
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 bg-white rounded-xl border border-slate-200 flex items-center justify-center shadow-sm">
-                      <img
+                      <OptimizedImage
                         src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=EduSyncSignature"
                         alt="QR"
                         className="w-12 h-12 opacity-80"

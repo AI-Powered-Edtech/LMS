@@ -1,3 +1,4 @@
+import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { BottomNav } from './BottomNav'
@@ -41,7 +42,9 @@ export function TeacherLayout() {
                 transition={{ duration: 0.2 }}
                 className={`${isHidden ? 'max-w-none' : 'max-w-5xl'} mx-auto w-full flex-1 flex flex-col`}
               >
-                <Outlet />
+                <FeatureErrorBoundary>
+                  <Outlet />
+                </FeatureErrorBoundary>
               </motion.div>
             </AnimatePresence>
           </main>

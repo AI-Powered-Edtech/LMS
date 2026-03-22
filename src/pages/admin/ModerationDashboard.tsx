@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -19,6 +20,7 @@ import { cn } from '@/src/utils/cn'
 import { ModerationSkeleton } from '@/src/features/moderation/components/ModerationSkeleton'
 
 export function ModerationDashboard() {
+  usePageTitle('Moderation Dashboard')
   const navigate = useNavigate()
   const { data: reports = [], isLoading } = useModerationReports()
   const resolveReport = useResolveReport()

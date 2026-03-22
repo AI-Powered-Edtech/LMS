@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query'
+import { useToast } from '@/src/hooks/useToast'
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,3 +24,12 @@ export const queryClient = new QueryClient({
     },
   },
 })
+
+// Global mutation error handler — catches unhandled mutation errors as a safety net
+queryClient.getMutationCache().config.onError = (error: Error) => {
+  useToast.getState().addToast({
+    type: 'error',
+    message: 'Terjadi kesalahan. Silakan coba lagi.',
+    description: import.meta.env.DEV ? String(error) : undefined,
+  })
+}

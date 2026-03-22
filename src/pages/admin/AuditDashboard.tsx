@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import {
   FileText,
   RefreshCw,
@@ -83,6 +85,7 @@ const ACTION_OPTIONS = [
 ]
 
 export function AuditDashboard() {
+  usePageTitle('Audit Dashboard')
   const [logs, setLogs] = useState<AuditLog[]>([])
   const [loading, setLoading] = useState(true)
   const [actionFilter, setActionFilter] = useState('')
@@ -121,13 +124,21 @@ export function AuditDashboard() {
           setHasMore(false)
         }
       } catch (err) {
-        console.error('Failed to fetch audit logs:', err)
+        if (import.meta.env.DEV) console.error('Failed to fetch audit logs:', err)
       } finally {
         setLoading(false)
       }
     },
     [actionFilter]
   )
+
+  const parentRef = useRef<HTMLDivElement>(null)
+
+  const rowVirtualizer = useVirtualizer({
+    count: logs.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 72,
+  })
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
@@ -256,7 +267,7 @@ export function AuditDashboard() {
         </div>
 
         {/* Log Timeline */}
-        <div className="divide-y divide-slate-100">
+        <div ref={parentRef} className="max-h-[600px] overflow-auto divide-y divide-slate-100">
           {loading && logs.length === 0 ? (
             <div className="px-6 py-16 text-center text-slate-400">
               <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2" />
@@ -269,54 +280,72 @@ export function AuditDashboard() {
               <p className="text-sm mt-1">Audit log akan muncul saat admin melakukan perubahan.</p>
             </div>
           ) : (
-            logs.map((log) => {
-              const cfg = ACTION_CONFIG[log.action] || DEFAULT_ACTION_CONFIG
-              return (
-                <div
-                  key={log.log_id}
-                  className="px-6 py-4 hover:bg-slate-50/50 transition-colors flex items-start gap-4"
-                >
-                  {/* Icon */}
+            <div
+              style={{
+                height: `${rowVirtualizer.getTotalSize()}px`,
+                width: '100%',
+                position: 'relative',
+              }}
+            >
+              {rowVirtualizer.getVirtualItems().map((vRow) => {
+                const log = logs[vRow.index]
+                const cfg = ACTION_CONFIG[log.action] || DEFAULT_ACTION_CONFIG
+                return (
                   <div
-                    className={cn(
-                      'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border',
-                      cfg.bg,
-                      cfg.color
-                    )}
+                    key={log.log_id}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      transform: `translateY(${vRow.start}px)`,
+                    }}
+                    className="px-6 py-4 hover:bg-slate-50/50 transition-colors flex items-start gap-4"
                   >
-                    {cfg.icon}
-                  </div>
+                    {/* Icon */}
+                    <div
+                      className={cn(
+                        'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border',
+                        cfg.bg,
+                        cfg.color
+                      )}
+                    >
+                      {cfg.icon}
+                    </div>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">{cfg.label}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          <span className="font-medium text-slate-700">{log.actor_name}</span>
-                          {log.target_name && (
-                            <>
-                              {' '}
-                              →{' '}
-                              <span className="font-medium text-slate-700">{log.target_name}</span>
-                            </>
-                          )}
-                        </p>
-                        {renderDetails(log)}
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">{cfg.label}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            <span className="font-medium text-slate-700">{log.actor_name}</span>
+                            {log.target_name && (
+                              <>
+                                {' '}
+                                →{' '}
+                                <span className="font-medium text-slate-700">
+                                  {log.target_name}
+                                </span>
+                              </>
+                            )}
+                          </p>
+                          {renderDetails(log)}
+                        </div>
+                        <span className="text-xs text-slate-400 whitespace-nowrap shrink-0">
+                          {formatTime(log.created_at)}
+                        </span>
                       </div>
-                      <span className="text-xs text-slate-400 whitespace-nowrap shrink-0">
-                        {formatTime(log.created_at)}
-                      </span>
+                    </div>
+
+                    {/* Actor avatar */}
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-400 to-slate-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                      {getInitials(log.actor_name)}
                     </div>
                   </div>
-
-                  {/* Actor avatar */}
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-400 to-slate-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
-                    {getInitials(log.actor_name)}
-                  </div>
-                </div>
-              )
-            })
+                )
+              })}
+            </div>
           )}
         </div>
 

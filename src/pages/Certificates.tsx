@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState } from 'react'
 import {
   Award,
@@ -26,6 +27,7 @@ import { SkeletonCard, EmptyState } from '@/src/components/ui'
 import { supabase } from '@/src/services/supabase/client'
 
 export function Certificates() {
+  usePageTitle('Certificates')
   const { role, profile } = useAuth()
   const isTeacher = role === 'teacher'
 
@@ -88,7 +90,7 @@ export function Certificates() {
         setTimeout(() => URL.revokeObjectURL(url), 30000)
       }
     } catch (error) {
-      console.error('Error generating certificate:', error)
+      if (import.meta.env.DEV) console.error('Error generating certificate:', error)
       alert('Gagal mengunduh sertifikat. Silakan coba lagi.')
     } finally {
       setIsDownloading(null)

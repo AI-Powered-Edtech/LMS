@@ -138,7 +138,7 @@ export function AITutorPanel({
       // Remove used suggested question if matches
       setSuggestedQuestions((prev) => prev.filter((q) => q !== question))
     } catch (err) {
-      console.error('[AI Tutor] Unexpected error:', err)
+      if (import.meta.env.DEV) console.error('[AI Tutor] Unexpected error:', err)
       const errorMessage: AITutorMessage = {
         id: generateMessageId(),
         role: 'assistant',

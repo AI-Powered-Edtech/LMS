@@ -1,9 +1,11 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, BarChart3 } from 'lucide-react'
 import { TeacherAnalyticsDashboard } from '@/src/features/analytics'
 import { EmptyState } from '@/src/components/ui'
 
 export function CourseAnalytics() {
+  usePageTitle('Course Analytics')
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const courseId = searchParams.get('courseId')

@@ -1,3 +1,5 @@
+import { OptimizedImage } from '@/src/components/ui'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
@@ -19,6 +21,7 @@ import { cn } from '@/src/utils/cn'
 import { useAuth } from '@/src/contexts/AuthContext'
 
 export function PublicProfile() {
+  usePageTitle('Public Profile')
   const { username } = useParams()
   const navigate = useNavigate()
   const { role: currentUserRole } = useAuth() // To determine perspective
@@ -146,7 +149,7 @@ export function PublicProfile() {
           <div className="flex flex-col md:flex-row gap-6 items-start md:items-end -mt-12 md:-mt-16 mb-6">
             <div className="relative">
               <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-white p-1.5 shadow-lg">
-                <img
+                <OptimizedImage
                   src={profile.avatar}
                   alt={profile.name}
                   className="w-full h-full rounded-full bg-slate-100 object-cover"
@@ -369,7 +372,7 @@ export function PublicProfile() {
 
               {/* Highlighted Certificate */}
               <div className="relative overflow-hidden rounded-2xl bg-slate-900 text-white group cursor-pointer">
-                <img
+                <OptimizedImage
                   src={studentProfile.highlightedCertificate.image}
                   alt="Certificate"
                   className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-50 transition-opacity duration-500"

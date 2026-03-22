@@ -17,6 +17,8 @@ interface VirtualTableProps<T> {
   emptyState?: React.ReactNode
   className?: string
   'data-testid'?: string
+  onRowClick?: (row: T, index: number) => void
+  rowClassName?: (row: T, index: number) => string
 }
 
 export function VirtualTable<T>({
@@ -28,6 +30,8 @@ export function VirtualTable<T>({
   emptyState,
   className = '',
   'data-testid': testId,
+  onRowClick,
+  rowClassName,
 }: VirtualTableProps<T>) {
   const parentRef = useRef<HTMLDivElement>(null)
 
@@ -74,7 +78,10 @@ export function VirtualTable<T>({
                 key={getRowKey(row, virtualRow.index)}
                 data-index={virtualRow.index}
                 ref={virtualizer.measureElement}
-                className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
+                onClick={onRowClick ? () => onRowClick(row, virtualRow.index) : undefined}
+                className={`hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors ${
+                  rowClassName ? rowClassName(row, virtualRow.index) : ''
+                } ${onRowClick ? 'cursor-pointer' : ''}`}
                 style={{
                   position: 'absolute',
                   top: 0,

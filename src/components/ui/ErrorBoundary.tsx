@@ -27,8 +27,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('[ErrorBoundary] Caught error:', error)
-    console.error('[ErrorBoundary] Component stack:', errorInfo.componentStack)
+    if (import.meta.env.DEV) console.error('[ErrorBoundary] Caught error:', error)
+    if (import.meta.env.DEV)
+      console.error('[ErrorBoundary] Component stack:', errorInfo.componentStack)
   }
 
   handleReset = (): void => {

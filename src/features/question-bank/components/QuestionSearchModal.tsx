@@ -6,6 +6,7 @@ import {
   QuestionBankItem,
 } from '@/src/features/question-bank/api/questionBankService'
 import { QuestionCard } from './QuestionCard'
+import { useToast } from '@/src/hooks/useToast'
 
 interface QuestionSearchModalProps {
   quizId: string
@@ -20,6 +21,7 @@ export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
   onClose,
   onAddSuccess,
 }) => {
+  const { addToast } = useToast()
   const [questions, setQuestions] = useState<QuestionBankItem[]>([])
   const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -52,7 +54,7 @@ export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
       })
       setQuestions(data)
     } catch (error) {
-      console.error('Failed to load questions:', error)
+      if (import.meta.env.DEV) console.error('Failed to load questions:', error)
     } finally {
       setLoading(false)
     }
@@ -60,7 +62,10 @@ export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
 
   const handleAddQuestion = async (question: QuestionBankItem) => {
     if (!quizId) {
-      alert('Harap simpan kuis terlebih dahulu sebelum menambahkan soal dari bank.')
+      addToast({
+        type: 'error',
+        message: 'Harap simpan kuis terlebih dahulu sebelum menambahkan soal dari bank.',
+      })
       return
     }
 
@@ -72,8 +77,8 @@ export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
       }
       // Optionally remove from list or show visual feedback
     } catch (error) {
-      console.error('Failed to add question:', error)
-      alert('Gagal menambahkan soal ke kuis.')
+      if (import.meta.env.DEV) console.error('Failed to add question:', error)
+      addToast({ type: 'error', message: 'Gagal menambahkan soal ke kuis.' })
     } finally {
       setAddingIds((prev) => {
         const next = new Set(prev)

@@ -10,7 +10,7 @@ export const guidanceService = {
     if (error) {
       // PGRST202 = function not found, 22P02 = invalid UUID input — return empty gracefully
       if (error.code === 'PGRST202' || error.code === '42883' || error.code === '22P02') return []
-      console.error('[guidanceService] getApplicableGuides:', error)
+      if (import.meta.env.DEV) console.error('[guidanceService] getApplicableGuides:', error)
       throw error
     }
     return (data as ApplicableGuide[]) ?? []
@@ -22,7 +22,7 @@ export const guidanceService = {
       p_action: action,
     })
     if (error) {
-      console.error('[guidanceService] recordInteraction:', error)
+      if (import.meta.env.DEV) console.error('[guidanceService] recordInteraction:', error)
       // Fire-and-forget — don't throw on interaction errors
     }
   },
@@ -33,7 +33,7 @@ export const guidanceService = {
       p_target_id: targetId ?? null,
     })
     if (error) {
-      console.error('[guidanceService] listGuides:', error)
+      if (import.meta.env.DEV) console.error('[guidanceService] listGuides:', error)
       throw error
     }
     return (data as LearningGuide[]) ?? []
@@ -59,7 +59,7 @@ export const guidanceService = {
       p_ends_at: params.ends_at ?? null,
     })
     if (error) {
-      console.error('[guidanceService] upsertGuide:', error)
+      if (import.meta.env.DEV) console.error('[guidanceService] upsertGuide:', error)
       throw error
     }
     return data as string
@@ -70,7 +70,7 @@ export const guidanceService = {
       p_guide_id: guideId,
     })
     if (error) {
-      console.error('[guidanceService] deleteGuide:', error)
+      if (import.meta.env.DEV) console.error('[guidanceService] deleteGuide:', error)
       throw error
     }
   },

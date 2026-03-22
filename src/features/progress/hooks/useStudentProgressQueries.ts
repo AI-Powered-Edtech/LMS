@@ -94,7 +94,7 @@ export function useStudentProgressData() {
     },
     unlockModule: (_moduleId: string) => {
       // This would need to be implemented with a mutation if needed
-      console.warn('unlockModule not implemented in React Query hooks')
+      if (import.meta.env.DEV) console.warn('unlockModule not implemented in React Query hooks')
     },
     getRemedialContent: (quizId: string): RemedialContent | null => {
       return REMEDIAL_CONTENT_MAP[quizId] || null

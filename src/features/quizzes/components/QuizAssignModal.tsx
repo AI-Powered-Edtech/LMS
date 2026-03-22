@@ -3,6 +3,7 @@ import { X, Loader2 } from 'lucide-react'
 import { classroomService, Classroom } from '@/src/features/classroom/api/classroomService'
 import { quizService, QuizAssignment } from '@/src/features/quizzes'
 import { useAuth } from '@/src/contexts/AuthContext'
+import { useToast } from '@/src/hooks/useToast'
 import { cn } from '@/src/utils/cn'
 
 interface QuizAssignModalProps {
@@ -28,6 +29,7 @@ const toLocalDateTime = (value?: string | null) => {
 }
 
 export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssignModalProps) {
+  const { addToast } = useToast()
   const { user, tenantId } = useAuth()
   const [classes, setClasses] = useState<Classroom[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -71,7 +73,7 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
       setClasses(fetchedClasses)
       setAssignments(initialAssignments)
     } catch (error) {
-      console.error('Failed to load classes', error)
+      if (import.meta.env.DEV) console.error('Failed to load classes', error)
     } finally {
       setIsLoading(false)
     }
@@ -95,8 +97,8 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
       onSuccess()
       onClose()
     } catch (error) {
-      console.error('Failed to assign quiz', error)
-      alert('Gagal menugaskan kuis. Silakan coba lagi.')
+      if (import.meta.env.DEV) console.error('Failed to assign quiz', error)
+      addToast({ type: 'error', message: 'Gagal menugaskan kuis. Silakan coba lagi.' })
     } finally {
       setIsSubmitting(false)
     }

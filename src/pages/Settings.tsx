@@ -1,9 +1,12 @@
+import { OptimizedImage } from '@/src/components/ui'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState } from 'react'
 import { User, Bell, Lock, Globe, Moon, Sun, Monitor, LogOut } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
 import { useAuth } from '@/src/contexts/AuthContext'
 
 export function Settings() {
+  usePageTitle('Settings')
   const { role, user, profile } = useAuth()
 
   const displayName =
@@ -61,7 +64,7 @@ export function Settings() {
             <div className="p-6 space-y-4">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-20 h-20 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center overflow-hidden border-4 border-white dark:border-slate-800 shadow-md">
-                  <img
+                  <OptimizedImage
                     src={
                       profile?.avatar_url ??
                       `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id ?? 'default'}`

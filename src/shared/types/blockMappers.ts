@@ -1,16 +1,18 @@
 import { DomainBlock } from './blockTypes'
+import { BlockRowSchema } from '../schemas'
+import { validate } from '../lib/validate'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function mapBlock(row: any): DomainBlock {
+export function mapBlock(row: unknown): DomainBlock {
+  const r = validate(BlockRowSchema, row, 'BlockRow')
   return {
-    id: row.id,
-    lessonId: row.lesson_id,
-    type: row.type,
-    url: row.url,
-    title: row.title,
-    content: row.content,
-    metadata: row.metadata,
-    orderIndex: row.order_index,
-    tenantId: row.tenant_id,
+    id: r.id,
+    lessonId: r.lesson_id,
+    type: r.type,
+    url: r.url,
+    title: r.title,
+    content: r.content,
+    metadata: r.metadata,
+    orderIndex: r.order_index,
+    tenantId: r.tenant_id,
   }
 }

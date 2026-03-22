@@ -8,8 +8,8 @@ import { HashRouter as Router } from 'react-router-dom'
 import { MotionConfig } from 'motion/react'
 
 import { AuthProvider } from './contexts/AuthContext'
-import { ToastProvider } from './contexts/ToastContext'
-import { ErrorBoundary } from './components/ErrorBoundary'
+import { ErrorBoundary } from './components/ui/ErrorBoundary'
+import { ToastContainer } from './components/ui/Toast'
 import { OfflineIndicator } from './components/OfflineIndicator'
 import { SessionManager } from './components/SessionManager'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -25,19 +25,18 @@ export default function App() {
 
   return (
     <MotionConfig reducedMotion="user">
-    <ErrorBoundary>
-      <ThemeProvider>
-        <ToastProvider>
+      <ErrorBoundary>
+        <ThemeProvider>
           <AuthProvider>
+            <ToastContainer />
             <OfflineIndicator />
             <SessionManager />
             <Router>
               <AppRoutes />
             </Router>
           </AuthProvider>
-        </ToastProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
+        </ThemeProvider>
+      </ErrorBoundary>
     </MotionConfig>
   )
 }

@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState } from 'react'
 import {
   ChevronLeft,
@@ -26,7 +27,6 @@ import {
   CalendarEvent,
 } from '@/src/features/calendar/hooks/useCalendarQueries'
 import { useCalendarStore } from '@/src/features/calendar/hooks/useCalendarQueries'
-import { SkeletonCard } from '@/src/components/ui'
 import { CalendarSkeleton } from '@/src/features/calendar/components/CalendarSkeleton'
 
 type EventType = 'exam' | 'assignment' | 'event' | 'quiz'
@@ -35,6 +35,7 @@ type Priority = 'low' | 'medium' | 'high'
 const daysOfWeek = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
 
 export function Calendar() {
+  usePageTitle('Calendar')
   const { user } = useAuth()
   const sendNotification = useSendNotification()
   const { events, addEvent } = useCalendarStore()

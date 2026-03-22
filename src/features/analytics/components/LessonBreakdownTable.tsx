@@ -1,7 +1,71 @@
 import { Card, Skeleton, Badge } from '@/src/components/ui'
+import { VirtualTable } from '@/src/components/ui/VirtualTable'
 import { cn } from '@/src/utils/cn'
 import { formatTime, formatPct, pctColor, pctBgColor } from '../utils/formatters'
 import type { LessonAnalytics } from '../types'
+
+const columns = [
+  {
+    header: 'Modul',
+    key: 'module_title',
+    className: 'px-6 py-3 text-xs text-slate-400 dark:text-slate-500',
+    render: (row: LessonAnalytics) => row.module_title,
+  },
+  {
+    header: 'Pelajaran',
+    key: 'lesson_title',
+    className: 'px-6 py-3 font-medium text-slate-800 dark:text-slate-100',
+    render: (row: LessonAnalytics) => row.lesson_title,
+  },
+  {
+    header: 'Siswa',
+    key: 'total_students',
+    className: 'px-4 py-3 text-center',
+    render: (row: LessonAnalytics) => row.total_students,
+  },
+  {
+    header: 'Avg Selesai',
+    key: 'avg_completion_pct',
+    className: 'px-4 py-3',
+    render: (row: LessonAnalytics) => (
+      <div className="flex flex-col items-center gap-1">
+        <span className={cn('font-semibold', pctColor(row.avg_completion_pct))}>
+          {formatPct(row.avg_completion_pct)}
+        </span>
+        <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+          <div
+            className={cn('h-full rounded-full transition-all', pctBgColor(row.avg_completion_pct))}
+            style={{ width: `${Math.min(row.avg_completion_pct, 100)}%` }}
+          />
+        </div>
+      </div>
+    ),
+  },
+  {
+    header: 'Avg Waktu',
+    key: 'avg_time_spent',
+    className: 'px-4 py-3 text-center text-slate-500 dark:text-slate-400',
+    render: (row: LessonAnalytics) => formatTime(row.avg_time_spent),
+  },
+  {
+    header: 'Kesulitan',
+    key: 'struggling',
+    className: 'px-4 py-3 text-center',
+    render: (row: LessonAnalytics) =>
+      row.struggling_students > 0 ? (
+        <Badge variant="danger" size="sm">
+          {row.struggling_students}
+          {row.high_risk_students > 0 && (
+            <span className="ml-0.5 opacity-70">({row.high_risk_students} tinggi)</span>
+          )}
+        </Badge>
+      ) : (
+        <Badge variant="success" size="sm">
+          Aman
+        </Badge>
+      ),
+  },
+]
 
 interface LessonBreakdownTableProps {
   data: LessonAnalytics[]
@@ -40,91 +104,23 @@ export function LessonBreakdownTable({
         </p>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left text-slate-600 dark:text-slate-300">
-          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500 dark:border-slate-700/60 dark:bg-slate-800/50 dark:text-slate-400">
-            <tr>
-              <th className="px-6 py-3 font-bold">Modul</th>
-              <th className="px-6 py-3 font-bold">Pelajaran</th>
-              <th className="px-4 py-3 font-bold text-center">Siswa</th>
-              <th className="px-4 py-3 font-bold text-center">Avg Selesai</th>
-              <th className="px-4 py-3 font-bold text-center">Avg Waktu</th>
-              <th className="px-4 py-3 font-bold text-center">Kesulitan</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={6}
-                  className="px-6 py-8 text-center text-slate-500 dark:text-slate-400"
-                >
-                  Belum ada data pelajaran untuk kursus ini.
-                </td>
-              </tr>
-            ) : (
-              data.map((lesson) => {
-                const isSelected = selectedLessonId === lesson.lesson_id
-                return (
-                  <tr
-                    key={lesson.lesson_id}
-                    onClick={() => onLessonSelect(lesson.lesson_id)}
-                    className={cn(
-                      'cursor-pointer border-b border-slate-100 transition-colors dark:border-slate-700/40',
-                      isSelected
-                        ? 'bg-indigo-50 dark:bg-indigo-900/20'
-                        : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
-                    )}
-                  >
-                    <td className="px-6 py-3 text-xs text-slate-400 dark:text-slate-500">
-                      {lesson.module_title}
-                    </td>
-                    <td className="px-6 py-3 font-medium text-slate-800 dark:text-slate-100">
-                      {lesson.lesson_title}
-                    </td>
-                    <td className="px-4 py-3 text-center">{lesson.total_students}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-col items-center gap-1">
-                        <span className={cn('font-semibold', pctColor(lesson.avg_completion_pct))}>
-                          {formatPct(lesson.avg_completion_pct)}
-                        </span>
-                        <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                          <div
-                            className={cn(
-                              'h-full rounded-full transition-all',
-                              pctBgColor(lesson.avg_completion_pct)
-                            )}
-                            style={{ width: `${Math.min(lesson.avg_completion_pct, 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">
-                      {formatTime(lesson.avg_time_spent)}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {lesson.struggling_students > 0 ? (
-                        <Badge variant="danger" size="sm">
-                          {lesson.struggling_students}
-                          {lesson.high_risk_students > 0 && (
-                            <span className="ml-0.5 opacity-70">
-                              ({lesson.high_risk_students} tinggi)
-                            </span>
-                          )}
-                        </Badge>
-                      ) : (
-                        <Badge variant="success" size="sm">
-                          Aman
-                        </Badge>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+      {data.length === 0 ? (
+        <div className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
+          Belum ada data pelajaran untuk kursus ini.
+        </div>
+      ) : (
+        <VirtualTable
+          data={data}
+          columns={columns}
+          getRowKey={(r) => r.lesson_id}
+          rowHeight={64}
+          maxHeight={500}
+          onRowClick={(row) => onLessonSelect(row.lesson_id)}
+          rowClassName={(r) =>
+            selectedLessonId === r.lesson_id ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''
+          }
+        />
+      )}
     </Card>
   )
 }

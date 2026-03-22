@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState } from 'react'
 import { motion } from 'motion/react'
 import { Upload, CheckCircle2, Users, Camera, Save } from 'lucide-react'
@@ -6,6 +7,7 @@ import { supabase } from '@/src/lib/supabase'
 import { useAuth } from '@/src/contexts/AuthContext'
 
 export function ScanAttendance() {
+  usePageTitle('Scan Attendance')
   const { user, tenantId } = useAuth()
   const [isScanning, setIsScanning] = useState(false)
   const [scanResult, setScanResult] = useState<

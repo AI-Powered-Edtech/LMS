@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import React, { useState, useEffect, useCallback } from 'react'
 import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import {
@@ -68,6 +69,7 @@ const STATUS_CONFIG: Record<string, { color: string; bg: string; icon: React.Rea
 }
 
 export function UserManagement() {
+  usePageTitle('User Management')
   const [tab, setTab] = useState<Tab>('users')
   const [users, setUsers] = useState<TenantUser[]>([])
   const [invitations, setInvitations] = useState<TenantInvitation[]>([])
@@ -109,7 +111,7 @@ export function UserManagement() {
           setHasMore(false)
         }
       } catch (err) {
-        console.error('Failed to fetch users:', err)
+        if (import.meta.env.DEV) console.error('Failed to fetch users:', err)
       } finally {
         setLoading(false)
       }
@@ -123,7 +125,7 @@ export function UserManagement() {
       const data = await getInvitations()
       setInvitations(data)
     } catch (err) {
-      console.error('Failed to fetch invitations:', err)
+      if (import.meta.env.DEV) console.error('Failed to fetch invitations:', err)
     } finally {
       setLoading(false)
     }

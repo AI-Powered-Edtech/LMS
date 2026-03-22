@@ -11,143 +11,255 @@ import { RoleGuard } from '../components/guards/RoleGuard'
 import { RoleResolver } from '../components/guards/RoleResolver'
 import { CourseEnrollmentGuard } from '../components/guards/CourseEnrollmentGuard'
 
-const Dashboard = lazy(() => import('../pages/Dashboard').then((m) => ({ default: m.Dashboard })))
-const Creator = lazy(() => import('../pages/Creator').then((m) => ({ default: m.Creator })))
-const CourseBuilder = lazy(() =>
-  import('../pages/CourseBuilder').then((m) => ({ default: m.CourseBuilder }))
-)
-const Leaderboard = lazy(() =>
-  import('../pages/Leaderboard').then((m) => ({ default: m.Leaderboard }))
-)
-const Forum = lazy(() => import('../pages/Forum').then((m) => ({ default: m.Forum })))
-const Analytics = lazy(() => import('../pages/Analytics').then((m) => ({ default: m.Analytics })))
-const DocumentManager = lazy(() =>
-  import('../pages/DocumentManager').then((m) => ({ default: m.DocumentManager }))
-)
-const Courses = lazy(() => import('../pages/Courses').then((m) => ({ default: m.Courses })))
-const Directory = lazy(() => import('../pages/Directory').then((m) => ({ default: m.Directory })))
-const LessonViewer = lazy(() =>
-  import('../pages/LessonViewer').then((m) => ({ default: m.LessonViewer }))
-)
-const SpeedGrader = lazy(() =>
-  import('../pages/SpeedGrader').then((m) => ({ default: m.SpeedGrader }))
-)
-const QuizModule = lazy(() => import('../pages/Quiz').then((m) => ({ default: m.QuizModule })))
-const BillingDashboard = lazy(() =>
-  import('../pages/admin/BillingDashboard').then((m) => ({ default: m.BillingDashboard }))
-)
-const TeacherDashboard = lazy(() =>
-  import('../pages/TeacherDashboard').then((m) => ({ default: m.TeacherDashboard }))
-)
-const ScanAttendance = lazy(() =>
-  import('../pages/ScanAttendance').then((m) => ({ default: m.ScanAttendance }))
-)
-const Profile = lazy(() => import('../pages/Profile').then((m) => ({ default: m.Profile })))
-const PublicProfile = lazy(() =>
-  import('../pages/PublicProfile').then((m) => ({ default: m.PublicProfile }))
-)
-const Settings = lazy(() => import('../pages/Settings').then((m) => ({ default: m.Settings })))
-const Gradebook = lazy(() => import('../pages/Gradebook').then((m) => ({ default: m.Gradebook })))
-const QuizGradebook = lazy(() =>
-  import('../pages/QuizGradebook').then((m) => ({ default: m.QuizGradebook }))
-)
-const AssignmentGradebook = lazy(() =>
-  import('../pages/AssignmentGradebook').then((m) => ({ default: m.AssignmentGradebook }))
-)
-const Certificates = lazy(() =>
-  import('../pages/Certificates').then((m) => ({ default: m.Certificates }))
-)
-const Calendar = lazy(() => import('../pages/Calendar').then((m) => ({ default: m.Calendar })))
-const Announcements = lazy(() =>
-  import('../pages/Announcements').then((m) => ({ default: m.Announcements }))
-)
-const Assignments = lazy(() =>
-  import('../pages/Assignments').then((m) => ({ default: m.Assignments }))
-)
-const StudentProgress = lazy(() =>
-  import('../pages/StudentProgress').then((m) => ({ default: m.StudentProgress }))
-)
-const GroupAssignment = lazy(() =>
-  import('../pages/GroupAssignment').then((m) => ({ default: m.GroupAssignment }))
-)
-const Grades = lazy(() => import('../pages/Grades').then((m) => ({ default: m.Grades })))
-const StudentAttendance = lazy(() =>
-  import('../pages/StudentAttendance').then((m) => ({ default: m.StudentAttendance }))
-)
-const QuestionBankPage = lazy(() =>
-  import('../pages/QuestionBankPage').then((m) => ({ default: m.QuestionBankPage }))
-)
-const QuizManager = lazy(() =>
-  import('../pages/QuizManager').then((m) => ({ default: m.QuizManager }))
-)
-const CourseAnalytics = lazy(() =>
-  import('../pages/CourseAnalytics').then((m) => ({ default: m.CourseAnalytics }))
-)
-const Dashboards = lazy(() =>
-  import('../pages/Dashboards').then((m) => ({ default: m.Dashboards }))
-)
-const ClassManagement = lazy(() =>
-  import('../pages/ClassManagement').then((m) => ({ default: m.ClassManagement }))
-)
-const StudentClassPage = lazy(() =>
-  import('../pages/StudentClassPage').then((m) => ({ default: m.StudentClassPage }))
-)
-const ModerationDashboard = lazy(() =>
-  import('../pages/admin/ModerationDashboard').then((m) => ({ default: m.ModerationDashboard }))
-)
-const FinanceDashboard = lazy(() =>
-  import('../pages/admin/FinanceDashboard').then((m) => ({ default: m.FinanceDashboard }))
-)
-const PPDBDashboard = lazy(() =>
-  import('../pages/admin/PPDBDashboard').then((m) => ({ default: m.PPDBDashboard }))
-)
-const AdministrationDashboard = lazy(() =>
-  import('../pages/admin/AdministrationDashboard').then((m) => ({
-    default: m.AdministrationDashboard,
-  }))
-)
-const UserManagement = lazy(() =>
-  import('../pages/admin/UserManagement').then((m) => ({ default: m.UserManagement }))
-)
-const AuditDashboard = lazy(() =>
-  import('../pages/admin/AuditDashboard').then((m) => ({ default: m.AuditDashboard }))
-)
-const AdminAnalyticsDashboard = lazy(() =>
-  import('../pages/admin/AdminAnalyticsDashboard').then((m) => ({
-    default: m.AdminAnalyticsDashboard,
-  }))
-)
-const SystemHealth = lazy(() =>
-  import('../pages/admin/SystemHealth').then((m) => ({ default: m.SystemHealth }))
-)
-const FeatureFlagsPage = lazy(() => import('../pages/admin/FeatureFlags'))
+const withErrorBoundary =
+  (Component: React.ComponentType<Record<string, unknown>>, name: string) =>
+  (props: Record<string, unknown>) => (
+    <FeatureErrorBoundary featureName={name}>
+      <Component {...props} />
+    </FeatureErrorBoundary>
+  )
 
-const Login = lazy(() => import('../pages/Login').then((m) => ({ default: m.Login })))
-const ForgotPassword = lazy(() =>
-  import('../pages/ForgotPassword').then((m) => ({ default: m.ForgotPassword }))
+const Dashboard = withErrorBoundary(
+  lazy(() => import('../pages/Dashboard').then((m) => ({ default: m.Dashboard }))),
+  'Dashboard'
 )
-const ResetPassword = lazy(() =>
-  import('../pages/ResetPassword').then((m) => ({ default: m.ResetPassword }))
+const Creator = withErrorBoundary(
+  lazy(() => import('../pages/Creator').then((m) => ({ default: m.Creator }))),
+  'Creator'
 )
-const VerifyEmail = lazy(() =>
-  import('../pages/VerifyEmail').then((m) => ({ default: m.VerifyEmail }))
+const CourseBuilder = withErrorBoundary(
+  lazy(() => import('../pages/CourseBuilder').then((m) => ({ default: m.CourseBuilder }))),
+  'Course Builder'
+)
+const Leaderboard = withErrorBoundary(
+  lazy(() => import('../pages/Leaderboard').then((m) => ({ default: m.Leaderboard }))),
+  'Leaderboard'
+)
+const Forum = withErrorBoundary(
+  lazy(() => import('../pages/Forum').then((m) => ({ default: m.Forum }))),
+  'Forum'
+)
+const Analytics = withErrorBoundary(
+  lazy(() => import('../pages/Analytics').then((m) => ({ default: m.Analytics }))),
+  'Analytics'
+)
+const DocumentManager = withErrorBoundary(
+  lazy(() => import('../pages/DocumentManager').then((m) => ({ default: m.DocumentManager }))),
+  'Document Manager'
+)
+const Courses = withErrorBoundary(
+  lazy(() => import('../pages/Courses').then((m) => ({ default: m.Courses }))),
+  'Courses'
+)
+const Directory = withErrorBoundary(
+  lazy(() => import('../pages/Directory').then((m) => ({ default: m.Directory }))),
+  'Directory'
+)
+const LessonViewer = withErrorBoundary(
+  lazy(() => import('../pages/LessonViewer').then((m) => ({ default: m.LessonViewer }))),
+  'Lesson Viewer'
+)
+const SpeedGrader = withErrorBoundary(
+  lazy(() => import('../pages/SpeedGrader').then((m) => ({ default: m.SpeedGrader }))),
+  'Speed Grader'
+)
+const QuizModule = withErrorBoundary(
+  lazy(() => import('../pages/Quiz').then((m) => ({ default: m.QuizModule }))),
+  'Quiz Module'
+)
+const BillingDashboard = withErrorBoundary(
+  lazy(() =>
+    import('../pages/admin/BillingDashboard').then((m) => ({ default: m.BillingDashboard }))
+  ),
+  'Billing Dashboard'
+)
+const TeacherDashboard = withErrorBoundary(
+  lazy(() => import('../pages/TeacherDashboard').then((m) => ({ default: m.TeacherDashboard }))),
+  'Teacher Dashboard'
+)
+const ScanAttendance = withErrorBoundary(
+  lazy(() => import('../pages/ScanAttendance').then((m) => ({ default: m.ScanAttendance }))),
+  'Scan Attendance'
+)
+const Profile = withErrorBoundary(
+  lazy(() => import('../pages/Profile').then((m) => ({ default: m.Profile }))),
+  'Profile'
+)
+const PublicProfile = withErrorBoundary(
+  lazy(() => import('../pages/PublicProfile').then((m) => ({ default: m.PublicProfile }))),
+  'Public Profile'
+)
+const Settings = withErrorBoundary(
+  lazy(() => import('../pages/Settings').then((m) => ({ default: m.Settings }))),
+  'Settings'
+)
+const Gradebook = withErrorBoundary(
+  lazy(() => import('../pages/Gradebook').then((m) => ({ default: m.Gradebook }))),
+  'Gradebook'
+)
+const QuizGradebook = withErrorBoundary(
+  lazy(() => import('../pages/QuizGradebook').then((m) => ({ default: m.QuizGradebook }))),
+  'Quiz Gradebook'
+)
+const AssignmentGradebook = withErrorBoundary(
+  lazy(() =>
+    import('../pages/AssignmentGradebook').then((m) => ({ default: m.AssignmentGradebook }))
+  ),
+  'Assignment Gradebook'
+)
+const Certificates = withErrorBoundary(
+  lazy(() => import('../pages/Certificates').then((m) => ({ default: m.Certificates }))),
+  'Certificates'
+)
+const Calendar = withErrorBoundary(
+  lazy(() => import('../pages/Calendar').then((m) => ({ default: m.Calendar }))),
+  'Calendar'
+)
+const Announcements = withErrorBoundary(
+  lazy(() => import('../pages/Announcements').then((m) => ({ default: m.Announcements }))),
+  'Announcements'
+)
+const Assignments = withErrorBoundary(
+  lazy(() => import('../pages/Assignments').then((m) => ({ default: m.Assignments }))),
+  'Assignments'
+)
+const StudentProgress = withErrorBoundary(
+  lazy(() => import('../pages/StudentProgress').then((m) => ({ default: m.StudentProgress }))),
+  'Student Progress'
+)
+const GroupAssignment = withErrorBoundary(
+  lazy(() => import('../pages/GroupAssignment').then((m) => ({ default: m.GroupAssignment }))),
+  'Group Assignment'
+)
+const Grades = withErrorBoundary(
+  lazy(() => import('../pages/Grades').then((m) => ({ default: m.Grades }))),
+  'Grades'
+)
+const StudentAttendance = withErrorBoundary(
+  lazy(() => import('../pages/StudentAttendance').then((m) => ({ default: m.StudentAttendance }))),
+  'Student Attendance'
+)
+const QuestionBankPage = withErrorBoundary(
+  lazy(() => import('../pages/QuestionBankPage').then((m) => ({ default: m.QuestionBankPage }))),
+  'Question Bank Page'
+)
+const QuizManager = withErrorBoundary(
+  lazy(() => import('../pages/QuizManager').then((m) => ({ default: m.QuizManager }))),
+  'Quiz Manager'
+)
+const CourseAnalytics = withErrorBoundary(
+  lazy(() => import('../pages/CourseAnalytics').then((m) => ({ default: m.CourseAnalytics }))),
+  'Course Analytics'
+)
+const Dashboards = withErrorBoundary(
+  lazy(() => import('../pages/Dashboards').then((m) => ({ default: m.Dashboards }))),
+  'Dashboards'
+)
+const ClassManagement = withErrorBoundary(
+  lazy(() => import('../pages/ClassManagement').then((m) => ({ default: m.ClassManagement }))),
+  'Class Management'
+)
+const StudentClassPage = withErrorBoundary(
+  lazy(() => import('../pages/StudentClassPage').then((m) => ({ default: m.StudentClassPage }))),
+  'Student Class Page'
+)
+const ModerationDashboard = withErrorBoundary(
+  lazy(() =>
+    import('../pages/admin/ModerationDashboard').then((m) => ({ default: m.ModerationDashboard }))
+  ),
+  'Moderation Dashboard'
+)
+const FinanceDashboard = withErrorBoundary(
+  lazy(() =>
+    import('../pages/admin/FinanceDashboard').then((m) => ({ default: m.FinanceDashboard }))
+  ),
+  'Finance Dashboard'
+)
+const PPDBDashboard = withErrorBoundary(
+  lazy(() => import('../pages/admin/PPDBDashboard').then((m) => ({ default: m.PPDBDashboard }))),
+  'P P D B Dashboard'
+)
+const AdministrationDashboard = withErrorBoundary(
+  lazy(() =>
+    import('../pages/admin/AdministrationDashboard').then((m) => ({
+      default: m.AdministrationDashboard,
+    }))
+  ),
+  'Administration Dashboard'
+)
+const UserManagement = withErrorBoundary(
+  lazy(() => import('../pages/admin/UserManagement').then((m) => ({ default: m.UserManagement }))),
+  'User Management'
+)
+const AuditDashboard = withErrorBoundary(
+  lazy(() => import('../pages/admin/AuditDashboard').then((m) => ({ default: m.AuditDashboard }))),
+  'Audit Dashboard'
+)
+const AdminAnalyticsDashboard = withErrorBoundary(
+  lazy(() =>
+    import('../pages/admin/AdminAnalyticsDashboard').then((m) => ({
+      default: m.AdminAnalyticsDashboard,
+    }))
+  ),
+  'Admin Analytics Dashboard'
+)
+const SystemHealth = withErrorBoundary(
+  lazy(() => import('../pages/admin/SystemHealth').then((m) => ({ default: m.SystemHealth }))),
+  'System Health'
+)
+const FeatureFlagsPage = withErrorBoundary(
+  lazy(() => import('../pages/admin/FeatureFlags')),
+  'Feature Flags Page'
 )
 
-const TeachingHub = lazy(() => import('../pages/Hubs').then((m) => ({ default: m.TeachingHub })))
-const SocialHub = lazy(() => import('../pages/Hubs').then((m) => ({ default: m.SocialHub })))
-const GamificationHub = lazy(() =>
-  import('../pages/Hubs').then((m) => ({ default: m.GamificationHub }))
+const Login = withErrorBoundary(
+  lazy(() => import('../pages/Login').then((m) => ({ default: m.Login }))),
+  'Login'
 )
-const _AdminHub = lazy(() => import('../pages/Hubs').then((m) => ({ default: m.AdminHub })))
-const WorkspaceSelector = lazy(() =>
-  import('../pages/WorkspaceSelector').then((m) => ({ default: m.WorkspaceSelector }))
+const ForgotPassword = withErrorBoundary(
+  lazy(() => import('../pages/ForgotPassword').then((m) => ({ default: m.ForgotPassword }))),
+  'Forgot Password'
 )
-const Unauthorized = lazy(() =>
-  import('../pages/Unauthorized').then((m) => ({ default: m.Unauthorized }))
+const ResetPassword = withErrorBoundary(
+  lazy(() => import('../pages/ResetPassword').then((m) => ({ default: m.ResetPassword }))),
+  'Reset Password'
 )
-const NotFound = lazy(() => import('../pages/NotFound').then((m) => ({ default: m.NotFound })))
-const NotificationsPage = lazy(() =>
-  import('../pages/Notifications').then((m) => ({ default: m.Notifications }))
+const VerifyEmail = withErrorBoundary(
+  lazy(() => import('../pages/VerifyEmail').then((m) => ({ default: m.VerifyEmail }))),
+  'Verify Email'
+)
+
+const TeachingHub = withErrorBoundary(
+  lazy(() => import('../pages/Hubs').then((m) => ({ default: m.TeachingHub }))),
+  'Teaching Hub'
+)
+const SocialHub = withErrorBoundary(
+  lazy(() => import('../pages/Hubs').then((m) => ({ default: m.SocialHub }))),
+  'Social Hub'
+)
+const GamificationHub = withErrorBoundary(
+  lazy(() => import('../pages/Hubs').then((m) => ({ default: m.GamificationHub }))),
+  'Gamification Hub'
+)
+const _AdminHub = withErrorBoundary(
+  lazy(() => import('../pages/Hubs').then((m) => ({ default: m.AdminHub }))),
+  '_ Admin Hub'
+)
+const WorkspaceSelector = withErrorBoundary(
+  lazy(() => import('../pages/WorkspaceSelector').then((m) => ({ default: m.WorkspaceSelector }))),
+  'Workspace Selector'
+)
+const Unauthorized = withErrorBoundary(
+  lazy(() => import('../pages/Unauthorized').then((m) => ({ default: m.Unauthorized }))),
+  'Unauthorized'
+)
+const NotFound = withErrorBoundary(
+  lazy(() => import('../pages/NotFound').then((m) => ({ default: m.NotFound }))),
+  'Not Found'
+)
+const NotificationsPage = withErrorBoundary(
+  lazy(() => import('../pages/Notifications').then((m) => ({ default: m.Notifications }))),
+  'Notifications Page'
 )
 
 /* Parameterized redirect helpers — Navigate cannot interpolate :params */

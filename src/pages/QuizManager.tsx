@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState, useEffect, useCallback } from 'react'
 import { HelpCircle } from 'lucide-react'
 import { quizService, type QuestionType, type QuizMode } from '@/src/features/quizzes'
@@ -76,6 +77,7 @@ const emptyForm: QuizFormData = {
 // ─────────────────────────────────────────────────────────
 
 export function QuizManager() {
+  usePageTitle('Quiz Manager')
   const { activeClassroomId, classrooms } = useClassroom()
   const { tenantId } = useAuth()
 

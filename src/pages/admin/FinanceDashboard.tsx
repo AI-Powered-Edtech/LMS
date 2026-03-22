@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import React, { useState } from 'react'
 import {
   Wallet,
@@ -13,7 +14,72 @@ import {
   ArrowDownLeft,
 } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
+import { VirtualTable } from '@/src/components/ui/VirtualTable'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount)
+}
+
+const transactionColumns = [
+  {
+    header: 'ID Transaksi',
+    key: 'id',
+    className: 'px-6 py-4 font-mono text-slate-600',
+    render: (row: Record<string, unknown>) => row.id,
+  },
+  {
+    header: 'Siswa',
+    key: 'student',
+    className: 'px-6 py-4 font-bold text-slate-900',
+    render: (row: Record<string, unknown>) => row.student,
+  },
+  {
+    header: 'Jenis Pembayaran',
+    key: 'type',
+    className: 'px-6 py-4 text-slate-600',
+    render: (row: Record<string, unknown>) => row.type,
+  },
+  {
+    header: 'Metode',
+    key: 'method',
+    className: 'px-6 py-4 text-slate-600',
+    render: (row: Record<string, unknown>) => row.method,
+  },
+  {
+    header: 'Jumlah',
+    key: 'amount',
+    className: 'px-6 py-4 font-medium text-slate-900',
+    render: (row: Record<string, unknown>) => formatCurrency(row.amount),
+  },
+  {
+    header: 'Status',
+    key: 'status',
+    className: 'px-6 py-4',
+    render: (row: Record<string, unknown>) => (
+      <span
+        className={cn(
+          'px-2.5 py-1 rounded-full text-xs font-bold border',
+          row.status === 'success'
+            ? 'bg-green-50 text-green-700 border-green-200'
+            : row.status === 'pending'
+              ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+              : 'bg-red-50 text-red-700 border-red-200'
+        )}
+      >
+        {row.status === 'success' ? 'Lunas' : row.status === 'pending' ? 'Menunggu' : 'Gagal'}
+      </span>
+    ),
+  },
+  {
+    header: 'Aksi',
+    key: 'action',
+    className: 'px-6 py-4',
+    render: () => (
+      <button className="text-blue-600 hover:text-blue-800 font-medium text-xs">Detail</button>
+    ),
+  },
+]
 
 const transactions = [
   {
@@ -100,12 +166,9 @@ const revenueData = [
 ]
 
 export function FinanceDashboard() {
+  usePageTitle('Finance Dashboard')
   const [activeTab, setActiveTab] = useState<'overview' | 'spp' | 'salary'>('overview')
   const [searchQuery, setSearchQuery] = useState('')
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount)
-  }
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
@@ -293,57 +356,13 @@ export function FinanceDashboard() {
               />
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-4">ID Transaksi</th>
-                  <th className="px-6 py-4">Siswa</th>
-                  <th className="px-6 py-4">Jenis Pembayaran</th>
-                  <th className="px-6 py-4">Metode</th>
-                  <th className="px-6 py-4">Jumlah</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {transactions.map((trx) => (
-                  <tr key={trx.id} className="hover:bg-slate-50/50">
-                    <td className="px-6 py-4 font-mono text-slate-600">{trx.id}</td>
-                    <td className="px-6 py-4 font-bold text-slate-900">{trx.student}</td>
-                    <td className="px-6 py-4 text-slate-600">{trx.type}</td>
-                    <td className="px-6 py-4 text-slate-600">{trx.method}</td>
-                    <td className="px-6 py-4 font-medium text-slate-900">
-                      {formatCurrency(trx.amount)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={cn(
-                          'px-2.5 py-1 rounded-full text-xs font-bold border',
-                          trx.status === 'success'
-                            ? 'bg-green-50 text-green-700 border-green-200'
-                            : trx.status === 'pending'
-                              ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                              : 'bg-red-50 text-red-700 border-red-200'
-                        )}
-                      >
-                        {trx.status === 'success'
-                          ? 'Lunas'
-                          : trx.status === 'pending'
-                            ? 'Menunggu'
-                            : 'Gagal'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button className="text-blue-600 hover:text-blue-800 font-medium text-xs">
-                        Detail
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <VirtualTable
+            data={transactions}
+            columns={transactionColumns}
+            getRowKey={(r) => r.id}
+            rowHeight={64}
+            maxHeight={500}
+          />
         </div>
       )}
 

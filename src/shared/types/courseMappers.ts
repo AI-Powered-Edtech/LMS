@@ -1,14 +1,16 @@
 import { DomainCourse } from './courseTypes'
+import { CourseRowSchema } from '../schemas'
+import { validate } from '../lib/validate'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function mapCourse(row: any): DomainCourse {
+export function mapCourse(row: unknown): DomainCourse {
+  const r = validate(CourseRowSchema, row, 'CourseRow')
   return {
-    id: row.id,
-    title: row.title,
-    description: row.description,
-    status: row.status,
-    tenantId: row.tenant_id,
-    publishedAt: row.published_at,
-    updatedAt: row.updated_at,
+    id: r.id,
+    title: r.title,
+    description: r.description,
+    status: r.status,
+    tenantId: r.tenant_id,
+    publishedAt: r.published_at,
+    updatedAt: r.updated_at,
   }
 }

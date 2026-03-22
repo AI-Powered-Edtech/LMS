@@ -1,9 +1,19 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { Navigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { cn } from '@/src/utils/cn'
 import { loginRateLimiter } from '@/src/utils/rateLimiter'
+import { useForm } from 'react-hook-form'
+import { valibotResolver } from '@hookform/resolvers/valibot'
+import { FormField } from '@/src/components/ui/FormField'
+import {
+  LoginFormSchema,
+  type LoginFormData,
+  RegisterFormSchema,
+  type RegisterFormData,
+} from '@/src/shared/schemas/forms'
 
 interface InviteInfo {
   email: string
@@ -21,19 +31,24 @@ interface ClassInfo {
 }
 
 export function Login() {
+  usePageTitle('Login')
   const { user, signIn, signUp, signInWithGoogle, loading } = useAuth()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [step, setStep] = useState<1 | 2 | 3>(1)
 
   // Shared
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  // Register step 1
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
+  const loginForm = useForm<LoginFormData>({
+    resolver: valibotResolver(LoginFormSchema),
+    defaultValues: { email: '', password: '' },
+  })
+
+  const registerForm = useForm<RegisterFormData>({
+    resolver: valibotResolver(RegisterFormSchema),
+    defaultValues: { firstName: '', lastName: '', email: '', password: '' },
+  })
 
   // Register step 2
   const [joinCode, setJoinCode] = useState('')
@@ -57,14 +72,14 @@ export function Login() {
         supabase.rpc('validate_invitation', { p_token: token }).then(({ data }) => {
           if (data?.valid) {
             setInviteInfo(data as InviteInfo)
-            setEmail(data.email)
+            registerForm.setValue('email', data.email)
           } else {
             setError(data?.error || 'Undangan tidak valid atau sudah kedaluwarsa.')
           }
         })
       }
     }
-  }, [])
+  }, [registerForm])
 
   // Live class code lookup
   useEffect(() => {
@@ -115,8 +130,7 @@ export function Login() {
     return message
   }
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSignIn = async (data: LoginFormData) => {
     setError('')
 
     const { allowed, retryAfterMs } = loginRateLimiter.check('login')
@@ -128,15 +142,14 @@ export function Login() {
 
     setSubmitting(true)
     try {
-      const { error: err } = await signIn(email, password)
+      const { error: err } = await signIn(data.email, data.password)
       if (err) setError(translateAuthError(err.message))
     } finally {
       setSubmitting(false)
     }
   }
 
-  const handleRegisterStep1 = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleRegisterStep1 = (_data: RegisterFormData) => {
     setError('')
     if (inviteToken) {
       handleRegisterSubmit()
@@ -149,8 +162,15 @@ export function Login() {
     setError('')
     setSubmitting(true)
     try {
+      const data = registerForm.getValues()
       const tenantId = classInfo?.tenant_id || inviteInfo?.tenant_id
-      const { error: err } = await signUp(email, password, firstName, lastName, tenantId)
+      const { error: err } = await signUp(
+        data.email,
+        data.password,
+        data.firstName,
+        data.lastName,
+        tenantId
+      )
       if (err) {
         setError(translateAuthError(err.message))
         return
@@ -175,8 +195,7 @@ export function Login() {
   const fillAccount = async (role: string) => {
     const devEmail = `${role}@edusync.dev`
     const devPassword = import.meta.env.VITE_DEV_PASSWORD || 'password123'
-    setEmail(devEmail)
-    setPassword(devPassword)
+    loginForm.reset({ email: devEmail, password: devPassword })
     setMode('login')
     setError('')
     setSubmitting(true)
@@ -194,6 +213,8 @@ export function Login() {
     setError('')
     setJoinCode('')
     setClassInfo(null)
+    loginForm.reset()
+    registerForm.reset()
   }
 
   return (
@@ -339,44 +360,31 @@ export function Login() {
 
               {/* Login Form */}
               {mode === 'login' && (
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div>
-                    <label
-                      htmlFor="login-email"
-                      className="block text-white/60 text-xs font-medium mb-1.5"
-                    >
-                      Email
-                    </label>
+                <form onSubmit={loginForm.handleSubmit(handleSignIn)} className="space-y-4">
+                  <FormField
+                    name="email"
+                    control={loginForm.control}
+                    label="Email"
+                    labelClassName="text-white/60 text-xs font-medium mb-1.5"
+                  >
                     <input
-                      id="login-email"
                       type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
                       placeholder="kamu@email.com"
-                      required
-                      aria-describedby={error ? 'login-error' : undefined}
                       className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
                     />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="login-password"
-                      className="block text-white/60 text-xs font-medium mb-1.5"
-                    >
-                      Password
-                    </label>
+                  </FormField>
+                  <FormField
+                    name="password"
+                    control={loginForm.control}
+                    label="Password"
+                    labelClassName="text-white/60 text-xs font-medium mb-1.5"
+                  >
                     <input
-                      id="login-password"
                       type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      required
-                      minLength={6}
-                      aria-describedby={error ? 'login-error' : undefined}
                       className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
                     />
-                  </div>
+                  </FormField>
                   {error && (
                     <p
                       id="login-error"
@@ -398,77 +406,59 @@ export function Login() {
 
               {/* Register Step 1 */}
               {mode === 'register' && step === 1 && (
-                <form onSubmit={handleRegisterStep1} className="space-y-4">
+                <form
+                  onSubmit={registerForm.handleSubmit(handleRegisterStep1)}
+                  className="space-y-4"
+                >
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label
-                        htmlFor="reg-first-name"
-                        className="block text-white/60 text-xs font-medium mb-1.5"
-                      >
-                        Nama Depan
-                      </label>
-                      <input
-                        id="reg-first-name"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        placeholder="Budi"
-                        required
-                        className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="reg-last-name"
-                        className="block text-white/60 text-xs font-medium mb-1.5"
-                      >
-                        Nama Belakang
-                      </label>
-                      <input
-                        id="reg-last-name"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        placeholder="Santoso"
-                        required
-                        className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="reg-email"
-                      className="block text-white/60 text-xs font-medium mb-1.5"
+                    <FormField
+                      name="firstName"
+                      control={registerForm.control}
+                      label="Nama Depan"
+                      labelClassName="text-white/60 text-xs font-medium mb-1.5"
                     >
-                      Email
-                    </label>
+                      <input
+                        placeholder="Budi"
+                        className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
+                      />
+                    </FormField>
+                    <FormField
+                      name="lastName"
+                      control={registerForm.control}
+                      label="Nama Belakang"
+                      labelClassName="text-white/60 text-xs font-medium mb-1.5"
+                    >
+                      <input
+                        placeholder="Santoso"
+                        className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
+                      />
+                    </FormField>
+                  </div>
+                  <FormField
+                    name="email"
+                    control={registerForm.control}
+                    label="Email"
+                    labelClassName="text-white/60 text-xs font-medium mb-1.5"
+                  >
                     <input
-                      id="reg-email"
                       type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
                       placeholder="kamu@email.com"
-                      required
                       readOnly={!!inviteInfo}
                       className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm disabled:opacity-60"
                     />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="reg-password"
-                      className="block text-white/60 text-xs font-medium mb-1.5"
-                    >
-                      Password
-                    </label>
+                  </FormField>
+                  <FormField
+                    name="password"
+                    control={registerForm.control}
+                    label="Password"
+                    labelClassName="text-white/60 text-xs font-medium mb-1.5"
+                  >
                     <input
-                      id="reg-password"
                       type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
                       placeholder="Minimal 6 karakter"
-                      required
-                      minLength={6}
                       className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
                     />
-                  </div>
+                  </FormField>
                   {error && (
                     <p
                       role="alert"

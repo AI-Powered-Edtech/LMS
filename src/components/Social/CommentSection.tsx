@@ -1,7 +1,8 @@
+import { OptimizedImage } from '@/src/components/ui'
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { discussionService, Discussion } from '@/src/features/discussions/api/discussionService'
-import { useToast } from '@/src/contexts/ToastContext'
+import { useToast } from '@/src/hooks/useToast'
 import { formatDistanceToNow } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { Send, MoreVertical, Trash2, Edit2, MessageSquare, Pin } from 'lucide-react'
@@ -16,7 +17,7 @@ interface CommentSectionProps {
 
 export function CommentSection({ entityId, entityType, className }: CommentSectionProps) {
   const { user, tenantId, role } = useAuth()
-  const { toast } = useToast()
+  const addToast = useToast((s) => s.addToast)
 
   const [comments, setComments] = useState<Discussion[]>([])
   const [loading, setLoading] = useState(true)
@@ -62,12 +63,12 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
 
       setComments(roots)
     } catch (error) {
-      console.error('Error loading comments:', error)
-      toast('Gagal memuat komentar', 'error')
+      if (import.meta.env.DEV) console.error('Error loading comments:', error)
+      addToast({ type: 'error', message: 'Gagal memuat komentar' })
     } finally {
       setLoading(false)
     }
-  }, [entityId, entityType, toast])
+  }, [entityId, entityType, addToast])
 
   useEffect(() => {
     loadComments()
@@ -103,7 +104,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
       setEditContent('')
       // subscription will trigger reload
     } catch {
-      toast('Gagal mengirim komentar', 'error')
+      addToast({ type: 'error', message: 'Gagal mengirim komentar' })
     }
   }
 
@@ -113,7 +114,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
       await discussionService.deleteDiscussion(id)
       setOpenMenuId(null)
     } catch {
-      toast('Gagal menghapus komentar', 'error')
+      addToast({ type: 'error', message: 'Gagal menghapus komentar' })
     }
   }
 
@@ -121,7 +122,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
     try {
       await discussionService.togglePin(id, !currentPin)
     } catch {
-      toast('Gagal mengubah status sematan komentar', 'error')
+      addToast({ type: 'error', message: 'Gagal mengubah status sematan komentar' })
     }
   }
 
@@ -140,13 +141,13 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
       <div className={cn('flex gap-3', isReply && 'ml-11 mt-4')}>
         <div className="w-8 h-8 bg-slate-200 rounded-full shrink-0 overflow-hidden">
           {comment.author?.avatar_url ? (
-            <img
+            <OptimizedImage
               src={comment.author.avatar_url}
               alt={`Foto profil ${comment.author?.full_name || 'pengguna'}`}
               className="w-full h-full object-cover"
             />
           ) : (
-            <img
+            <OptimizedImage
               src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.author?.full_name || comment.author_id}`}
               alt={`Foto profil ${comment.author?.full_name || 'pengguna'}`}
               className="w-full h-full object-cover"

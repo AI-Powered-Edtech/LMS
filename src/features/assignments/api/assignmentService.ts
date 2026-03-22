@@ -45,7 +45,7 @@ export const assignmentService = {
     const { data, error } = await supabase.from('assignments').insert(assignment).select().single()
 
     if (error) {
-      console.error('Error creating assignment:', error)
+      if (import.meta.env.DEV) console.error('Error creating assignment:', error)
       throw error
     }
 
@@ -73,7 +73,7 @@ export const assignmentService = {
       .single()
 
     if (error) {
-      console.error('Error submitting assignment:', error)
+      if (import.meta.env.DEV) console.error('Error submitting assignment:', error)
       throw error
     }
 
@@ -97,7 +97,7 @@ export const assignmentService = {
       .single()
 
     if (error) {
-      console.error('Error grading submission:', error)
+      if (import.meta.env.DEV) console.error('Error grading submission:', error)
       throw error
     }
 
@@ -110,12 +110,14 @@ export const assignmentService = {
   async getAssignmentByLesson(lessonId: string) {
     const { data, error } = await supabase
       .from('assignments')
-      .select('id, tenant_id, course_id, lesson_id, title, instructions, max_points, max_attempts, is_published, due_date, created_by, created_at, updated_at')
+      .select(
+        'id, tenant_id, course_id, lesson_id, title, instructions, max_points, max_attempts, is_published, due_date, created_by, created_at, updated_at'
+      )
       .eq('lesson_id', lessonId)
       .maybeSingle()
 
     if (error) {
-      console.error('Error fetching assignment by lesson:', error)
+      if (import.meta.env.DEV) console.error('Error fetching assignment by lesson:', error)
       throw error
     }
 
@@ -141,7 +143,7 @@ export const assignmentService = {
       .single()
 
     if (error) {
-      console.error('Error fetching assignment details:', error)
+      if (import.meta.env.DEV) console.error('Error fetching assignment details:', error)
       throw error
     }
 
@@ -167,7 +169,7 @@ export const assignmentService = {
       .order('submitted_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching assignment submissions:', error)
+      if (import.meta.env.DEV) console.error('Error fetching assignment submissions:', error)
       throw error
     }
 
@@ -204,7 +206,7 @@ export const assignmentService = {
       .range(from, to)
 
     if (error) {
-      console.error('Error fetching student assignments:', error)
+      if (import.meta.env.DEV) console.error('Error fetching student assignments:', error)
       throw error
     }
 
@@ -258,7 +260,7 @@ export const assignmentService = {
       .range(from, to)
 
     if (error) {
-      console.error('Error fetching assignments:', error)
+      if (import.meta.env.DEV) console.error('Error fetching assignments:', error)
       throw error
     }
 

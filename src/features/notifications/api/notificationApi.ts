@@ -41,7 +41,7 @@ export async function fetchNotifications(
     .range(offset, offset + limit - 1)
 
   if (error) {
-    console.error('fetchNotifications error:', error)
+    if (import.meta.env.DEV) console.error('fetchNotifications error:', error)
     throw error
   }
 
@@ -58,7 +58,7 @@ export async function markNotificationRead(id: string): Promise<void> {
     .eq('id', id)
 
   if (error) {
-    console.error('markNotificationRead error:', error)
+    if (import.meta.env.DEV) console.error('markNotificationRead error:', error)
     throw error
   }
 }
@@ -75,7 +75,7 @@ export async function markAllNotificationsRead(userId: string, tenantId: string)
     .eq('is_read', false)
 
   if (error) {
-    console.error('markAllNotificationsRead error:', error)
+    if (import.meta.env.DEV) console.error('markAllNotificationsRead error:', error)
     throw error
   }
 }
@@ -92,7 +92,7 @@ export async function fetchUnreadCount(userId: string, tenantId: string): Promis
     .eq('is_read', false)
 
   if (error) {
-    console.error('fetchUnreadCount error:', error)
+    if (import.meta.env.DEV) console.error('fetchUnreadCount error:', error)
     throw error
   }
 
@@ -116,7 +116,7 @@ export async function fetchNotificationPreferences(
     .maybeSingle()
 
   if (error) {
-    console.error('fetchNotificationPreferences error:', error)
+    if (import.meta.env.DEV) console.error('fetchNotificationPreferences error:', error)
     throw error
   }
 
@@ -138,7 +138,7 @@ export async function upsertNotificationPreferences(
     .single()
 
   if (error) {
-    console.error('upsertNotificationPreferences error:', error)
+    if (import.meta.env.DEV) console.error('upsertNotificationPreferences error:', error)
     throw error
   }
 

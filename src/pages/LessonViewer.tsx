@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams, useParams } from 'react-router-dom'
 import {
@@ -16,9 +17,9 @@ import {
 } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
 import { motion, AnimatePresence } from 'motion/react'
-import { ErrorBoundary } from '@/src/components/common/ErrorBoundary'
+import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary'
 import { useAuth } from '@/src/contexts/AuthContext'
-import { useToast } from '@/src/contexts/ToastContext'
+import { useToast } from '@/src/hooks/useToast'
 import { supabase } from '@/src/lib/supabase'
 import {
   lessonService,
@@ -56,8 +57,9 @@ import { SmartNextButton, ReviewPrompt } from '@/src/features/recommendations'
 // ============================================================
 
 export function LessonViewer() {
+  usePageTitle('Lesson Viewer')
   const { user, tenantId, role } = useAuth()
-  const { toast } = useToast()
+  const { addToast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
   const { courseId } = useParams()
   const moduleId = searchParams.get('moduleId')
@@ -154,7 +156,7 @@ export function LessonViewer() {
       .maybeSingle()
       .then(({ data: moduleData, error }) => {
         if (error) {
-          console.error('Failed to load module title:', error)
+          if (import.meta.env.DEV) console.error('Failed to load module title:', error)
           return
         }
         if (!cancelled && moduleData?.title) {
@@ -170,7 +172,9 @@ export function LessonViewer() {
           setModuleProgress(progress)
         }
       })
-      .catch((err) => console.error('Failed to load module lessons:', err))
+      .catch((err) => {
+        if (import.meta.env.DEV) console.error('Failed to load module lessons:', err)
+      })
       .finally(() => {
         if (!cancelled) setSidebarLoading(false)
       })
@@ -279,7 +283,7 @@ export function LessonViewer() {
         const confetti = (await import('canvas-confetti')).default
         confetti({ particleCount: 150, spread: 80, origin: { y: 0.7 } })
       } catch (err) {
-        console.warn('Confetti failed:', err)
+        if (import.meta.env.DEV) console.warn('Confetti failed:', err)
       }
       setTimeout(() => setShowCelebration(false), 4000)
 
@@ -300,10 +304,10 @@ export function LessonViewer() {
         }
       }
     } catch (err) {
-      console.error('Completion failed:', err)
-      toast('Gagal menandai selesai. Coba lagi.', 'error')
+      if (import.meta.env.DEV) console.error('Completion failed:', err)
+      addToast({ message: 'Gagal menandai selesai. Coba lagi.', type: 'error' })
     }
-  }, [state.lesson, state.status, tenantId, user?.id, actions, toast])
+  }, [state.lesson, state.status, tenantId, user?.id, actions, addToast])
   /* eslint-enable react-hooks/exhaustive-deps */
 
   // ============================================================
@@ -672,7 +676,7 @@ export function LessonViewer() {
 
           {/* Content */}
           <div className="flex-1 overflow-hidden flex flex-col">
-            <ErrorBoundary>
+            <FeatureErrorBoundary featureName="Pelajaran">
               <AnimatePresence mode="wait">
                 {/* Loading */}
                 {state.status === 'loading' && (
@@ -952,7 +956,7 @@ export function LessonViewer() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </ErrorBoundary>
+            </FeatureErrorBoundary>
           </div>
 
           {/* Bottom Navigation — prev/next between lessons (hidden for quiz type which has its own nav) */}

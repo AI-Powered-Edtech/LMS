@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState } from 'react'
 import { motion } from 'motion/react'
 import {
@@ -168,6 +169,7 @@ const paymentMethods = [
 
 // --- COMPONENTS ---
 export function BillingDashboard() {
+  usePageTitle('Billing Dashboard')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
   const [selectedInvoice, setSelectedInvoice] = useState<(typeof invoices)[0] | null>(null)

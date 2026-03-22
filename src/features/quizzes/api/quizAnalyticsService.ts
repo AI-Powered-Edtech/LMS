@@ -58,7 +58,7 @@ export const quizAnalyticsService = {
     })
 
     if (error) {
-      console.error('Error fetching attempt detail:', error)
+      if (import.meta.env.DEV) console.error('Error fetching attempt detail:', error)
       throw error
     }
 
@@ -75,7 +75,7 @@ export const quizAnalyticsService = {
     })
 
     if (error) {
-      console.error('Error fetching question difficulty:', error)
+      if (import.meta.env.DEV) console.error('Error fetching question difficulty:', error)
       throw error
     }
 
@@ -88,7 +88,9 @@ export const quizAnalyticsService = {
   async getQuizStats(quizId: string, tenantId?: string): Promise<QuizStats | null> {
     let query = supabase
       .from('quiz_stats')
-      .select('quiz_id, tenant_id, total_attempts, total_unique_students, avg_score, median_score, highest_score, lowest_score, avg_time_seconds, pass_rate, updated_at')
+      .select(
+        'quiz_id, tenant_id, total_attempts, total_unique_students, avg_score, median_score, highest_score, lowest_score, avg_time_seconds, pass_rate, updated_at'
+      )
       .eq('quiz_id', quizId)
 
     // Tenant isolation — filter by tenant_id when available
@@ -99,7 +101,7 @@ export const quizAnalyticsService = {
     const { data, error } = await query.maybeSingle()
 
     if (error) {
-      console.error('Error fetching quiz stats:', error)
+      if (import.meta.env.DEV) console.error('Error fetching quiz stats:', error)
       throw error
     }
 

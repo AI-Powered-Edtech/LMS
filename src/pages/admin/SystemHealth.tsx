@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useEffect, useState } from 'react'
 import { Activity, CheckCircle, AlertTriangle, XCircle, RefreshCw } from 'lucide-react'
 import { supabase } from '@/src/services/supabase/client'
@@ -33,6 +34,7 @@ function statusColor(status: 'healthy' | 'degraded' | 'down') {
 }
 
 export function SystemHealth() {
+  usePageTitle('System Health')
   const [health, setHealth] = useState<HealthCheck | null>(null)
   const [metrics, setMetrics] = useState<MetricSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)

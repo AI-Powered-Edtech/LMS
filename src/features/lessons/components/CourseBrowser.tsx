@@ -166,7 +166,7 @@ export function CourseBrowser({
         setCompletedLessons(completedL)
         setTotalDuration(totalDur)
       } catch (err) {
-        console.error('[CourseBrowser] fetch failed:', err)
+        if (import.meta.env.DEV) console.error('[CourseBrowser] fetch failed:', err)
         setFetchError('Gagal memuat materi. Periksa koneksi internet kamu dan coba lagi.')
       } finally {
         setLoading(false)

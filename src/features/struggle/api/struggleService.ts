@@ -10,7 +10,7 @@ export const struggleService = {
   async getStruggleConfig(_tenantId: string): Promise<StruggleConfig | null> {
     const { data, error } = await supabase.rpc('get_struggle_config')
     if (error) {
-      console.error('[struggleService] getStruggleConfig:', error)
+      if (import.meta.env.DEV) console.error('[struggleService] getStruggleConfig:', error)
       throw error
     }
     return (data as StruggleConfig) ?? null
@@ -28,7 +28,7 @@ export const struggleService = {
       p_cooldown_hours: updates.cooldown_hours,
     })
     if (error) {
-      console.error('[struggleService] updateStruggleConfig:', error)
+      if (import.meta.env.DEV) console.error('[struggleService] updateStruggleConfig:', error)
       throw error
     }
   },
@@ -50,7 +50,7 @@ export const struggleService = {
       p_limit: options?.limit ?? 50,
     })
     if (error) {
-      console.error('[struggleService] getStruggleAlerts:', error)
+      if (import.meta.env.DEV) console.error('[struggleService] getStruggleAlerts:', error)
       throw error
     }
     return (data as StruggleAlert[]) ?? []
@@ -65,7 +65,7 @@ export const struggleService = {
       p_alert_ids: alertIds,
     })
     if (error) {
-      console.error('[struggleService] markAlertsRead:', error)
+      if (import.meta.env.DEV) console.error('[struggleService] markAlertsRead:', error)
       throw error
     }
   },
@@ -78,7 +78,7 @@ export const struggleService = {
       p_lesson_id: lessonId,
     })
     if (error) {
-      console.error('[struggleService] getMyLessonStatus:', error)
+      if (import.meta.env.DEV) console.error('[struggleService] getMyLessonStatus:', error)
       throw error
     }
     return (data as LessonStatus) ?? null

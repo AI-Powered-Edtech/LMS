@@ -101,7 +101,7 @@ export function QuizPlayer({
         }
       } catch (error) {
         // Gracefully fallback to initial index on error
-        console.error('Failed to compute resume index:', error)
+        if (import.meta.env.DEV) console.error('Failed to compute resume index:', error)
       } finally {
         setIsResuming(false)
       }

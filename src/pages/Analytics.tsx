@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import React, { useState, useEffect, useMemo } from 'react'
 import {
   Radar,
@@ -37,6 +38,7 @@ import {
 import { StruggleConfigPanel } from '@/src/features/struggle'
 
 export function Analytics() {
+  usePageTitle('Analytics')
   const { activeTenant, role } = useAuth()
   const navigate = useNavigate()
   const [courses, setCourses] = useState<Course[]>([])
@@ -60,7 +62,7 @@ export function Analytics() {
           setSelectedCourseId(result.courses[0].id)
         }
       } catch (err) {
-        console.error('Failed to load courses', err)
+        if (import.meta.env.DEV) console.error('Failed to load courses', err)
       }
     }
     loadCourses()
@@ -111,7 +113,7 @@ export function Analytics() {
       await refreshMutation.mutateAsync(selectedCourseId)
       refetch()
     } catch (err: unknown) {
-      console.error('Failed to refresh analytics', err)
+      if (import.meta.env.DEV) console.error('Failed to refresh analytics', err)
 
       let errorMessage = 'Gagal memperbarui data analitik manual.'
 
@@ -142,8 +144,6 @@ export function Analytics() {
     setTimeout(() => setAiInsightMessage(null), 4000)
   }
 
-  if (!activeTenant) return null
-
   const radarData = useMemo(
     () =>
       data?.module_completion.map((m) => ({
@@ -153,6 +153,8 @@ export function Analytics() {
       })) || [],
     [data?.module_completion]
   )
+
+  if (!activeTenant) return null
 
   const studentsToShow = data?.students.top.concat(data?.students.at_risk || []) || []
 

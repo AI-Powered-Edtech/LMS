@@ -46,7 +46,9 @@ export const classroomService = {
     // Student: fetch via enrollments
     const { data: enrollments, error } = await supabase
       .from('enrollments')
-      .select('class_id, classes( id, name, course_id, teacher_id, join_code, max_students, created_at )')
+      .select(
+        'class_id, classes( id, name, course_id, teacher_id, join_code, max_students, created_at )'
+      )
       .eq('student_id', userId)
       .eq('tenant_id', tenantId)
       .eq('status', 'ACTIVE')
@@ -128,12 +130,17 @@ export const classroomService = {
   /**
    * Unassign a course from a class.
    */
-  async unassignCourseFromClass(courseId: string, classId: string): Promise<void> {
+  async unassignCourseFromClass(
+    courseId: string,
+    classId: string,
+    tenantId: string
+  ): Promise<void> {
     const { error } = await supabase
       .from('course_classes')
       .delete()
       .eq('course_id', courseId)
       .eq('class_id', classId)
+      .eq('tenant_id', tenantId)
     if (error) throw error
   },
 

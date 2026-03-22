@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState, useMemo } from 'react'
 import { AnimatePresence } from 'motion/react'
 import { HelpCircle, Search, CheckCircle, Trophy, Zap, Loader2 } from 'lucide-react'
@@ -39,6 +40,7 @@ import {
 } from '../features/quizzes/queries/quizPlayer.mutations'
 
 export function QuizModule() {
+  usePageTitle('Quiz Module')
   const { tenantId } = useAuth()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedClass, setSelectedClass] = useState<string>('all')
@@ -192,7 +194,7 @@ export function QuizModule() {
       setIsLoadingQuestions(false)
     } catch (err: unknown) {
       setIsLoadingQuestions(false)
-      console.error('Failed to start/resume', err)
+      if (import.meta.env.DEV) console.error('Failed to start/resume', err)
       const message = err instanceof Error ? err.message : ''
       if (message.includes('not enrolled'))
         alert('Anda tidak terdaftar di kelas untuk assignment kuis ini.')
@@ -228,7 +230,7 @@ export function QuizModule() {
       setShowResults(true)
       setShowAnswerReview(false)
     } catch (err: unknown) {
-      console.error('Gagal mengirim kuis', err)
+      if (import.meta.env.DEV) console.error('Gagal mengirim kuis', err)
       const message = err instanceof Error ? err.message : ''
       if (message.includes('Time limit exceeded')) {
         alert('Waktu habis! Kuis Anda telah ditandai sebagai kedaluwarsa.')
@@ -309,7 +311,7 @@ export function QuizModule() {
       setGradedQuestions(questions)
       setShowAnswerReview(true)
     } catch (err) {
-      console.error('Failed to load graded questions:', err)
+      if (import.meta.env.DEV) console.error('Failed to load graded questions:', err)
       alert('Gagal memuat review jawaban. Silakan coba lagi.')
     } finally {
       setIsLoadingGradedQuestions(false)

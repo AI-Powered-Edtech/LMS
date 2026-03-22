@@ -18,6 +18,7 @@ import { cn } from '@/src/utils/cn'
 import { type QuizMode } from '@/src/features/quizzes'
 import { QuizAssignModal } from '@/src/features/quizzes/components/QuizAssignModal'
 import { QuizAssignmentStatus } from '@/src/features/quizzes/components/QuizAssignmentStatus'
+import { useToast } from '@/src/hooks/useToast'
 
 // ─────────────────────────────────────────────────────────
 // Types
@@ -92,6 +93,7 @@ export function QuizListView({
   handleDelete,
   loadQuizzes,
 }: QuizListViewProps) {
+  const { addToast } = useToast()
   return (
     <div className="max-w-5xl mx-auto space-y-6 px-4 md:px-6 lg:px-8">
       {/* Header */}
@@ -123,9 +125,7 @@ export function QuizListView({
       {activeClass && (
         <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-bold text-indigo-500 uppercase tracking-wider mb-1">
-              Class
-            </p>
+            <p className="text-xs font-bold text-indigo-500 uppercase tracking-wider mb-1">Class</p>
             <h2 className="text-lg font-bold text-indigo-950">{activeClass.name}</h2>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 bg-white py-3 px-4 rounded-xl border border-indigo-100/50">
@@ -148,7 +148,7 @@ export function QuizListView({
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(activeClass.join_code)
-                  alert('Kode berhasil disalin!')
+                  addToast({ type: 'info', message: 'Kode berhasil disalin!' })
                 }}
                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 transition-colors"
               >
@@ -159,7 +159,7 @@ export function QuizListView({
                 onClick={() => {
                   const url = `${window.location.origin}/dashboard?join=${activeClass.join_code}`
                   navigator.clipboard.writeText(url)
-                  alert('Link berhasil disalin!')
+                  addToast({ type: 'info', message: 'Link berhasil disalin!' })
                 }}
                 className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 transition-colors"
               >

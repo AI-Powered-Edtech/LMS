@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
@@ -6,6 +7,7 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { ArrowLeft, BookOpen, Play, GraduationCap } from 'lucide-react'
 
 export function StudentClassPage() {
+  usePageTitle('Student Class Page')
   const { classId } = useParams()
   const navigate = useNavigate()
   const { classrooms } = useClassroom()
@@ -27,7 +29,7 @@ export function StudentClassPage() {
         )
         setCourses(classCourses)
       } catch (err) {
-        console.error('Failed to load class courses:', err)
+        if (import.meta.env.DEV) console.error('Failed to load class courses:', err)
       } finally {
         setLoading(false)
       }

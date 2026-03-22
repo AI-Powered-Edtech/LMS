@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState, useEffect } from 'react'
 import {
   Star,
@@ -47,6 +48,7 @@ import { XPProgressBar } from '@/src/features/gamification/components/XPProgress
 import { RecommendationFeed } from '@/src/features/recommendations'
 
 export function Dashboard() {
+  usePageTitle('Dashboard')
   const { role, user, profile } = useAuth()
 
   useEffect(() => {
@@ -134,7 +136,10 @@ export function Dashboard() {
     .slice(0, 3)
 
   return (
-    <div data-testid="dashboard-main" className="flex flex-col flex-1 w-full h-full overflow-y-auto custom-scrollbar scroll-smooth bg-slate-50/50 p-4 md:p-8">
+    <div
+      data-testid="dashboard-main"
+      className="flex flex-col flex-1 w-full h-full overflow-y-auto custom-scrollbar scroll-smooth bg-slate-50/50 p-4 md:p-8"
+    >
       {/* Impersonation Banner */}
       {impersonatedStudent && (
         <div className="absolute top-0 left-0 right-0 z-50 bg-amber-100 border-b border-amber-200 px-4 py-3 flex items-center justify-between text-amber-900 shadow-sm">

@@ -43,7 +43,7 @@ export async function askTutor(
     })
 
     if (error) {
-      console.error('[AI Tutor] Edge Function error:', error)
+      if (import.meta.env.DEV) console.error('[AI Tutor] Edge Function error:', error)
       // Translate raw Supabase SDK network/invoke errors to Indonesian
       const rawMsg: string = error.message ?? ''
       const indonesianMsg = rawMsg.includes('Failed to send a request')
@@ -113,7 +113,7 @@ export async function askTutor(
 
     return { data: data as import('../types').AITutorResponse }
   } catch (err: unknown) {
-    console.error('[AI Tutor] Unexpected error:', err)
+    if (import.meta.env.DEV) console.error('[AI Tutor] Unexpected error:', err)
 
     // Handle network errors
     if (err instanceof TypeError && err.message.includes('fetch')) {

@@ -7,6 +7,7 @@ import {
   UpdateQuestionPayload,
 } from '@/src/features/question-bank/api/questionBankService'
 import { QuestionType } from '@/src/features/quizzes'
+import { useToast } from '@/src/hooks/useToast'
 
 interface QuestionEditorProps {
   isOpen: boolean
@@ -33,6 +34,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
   questionId,
   onSaveSuccess,
 }) => {
+  const { addToast } = useToast()
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState<CreateQuestionPayload | UpdateQuestionPayload>(
@@ -74,8 +76,8 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
         })),
       })
     } catch (error) {
-      console.error('Failed to load question:', error)
-      alert('Gagal memuat soal.')
+      if (import.meta.env.DEV) console.error('Failed to load question:', error)
+      addToast({ type: 'error', message: 'Gagal memuat soal.' })
       onClose()
     } finally {
       setLoading(false)
@@ -84,7 +86,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
 
   const handleSave = async () => {
     if (!formData.text.trim()) {
-      alert('Teks soal tidak boleh kosong.')
+      addToast({ type: 'error', message: 'Teks soal tidak boleh kosong.' })
       return
     }
 
@@ -98,8 +100,8 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
       if (onSaveSuccess) onSaveSuccess()
       onClose()
     } catch (error) {
-      console.error('Failed to save question:', error)
-      alert('Gagal menyimpan soal.')
+      if (import.meta.env.DEV) console.error('Failed to save question:', error)
+      addToast({ type: 'error', message: 'Gagal menyimpan soal.' })
     } finally {
       setSaving(false)
     }

@@ -76,7 +76,7 @@ interface SendPushResponse {
 // ── CORS Headers ──────────────────────────────────────────────────────────
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': Deno.env.get('CORS_ORIGIN') ?? '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
@@ -386,7 +386,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({
         error: 'Gagal mengirim push notification',
-        details: err instanceof Error ? err.message : String(err),
       }),
       { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
     )

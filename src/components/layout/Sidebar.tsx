@@ -6,8 +6,10 @@ import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries
 import { useModuleConfig, ModuleId } from '@/src/hooks/useModuleConfig'
 import { useState } from 'react'
 import { navigationItems } from '@/src/config/navigation'
+import { useToast } from '@/src/hooks/useToast'
 
 export function Sidebar() {
+  const { addToast } = useToast()
   const location = useLocation()
   const navigate = useNavigate()
   const { role, signOut } = useAuth()
@@ -41,8 +43,11 @@ export function Sidebar() {
       setIsAddingClassroom(false)
       setIsClassroomDropdownOpen(false)
     } catch (err: unknown) {
-      console.error('[Sidebar] Failed to create class:', err)
-      alert(`Gagal membuat kelas: ${err instanceof Error ? err.message : 'Terjadi kesalahan.'}`)
+      if (import.meta.env.DEV) console.error('[Sidebar] Failed to create class:', err)
+      addToast({
+        type: 'error',
+        message: `Gagal membuat kelas: ${err instanceof Error ? err.message : 'Terjadi kesalahan.'}`,
+      })
     } finally {
       setIsSavingClass(false)
     }

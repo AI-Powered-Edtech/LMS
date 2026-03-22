@@ -1,8 +1,10 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { navigationItems } from '@/src/config/navigation'
 import { HubView } from '@/src/components/HubView'
 
 export function Directory() {
+  usePageTitle('Directory')
   const { role } = useAuth()
 
   // Filter pages based on the current user's role and location

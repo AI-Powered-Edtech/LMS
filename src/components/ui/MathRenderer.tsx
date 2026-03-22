@@ -1,4 +1,5 @@
 import React, { Suspense, useMemo } from 'react'
+import DOMPurify from 'dompurify'
 import { Skeleton } from './Skeleton'
 
 /* ─── Lazy-load KaTeX ──────────────────────────────────────── */
@@ -6,10 +7,63 @@ import { Skeleton } from './Skeleton'
 const KaTeXCore = React.lazy(() =>
   import('katex').then((mod) => ({
     default: ({ expression, displayMode }: { expression: string; displayMode: boolean }) => {
-      const html = mod.default.renderToString(expression, {
+      const rawHtml = mod.default.renderToString(expression, {
         displayMode,
         throwOnError: false,
         output: 'html',
+      })
+      const html = DOMPurify.sanitize(rawHtml, {
+        ADD_TAGS: [
+          'semantics',
+          'annotation',
+          'mrow',
+          'mi',
+          'mo',
+          'mn',
+          'msup',
+          'msub',
+          'mfrac',
+          'msqrt',
+          'mroot',
+          'munder',
+          'mover',
+          'munderover',
+          'mtable',
+          'mtr',
+          'mtd',
+          'mtext',
+          'mspace',
+          'math',
+        ],
+        ADD_ATTR: [
+          'xmlns',
+          'encoding',
+          'mathvariant',
+          'stretchy',
+          'fence',
+          'separator',
+          'accent',
+          'accentunder',
+          'columnalign',
+          'rowalign',
+          'columnspacing',
+          'rowspacing',
+          'columnlines',
+          'rowlines',
+          'frame',
+          'framespacing',
+          'displaystyle',
+          'scriptlevel',
+          'minsize',
+          'maxsize',
+          'lspace',
+          'rspace',
+          'linethickness',
+          'depth',
+          'height',
+          'width',
+          'aria-hidden',
+        ],
       })
       return <span dangerouslySetInnerHTML={{ __html: html }} />
     },

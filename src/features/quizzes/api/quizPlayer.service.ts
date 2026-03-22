@@ -37,7 +37,7 @@ export async function startQuizAttempt(
   })
 
   if (error) {
-    console.error('Error starting quiz:', error)
+    if (import.meta.env.DEV) console.error('Error starting quiz:', error)
     throw new Error(error.message || 'Failed to start quiz')
   }
 
@@ -66,7 +66,7 @@ export async function submitQuizAttempt(
   })
 
   if (error) {
-    console.error('Error submitting quiz:', error)
+    if (import.meta.env.DEV) console.error('Error submitting quiz:', error)
     throw new Error(error.message || 'Failed to submit quiz')
   }
 
@@ -75,7 +75,7 @@ export async function submitQuizAttempt(
   // Award XP if passed (fire-and-forget, don't block submit on XP award)
   if (result.passed && session?.user) {
     awardQuizXp(attemptId, session.user.id, result.score).catch((xpError) => {
-      console.error('Failed to award quiz XP:', xpError)
+      if (import.meta.env.DEV) console.error('Failed to award quiz XP:', xpError)
     })
   }
 
@@ -227,7 +227,7 @@ export async function recordCheatingSignal(
   })
 
   if (error) {
-    console.error('Error recording cheating signal:', error)
+    if (import.meta.env.DEV) console.error('Error recording cheating signal:', error)
   }
 }
 
@@ -240,7 +240,7 @@ export async function recordHeartbeat(attemptId: string): Promise<boolean> {
   })
 
   if (error) {
-    console.error('Heartbeat error:', error)
+    if (import.meta.env.DEV) console.error('Heartbeat error:', error)
     return false
   }
 
@@ -441,7 +441,7 @@ async function awardQuizXp(attemptId: string, userId: string, score: number): Pr
       .single()
 
     if (attemptError || !attempt) {
-      console.error('Failed to fetch attempt for XP award:', attemptError)
+      if (import.meta.env.DEV) console.error('Failed to fetch attempt for XP award:', attemptError)
       return
     }
 
@@ -453,7 +453,7 @@ async function awardQuizXp(attemptId: string, userId: string, score: number): Pr
       .single()
 
     if (quizError || !quiz) {
-      console.error('Failed to fetch quiz for XP award:', quizError)
+      if (import.meta.env.DEV) console.error('Failed to fetch quiz for XP award:', quizError)
       return
     }
 
@@ -473,6 +473,6 @@ async function awardQuizXp(attemptId: string, userId: string, score: number): Pr
     }
   } catch (err) {
     // Log failure but don't throw - this is fire-and-forget
-    console.error('Error awarding quiz XP:', err)
+    if (import.meta.env.DEV) console.error('Error awarding quiz XP:', err)
   }
 }

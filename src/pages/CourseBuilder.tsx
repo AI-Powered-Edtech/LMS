@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { BuilderProvider, useBuilder } from '@/src/contexts/BuilderContext'
@@ -101,6 +102,7 @@ function CourseBuilderPage() {
  * Wraps the builder in BuilderProvider context.
  */
 export function CourseBuilder() {
+  usePageTitle('Course Builder')
   return (
     <BuilderProvider>
       <CourseBuilderPage />

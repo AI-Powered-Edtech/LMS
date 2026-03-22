@@ -122,7 +122,7 @@ export function useAssignments() {
         setAssignments(mapped)
       }
     } catch (error) {
-      console.error('Failed to load assignments', error)
+      if (import.meta.env.DEV) console.error('Failed to load assignments', error)
     } finally {
       setLoading(false)
     }

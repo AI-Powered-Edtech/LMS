@@ -1,4 +1,6 @@
 import { supabase } from '../lib/supabase'
+import { validateArray } from '@/src/shared/lib/validate'
+import { TenantInvitationRowSchema } from '@/src/shared/schemas'
 
 export interface TenantUser {
   user_id: string
@@ -72,6 +74,7 @@ export async function getInvitations(): Promise<TenantInvitation[]> {
     .order('created_at', { ascending: false })
 
   if (error) throw error
+  validateArray(TenantInvitationRowSchema, data ?? [], 'adminUserService.getInvitations')
   return (data ?? []) as TenantInvitation[]
 }
 

@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/src/contexts/AuthContext'
@@ -31,13 +32,14 @@ import { useAssignments } from '@/src/features/assignments/hooks/useAssignments'
 import { assignmentService } from '@/src/features/assignments/api/assignmentService'
 import { AssignmentUiState } from '@/src/features/assignments/types'
 
-import { SkeletonCard, EmptyState, Tabs } from '@/src/components/ui'
+import { EmptyState, Tabs, OptimizedImage } from '@/src/components/ui'
 import type { Tab } from '@/src/components/ui'
 import { AssignmentSkeleton } from '@/src/features/assignments/components/AssignmentSkeleton'
 
 // Mock data has been removed and replaced with real backend integration via useAssignments hook.
 
 export function Assignments() {
+  usePageTitle('Assignments')
   const { role, tenantId, user } = useAuth()
   const { addEvent } = useAddCalendarEvent()
   const sendNotification = useSendNotification()
@@ -171,7 +173,7 @@ export function Assignments() {
       await refetch()
       setSelectedFiles((prev) => ({ ...prev, [id]: null }))
     } catch (error) {
-      console.error('Failed to turn in assignment', error)
+      if (import.meta.env.DEV) console.error('Failed to turn in assignment', error)
       alert('Gagal menyerahkan tugas.')
     } finally {
       // Clear interval and snap to 100%
@@ -742,7 +744,7 @@ export function Assignments() {
                                 >
                                   <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center overflow-hidden">
-                                      <img
+                                      <OptimizedImage
                                         src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${sub.studentName}`}
                                         alt=""
                                         className="w-full h-full object-cover"

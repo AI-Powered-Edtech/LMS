@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState } from 'react'
 import { Bell, ChevronDown, ChevronUp } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -158,6 +159,7 @@ function NotificationRow({ notification, onMarkRead }: RowProps) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function Notifications() {
+  usePageTitle('Notifications')
   const { user, tenantId } = useAuth()
   const queryClient = useQueryClient()
 

@@ -1,9 +1,94 @@
 import { Users } from 'lucide-react'
 import { Card, Skeleton, Badge, EmptyState } from '@/src/components/ui'
+import { VirtualTable } from '@/src/components/ui/VirtualTable'
 import { cn } from '@/src/utils/cn'
 import { formatTime, formatPct, relativeTime, struggleColor, pctBgColor } from '../utils/formatters'
 import type { StudentSignal, EngagementSegment } from '../types'
 import { StudentEngagementCard } from './StudentEngagementCard'
+
+const columns = [
+  {
+    header: 'Nama',
+    key: 'student_name',
+    className: 'px-6 py-3 font-medium text-slate-800 dark:text-slate-100',
+    render: (row: StudentSignal) => row.student_name,
+  },
+  {
+    header: 'Sesi',
+    key: 'session_count',
+    className: 'px-4 py-3 text-center',
+    render: (row: StudentSignal) => row.session_count,
+  },
+  {
+    header: 'Waktu',
+    key: 'total_time_spent',
+    className: 'px-4 py-3 text-center text-slate-500 dark:text-slate-400',
+    render: (row: StudentSignal) => formatTime(row.total_time_spent),
+  },
+  {
+    header: 'Progress',
+    key: 'progress',
+    className: 'px-4 py-3',
+    render: (row: StudentSignal) => {
+      const progressPct =
+        row.blocks_total > 0 ? Math.round((row.blocks_viewed / row.blocks_total) * 100) : 0
+      return (
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            {row.blocks_viewed}/{row.blocks_total}
+          </span>
+          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+            <div
+              className={cn('h-full rounded-full transition-all', pctBgColor(progressPct))}
+              style={{ width: `${Math.min(progressPct, 100)}%` }}
+            />
+          </div>
+        </div>
+      )
+    },
+  },
+  {
+    header: 'Video',
+    key: 'max_video_pct',
+    className: 'px-4 py-3 text-center text-slate-500 dark:text-slate-400',
+    render: (row: StudentSignal) => formatPct(row.max_video_pct),
+  },
+  {
+    header: 'Struggle',
+    key: 'struggle_score',
+    className: 'px-4 py-3 text-center',
+    render: (row: StudentSignal) => {
+      const sc = struggleColor(row.struggle_score)
+      return (
+        <Badge
+          variant={
+            row.struggle_score >= 5 ? 'danger' : row.struggle_score >= 3 ? 'warning' : 'success'
+          }
+          size="sm"
+        >
+          {sc.label}
+        </Badge>
+      )
+    },
+  },
+  {
+    header: 'Engagement',
+    key: 'engagement',
+    className: 'px-4 py-3 text-center',
+    render: (row: StudentSignal) => (
+      <StudentEngagementCard
+        score={row.engagement_score}
+        segment={row.engagement_segment as EngagementSegment | null | undefined}
+      />
+    ),
+  },
+  {
+    header: 'Terakhir Aktif',
+    key: 'last_accessed_at',
+    className: 'px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400',
+    render: (row: StudentSignal) => relativeTime(row.last_accessed_at),
+  },
+]
 
 interface StudentProgressTableProps {
   data: StudentSignal[]
@@ -45,88 +130,13 @@ export function StudentProgressTable({ data, isLoading, lessonTitle }: StudentPr
 
   return (
     <Card padding="none">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left text-slate-600 dark:text-slate-300">
-          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500 dark:border-slate-700/60 dark:bg-slate-800/50 dark:text-slate-400">
-            <tr>
-              <th className="px-6 py-3 font-bold">Nama</th>
-              <th className="px-4 py-3 font-bold text-center">Sesi</th>
-              <th className="px-4 py-3 font-bold text-center">Waktu</th>
-              <th className="px-4 py-3 font-bold text-center">Progress</th>
-              <th className="px-4 py-3 font-bold text-center">Video</th>
-              <th className="px-4 py-3 font-bold text-center">Struggle</th>
-              <th className="px-4 py-3 font-bold text-center">Engagement</th>
-              <th className="px-4 py-3 font-bold text-center">Terakhir Aktif</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((student) => {
-              const sc = struggleColor(student.struggle_score)
-              const progressPct =
-                student.blocks_total > 0
-                  ? Math.round((student.blocks_viewed / student.blocks_total) * 100)
-                  : 0
-
-              return (
-                <tr
-                  key={`${student.user_id}-${student.lesson_id}`}
-                  className="border-b border-slate-100 transition-colors hover:bg-slate-50 dark:border-slate-700/40 dark:hover:bg-slate-800/50"
-                >
-                  <td className="px-6 py-3 font-medium text-slate-800 dark:text-slate-100">
-                    {student.student_name}
-                  </td>
-                  <td className="px-4 py-3 text-center">{student.session_count}</td>
-                  <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">
-                    {formatTime(student.total_time_spent)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="text-xs text-slate-500 dark:text-slate-400">
-                        {student.blocks_viewed}/{student.blocks_total}
-                      </span>
-                      <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                        <div
-                          className={cn(
-                            'h-full rounded-full transition-all',
-                            pctBgColor(progressPct)
-                          )}
-                          style={{ width: `${Math.min(progressPct, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-center text-slate-500 dark:text-slate-400">
-                    {formatPct(student.max_video_pct)}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <Badge
-                      variant={
-                        student.struggle_score >= 5
-                          ? 'danger'
-                          : student.struggle_score >= 3
-                            ? 'warning'
-                            : 'success'
-                      }
-                      size="sm"
-                    >
-                      {sc.label}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <StudentEngagementCard
-                      score={student.engagement_score}
-                      segment={student.engagement_segment as EngagementSegment | null | undefined}
-                    />
-                  </td>
-                  <td className="px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400">
-                    {relativeTime(student.last_accessed_at)}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+      <VirtualTable
+        data={data}
+        columns={columns}
+        getRowKey={(row) => row.user_id + '-' + row.lesson_id}
+        rowHeight={64}
+        maxHeight={500}
+      />
     </Card>
   )
 }

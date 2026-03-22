@@ -127,7 +127,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setActiveTenantState(rawTenants[id])
       setTenantId(id)
     } else {
-      console.warn(`Tenant with id ${id} not found in rawTenants - will validate on next auth`)
+      if (import.meta.env.DEV)
+        console.warn(`Tenant with id ${id} not found in rawTenants - will validate on next auth`)
     }
   }
 
@@ -267,7 +268,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await fetchUserData(userId)
       }
     } catch (e) {
-      console.error('Failed to accept invitation:', e)
+      if (import.meta.env.DEV) console.error('Failed to accept invitation:', e)
     }
   }
 
@@ -278,7 +279,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await supabase.rpc('enroll_student', { p_join_code: pendingCode })
     } catch (e) {
-      console.error('[Auth] Failed to enroll with pending join code:', e)
+      if (import.meta.env.DEV) console.error('[Auth] Failed to enroll with pending join code:', e)
     }
   }
 

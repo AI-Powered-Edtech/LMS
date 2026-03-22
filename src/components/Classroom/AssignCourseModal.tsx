@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { classroomService, Classroom } from '@/src/features/classroom/api/classroomService'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { cn } from '@/src/utils/cn'
+import { useToast } from '@/src/hooks/useToast'
 
 interface AssignCourseModalProps {
   isOpen: boolean
@@ -18,6 +19,7 @@ export function AssignCourseModal({
   courseId,
   courseTitle,
 }: AssignCourseModalProps) {
+  const { addToast } = useToast()
   const { user, tenantId } = useAuth()
   const [classrooms, setClassrooms] = useState<Classroom[]>([])
   const [assignedClassIds, setAssignedClassIds] = useState<string[]>([])
@@ -47,7 +49,7 @@ export function AssignCourseModal({
       const currentAssignments = await classroomService.fetchAssignedClassesForCourse(courseId)
       setAssignedClassIds(currentAssignments)
     } catch (err: unknown) {
-      console.error('Failed to load classes for assignment:', err)
+      if (import.meta.env.DEV) console.error('Failed to load classes for assignment:', err)
       setError('Gagal memuat daftar kelas.')
     } finally {
       setLoading(false)
@@ -62,7 +64,7 @@ export function AssignCourseModal({
     try {
       setSaving(true)
       if (isCurrentlyAssigned) {
-        await classroomService.unassignCourseFromClass(courseId, classId)
+        await classroomService.unassignCourseFromClass(courseId, classId, tenantId!)
         setAssignedClassIds((prev) => prev.filter((id) => id !== classId))
       } else {
         if (!tenantId) throw new Error('Tenant ID not found')
@@ -70,8 +72,8 @@ export function AssignCourseModal({
         setAssignedClassIds((prev) => [...prev, classId])
       }
     } catch (err: unknown) {
-      console.error('Failed to toggle class assignment:', err)
-      alert('Gagal memperbarui penugasan kelas.')
+      if (import.meta.env.DEV) console.error('Failed to toggle class assignment:', err)
+      addToast({ type: 'error', message: 'Gagal memperbarui penugasan kelas.' })
     } finally {
       setSaving(false)
     }

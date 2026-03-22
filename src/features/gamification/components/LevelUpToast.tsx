@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/src/contexts/AuthContext'
-import { useToast } from '@/src/contexts/ToastContext'
+import { useToast } from '@/src/hooks/useToast'
 import { gamificationKeys } from '../queries/gamificationQueries'
 import type { StudentXPProfile } from '../types'
 
@@ -11,7 +11,7 @@ import type { StudentXPProfile } from '../types'
  */
 export function LevelUpToast() {
   const { user, tenantId } = useAuth()
-  const { toast } = useToast()
+  const { addToast } = useToast()
   const qc = useQueryClient()
   const prevLevelRef = useRef<number | null>(null)
   const initializedRef = useRef(false)
@@ -41,13 +41,13 @@ export function LevelUpToast() {
       }
 
       if (prevLevelRef.current !== null && profile.level > prevLevelRef.current) {
-        toast(`🎉 Level Up! Kamu sekarang Level ${profile.level}!`, 'success', 5000)
+        addToast({ message: `🎉 Level Up! Kamu sekarang Level ${profile.level}!`, type: 'success' })
       }
       prevLevelRef.current = profile.level
     })
 
     return unsubscribe
-  }, [user?.id, tenantId, qc, toast])
+  }, [user?.id, tenantId, qc, addToast])
 
   return null
 }

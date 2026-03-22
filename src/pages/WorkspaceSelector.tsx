@@ -1,9 +1,11 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { LogOut } from 'lucide-react'
 
 export function WorkspaceSelector() {
+  usePageTitle('Workspace Selector')
   const { memberships, activeTenant, setActiveTenant, loading, signOut } = useAuth()
   const navigate = useNavigate()
 

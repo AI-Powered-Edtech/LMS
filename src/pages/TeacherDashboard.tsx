@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState, useMemo } from 'react'
 import { motion } from 'motion/react'
 import {
@@ -24,6 +25,7 @@ import { Card, Badge, Button, EmptyState, SkeletonCard } from '@/src/components/
 import { DashboardSkeleton } from '@/src/features/dashboards/components/DashboardSkeleton'
 
 export function TeacherDashboard() {
+  usePageTitle('Teacher Dashboard')
   const { classrooms, setActiveClassroomId, loading: classroomsLoading } = useClassroom()
   const { profile } = useAuth()
   const navigate = useNavigate()

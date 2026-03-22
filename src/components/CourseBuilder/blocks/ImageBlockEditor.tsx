@@ -1,3 +1,4 @@
+import { OptimizedImage } from '@/src/components/ui'
 import { useState, useRef, useCallback } from 'react'
 import { useBuilder } from '@/src/contexts/BuilderContext'
 import { useAuth } from '@/src/contexts/AuthContext'
@@ -135,7 +136,7 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
     return (
       <div className="space-y-4">
         <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-          <img
+          <OptimizedImage
             src={blockUrl}
             alt={block.title || 'Gambar'}
             className="w-full max-h-[400px] object-contain"
@@ -193,7 +194,7 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
         {isUploading ? (
           <>
             {previewUrl && (
-              <img
+              <OptimizedImage
                 src={previewUrl}
                 alt="Preview"
                 className="w-full max-h-[200px] object-contain mb-4 rounded-lg"

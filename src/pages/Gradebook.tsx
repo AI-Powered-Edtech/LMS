@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -20,12 +21,13 @@ import {
 } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
 import { useGradebook, Assignment } from '@/src/features/assignments/hooks/useGradebookQueries'
-import { EmptyState } from '@/src/components/ui'
+import { EmptyState, OptimizedImage } from '@/src/components/ui'
 import { useCourses } from '@/src/features/courses/queries/courseQueries'
 import type { Course } from '@/src/features/courses/types'
 import { GradebookTable } from '@/src/features/gradebook/components/GradebookTable'
 
 export function Gradebook() {
+  usePageTitle('Gradebook')
   const { students, assignments, grades, updateGrade, addAssignment } = useGradebook()
   const [searchQuery, setSearchQuery] = useState('')
   const [editingCell, setEditingCell] = useState<{
@@ -519,7 +521,7 @@ export function Gradebook() {
                     <td className="p-4 sticky left-0 bg-white dark:bg-slate-800 group-hover:bg-slate-50/50 dark:group-hover:bg-slate-700/30 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden shrink-0">
-                          <img
+                          <OptimizedImage
                             src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${student.name}`}
                             alt={student.name}
                           />

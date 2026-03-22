@@ -87,7 +87,7 @@ export const progressService = {
         ),
       }
     } catch (error) {
-      console.error('Error fetching student progress bundle:', error)
+      if (import.meta.env.DEV) console.error('Error fetching student progress bundle:', error)
       throw error
     }
   },

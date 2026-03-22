@@ -38,7 +38,7 @@ export function QuizAnalyticsPanel({ quizId, className }: QuizAnalyticsPanelProp
         setQuizStats(quiz)
         setQuestionStats(questions)
       } catch (err) {
-        console.error('Failed to load quiz analytics:', err)
+        if (import.meta.env.DEV) console.error('Failed to load quiz analytics:', err)
         setError('Gagal memuat statistik kuis')
       } finally {
         setIsLoading(false)

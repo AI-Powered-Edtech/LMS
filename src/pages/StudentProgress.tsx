@@ -1,3 +1,5 @@
+import { OptimizedImage } from '@/src/components/ui'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { progressService, StudentProgressData } from '@/src/features/progress/api/progressService'
@@ -6,6 +8,7 @@ import { cn } from '@/src/utils/cn'
 import { ProgressSkeleton } from '@/src/features/progress/components/ProgressSkeleton'
 
 export function StudentProgress() {
+  usePageTitle('Student Progress')
   const { studentId } = useParams()
   const [data, setData] = useState<StudentProgressData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -25,7 +28,7 @@ export function StudentProgress() {
         const progressData = await progressService.getStudentProgressBundle(studentId)
         setData(progressData)
       } catch (err: unknown) {
-        console.error('Failed to load student progress', err)
+        if (import.meta.env.DEV) console.error('Failed to load student progress', err)
         setError('Gagal memuat progres siswa')
       } finally {
         setLoading(false)
@@ -57,7 +60,11 @@ export function StudentProgress() {
     <div className="max-w-6xl mx-auto space-y-8 pb-12">
       <div className="flex items-center gap-4">
         <div className="w-16 h-16 bg-slate-200 rounded-full overflow-hidden shadow-md">
-          <img src={avatarUrl} alt={studentName} className="w-full h-full object-cover" />
+          <OptimizedImage
+            src={avatarUrl}
+            alt={studentName}
+            className="w-full h-full object-cover"
+          />
         </div>
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{studentName}</h1>

@@ -26,11 +26,12 @@ function ratingEmoji(rating: Metric['rating']): string {
 function logMetricDev(metric: Metric): void {
   const color = badgeColors[metric.name] ?? '#6b7280'
   // eslint-disable-next-line no-console
-  console.log(
-    `%c ${metric.name} %c ${metric.value.toFixed(1)} ${ratingEmoji(metric.rating)}`,
-    `background:${color};color:#fff;padding:2px 6px;border-radius:3px;font-weight:bold`,
-    'color:inherit'
-  )
+  if (import.meta.env.DEV)
+    console.log(
+      `%c ${metric.name} %c ${metric.value.toFixed(1)} ${ratingEmoji(metric.rating)}`,
+      `background:${color};color:#fff;padding:2px 6px;border-radius:3px;font-weight:bold`,
+      'color:inherit'
+    )
 }
 
 async function sendMetricProd(metric: Metric): Promise<void> {

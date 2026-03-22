@@ -106,6 +106,8 @@ export default defineConfig(({ mode }) => {
             'vendor-markdown': ['remark-gfm', 'remark-math', 'rehype-katex'],
             'vendor-sentry': ['@sentry/react'],
             'vendor-date': ['date-fns'],
+            'vendor-sanitize': ['dompurify'],
+            'vendor-form': ['react-hook-form', '@hookform/resolvers', 'valibot'],
           },
         },
       },

@@ -1,3 +1,5 @@
+import { OptimizedImage } from '@/src/components/ui'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState, useEffect, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import {
@@ -71,6 +73,7 @@ const quickComments = [
 ]
 
 export function SpeedGrader() {
+  usePageTitle('Speed Grader')
   const { students: contextStudents, grades, updateGrade } = useGradebook()
   const { addComment } = useComments()
   const { tenantId } = useAuth()
@@ -133,7 +136,8 @@ export function SpeedGrader() {
       const { data: assignment, error: assignmentError } = await assignmentQuery.single()
 
       if (assignmentError || !assignment) {
-        console.error('Assignment not found or access denied:', assignmentError)
+        if (import.meta.env.DEV)
+          console.error('Assignment not found or access denied:', assignmentError)
         setHasAccess(false)
         setIsLoading(false)
         return
@@ -141,7 +145,7 @@ export function SpeedGrader() {
 
       setHasAccess(true)
     } catch (authError) {
-      console.error('Authorization check failed:', authError)
+      if (import.meta.env.DEV) console.error('Authorization check failed:', authError)
       setHasAccess(false)
       setIsLoading(false)
       return
@@ -164,7 +168,7 @@ export function SpeedGrader() {
       const { data: submission, error } = await query.maybeSingle()
 
       if (error) {
-        console.warn('Could not load submission:', error)
+        if (import.meta.env.DEV) console.warn('Could not load submission:', error)
       }
 
       setSubmissionText(submission?.submission_text || '')
@@ -177,7 +181,7 @@ export function SpeedGrader() {
       setZoom(100)
       setActiveTool('pointer')
     } catch (err) {
-      console.warn('Error loading submission:', err)
+      if (import.meta.env.DEV) console.warn('Error loading submission:', err)
       setSubmissionText('')
     } finally {
       setIsLoading(false)
@@ -319,7 +323,7 @@ export function SpeedGrader() {
       setScores(newScores)
       setFeedback(aggregatedFeedback.trim())
     } catch (error: unknown) {
-      console.error('AI Grading failed:', error)
+      if (import.meta.env.DEV) console.error('AI Grading failed:', error)
       alert(
         error instanceof Error ? error.message : 'Gagal melakukan penilaian otomatis dengan AI.'
       )
@@ -613,7 +617,7 @@ export function SpeedGrader() {
           <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
-                <img
+                <OptimizedImage
                   src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentStudent.name}`}
                   alt=""
                   className="w-full h-full object-cover"

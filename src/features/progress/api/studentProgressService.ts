@@ -207,7 +207,7 @@ export const studentProgressService = {
       },
       { onConflict: 'user_id,lesson_id' }
     )
-    if (error) console.error('Error updating lesson progress:', error)
+    if (error) if (import.meta.env.DEV) console.error('Error updating lesson progress:', error)
   },
 
   /**
@@ -220,9 +220,10 @@ export const studentProgressService = {
     _answers: Record<string, string>,
     _tenantId: string
   ): Promise<void> {
-    console.warn(
-      '[studentProgressService] Legacy submitQuizAttempt skipped. Quiz attempts are persisted via quiz_attempts_v2 RPC flow.'
-    )
+    if (import.meta.env.DEV)
+      console.warn(
+        '[studentProgressService] Legacy submitQuizAttempt skipped. Quiz attempts are persisted via quiz_attempts_v2 RPC flow.'
+      )
   },
 
   /**
@@ -233,6 +234,6 @@ export const studentProgressService = {
       p_user_id: userId,
       p_points: amount,
     })
-    if (error) console.error('Error adding XP:', error)
+    if (error) if (import.meta.env.DEV) console.error('Error adding XP:', error)
   },
 }

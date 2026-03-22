@@ -1,14 +1,16 @@
 import { DomainModule } from './moduleTypes'
+import { ModuleRowSchema } from '../schemas'
+import { validate } from '../lib/validate'
 import { mapLesson } from './lessonMappers'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function mapModule(row: any): DomainModule {
+export function mapModule(row: unknown): DomainModule {
+  const r = validate(ModuleRowSchema, row, 'ModuleRow')
   return {
-    id: row.id,
-    courseId: row.course_id,
-    title: row.title,
-    orderIndex: row.order, // mapped from db 'order' to 'orderIndex'
-    tenantId: row.tenant_id,
-    lessons: row.lessons ? row.lessons.map(mapLesson) : [],
+    id: r.id,
+    courseId: r.course_id,
+    title: r.title,
+    orderIndex: r.order,
+    tenantId: r.tenant_id,
+    lessons: r.lessons ? r.lessons.map(mapLesson) : [],
   }
 }

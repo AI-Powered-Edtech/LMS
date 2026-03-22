@@ -1,3 +1,5 @@
+import { OptimizedImage } from '@/src/components/ui'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useEffect } from 'react'
 import {
   Mail,
@@ -25,6 +27,7 @@ import { useStudentProgressData } from '@/src/features/progress/hooks/useStudent
 import { motion } from 'motion/react'
 
 export function Profile() {
+  usePageTitle('Profile')
   const { user, role, profile } = useAuth()
 
   useEffect(() => {
@@ -90,7 +93,7 @@ export function Profile() {
             {/* Avatar */}
             <div className="relative mt-12 mb-4 z-10">
               <div className="w-24 h-24 rounded-full bg-white dark:bg-slate-700 p-1.5 shadow-xl ring-4 ring-white dark:ring-slate-800">
-                <img
+                <OptimizedImage
                   src={avatarUrl}
                   alt={displayName}
                   className="w-full h-full rounded-full bg-slate-100 dark:bg-slate-600 object-cover"

@@ -5,7 +5,7 @@ interface Props {
   children?: ReactNode
   fallback?: ReactNode
   onRetry?: () => void
-  featureName: string
+  featureName?: string
 }
 
 interface State {
@@ -27,7 +27,8 @@ export class FeatureErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error(`Error in ${this.props.featureName}:`, error, errorInfo)
+    if (import.meta.env.DEV)
+      console.error(`Error in ${this.props.featureName || 'halaman'}:`, error, errorInfo)
   }
 
   private handleRetry = () => {
@@ -39,6 +40,7 @@ export class FeatureErrorBoundary extends Component<Props, State> {
   }
 
   public render() {
+    const fn = this.props.featureName || 'halaman ini'
     if (this.state.hasError) {
       // Use custom fallback if provided
       if (this.props.fallback) {
@@ -51,12 +53,9 @@ export class FeatureErrorBoundary extends Component<Props, State> {
           <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mb-4 text-red-500 border border-red-200">
             <AlertTriangle className="w-8 h-8" />
           </div>
-          <h2 className="text-xl font-bold text-slate-800 mb-2">
-            Terjadi kesalahan pada {this.props.featureName}
-          </h2>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Terjadi kesalahan pada {fn}</h2>
           <p className="text-slate-500 mb-6 max-w-sm">
-            Maaf, terjadi kesalahan saat memuat {this.props.featureName}. Coba muat ulang atau coba
-            lagi nanti.
+            Maaf, terjadi kesalahan saat memuat {fn}. Coba muat ulang atau coba lagi nanti.
           </p>
           <button
             onClick={this.handleRetry}

@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -34,6 +35,7 @@ interface EnrolledStudent {
 }
 
 export function ClassManagement() {
+  usePageTitle('Class Management')
   const navigate = useNavigate()
   const {
     classrooms,
@@ -134,7 +136,7 @@ export function ClassManagement() {
           })
         )
       } catch (err) {
-        console.error('Failed to fetch students:', err)
+        if (import.meta.env.DEV) console.error('Failed to fetch students:', err)
         setStudents([])
       } finally {
         setLoadingStudents(false)

@@ -219,7 +219,7 @@ export async function createQuiz(payload: {
   )
 
   if (assignError) {
-    console.error('Failed to auto-create quiz assignment:', assignError)
+    if (import.meta.env.DEV) console.error('Failed to auto-create quiz assignment:', assignError)
     throw assignError
   }
 
@@ -422,7 +422,7 @@ export async function gradeAttemptQuestion(
   })
 
   if (error) {
-    console.error('Error grading question:', error)
+    if (import.meta.env.DEV) console.error('Error grading question:', error)
     throw new Error(error.message || 'Failed to grade question')
   }
 
@@ -450,7 +450,7 @@ export async function getAssignmentResults(assignmentId: string, tenantId: strin
   })
 
   if (error) {
-    console.error('Error fetching assignment results:', error)
+    if (import.meta.env.DEV) console.error('Error fetching assignment results:', error)
     throw new Error(error.message || 'Failed to fetch assignment results')
   }
 

@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState, useCallback } from 'react'
 import {
   UploadCloud,
@@ -18,6 +19,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/src/lib/supabase'
 
 export function Creator() {
+  usePageTitle('Creator')
   const { user } = useAuth()
   const { addEvent } = useAddCalendarEvent()
   const sendNotification = useSendNotification()
@@ -101,7 +103,7 @@ export function Creator() {
       })
 
       if (supaError) {
-        console.error('Supabase edge function error:', supaError)
+        if (import.meta.env.DEV) console.error('Supabase edge function error:', supaError)
         // Specifically catch a common indication of a 404 from invoke
         if (
           supaError.message &&
@@ -125,7 +127,7 @@ export function Creator() {
         throw new Error('Respons API tidak valid.')
       }
     } catch (err: unknown) {
-      console.error(err)
+      if (import.meta.env.DEV) console.error(err)
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat memproses materi.')
     } finally {
       setIsGenerating(false)

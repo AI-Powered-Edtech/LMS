@@ -4,7 +4,10 @@ import { Skeleton } from './Skeleton'
 
 /* ─── Props ────────────────────────────────────────────────── */
 
-export interface OptimizedImageProps {
+export interface OptimizedImageProps extends Omit<
+  React.ImgHTMLAttributes<HTMLImageElement>,
+  'src' | 'alt' | 'width' | 'height' | 'className'
+> {
   src: string
   alt: string
   width?: number
@@ -23,18 +26,32 @@ export function OptimizedImage({
   height,
   className,
   lazy = true,
+  onLoad,
+  onError,
+  ...props
 }: OptimizedImageProps) {
   const [loaded, setLoaded] = useState(false)
-  const [error, setError] = useState(false)
+  const [errorState, setErrorState] = useState(false)
 
-  const handleLoad = useCallback(() => setLoaded(true), [])
-  const handleError = useCallback(() => {
-    setLoaded(true)
-    setError(true)
-  }, [])
+  const handleLoad = useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+      setLoaded(true)
+      onLoad?.(e)
+    },
+    [onLoad]
+  )
+
+  const handleError = useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+      setLoaded(true)
+      setErrorState(true)
+      onError?.(e)
+    },
+    [onError]
+  )
 
   // ── Error fallback ──
-  if (error) {
+  if (errorState) {
     return (
       <div
         className={cn(
@@ -82,6 +99,7 @@ export function OptimizedImage({
         height={height}
         loading={lazy ? 'lazy' : 'eager'}
         decoding="async"
+        {...props}
         onLoad={handleLoad}
         onError={handleError}
         className={cn(

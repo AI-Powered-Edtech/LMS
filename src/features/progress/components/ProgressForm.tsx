@@ -1,4 +1,15 @@
 import { cn } from '@/src/utils/cn'
+import { useForm } from 'react-hook-form'
+import { valibotResolver } from '@hookform/resolvers/valibot'
+import { FormField } from '@/src/components/ui/FormField'
+import * as v from 'valibot'
+
+const schema = v.object({
+  name: v.pipe(v.string(), v.minLength(1, 'Nama wajib diisi')),
+  description: v.string(),
+})
+
+type ProgressFormData = v.InferOutput<typeof schema>
 
 interface ProgressFormProps {
   onSubmit: (data: Record<string, string>) => void
@@ -10,50 +21,43 @@ interface ProgressFormProps {
  * Form untuk membuat/mengedit Kemajuan.
  */
 export function ProgressForm({ onSubmit, isLoading, className }: ProgressFormProps) {
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const data: Record<string, string> = {}
-    formData.forEach((value, key) => {
-      data[key] = String(value)
-    })
-    onSubmit(data)
-  }
+  const { control, handleSubmit } = useForm<ProgressFormData>({
+    resolver: valibotResolver(schema),
+    defaultValues: { name: '', description: '' },
+  })
 
   return (
-    <form onSubmit={handleSubmit} className={cn('space-y-4', className)}>
+    <form
+      onSubmit={handleSubmit((data) => onSubmit(data as Record<string, string>))}
+      className={cn('space-y-4', className)}
+    >
       <div>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
-          Nama
-        </label>
-        <input
-          name="name"
-          type="text"
-          required
-          className={cn(
-            'w-full px-4 py-2.5 rounded-xl border text-sm',
-            'border-slate-200 dark:border-slate-700',
-            'bg-white dark:bg-slate-900',
-            'text-slate-900 dark:text-white',
-            'focus:outline-none focus:ring-2 focus:ring-blue-500'
-          )}
-        />
+        <FormField control={control} name="name" label="Nama">
+          <input
+            type="text"
+            className={cn(
+              'w-full px-4 py-2.5 rounded-xl border text-sm',
+              'border-slate-200 dark:border-slate-700',
+              'bg-white dark:bg-slate-900',
+              'text-slate-900 dark:text-white',
+              'focus:outline-none focus:ring-2 focus:ring-blue-500'
+            )}
+          />
+        </FormField>
       </div>
       <div>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
-          Deskripsi
-        </label>
-        <textarea
-          name="description"
-          rows={3}
-          className={cn(
-            'w-full px-4 py-2.5 rounded-xl border text-sm resize-none',
-            'border-slate-200 dark:border-slate-700',
-            'bg-white dark:bg-slate-900',
-            'text-slate-900 dark:text-white',
-            'focus:outline-none focus:ring-2 focus:ring-blue-500'
-          )}
-        />
+        <FormField control={control} name="description" label="Deskripsi">
+          <textarea
+            rows={3}
+            className={cn(
+              'w-full px-4 py-2.5 rounded-xl border text-sm resize-none',
+              'border-slate-200 dark:border-slate-700',
+              'bg-white dark:bg-slate-900',
+              'text-slate-900 dark:text-white',
+              'focus:outline-none focus:ring-2 focus:ring-blue-500'
+            )}
+          />
+        </FormField>
       </div>
       <button
         type="submit"

@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useQuery } from '@tanstack/react-query'
 import { Calendar, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react'
 import { supabase } from '@/src/lib/supabase'
@@ -37,6 +38,7 @@ const STATUS_CONFIG = {
 }
 
 export function StudentAttendance() {
+  usePageTitle('Student Attendance')
   const { user, tenantId, profile } = useAuth()
 
   const { data: records = [], isLoading } = useQuery({

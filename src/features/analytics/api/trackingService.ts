@@ -75,11 +75,11 @@ async function flushEvents() {
     })
 
     if (error) {
-      console.warn('[Analytics] Flush failed, re-queuing:', error.message)
+      if (import.meta.env.DEV) console.warn('[Analytics] Flush failed, re-queuing:', error.message)
       eventBuffer = [...batch, ...eventBuffer].slice(-MAX_BUFFER_SIZE)
     }
   } catch (err) {
-    console.warn('[Analytics] Flush error:', err)
+    if (import.meta.env.DEV) console.warn('[Analytics] Flush error:', err)
     eventBuffer = [...batch, ...eventBuffer].slice(-MAX_BUFFER_SIZE)
   } finally {
     isFlushing = false

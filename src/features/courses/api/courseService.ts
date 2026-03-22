@@ -50,10 +50,13 @@ export const courseService = {
 
     // Graceful fallback: if the join fails, fetch courses without joined data
     if (error) {
-      console.warn('Courses join query failed, falling back to simple fetch:', error.message)
+      if (import.meta.env.DEV)
+        console.warn('Courses join query failed, falling back to simple fetch:', error.message)
       let fallbackQuery = supabase
         .from('courses')
-        .select('id, title, description, status, created_at, updated_at, created_by, tenant_id', { count: 'exact' })
+        .select('id, title, description, status, created_at, updated_at, created_by, tenant_id', {
+          count: 'exact',
+        })
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
         .limit(100)
@@ -72,7 +75,7 @@ export const courseService = {
 
       const fallback = await fallbackQuery
       if (fallback.error) {
-        console.error('Error fetching courses (fallback):', fallback.error)
+        if (import.meta.env.DEV) console.error('Error fetching courses (fallback):', fallback.error)
         throw fallback.error
       }
       data = fallback.data as unknown as typeof data
@@ -97,7 +100,7 @@ export const courseService = {
       .single()
 
     if (error) {
-      console.error('Error fetching course by ID:', error)
+      if (import.meta.env.DEV) console.error('Error fetching course by ID:', error)
       throw error
     }
 
@@ -113,7 +116,7 @@ export const courseService = {
     const { data, error } = await supabase.from('courses').insert(courseData).select().single()
 
     if (error) {
-      console.error('Error creating course:', error)
+      if (import.meta.env.DEV) console.error('Error creating course:', error)
       throw error
     }
 
@@ -133,7 +136,7 @@ export const courseService = {
       .single()
 
     if (error) {
-      console.error('Error updating course:', error)
+      if (import.meta.env.DEV) console.error('Error updating course:', error)
       throw error
     }
 
@@ -151,7 +154,7 @@ export const courseService = {
       .eq('tenant_id', tenantId)
 
     if (error) {
-      console.error('Error deleting course:', error)
+      if (import.meta.env.DEV) console.error('Error deleting course:', error)
       throw error
     }
   },
@@ -170,7 +173,7 @@ export const courseService = {
       .maybeSingle()
 
     if (error) {
-      console.error('Error checking course enrollment:', error)
+      if (import.meta.env.DEV) console.error('Error checking course enrollment:', error)
       return false
     }
 

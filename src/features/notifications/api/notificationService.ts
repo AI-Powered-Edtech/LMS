@@ -30,7 +30,7 @@ export async function fetchNotifications(
     .limit(50)
 
   if (error) {
-    console.error('Error fetching notifications:', error)
+    if (import.meta.env.DEV) console.error('Error fetching notifications:', error)
     throw error
   }
 
@@ -48,7 +48,7 @@ export async function markAsRead(id: string, tenantId: string): Promise<void> {
     .eq('tenant_id', tenantId)
 
   if (error) {
-    console.error('Error marking notification as read:', error)
+    if (import.meta.env.DEV) console.error('Error marking notification as read:', error)
     throw error
   }
 }
@@ -65,7 +65,7 @@ export async function markAllAsRead(userId: string, tenantId: string): Promise<v
     .eq('is_read', false)
 
   if (error) {
-    console.error('Error marking all notifications as read:', error)
+    if (import.meta.env.DEV) console.error('Error marking all notifications as read:', error)
     throw error
   }
 }
@@ -90,7 +90,7 @@ export async function sendNotification(
   })
 
   if (error) {
-    console.error('Error sending notification:', error)
+    if (import.meta.env.DEV) console.error('Error sending notification:', error)
     throw error
   }
 }

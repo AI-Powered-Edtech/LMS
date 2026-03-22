@@ -73,7 +73,8 @@ async function loadSecureQueue(): Promise<ProgressQueueItem[]> {
 
     return JSON.parse(signedQueue.payload)
   } catch (e) {
-    console.warn('[Offline Queue] Invalid or unauthorized queue detected, clearing.', e)
+    if (import.meta.env.DEV)
+      console.warn('[Offline Queue] Invalid or unauthorized queue detected, clearing.', e)
     localStorage.removeItem(QUEUE_KEY)
     return []
   }
@@ -82,7 +83,8 @@ async function loadSecureQueue(): Promise<ProgressQueueItem[]> {
 async function saveSecureQueue(queue: ProgressQueueItem[]): Promise<void> {
   const sessionKey = await getSessionKey()
   if (!sessionKey) {
-    console.warn('[Offline Queue] Cannot save queue without active session')
+    if (import.meta.env.DEV)
+      console.warn('[Offline Queue] Cannot save queue without active session')
     return
   }
 
@@ -144,7 +146,7 @@ export const lessonService = {
     }
 
     if (rpcError && rpcError.code !== 'PGRST202') {
-      console.error('Error fetching lesson snapshot:', rpcError)
+      if (import.meta.env.DEV) console.error('Error fetching lesson snapshot:', rpcError)
     }
 
     // Fallback: direct query (works without migration 803)
@@ -170,7 +172,7 @@ export const lessonService = {
       .maybeSingle()
 
     if (error) {
-      console.error('Error fetching lesson:', error)
+      if (import.meta.env.DEV) console.error('Error fetching lesson:', error)
       return null
     }
 
@@ -211,7 +213,7 @@ export const lessonService = {
       .order('order')
 
     if (lessonsError) {
-      console.error('Error fetching module lessons:', lessonsError)
+      if (import.meta.env.DEV) console.error('Error fetching module lessons:', lessonsError)
       return { lessons: [], progress: {} }
     }
 
@@ -226,7 +228,7 @@ export const lessonService = {
       .in('lesson_id', lessonIds)
 
     if (progressError) {
-      console.error('Error fetching lesson progress:', progressError)
+      if (import.meta.env.DEV) console.error('Error fetching lesson progress:', progressError)
     }
 
     // Index progress by lesson_id
@@ -278,7 +280,7 @@ export const lessonService = {
     })
 
     if (error) {
-      console.error('Error updating progress:', error)
+      if (import.meta.env.DEV) console.error('Error updating progress:', error)
       throw error
     }
   },
@@ -310,7 +312,8 @@ export const lessonService = {
         resumeAnchor
       )
     } catch {
-      console.warn('[Offline Queue] Network error, queuing progress for lesson', lessonId)
+      if (import.meta.env.DEV)
+        console.warn('[Offline Queue] Network error, queuing progress for lesson', lessonId)
 
       let queue: ProgressQueueItem[] = await loadSecureQueue()
 
@@ -375,7 +378,8 @@ export const lessonService = {
             item.resumeAnchor
           )
         } catch {
-          console.warn('[Offline Queue] Failed to sync item, re-queuing', item.lessonId)
+          if (import.meta.env.DEV)
+            console.warn('[Offline Queue] Failed to sync item, re-queuing', item.lessonId)
           remainingQueue.push(item)
         }
       }
@@ -418,7 +422,7 @@ export const lessonService = {
       .maybeSingle()
 
     if (error) {
-      console.error('Error fetching progress:', error)
+      if (import.meta.env.DEV) console.error('Error fetching progress:', error)
       return null
     }
 
@@ -452,14 +456,14 @@ export const lessonService = {
         .from('lesson_resources')
         .insert({ ...row, type: 'VIDEO' })
       if (retryError) {
-        console.error('Error seeding dummy video:', retryError)
+        if (import.meta.env.DEV) console.error('Error seeding dummy video:', retryError)
         throw new Error(retryError.message || 'Failed to seed dummy video')
       }
       return
     }
 
     if (error) {
-      console.error('Error seeding dummy video:', error)
+      if (import.meta.env.DEV) console.error('Error seeding dummy video:', error)
       throw new Error(error.message || 'Failed to seed dummy video')
     }
   },

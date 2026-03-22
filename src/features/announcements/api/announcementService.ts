@@ -56,11 +56,11 @@ export const announcementService = {
     const { data, error } = await query
 
     if (error) {
-      console.error('Error fetching announcements:', error)
+      if (import.meta.env.DEV) console.error('Error fetching announcements:', error)
       throw error
     }
 
-    return (data as unknown) as Announcement[]
+    return data as unknown as Announcement[]
   },
 
   /**
@@ -85,7 +85,7 @@ export const announcementService = {
       .single()
 
     if (error) throw error
-    return (data as unknown) as Announcement
+    return data as unknown as Announcement
   },
 
   /**
@@ -101,7 +101,7 @@ export const announcementService = {
       .single()
 
     if (error) {
-      console.error('Error saving announcement:', error)
+      if (import.meta.env.DEV) console.error('Error saving announcement:', error)
       throw error
     }
 
@@ -143,7 +143,7 @@ export const announcementService = {
       .single()
 
     if (error) {
-      console.error('Error submitting RSVP:', error)
+      if (import.meta.env.DEV) console.error('Error submitting RSVP:', error)
       throw error
     }
 

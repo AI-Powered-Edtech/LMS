@@ -96,7 +96,7 @@ export function VideoViewer({
     try {
       await onSeedDummyVideo()
     } catch (error) {
-      console.error('Failed to seed dummy video', error)
+      if (import.meta.env.DEV) console.error('Failed to seed dummy video', error)
       setIsSeeding(false)
     }
   }
@@ -115,7 +115,9 @@ export function VideoViewer({
         const currentPos = videoRef.current.currentTime
         videoRef.current.load()
         videoRef.current.currentTime = currentPos
-        videoRef.current.play().catch((e) => console.error('Recovery play failed', e))
+        videoRef.current.play().catch((e) => {
+          if (import.meta.env.DEV) console.error('Recovery play failed', e)
+        })
       }
     }
     window.addEventListener('online', handleOnline)

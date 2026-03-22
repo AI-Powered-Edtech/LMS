@@ -1,16 +1,36 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { passwordResetRateLimiter } from '@/src/utils/rateLimiter'
+import { useForm } from 'react-hook-form'
+import { valibotResolver } from '@hookform/resolvers/valibot'
+import { FormField } from '@/src/components/ui/FormField'
+import * as v from 'valibot'
+
+const forgotPasswordSchema = v.object({
+  email: v.pipe(v.string(), v.email('Email tidak valid.')),
+})
+
+type ForgotPasswordFormData = v.InferInput<typeof forgotPasswordSchema>
 
 export function ForgotPassword() {
-  const [email, setEmail] = useState('')
+  usePageTitle('Forgot Password')
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    control,
+    formState: { isSubmitting },
+  } = useForm<ForgotPasswordFormData>({
+    resolver: valibotResolver(forgotPasswordSchema),
+    defaultValues: { email: '' },
+  })
+
+  const onSubmit = async (data: ForgotPasswordFormData) => {
     setError('')
 
     const { allowed, retryAfterMs } = passwordResetRateLimiter.check('password-reset')
@@ -20,10 +40,8 @@ export function ForgotPassword() {
       return
     }
 
-    setLoading(true)
-
     try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(data.email, {
         redirectTo: `${window.location.origin}/#/reset-password`,
       })
 
@@ -34,8 +52,6 @@ export function ForgotPassword() {
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan. Silakan coba lagi.')
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -56,8 +72,8 @@ export function ForgotPassword() {
           <div style={styles.successBox}>
             <p style={styles.successIcon}>✉️</p>
             <p style={styles.successText}>
-              Email reset password telah dikirim ke <strong>{email}</strong>. Silakan cek inbox atau
-              folder spam.
+              Email reset password telah dikirim ke <strong>{getValues('email')}</strong>. Silakan
+              cek inbox atau folder spam.
             </p>
             <p style={styles.successHint}>Link akan kedaluwarsa dalam 1 jam.</p>
             <Link to="/login" style={styles.backLink}>
@@ -65,24 +81,21 @@ export function ForgotPassword() {
             </Link>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} style={styles.form}>
-            <div style={styles.field}>
-              <label style={styles.label}>Email</label>
+          <form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
+            <FormField control={control} name="email" label="Email">
               <input
                 type="email"
                 style={styles.input}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                {...register('email')}
                 placeholder="you@example.com"
-                required
                 autoFocus
               />
-            </div>
+            </FormField>
 
             {error && <div style={styles.error}>{error}</div>}
 
-            <button type="submit" style={styles.submitBtn} disabled={loading}>
-              {loading ? 'Mengirim...' : 'Kirim Link Reset'}
+            <button type="submit" style={styles.submitBtn} disabled={isSubmitting}>
+              {isSubmitting ? 'Mengirim...' : 'Kirim Link Reset'}
             </button>
 
             <Link to="/login" style={styles.backLink}>

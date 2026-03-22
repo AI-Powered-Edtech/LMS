@@ -3,7 +3,7 @@ import { Plus, Save, X, Pencil } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/src/utils/cn'
 import { useAuth } from '@/src/contexts/AuthContext'
-import { useToast } from '@/src/contexts/ToastContext'
+import { useToast } from '@/src/hooks/useToast'
 import { useBadgeDefinitions, useSaveBadgeDefinition } from '../queries/gamificationQueries'
 import { RARITY_CONFIG } from '../types'
 import type { BadgeRarity, BadgeType } from '../types'
@@ -74,7 +74,7 @@ const emptyForm: BadgeFormState = {
 
 export function BadgeManager() {
   const { tenantId } = useAuth()
-  const { toast } = useToast()
+  const { addToast } = useToast()
   const { data: badges, isLoading } = useBadgeDefinitions()
   const saveMutation = useSaveBadgeDefinition()
   const [editing, setEditing] = useState<BadgeFormState | null>(null)
@@ -113,10 +113,10 @@ export function BadgeManager() {
         is_active: editing.is_active,
         tenant_id: tenantId,
       })
-      toast('Badge berhasil disimpan', 'success')
+      addToast({ message: 'Badge berhasil disimpan', type: 'success' })
       setEditing(null)
     } catch {
-      toast('Gagal menyimpan badge', 'error')
+      addToast({ message: 'Gagal menyimpan badge', type: 'error' })
     }
   }
 

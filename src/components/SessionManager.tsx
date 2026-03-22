@@ -1,12 +1,12 @@
 import { useEffect, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { useToast } from '../contexts/ToastContext'
+import { useToast } from '../hooks/useToast'
 
 const SESSION_TIMEOUT = 30 * 60 * 1000 // 30 minutes
 
 export function SessionManager() {
   const { user, signOut } = useAuth()
-  const { toast } = useToast()
+  const addToast = useToast((s) => s.addToast)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export function SessionManager() {
 
       timeoutRef.current = setTimeout(async () => {
         await signOut()
-        toast('Sesi Anda telah berakhir karena tidak ada aktivitas.', 'error', 5000)
+        addToast({ type: 'error', message: 'Sesi Anda telah berakhir karena tidak ada aktivitas.' })
       }, SESSION_TIMEOUT)
     }
 
@@ -39,7 +39,7 @@ export function SessionManager() {
         document.removeEventListener(event, resetTimer)
       })
     }
-  }, [user, signOut, toast])
+  }, [user, signOut, addToast])
 
   return null
 }

@@ -47,7 +47,7 @@ export function ProgressReporter({
         position: lastPosition ?? 0,
       }
     } catch (err) {
-      console.error('[ProgressReporter] Failed to sync:', err)
+      if (import.meta.env.DEV) console.error('[ProgressReporter] Failed to sync:', err)
     }
   }, [lessonId, tenantId, status, progressPercentage, lastPosition])
 

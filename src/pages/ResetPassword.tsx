@@ -1,15 +1,45 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useForm } from 'react-hook-form'
+import { valibotResolver } from '@hookform/resolvers/valibot'
+import { FormField } from '@/src/components/ui/FormField'
+import * as v from 'valibot'
+
+const resetPasswordSchema = v.pipe(
+  v.object({
+    password: v.pipe(v.string(), v.minLength(6, 'Password minimal 6 karakter.')),
+    confirmPassword: v.string(),
+  }),
+  v.forward(
+    v.partialCheck(
+      [['password'], ['confirmPassword']],
+      (input) => input.password === input.confirmPassword,
+      'Password tidak cocok.'
+    ),
+    ['confirmPassword']
+  )
+)
+
+type ResetPasswordFormData = v.InferInput<typeof resetPasswordSchema>
 
 export function ResetPassword() {
+  usePageTitle('Reset Password')
   const navigate = useNavigate()
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [sessionReady, setSessionReady] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { isSubmitting },
+  } = useForm<ResetPasswordFormData>({
+    resolver: valibotResolver(resetPasswordSchema),
+    defaultValues: { password: '', confirmPassword: '' },
+  })
 
   useEffect(() => {
     // Supabase auto-logs the user in when they click the recovery link.
@@ -32,25 +62,12 @@ export function ResetPassword() {
     return () => subscription.unsubscribe()
   }, [])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const onSubmit = async (data: ResetPasswordFormData) => {
     setError('')
-
-    if (password !== confirmPassword) {
-      setError('Password tidak cocok.')
-      return
-    }
-
-    if (password.length < 6) {
-      setError('Password minimal 6 karakter.')
-      return
-    }
-
-    setLoading(true)
 
     try {
       const { error: updateError } = await supabase.auth.updateUser({
-        password,
+        password: data.password,
       })
 
       if (updateError) {
@@ -61,8 +78,6 @@ export function ResetPassword() {
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan.')
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -113,38 +128,30 @@ export function ResetPassword() {
             </Link>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} style={styles.form}>
-            <div style={styles.field}>
-              <label style={styles.label}>Password Baru</label>
+          <form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
+            <FormField control={control} name="password" label="Password Baru">
               <input
                 type="password"
                 style={styles.input}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                {...register('password')}
                 placeholder="Minimal 6 karakter"
-                required
-                minLength={6}
                 autoFocus
               />
-            </div>
+            </FormField>
 
-            <div style={styles.field}>
-              <label style={styles.label}>Konfirmasi Password</label>
+            <FormField control={control} name="confirmPassword" label="Konfirmasi Password">
               <input
                 type="password"
                 style={styles.input}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                {...register('confirmPassword')}
                 placeholder="Ulangi password baru"
-                required
-                minLength={6}
               />
-            </div>
+            </FormField>
 
             {error && <div style={styles.error}>{error}</div>}
 
-            <button type="submit" style={styles.submitBtn} disabled={loading}>
-              {loading ? 'Menyimpan...' : 'Simpan Password Baru'}
+            <button type="submit" style={styles.submitBtn} disabled={isSubmitting}>
+              {isSubmitting ? 'Menyimpan...' : 'Simpan Password Baru'}
             </button>
           </form>
         )}

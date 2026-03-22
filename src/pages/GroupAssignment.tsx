@@ -1,3 +1,5 @@
+import { OptimizedImage } from '@/src/components/ui'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/src/contexts/AuthContext'
@@ -86,6 +88,7 @@ const mockAllGroups = [
 ]
 
 export function GroupAssignment() {
+  usePageTitle('Group Assignment')
   const { role } = useAuth()
   const [activeTab, setActiveTab] = useState('workspace') // workspace, tasks, chat, peer_review
   const [tasks, setTasks] = useState(mockGroupData.tasks)
@@ -293,7 +296,7 @@ export function GroupAssignment() {
                         className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 overflow-hidden"
                         title={m}
                       >
-                        <img
+                        <OptimizedImage
                           src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${m}`}
                           alt={m}
                           className="w-full h-full object-cover"
@@ -456,7 +459,7 @@ export function GroupAssignment() {
                   className="w-10 h-10 rounded-full border-2 border-white bg-slate-200 overflow-hidden relative group"
                   title={`${m.name} - ${m.role}`}
                 >
-                  <img
+                  <OptimizedImage
                     src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${m.avatar}`}
                     alt={m.name}
                     className="w-full h-full object-cover"
@@ -631,7 +634,7 @@ export function GroupAssignment() {
                       >
                         <div className="flex items-center gap-3 mb-4">
                           <div className="w-10 h-10 rounded-full bg-white overflow-hidden shadow-sm">
-                            <img
+                            <OptimizedImage
                               src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${member.avatar}`}
                               alt=""
                             />

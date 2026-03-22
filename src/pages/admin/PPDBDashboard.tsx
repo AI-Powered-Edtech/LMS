@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import React, { useState } from 'react'
 import {
   UserPlus,
@@ -11,6 +12,94 @@ import {
   FileText,
 } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
+import { VirtualTable } from '@/src/components/ui/VirtualTable'
+
+const columns = [
+  {
+    header: 'ID Pendaftaran',
+    key: 'id',
+    className: 'px-6 py-4 font-mono text-slate-600',
+    render: (row: Record<string, unknown>) => row.id,
+  },
+  {
+    header: 'Nama Calon Siswa',
+    key: 'name',
+    className: 'px-6 py-4',
+    render: (row: Record<string, unknown>) => (
+      <div>
+        <p className="font-bold text-slate-900">{row.name}</p>
+        <p className="text-xs text-slate-500">{row.email}</p>
+      </div>
+    ),
+  },
+  {
+    header: 'Asal Sekolah',
+    key: 'prevSchool',
+    className: 'px-6 py-4 text-slate-600',
+    render: (row: Record<string, unknown>) => row.prevSchool,
+  },
+  {
+    header: 'Nilai Rata-rata',
+    key: 'avgScore',
+    className: 'px-6 py-4',
+    render: (row: Record<string, unknown>) => (
+      <span
+        className={cn(
+          'font-bold',
+          row.avgScore >= 90
+            ? 'text-green-600'
+            : row.avgScore >= 80
+              ? 'text-blue-600'
+              : 'text-slate-600'
+        )}
+      >
+        {row.avgScore}
+      </span>
+    ),
+  },
+  {
+    header: 'Tanggal Daftar',
+    key: 'date',
+    className: 'px-6 py-4 text-slate-600',
+    render: (row: Record<string, unknown>) => row.date,
+  },
+  {
+    header: 'Status',
+    key: 'status',
+    className: 'px-6 py-4',
+    render: (row: Record<string, unknown>) => (
+      <span
+        className={cn(
+          'px-2.5 py-1 rounded-full text-xs font-bold border flex items-center w-fit gap-1',
+          row.status === 'accepted'
+            ? 'bg-green-50 text-green-700 border-green-200'
+            : row.status === 'pending'
+              ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+              : 'bg-red-50 text-red-700 border-red-200'
+        )}
+      >
+        {row.status === 'accepted' ? (
+          <CheckCircle className="w-3 h-3" />
+        ) : row.status === 'pending' ? (
+          <Clock className="w-3 h-3" />
+        ) : (
+          <XCircle className="w-3 h-3" />
+        )}
+        {row.status === 'accepted' ? 'Diterima' : row.status === 'pending' ? 'Menunggu' : 'Ditolak'}
+      </span>
+    ),
+  },
+  {
+    header: 'Aksi',
+    key: 'action',
+    className: 'px-6 py-4',
+    render: () => (
+      <button className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors">
+        <ChevronRight className="w-5 h-5" />
+      </button>
+    ),
+  },
+]
 
 const applicants = [
   {
@@ -61,6 +150,7 @@ const applicants = [
 ]
 
 export function PPDBDashboard() {
+  usePageTitle('P P D B Dashboard')
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'accepted' | 'rejected'>(
     'all'
   )
@@ -173,80 +263,13 @@ export function PPDBDashboard() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4">ID Pendaftaran</th>
-                <th className="px-6 py-4">Nama Calon Siswa</th>
-                <th className="px-6 py-4">Asal Sekolah</th>
-                <th className="px-6 py-4">Nilai Rata-rata</th>
-                <th className="px-6 py-4">Tanggal Daftar</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredApplicants.map((app) => (
-                <tr key={app.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4 font-mono text-slate-600">{app.id}</td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="font-bold text-slate-900">{app.name}</p>
-                      <p className="text-xs text-slate-500">{app.email}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-slate-600">{app.prevSchool}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={cn(
-                        'font-bold',
-                        app.avgScore >= 90
-                          ? 'text-green-600'
-                          : app.avgScore >= 80
-                            ? 'text-blue-600'
-                            : 'text-slate-600'
-                      )}
-                    >
-                      {app.avgScore}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-slate-600">{app.date}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={cn(
-                        'px-2.5 py-1 rounded-full text-xs font-bold border flex items-center w-fit gap-1',
-                        app.status === 'accepted'
-                          ? 'bg-green-50 text-green-700 border-green-200'
-                          : app.status === 'pending'
-                            ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                            : 'bg-red-50 text-red-700 border-red-200'
-                      )}
-                    >
-                      {app.status === 'accepted' ? (
-                        <CheckCircle className="w-3 h-3" />
-                      ) : app.status === 'pending' ? (
-                        <Clock className="w-3 h-3" />
-                      ) : (
-                        <XCircle className="w-3 h-3" />
-                      )}
-                      {app.status === 'accepted'
-                        ? 'Diterima'
-                        : app.status === 'pending'
-                          ? 'Menunggu'
-                          : 'Ditolak'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors">
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <VirtualTable
+          data={filteredApplicants}
+          columns={columns}
+          getRowKey={(r) => r.id}
+          rowHeight={72}
+          maxHeight={600}
+        />
       </div>
     </div>
   )

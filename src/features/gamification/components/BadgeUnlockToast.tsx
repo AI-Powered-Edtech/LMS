@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/src/contexts/AuthContext'
-import { useToast } from '@/src/contexts/ToastContext'
+import { useToast } from '@/src/hooks/useToast'
 import { gamificationKeys } from '../queries/gamificationQueries'
 import type { BadgeDefinition } from '../types'
 
@@ -11,7 +11,7 @@ import type { BadgeDefinition } from '../types'
  */
 export function BadgeUnlockToast() {
   const { user, tenantId } = useAuth()
-  const { toast } = useToast()
+  const { addToast } = useToast()
   const qc = useQueryClient()
   const prevEarnedRef = useRef<Set<string>>(new Set())
   const initializedRef = useRef(false)
@@ -47,11 +47,10 @@ export function BadgeUnlockToast() {
         if (!prevEarnedRef.current.has(id)) {
           const badge = badges.find((b) => b.badge_id === id)
           if (badge) {
-            toast(
-              `${badge.icon_emoji} Badge Diraih: ${badge.name}! +${badge.xp_reward} XP`,
-              'success',
-              5000
-            )
+            addToast({
+              message: `${badge.icon_emoji} Badge Diraih: ${badge.name}! +${badge.xp_reward} XP`,
+              type: 'success',
+            })
           }
         }
       }
@@ -59,7 +58,7 @@ export function BadgeUnlockToast() {
     })
 
     return unsubscribe
-  }, [user?.id, tenantId, qc, toast])
+  }, [user?.id, tenantId, qc, addToast])
 
   return null
 }

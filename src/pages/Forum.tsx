@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState, useMemo } from 'react'
 import {
   MessageSquare,
@@ -29,7 +30,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useSubmitReport } from '@/src/features/moderation/queries/moderationQueries'
 import { ReportModal } from '@/src/components/moderation/ReportModal'
-import { EmptyState } from '@/src/components/ui'
+import { EmptyState, OptimizedImage } from '@/src/components/ui'
 import {
   discussionService,
   type Discussion,
@@ -160,7 +161,7 @@ function CommentThread({
   return (
     <div className={cn('flex gap-3', depth > 0 && 'ml-6 md:ml-12 mt-4')}>
       <div className="flex flex-col items-center">
-        <img
+        <OptimizedImage
           src={comment.avatar}
           alt=""
           className={cn('rounded-full bg-slate-100', depth === 0 ? 'w-10 h-10' : 'w-8 h-8')}
@@ -364,7 +365,7 @@ function PostItem({
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start mb-3">
             <div className="flex items-center gap-3">
-              <img
+              <OptimizedImage
                 src={post.avatar}
                 alt={`Foto profil ${post.author}`}
                 className="w-10 h-10 rounded-full bg-slate-100"
@@ -493,6 +494,7 @@ function PostItem({
 }
 
 export function Forum() {
+  usePageTitle('Forum')
   const { role, user, tenantId, profile } = useAuth()
   const queryClient = useQueryClient()
   const submitReport = useSubmitReport()
@@ -697,7 +699,7 @@ export function Forum() {
       <div className="bg-white p-4 md:p-6 rounded-3xl shadow-sm border border-slate-200 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
         <div className="flex gap-4">
-          <img
+          <OptimizedImage
             src={myAvatar}
             alt=""
             className="w-10 h-10 rounded-full bg-slate-100 shrink-0 hidden sm:block"

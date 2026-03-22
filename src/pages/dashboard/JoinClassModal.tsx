@@ -1,7 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { CheckCircle2, AlertTriangle, Plus } from 'lucide-react'
 import { motion } from 'motion/react'
 import { Modal, ModalHeader, ModalBody, Button, Input } from '@/src/components/ui'
+import { useForm } from 'react-hook-form'
+import { valibotResolver } from '@hookform/resolvers/valibot'
+import { FormField } from '@/src/components/ui/FormField'
+import * as v from 'valibot'
+
+const JoinClassSchema = v.object({
+  code: v.pipe(v.string(), v.minLength(1, 'Wajib diisi')),
+})
+
+type JoinClassData = v.InferOutput<typeof JoinClassSchema>
 
 interface JoinClassModalProps {
   open: boolean
@@ -11,23 +21,34 @@ interface JoinClassModalProps {
 }
 
 export function JoinClassModal({ open, onClose, initialCode = '', onJoin }: JoinClassModalProps) {
-  const [code, setCode] = useState(initialCode)
+  const { control, handleSubmit, reset, watch } = useForm<JoinClassData>({
+    resolver: valibotResolver(JoinClassSchema),
+    defaultValues: { code: initialCode },
+  })
+  const code = watch('code')
+
   const [isJoining, setIsJoining] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!code.trim()) return
+  useEffect(() => {
+    if (open) {
+      reset({ code: initialCode })
+    }
+  }, [open, initialCode, reset])
+
+  const onSubmit = async (data: JoinClassData) => {
+    const codeToJoin = data.code.trim().toUpperCase()
+    if (!codeToJoin) return
 
     setIsJoining(true)
     setError(null)
     try {
-      await onJoin(code.trim())
+      await onJoin(codeToJoin)
       setSuccess(true)
       setTimeout(() => {
         onClose()
-        setCode('')
+        reset()
         setSuccess(false)
       }, 2000)
     } catch (err: unknown) {
@@ -41,6 +62,7 @@ export function JoinClassModal({ open, onClose, initialCode = '', onJoin }: Join
     onClose()
     setSuccess(false)
     setError(null)
+    reset()
   }
 
   return (
@@ -74,19 +96,19 @@ export function JoinClassModal({ open, onClose, initialCode = '', onJoin }: Join
                 <span>{error}</span>
               </div>
             )}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <Input
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="Contoh: XH2K7"
-                className="uppercase font-bold tracking-widest text-center text-lg placeholder:font-normal placeholder:normal-case placeholder:tracking-normal"
-                autoFocus
-              />
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <FormField control={control} name="code">
+                <Input
+                  placeholder="Contoh: XH2K7"
+                  className="uppercase font-bold tracking-widest text-center text-lg placeholder:font-normal placeholder:normal-case placeholder:tracking-normal"
+                  autoFocus
+                />
+              </FormField>
               <Button
                 type="submit"
                 fullWidth
                 loading={isJoining}
-                disabled={!code.trim()}
+                disabled={!code?.trim()}
                 icon={<Plus className="w-4 h-4" />}
               >
                 {isJoining ? 'Bergabung...' : 'Gabung'}

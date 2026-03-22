@@ -1,6 +1,17 @@
 import React, { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { valibotResolver } from '@hookform/resolvers/valibot'
+import { FormField } from '../ui/FormField'
+import * as v from 'valibot'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
+
+const InviteUserSchema = v.object({
+  email: v.pipe(v.string(), v.email('Email tidak valid')),
+  role: v.picklist(['STUDENT', 'TEACHER', 'ADMIN']),
+})
+type InviteUserData = v.InferOutput<typeof InviteUserSchema>
+type InviteRole = InviteUserData['role']
 
 interface InviteUserModalProps {
   isOpen: boolean
@@ -8,20 +19,23 @@ interface InviteUserModalProps {
   onSuccess?: () => void
 }
 
-type InviteRole = 'STUDENT' | 'TEACHER' | 'ADMIN'
-
 export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalProps) {
   const { user, tenantId, activeTenant } = useAuth()
-  const [email, setEmail] = useState('')
-  const [role, setRole] = useState<InviteRole>('STUDENT')
+  const { control, handleSubmit, reset, watch, setValue } = useForm<InviteUserData>({
+    resolver: valibotResolver(InviteUserSchema),
+    defaultValues: { email: '', role: 'STUDENT' },
+  })
+
+  const email = watch('email')
+  const role = watch('role')
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [inviteLink, setInviteLink] = useState('')
 
   if (!isOpen) return null
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const onSubmit = async (data: InviteUserData) => {
     setError('')
     setInviteLink('')
     setLoading(true)
@@ -32,12 +46,12 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
         return
       }
 
-      const { data, error: insertError } = await supabase
+      const { data: insertData, error: insertError } = await supabase
         .from('tenant_invitations')
         .insert({
           tenant_id: tenantId,
-          email: email.toLowerCase().trim(),
-          role,
+          email: data.email.toLowerCase().trim(),
+          role: data.role,
           invited_by: user.id,
         })
         .select('token')
@@ -52,8 +66,9 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
         return
       }
 
-      const link = `${window.location.origin}/#/login?invite=${data.token}`
+      const link = `${window.location.origin}/#/login?invite=${insertData.token}`
       setInviteLink(link)
+      reset({ email: data.email, role: data.role })
       onSuccess?.()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Gagal mengirim undangan.')
@@ -67,8 +82,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
   }
 
   const handleClose = () => {
-    setEmail('')
-    setRole('STUDENT')
+    reset({ email: '', role: 'STUDENT' })
     setError('')
     setInviteLink('')
     onClose()
@@ -107,18 +121,16 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} style={styles.form}>
+          <form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
             <div style={styles.field}>
-              <label style={styles.label}>Email</label>
-              <input
-                type="email"
-                style={styles.input}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="user@example.com"
-                required
-                autoFocus
-              />
+              <FormField
+                control={control}
+                name="email"
+                label="Email"
+                labelClassName="text-slate-300"
+              >
+                <input type="email" style={styles.input} placeholder="user@example.com" autoFocus />
+              </FormField>
             </div>
 
             <div style={styles.field}>
@@ -129,7 +141,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
                     key={r}
                     type="button"
                     style={role === r ? styles.roleActive : styles.roleBtn}
-                    onClick={() => setRole(r)}
+                    onClick={() => setValue('role', r)}
                   >
                     {r === 'STUDENT' && '🎓 '}
                     {r === 'TEACHER' && '👩‍🏫 '}

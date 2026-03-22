@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { Trophy, Flame, TrendingUp, Calendar, Filter } from 'lucide-react'
 import { motion } from 'motion/react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { cn } from '@/src/utils/cn'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useLeaderboardV2 } from '../queries/gamificationQueries'
 import { LevelBadge } from './LevelBadge'
-import { SkeletonCard, EmptyState } from '@/src/components/ui'
+import { SkeletonCard, EmptyState, OptimizedImage } from '@/src/components/ui'
 import { rankLeaderboard } from '@/src/utils/clientCompute'
 import type { LeaderboardSortBy, LeaderboardPeriod, LeaderboardV2Entry } from '../types'
 
@@ -57,6 +58,15 @@ export function LeaderboardV2() {
 
   const isCurrentUser = (e: LeaderboardV2Entry) => e.user_id === user?.id
   const currentUserEntry = list.find(isCurrentUser)
+
+  const parentRef = useRef<HTMLDivElement>(null)
+  const listTail = list.slice(3)
+
+  const rowVirtualizer = useVirtualizer({
+    count: listTail.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 76,
+  })
 
   useEffect(() => {
     if (currentUserEntry && currentUserRef.current) {
@@ -184,89 +194,112 @@ export function LeaderboardV2() {
           </div>
 
           {/* Rest of list */}
-          {list.length > 3 && (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-2 md:p-4 space-y-2 max-h-[400px] overflow-y-auto">
-              {list.slice(3).map((entry, idx) => (
-                <motion.div
-                  ref={isCurrentUser(entry) ? currentUserRef : null}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.03 }}
-                  key={entry.user_id}
-                  className={cn(
-                    'flex items-center gap-3 p-3 rounded-xl transition-colors',
-                    isCurrentUser(entry)
-                      ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800'
-                      : entry.rank <= 3 && rankRowColors[entry.rank]
-                        ? rankRowColors[entry.rank]
-                        : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
-                  )}
-                >
-                  {entry.rank <= 3 && rankColors[entry.rank] && !isCurrentUser(entry) ? (
-                    <span
+          {listTail.length > 0 && (
+            <div
+              ref={parentRef}
+              className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-2 md:p-4 max-h-[400px] overflow-y-auto"
+            >
+              <div
+                style={{
+                  height: `${rowVirtualizer.getTotalSize()}px`,
+                  width: '100%',
+                  position: 'relative',
+                }}
+              >
+                {rowVirtualizer.getVirtualItems().map((vRow) => {
+                  const entry = listTail[vRow.index]
+                  return (
+                    <motion.div
+                      ref={isCurrentUser(entry) ? currentUserRef : null}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: vRow.index * 0.03 }}
+                      key={entry.user_id}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        transform: `translateY(${vRow.start}px)`,
+                      }}
                       className={cn(
-                        'w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0',
-                        rankColors[entry.rank]
-                      )}
-                    >
-                      {rankEmojis[entry.rank]}
-                    </span>
-                  ) : (
-                    <span
-                      className={cn(
-                        'w-7 text-center font-bold text-sm',
-                        isCurrentUser(entry) ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'
-                      )}
-                    >
-                      {entry.rank}
-                    </span>
-                  )}
-                  <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0">
-                    <img
-                      src={
-                        entry.avatar_url ||
-                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.student_name}`
-                      }
-                      alt={entry.student_name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className={cn(
-                        'font-bold text-sm truncate',
+                        'flex items-center gap-3 p-3 rounded-xl transition-colors',
                         isCurrentUser(entry)
-                          ? 'text-blue-700 dark:text-blue-400'
-                          : 'text-slate-800 dark:text-slate-200'
+                          ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800'
+                          : entry.rank <= 3 && rankRowColors[entry.rank]
+                            ? rankRowColors[entry.rank]
+                            : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
                       )}
                     >
-                      {entry.student_name}
-                      {isCurrentUser(entry) && (
-                        <span className="ml-2 inline-block bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                          Anda
+                      {entry.rank <= 3 && rankColors[entry.rank] && !isCurrentUser(entry) ? (
+                        <span
+                          className={cn(
+                            'w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0',
+                            rankColors[entry.rank]
+                          )}
+                        >
+                          {rankEmojis[entry.rank]}
+                        </span>
+                      ) : (
+                        <span
+                          className={cn(
+                            'w-7 text-center font-bold text-sm',
+                            isCurrentUser(entry)
+                              ? 'text-blue-600 dark:text-blue-400'
+                              : 'text-slate-400'
+                          )}
+                        >
+                          {entry.rank}
                         </span>
                       )}
-                    </p>
-                    <div className="flex items-center gap-2 text-[11px] text-slate-500">
-                      <LevelBadge level={entry.level} size="sm" />
-                      <span className="flex items-center gap-0.5">
-                        <Flame className="h-3 w-3 text-orange-500 fill-orange-500" />
-                        {entry.streak}
+                      <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0">
+                        <OptimizedImage
+                          src={
+                            entry.avatar_url ||
+                            `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.student_name}`
+                          }
+                          alt={entry.student_name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className={cn(
+                            'font-bold text-sm truncate',
+                            isCurrentUser(entry)
+                              ? 'text-blue-700 dark:text-blue-400'
+                              : 'text-slate-800 dark:text-slate-200'
+                          )}
+                        >
+                          {entry.student_name}
+                          {isCurrentUser(entry) && (
+                            <span className="ml-2 inline-block bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                              Anda
+                            </span>
+                          )}
+                        </p>
+                        <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                          <LevelBadge level={entry.level} size="sm" />
+                          <span className="flex items-center gap-0.5">
+                            <Flame className="h-3 w-3 text-orange-500 fill-orange-500" />
+                            {entry.streak}
+                          </span>
+                        </div>
+                      </div>
+                      <span
+                        className={cn(
+                          'font-bold text-sm shrink-0',
+                          isCurrentUser(entry)
+                            ? 'text-blue-600 dark:text-blue-400'
+                            : 'text-yellow-600 dark:text-yellow-500'
+                        )}
+                      >
+                        {entry.value} {sortBy === 'streak' ? 'hari' : 'XP'}
                       </span>
-                    </div>
-                  </div>
-                  <span
-                    className={cn(
-                      'font-bold text-sm shrink-0',
-                      isCurrentUser(entry)
-                        ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-yellow-600 dark:text-yellow-500'
-                    )}
-                  >
-                    {entry.value} {sortBy === 'streak' ? 'hari' : 'XP'}
-                  </span>
-                </motion.div>
-              ))}
+                    </motion.div>
+                  )
+                })}
+              </div>
             </div>
           )}
         </>
@@ -323,7 +356,7 @@ function PodiumCard({
                   : 'border-orange-300'
           )}
         >
-          <img
+          <OptimizedImage
             src={
               entry.avatar_url ||
               `https://api.dicebear.com/7.x/avataaars/svg?seed=${entry.student_name}`

@@ -64,7 +64,7 @@ export function AssignmentViewer({
           setMaxAttempt(sub.attempt_number || 1)
         }
       } catch (err: unknown) {
-        console.error('Error loading submission:', err)
+        if (import.meta.env.DEV) console.error('Error loading submission:', err)
       } finally {
         setIsLoading(false)
       }

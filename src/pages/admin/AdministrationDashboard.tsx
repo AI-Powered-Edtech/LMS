@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import React, { useState, useEffect, useCallback } from 'react'
 import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import {
@@ -66,6 +67,7 @@ const defaultSyncStatus: SyncHistoryItem[] = [
 ]
 
 export function AdministrationDashboard() {
+  usePageTitle('Administration Dashboard')
   // State for modules
   const [modules, setModules] = useState<TenantModuleConfig[]>([])
   const [modulesLoading, setModulesLoading] = useState(true)
@@ -97,7 +99,7 @@ export function AdministrationDashboard() {
         setModules(data)
       }
     } catch (error) {
-      console.error('Failed to fetch modules:', error)
+      if (import.meta.env.DEV) console.error('Failed to fetch modules:', error)
       setModulesError('Gagal memuat konfigurasi modul. Menggunakan default.')
       // Fallback to defaults on error
       setModules(administrationService.getDefaultModules())
@@ -119,7 +121,7 @@ export function AdministrationDashboard() {
         setSyncHistory(defaultSyncStatus)
       }
     } catch (error) {
-      console.error('Failed to fetch sync history:', error)
+      if (import.meta.env.DEV) console.error('Failed to fetch sync history:', error)
       // Use defaults on error
       setSyncHistory(defaultSyncStatus)
     } finally {
@@ -148,7 +150,7 @@ export function AdministrationDashboard() {
     try {
       await administrationService.toggleTenantModule(moduleId, newEnabledState)
     } catch (error) {
-      console.error('Failed to toggle module:', error)
+      if (import.meta.env.DEV) console.error('Failed to toggle module:', error)
       // Revert on error
       setModules((prev) =>
         prev.map((m) => (m.moduleId === moduleId ? { ...m, isEnabled: !newEnabledState } : m))
@@ -183,7 +185,7 @@ export function AdministrationDashboard() {
         })
       }
     } catch (error) {
-      console.error('Sync failed:', error)
+      if (import.meta.env.DEV) console.error('Sync failed:', error)
       setSyncMessage({
         type: 'error',
         text: 'Terjadi kesalahan saat sinkronisasi. Silakan coba lagi.',

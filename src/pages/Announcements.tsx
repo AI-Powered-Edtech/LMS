@@ -1,3 +1,5 @@
+import { OptimizedImage } from '@/src/components/ui'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState, useEffect } from 'react'
 import {
   Megaphone,
@@ -20,7 +22,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/src/utils/cn'
 import { useAuth } from '@/src/contexts/AuthContext'
 import type { Announcement as DBAnnouncement } from '@/src/features/announcements'
-import { useToast } from '@/src/contexts/ToastContext'
+import { useToast } from '@/src/hooks/useToast'
 import { format } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { CommentSection } from '@/src/components/Social/CommentSection'
@@ -54,8 +56,9 @@ interface Announcement extends Omit<
 }
 
 export function Announcements() {
+  usePageTitle('Announcements')
   const { user, role, tenantId } = useAuth()
-  const { toast } = useToast()
+  const { addToast } = useToast()
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [filter, setFilter] = useState('all') // all, unread, pinned
@@ -65,7 +68,11 @@ export function Announcements() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   // Use React Query hooks
-  const { data: fetchedAnnouncements, refetch, isLoading } = useAnnouncements({
+  const {
+    data: fetchedAnnouncements,
+    refetch,
+    isLoading,
+  } = useAnnouncements({
     search: searchTerm || undefined,
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
@@ -134,7 +141,7 @@ export function Announcements() {
 
   const handleCreateAnnouncement = async (status: 'draft' | 'published') => {
     if (!formData.title || !formData.content) {
-      toast('Judul dan isi pengumuman wajib diisi.', 'error')
+      addToast({ message: 'Judul dan isi pengumuman wajib diisi.', type: 'error' })
       return
     }
 
@@ -148,10 +155,11 @@ export function Announcements() {
         contact_person: formData.contact_person || null,
       })
 
-      toast(
-        status === 'published' ? 'Pengumuman telah diterbitkan!' : 'Draf pengumuman disimpan.',
-        'success'
-      )
+      addToast({
+        message:
+          status === 'published' ? 'Pengumuman telah diterbitkan!' : 'Draf pengumuman disimpan.',
+        type: 'success',
+      })
 
       setIsCreateModalOpen(false)
       // Reset form
@@ -169,8 +177,8 @@ export function Announcements() {
       })
       refetch()
     } catch (err) {
-      console.error('Error creating announcement:', err)
-      toast('Gagal menyimpan pengumuman.', 'error')
+      if (import.meta.env.DEV) console.error('Error creating announcement:', err)
+      addToast({ message: 'Gagal menyimpan pengumuman.', type: 'error' })
     }
   }
 
@@ -178,10 +186,10 @@ export function Announcements() {
   const handleRSVP = async (announcementId: string, response: 'yes' | 'no' | 'maybe') => {
     try {
       await rsvpMutation.mutateAsync({ announcementId, response })
-      toast('Berhasil mengirim RSVP', 'success')
+      addToast({ message: 'Berhasil mengirim RSVP', type: 'success' })
       refetch() // Refresh to show new status
     } catch {
-      toast('Gagal mengirim RSVP', 'error')
+      addToast({ message: 'Gagal mengirim RSVP', type: 'error' })
     }
   }
   const [expandedComments, setExpandedComments] = useState<string | null>(null)
@@ -467,7 +475,7 @@ export function Announcements() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-slate-100 dark:border-slate-700">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
-                    <img
+                    <OptimizedImage
                       src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${announcement.author}`}
                       alt=""
                       className="w-full h-full object-cover"

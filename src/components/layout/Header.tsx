@@ -1,3 +1,4 @@
+import { OptimizedImage } from '@/src/components/ui'
 import { Flame, Star, UserCircle, LogOut, Moon, Sun, Activity } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
 import { useAuth, Role } from '@/src/contexts/AuthContext'
@@ -54,7 +55,10 @@ export function Header() {
   }
 
   return (
-    <header data-testid="navbar" className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4 md:px-8 transition-colors duration-300">
+    <header
+      data-testid="navbar"
+      className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4 md:px-8 transition-colors duration-300"
+    >
       <div className="flex items-center gap-4 md:hidden">
         <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center">
           <span className="text-white font-bold text-lg">E</span>
@@ -139,7 +143,7 @@ export function Header() {
             aria-label="Menu profil"
             className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-white dark:border-slate-800 shadow-sm overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <img
+            <OptimizedImage
               src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
               alt="Foto profil pengguna"
               className="w-full h-full object-cover"

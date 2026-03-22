@@ -1,3 +1,4 @@
+import { OptimizedImage } from '@/src/components/ui'
 import { useState, useEffect } from 'react'
 import { X, RotateCcw } from 'lucide-react'
 
@@ -69,7 +70,7 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
       <div className="relative">
         {isLoading && <div className="animate-pulse bg-slate-200 rounded-xl w-full h-[300px]" />}
 
-        <img
+        <OptimizedImage
           src={url}
           alt={alt}
           loading="lazy"
@@ -101,7 +102,7 @@ export function ImageBlockViewer({ url, alt }: ImageBlockViewerProps) {
             <X className="w-6 h-6" />
           </button>
 
-          <img
+          <OptimizedImage
             src={url}
             alt={alt}
             className="max-w-[90vw] max-h-[90vh] object-contain"

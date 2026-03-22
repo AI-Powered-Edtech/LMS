@@ -50,15 +50,8 @@ export const Courses: React.FC = () => {
     courseTitle: '',
   })
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-    isError,
-    refetch,
-  } = useInfiniteCoursesQuery(activeTenant?.id ?? '', debouncedSearch)
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } =
+    useInfiniteCoursesQuery(activeTenant?.id ?? '', debouncedSearch)
 
   const courses = data?.pages.flatMap((p) => p.courses) ?? []
 
@@ -105,7 +98,7 @@ export const Courses: React.FC = () => {
       setIsModalOpen(false)
       navigate(`/teaching/course-builder?courseId=${newCourse.id}`)
     } catch (err: unknown) {
-      console.error('Failed to create course:', err)
+      if (import.meta.env.DEV) console.error('Failed to create course:', err)
       alert(err instanceof Error ? err.message : 'Gagal membuat materi baru.')
     } finally {
       setIsCreating(false)
@@ -208,7 +201,10 @@ export const Courses: React.FC = () => {
           )}
         </motion.div>
       ) : (
-        <div data-testid="course-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          data-testid="course-grid"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
           <AnimatePresence>
             {filteredCourses.map((course, idx) => (
               <CourseCard

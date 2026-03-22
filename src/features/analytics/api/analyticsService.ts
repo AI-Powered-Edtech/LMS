@@ -103,7 +103,7 @@ export const analyticsService = {
     })
 
     if (error) {
-      console.error('Failed to refresh course stats:', error)
+      if (import.meta.env.DEV) console.error('Failed to refresh course stats:', error)
       throw parseRpcError(error)
     }
   },
@@ -124,7 +124,7 @@ export const analyticsService = {
     })
 
     if (error) {
-      console.error('Failed to get teacher analytics:', error)
+      if (import.meta.env.DEV) console.error('Failed to get teacher analytics:', error)
       throw parseRpcError(error)
     }
 
@@ -138,7 +138,7 @@ export const analyticsService = {
     const { error } = await supabase.rpc('refresh_all_course_stats')
 
     if (error) {
-      console.error('Failed to refresh all course stats:', error)
+      if (import.meta.env.DEV) console.error('Failed to refresh all course stats:', error)
       throw parseRpcError(error)
     }
   },
@@ -150,11 +150,13 @@ export const analyticsService = {
   async getTenantAnalyticsOverview(tenantId: string): Promise<TenantAnalyticsOverview> {
     const { data, error } = await supabase
       .from('course_stats')
-      .select('course_id, tenant_id, total_enrolled, active_students, avg_progress, avg_quiz_score, last_refreshed_at')
+      .select(
+        'course_id, tenant_id, total_enrolled, active_students, avg_progress, avg_quiz_score, last_refreshed_at'
+      )
       .eq('tenant_id', tenantId)
 
     if (error) {
-      console.error('Failed to get tenant analytics overview:', error)
+      if (import.meta.env.DEV) console.error('Failed to get tenant analytics overview:', error)
       throw new Error('Gagal memuat ringkasan analitik. Silakan coba lagi.')
     }
 
@@ -222,7 +224,7 @@ export const analyticsService = {
       .limit(5000)
 
     if (error) {
-      console.error('Failed to get activity metrics:', error)
+      if (import.meta.env.DEV) console.error('Failed to get activity metrics:', error)
       throw new Error('Gagal memuat metrik aktivitas. Silakan coba lagi.')
     }
 
@@ -254,24 +256,26 @@ export const analyticsService = {
       p_tenant_id: tenantId,
     })
     if (error) {
-      console.error('Failed to get course engagement stats:', error)
+      if (import.meta.env.DEV) console.error('Failed to get course engagement stats:', error)
       throw new Error('Gagal memuat data engagement kursus. Silakan coba lagi.')
     }
-    return (data || []).map((r: {
-      course_id: string
-      course_name: string
-      total_enrolled: number
-      active_students: number
-      avg_progress: number
-      avg_quiz_score: number
-    }) => ({
-      courseId: r.course_id,
-      courseName: r.course_name,
-      enrolled: r.total_enrolled,
-      activeStudents: r.active_students,
-      avgProgress: r.avg_progress,
-      avgQuizScore: r.avg_quiz_score,
-    }))
+    return (data || []).map(
+      (r: {
+        course_id: string
+        course_name: string
+        total_enrolled: number
+        active_students: number
+        avg_progress: number
+        avg_quiz_score: number
+      }) => ({
+        courseId: r.course_id,
+        courseName: r.course_name,
+        enrolled: r.total_enrolled,
+        activeStudents: r.active_students,
+        avgProgress: r.avg_progress,
+        avgQuizScore: r.avg_quiz_score,
+      })
+    )
   },
 
   /**
@@ -285,7 +289,7 @@ export const analyticsService = {
     })
 
     if (error) {
-      console.error('Failed to get activity timeline:', error)
+      if (import.meta.env.DEV) console.error('Failed to get activity timeline:', error)
       throw new Error('Gagal memuat timeline aktivitas. Silakan coba lagi.')
     }
 
@@ -296,9 +300,7 @@ export const analyticsService = {
       assignment_submissions: number
     }
     // Build a map from the RPC result for fast date lookup
-    const dataMap = new Map<string, RpcRow>(
-      (data ?? []).map((r: RpcRow) => [r.event_date, r])
-    )
+    const dataMap = new Map<string, RpcRow>((data ?? []).map((r: RpcRow) => [r.event_date, r]))
 
     // Fill all days in range (including those with no events)
     const result: ActivityTimePoint[] = []
@@ -343,7 +345,7 @@ export const analyticsService = {
 
   async getCourseAnalyticsDashboard(
     courseId: string,
-    tenantId: string
+    _tenantId: string
   ): Promise<CourseAnalytics | null> {
     const { data, error } = await supabase.rpc('get_course_analytics', { p_course_id: courseId })
     if (error) throw parseRpcError(error)
@@ -352,7 +354,7 @@ export const analyticsService = {
 
   async getLessonAnalyticsDashboard(
     courseId: string,
-    tenantId: string
+    _tenantId: string
   ): Promise<LessonAnalytics[]> {
     const { data, error } = await supabase.rpc('get_lesson_analytics', { p_course_id: courseId })
     if (error) throw parseRpcError(error)
@@ -361,7 +363,7 @@ export const analyticsService = {
 
   async getStudentSignalsDashboard(
     courseId: string,
-    tenantId: string,
+    _tenantId: string,
     lessonId?: string
   ): Promise<StudentSignal[]> {
     const { data, error } = await supabase.rpc('get_student_signals', {

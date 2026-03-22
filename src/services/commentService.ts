@@ -1,4 +1,6 @@
 import { supabase } from '../lib/supabase'
+import { validate, validateArray } from '@/src/shared/lib/validate'
+import { DiscussionPostRowSchema } from '@/src/shared/schemas'
 
 export interface CommentData {
   id: string
@@ -22,6 +24,7 @@ export const commentService = {
       .order('created_at', { ascending: true })
 
     if (error) throw error
+    validateArray(DiscussionPostRowSchema, data ?? [], 'commentService.fetchComments')
 
     return (data ?? []).map((d) => ({
       id: d.id,
@@ -54,6 +57,7 @@ export const commentService = {
       .single()
 
     if (error) throw error
+    validate(DiscussionPostRowSchema, data, 'commentService.addComment')
     return data
   },
 }

@@ -1,5 +1,5 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useState, useMemo } from 'react'
-import { Calculator, Trophy, Target, BookOpen, Loader2, ChevronDown } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/src/lib/supabase'
 import { useAuth } from '@/src/contexts/AuthContext'
@@ -47,6 +47,7 @@ const DEFAULT_ASSIGNMENTS: Assignment[] = [
 ]
 
 export function Grades() {
+  usePageTitle('Grades')
   const { user, tenantId } = useAuth()
   const [whatIfScores, setWhatIfScores] = useState<Record<string, number | null>>({})
   const [targetGrade, setTargetGrade] = useState<number>(90)

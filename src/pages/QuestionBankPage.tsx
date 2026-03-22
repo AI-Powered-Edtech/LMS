@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import React, { useState, useEffect, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { BookOpen, Search, Filter, Plus, Loader2 } from 'lucide-react'
@@ -10,6 +11,7 @@ import { QuestionEditor } from '@/src/features/question-bank/components/Question
 import { QuestionBankSkeleton } from '@/src/features/question-bank/components/QuestionBankSkeleton'
 
 export function QuestionBankPage() {
+  usePageTitle('Question Bank Page')
   const [questions, setQuestions] = useState<QuestionBankItem[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -52,7 +54,7 @@ export function QuestionBankPage() {
       })
       setQuestions(data)
     } catch (error) {
-      console.error('Failed to load questions:', error)
+      if (import.meta.env.DEV) console.error('Failed to load questions:', error)
     } finally {
       setLoading(false)
     }
@@ -75,7 +77,7 @@ export function QuestionBankPage() {
       await questionBankService.archiveQuestion(id)
       setQuestions((q) => q.filter((item) => item.id !== id))
     } catch (error) {
-      console.error('Failed to delete question:', error)
+      if (import.meta.env.DEV) console.error('Failed to delete question:', error)
       alert('Gagal menghapus soal.')
     }
   }

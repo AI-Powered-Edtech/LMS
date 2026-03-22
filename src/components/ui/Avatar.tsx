@@ -1,3 +1,4 @@
+import { OptimizedImage } from '@/src/components/ui'
 import { useState } from 'react'
 import { cn } from '@/src/utils/cn'
 
@@ -64,7 +65,7 @@ export function Avatar({ src, name, size = 'md', online, className }: AvatarProp
   return (
     <div className={cn('relative inline-flex shrink-0', className)}>
       {showImage ? (
-        <img
+        <OptimizedImage
           src={src}
           alt={name}
           onError={() => setImgError(true)}

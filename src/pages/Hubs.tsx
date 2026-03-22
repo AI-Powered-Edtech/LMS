@@ -1,8 +1,10 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { HubView } from '@/src/components/HubView'
 import { navigationItems } from '@/src/config/navigation'
 import { useAuth } from '@/src/contexts/AuthContext'
 
 export function TeachingHub() {
+  usePageTitle('Teaching Hub')
   const { role } = useAuth()
 
   const items = navigationItems.filter(

@@ -72,7 +72,7 @@ export const discussionService = {
     const { data, error } = await query
 
     if (error) {
-      console.error('Error fetching discussions:', error)
+      if (import.meta.env.DEV) console.error('Error fetching discussions:', error)
       throw error
     }
 
@@ -100,7 +100,7 @@ export const discussionService = {
       .single()
 
     if (error) {
-      console.error('Error saving discussion:', error)
+      if (import.meta.env.DEV) console.error('Error saving discussion:', error)
       throw error
     }
 
@@ -120,7 +120,7 @@ export const discussionService = {
       .eq('id', id)
 
     if (error) {
-      console.error('Error deleting discussion:', error)
+      if (import.meta.env.DEV) console.error('Error deleting discussion:', error)
       throw error
     }
   },
@@ -132,7 +132,7 @@ export const discussionService = {
     const { error } = await supabase.from('discussions').update({ is_pinned }).eq('id', id)
 
     if (error) {
-      console.error('Error toggling pin status:', error)
+      if (import.meta.env.DEV) console.error('Error toggling pin status:', error)
       throw error
     }
   },

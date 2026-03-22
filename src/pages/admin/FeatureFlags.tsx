@@ -1,3 +1,4 @@
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import React, { useState, useEffect, useCallback } from 'react'
 import { Flag, Save, RefreshCw, ToggleLeft, ToggleRight, AlertCircle } from 'lucide-react'
 import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
@@ -19,6 +20,7 @@ interface FlagDraft extends FeatureFlag {
 // ---------------------------------------------------------------------------
 
 export default function FeatureFlagsPage() {
+  usePageTitle('Feature Flags Page')
   const [flags, setFlags] = useState<FlagDraft[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
