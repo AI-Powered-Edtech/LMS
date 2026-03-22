@@ -16,10 +16,11 @@ import {
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { cn } from '@/src/utils/cn'
+import { ModerationSkeleton } from '@/src/features/moderation/components/ModerationSkeleton'
 
 export function ModerationDashboard() {
   const navigate = useNavigate()
-  const { data: reports = [] } = useModerationReports()
+  const { data: reports = [], isLoading } = useModerationReports()
   const resolveReport = useResolveReport()
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'resolved'>('pending')
   const [searchQuery, setSearchQuery] = useState('')
@@ -62,6 +63,10 @@ export function ModerationDashboard() {
       other: 'Lainnya',
     }
     return labels[reason] || reason
+  }
+
+  if (isLoading) {
+    return <ModerationSkeleton />
   }
 
   return (

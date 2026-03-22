@@ -4,11 +4,32 @@
 /* ─── Route → likely-next-route map ────────────────────────── */
 
 const prefetchMap: Record<string, string[]> = {
-  '/login': ['/app/student/dashboard', '/app/teacher/dashboard'],
-  '/app/student/dashboard': ['/app/student/courses'],
+  // ── Auth ─────────────────────────────────────────────────────────────────
+  '/login': ['/app/student/dashboard', '/app/teacher/dashboard', '/app/admin/dashboard'],
+
+  // ── Student paths ─────────────────────────────────────────────────────────
+  '/app/student/dashboard': ['/app/student/courses', '/app/student/assignments'],
   '/app/student/courses': ['/app/student/courses/'],
-  '/app/teacher/dashboard': ['/app/teacher/classes'],
-  '/app/teacher/classes': ['/app/teacher/classes/'],
+  '/app/student/assignments': ['/app/student/courses'],
+  '/app/student/leaderboard': ['/app/student/dashboard'],
+  '/app/student/announcements': ['/app/student/dashboard'],
+
+  // ── Teacher paths ─────────────────────────────────────────────────────────
+  '/app/teacher/dashboard': ['/app/teacher/classes', '/teaching/courses', '/app/teacher/analytics'],
+  '/app/teacher/classes': ['/app/teacher/classes/', '/teaching/courses'],
+  '/teaching/courses': ['/teaching/courses/', '/app/teacher/dashboard'],
+  '/teaching/courses/': ['/app/teacher/dashboard'],
+  '/app/teacher/analytics': ['/app/teacher/dashboard'],
+  '/app/teacher/gradebook': ['/app/teacher/classes'],
+  '/app/teacher/assignments': ['/app/teacher/gradebook'],
+  '/app/teacher/announcements': ['/app/teacher/dashboard'],
+  '/app/teacher/calendar': ['/app/teacher/dashboard'],
+
+  // ── Admin paths ───────────────────────────────────────────────────────────
+  '/app/admin/dashboard': ['/app/admin/users', '/app/admin/analytics'],
+  '/app/admin/users': ['/app/admin/dashboard'],
+  '/app/admin/analytics': ['/app/admin/dashboard'],
+  '/app/admin/moderation': ['/app/admin/dashboard'],
 }
 
 /** Routes whose chunks have already been prefetched */

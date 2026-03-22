@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   Radar,
   RadarChart,
@@ -144,12 +144,15 @@ export function Analytics() {
 
   if (!activeTenant) return null
 
-  const radarData =
-    data?.module_completion.map((m) => ({
-      subject: m.title.length > 15 ? m.title.substring(0, 15) + '...' : m.title,
-      Completion: Math.round(m.completion_rate),
-      fullMark: 100,
-    })) || []
+  const radarData = useMemo(
+    () =>
+      data?.module_completion.map((m) => ({
+        subject: m.title.length > 15 ? m.title.substring(0, 15) + '...' : m.title,
+        Completion: Math.round(m.completion_rate),
+        fullMark: 100,
+      })) || [],
+    [data?.module_completion]
+  )
 
   const studentsToShow = data?.students.top.concat(data?.students.at_risk || []) || []
 

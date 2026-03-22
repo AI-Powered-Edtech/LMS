@@ -5,6 +5,7 @@
 
 import { useEffect } from 'react'
 import { HashRouter as Router } from 'react-router-dom'
+import { MotionConfig } from 'motion/react'
 
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
@@ -23,6 +24,7 @@ export default function App() {
   }, [])
 
   return (
+    <MotionConfig reducedMotion="user">
     <ErrorBoundary>
       <ThemeProvider>
         <ToastProvider>
@@ -36,5 +38,6 @@ export default function App() {
         </ToastProvider>
       </ThemeProvider>
     </ErrorBoundary>
+    </MotionConfig>
   )
 }

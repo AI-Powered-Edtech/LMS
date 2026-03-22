@@ -6,6 +6,7 @@ import { courseService, Course } from '@/src/features/courses'
 import { motion, AnimatePresence } from 'motion/react'
 import { AssignCourseModal } from '@/src/components/Classroom/AssignCourseModal'
 import { cn } from '@/src/utils/cn'
+import { CourseSkeleton } from '@/src/features/courses/components/CourseSkeleton'
 
 // Gradient palette rotated per card index
 const CARD_GRADIENTS = [
@@ -147,10 +148,7 @@ export const Courses: React.FC = () => {
       )}
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-32 bg-white/30 dark:bg-gray-800/20 backdrop-blur-sm rounded-3xl border border-dashed border-gray-300 dark:border-gray-700">
-          <Loader2 className="w-12 h-12 animate-spin text-indigo-500 mb-4" />
-          <p className="text-gray-500 dark:text-gray-400 font-medium">Memuat daftar materi...</p>
-        </div>
+        <CourseSkeleton />
       ) : error ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="p-8 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 rounded-3xl max-w-md w-full shadow-xl">

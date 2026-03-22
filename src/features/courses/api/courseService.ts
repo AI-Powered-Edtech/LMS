@@ -1,5 +1,5 @@
 import { supabase } from '../../../lib/supabase'
-import { CourseInsert, CourseUpdate, FetchCoursesOptions } from '../types'
+import type { Course, CourseInsert, CourseUpdate, FetchCoursesOptions } from '../types'
 
 export const courseService = {
   /**
@@ -12,7 +12,14 @@ export const courseService = {
       .from('courses')
       .select(
         `
-                *,
+                id,
+                title,
+                description,
+                status,
+                created_at,
+                updated_at,
+                created_by,
+                tenant_id,
                 assigned_classes:course_classes(
                     class_id,
                     class:classes(name)
@@ -21,6 +28,7 @@ export const courseService = {
         { count: 'exact' }
       )
       .eq('tenant_id', tenantId)
+      .limit(100)
 
     if (ids && ids.length > 0) {
       query = query.in('id', ids)
@@ -45,9 +53,10 @@ export const courseService = {
       console.warn('Courses join query failed, falling back to simple fetch:', error.message)
       let fallbackQuery = supabase
         .from('courses')
-        .select('*', { count: 'exact' })
+        .select('id, title, description, status, created_at, updated_at, created_by, tenant_id', { count: 'exact' })
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
+        .limit(100)
 
       if (ids && ids.length > 0) {
         fallbackQuery = fallbackQuery.in('id', ids)
@@ -66,12 +75,12 @@ export const courseService = {
         console.error('Error fetching courses (fallback):', fallback.error)
         throw fallback.error
       }
-      data = fallback.data
+      data = fallback.data as unknown as typeof data
       count = fallback.count
     }
 
     return {
-      courses: data || [],
+      courses: (data || []) as unknown as Course[],
       count: count || 0,
     }
   },
@@ -82,7 +91,7 @@ export const courseService = {
   async getCourseById(courseId: string, tenantId: string) {
     const { data, error } = await supabase
       .from('courses')
-      .select('*')
+      .select('id, title, description, status, created_at, updated_at, created_by, tenant_id')
       .eq('id', courseId)
       .eq('tenant_id', tenantId)
       .single()

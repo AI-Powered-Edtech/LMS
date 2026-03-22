@@ -21,6 +21,7 @@ import { useAssignments } from '@/src/features/assignments/hooks/useAssignments'
 import { navigationItems } from '@/src/config/navigation'
 
 import { Card, Badge, Button, EmptyState, SkeletonCard } from '@/src/components/ui'
+import { DashboardSkeleton } from '@/src/features/dashboards/components/DashboardSkeleton'
 
 export function TeacherDashboard() {
   const { classrooms, setActiveClassroomId, loading: classroomsLoading } = useClassroom()
@@ -56,6 +57,10 @@ export function TeacherDashboard() {
   ]
 
   const userName = profile ? `${profile.first_name} ${profile.last_name}`.trim() || 'Guru' : 'Guru'
+
+  if (classroomsLoading) {
+    return <DashboardSkeleton />
+  }
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 sm:space-y-8 pb-20 sm:pb-12 px-4 md:px-6 lg:px-8 dark:bg-slate-900 dark:text-white">

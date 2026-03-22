@@ -125,7 +125,7 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
   // Get all existing answers for this attempt
   const { data: answers, error: answersError } = await supabase
     .from('quiz_attempt_questions_v2')
-    .select('*')
+    .select('attempt_id, question_id, student_answers, points_earned, is_correct')
     .eq('attempt_id', attemptId)
 
   if (answersError) throw answersError
@@ -354,7 +354,18 @@ export async function getUserAttempts(tenantId: string): Promise<QuizAttempt[]> 
     .from('quiz_attempts_v2')
     .select(
       `
-      *,
+      id,
+      quiz_id,
+      student_id,
+      status,
+      score,
+      started_at,
+      submitted_at,
+      time_spent_seconds,
+      question_manifest,
+      final_answers,
+      tenant_id,
+      assignment_id,
       quizzes (
         title,
         passing_score,
@@ -376,7 +387,7 @@ export async function getUserAttempts(tenantId: string): Promise<QuizAttempt[]> 
     .order('started_at', { ascending: false })
 
   if (error) throw error
-  return (data || []) as QuizAttempt[]
+  return (data || []) as unknown as QuizAttempt[]
 }
 
 // ============================================

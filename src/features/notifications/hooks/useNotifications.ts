@@ -44,7 +44,7 @@ export function useNotifications(): UseNotificationsReturn {
     queryKey,
     queryFn: () => notificationApi.fetchNotifications(user!.id, tenantId!),
     enabled: !!tenantId && !!user,
-    staleTime: 30_000,
+    staleTime: 5 * 60 * 1000, // 5 min — Realtime subscription keeps data fresh via WebSocket
   })
 
   // Realtime subscription — lifecycle tied to this hook instance

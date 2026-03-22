@@ -218,6 +218,7 @@ export const analyticsService = {
       .select('event_type, created_at')
       .eq('tenant_id', tenantId)
       .gte('created_at', since.toISOString())
+      .limit(5000)
 
     if (error) {
       console.error('Failed to get activity metrics:', error)
@@ -303,6 +304,7 @@ export const analyticsService = {
       .eq('tenant_id', tenantId)
       .gte('created_at', since.toISOString())
       .order('created_at', { ascending: true })
+      .limit(5000)
 
     if (error) {
       console.error('Failed to get activity timeline:', error)

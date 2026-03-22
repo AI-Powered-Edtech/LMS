@@ -33,6 +33,7 @@ import { AssignmentUiState } from '@/src/features/assignments/types'
 
 import { SkeletonCard, EmptyState, Tabs } from '@/src/components/ui'
 import type { Tab } from '@/src/components/ui'
+import { AssignmentSkeleton } from '@/src/features/assignments/components/AssignmentSkeleton'
 
 // Mock data has been removed and replaced with real backend integration via useAssignments hook.
 
@@ -127,17 +128,7 @@ export function Assignments() {
   ]
 
   if (loading) {
-    return (
-      <div className="w-full max-w-7xl mx-auto p-4 md:p-8 space-y-6">
-        <SkeletonCard lines={1} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <SkeletonCard lines={3} />
-          <SkeletonCard lines={3} />
-          <SkeletonCard lines={3} />
-          <SkeletonCard lines={3} />
-        </div>
-      </div>
-    )
+    return <AssignmentSkeleton />
   }
 
   const handleTurnIn = async (id: string) => {

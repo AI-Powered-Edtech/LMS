@@ -20,6 +20,7 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { cn } from '@/src/utils/cn'
 import { motion, AnimatePresence } from 'motion/react'
 import { supabase } from '@/src/lib/supabase'
+import { GradebookSkeleton } from '@/src/features/gradebook/components/GradebookSkeleton'
 
 export function AssignmentGradebook() {
   const { user, tenantId } = useAuth()
@@ -97,11 +98,7 @@ export function AssignmentGradebook() {
   }, [gradingSubmission, score, feedback])
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-      </div>
-    )
+    return <GradebookSkeleton />
   }
 
   return (

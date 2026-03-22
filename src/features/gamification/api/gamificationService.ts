@@ -70,7 +70,11 @@ export const gamificationService = {
    * Fetches all available badges (v1 compat).
    */
   async getAllBadges(): Promise<Badge[]> {
-    const { data, error } = await supabase.from('badges').select('*').order('name')
+    const { data, error } = await supabase
+      .from('badges')
+      .select('id, name, description, icon, xp_reward, condition_type, condition_threshold, tenant_id, created_at')
+      .order('name')
+      .limit(100)
 
     if (error) {
       console.error('Error fetching badges:', error)

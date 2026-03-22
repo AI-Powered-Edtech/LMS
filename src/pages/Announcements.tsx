@@ -25,6 +25,7 @@ import { format } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { CommentSection } from '@/src/components/Social/CommentSection'
 import { useAnnouncements, useSaveAnnouncement, useSubmitRSVP } from '@/src/features/announcements'
+import { AnnouncementSkeleton } from '@/src/features/announcements/components/AnnouncementSkeleton'
 
 // Removed Comment interface as we use the real discussionService now
 
@@ -64,7 +65,7 @@ export function Announcements() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   // Use React Query hooks
-  const { data: fetchedAnnouncements, refetch } = useAnnouncements({
+  const { data: fetchedAnnouncements, refetch, isLoading } = useAnnouncements({
     search: searchTerm || undefined,
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
@@ -210,6 +211,10 @@ export function Announcements() {
       if (!a.is_pinned && b.is_pinned) return 1
       return 0
     })
+
+  if (isLoading && announcements.length === 0) {
+    return <AnnouncementSkeleton />
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12 px-4 md:px-6 lg:px-8 dark:text-white">

@@ -27,6 +27,7 @@ import {
 } from '@/src/features/calendar/hooks/useCalendarQueries'
 import { useCalendarStore } from '@/src/features/calendar/hooks/useCalendarQueries'
 import { SkeletonCard } from '@/src/components/ui'
+import { CalendarSkeleton } from '@/src/features/calendar/components/CalendarSkeleton'
 
 type EventType = 'exam' | 'assignment' | 'event' | 'quiz'
 type Priority = 'low' | 'medium' | 'high'
@@ -121,12 +122,7 @@ export function Calendar() {
   }
 
   if (isLoading) {
-    return (
-      <div className="w-full max-w-7xl mx-auto p-4 md:p-8 space-y-6">
-        <SkeletonCard lines={1} />
-        <SkeletonCard lines={6} />
-      </div>
-    )
+    return <CalendarSkeleton />
   }
 
   const handleAddEvent = (e: React.FormEvent) => {
