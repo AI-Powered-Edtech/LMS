@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion } from 'motion/react'
 import {
   Users,
@@ -39,22 +39,28 @@ export function TeacherDashboard() {
   }
 
   // Real pending grading count from assignments
-  const pendingGradingCount = assignments.reduce((acc, a) => {
-    return acc + (a.studentSubmissions || []).filter((sub) => sub.status === 'submitted').length
-  }, 0)
+  const pendingGradingCount = useMemo(
+    () =>
+      assignments.reduce((acc, a) => {
+        return acc + (a.studentSubmissions || []).filter((sub) => sub.status === 'submitted').length
+      }, 0),
+    [assignments]
+  )
 
-  const alerts = [
-    ...(pendingGradingCount > 0
-      ? [
-          {
-            id: 'grading',
-            type: 'grading' as const,
-            message: `${pendingGradingCount} tugas perlu dikoreksi`,
-            urgent: true,
-          },
-        ]
-      : []),
-  ]
+  const alerts = useMemo(
+    () =>
+      pendingGradingCount > 0
+        ? [
+            {
+              id: 'grading',
+              type: 'grading' as const,
+              message: `${pendingGradingCount} tugas perlu dikoreksi`,
+              urgent: true,
+            },
+          ]
+        : [],
+    [pendingGradingCount]
+  )
 
   const userName = profile ? `${profile.first_name} ${profile.last_name}`.trim() || 'Guru' : 'Guru'
 

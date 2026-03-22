@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -207,19 +207,27 @@ export function QuizGradebook() {
     quizAnalyticsService.downloadCSV(csv, `gradebook_${assignmentTitle.replace(/\s+/g, '_')}.csv`)
   }
 
-  const filteredAttempts = attempts.filter((attempt) =>
-    attempt.student_name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredAttempts = useMemo(
+    () =>
+      attempts.filter((attempt) =>
+        attempt.student_name.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
+    [attempts, searchQuery]
   )
 
-  const scoredAttempts = filteredAttempts.filter((attempt) => attempt.score !== null)
-  const avgScore = scoredAttempts.length
-    ? Math.round(
-        scoredAttempts.reduce((sum, attempt) => sum + (attempt.score ?? 0), 0) /
-          scoredAttempts.length
-      )
-    : 0
-  const passCount = filteredAttempts.filter((attempt) => attempt.passed).length
-  const failCount = filteredAttempts.filter((attempt) => attempt.passed === false).length
+  const { avgScore, passCount, failCount } = useMemo(() => {
+    const scoredAttempts = filteredAttempts.filter((attempt) => attempt.score !== null)
+    return {
+      avgScore: scoredAttempts.length
+        ? Math.round(
+            scoredAttempts.reduce((sum, attempt) => sum + (attempt.score ?? 0), 0) /
+              scoredAttempts.length
+          )
+        : 0,
+      passCount: filteredAttempts.filter((attempt) => attempt.passed).length,
+      failCount: filteredAttempts.filter((attempt) => attempt.passed === false).length,
+    }
+  }, [filteredAttempts])
 
   const formatDuration = (seconds: number | null) => {
     if (!seconds) return '-'
