@@ -1,5 +1,40 @@
 # EduSync LMS — Changelog
 
+## Phase 6: Technical Debt Clearance (2026-03-22)
+
+### Sprint 6A — Eliminate `select('*')` Violations
+
+- Replaced all 14 remaining `select('*')` calls with explicit column lists across 10 service files
+- Fixed downstream type cast in `QuizBlockEditor.tsx` after column narrowing
+- Compliant with CLAUDE.md convention: never use `SELECT *`
+
+### Sprint 6B — Moderation → Supabase
+
+- Created `content_reports` table with full RLS tenant isolation
+- Replaced 100% mock data in `moderationService` with real Supabase CRUD
+- Added `reported_content_type`, `status`, `resolution_note` columns with enum constraints
+- Migration: `supabase/migrations/..._create_content_reports.sql`
+
+### Sprint 6C — Analytics RLS Defense-in-Depth
+
+- Passed `p_tenant_id` to `refreshCourseStats`, `getTeacherAnalytics`, and third analytics RPC
+- Prevents cross-tenant data leak even if JWT tenant claim is absent
+- Migration updates existing RPC signatures to include tenant parameter
+
+### Sprint 6D — Course Engagement RPC Consolidation
+
+- Replaced 2-query pattern in `getCourseEngagementStats` with single `get_course_engagement()` RPC
+- Eliminates N-round-trips and client-side join; query runs in one DB call
+- Migration: full SQL for `get_course_engagement` function with explicit return type
+
+### Sprint 6E — Authenticated E2E Critical Path Flows
+
+- Added 3 Playwright spec files in `e2e/flows/`: student-journey, teacher-journey, admin-journey
+- Covers: login → enroll → lesson → quiz → progress, teacher grade flow, admin tenant config
+- 12 new E2E tests; all authenticated with real test accounts from CLAUDE.md
+
+---
+
 ## Phase 5: Feature Health 100/100 (2026-03-22)
 
 ### Sprint 5A — Structure & README

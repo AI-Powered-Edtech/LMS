@@ -39,8 +39,9 @@ From prototype to production. Built on a Supabase-centric serverless architectur
 ✅ Phase 11 — Attendance System (teacher scan, student view)
 ✅ Phase 12 — Feature Module Consolidation (migrate remaining services to features/*)
 ✅ Phase 12.5 — Feature Health 100/100 (24/24 features: structure, tests, dark mode, skeleton, docs)
+✅ Phase 12.6 — Technical Debt Clearance (select(*) → explicit columns, moderation→Supabase, analytics RPC security, engagement RPC consolidation)
 ⏳ Phase 13 — Performance & Scale (virtualization, infinite scroll, read replica)
-⏳ Phase 14 — E2E Test Coverage (Playwright critical path)
+🔶 Phase 14 — E2E Test Coverage (3 critical-path flows done; quiz autosave + class join code remaining)
 ```
 
 ---
@@ -74,30 +75,7 @@ gantt
 
 ---
 
-## Active Phase: Phase 12 — Feature Module Consolidation
-
-**Goal:** Finish migrating legacy `src/services/` into `src/features/*/api/` pattern.
-
-```
-Remaining to migrate:
-- [ ] Gradebook → features/gradebook/
-- [ ] Classroom → features/classroom/
-- [ ] Course Builder (partial, BuilderContext still exists)
-- [ ] Social/Forum → features/social/
-- [ ] Admin pages → features/admin/
-
-Already migrated (✅):
-- [x] Quizzes → features/quizzes/
-- [x] Analytics → features/analytics/
-- [x] Gamification → features/gamification/
-- [x] Guidance → features/guidance/
-- [x] Struggle → features/struggle/
-- [x] Courses → features/courses/ (api)
-```
-
----
-
-## Upcoming: Phase 13 — Performance & Scale
+## Active Phase: Phase 13 — Performance & Scale
 
 **Goal:** Prepare for 10k+ students.
 
