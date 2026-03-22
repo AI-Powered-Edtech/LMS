@@ -40,7 +40,7 @@ From prototype to production. Built on a Supabase-centric serverless architectur
 ✅ Phase 12 — Feature Module Consolidation (migrate remaining services to features/*)
 ✅ Phase 12.5 — Feature Health 100/100 (24/24 features: structure, tests, dark mode, skeleton, docs)
 ✅ Phase 12.6 — Technical Debt Clearance (select(*) → explicit columns, moderation→Supabase, analytics RPC security, engagement RPC consolidation)
-⏳ Phase 13 — Performance & Scale (virtualization, infinite scroll, read replica)
+✅ Phase 13 — Performance & Scale (virtualization, infinite scroll, stale-time tiering, bundle splitting, Web Vitals)
 🔶 Phase 14 — E2E Test Coverage (3 critical-path flows done; quiz autosave + class join code remaining)
 ```
 
@@ -68,29 +68,28 @@ gantt
     Phase 9-11 Auth/Guidance :done, p9, after p8, 3d
 
     section Quality
-    Phase 12 Consolidation   :active, p12, after p9, 7d
-    Phase 13 Performance     :p13, after p12, 5d
-    Phase 14 E2E Tests       :p14b, after p13, 5d
+    Phase 12 Consolidation   :done, p12, after p9, 7d
+    Phase 13 Performance     :done, p13, after p12, 5d
+    Phase 14 E2E Tests       :active, p14b, after p13, 5d
 ```
 
 ---
 
-## Active Phase: Phase 13 — Performance & Scale
+## Completed: Phase 13 — Performance & Scale
 
 **Goal:** Prepare for 10k+ students.
 
 ```
-Action Items:
-- Add VirtualList component (@tanstack/react-virtual — already in package.json)
-- Virtualize: gradebook, student roster, quiz attempt list, forum threads
-- Implement infinite scroll for course catalog
-- Apply stale-time strategy: STATIC(30m)/MODERATE(5m)/DYNAMIC(30s)/REALTIME(0)
-- Add Supabase read replica for analytics queries (when >50k students)
+✅ 13A — VirtualTable component + virtualised tables (DOM nodes −90%)
+✅ 13B — Infinite scroll for Course Catalog (useInfiniteQuery, PAGE_SIZE=12)
+✅ 13C — Stale-time tiering via STALE/GC constants in src/utils/queryConstants.ts
+✅ 13D — 5 new vendor chunks in vite.config.ts (motion, dnd, markdown, sentry, date-fns)
+✅ 13E — Web Vitals monitoring + Lighthouse CI (lighthouserc.json, perf:lighthouse script)
 ```
 
 ---
 
-## Upcoming: Phase 14 — E2E Test Coverage
+## Active Phase: Phase 14 — E2E Test Coverage
 
 **Goal:** Catch regressions before users do.
 

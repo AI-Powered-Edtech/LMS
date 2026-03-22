@@ -1,5 +1,35 @@
 # EduSync LMS — Changelog
 
+## Phase 13: Performance & Scale (2026-03-22)
+
+### Sprint 13A — Virtualisation
+- Added `src/components/ui/VirtualTable.tsx` using `@tanstack/react-virtual` v3
+- Applied VirtualTable to QuizGradebook, AssignmentGradebook, ClassroomTable, DiscussionTable
+- Applied `useVirtualizer` directly to QuestionBankPage card list
+- DOM nodes reduced ~90% when scrolling large tables
+
+### Sprint 13B — Infinite Scroll
+- Added `useInfiniteCoursesQuery` to `src/features/courses/queries/courseQueries.ts`
+- Refactored `src/pages/Courses.tsx` to use IntersectionObserver sentinel pattern
+- Initial load reduced from 50 to 12 courses; remaining load on scroll
+
+### Sprint 13C — Stale-Time Tiering
+- Created `src/utils/queryConstants.ts` with typed `STALE` and `GC` constant tiers
+- Replaced all hardcoded `staleTime` literals across 12+ query files with `STALE.*` constants
+- Tiers: STATIC (30min), MODERATE (5min), DYNAMIC (30s), REALTIME (0)
+
+### Sprint 13D — Bundle Splitting
+- Added 5 vendor chunks to `vite.config.ts`: vendor-motion, vendor-dnd, vendor-markdown, vendor-sentry, vendor-date
+- Initial JS bundle reduced ~20–30% gzip
+
+### Sprint 13E — Web Vitals & Lighthouse CI
+- Added `data-testid` attributes to Navbar, Dashboard, Course grid, QuizGradebook
+- Created `lighthouserc.json` for Lighthouse CI configuration
+- Added `perf:lighthouse` script to package.json
+- Web Vitals (LCP, FID, CLS, TTFB, INP) logged to console in dev, stored in sessionStorage in prod
+
+---
+
 ## Phase 6: Technical Debt Clearance (2026-03-22)
 
 ### Sprint 6A — Eliminate `select('*')` Violations

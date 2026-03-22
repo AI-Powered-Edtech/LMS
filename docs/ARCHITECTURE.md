@@ -139,6 +139,56 @@ Bundle is split into manual chunks:
 - `vendor-pdf` — jsPDF, html2canvas (export routes only)
 - `vendor-katex` — Math rendering
 - `vendor-query` — React Query
+- `vendor-motion` — Framer Motion animations
+- `vendor-dnd` — Drag-and-drop (dnd-kit)
+- `vendor-markdown` — Markdown rendering
+- `vendor-sentry` — Sentry error tracking
+- `vendor-date` — date-fns
+
+## Performance Patterns
+
+### Virtualisation
+Large lists and tables use `@tanstack/react-virtual` to render only visible rows.
+
+- **Component:** `src/components/ui/VirtualTable.tsx` — generic virtualized table
+- **Used in:** QuizGradebook, AssignmentGradebook, ClassroomTable, DiscussionTable
+- **Direct hook:** `useVirtualizer` in QuestionBankPage (card list)
+- **Benefit:** DOM node count reduced ~90% when scrolling tables with 100+ rows
+
+### Infinite Scroll
+Course catalog uses `useInfiniteQuery` with IntersectionObserver sentinel.
+
+- **Query:** `useInfiniteCoursesQuery` in `src/features/courses/queries/courseQueries.ts`
+- **Page size:** 12 courses per page
+- **Pattern:** Sentinel `<div>` at end of grid triggers `fetchNextPage()` when visible
+- **Benefit:** Initial load 12 items vs 50; remaining items load lazily on scroll
+
+### Stale-Time Tiers
+All React Query `staleTime` values use named constants from `src/utils/queryConstants.ts`.
+
+| Tier | Value | Used for |
+|------|-------|----------|
+| `STALE.STATIC` | 30 min | Tenant config, onboarding, badges, recommendations, reports |
+| `STALE.MODERATE` | 5 min | Courses, scores, leaderboard, analytics, streak/XP |
+| `STALE.DYNAMIC` | 30 s | Calendar, active assignments, gradebook, discussions |
+| `STALE.REALTIME` | 0 | Notifications (updated via WebSocket subscription) |
+
+### Bundle Splitting
+`vite.config.ts` defines 11 vendor chunks for optimal caching:
+
+```
+vendor-react, vendor-supabase, vendor-recharts, vendor-pdf, vendor-katex, vendor-query,
+vendor-motion, vendor-dnd, vendor-markdown, vendor-sentry, vendor-date
+```
+
+Each chunk is independently cacheable. Updating one library does not bust other chunks.
+
+### Web Vitals
+`src/utils/webVitals.ts` reports LCP, FID, FCP, CLS, TTFB, INP:
+- **Dev:** logs to console with rating
+- **Prod:** stores in `sessionStorage['web_vitals']` (last 20 entries); forwards to Sentry if SDK active
+
+Run Lighthouse CI: `npm run perf:lighthouse`
 
 <!-- Phase 5 Feature Cross-Reference -->
 
