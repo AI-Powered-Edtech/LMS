@@ -292,69 +292,44 @@ export const analyticsService = {
 
   /**
    * Fetches activity timeline data for charts.
-   * Returns daily activity counts over the specified period.
+   * Aggregation is done server-side via RPC to avoid loading raw event rows.
    */
   async getActivityTimeline(tenantId: string, days: number = 14): Promise<ActivityTimePoint[]> {
-    const since = new Date()
-    since.setDate(since.getDate() - days)
-
-    const { data, error } = await supabase
-      .from('activity_events')
-      .select('event_type, created_at')
-      .eq('tenant_id', tenantId)
-      .gte('created_at', since.toISOString())
-      .order('created_at', { ascending: true })
-      .limit(5000)
+    const { data, error } = await supabase.rpc('get_activity_timeline', {
+      p_tenant_id: tenantId,
+      p_days: days,
+    })
 
     if (error) {
       console.error('Failed to get activity timeline:', error)
       throw new Error('Gagal memuat timeline aktivitas. Silakan coba lagi.')
     }
 
-    const events = (data as ActivityEventRow[]) || []
-
-    // Group by date
-    const dateMap = new Map<string, ActivityTimePoint>()
-
-    for (const event of events) {
-      const date = event.created_at.split('T')[0]
-
-      if (!dateMap.has(date)) {
-        dateMap.set(date, {
-          date,
-          lessonCompletions: 0,
-          quizAttempts: 0,
-          assignmentSubmissions: 0,
-        })
-      }
-
-      const point = dateMap.get(date)!
-
-      if (event.event_type === 'LESSON_COMPLETED') {
-        point.lessonCompletions++
-      } else if (event.event_type === 'QUIZ_ATTEMPT' || event.event_type === 'QUIZ_SUBMITTED') {
-        point.quizAttempts++
-      } else if (event.event_type === 'ASSIGNMENT_SUBMITTED') {
-        point.assignmentSubmissions++
-      }
+    type RpcRow = {
+      event_date: string
+      lesson_completions: number
+      quiz_attempts: number
+      assignment_submissions: number
     }
+    // Build a map from the RPC result for fast date lookup
+    const dataMap = new Map<string, RpcRow>(
+      (data ?? []).map((r: RpcRow) => [r.event_date, r])
+    )
 
-    // Convert to array and fill missing dates
+    // Fill all days in range (including those with no events)
     const result: ActivityTimePoint[] = []
-    const currentDate = new Date(since)
-    const endDate = new Date()
-
-    while (currentDate <= endDate) {
-      const dateStr = currentDate.toISOString().split('T')[0]
-      result.push(
-        dateMap.get(dateStr) || {
-          date: dateStr,
-          lessonCompletions: 0,
-          quizAttempts: 0,
-          assignmentSubmissions: 0,
-        }
-      )
-      currentDate.setDate(currentDate.getDate() + 1)
+    const today = new Date()
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(today)
+      d.setDate(d.getDate() - i)
+      const key = d.toISOString().split('T')[0]
+      const row = dataMap.get(key)
+      result.push({
+        date: key,
+        lessonCompletions: Number(row?.lesson_completions ?? 0),
+        quizAttempts: Number(row?.quiz_attempts ?? 0),
+        assignmentSubmissions: Number(row?.assignment_submissions ?? 0),
+      })
     }
 
     return result
