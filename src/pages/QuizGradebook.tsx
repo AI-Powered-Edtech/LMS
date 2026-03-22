@@ -256,117 +256,120 @@ export function QuizGradebook() {
   )
   const passingScore = selectedAssignmentInfo?.passing_score ?? 70
 
-  const attemptColumns = useMemo(() => [
-    {
-      key: 'student_name',
-      header: 'Siswa',
-      render: (attempt: AssignmentResultRow) => (
-        <div
-          className="flex items-center gap-3 cursor-pointer"
-          onClick={() => handleOpenAttemptDetail(attempt)}
-        >
-          <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden shrink-0">
-            <img
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${attempt.student_name}`}
-              alt=""
-            />
+  const attemptColumns = useMemo(
+    () => [
+      {
+        key: 'student_name',
+        header: 'Siswa',
+        render: (attempt: AssignmentResultRow) => (
+          <div
+            className="flex items-center gap-3 cursor-pointer"
+            onClick={() => handleOpenAttemptDetail(attempt)}
+          >
+            <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden shrink-0">
+              <img
+                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${attempt.student_name}`}
+                alt=""
+              />
+            </div>
+            <span className="font-semibold text-slate-800 text-sm">
+              {attempt.student_name || 'Siswa'}
+            </span>
           </div>
-          <span className="font-semibold text-slate-800 text-sm">
-            {attempt.student_name || 'Siswa'}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: 'score',
-      header: 'Skor',
-      render: (attempt: AssignmentResultRow) => (
-        <div className="flex justify-center">
-          <span
-            className={cn(
-              'inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm',
-              getScoreBg(attempt.score, passingScore),
-              getScoreColor(attempt.score, passingScore)
+        ),
+      },
+      {
+        key: 'score',
+        header: 'Skor',
+        render: (attempt: AssignmentResultRow) => (
+          <div className="flex justify-center">
+            <span
+              className={cn(
+                'inline-flex items-center justify-center w-14 h-8 rounded-lg text-sm',
+                getScoreBg(attempt.score, passingScore),
+                getScoreColor(attempt.score, passingScore)
+              )}
+            >
+              {attempt.score ?? '-'}
+            </span>
+          </div>
+        ),
+      },
+      {
+        key: 'status',
+        header: 'Status',
+        render: (attempt: AssignmentResultRow) => (
+          <div className="flex flex-col items-center gap-1">
+            {attempt.passed === true ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">
+                <CheckCircle2 className="w-3 h-3" /> Lulus
+              </span>
+            ) : attempt.passed === false ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">
+                <XCircle className="w-3 h-3" /> Tidak Lulus
+              </span>
+            ) : (
+              <span className="text-xs text-slate-400">Belum dinilai</span>
             )}
-          >
-            {attempt.score ?? '-'}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      render: (attempt: AssignmentResultRow) => (
-        <div className="flex flex-col items-center gap-1">
-          {attempt.passed === true ? (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">
-              <CheckCircle2 className="w-3 h-3" /> Lulus
+            {attempt.status === 'submitted' && attempt.passed === null && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold">
+                <PenLine className="w-2.5 h-2.5" />
+                Perlu Dinilai
+              </span>
+            )}
+          </div>
+        ),
+      },
+      {
+        key: 'time_spent',
+        header: 'Waktu',
+        render: (attempt: AssignmentResultRow) => (
+          <div className="flex justify-center text-sm text-slate-600">
+            <span className="inline-flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-slate-400" />
+              {formatDuration(attempt.time_spent)}
             </span>
-          ) : attempt.passed === false ? (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">
-              <XCircle className="w-3 h-3" /> Tidak Lulus
-            </span>
-          ) : (
-            <span className="text-xs text-slate-400">Belum dinilai</span>
-          )}
-          {attempt.status === 'submitted' && attempt.passed === null && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold">
-              <PenLine className="w-2.5 h-2.5" />
-              Perlu Dinilai
-            </span>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: 'time_spent',
-      header: 'Waktu',
-      render: (attempt: AssignmentResultRow) => (
-        <div className="flex justify-center text-sm text-slate-600">
-          <span className="inline-flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
-            {formatDuration(attempt.time_spent)}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: 'submitted_at',
-      header: 'Diserahkan',
-      render: (attempt: AssignmentResultRow) => (
-        <div className="text-center text-sm text-slate-500">
-          {attempt.submitted_at
-            ? new Date(attempt.submitted_at).toLocaleString('id-ID', {
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-              })
-            : '-'}
-        </div>
-      ),
-    },
-    {
-      key: 'actions',
-      header: 'Aksi',
-      render: (attempt: AssignmentResultRow) => (
-        <div className="flex justify-center">
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              handleOpenAttemptDetail(attempt)
-            }}
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-          >
-            <Eye className="w-3.5 h-3.5" />
-            Detail
-          </button>
-        </div>
-      ),
-    },
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  ], [passingScore, handleOpenAttemptDetail])
+          </div>
+        ),
+      },
+      {
+        key: 'submitted_at',
+        header: 'Diserahkan',
+        render: (attempt: AssignmentResultRow) => (
+          <div className="text-center text-sm text-slate-500">
+            {attempt.submitted_at
+              ? new Date(attempt.submitted_at).toLocaleString('id-ID', {
+                  day: 'numeric',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : '-'}
+          </div>
+        ),
+      },
+      {
+        key: 'actions',
+        header: 'Aksi',
+        render: (attempt: AssignmentResultRow) => (
+          <div className="flex justify-center">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                handleOpenAttemptDetail(attempt)
+              }}
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              Detail
+            </button>
+          </div>
+        ),
+      },
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    ],
+    [passingScore, handleOpenAttemptDetail]
+  )
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">

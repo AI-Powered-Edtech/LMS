@@ -110,7 +110,9 @@ export const assignmentService = {
   async getAssignmentByLesson(lessonId: string) {
     const { data, error } = await supabase
       .from('assignments')
-      .select('id, tenant_id, course_id, lesson_id, title, instructions, max_points, max_attempts, is_published, due_date, created_by, created_at, updated_at')
+      .select(
+        'id, tenant_id, course_id, lesson_id, title, instructions, max_points, max_attempts, is_published, due_date, created_by, created_at, updated_at'
+      )
       .eq('lesson_id', lessonId)
       .maybeSingle()
 

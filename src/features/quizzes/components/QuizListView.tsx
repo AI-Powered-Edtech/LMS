@@ -123,9 +123,7 @@ export function QuizListView({
       {activeClass && (
         <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-bold text-indigo-500 uppercase tracking-wider mb-1">
-              Class
-            </p>
+            <p className="text-xs font-bold text-indigo-500 uppercase tracking-wider mb-1">Class</p>
             <h2 className="text-lg font-bold text-indigo-950">{activeClass.name}</h2>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 bg-white py-3 px-4 rounded-xl border border-indigo-100/50">

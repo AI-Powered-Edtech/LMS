@@ -87,7 +87,11 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
                   question_type: (q.question_type || 'MCQ') as QuestionType,
                   points: q.points ?? 1,
                   explanation: q.explanation || '',
-                  options: (q.quiz_options || []) as { id?: string; text: string; is_correct: boolean }[],
+                  options: (q.quiz_options || []) as {
+                    id?: string
+                    text: string
+                    is_correct: boolean
+                  }[],
                 })
               ),
           })

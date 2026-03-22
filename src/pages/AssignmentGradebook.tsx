@@ -99,92 +99,93 @@ export function AssignmentGradebook() {
   }, [gradingSubmission, score, feedback])
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const submissionColumns = useMemo(() => [
-    {
-      key: 'student',
-      header: 'Siswa',
-      render: (sub: AssignmentSubmission) => (
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xs font-bold">
-            {Array.isArray(sub.user_profiles)
-              ? sub.user_profiles[0]?.full_name?.charAt(0)
-              : sub.user_profiles?.full_name?.charAt(0) || '?'}
+  const submissionColumns = useMemo(
+    () => [
+      {
+        key: 'student',
+        header: 'Siswa',
+        render: (sub: AssignmentSubmission) => (
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xs font-bold">
+              {Array.isArray(sub.user_profiles)
+                ? sub.user_profiles[0]?.full_name?.charAt(0)
+                : sub.user_profiles?.full_name?.charAt(0) || '?'}
+            </div>
+            <span className="font-bold text-slate-700">
+              {Array.isArray(sub.user_profiles)
+                ? sub.user_profiles[0]?.full_name
+                : sub.user_profiles?.full_name || 'Siswa'}
+            </span>
           </div>
-          <span className="font-bold text-slate-700">
-            {Array.isArray(sub.user_profiles)
-              ? sub.user_profiles[0]?.full_name
-              : sub.user_profiles?.full_name || 'Siswa'}
+        ),
+      },
+      {
+        key: 'submitted_at',
+        header: 'Tanggal Pengiriman',
+        render: (sub: AssignmentSubmission) => (
+          <span className="text-sm text-slate-500">
+            {new Date(sub.submitted_at).toLocaleDateString('id-ID', {
+              day: 'numeric',
+              month: 'long',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
           </span>
-        </div>
-      ),
-    },
-    {
-      key: 'submitted_at',
-      header: 'Tanggal Pengiriman',
-      render: (sub: AssignmentSubmission) => (
-        <span className="text-sm text-slate-500">
-          {new Date(sub.submitted_at).toLocaleDateString('id-ID', {
-            day: 'numeric',
-            month: 'long',
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-        </span>
-      ),
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      render: (sub: AssignmentSubmission) => (
-        <span
-          className={cn(
-            'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest',
-            sub.status === 'graded'
-              ? 'bg-emerald-100 text-emerald-700'
-              : 'bg-blue-100 text-blue-700'
-          )}
-        >
-          {sub.status === 'graded' ? (
-            <>
-              <CheckCircle className="w-2.5 h-2.5" /> Dinilai
-            </>
-          ) : (
-            <>
-              <Clock className="w-2.5 h-2.5" /> Sedang Diperiksa
-            </>
-          )}
-        </span>
-      ),
-    },
-    {
-      key: 'score',
-      header: 'Nilai',
-      render: (sub: AssignmentSubmission) => (
-        <span
-          className={cn(
-            'font-bold',
-            sub.status === 'graded' ? 'text-emerald-600' : 'text-slate-300'
-          )}
-        >
-          {sub.status === 'graded'
-            ? `${sub.score}/${selectedAssignment?.max_points}`
-            : '-'}
-        </span>
-      ),
-    },
-    {
-      key: 'actions',
-      header: 'Aksi',
-      render: (sub: AssignmentSubmission) => (
-        <button
-          onClick={() => handleOpenGrading(sub)}
-          className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all transform active:scale-95 shadow-md shadow-blue-500/20"
-        >
-          {sub.status === 'graded' ? 'Edit Nilai' : 'Nilai Sekarang'}
-        </button>
-      ),
-    },
-  ], [selectedAssignment, handleOpenGrading])
+        ),
+      },
+      {
+        key: 'status',
+        header: 'Status',
+        render: (sub: AssignmentSubmission) => (
+          <span
+            className={cn(
+              'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest',
+              sub.status === 'graded'
+                ? 'bg-emerald-100 text-emerald-700'
+                : 'bg-blue-100 text-blue-700'
+            )}
+          >
+            {sub.status === 'graded' ? (
+              <>
+                <CheckCircle className="w-2.5 h-2.5" /> Dinilai
+              </>
+            ) : (
+              <>
+                <Clock className="w-2.5 h-2.5" /> Sedang Diperiksa
+              </>
+            )}
+          </span>
+        ),
+      },
+      {
+        key: 'score',
+        header: 'Nilai',
+        render: (sub: AssignmentSubmission) => (
+          <span
+            className={cn(
+              'font-bold',
+              sub.status === 'graded' ? 'text-emerald-600' : 'text-slate-300'
+            )}
+          >
+            {sub.status === 'graded' ? `${sub.score}/${selectedAssignment?.max_points}` : '-'}
+          </span>
+        ),
+      },
+      {
+        key: 'actions',
+        header: 'Aksi',
+        render: (sub: AssignmentSubmission) => (
+          <button
+            onClick={() => handleOpenGrading(sub)}
+            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all transform active:scale-95 shadow-md shadow-blue-500/20"
+          >
+            {sub.status === 'graded' ? 'Edit Nilai' : 'Nilai Sekarang'}
+          </button>
+        ),
+      },
+    ],
+    [selectedAssignment, handleOpenGrading]
+  )
 
   if (loading) {
     return <GradebookSkeleton />

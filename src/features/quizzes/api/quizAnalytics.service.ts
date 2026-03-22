@@ -49,7 +49,9 @@ export interface QuestionStatsWithQuestion extends QuestionStats {
 export async function getQuizStats(quizId: string): Promise<QuizStats | null> {
   const { data, error } = await supabase
     .from('quiz_stats')
-    .select('quiz_id, tenant_id, total_attempts, total_unique_students, avg_score, median_score, highest_score, lowest_score, avg_time_seconds, pass_rate, updated_at')
+    .select(
+      'quiz_id, tenant_id, total_attempts, total_unique_students, avg_score, median_score, highest_score, lowest_score, avg_time_seconds, pass_rate, updated_at'
+    )
     .eq('quiz_id', quizId)
     .single()
 
@@ -68,7 +70,9 @@ export async function getQuestionStats(quizId: string): Promise<QuestionStatsWit
   // Get question stats
   const { data: stats, error } = await supabase
     .from('question_stats')
-    .select('id, question_id, quiz_id, tenant_id, total_answers, correct_answers, difficulty_rate, avg_time_seconds, updated_at')
+    .select(
+      'id, question_id, quiz_id, tenant_id, total_answers, correct_answers, difficulty_rate, avg_time_seconds, updated_at'
+    )
     .eq('quiz_id', quizId)
     .order('question_id', { ascending: true })
 

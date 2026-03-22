@@ -77,7 +77,11 @@ export interface QuizEditorViewProps {
   setShowQuestionModal: (show: boolean) => void
   handleSave: (targetStatus?: QuizStatus) => void
   addQuestion: () => void
-  updateQuestion: <K extends keyof QuizQuestion>(idx: number, field: K, value: QuizQuestion[K]) => void
+  updateQuestion: <K extends keyof QuizQuestion>(
+    idx: number,
+    field: K,
+    value: QuizQuestion[K]
+  ) => void
   removeQuestion: (idx: number) => void
   updateQuestionType: (qIdx: number, newType: QuestionType) => void
   addOption: (qIdx: number) => void

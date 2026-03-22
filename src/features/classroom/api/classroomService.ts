@@ -46,7 +46,9 @@ export const classroomService = {
     // Student: fetch via enrollments
     const { data: enrollments, error } = await supabase
       .from('enrollments')
-      .select('class_id, classes( id, name, course_id, teacher_id, join_code, max_students, created_at )')
+      .select(
+        'class_id, classes( id, name, course_id, teacher_id, join_code, max_students, created_at )'
+      )
       .eq('student_id', userId)
       .eq('tenant_id', tenantId)
       .eq('status', 'ACTIVE')

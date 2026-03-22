@@ -150,7 +150,9 @@ export const analyticsService = {
   async getTenantAnalyticsOverview(tenantId: string): Promise<TenantAnalyticsOverview> {
     const { data, error } = await supabase
       .from('course_stats')
-      .select('course_id, tenant_id, total_enrolled, active_students, avg_progress, avg_quiz_score, last_refreshed_at')
+      .select(
+        'course_id, tenant_id, total_enrolled, active_students, avg_progress, avg_quiz_score, last_refreshed_at'
+      )
       .eq('tenant_id', tenantId)
 
     if (error) {
@@ -257,21 +259,23 @@ export const analyticsService = {
       console.error('Failed to get course engagement stats:', error)
       throw new Error('Gagal memuat data engagement kursus. Silakan coba lagi.')
     }
-    return (data || []).map((r: {
-      course_id: string
-      course_name: string
-      total_enrolled: number
-      active_students: number
-      avg_progress: number
-      avg_quiz_score: number
-    }) => ({
-      courseId: r.course_id,
-      courseName: r.course_name,
-      enrolled: r.total_enrolled,
-      activeStudents: r.active_students,
-      avgProgress: r.avg_progress,
-      avgQuizScore: r.avg_quiz_score,
-    }))
+    return (data || []).map(
+      (r: {
+        course_id: string
+        course_name: string
+        total_enrolled: number
+        active_students: number
+        avg_progress: number
+        avg_quiz_score: number
+      }) => ({
+        courseId: r.course_id,
+        courseName: r.course_name,
+        enrolled: r.total_enrolled,
+        activeStudents: r.active_students,
+        avgProgress: r.avg_progress,
+        avgQuizScore: r.avg_quiz_score,
+      })
+    )
   },
 
   /**
@@ -296,9 +300,7 @@ export const analyticsService = {
       assignment_submissions: number
     }
     // Build a map from the RPC result for fast date lookup
-    const dataMap = new Map<string, RpcRow>(
-      (data ?? []).map((r: RpcRow) => [r.event_date, r])
-    )
+    const dataMap = new Map<string, RpcRow>((data ?? []).map((r: RpcRow) => [r.event_date, r]))
 
     // Fill all days in range (including those with no events)
     const result: ActivityTimePoint[] = []
