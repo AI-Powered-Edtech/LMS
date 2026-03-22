@@ -142,8 +142,6 @@ export function Analytics() {
     setTimeout(() => setAiInsightMessage(null), 4000)
   }
 
-  if (!activeTenant) return null
-
   const radarData = useMemo(
     () =>
       data?.module_completion.map((m) => ({
@@ -153,6 +151,8 @@ export function Analytics() {
       })) || [],
     [data?.module_completion]
   )
+
+  if (!activeTenant) return null
 
   const studentsToShow = data?.students.top.concat(data?.students.at_risk || []) || []
 

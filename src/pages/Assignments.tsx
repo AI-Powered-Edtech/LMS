@@ -31,7 +31,7 @@ import { useAssignments } from '@/src/features/assignments/hooks/useAssignments'
 import { assignmentService } from '@/src/features/assignments/api/assignmentService'
 import { AssignmentUiState } from '@/src/features/assignments/types'
 
-import { SkeletonCard, EmptyState, Tabs } from '@/src/components/ui'
+import { EmptyState, Tabs } from '@/src/components/ui'
 import type { Tab } from '@/src/components/ui'
 import { AssignmentSkeleton } from '@/src/features/assignments/components/AssignmentSkeleton'
 
