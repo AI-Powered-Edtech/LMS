@@ -59,6 +59,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           <select
             ref={ref}
             id={id}
+            aria-invalid={!!error}
+            aria-describedby={error ? `${id}-error` : undefined}
             disabled={disabled}
             className={cn(
               'w-full appearance-none border bg-white text-slate-900 transition-colors duration-200 outline-none pr-10',
@@ -91,7 +93,11 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             <ChevronDown className="w-4 h-4" />
           </div>
         </div>
-        {error && <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{error}</p>}
+        {error && (
+          <p id={`${id}-error`} className="mt-1.5 text-sm text-red-600 dark:text-red-400">
+            {error}
+          </p>
+        )}
       </div>
     )
   }
