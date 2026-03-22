@@ -9,6 +9,7 @@ import { supabase } from '@/src/services/supabase/client'
 import { useToast } from '@/src/hooks/useToast'
 import * as notificationApi from '../api/notificationApi'
 import type { Notification, NotificationPreferences } from '../types'
+import { STALE } from '@/src/utils/queryConstants'
 
 // ─── Query Keys ──────────────────────────────────────────────────────────────
 
@@ -44,7 +45,7 @@ export function useNotifications(): UseNotificationsReturn {
     queryKey,
     queryFn: () => notificationApi.fetchNotifications(user!.id, tenantId!),
     enabled: !!tenantId && !!user,
-    staleTime: 5 * 60 * 1000, // 5 min — Realtime subscription keeps data fresh via WebSocket
+    staleTime: STALE.REALTIME,
   })
 
   // Realtime subscription — lifecycle tied to this hook instance

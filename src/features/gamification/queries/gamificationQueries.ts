@@ -11,6 +11,7 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { gamificationService } from '../api/gamificationService'
 import { cachedQuery, CacheKeys } from '@/src/utils/cache'
 import type { LeaderboardSortBy, LeaderboardPeriod } from '../types'
+import { STALE, GC } from '@/src/utils/queryConstants'
 
 // Create query keys with tenant scoping
 const base = createQueryKeys('gamification')
@@ -46,7 +47,8 @@ export function useStudentBadges() {
         10
       ),
     enabled: !!tenantId && !!user,
-    staleTime: 10 * 60 * 1000,
+    staleTime: STALE.STATIC,
+    gcTime: GC.LONG,
   })
 }
 
@@ -58,7 +60,8 @@ export function useStudentCertificates(userId?: string) {
     queryKey: gamificationKeys.certificates(tenantId!, targetId!),
     queryFn: () => gamificationService.getStudentCertificates(targetId!),
     enabled: !!tenantId && !!targetId,
-    staleTime: 60_000,
+    staleTime: STALE.STATIC,
+    gcTime: GC.LONG,
   })
 }
 
@@ -100,7 +103,7 @@ export function useStudentXPProfile(userId?: string) {
         10
       ),
     enabled: !!tenantId && !!targetId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE.MODERATE,
   })
 }
 
@@ -127,7 +130,7 @@ export function useLeaderboardV2(params?: {
         5
       ),
     enabled: !!tenantId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE.MODERATE,
   })
 }
 

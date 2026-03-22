@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { reportService } from '../api/reportService'
+import { STALE, GC } from '@/src/utils/queryConstants'
 
 const REPORT_KEYS = {
   all: ['scheduled_reports'] as const,
@@ -9,6 +10,8 @@ export function useReports() {
   return useQuery({
     queryKey: REPORT_KEYS.all,
     queryFn: () => reportService.getReports(),
+    staleTime: STALE.STATIC,
+    gcTime: GC.LONG,
   })
 }
 

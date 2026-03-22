@@ -1,17 +1,57 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { createQueryKeys } from '@/src/lib/queryKeys'
 import { administrationService } from '../api/administrationService'
+import { STALE, GC } from '@/src/utils/queryConstants'
 
-export const administrationKeys = {
-  all: () => ['administration', 'modules'] as const,
-  syncHistory: () => ['administration', 'sync-history'] as const,
+const base = createQueryKeys('administration')
+
+const adminKeys = {
+  ...base,
+  modules: (tenantId: string) => [...base.all(tenantId), 'modules'] as const,
+  syncHistory: (tenantId: string) => [...base.all(tenantId), 'syncHistory'] as const,
 }
 
 /**
- * Query hook untuk daftar modul tenant yang aktif.
+ * React Query hook for tenant module configuration.
+ * Module config rarely changes — use STATIC stale time.
  */
-export function useAdministrationList() {
+export function useTenantModules() {
+  const { tenantId } = useAuth()
   return useQuery({
-    queryKey: administrationKeys.all(),
+    queryKey: adminKeys.modules(tenantId!),
     queryFn: () => administrationService.getTenantModules(),
+    enabled: !!tenantId,
+    staleTime: STALE.STATIC,
+    gcTime: GC.LONG,
+  })
+}
+
+/**
+ * React Query hook for sync history logs.
+ */
+export function useSyncHistory() {
+  const { tenantId } = useAuth()
+  return useQuery({
+    queryKey: adminKeys.syncHistory(tenantId!),
+    queryFn: () => administrationService.getSyncHistory(),
+    enabled: !!tenantId,
+    staleTime: STALE.STATIC,
+    gcTime: GC.LONG,
+  })
+}
+
+/**
+ * Mutation hook for toggling a tenant module on/off.
+ */
+export function useToggleTenantModule() {
+  const { tenantId } = useAuth()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ moduleId, isEnabled }: { moduleId: string; isEnabled: boolean }) =>
+      administrationService.toggleTenantModule(moduleId, isEnabled),
+    onSuccess: () => {
+      if (tenantId) queryClient.invalidateQueries({ queryKey: adminKeys.modules(tenantId) })
+    },
   })
 }

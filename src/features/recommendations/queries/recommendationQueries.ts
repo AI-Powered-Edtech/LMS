@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { recommendationService } from '../api/recommendationService'
+import { STALE, GC } from '@/src/utils/queryConstants'
 
 const RECOMMENDATION_KEYS = {
   user: (userId: string) => ['recommendations', userId] as const,
@@ -10,7 +11,8 @@ export function useRecommendations(userId: string, limit = 5) {
     queryKey: RECOMMENDATION_KEYS.user(userId),
     queryFn: () => recommendationService.getRecommendations(userId, limit),
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE.STATIC,
+    gcTime: GC.LONG,
   })
 }
 

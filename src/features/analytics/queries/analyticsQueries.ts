@@ -3,6 +3,7 @@ import { createQueryKeys } from '@/src/lib/queryKeys'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { analyticsService } from '../api/analyticsService'
 import { TeacherAnalyticsData, AnalyticsError } from '../types'
+import { STALE } from '@/src/utils/queryConstants'
 
 const base = createQueryKeys('analytics')
 const analyticsKeys = {
@@ -127,7 +128,7 @@ export function useCourseDashboard(courseId?: string) {
     queryKey: analyticsKeys.courseDashboard(tenantId!, courseId!),
     queryFn: () => analyticsService.getCourseAnalyticsDashboard(courseId!, tenantId!),
     enabled: !!tenantId && !!courseId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE.MODERATE,
   })
 }
 
@@ -140,7 +141,7 @@ export function useLessonDashboard(courseId?: string) {
     queryKey: analyticsKeys.lessonDashboard(tenantId!, courseId!),
     queryFn: () => analyticsService.getLessonAnalyticsDashboard(courseId!, tenantId!),
     enabled: !!tenantId && !!courseId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE.MODERATE,
   })
 }
 
@@ -153,7 +154,7 @@ export function useStudentSignals(courseId?: string, lessonId?: string) {
     queryKey: analyticsKeys.studentSignals(tenantId!, courseId!, lessonId),
     queryFn: () => analyticsService.getStudentSignalsDashboard(courseId!, tenantId!, lessonId),
     enabled: !!tenantId && !!courseId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE.MODERATE,
   })
 }
 
@@ -165,7 +166,7 @@ export function useFunnelList(courseId?: string) {
     queryKey: analyticsKeys.funnelList(tenantId!, courseId),
     queryFn: () => analyticsService.listFunnelDefinitions(courseId),
     enabled: !!tenantId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE.MODERATE,
   })
 }
 
@@ -175,7 +176,7 @@ export function useFunnelResults(funnelId?: string) {
     queryKey: analyticsKeys.funnelResults(tenantId!, funnelId!),
     queryFn: () => analyticsService.getFunnelResults(funnelId!),
     enabled: !!tenantId && !!funnelId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE.MODERATE,
   })
 }
 
@@ -219,7 +220,7 @@ export function useRetentionMatrix(courseId?: string, weeksBack: number = 8) {
     queryKey: analyticsKeys.retentionMatrix(tenantId!, courseId!, weeksBack),
     queryFn: () => analyticsService.getRetentionMatrix(courseId!, weeksBack),
     enabled: !!tenantId && !!courseId,
-    staleTime: 15 * 60 * 1000,
+    staleTime: STALE.STATIC,
   })
 }
 
@@ -231,7 +232,7 @@ export function useEngagementSummary(courseId?: string) {
     queryKey: analyticsKeys.engagementSummary(tenantId!, courseId!),
     queryFn: () => analyticsService.getEngagementSummary(courseId!),
     enabled: !!tenantId && !!courseId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE.MODERATE,
   })
 }
 
@@ -241,7 +242,7 @@ export function useEngagementTrend(courseId?: string, days: number = 30) {
     queryKey: analyticsKeys.engagementTrend(tenantId!, courseId!, days),
     queryFn: () => analyticsService.getEngagementTrend(courseId!, days),
     enabled: !!tenantId && !!courseId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE.MODERATE,
   })
 }
 
@@ -253,7 +254,7 @@ export function useLearningPaths(courseId?: string, minUsers: number = 1) {
     queryKey: analyticsKeys.learningPaths(tenantId!, courseId!),
     queryFn: () => analyticsService.getLearningPaths(courseId!, minUsers),
     enabled: !!tenantId && !!courseId,
-    staleTime: 30 * 60 * 1000, // 30 min — computed weekly
+    staleTime: STALE.STATIC, // 30 min — computed weekly
   })
 }
 
@@ -265,7 +266,7 @@ export function useAtRiskStudents(courseId?: string, minRisk: number = 0.3) {
     queryKey: analyticsKeys.predictions(tenantId!, courseId!),
     queryFn: () => analyticsService.getAtRiskStudents(courseId!, minRisk),
     enabled: !!tenantId && !!courseId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE.MODERATE,
   })
 }
 
@@ -275,6 +276,6 @@ export function usePredictionSummary(courseId?: string) {
     queryKey: analyticsKeys.predictionSummary(tenantId!, courseId!),
     queryFn: () => analyticsService.getPredictionSummary(courseId!),
     enabled: !!tenantId && !!courseId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE.MODERATE,
   })
 }

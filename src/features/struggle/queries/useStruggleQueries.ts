@@ -3,6 +3,7 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { createQueryKeys } from '@/src/lib/queryKeys'
 import { struggleService } from '../api/struggleService'
 import type { StruggleConfig } from '../types'
+import { STALE } from '@/src/utils/queryConstants'
 
 // ----------------------------------------------------------------
 // Query key factory
@@ -28,7 +29,7 @@ export function useStruggleConfig() {
     queryKey: struggleKeys.config(tenantId!),
     queryFn: () => struggleService.getStruggleConfig(tenantId!),
     enabled: !!tenantId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: STALE.MODERATE,
   })
 }
 
@@ -64,7 +65,7 @@ export function useStruggleAlerts(options?: {
     queryKey: struggleKeys.alerts(tenantId!, options),
     queryFn: () => struggleService.getStruggleAlerts(tenantId!, options),
     enabled: !!tenantId,
-    staleTime: 5 * 60 * 1000, // 5 minutes — struggle alerts don't need 30s freshness
+    staleTime: STALE.MODERATE,
   })
 }
 
@@ -104,6 +105,6 @@ export function useMyLessonStatus(lessonId?: string) {
     queryKey: struggleKeys.lessonStatus(tenantId!, lessonId ?? ''),
     queryFn: () => struggleService.getMyLessonStatus(tenantId!, lessonId!),
     enabled: !!tenantId && !!lessonId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: STALE.MODERATE,
   })
 }
