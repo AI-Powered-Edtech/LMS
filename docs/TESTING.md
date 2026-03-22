@@ -56,8 +56,30 @@ Tests are in `src/**/*.test.ts` and `src/**/*.test.tsx` files.
 ## E2E Testing
 
 ```bash
-npm run test:e2e    # Playwright
+pnpm run test:e2e                             # Run full Playwright suite
+npx playwright test e2e/flows/               # Run authenticated flows only
+npx playwright test e2e/quiz.spec.ts          # Run a single spec
+npx playwright show-report                   # Open last HTML report
 ```
+
+### E2E Structure
+
+```
+e2e/
+  helpers/
+    auth.ts       ← loginAsStudent / loginAsTeacher / loginAsAdmin / gotoAndWait / dismissToast / skipIfNoAuth
+    index.ts      ← barrel export
+  flows/
+    student-journey.spec.ts
+    teacher-journey.spec.ts
+    admin-journey.spec.ts
+    quiz-autosave-resume.spec.ts
+    class-join-code.spec.ts
+  *.spec.ts       ← unauthenticated + authenticated tests per domain
+```
+
+All authenticated tests call `skipIfNoAuth()` in `beforeEach` — they skip gracefully in CI
+when `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` env vars are not set.
 
 ### Manual E2E via agent-browser
 

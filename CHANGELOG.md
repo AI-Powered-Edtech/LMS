@@ -1,5 +1,32 @@
 # EduSync LMS — Changelog
 
+## Phase 14: E2E Test Coverage (2026-03-22)
+
+### Sprint 14A — Shared E2E Helpers
+- Created `e2e/helpers/auth.ts`: `loginAsStudent`, `loginAsTeacher`, `loginAsAdmin`, `gotoAndWait`, `dismissToast`, `skipIfNoAuth`
+- Created `e2e/helpers/index.ts` barrel export
+- Eliminates copy-paste login logic across all spec files
+
+### Sprint 14B — Quiz Autosave + Resume Flow
+- Created `e2e/flows/quiz-autosave-resume.spec.ts` (4 tests)
+- Covers: quiz list access, no-crash check, autosave indicator, resume after navigation, browser back button
+
+### Sprint 14C — Class Join Code Flow
+- Created `e2e/flows/class-join-code.spec.ts` (7 tests)
+- Covers: teacher join code visibility, registration form field, invalid code feedback, URL param join
+
+### Sprint 14D — Upgraded Stub Tests
+- `e2e/quiz.spec.ts`: added `Quiz — Authenticated Student Flow` (4 tests) — student quiz list, teacher gradebook/manager, no JS errors
+- `e2e/course.spec.ts`: added `Course — Authenticated Flow` (4 tests) — student course list, infinite scroll, course builder, 404 handling
+- `e2e/core.spec.ts`: replaced one-line placeholder with `Core LMS — Critical Path` (3 tests) — student nav, teacher analytics+gradebook, session persistence
+
+### Sprint 14E — GitHub Actions CI
+- Created `.github/workflows/e2e.yml`: runs Playwright on every PR to `main`
+- Authenticated tests skip gracefully if `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` secrets not set
+- Updated `playwright.config.ts`: added `DISABLE_HMR: 'true'` env for CI stability
+
+---
+
 ## Phase 13: Performance & Scale (2026-03-22)
 
 ### Sprint 13A — Virtualisation

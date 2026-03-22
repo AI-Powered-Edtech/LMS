@@ -41,7 +41,7 @@ From prototype to production. Built on a Supabase-centric serverless architectur
 ✅ Phase 12.5 — Feature Health 100/100 (24/24 features: structure, tests, dark mode, skeleton, docs)
 ✅ Phase 12.6 — Technical Debt Clearance (select(*) → explicit columns, moderation→Supabase, analytics RPC security, engagement RPC consolidation)
 ✅ Phase 13 — Performance & Scale (virtualization, infinite scroll, stale-time tiering, bundle splitting, Web Vitals)
-🔶 Phase 14 — E2E Test Coverage (3 critical-path flows done; quiz autosave + class join code remaining)
+✅ Phase 14 — E2E Test Coverage (shared helpers, quiz autosave+resume, class join code, CI workflow)
 ```
 
 ---
@@ -70,7 +70,7 @@ gantt
     section Quality
     Phase 12 Consolidation   :done, p12, after p9, 7d
     Phase 13 Performance     :done, p13, after p12, 5d
-    Phase 14 E2E Tests       :active, p14b, after p13, 5d
+    Phase 14 E2E Tests       :done, p14b, after p13, 5d
 ```
 
 ---
@@ -89,17 +89,16 @@ gantt
 
 ---
 
-## Active Phase: Phase 14 — E2E Test Coverage
+## Completed: Phase 14 — E2E Test Coverage
 
 **Goal:** Catch regressions before users do.
 
 ```
-Action Items:
-- E2E: login → enroll → lesson → quiz → progress (critical path)
-- E2E: teacher invite → student register with class join code
-- E2E: quiz attempt with autosave + resume
-- Unit tests: domain mappers, service functions
-- Add system_health monitoring view
+✅ 14A — Shared E2E helpers (e2e/helpers/auth.ts) — eliminates login boilerplate across all specs
+✅ 14B — Quiz autosave + resume flow (e2e/flows/quiz-autosave-resume.spec.ts)
+✅ 14C — Class join code flow (e2e/flows/class-join-code.spec.ts)
+✅ 14D — Upgraded stub tests: quiz.spec, course.spec, core.spec → real authenticated flows
+✅ 14E — GitHub Actions CI workflow (.github/workflows/e2e.yml) — runs on every PR to main
 ```
 
 ---

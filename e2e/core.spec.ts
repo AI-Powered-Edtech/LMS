@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { loginAsStudent, loginAsTeacher, gotoAndWait, skipIfNoAuth } from './helpers'
 
 /**
  * Core LMS Flow E2E Tests
@@ -6,11 +7,67 @@ import { test, expect } from '@playwright/test';
  * Tests the fundamental application shell, navigation, and error handling.
  */
 
-test.describe('Core LMS Flow', () => {
-  test('Login, join class, open lesson, start and submit quiz', async ({ page }) => {
-    await page.goto('/#/login');
-    await expect(page).toHaveURL(/.*login/);
-  });
+test.describe('Core LMS — Critical Path', () => {
+
+  test.beforeEach(() => {
+    skipIfNoAuth()
+  })
+
+  test('student: login → courses → tidak crash navigasi', async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (err) => errors.push(err.message))
+
+    await loginAsStudent(page)
+    await gotoAndWait(page, '/#/app/student/courses')
+
+    await expect(
+      page.locator('[data-testid="course-grid"], h1, h2').first()
+    ).toBeVisible({ timeout: 8000 })
+
+    // Navigasi ke progress
+    await gotoAndWait(page, '/#/app/student/progress')
+    const hasProgress = await page.evaluate(() => document.body.textContent!.trim().length > 50)
+    expect(hasProgress).toBeTruthy()
+
+    const fatal = errors.filter(
+      (e) => !e.includes('ResizeObserver') && !e.includes('Non-Error')
+    )
+    expect(fatal).toHaveLength(0)
+  })
+
+  test('teacher: login → analytics → gradebook → tidak crash', async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (err) => errors.push(err.message))
+
+    await loginAsTeacher(page)
+    await gotoAndWait(page, '/#/app/teacher/analytics')
+
+    const hasAnalytics = await page.evaluate(() => document.body.textContent!.trim().length > 50)
+    expect(hasAnalytics).toBeTruthy()
+
+    await gotoAndWait(page, '/#/app/teacher/gradebook')
+    await expect(
+      page.locator('h1, h2, table').first()
+    ).toBeVisible({ timeout: 8000 })
+
+    const fatal = errors.filter(
+      (e) => !e.includes('ResizeObserver') && !e.includes('Non-Error')
+    )
+    expect(fatal).toHaveLength(0)
+  })
+
+  test('session persistence: refresh tidak kick ke login', async ({ page }) => {
+    await loginAsStudent(page)
+    await gotoAndWait(page, '/#/app/student/courses')
+
+    // Reload halaman — session harus persist
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(2000)
+
+    // Harus masih di courses, bukan redirect ke login
+    await expect(page).not.toHaveURL(/login/, { timeout: 5000 })
+  })
 });
 
 test.describe('Core — Application Shell', () => {
