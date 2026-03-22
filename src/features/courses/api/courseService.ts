@@ -53,7 +53,9 @@ export const courseService = {
       console.warn('Courses join query failed, falling back to simple fetch:', error.message)
       let fallbackQuery = supabase
         .from('courses')
-        .select('id, title, description, status, created_at, updated_at, created_by, tenant_id', { count: 'exact' })
+        .select('id, title, description, status, created_at, updated_at, created_by, tenant_id', {
+          count: 'exact',
+        })
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
         .limit(100)

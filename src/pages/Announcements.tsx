@@ -65,7 +65,11 @@ export function Announcements() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   // Use React Query hooks
-  const { data: fetchedAnnouncements, refetch, isLoading } = useAnnouncements({
+  const {
+    data: fetchedAnnouncements,
+    refetch,
+    isLoading,
+  } = useAnnouncements({
     search: searchTerm || undefined,
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,

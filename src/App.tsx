@@ -25,19 +25,19 @@ export default function App() {
 
   return (
     <MotionConfig reducedMotion="user">
-    <ErrorBoundary>
-      <ThemeProvider>
-        <ToastProvider>
-          <AuthProvider>
-            <OfflineIndicator />
-            <SessionManager />
-            <Router>
-              <AppRoutes />
-            </Router>
-          </AuthProvider>
-        </ToastProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
+      <ErrorBoundary>
+        <ThemeProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <OfflineIndicator />
+              <SessionManager />
+              <Router>
+                <AppRoutes />
+              </Router>
+            </AuthProvider>
+          </ToastProvider>
+        </ThemeProvider>
+      </ErrorBoundary>
     </MotionConfig>
   )
 }

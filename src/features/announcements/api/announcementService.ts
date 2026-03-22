@@ -60,7 +60,7 @@ export const announcementService = {
       throw error
     }
 
-    return (data as unknown) as Announcement[]
+    return data as unknown as Announcement[]
   },
 
   /**
@@ -85,7 +85,7 @@ export const announcementService = {
       .single()
 
     if (error) throw error
-    return (data as unknown) as Announcement
+    return data as unknown as Announcement
   },
 
   /**

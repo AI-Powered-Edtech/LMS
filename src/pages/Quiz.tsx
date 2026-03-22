@@ -497,7 +497,9 @@ export function QuizModule() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredQuizzes.length > 0 ? (
             filteredQuizzes.map((quiz) => {
-              const stats = quiz.assignment_id ? attemptStatsByAssignment[quiz.assignment_id] : undefined
+              const stats = quiz.assignment_id
+                ? attemptStatsByAssignment[quiz.assignment_id]
+                : undefined
               const activeAttempt = stats?.activeAttempt
               const attemptsCount = stats?.count || 0
 

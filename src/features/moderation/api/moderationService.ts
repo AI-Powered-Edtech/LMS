@@ -25,7 +25,9 @@ export const moderationService = {
   async fetchReports(): Promise<Report[]> {
     const { data, error } = await supabase
       .from('content_reports')
-      .select('id, content_id, content_type, reporter_id, reporter_name, reason, description, status, content_snippet, content_author, created_at')
+      .select(
+        'id, content_id, content_type, reporter_id, reporter_name, reason, description, status, content_snippet, content_author, created_at'
+      )
       .order('created_at', { ascending: false })
       .limit(100)
     if (error) throw error
@@ -52,7 +54,9 @@ export const moderationService = {
     userId: string,
     userName: string
   ): Promise<Report> {
-    const { data: { session } } = await supabase.auth.getSession()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
     if (!session) throw new Error('Tidak terautentikasi')
 
     const { data: roleData } = await supabase
@@ -76,7 +80,9 @@ export const moderationService = {
         content_author: report.contentAuthor,
         status: 'pending',
       })
-      .select('id, content_id, content_type, reporter_id, reporter_name, reason, description, status, content_snippet, content_author, created_at')
+      .select(
+        'id, content_id, content_type, reporter_id, reporter_name, reason, description, status, content_snippet, content_author, created_at'
+      )
       .single()
     if (error) throw error
     return {
@@ -98,7 +104,9 @@ export const moderationService = {
    * Resolve a report (approve or reject) in content_reports table.
    */
   async resolveReport(reportId: string, status: 'approved' | 'rejected'): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
     if (!user) throw new Error('Tidak terautentikasi')
     const { error } = await supabase
       .from('content_reports')
