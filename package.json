@@ -19,7 +19,8 @@
     "build-storybook": "storybook build",
     "prepare": "husky",
     "load:smoke": "k6 run tests/load/smoke.js",
-    "load:stress": "k6 run tests/load/stress.js"
+    "load:stress": "k6 run tests/load/stress.js",
+    "perf:lighthouse": "npx lhci autorun --config=lighthouserc.json 2>/dev/null || npx lighthouse http://localhost:5173 --output=json --output-path=./lighthouse-report.json --chrome-flags='--headless'"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",

@@ -419,7 +419,7 @@ export function QuizGradebook() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table data-testid="gradebook-table" className="w-full text-left">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
                   <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">
