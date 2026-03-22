@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, BookOpen, Clock, Loader2, RefreshCw, Users, Search, Layers } from 'lucide-react'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { courseService, Course } from '@/src/features/courses'
+import { useInfiniteCoursesQuery } from '@/src/features/courses/queries/courseQueries'
+import { useDebounce } from '@/src/hooks/useDebounce'
 import { motion, AnimatePresence } from 'motion/react'
 import { AssignCourseModal } from '@/src/components/Classroom/AssignCourseModal'
 import { cn } from '@/src/utils/cn'
-import { CourseSkeleton } from '@/src/features/courses/components/CourseSkeleton'
 
 // Gradient palette rotated per card index
 const CARD_GRADIENTS = [
@@ -29,10 +30,8 @@ export const Courses: React.FC = () => {
     }
   }, [])
 
-  const [courses, setCourses] = useState<Course[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 300)
 
   // Create Course Modal State
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -51,30 +50,44 @@ export const Courses: React.FC = () => {
     courseTitle: '',
   })
 
-  /* eslint-disable react-hooks/exhaustive-deps */
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    refetch,
+  } = useInfiniteCoursesQuery(activeTenant?.id ?? '', debouncedSearch)
+
+  const courses = data?.pages.flatMap((p) => p.courses) ?? []
+
+  // Sentinel for IntersectionObserver — triggers loading the next page
+  const sentinelRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
-    loadCourses()
-  }, [activeTenant?.id, user?.id])
-  /* eslint-enable react-hooks/exhaustive-deps */
+    if (!sentinelRef.current || !hasNextPage) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { rootMargin: '200px' }
+    )
+    observer.observe(sentinelRef.current)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
-  const loadCourses = async () => {
-    if (!activeTenant?.id) return
-
-    try {
-      setLoading(true)
-      setError(null)
-      const { courses: fetchedCourses } = await courseService.fetchCourses({
-        tenantId: activeTenant.id,
-        limit: 50,
-      })
-      setCourses(fetchedCourses)
-    } catch (err: unknown) {
-      console.error('Failed to load courses:', err)
-      setError(err instanceof Error ? err.message : 'Gagal memuat daftar materi.')
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Server-side search covers title. Client-side filter covers description
+  // (the service only does ilike on title, so we locally filter description as well)
+  const filteredCourses = debouncedSearch
+    ? courses.filter(
+        (c) =>
+          c.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          (c.description ?? '').toLowerCase().includes(debouncedSearch.toLowerCase())
+      )
+    : courses
 
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -105,12 +118,6 @@ export const Courses: React.FC = () => {
     setIsModalOpen(true)
   }
 
-  const filteredCourses = courses.filter(
-    (c) =>
-      c.title.toLowerCase().includes(search.toLowerCase()) ||
-      (c.description ?? '').toLowerCase().includes(search.toLowerCase())
-  )
-
   return (
     <div className="p-4 md:p-10 max-w-7xl mx-auto min-h-screen">
       {/* Header */}
@@ -134,7 +141,7 @@ export const Courses: React.FC = () => {
       </div>
 
       {/* Search bar */}
-      {!loading && !error && courses.length > 0 && (
+      {!isLoading && !isError && courses.length > 0 && (
         <div className="relative mb-8">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
           <input
@@ -147,18 +154,21 @@ export const Courses: React.FC = () => {
         </div>
       )}
 
-      {loading ? (
-        <CourseSkeleton />
-      ) : error ? (
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-32 bg-white/30 dark:bg-gray-800/20 backdrop-blur-sm rounded-3xl border border-dashed border-gray-300 dark:border-gray-700">
+          <Loader2 className="w-12 h-12 animate-spin text-indigo-500 mb-4" />
+          <p className="text-gray-500 dark:text-gray-400 font-medium">Memuat daftar materi...</p>
+        </div>
+      ) : isError ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="p-8 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 rounded-3xl max-w-md w-full shadow-xl">
             <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
               <RefreshCw className="w-8 h-8" />
             </div>
             <p className="text-xl font-bold mb-3">Oops! Ada kendala</p>
-            <p className="text-sm opacity-80 mb-6">{error}</p>
+            <p className="text-sm opacity-80 mb-6">Gagal memuat daftar materi.</p>
             <button
-              onClick={loadCourses}
+              onClick={() => refetch()}
               className="flex items-center justify-center w-full space-x-2 px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg hover:shadow-red-500/20"
             >
               <span>Coba Muat Ulang</span>
@@ -213,6 +223,24 @@ export const Courses: React.FC = () => {
               />
             ))}
           </AnimatePresence>
+
+          {/* Sentinel — triggers loading next page when scrolled into view */}
+          <div ref={sentinelRef} className="col-span-full h-1" />
+
+          {/* Loading more indicator */}
+          {isFetchingNextPage && (
+            <div className="col-span-full flex justify-center items-center py-6">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+              <span className="ml-2 text-sm text-slate-500">Memuat lebih banyak...</span>
+            </div>
+          )}
+
+          {/* End of list */}
+          {!hasNextPage && filteredCourses.length > 0 && (
+            <p className="col-span-full text-center text-sm text-slate-400 py-4">
+              Semua {filteredCourses.length} kursus ditampilkan
+            </p>
+          )}
         </div>
       )}
 

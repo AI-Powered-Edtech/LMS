@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { courseService } from '../api/courseService'
 import { courseKeys } from './courseKeys'
 import { useAuth } from '../../../contexts/AuthContext'
@@ -10,6 +10,28 @@ export function useCourses(filters?: Omit<FetchCoursesOptions, 'tenantId'>) {
   return useQuery({
     queryKey: courseKeys.list(tenantId!, filters),
     queryFn: () => courseService.fetchCourses({ tenantId: tenantId!, ...filters }),
+    enabled: !!tenantId,
+  })
+}
+
+const PAGE_SIZE = 12
+
+export function useInfiniteCoursesQuery(tenantId: string, search?: string) {
+  return useInfiniteQuery({
+    queryKey: ['courses', 'infinite', tenantId, search],
+    queryFn: ({ pageParam = 1 }) =>
+      courseService.fetchCourses({
+        tenantId,
+        page: pageParam as number,
+        limit: PAGE_SIZE,
+        search,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((acc, p) => acc + p.courses.length, 0)
+      return loaded < (lastPage.count ?? 0) ? allPages.length + 1 : undefined
+    },
+    staleTime: 5 * 60 * 1000,
     enabled: !!tenantId,
   })
 }
