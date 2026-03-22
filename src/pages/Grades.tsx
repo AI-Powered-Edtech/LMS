@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Calculator, Trophy, Target, BookOpen, Loader2, ChevronDown } from 'lucide-react'
+import { Calculator, Trophy, Target, BookOpen, ChevronDown } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/src/lib/supabase'
 import { useAuth } from '@/src/contexts/AuthContext'

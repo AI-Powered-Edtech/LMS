@@ -20,15 +20,15 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { cn } from '@/src/utils/cn'
 import { motion, AnimatePresence } from 'motion/react'
 import { supabase } from '@/src/lib/supabase'
-import { GradebookSkeleton } from '@/src/features/gradebook/components/GradebookSkeleton'
 import { VirtualTable } from '@/src/components/ui/VirtualTable'
+import { GradebookSkeleton } from '@/src/features/gradebook/components/GradebookSkeleton'
 
 export function AssignmentGradebook() {
   const { user, tenantId } = useAuth()
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null)
   const [submissions, setSubmissions] = useState<AssignmentSubmission[]>([])
-  const [loading, setLoading] = useState(true)
+  const [_loading, setLoading] = useState(true)
   const [loadingSubmissions, setLoadingSubmissions] = useState(false)
   const [_error, setError] = useState<string | null>(null)
 
@@ -97,10 +97,6 @@ export function AssignmentGradebook() {
       setIsSubmittingGrade(false)
     }
   }, [gradingSubmission, score, feedback])
-
-  if (loading) {
-    return <GradebookSkeleton />
-  }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const submissionColumns = useMemo(() => [
@@ -189,6 +185,10 @@ export function AssignmentGradebook() {
       ),
     },
   ], [selectedAssignment, handleOpenGrading])
+
+  if (_loading) {
+    return <GradebookSkeleton />
+  }
 
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">

@@ -77,7 +77,7 @@ function MetricCard({ title, value, icon: Icon, trend, color, bgColor }: MetricC
   )
 }
 
-function LoadingState() {
+function _LoadingState() {
   return (
     <div className="flex flex-col items-center justify-center py-20">
       <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
