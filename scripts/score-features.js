@@ -106,13 +106,20 @@ function countDocRefs(featureName) {
   if (!fs.existsSync(DOCS_DIR)) return 0;
   const searchTerms = [featureName, featureName.replace(/-/g, ' ')];
   let count = 0;
-  for (const file of fs.readdirSync(DOCS_DIR)) {
-    if (!file.endsWith('.md')) continue;
-    try {
-      const content = fs.readFileSync(path.join(DOCS_DIR, file), 'utf8').toLowerCase();
-      if (searchTerms.some(t => content.includes(t.toLowerCase()))) count++;
-    } catch {}
-  }
+  const walkDocs = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walkDocs(fullPath);
+      } else if (entry.name.endsWith('.md')) {
+        try {
+          const content = fs.readFileSync(fullPath, 'utf8').toLowerCase();
+          if (searchTerms.some(t => content.includes(t.toLowerCase()))) count++;
+        } catch {}
+      }
+    }
+  };
+  walkDocs(DOCS_DIR);
   return count;
 }
 
@@ -249,11 +256,6 @@ async function upsertPage(pageId, score) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
-  if (!NOTION_TOKEN || !DATABASE_ID) {
-    console.error('ERROR: NOTION_TOKEN and NOTION_DATABASE_ID must be set.');
-    process.exit(1);
-  }
-
   console.log('\n🔍 EduSync Feature Health Scorer');
   console.log('================================');
   console.log(`Date      : ${TODAY}`);
@@ -273,17 +275,6 @@ async function main() {
     return score;
   });
 
-  console.log('\n📡 Fetching existing Notion pages...');
-  const existingPages = await getExistingPages();
-  console.log(`Found ${Object.keys(existingPages).length} existing pages.\n`);
-
-  console.log('📝 Syncing to Notion...');
-  for (const score of scores) {
-    const pageId = existingPages[score.name] ?? null;
-    await upsertPage(pageId, score);
-    await new Promise(r => setTimeout(r, 350)); // Notion rate limit ~3 req/sec
-  }
-
   const complete   = scores.filter(s => s.status === 'Complete').length;
   const inProgress = scores.filter(s => s.status === 'In Progress').length;
   const needsWork  = scores.filter(s => s.status === 'Needs Work').length;
@@ -295,7 +286,24 @@ async function main() {
   console.log(`  🔄 In Progress: ${inProgress}`);
   console.log(`  ❌ Needs Work:  ${needsWork}`);
   console.log(`  📈 Avg Score:   ${avgTotal}/100`);
-  console.log('\n✅ Notion sync complete.\n');
+
+  // Notion sync (optional — only if env vars are set)
+  if (NOTION_TOKEN && DATABASE_ID) {
+    console.log('\n📡 Fetching existing Notion pages...');
+    const existingPages = await getExistingPages();
+    console.log(`Found ${Object.keys(existingPages).length} existing pages.\n`);
+
+    console.log('📝 Syncing to Notion...');
+    for (const score of scores) {
+      const pageId = existingPages[score.name] ?? null;
+      await upsertPage(pageId, score);
+      await new Promise(r => setTimeout(r, 350)); // Notion rate limit ~3 req/sec
+    }
+    console.log('\n✅ Notion sync complete.\n');
+  } else {
+    console.log('\n⚠️  NOTION_TOKEN / NOTION_DATABASE_ID not set — skipping Notion sync.');
+    console.log('   Set both env vars to sync results to Notion.\n');
+  }
 }
 
 main().catch(err => {

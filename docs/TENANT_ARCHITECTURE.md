@@ -87,12 +87,13 @@ Returns the `tenant_id` for `auth.uid()` from `profiles`. Used in all RLS polici
 **File**: `src/contexts/TenantContext.tsx`
 
 Resolves tenant context on login:
+
 1. Decodes `tenant_id` from JWT access token (no network call)
 2. Falls back to querying `profiles.tenant_id` if JWT claim is missing
 3. Fetches full tenant record (`name`, `slug`, `is_active`)
 
 ```tsx
-const { tenantId, tenant, loading } = useTenant();
+const { tenantId, tenant, loading } = useTenant()
 ```
 
 ### `AuthContext.tenantId`
@@ -102,7 +103,7 @@ const { tenantId, tenant, loading } = useTenant();
 The `tenantId` is also available directly from `useAuth()` (populated from the profile fetch).
 
 ```tsx
-const { tenantId } = useAuth();
+const { tenantId } = useAuth()
 ```
 
 ### `useTenantQuery()`
@@ -112,13 +113,13 @@ const { tenantId } = useAuth();
 Defense-in-depth query helper. Not required (RLS handles isolation), but provides explicit tenant filtering.
 
 ```tsx
-const { tenantQuery, tenantInsert } = useTenantQuery();
+const { tenantQuery, tenantInsert } = useTenantQuery()
 
 // SELECT with tenant filter
-const { data } = await tenantQuery('classes');
+const { data } = await tenantQuery('classes')
 
 // INSERT with tenant_id auto-included
-await tenantInsert('classes', { name: 'English 101', teacher_id: userId });
+await tenantInsert('classes', { name: 'English 101', teacher_id: userId })
 ```
 
 ---
@@ -127,36 +128,38 @@ await tenantInsert('classes', { name: 'English 101', teacher_id: userId });
 
 All have `tenant_id UUID NOT NULL → tenants(id)` with the `auto_set_tenant_id` trigger.
 
-| Domain | Tables |
-|---|---|
-| Auth | `profiles`, `user_roles` |
-| Learning | `courses`, `course_modules`, `lessons`, `lesson_resources`, `lesson_progress`, `course_progress` |
-| Classroom | `classes`, `enrollments`, `class_schedules`, `class_announcements` |
+| Domain     | Tables                                                                                                          |
+| ---------- | --------------------------------------------------------------------------------------------------------------- |
+| Auth       | `profiles`, `user_roles`                                                                                        |
+| Learning   | `courses`, `course_modules`, `lessons`, `lesson_resources`, `lesson_progress`, `course_progress`                |
+| Classroom  | `classes`, `enrollments`, `class_schedules`, `class_announcements`                                              |
 | Assessment | `assignments`, `assignment_submissions`, `grades`, `quizzes`, `quiz_questions`, `quiz_options`, `quiz_attempts` |
-| Discussion | `discussion_threads`, `discussion_posts` |
-| Operations | `attendance_records`, `notifications`, `activity_logs`, `invoices`, `payments` |
+| Discussion | `discussion_threads`, `discussion_posts`                                                                        |
+| Operations | `attendance_records`, `notifications`, `activity_logs`, `invoices`, `payments`                                  |
 
 ## Global Tables (4 — no tenant_id)
 
-| Table | Scoped By |
-|---|---|
-| `badges` | Global catalog |
-| `user_badges` | `user_id` |
-| `user_points` | `user_id` |
-| `recommendations` | `user_id` |
+| Table             | Scoped By      |
+| ----------------- | -------------- |
+| `badges`          | Global catalog |
+| `user_badges`     | `user_id`      |
+| `user_points`     | `user_id`      |
+| `recommendations` | `user_id`      |
 
 ---
 
 ## Onboarding a New Tenant
 
 1. Insert into `tenants` table:
+
    ```sql
    INSERT INTO tenants (name, slug) VALUES ('School Name', 'school-slug');
    ```
 
 2. Use the returned `id` as `tenant_id` during user signup:
+
    ```tsx
-   await signUp(email, password, firstName, lastName, tenantId);
+   await signUp(email, password, firstName, lastName, tenantId)
    ```
 
 3. The `handle_new_user` trigger will propagate `tenant_id` to `profiles` and `user_roles`.
@@ -167,8 +170,43 @@ All have `tenant_id UUID NOT NULL → tenants(id)` with the `auto_set_tenant_id`
 
 ## Migration History
 
-| Version | Name | Description |
-|---|---|---|
-| `20260308_05` | `custom_access_token_hook` | JWT hook to inject `tenant_id` into access tokens |
-| `20260308_06` | `update_handle_new_user_with_tenant` | Updated signup trigger to pass `tenant_id` |
-| `20260308_07` | `auto_set_tenant_id_trigger` | Safety-net trigger on all 26 tables |
+| Version       | Name                                 | Description                                       |
+| ------------- | ------------------------------------ | ------------------------------------------------- |
+| `20260308_05` | `custom_access_token_hook`           | JWT hook to inject `tenant_id` into access tokens |
+| `20260308_06` | `update_handle_new_user_with_tenant` | Updated signup trigger to pass `tenant_id`        |
+| `20260308_07` | `auto_set_tenant_id_trigger`         | Safety-net trigger on all 26 tables               |
+
+<!-- Phase 5 Feature Cross-Reference -->
+
+## Feature Module Cross-Reference
+
+EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
+
+| Feature         | Domain         | Deskripsi                                                                                                                  |
+| --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| administration  | Admin          | Administrasi — Manajemen tenant, konfigurasi modul sekolah, sinkronisasi data                                              |
+| ai-tutor        | Learning       | AI Tutor — Asisten belajar berbasis AI yang memberikan penjelasan personal kepada siswa                                    |
+| analytics       | Analytics      | Analitik — Dashboard analitik komprehensif untuk guru dan admin                                                            |
+| announcements   | Communication  | Pengumuman — Sistem pengumuman sekolah                                                                                     |
+| assignments     | Assessment     | Tugas — Manajemen tugas dari pembuatan hingga penilaian                                                                    |
+| calendar        | Academic       | Kalender — Kalender akademik terintegrasi dengan jadwal pelajaran, ujian, deadline tugas, dan kegiatan sekolah             |
+| classroom       | Academic       | Kelas — Manajemen kelas virtual dan fisik                                                                                  |
+| courses         | Academic       | Kursus — Core learning module                                                                                              |
+| dashboards      | Analytics      | Dashboard — Dashboard kustom dengan widget builder                                                                         |
+| discussions     | Communication  | Diskusi — Forum diskusi per kursus                                                                                         |
+| gamification    | Engagement     | Gamifikasi — Sistem gamifikasi lengkap: XP, badge, level, streak counter, dan leaderboard                                  |
+| gradebook       | Assessment     | Buku Nilai — Buku nilai digital untuk guru                                                                                 |
+| guidance        | Admin          | Panduan — Sistem panduan in-app (tooltip, walkthrough, banner, checkpoint)                                                 |
+| lessons         | Learning       | Pelajaran — Konten pelajaran dengan block-based editor                                                                     |
+| moderation      | Admin          | Moderasi — Moderasi konten user-generated (diskusi, komentar)                                                              |
+| notifications   | Communication  | Notifikasi — Sistem notifikasi real-time dengan bell icon dan panel                                                        |
+| onboarding      | Admin          | Onboarding — Wizard onboarding untuk pengguna baru                                                                         |
+| progress        | Learning       | Kemajuan Belajar — Tracking progress belajar siswa secara granular per kursus, modul, dan pelajaran                        |
+| question-bank   | Assessment     | Bank Soal — Repositori soal yang bisa digunakan ulang di berbagai kuis                                                     |
+| quizzes         | Assessment     | Kuis — Sistem kuis komprehensif dengan timer, anti-cheat, autosave, review mode, dan analitik hasil per soal               |
+| recommendations | Learning       | Rekomendasi — Engine rekomendasi konten berdasarkan progress, performa, dan pola belajar siswa                             |
+| reports         | Analytics      | Laporan — Generator laporan akademik, keuangan (SPP), PPDB, dan custom                                                     |
+| storage         | Infrastructure | Penyimpanan — Manajemen file dan media untuk materi pembelajaran                                                           |
+| struggle        | Analytics      | Deteksi Kesulitan — Deteksi otomatis siswa yang kesulitan berdasarkan pola belajar, waktu per soal, dan penurunan performa |
+
+Setiap feature module mengikuti arsitektur standar dengan folder: api/, queries/, hooks/, types/, components/, dan **tests**/. Semua feature mendukung dark mode dan skeleton loading screens.

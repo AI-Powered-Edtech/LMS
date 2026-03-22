@@ -154,22 +154,57 @@ Admin Hub (/#/admin-hub) or Admin Dashboard (/#/app/admin)
 
 All routes use hash prefix `/#/`:
 
-| Path | Who | Page |
-|------|-----|------|
-| `/login` | Public | Login |
-| `/app/student` | Student | Student Dashboard |
-| `/app/teacher` | Teacher | Teacher Dashboard |
-| `/app/admin` | Admin | Admin Dashboard |
-| `/dashboard` | Student | Dashboard (legacy) |
-| `/analytics` | Teacher/Admin | Analytics |
-| `/teaching` | Teacher | Teaching Hub |
-| `/teaching/course-builder` | Teacher/Admin | Course Builder |
-| `/teaching/quiz-manager` | Teacher/Admin | Quiz Manager |
-| `/teaching/classes` | Teacher/Admin | Class Management |
-| `/teaching/course-analytics` | Teacher/Admin | Per-course analytics |
-| `/gradebook` | Teacher/Admin | Gradebook |
-| `/leaderboard` | Student/Teacher | Leaderboard |
-| `/courses/:courseId` | Student | Lesson Viewer |
-| `/settings` | All | Settings |
-| `/profile` | All | Profile |
-| `/announcements` | All | Announcements |
+| Path                         | Who             | Page                 |
+| ---------------------------- | --------------- | -------------------- |
+| `/login`                     | Public          | Login                |
+| `/app/student`               | Student         | Student Dashboard    |
+| `/app/teacher`               | Teacher         | Teacher Dashboard    |
+| `/app/admin`                 | Admin           | Admin Dashboard      |
+| `/dashboard`                 | Student         | Dashboard (legacy)   |
+| `/analytics`                 | Teacher/Admin   | Analytics            |
+| `/teaching`                  | Teacher         | Teaching Hub         |
+| `/teaching/course-builder`   | Teacher/Admin   | Course Builder       |
+| `/teaching/quiz-manager`     | Teacher/Admin   | Quiz Manager         |
+| `/teaching/classes`          | Teacher/Admin   | Class Management     |
+| `/teaching/course-analytics` | Teacher/Admin   | Per-course analytics |
+| `/gradebook`                 | Teacher/Admin   | Gradebook            |
+| `/leaderboard`               | Student/Teacher | Leaderboard          |
+| `/courses/:courseId`         | Student         | Lesson Viewer        |
+| `/settings`                  | All             | Settings             |
+| `/profile`                   | All             | Profile              |
+| `/announcements`             | All             | Announcements        |
+
+<!-- Phase 5 Feature Cross-Reference -->
+
+## Feature Module Cross-Reference
+
+EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
+
+| Feature         | Domain         | Deskripsi                                                                                                                  |
+| --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| administration  | Admin          | Administrasi — Manajemen tenant, konfigurasi modul sekolah, sinkronisasi data                                              |
+| ai-tutor        | Learning       | AI Tutor — Asisten belajar berbasis AI yang memberikan penjelasan personal kepada siswa                                    |
+| analytics       | Analytics      | Analitik — Dashboard analitik komprehensif untuk guru dan admin                                                            |
+| announcements   | Communication  | Pengumuman — Sistem pengumuman sekolah                                                                                     |
+| assignments     | Assessment     | Tugas — Manajemen tugas dari pembuatan hingga penilaian                                                                    |
+| calendar        | Academic       | Kalender — Kalender akademik terintegrasi dengan jadwal pelajaran, ujian, deadline tugas, dan kegiatan sekolah             |
+| classroom       | Academic       | Kelas — Manajemen kelas virtual dan fisik                                                                                  |
+| courses         | Academic       | Kursus — Core learning module                                                                                              |
+| dashboards      | Analytics      | Dashboard — Dashboard kustom dengan widget builder                                                                         |
+| discussions     | Communication  | Diskusi — Forum diskusi per kursus                                                                                         |
+| gamification    | Engagement     | Gamifikasi — Sistem gamifikasi lengkap: XP, badge, level, streak counter, dan leaderboard                                  |
+| gradebook       | Assessment     | Buku Nilai — Buku nilai digital untuk guru                                                                                 |
+| guidance        | Admin          | Panduan — Sistem panduan in-app (tooltip, walkthrough, banner, checkpoint)                                                 |
+| lessons         | Learning       | Pelajaran — Konten pelajaran dengan block-based editor                                                                     |
+| moderation      | Admin          | Moderasi — Moderasi konten user-generated (diskusi, komentar)                                                              |
+| notifications   | Communication  | Notifikasi — Sistem notifikasi real-time dengan bell icon dan panel                                                        |
+| onboarding      | Admin          | Onboarding — Wizard onboarding untuk pengguna baru                                                                         |
+| progress        | Learning       | Kemajuan Belajar — Tracking progress belajar siswa secara granular per kursus, modul, dan pelajaran                        |
+| question-bank   | Assessment     | Bank Soal — Repositori soal yang bisa digunakan ulang di berbagai kuis                                                     |
+| quizzes         | Assessment     | Kuis — Sistem kuis komprehensif dengan timer, anti-cheat, autosave, review mode, dan analitik hasil per soal               |
+| recommendations | Learning       | Rekomendasi — Engine rekomendasi konten berdasarkan progress, performa, dan pola belajar siswa                             |
+| reports         | Analytics      | Laporan — Generator laporan akademik, keuangan (SPP), PPDB, dan custom                                                     |
+| storage         | Infrastructure | Penyimpanan — Manajemen file dan media untuk materi pembelajaran                                                           |
+| struggle        | Analytics      | Deteksi Kesulitan — Deteksi otomatis siswa yang kesulitan berdasarkan pola belajar, waktu per soal, dan penurunan performa |
+
+Setiap feature module mengikuti arsitektur standar dengan folder: api/, queries/, hooks/, types/, components/, dan **tests**/. Semua feature mendukung dark mode dan skeleton loading screens.

@@ -6,18 +6,18 @@ EduSync is a Supabase-centric SaaS LMS. There is no traditional backend server. 
 
 ## Frontend
 
-| Technology | Version | Role |
-|-----------|---------|------|
-| React | 19 | UI framework |
-| Vite | 6 | Build tool, dev server |
-| TypeScript | 5.8 | Type safety |
-| Tailwind CSS | 4 | Styling |
-| React Router | 7 | Hash-based routing |
-| React Query | 5 | Server state, caching |
-| Zustand | 5 | Local feature state (quiz player) |
-| Framer Motion (`motion`) | 12 | Animations |
-| Recharts | 3 | Analytics charts |
-| Lucide React | 0.546 | Icons |
+| Technology               | Version | Role                              |
+| ------------------------ | ------- | --------------------------------- |
+| React                    | 19      | UI framework                      |
+| Vite                     | 6       | Build tool, dev server            |
+| TypeScript               | 5.8     | Type safety                       |
+| Tailwind CSS             | 4       | Styling                           |
+| React Router             | 7       | Hash-based routing                |
+| React Query              | 5       | Server state, caching             |
+| Zustand                  | 5       | Local feature state (quiz player) |
+| Framer Motion (`motion`) | 12      | Animations                        |
+| Recharts                 | 3       | Analytics charts                  |
+| Lucide React             | 0.546   | Icons                             |
 
 ## Routing
 
@@ -30,6 +30,7 @@ EduSync is a Supabase-centric SaaS LMS. There is no traditional backend server. 
 - Unauthenticated users are redirected to `/#/login`
 
 **Key files:**
+
 - `src/app/routes.tsx` — full route tree with lazy-loaded pages
 - `src/components/guards/` — all guard components
 - `src/components/RoleRoute.tsx` — simple role-based route wrapper
@@ -39,6 +40,7 @@ EduSync is a Supabase-centric SaaS LMS. There is no traditional backend server. 
 EduSync is multi-tenant. Each tenant represents a school organization. See [TENANT_ARCHITECTURE.md](../docs/TENANT_ARCHITECTURE.md) for the complete flow.
 
 **Key points:**
+
 - Every tenant-scoped table has a `tenant_id UUID NOT NULL` column with FK to `tenants(id)`
 - `get_my_tenant_id()` SQL function returns the calling user's tenant from their profile
 - `custom_access_token_hook` injects `tenant_id` into every JWT so the frontend can read it without a DB call
@@ -53,20 +55,21 @@ EduSync is multi-tenant. Each tenant represents a school organization. See [TENA
 - `has_role(app_role)` SQL function checks role within the caller's tenant
 
 **Frontend role access:**
+
 ```tsx
-const { role, activeRole } = useAuth();  // 'admin' | 'teacher' | 'student'
+const { role, activeRole } = useAuth() // 'admin' | 'teacher' | 'student'
 ```
 
 ## State Management
 
-| Concern | Mechanism |
-|---------|-----------|
-| Auth user, profile, role, session, tenantId | `AuthContext` (`src/contexts/AuthContext.tsx`) |
-| Course builder UI state | `BuilderContext` (`src/contexts/BuilderContext.tsx`) |
-| Dark/light theme | `ThemeContext` (`src/contexts/ThemeContext.tsx`) |
-| Toast notifications | `ToastContext` (`src/contexts/ToastContext.tsx`) |
-| Server data (courses, quizzes, etc.) | React Query hooks in `src/features/*/queries/` |
-| Quiz player in-progress state | Zustand store in `src/features/quizzes/store/` |
+| Concern                                     | Mechanism                                            |
+| ------------------------------------------- | ---------------------------------------------------- |
+| Auth user, profile, role, session, tenantId | `AuthContext` (`src/contexts/AuthContext.tsx`)       |
+| Course builder UI state                     | `BuilderContext` (`src/contexts/BuilderContext.tsx`) |
+| Dark/light theme                            | `ThemeContext` (`src/contexts/ThemeContext.tsx`)     |
+| Toast notifications                         | `ToastContext` (`src/contexts/ToastContext.tsx`)     |
+| Server data (courses, quizzes, etc.)        | React Query hooks in `src/features/*/queries/`       |
+| Quiz player in-progress state               | Zustand store in `src/features/quizzes/store/`       |
 
 ## Feature Module Structure
 
@@ -85,27 +88,27 @@ src/features/{domain}/
 
 ## Backend (Supabase)
 
-| Layer | Technology | Usage |
-|-------|-----------|-------|
-| Database | PostgreSQL 15 | All persistent data |
-| Auth | Supabase Auth (GoTrue) | Email/password, JWT |
-| Security | Row Level Security | Tenant isolation, role access |
-| Business Logic | SQL functions (RPCs) | Grading, analytics, progress |
-| Automation | PostgreSQL triggers | Progress rollup, XP, streaks, badges |
-| Scheduled Jobs | pg_cron | Course stats refresh, XP processing |
-| External integrations | Edge Functions (Deno) | AI, emails, webhooks |
+| Layer                 | Technology             | Usage                                |
+| --------------------- | ---------------------- | ------------------------------------ |
+| Database              | PostgreSQL 15          | All persistent data                  |
+| Auth                  | Supabase Auth (GoTrue) | Email/password, JWT                  |
+| Security              | Row Level Security     | Tenant isolation, role access        |
+| Business Logic        | SQL functions (RPCs)   | Grading, analytics, progress         |
+| Automation            | PostgreSQL triggers    | Progress rollup, XP, streaks, badges |
+| Scheduled Jobs        | pg_cron                | Course stats refresh, XP processing  |
+| External integrations | Edge Functions (Deno)  | AI, emails, webhooks                 |
 
 ### Edge Functions (Deno, deployed to Supabase)
 
-| Function | Purpose |
-|----------|---------|
-| `ai-tutor` | AI chat using Groq llama-3.1-70b-versatile |
-| `ai-grade-essay` | AI-assisted essay grading |
-| `generate-ai-content` | AI content generation for lessons |
-| `grade-quiz-attempt` | Quiz grading pipeline |
-| `load-quiz-data` | Quiz data loading for player |
-| `progress-events` | Progress event ingestion |
-| `process-progress-events` | Progress event queue processor |
+| Function                  | Purpose                                    |
+| ------------------------- | ------------------------------------------ |
+| `ai-tutor`                | AI chat using Groq llama-3.1-70b-versatile |
+| `ai-grade-essay`          | AI-assisted essay grading                  |
+| `generate-ai-content`     | AI content generation for lessons          |
+| `grade-quiz-attempt`      | Quiz grading pipeline                      |
+| `load-quiz-data`          | Quiz data loading for player               |
+| `progress-events`         | Progress event ingestion                   |
+| `process-progress-events` | Progress event queue processor             |
 
 Edge Functions are stateless and used only for external API integrations. CRUD operations go directly through Supabase client with RLS.
 
@@ -129,9 +132,45 @@ npm run build   # → dist/  (static files for CDN/Vercel/Netlify)
 ```
 
 Bundle is split into manual chunks:
+
 - `vendor-react` — React, React DOM, React Router
 - `vendor-supabase` — Supabase JS client
 - `vendor-recharts` — Charts (analytics routes only)
 - `vendor-pdf` — jsPDF, html2canvas (export routes only)
 - `vendor-katex` — Math rendering
 - `vendor-query` — React Query
+
+<!-- Phase 5 Feature Cross-Reference -->
+
+## Feature Module Cross-Reference
+
+EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
+
+| Feature         | Domain         | Deskripsi                                                                                                                  |
+| --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| administration  | Admin          | Administrasi — Manajemen tenant, konfigurasi modul sekolah, sinkronisasi data                                              |
+| ai-tutor        | Learning       | AI Tutor — Asisten belajar berbasis AI yang memberikan penjelasan personal kepada siswa                                    |
+| analytics       | Analytics      | Analitik — Dashboard analitik komprehensif untuk guru dan admin                                                            |
+| announcements   | Communication  | Pengumuman — Sistem pengumuman sekolah                                                                                     |
+| assignments     | Assessment     | Tugas — Manajemen tugas dari pembuatan hingga penilaian                                                                    |
+| calendar        | Academic       | Kalender — Kalender akademik terintegrasi dengan jadwal pelajaran, ujian, deadline tugas, dan kegiatan sekolah             |
+| classroom       | Academic       | Kelas — Manajemen kelas virtual dan fisik                                                                                  |
+| courses         | Academic       | Kursus — Core learning module                                                                                              |
+| dashboards      | Analytics      | Dashboard — Dashboard kustom dengan widget builder                                                                         |
+| discussions     | Communication  | Diskusi — Forum diskusi per kursus                                                                                         |
+| gamification    | Engagement     | Gamifikasi — Sistem gamifikasi lengkap: XP, badge, level, streak counter, dan leaderboard                                  |
+| gradebook       | Assessment     | Buku Nilai — Buku nilai digital untuk guru                                                                                 |
+| guidance        | Admin          | Panduan — Sistem panduan in-app (tooltip, walkthrough, banner, checkpoint)                                                 |
+| lessons         | Learning       | Pelajaran — Konten pelajaran dengan block-based editor                                                                     |
+| moderation      | Admin          | Moderasi — Moderasi konten user-generated (diskusi, komentar)                                                              |
+| notifications   | Communication  | Notifikasi — Sistem notifikasi real-time dengan bell icon dan panel                                                        |
+| onboarding      | Admin          | Onboarding — Wizard onboarding untuk pengguna baru                                                                         |
+| progress        | Learning       | Kemajuan Belajar — Tracking progress belajar siswa secara granular per kursus, modul, dan pelajaran                        |
+| question-bank   | Assessment     | Bank Soal — Repositori soal yang bisa digunakan ulang di berbagai kuis                                                     |
+| quizzes         | Assessment     | Kuis — Sistem kuis komprehensif dengan timer, anti-cheat, autosave, review mode, dan analitik hasil per soal               |
+| recommendations | Learning       | Rekomendasi — Engine rekomendasi konten berdasarkan progress, performa, dan pola belajar siswa                             |
+| reports         | Analytics      | Laporan — Generator laporan akademik, keuangan (SPP), PPDB, dan custom                                                     |
+| storage         | Infrastructure | Penyimpanan — Manajemen file dan media untuk materi pembelajaran                                                           |
+| struggle        | Analytics      | Deteksi Kesulitan — Deteksi otomatis siswa yang kesulitan berdasarkan pola belajar, waktu per soal, dan penurunan performa |
+
+Setiap feature module mengikuti arsitektur standar dengan folder: api/, queries/, hooks/, types/, components/, dan **tests**/. Semua feature mendukung dark mode dan skeleton loading screens.

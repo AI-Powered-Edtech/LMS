@@ -1,0 +1,33 @@
+import { cn } from '@/src/utils/cn'
+
+interface ReportEmptyStateProps {
+  message?: string
+  action?: React.ReactNode
+  className?: string
+}
+
+/**
+ * Empty state untuk Laporan saat tidak ada data.
+ */
+export function ReportEmptyState({
+  message = 'Belum ada data laporan',
+  action,
+  className,
+}: ReportEmptyStateProps) {
+  return (
+    <div
+      className={cn(
+        'flex flex-col items-center justify-center py-16 px-4',
+        'rounded-2xl border border-dashed border-slate-300 dark:border-slate-600',
+        'bg-slate-50 dark:bg-slate-800/50',
+        className
+      )}
+    >
+      <div className="w-16 h-16 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center mb-4">
+        <span className="text-2xl text-slate-400 dark:text-slate-500">📋</span>
+      </div>
+      <p className="text-slate-600 dark:text-slate-300 text-center mb-4">{message}</p>
+      {action}
+    </div>
+  )
+}

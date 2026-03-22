@@ -8,17 +8,17 @@
 
 ## Executive Summary
 
-| Metric | Value |
-|---|---|
-| Tables scanned | 31 |
-| RLS policies scanned | 119 |
-| Helper functions scanned | 10 |
-| Tables with `tenant_id` | 26 |
+| Metric                         | Value                                                                    |
+| ------------------------------ | ------------------------------------------------------------------------ |
+| Tables scanned                 | 31                                                                       |
+| RLS policies scanned           | 119                                                                      |
+| Helper functions scanned       | 10                                                                       |
+| Tables with `tenant_id`        | 26                                                                       |
 | Global tables (no `tenant_id`) | 5 (`tenants`, `badges`, `user_badges`, `user_points`, `recommendations`) |
-| **Vulnerabilities found** | **5** |
-| Severity: CRITICAL | 2 |
-| Severity: MEDIUM | 2 |
-| Severity: LOW | 1 |
+| **Vulnerabilities found**      | **5**                                                                    |
+| Severity: CRITICAL             | 2                                                                        |
+| Severity: MEDIUM               | 2                                                                        |
+| Severity: LOW                  | 1                                                                        |
 
 ---
 
@@ -28,10 +28,10 @@
 
 All 26 tenant-scoped tables have `tenant_id = get_my_tenant_id()` as the first condition in every SELECT policy. No SELECT policy allows cross-tenant reads.
 
-| Category | Tables | Result |
-|---|---|---|
-| Tenant-scoped tables | 26 | ✅ All enforce `tenant_id = get_my_tenant_id()` |
-| Global tables | 5 | ✅ Correctly scoped by `auth.uid()` or admin-only |
+| Category             | Tables | Result                                            |
+| -------------------- | ------ | ------------------------------------------------- |
+| Tenant-scoped tables | 26     | ✅ All enforce `tenant_id = get_my_tenant_id()`   |
+| Global tables        | 5      | ✅ Correctly scoped by `auth.uid()` or admin-only |
 
 ### ✅ PASS: All UPDATE/DELETE policies enforce tenant isolation
 
@@ -45,13 +45,13 @@ Every UPDATE and DELETE policy on tenant-scoped tables includes `tenant_id = get
 
 ### ✅ PASS: Helper functions enforce tenant context
 
-| Function | Uses `auth.uid()` | Uses tenant check | `SECURITY DEFINER` | `search_path = ''` |
-|---|---|---|---|---|
-| `get_my_tenant_id()` | ✅ | ✅ (returns it) | ✅ | ✅ |
-| `has_role()` | ✅ | ✅ `tenant_id = profile.tenant_id` | ✅ | ✅ |
-| `is_class_member()` | ✅ | ✅ `tenant_id = profile.tenant_id` | ✅ | ✅ |
-| `is_class_teacher()` | ✅ | ✅ `tenant_id = profile.tenant_id` | ✅ | ✅ |
-| `is_course_creator()` | ✅ | ✅ `tenant_id = profile.tenant_id` | ✅ | ✅ |
+| Function              | Uses `auth.uid()` | Uses tenant check                  | `SECURITY DEFINER` | `search_path = ''` |
+| --------------------- | ----------------- | ---------------------------------- | ------------------ | ------------------ |
+| `get_my_tenant_id()`  | ✅                | ✅ (returns it)                    | ✅                 | ✅                 |
+| `has_role()`          | ✅                | ✅ `tenant_id = profile.tenant_id` | ✅                 | ✅                 |
+| `is_class_member()`   | ✅                | ✅ `tenant_id = profile.tenant_id` | ✅                 | ✅                 |
+| `is_class_teacher()`  | ✅                | ✅ `tenant_id = profile.tenant_id` | ✅                 | ✅                 |
+| `is_course_creator()` | ✅                | ✅ `tenant_id = profile.tenant_id` | ✅                 | ✅                 |
 
 > All helper functions are `SECURITY DEFINER` with `search_path = ''`, preventing search path injection. All derive tenant context from `auth.uid()` — no user-supplied tenant parameter.
 
@@ -61,14 +61,15 @@ Every UPDATE and DELETE policy on tenant-scoped tables includes `tenant_id = get
 
 ### VULN-001: `profiles_insert` missing tenant_id check
 
-| | |
-|---|---|
-| **Severity** | 🔴 CRITICAL |
-| **Table** | `profiles` |
-| **Policy** | `profiles_insert` |
-| **Operation** | INSERT |
+|               |                   |
+| ------------- | ----------------- |
+| **Severity**  | 🔴 CRITICAL       |
+| **Table**     | `profiles`        |
+| **Policy**    | `profiles_insert` |
+| **Operation** | INSERT            |
 
 **Current policy**:
+
 ```sql
 WITH CHECK (id = auth.uid())
 ```
@@ -85,14 +86,15 @@ However, this means a user could potentially insert a profile with **any** `tena
 
 ### VULN-002: `handle_new_user` trigger omits tenant_id
 
-| | |
-|---|---|
-| **Severity** | 🔴 CRITICAL |
-| **Table** | `profiles`, `user_roles` |
-| **Function** | `handle_new_user()` |
-| **Type** | SECURITY DEFINER trigger |
+|              |                          |
+| ------------ | ------------------------ |
+| **Severity** | 🔴 CRITICAL              |
+| **Table**    | `profiles`, `user_roles` |
+| **Function** | `handle_new_user()`      |
+| **Type**     | SECURITY DEFINER trigger |
 
 **Current function**:
+
 ```sql
 INSERT INTO public.profiles (id, email, first_name, last_name)
 VALUES (NEW.id, NEW.email, ...);
@@ -111,13 +113,14 @@ VALUES (NEW.id, 'STUDENT');
 
 ### VULN-003: `create_class` RPC bypasses tenant_id
 
-| | |
-|---|---|
-| **Severity** | 🟡 MEDIUM |
-| **Function** | `create_class()` |
-| **Type** | SECURITY DEFINER RPC |
+|              |                      |
+| ------------ | -------------------- |
+| **Severity** | 🟡 MEDIUM            |
+| **Function** | `create_class()`     |
+| **Type**     | SECURITY DEFINER RPC |
 
 **Current function**:
+
 ```sql
 INSERT INTO public.classes (name, course_id, teacher_id, join_code, max_students)
 VALUES (p_name, p_course_id, auth.uid(), v_code, p_max_students)
@@ -131,13 +134,14 @@ VALUES (p_name, p_course_id, auth.uid(), v_code, p_max_students)
 
 ### VULN-004: `enroll_student` RPC bypasses tenant_id
 
-| | |
-|---|---|
-| **Severity** | 🟡 MEDIUM |
-| **Function** | `enroll_student()` |
-| **Type** | SECURITY DEFINER RPC |
+|              |                      |
+| ------------ | -------------------- |
+| **Severity** | 🟡 MEDIUM            |
+| **Function** | `enroll_student()`   |
+| **Type**     | SECURITY DEFINER RPC |
 
 **Current function**:
+
 ```sql
 INSERT INTO public.enrollments (class_id, student_id, status)
 VALUES (v_class.id, auth.uid(), 'ACTIVE')
@@ -151,13 +155,14 @@ VALUES (v_class.id, auth.uid(), 'ACTIVE')
 
 ### VULN-005: `mark_lesson_complete` RPC bypasses tenant_id
 
-| | |
-|---|---|
-| **Severity** | 🟢 LOW |
+|              |                          |
+| ------------ | ------------------------ |
+| **Severity** | 🟢 LOW                   |
 | **Function** | `mark_lesson_complete()` |
-| **Type** | SECURITY DEFINER RPC |
+| **Type**     | SECURITY DEFINER RPC     |
 
 **Current function**:
+
 ```sql
 INSERT INTO public.lesson_progress (user_id, lesson_id, completed, completed_at)
 VALUES (auth.uid(), p_lesson_id, true, now())
@@ -173,13 +178,13 @@ VALUES (auth.uid(), p_lesson_id, true, now())
 
 These 5 tables intentionally do not have `tenant_id`:
 
-| Table | Isolation Method | Risk Assessment |
-|---|---|---|
-| `tenants` | `id = get_my_tenant_id()` | ✅ Safe — each user can only see their own tenant |
-| `badges` | Admin-only writes, public reads | ✅ Safe — global catalog by design |
-| `user_badges` | `user_id = auth.uid()` for reads | ⚠️ Admin writes use `has_role('ADMIN')` which IS tenant-scoped, so this is safe |
-| `user_points` | `user_id = auth.uid()` for reads | ⚠️ Same as above — admin writes are tenant-scoped via `has_role()` |
-| `recommendations` | `user_id = auth.uid()` for reads | ✅ Safe — user can only see own recommendations |
+| Table             | Isolation Method                 | Risk Assessment                                                                 |
+| ----------------- | -------------------------------- | ------------------------------------------------------------------------------- |
+| `tenants`         | `id = get_my_tenant_id()`        | ✅ Safe — each user can only see their own tenant                               |
+| `badges`          | Admin-only writes, public reads  | ✅ Safe — global catalog by design                                              |
+| `user_badges`     | `user_id = auth.uid()` for reads | ⚠️ Admin writes use `has_role('ADMIN')` which IS tenant-scoped, so this is safe |
+| `user_points`     | `user_id = auth.uid()` for reads | ⚠️ Same as above — admin writes are tenant-scoped via `has_role()`              |
+| `recommendations` | `user_id = auth.uid()` for reads | ✅ Safe — user can only see own recommendations                                 |
 
 > **Verdict**: Global tables are acceptably secured. `has_role('ADMIN')` now includes tenant context, preventing cross-tenant admin abuse.
 
@@ -247,18 +252,18 @@ Added tenant_id handling for profile creation during signup flow.
 
 ## Post-Remediation Verification
 
-| Check | Result |
-|---|---|
-| All tenant-scoped SELECT enforce `get_my_tenant_id()` | ✅ |
-| All tenant-scoped INSERT enforce `get_my_tenant_id()` | ✅ |
-| All tenant-scoped UPDATE enforce `get_my_tenant_id()` | ✅ |
-| All tenant-scoped DELETE enforce `get_my_tenant_id()` | ✅ |
-| Helper functions derive tenant from `auth.uid()` only | ✅ |
-| No user-supplied `tenant_id` parameter in any function | ✅ |
-| `SECURITY DEFINER` functions include tenant context | ✅ |
-| `handle_new_user` sets `tenant_id` | ✅ |
-| Cross-tenant join code enrollment blocked | ✅ |
-| `search_path` secured on all DEFINER functions | ✅ |
+| Check                                                  | Result |
+| ------------------------------------------------------ | ------ |
+| All tenant-scoped SELECT enforce `get_my_tenant_id()`  | ✅     |
+| All tenant-scoped INSERT enforce `get_my_tenant_id()`  | ✅     |
+| All tenant-scoped UPDATE enforce `get_my_tenant_id()`  | ✅     |
+| All tenant-scoped DELETE enforce `get_my_tenant_id()`  | ✅     |
+| Helper functions derive tenant from `auth.uid()` only  | ✅     |
+| No user-supplied `tenant_id` parameter in any function | ✅     |
+| `SECURITY DEFINER` functions include tenant context    | ✅     |
+| `handle_new_user` sets `tenant_id`                     | ✅     |
+| Cross-tenant join code enrollment blocked              | ✅     |
+| `search_path` secured on all DEFINER functions         | ✅     |
 
 ---
 
@@ -268,3 +273,38 @@ Added tenant_id handling for profile creation during signup flow.
 2. **Platform admin role**: Consider adding a `PLATFORM_ADMIN` role that is NOT tenant-scoped for super-admin operations across tenants.
 3. **Audit logging**: Consider adding a trigger to log all `tenant_id` changes on critical tables for compliance.
 4. **Periodic re-audit**: Schedule this security validation quarterly.
+
+<!-- Phase 5 Feature Cross-Reference -->
+
+## Feature Module Cross-Reference
+
+EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
+
+| Feature         | Domain         | Deskripsi                                                                                                                  |
+| --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| administration  | Admin          | Administrasi — Manajemen tenant, konfigurasi modul sekolah, sinkronisasi data                                              |
+| ai-tutor        | Learning       | AI Tutor — Asisten belajar berbasis AI yang memberikan penjelasan personal kepada siswa                                    |
+| analytics       | Analytics      | Analitik — Dashboard analitik komprehensif untuk guru dan admin                                                            |
+| announcements   | Communication  | Pengumuman — Sistem pengumuman sekolah                                                                                     |
+| assignments     | Assessment     | Tugas — Manajemen tugas dari pembuatan hingga penilaian                                                                    |
+| calendar        | Academic       | Kalender — Kalender akademik terintegrasi dengan jadwal pelajaran, ujian, deadline tugas, dan kegiatan sekolah             |
+| classroom       | Academic       | Kelas — Manajemen kelas virtual dan fisik                                                                                  |
+| courses         | Academic       | Kursus — Core learning module                                                                                              |
+| dashboards      | Analytics      | Dashboard — Dashboard kustom dengan widget builder                                                                         |
+| discussions     | Communication  | Diskusi — Forum diskusi per kursus                                                                                         |
+| gamification    | Engagement     | Gamifikasi — Sistem gamifikasi lengkap: XP, badge, level, streak counter, dan leaderboard                                  |
+| gradebook       | Assessment     | Buku Nilai — Buku nilai digital untuk guru                                                                                 |
+| guidance        | Admin          | Panduan — Sistem panduan in-app (tooltip, walkthrough, banner, checkpoint)                                                 |
+| lessons         | Learning       | Pelajaran — Konten pelajaran dengan block-based editor                                                                     |
+| moderation      | Admin          | Moderasi — Moderasi konten user-generated (diskusi, komentar)                                                              |
+| notifications   | Communication  | Notifikasi — Sistem notifikasi real-time dengan bell icon dan panel                                                        |
+| onboarding      | Admin          | Onboarding — Wizard onboarding untuk pengguna baru                                                                         |
+| progress        | Learning       | Kemajuan Belajar — Tracking progress belajar siswa secara granular per kursus, modul, dan pelajaran                        |
+| question-bank   | Assessment     | Bank Soal — Repositori soal yang bisa digunakan ulang di berbagai kuis                                                     |
+| quizzes         | Assessment     | Kuis — Sistem kuis komprehensif dengan timer, anti-cheat, autosave, review mode, dan analitik hasil per soal               |
+| recommendations | Learning       | Rekomendasi — Engine rekomendasi konten berdasarkan progress, performa, dan pola belajar siswa                             |
+| reports         | Analytics      | Laporan — Generator laporan akademik, keuangan (SPP), PPDB, dan custom                                                     |
+| storage         | Infrastructure | Penyimpanan — Manajemen file dan media untuk materi pembelajaran                                                           |
+| struggle        | Analytics      | Deteksi Kesulitan — Deteksi otomatis siswa yang kesulitan berdasarkan pola belajar, waktu per soal, dan penurunan performa |
+
+Setiap feature module mengikuti arsitektur standar dengan folder: api/, queries/, hooks/, types/, components/, dan **tests**/. Semua feature mendukung dark mode dan skeleton loading screens.

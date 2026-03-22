@@ -1,0 +1,48 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { onboardingService } from '../api/onboardingService'
+
+const mockSelect = vi.fn()
+const mockEq = vi.fn()
+const mockFrom = vi.fn(() => ({
+  select: mockSelect.mockReturnValue({
+    eq: mockEq,
+  }),
+}))
+
+vi.mock('../../../lib/supabase', () => ({
+  supabase: {
+    from: mockFrom,
+    rpc: vi.fn(),
+    auth: {
+      getSession: vi.fn().mockResolvedValue({
+        data: { session: { user: { id: 'test-user-id' } } },
+      }),
+    },
+  },
+}))
+
+describe('onboardingService', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  describe('getAll', () => {
+    it('harus query data dengan tenant_id filter', async () => {
+      const mockData = [{ id: '1', tenant_id: 't1' }]
+      mockEq.mockResolvedValue({ data: mockData, error: null })
+
+      const result = await onboardingService.getAll('t1')
+      expect(mockFrom).toHaveBeenCalledWith('onboarding_progress')
+      expect(result).toEqual(mockData)
+    })
+
+    it('harus throw error saat Supabase error', async () => {
+      mockEq.mockResolvedValue({
+        data: null,
+        error: { message: 'RLS violation' },
+      })
+
+      await expect(onboardingService.getAll('t1')).rejects.toThrow()
+    })
+  })
+})

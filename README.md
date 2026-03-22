@@ -17,7 +17,7 @@ A multi-tenant SaaS Learning Management System built for Indonesian schools. Edu
 graph TB
     subgraph Presentation["Presentation Layer — React 19 + Vite 6"]
         Pages["Pages (lazy-loaded)"]
-        Features["22 Feature Modules"]
+        Features["24 Feature Modules"]
         Guards["Auth Guard Chain"]
         RQ["React Query v5 (server state)"]
         Zustand["Zustand v5 (local state)"]
@@ -65,7 +65,7 @@ graph TB
 - **No traditional backend** -- no Express, NestJS, or custom Node servers. All business logic lives in PostgreSQL (RLS policies, SQL functions, triggers) or Supabase Edge Functions.
 - **Database-first** -- critical logic (tenant isolation, access control, grade calculations) is implemented in SQL, not in the frontend.
 - **Multi-tenant via RLS** -- every tenant-scoped table includes `tenant_id`; Row-Level Security policies enforce isolation at the database level.
-- **Feature-module architecture** -- 22 self-contained modules under `src/features/`, each with its own `api/`, `queries/`, `types/`, and `components/` subdirectories.
+- **Feature-module architecture** -- 24 self-contained modules under `src/features/`, each with its own `api/`, `queries/`, `types/`, and `components/` subdirectories.
 - **Event-driven telemetry** -- high-frequency events (lesson progress, quiz attempts) use client-side batching and Edge Function ingestion.
 
 ---
@@ -171,7 +171,7 @@ src/
 ├── services/               # Shared service utilities
 ├── utils/                  # General utility functions
 │
-└── features/               # 22 feature modules (see below)
+└── features/               # 24 feature modules (see below)
     ├── administration/     # Tenant administration
     ├── ai-tutor/           # AI Tutor context, chat, prompt engineering
     ├── analytics/          # Teacher analytics dashboard, charts

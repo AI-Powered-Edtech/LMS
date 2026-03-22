@@ -14,7 +14,6 @@ git clone → npm install → cp .env.example .env → isi credentials
 → jalankan seed di SQL Editor
 → npm run dev → login
 
-
 ### Langkah 1: Buat Project Supabase Baru
 
 1. Buka **https://supabase.com/dashboard**
@@ -31,10 +30,10 @@ git clone → npm install → cp .env.example .env → isi credentials
 
 Di Supabase Dashboard project kamu → **Project Settings** → **API**:
 
-| Variable | Lokasi | Contoh |
-|----------|--------|--------|
-| `VITE_SUPABASE_URL` | "Project URL" | `https://xxxxxx.supabase.co` |
-| `VITE_SUPABASE_ANON_KEY` | "Project API Keys" → `anon` `public` | `eyJhbGci...` |
+| Variable                 | Lokasi                               | Contoh                       |
+| ------------------------ | ------------------------------------ | ---------------------------- |
+| `VITE_SUPABASE_URL`      | "Project URL"                        | `https://xxxxxx.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | "Project API Keys" → `anon` `public` | `eyJhbGci...`                |
 
 ---
 
@@ -88,11 +87,11 @@ Di Dashboard → **Authentication** → **Users** → **"Add User"** → **"Crea
 
 Buat 3 user berikut (centang **"Auto Confirm User"** untuk semua):
 
-| Email | Password | Role |
-|-------|----------|------|
+| Email                 | Password      | Role    |
+| --------------------- | ------------- | ------- |
 | `student@edusync.dev` | `Student123!` | Student |
 | `teacher@edusync.dev` | `Teacher123!` | Teacher |
-| `admin@edusync.dev` | `Admin123!` | Admin |
+| `admin@edusync.dev`   | `Admin123!`   | Admin   |
 
 ---
 
@@ -147,7 +146,6 @@ Buka `http://localhost:5173` → klik tombol **Quick Login** sesuai role → mas
 
 ---
 
-
 ---
 
 ## ⛔ LARANGAN: Jangan Pernah Gunakan Mock Auth / Fake JWT
@@ -162,27 +160,27 @@ const mockUser = {
   id: 'd0000000-0000-0000-0000-000000000000',
   email: 'demo@edusync.dev',
   role: 'authenticated',
-} as any as User;
+} as any as User
 
 const mockSession = {
   access_token: 'demo-access-token', // ← Fake token
   refresh_token: 'demo-refresh-token',
-} as any as Session;
+} as any as Session
 
 // Bypass Supabase sepenuhnya
-setSession(mockSession);
-setUser(mockUser);
+setSession(mockSession)
+setUser(mockUser)
 ```
 
 ### Mengapa Ini Berbahaya?
 
-| Masalah | Penjelasan |
-|---------|-----------|
-| **RLS Bypass** | `auth.uid()` di PostgreSQL tidak mengenali fake JWT → semua query yang bergantung pada RLS **gagal diam-diam** (silent failure) |
-| **FK Violations** | User ID palsu (`d0000000-...`) tidak ada di tabel `profiles` → INSERT ke tabel yang punya FK ke `profiles` akan error |
-| **False Confidence** | Developer mengira fitur "berjalan" padahal tidak ada data yang benar-benar tersimpan di database |
-| **Tenant Isolation Rusak** | `get_my_tenant_id()` bergantung pada JWT claims → fake JWT = tenant isolation tidak aktif |
-| **Keamanan** | Jika kode mock auth masuk ke production, siapapun bisa bypass autentikasi |
+| Masalah                    | Penjelasan                                                                                                                      |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **RLS Bypass**             | `auth.uid()` di PostgreSQL tidak mengenali fake JWT → semua query yang bergantung pada RLS **gagal diam-diam** (silent failure) |
+| **FK Violations**          | User ID palsu (`d0000000-...`) tidak ada di tabel `profiles` → INSERT ke tabel yang punya FK ke `profiles` akan error           |
+| **False Confidence**       | Developer mengira fitur "berjalan" padahal tidak ada data yang benar-benar tersimpan di database                                |
+| **Tenant Isolation Rusak** | `get_my_tenant_id()` bergantung pada JWT claims → fake JWT = tenant isolation tidak aktif                                       |
+| **Keamanan**               | Jika kode mock auth masuk ke production, siapapun bisa bypass autentikasi                                                       |
 
 ### Gejala yang Muncul
 
@@ -209,11 +207,11 @@ Jika kamu mengalami salah satu dari gejala ini, kemungkinan besar kamu sedang me
 
 EduSync membutuhkan **3 akun dev** yang harus di-setup di Supabase Auth project kamu:
 
-| Role | Email | Catatan |
-|------|-------|---------|
-| 🎓 Student | `student@edusync.dev` | Untuk testing fitur siswa |
+| Role       | Email                 | Catatan                                          |
+| ---------- | --------------------- | ------------------------------------------------ |
+| 🎓 Student | `student@edusync.dev` | Untuk testing fitur siswa                        |
 | 👩‍🏫 Teacher | `teacher@edusync.dev` | Untuk testing fitur guru (buat kelas, quiz, dll) |
-| 🛡️ Admin | `admin@edusync.dev` | Untuk testing fitur admin |
+| 🛡️ Admin   | `admin@edusync.dev`   | Untuk testing fitur admin                        |
 
 **Jika akun belum ada di Supabase Auth:**
 
@@ -237,13 +235,13 @@ Setelah user dibuat di Supabase Auth, pastikan ada entry yang sesuai di:
 
 ```sql
 -- Cek apakah profile sudah ada
-SELECT id, email, first_name, last_name, tenant_id 
-FROM profiles 
+SELECT id, email, first_name, last_name, tenant_id
+FROM profiles
 WHERE email = 'teacher@edusync.dev';
 
 -- Cek apakah role sudah di-assign
-SELECT user_id, role, tenant_id 
-FROM user_roles 
+SELECT user_id, role, tenant_id
+FROM user_roles
 WHERE user_id = '<USER_ID_DARI_AUTH>';
 ```
 
@@ -253,9 +251,9 @@ WHERE user_id = '<USER_ID_DARI_AUTH>';
 -- Tambah profile (ganti UUID dengan ID user dari Supabase Auth)
 INSERT INTO profiles (id, email, first_name, last_name, tenant_id)
 VALUES (
-  '<USER_ID>', 
-  'teacher@edusync.dev', 
-  'Teacher', 
+  '<USER_ID>',
+  'teacher@edusync.dev',
+  'Teacher',
   'Dev',
   '00000000-0000-0000-0000-00000000000d'  -- tenant dev
 );
@@ -263,7 +261,7 @@ VALUES (
 -- Assign role
 INSERT INTO user_roles (user_id, role, tenant_id)
 VALUES (
-  '<USER_ID>', 
+  '<USER_ID>',
   'TEACHER',  -- HARUS UPPERCASE: STUDENT, TEACHER, atau ADMIN
   '00000000-0000-0000-0000-00000000000d'
 );
@@ -314,6 +312,7 @@ Atau minta admin project untuk reset via Dashboard.
 ```
 
 **Aturan Utama:**
+
 1. **Semua autentikasi HARUS melalui `supabase.auth.signInWithPassword()`**
 2. **JANGAN PERNAH** membuat fake session/user/token di frontend
 3. Jika perlu testing tanpa Supabase, gunakan **Supabase Local Dev** (`npx supabase start`)
@@ -326,6 +325,7 @@ Atau minta admin project untuk reset via Dashboard.
 Jika butuh testing **tanpa koneksi ke Supabase remote**:
 
 ### Opsi 1: Supabase Local Development (Recommended)
+
 ```bash
 npx supabase start
 # Ini akan menjalankan PostgreSQL + Auth + API secara lokal
@@ -333,14 +333,17 @@ npx supabase start
 ```
 
 ### Opsi 2: Unit Test dengan Mocking
+
 ```typescript
 // Hanya untuk UNIT TEST, bukan untuk UI development
 vi.mock('../lib/supabase', () => ({
   supabase: {
     auth: { getUser: vi.fn().mockResolvedValue({ data: { user: mockUser } }) },
-    from: vi.fn().mockReturnValue({ /* ... */ })
-  }
-}));
+    from: vi.fn().mockReturnValue({
+      /* ... */
+    }),
+  },
+}))
 ```
 
 > Mocking hanya boleh di file test (`*.test.ts`), **TIDAK BOLEH** di komponen production.
@@ -354,3 +357,38 @@ vi.mock('../lib/supabase', () => ({
 - [ ] `VITE_DEMO_PASSWORD` atau secret lain **TIDAK** ada di `.env`
 - [ ] Semua fitur baru sudah ditest dengan login real
 - [ ] RLS policies sudah diverifikasi untuk fitur baru
+
+<!-- Phase 5 Feature Cross-Reference -->
+
+## Feature Module Cross-Reference
+
+EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
+
+| Feature         | Domain         | Deskripsi                                                                                                                  |
+| --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| administration  | Admin          | Administrasi — Manajemen tenant, konfigurasi modul sekolah, sinkronisasi data                                              |
+| ai-tutor        | Learning       | AI Tutor — Asisten belajar berbasis AI yang memberikan penjelasan personal kepada siswa                                    |
+| analytics       | Analytics      | Analitik — Dashboard analitik komprehensif untuk guru dan admin                                                            |
+| announcements   | Communication  | Pengumuman — Sistem pengumuman sekolah                                                                                     |
+| assignments     | Assessment     | Tugas — Manajemen tugas dari pembuatan hingga penilaian                                                                    |
+| calendar        | Academic       | Kalender — Kalender akademik terintegrasi dengan jadwal pelajaran, ujian, deadline tugas, dan kegiatan sekolah             |
+| classroom       | Academic       | Kelas — Manajemen kelas virtual dan fisik                                                                                  |
+| courses         | Academic       | Kursus — Core learning module                                                                                              |
+| dashboards      | Analytics      | Dashboard — Dashboard kustom dengan widget builder                                                                         |
+| discussions     | Communication  | Diskusi — Forum diskusi per kursus                                                                                         |
+| gamification    | Engagement     | Gamifikasi — Sistem gamifikasi lengkap: XP, badge, level, streak counter, dan leaderboard                                  |
+| gradebook       | Assessment     | Buku Nilai — Buku nilai digital untuk guru                                                                                 |
+| guidance        | Admin          | Panduan — Sistem panduan in-app (tooltip, walkthrough, banner, checkpoint)                                                 |
+| lessons         | Learning       | Pelajaran — Konten pelajaran dengan block-based editor                                                                     |
+| moderation      | Admin          | Moderasi — Moderasi konten user-generated (diskusi, komentar)                                                              |
+| notifications   | Communication  | Notifikasi — Sistem notifikasi real-time dengan bell icon dan panel                                                        |
+| onboarding      | Admin          | Onboarding — Wizard onboarding untuk pengguna baru                                                                         |
+| progress        | Learning       | Kemajuan Belajar — Tracking progress belajar siswa secara granular per kursus, modul, dan pelajaran                        |
+| question-bank   | Assessment     | Bank Soal — Repositori soal yang bisa digunakan ulang di berbagai kuis                                                     |
+| quizzes         | Assessment     | Kuis — Sistem kuis komprehensif dengan timer, anti-cheat, autosave, review mode, dan analitik hasil per soal               |
+| recommendations | Learning       | Rekomendasi — Engine rekomendasi konten berdasarkan progress, performa, dan pola belajar siswa                             |
+| reports         | Analytics      | Laporan — Generator laporan akademik, keuangan (SPP), PPDB, dan custom                                                     |
+| storage         | Infrastructure | Penyimpanan — Manajemen file dan media untuk materi pembelajaran                                                           |
+| struggle        | Analytics      | Deteksi Kesulitan — Deteksi otomatis siswa yang kesulitan berdasarkan pola belajar, waktu per soal, dan penurunan performa |
+
+Setiap feature module mengikuti arsitektur standar dengan folder: api/, queries/, hooks/, types/, components/, dan **tests**/. Semua feature mendukung dark mode dan skeleton loading screens.
