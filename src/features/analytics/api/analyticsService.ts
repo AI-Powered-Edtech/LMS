@@ -94,11 +94,13 @@ export const analyticsService = {
    * but we provide it here for manual refreshes.
    *
    * @param courseId - The course ID to refresh stats for
-   * @param tenantId - Tenant ID for defense-in-depth (currently not passed to RPC)
-   * TODO: RPC should accept p_tenant_id for defense-in-depth
+   * @param tenantId - Tenant ID passed to RPC for defense-in-depth isolation
    */
-  async refreshCourseStats(courseId: string, _tenantId: string): Promise<void> {
-    const { error } = await supabase.rpc('refresh_course_stats', { p_course_id: courseId })
+  async refreshCourseStats(courseId: string, tenantId: string): Promise<void> {
+    const { error } = await supabase.rpc('refresh_course_stats', {
+      p_course_id: courseId,
+      p_tenant_id: tenantId,
+    })
 
     if (error) {
       console.error('Failed to refresh course stats:', error)
@@ -110,14 +112,16 @@ export const analyticsService = {
    * Fetches the complete analytics dashboard JSON from the RPC.
    *
    * @param courseId - The course ID to get analytics for
-   * @param tenantId - Tenant ID for defense-in-depth (currently not passed to RPC)
-   * TODO: RPC should accept p_tenant_id for defense-in-depth
+   * @param tenantId - Tenant ID passed to RPC for defense-in-depth isolation
    */
   async getTeacherAnalytics(
     courseId: string,
-    _tenantId: string
+    tenantId: string
   ): Promise<TeacherAnalyticsData | null> {
-    const { data, error } = await supabase.rpc('get_teacher_analytics', { p_course_id: courseId })
+    const { data, error } = await supabase.rpc('get_teacher_analytics', {
+      p_course_id: courseId,
+      p_tenant_id: tenantId,
+    })
 
     if (error) {
       console.error('Failed to get teacher analytics:', error)
@@ -129,9 +133,6 @@ export const analyticsService = {
 
   /**
    * Refresh all course stats (admin only)
-   *
-   * @param tenantId - Tenant ID for defense-in-depth (currently not passed to RPC)
-   * TODO: RPC should accept p_tenant_id for defense-in-depth
    */
   async refreshAllCourseStats(_tenantId: string): Promise<void> {
     const { error } = await supabase.rpc('refresh_all_course_stats')
@@ -359,7 +360,7 @@ export const analyticsService = {
 
   async getCourseAnalyticsDashboard(
     courseId: string,
-    _tenantId: string
+    tenantId: string
   ): Promise<CourseAnalytics | null> {
     const { data, error } = await supabase.rpc('get_course_analytics', { p_course_id: courseId })
     if (error) throw parseRpcError(error)
@@ -368,7 +369,7 @@ export const analyticsService = {
 
   async getLessonAnalyticsDashboard(
     courseId: string,
-    _tenantId: string
+    tenantId: string
   ): Promise<LessonAnalytics[]> {
     const { data, error } = await supabase.rpc('get_lesson_analytics', { p_course_id: courseId })
     if (error) throw parseRpcError(error)
