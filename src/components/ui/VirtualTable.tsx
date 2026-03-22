@@ -16,6 +16,7 @@ interface VirtualTableProps<T> {
   getRowKey: (row: T, index: number) => string
   emptyState?: React.ReactNode
   className?: string
+  'data-testid'?: string
 }
 
 export function VirtualTable<T>({
@@ -26,6 +27,7 @@ export function VirtualTable<T>({
   getRowKey,
   emptyState,
   className = '',
+  'data-testid': testId,
 }: VirtualTableProps<T>) {
   const parentRef = useRef<HTMLDivElement>(null)
 
@@ -43,6 +45,7 @@ export function VirtualTable<T>({
   return (
     <div
       ref={parentRef}
+      data-testid={testId}
       className={`overflow-auto ${className}`}
       style={{ maxHeight }}
     >
