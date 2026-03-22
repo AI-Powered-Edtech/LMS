@@ -343,7 +343,7 @@ export const analyticsService = {
 
   async getCourseAnalyticsDashboard(
     courseId: string,
-    tenantId: string
+    _tenantId: string
   ): Promise<CourseAnalytics | null> {
     const { data, error } = await supabase.rpc('get_course_analytics', { p_course_id: courseId })
     if (error) throw parseRpcError(error)
@@ -352,7 +352,7 @@ export const analyticsService = {
 
   async getLessonAnalyticsDashboard(
     courseId: string,
-    tenantId: string
+    _tenantId: string
   ): Promise<LessonAnalytics[]> {
     const { data, error } = await supabase.rpc('get_lesson_analytics', { p_course_id: courseId })
     if (error) throw parseRpcError(error)

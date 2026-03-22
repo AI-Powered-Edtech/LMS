@@ -142,8 +142,6 @@ export function Analytics() {
     setTimeout(() => setAiInsightMessage(null), 4000)
   }
 
-  if (!activeTenant) return null
-
   const radarData = useMemo(
     () =>
       data?.module_completion.map((m) => ({
@@ -155,6 +153,8 @@ export function Analytics() {
   )
 
   const studentsToShow = data?.students.top.concat(data?.students.at_risk || []) || []
+
+  if (!activeTenant) return null
 
   // Quick status heuristic for UI
   const getStatus = (progress: number, _lastActive: string | null) => {

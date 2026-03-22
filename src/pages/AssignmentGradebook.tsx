@@ -98,10 +98,6 @@ export function AssignmentGradebook() {
     }
   }, [gradingSubmission, score, feedback])
 
-  if (loading) {
-    return <GradebookSkeleton />
-  }
-
 
   const submissionColumns = useMemo(() => [
     {
@@ -189,6 +185,10 @@ export function AssignmentGradebook() {
       ),
     },
   ], [selectedAssignment, handleOpenGrading])
+
+  if (loading) {
+    return <GradebookSkeleton />
+  }
 
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
