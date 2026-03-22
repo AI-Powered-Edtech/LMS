@@ -246,48 +246,31 @@ export const analyticsService = {
   },
 
   /**
-   * Fetches course engagement data from course_stats.
-   * Returns engagement metrics per course.
+   * Fetches course engagement data via a single RPC that joins course_stats + courses.
+   * Replaces the previous two-query pattern.
    */
   async getCourseEngagementStats(tenantId: string): Promise<CourseEngagement[]> {
-    // First get course stats
-    const { data: statsData, error: statsError } = await supabase
-      .from('course_stats')
-      .select('course_id, tenant_id, total_enrolled, active_students, avg_progress, avg_quiz_score')
-      .eq('tenant_id', tenantId)
-
-    if (statsError) {
-      console.error('Failed to get course engagement stats:', statsError)
+    const { data, error } = await supabase.rpc('get_course_engagement', {
+      p_tenant_id: tenantId,
+    })
+    if (error) {
+      console.error('Failed to get course engagement stats:', error)
       throw new Error('Gagal memuat data engagement kursus. Silakan coba lagi.')
     }
-
-    const stats = (statsData as CourseStatsRow[]) || []
-
-    // Get course names
-    if (stats.length === 0) {
-      return []
-    }
-
-    const courseIds = stats.map((s) => s.course_id)
-    const { data: coursesData, error: coursesError } = await supabase
-      .from('courses')
-      .select('id, title')
-      .in('id', courseIds)
-
-    if (coursesError) {
-      console.error('Failed to get course names:', coursesError)
-      // Continue without course names
-    }
-
-    const courseMap = new Map((coursesData || []).map((c) => [c.id, c.title]))
-
-    return stats.map((s) => ({
-      courseId: s.course_id,
-      courseName: courseMap.get(s.course_id) || 'Unknown Course',
-      enrolled: s.total_enrolled || 0,
-      activeStudents: s.active_students || 0,
-      avgProgress: Math.round((s.avg_progress || 0) * 10) / 10,
-      avgQuizScore: Math.round((s.avg_quiz_score || 0) * 10) / 10,
+    return (data || []).map((r: {
+      course_id: string
+      course_name: string
+      total_enrolled: number
+      active_students: number
+      avg_progress: number
+      avg_quiz_score: number
+    }) => ({
+      courseId: r.course_id,
+      courseName: r.course_name,
+      enrolled: r.total_enrolled,
+      activeStudents: r.active_students,
+      avgProgress: r.avg_progress,
+      avgQuizScore: r.avg_quiz_score,
     }))
   },
 
