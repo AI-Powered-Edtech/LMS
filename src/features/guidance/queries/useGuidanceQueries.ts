@@ -4,6 +4,7 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { guidanceService } from '../api/guidanceService'
 import type { ApplicableGuide, LearningGuide } from '../types'
 import { DEFAULT_GUIDES } from '../data/defaultGuides'
+import { STALE, GC } from '@/src/utils/queryConstants'
 
 const base = createQueryKeys('guidance')
 
@@ -37,7 +38,8 @@ export function useApplicableGuides(targetType?: string, targetId?: string) {
       )
     },
     enabled: !!tenantId && !!targetType && !!targetId,
-    staleTime: 2 * 60 * 1000, // 2 min — guides change infrequently
+    staleTime: STALE.STATIC,
+    gcTime: GC.LONG,
   })
 }
 
@@ -47,7 +49,8 @@ export function useGuideList(targetType?: string, targetId?: string) {
     queryKey: guidanceKeys.list(tenantId!, targetType, targetId),
     queryFn: () => guidanceService.listGuides(targetType, targetId),
     enabled: !!tenantId,
-    staleTime: 2 * 60 * 1000,
+    staleTime: STALE.STATIC,
+    gcTime: GC.LONG,
   })
 }
 

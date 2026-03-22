@@ -8,6 +8,7 @@ import {
   upsertGradebookSettings,
 } from '../api/gradebookApi'
 import type { GradebookEntry, GradebookSettings } from '../types'
+import { STALE } from '@/src/utils/queryConstants'
 
 // ── Query keys ───────────────────────────────────────────────────────────────
 
@@ -29,7 +30,7 @@ export function useGradebookEntries(courseId: string) {
     queryKey: gradebookKeys.entries(courseId),
     queryFn: () => fetchGradebookEntries(courseId, tenantId!),
     enabled: !!courseId && !!tenantId,
-    staleTime: 30_000,
+    staleTime: STALE.DYNAMIC,
   })
 }
 
@@ -43,7 +44,7 @@ export function useGradebookSettings(courseId: string) {
     queryKey: gradebookKeys.settings(courseId),
     queryFn: () => fetchGradebookSettings(courseId, tenantId!),
     enabled: !!courseId && !!tenantId,
-    staleTime: 60_000,
+    staleTime: STALE.DYNAMIC,
   })
 }
 
