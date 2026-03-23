@@ -1,5 +1,29 @@
 # EduSync LMS — Changelog
 
+## Production Readiness Cleanup — Phase E: Enterprise Hardening (2026-03-24)
+
+Enforced strict scalability, security, and type safety rules across the codebase.
+
+### Track 1: Scalability & Query Optimization
+
+- Eradicated dangerous `SELECT *` statements in `BillingDashboard` and utility templates, explicitly selecting only required columns to minimize payload.
+- Enforced strict pagination boundaries by injecting `.limit()` into high-growth table queries (e.g., `quiz_attempts`, `notifications`, `activity_logs`).
+
+### Track 2: Security & RLS Compliance
+
+- **RPC Hardening Migration (`20260324000000_enterprise_hardening_rls.sql`)**:
+  - Validated that `assignments` is rigorously secured via DB-level roles.
+  - Implemented strict blanket `tenant_id` RLS isolation on the `grades` and `student_lesson_signals` tables via `get_my_tenant_id()`.
+
+### Track 3: Strict TypeScript & UX Consistency
+
+- **TypeScript Strictness**: Purged all ~12 remaining explicit `: any` types across the codebase (including `ClassManagement.tsx` and `UserManagement.tsx`) to enforce strict structural typing.
+- **Supabase Error Translation**: Implemented a universal `translateAuthError` utility, hooking it into `Login`, `ForgotPassword`, and `ResetPassword` flows to ensure students/teachers only ever see user-friendly Bahasa Indonesia error messages.
+
+### Track 4: Feature Polish
+
+- Aligned the `generate-ai-content` Edge Function payload validation in `Creator.tsx` to match the exact 10MB limits configured in the backend.
+
 ## Production Readiness Cleanup — Gelombang 3 (2026-03-24)
 
 Eliminated remaining high-visibility mock data and replaced fake states with honest UI.

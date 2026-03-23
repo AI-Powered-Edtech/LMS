@@ -112,6 +112,7 @@ export const studentProgressService = {
       .eq('tenant_id', tenantId)
       .in('status', ['SUBMITTED', 'GRADED'])
       .order('submitted_at', { ascending: false })
+      .limit(500)
 
     const attemptsMap: Record<string, QuizAttempt[]> = {}
     ;(data ?? []).forEach((a) => {

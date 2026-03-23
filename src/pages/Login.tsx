@@ -14,6 +14,7 @@ import {
 } from '@/src/shared/schemas/forms'
 import { cn } from '@/src/utils/cn'
 import { loginRateLimiter } from '@/src/utils/rateLimiter'
+import { translateAuthError } from '@/src/utils/translateAuthError'
 
 import { useAuth } from '../contexts/AuthContext'
 
@@ -117,22 +118,6 @@ export function Login() {
   }
 
   if (user) return <Navigate to="/" replace />
-
-  const translateAuthError = (message: string): string => {
-    if (message.includes('Invalid login credentials') || message.includes('invalid_credentials')) {
-      return 'Email atau kata sandi salah. Silakan coba lagi.'
-    }
-    if (message.includes('Email not confirmed')) {
-      return 'Email belum dikonfirmasi. Silakan cek kotak masuk email Anda.'
-    }
-    if (message.includes('Too many requests')) {
-      return 'Terlalu banyak percobaan login. Silakan tunggu beberapa menit.'
-    }
-    if (message.includes('User not found')) {
-      return 'Akun tidak ditemukan. Pastikan email yang dimasukkan benar.'
-    }
-    return message
-  }
 
   const handleSignIn = async (data: LoginFormData) => {
     setError('')

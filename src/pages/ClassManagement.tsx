@@ -84,7 +84,7 @@ export function ClassManagement() {
 
       if (!error && data) {
         const counts = data.reduce(
-          (acc: any, curr: any) => {
+          (acc: Record<string, number>, curr: { class_id: string }) => {
             acc[curr.class_id] = (acc[curr.class_id] || 0) + 1
             return acc
           },
@@ -126,17 +126,25 @@ export function ClassManagement() {
         if (enrollmentError) throw enrollmentError // Changed `error` to `enrollmentError`
 
         setStudents(
-          (enrollmentData || []).map((e: any) => {
-            const student = Array.isArray(e.student) ? e.student[0] : e.student
-            return {
-              id: e.id,
-              student_id: student?.id ?? '',
-              full_name: student?.full_name || 'Unnamed',
-              email: student?.email || '-',
-              enrolled_at: e.joined_at,
-              status: 'ACTIVE' as const,
+          (enrollmentData || []).map(
+            (e: {
+              id: string
+              joined_at: string
+              student:
+                | { id: string; full_name: string; email: string }
+                | { id: string; full_name: string; email: string }[]
+            }) => {
+              const student = Array.isArray(e.student) ? e.student[0] : e.student
+              return {
+                id: e.id,
+                student_id: student?.id ?? '',
+                full_name: student?.full_name || 'Unnamed',
+                email: student?.email || '-',
+                enrolled_at: e.joined_at,
+                status: 'ACTIVE' as const,
+              }
             }
-          })
+          )
         )
       } catch (err) {
         if (import.meta.env.DEV) console.error('Failed to fetch students:', err)
@@ -262,8 +270,10 @@ export function ClassManagement() {
             <input
               type="text"
               value={newClassName}
-              onChange={(e: any) => setNewClassName(e.target.value)}
-              onKeyDown={(e: any) => e.key === 'Enter' && handleCreateClass()}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewClassName(e.target.value)}
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                e.key === 'Enter' && handleCreateClass()
+              }
               placeholder="Contoh: Kelas 8A, Bahasa Inggris XI-IPA"
               autoFocus
               className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-indigo-500"
@@ -304,7 +314,7 @@ export function ClassManagement() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e: any) => setSearchQuery(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
               placeholder="Cari kelas..."
               className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
@@ -393,8 +403,10 @@ export function ClassManagement() {
                         <input
                           type="text"
                           value={renameValue}
-                          onChange={(e: any) => setRenameValue(e.target.value)}
-                          onKeyDown={(e: any) =>
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            setRenameValue(e.target.value)
+                          }
+                          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                             e.key === 'Enter' && handleRename(selectedClass.id)
                           }
                           autoFocus

@@ -110,7 +110,7 @@ export function BillingDashboard() {
       try {
         const { data: invData, error: invErr } = await supabase
           .from('invoices')
-          .select('*')
+          .select('id, amount_due, amount_paid, status, due_date, created_at')
           .eq('tenant_id', tenantId)
           .order('created_at', { ascending: false })
 
@@ -128,7 +128,7 @@ export function BillingDashboard() {
         if (subData) {
           const { data: planData } = await supabase
             .from('billing_plans')
-            .select('*')
+            .select('id, name, price')
             .eq('id', subData.plan_id)
             .single()
           setSubscription({ ...subData, plan: planData || { name: 'Unknown', price: 0 } })

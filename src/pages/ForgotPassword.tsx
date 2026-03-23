@@ -8,6 +8,7 @@ import { FormField } from '@/src/components/ui/FormField'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { supabase } from '@/src/services/supabase/client'
 import { passwordResetRateLimiter } from '@/src/utils/rateLimiter'
+import {  } from '@/src/utils/'
 
 const forgotPasswordSchema = v.object({
   email: v.pipe(v.string(), v.email('Email tidak valid.')),
@@ -47,12 +48,16 @@ export function ForgotPassword() {
       })
 
       if (resetError) {
-        setError(resetError.message)
+        setError((resetError.message))
       } else {
         setSubmitted(true)
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan. Silakan coba lagi.')
+      setError(
+        (
+          err instanceof Error ? err.message : 'Terjadi kesalahan. Silakan coba lagi.'
+        )
+      )
     }
   }
 

@@ -372,7 +372,7 @@ export function UserManagement() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex gap-1 flex-wrap">
-                            {user.roles.map((role: any) => {
+                            {user.roles.map((role: string) => {
                               const cfg = ROLE_CONFIG[role] || ROLE_CONFIG.STUDENT
                               return (
                                 <span

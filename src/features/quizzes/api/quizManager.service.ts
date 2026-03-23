@@ -29,7 +29,7 @@ function deriveAssignmentStatus(
 /**
  * Get all quizzes for a teacher (tenant-level)
  */
-export async function getTeacherQuizzes() {
+export async function getTeacherQuizzes(tenantId: string) {
   const { data, error } = await supabase
     .from('quizzes')
     .select(
@@ -58,7 +58,7 @@ export async function getTeacherQuizzes() {
 /**
  * Get quizzes by course
  */
-export async function getQuizzesByCourse(courseId: string) {
+export async function getQuizzesByCourse(courseId: string, tenantId: string) {
   const { data, error } = await supabase
     .from('quizzes')
     .select(
@@ -81,7 +81,7 @@ export async function getQuizzesByCourse(courseId: string) {
 /**
  * Get quizzes by class
  */
-export async function getQuizzesByClass(classId: string) {
+export async function getQuizzesByClass(classId: string, tenantId: string) {
   const { data, error } = await supabase
     .from('quiz_assignments')
     .select(
@@ -127,7 +127,7 @@ export async function getQuizzesByClass(classId: string) {
 /**
  * Get quiz with all questions and options
  */
-export async function getQuizWithQuestions(quizId: string) {
+export async function getQuizWithQuestions(quizId: string, tenantId: string) {
   const { data, error } = await supabase
     .from('quizzes')
     .select(
@@ -230,7 +230,11 @@ export async function createQuiz(payload: {
 /**
  * Update quiz details
  */
-export async function updateQuiz(quizId: string, updates: Record<string, unknown>) {
+export async function updateQuiz(
+  quizId: string,
+  updates: Record<string, unknown>,
+  tenantId: string
+) {
   const { error } = await supabase
     .from('quizzes')
     .update({ ...updates, updated_at: new Date().toISOString() })
@@ -243,7 +247,7 @@ export async function updateQuiz(quizId: string, updates: Record<string, unknown
 /**
  * Delete a quiz
  */
-export async function deleteQuiz(quizId: string) {
+export async function deleteQuiz(quizId: string, tenantId: string) {
   const { error } = await supabase
     .from('quizzes')
     .delete()
@@ -256,7 +260,11 @@ export async function deleteQuiz(quizId: string) {
 /**
  * Set quiz status (draft/published)
  */
-export async function setQuizStatus(quizId: string, status: 'draft' | 'published') {
+export async function setQuizStatus(
+  quizId: string,
+  status: 'draft' | 'published',
+  tenantId: string
+) {
   const { error } = await supabase
     .from('quizzes')
     .update({ status, updated_at: new Date().toISOString() })
@@ -296,6 +304,7 @@ export async function setQuizStatus(quizId: string, status: 'draft' | 'published
  */
 export async function addQuestionToQuiz(
   quizId: string,
+  tenantId: string,
 
   question: {
     text: string
@@ -342,7 +351,11 @@ export async function addQuestionToQuiz(
 /**
  * Update a quiz question
  */
-export async function updateQuizQuestion(questionId: string, updates: Record<string, unknown>) {
+export async function updateQuizQuestion(
+  questionId: string,
+  updates: Record<string, unknown>,
+  tenantId: string
+) {
   const { error } = await supabase
     .from('quiz_questions')
     .update(updates)
@@ -357,6 +370,7 @@ export async function updateQuizQuestion(questionId: string, updates: Record<str
  */
 export async function replaceQuestionOptions(
   questionId: string,
+  tenantId: string,
 
   options: { text: string; is_correct: boolean }[]
 ) {
@@ -392,6 +406,7 @@ export async function replaceQuestionOptions(
 export async function gradeAttemptQuestion(
   attemptId: string,
   questionId: string,
+  _tenantId: string,
   pointsEarned: number,
   isCorrect: boolean,
   comment?: string
@@ -427,7 +442,7 @@ export async function gradeAttemptQuestion(
 /**
  * Get assignment results (all student attempts)
  */
-export async function getAssignmentResults(assignmentId: string) {
+export async function getAssignmentResults(assignmentId: string, _tenantId: string) {
   const {
     data: { session },
   } = await supabase.auth.getSession()

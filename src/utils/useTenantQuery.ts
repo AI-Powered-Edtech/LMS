@@ -15,7 +15,7 @@ import { useAuth } from '../contexts/AuthContext'
  *   const { tenantQuery, tenantInsert } = useTenantQuery();
  *
  *   // SELECT with automatic tenant filter
- *   const { data } = await tenantQuery('classes').select('*');
+ *   const { data } = await tenantQuery('classes').select('id, name, created_at');
  *
  *   // INSERT with automatic tenant_id
  *   await tenantInsert('classes', { name: 'English 101', teacher_id: userId });

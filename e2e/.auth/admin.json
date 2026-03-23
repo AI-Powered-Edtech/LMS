@@ -1,0 +1,26 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:5173",
+      "localStorage": [
+        {
+          "name": "theme",
+          "value": "system"
+        },
+        {
+          "name": "edusync_cache_xp_50b7aeda-0213-44ee-ac04-49650546de64",
+          "value": "{\"data\":{\"total_xp\":0,\"level\":1,\"xp_current_level\":0,\"xp_next_level\":100,\"streak_current\":0,\"streak_longest\":0,\"last_active\":null,\"recent_xp\":[]},\"timestamp\":1774295754573,\"ttlMinutes\":10}"
+        },
+        {
+          "name": "activeTenantId",
+          "value": "00000000-0000-0000-0000-00000000000d"
+        },
+        {
+          "name": "sb-omfnkoufjqjqilswldtz-auth-token",
+          "value": "{\"access_token\":\"eyJhbGciOiJFUzI1NiIsImtpZCI6IjhmNGUxMjE1LTNmNGMtNDg3My05ODU5LWUyMzJhNmQ1Y2ZlNCIsInR5cCI6IkpXVCJ9.eyJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc3NDI5NTc1MX1dLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwiYXVkIjoiYXV0aGVudGljYXRlZCIsImVtYWlsIjoiYWRtaW5AZWR1c3luYy5kZXYiLCJleHAiOjE3NzQyOTkzNTEsImlhdCI6MTc3NDI5NTc1MSwiaXNfYW5vbnltb3VzIjpmYWxzZSwiaXNzIjoiaHR0cHM6Ly9vbWZua291ZmpxanFpbHN3bGR0ei5zdXBhYmFzZS5jby9hdXRoL3YxIiwicGhvbmUiOiIiLCJyb2xlIjoiYXV0aGVudGljYXRlZCIsInNlc3Npb25faWQiOiJjNjhjOTFiNi04NWY4LTQ0YWQtODQ0MS1mYjdmMTlhYTFlYjkiLCJzdWIiOiI1MGI3YWVkYS0wMjEzLTQ0ZWUtYWMwNC00OTY1MDU0NmRlNjQiLCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJzdF9uYW1lIjoiU3lzdGVtIiwibGFzdF9uYW1lIjoiQWRtaW4ifX0.IJFxvm2IsD99yyJirbcjNOMjKcp_ZOazrhnGRxF4rlS-i2_nFP3OY4OzI5Yzk6RhTOTzvn8FI0-sSJwfYIU16Q\",\"token_type\":\"bearer\",\"expires_in\":3600,\"expires_at\":1774299351,\"refresh_token\":\"ajgwkvdxnpcf\",\"user\":{\"id\":\"50b7aeda-0213-44ee-ac04-49650546de64\",\"aud\":\"authenticated\",\"role\":\"authenticated\",\"email\":\"admin@edusync.dev\",\"email_confirmed_at\":\"2026-03-08T04:13:28.983472Z\",\"phone\":\"\",\"confirmed_at\":\"2026-03-08T04:13:28.983472Z\",\"last_sign_in_at\":\"2026-03-23T19:55:51.432461029Z\",\"app_metadata\":{\"provider\":\"email\",\"providers\":[\"email\"]},\"user_metadata\":{\"email_verified\":true,\"first_name\":\"System\",\"last_name\":\"Admin\"},\"identities\":[{\"identity_id\":\"a3aa02cd-b44e-47b8-9b47-b39692ea02b9\",\"id\":\"50b7aeda-0213-44ee-ac04-49650546de64\",\"user_id\":\"50b7aeda-0213-44ee-ac04-49650546de64\",\"identity_data\":{\"email\":\"admin@edusync.dev\",\"email_verified\":false,\"phone_verified\":false,\"sub\":\"50b7aeda-0213-44ee-ac04-49650546de64\"},\"provider\":\"email\",\"last_sign_in_at\":\"2026-03-08T04:13:28.979164Z\",\"created_at\":\"2026-03-08T04:13:28.979231Z\",\"updated_at\":\"2026-03-08T04:13:28.979231Z\",\"email\":\"admin@edusync.dev\"}],\"created_at\":\"2026-03-08T04:13:28.952785Z\",\"updated_at\":\"2026-03-23T19:55:51.486278Z\",\"is_anonymous\":false},\"weak_password\":null}"
+        }
+      ]
+    }
+  ]
+}

@@ -4,7 +4,7 @@ import React, { ReactElement } from 'react'
 import { HashRouter } from 'react-router-dom'
 import { vi } from 'vitest'
 
-import { AuthContext } from '@/src/contexts/AuthContext'
+import { AuthContext, AuthContextType } from '@/src/contexts/AuthContext'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,7 +34,7 @@ export const mockAuthValue = {
 
 export function renderWithProviders(
   ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'> & { authValue?: unknown }
+  options?: Omit<RenderOptions, 'wrapper'> & { authValue?: Partial<AuthContextType> }
 ) {
   const { authValue = mockAuthValue, ...renderOptions } = options || {}
 
@@ -42,7 +42,9 @@ export function renderWithProviders(
     return (
       <QueryClientProvider client={queryClient}>
         <HashRouter>
-          <AuthContext.Provider value={authValue}>{children}</AuthContext.Provider>
+          <AuthContext.Provider value={authValue as AuthContextType}>
+            {children}
+          </AuthContext.Provider>
         </HashRouter>
       </QueryClientProvider>
     )
@@ -70,7 +72,7 @@ Object.defineProperty(window, 'matchMedia', {
 import { ThemeProvider } from '@/src/contexts/ThemeContext'
 export function renderWithAllProviders(
   ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'> & { authValue?: unknown }
+  options?: Omit<RenderOptions, 'wrapper'> & { authValue?: Partial<AuthContextType> }
 ) {
   const { authValue = mockAuthValue, ...renderOptions } = options || {}
 
@@ -78,7 +80,7 @@ export function renderWithAllProviders(
     return (
       <QueryClientProvider client={queryClient}>
         <HashRouter>
-          <AuthContext.Provider value={{ ...authValue, memberships: [] }}>
+          <AuthContext.Provider value={{ ...authValue, memberships: [] } as AuthContextType}>
             <ThemeProvider>{children}</ThemeProvider>
           </AuthContext.Provider>
         </HashRouter>

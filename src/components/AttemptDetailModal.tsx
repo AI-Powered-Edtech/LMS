@@ -15,6 +15,7 @@ import {
 } from '@/src/features/quizzes/api/quizAnalyticsService'
 import { gradeAttemptQuestion } from '@/src/features/quizzes/api/quizManager.service'
 import { cn } from '@/src/utils/cn'
+import { useAuth } from '@/src/contexts/AuthContext'
 
 interface AttemptDetailModalProps {
   attemptId: string
@@ -43,6 +44,7 @@ export function AttemptDetailModal({
   onClose,
   onGraded,
 }: AttemptDetailModalProps) {
+  const { tenantId } = useAuth()
   const [answers, setAnswers] = useState<AttemptDetailAnswer[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -112,7 +114,7 @@ export function AttemptDetailModal({
       const isCorrect = scoreVal >= answer.max_points * 0.7
       const comment = gradingComments[answer.question_id] || undefined
 
-      await gradeAttemptQuestion(attemptId, answer.question_id, scoreVal, isCorrect, comment)
+      await gradeAttemptQuestion(attemptId, answer.question_id, tenantId!, scoreVal, isCorrect, comment)
 
       // Update local state to reflect the grading
       setAnswers((prev) =>

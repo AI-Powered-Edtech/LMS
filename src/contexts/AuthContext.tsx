@@ -70,7 +70,7 @@ interface Profile {
   tenant_id: string | null
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null
   session: Session | null
   profile: Profile | null

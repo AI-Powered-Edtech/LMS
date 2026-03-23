@@ -68,34 +68,37 @@ export function Creator() {
     setIsDragging(false)
   }, [])
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      setIsDragging(false)
 
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const droppedFile = e.dataTransfer.files[0]
-      // Validation
-      if (droppedFile.size > 50 * 1024 * 1024) {
-        addToast({ type: 'error', message: 'Ukuran file maksimal 50MB' })
-        return
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const droppedFile = e.dataTransfer.files[0]
+        // Validation
+        if (droppedFile.size > 10 * 1024 * 1024) {
+          addToast({ type: 'error', message: 'Ukuran file maksimal 10MB' })
+          return
+        }
+        const validTypes = [
+          'application/pdf',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'video/mp4',
+          'text/plain',
+          'text/csv',
+        ]
+        if (!validTypes.includes(droppedFile.type)) {
+          addToast({
+            type: 'error',
+            message: 'Format file tidak didukung. Gunakan .pdf, .docx, .txt, atau .mp4',
+          })
+          return
+        }
+        setFile(droppedFile)
       }
-      const validTypes = [
-        'application/pdf',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'video/mp4',
-        'text/plain',
-        'text/csv',
-      ]
-      if (!validTypes.includes(droppedFile.type)) {
-        addToast({
-          type: 'error',
-          message: 'Format file tidak didukung. Gunakan .pdf, .docx, .txt, atau .mp4',
-        })
-        return
-      }
-      setFile(droppedFile)
-    }
-  }, [])
+    },
+    [addToast]
+  )
 
   const [error, setError] = useState<string | null>(null)
 
@@ -253,7 +256,7 @@ export function Creator() {
                     Tarik & Lepas file di sini
                   </p>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-                    Mendukung .pdf, .docx, .mp4 (Maks 50MB)
+                    Mendukung .pdf, .docx, .mp4 (Maks 10MB)
                   </p>
                   <button className="mt-6 px-6 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 shadow-sm">
                     Pilih File

@@ -5,7 +5,7 @@ import type { AssignmentUiState } from '@/src/features/assignments/types'
 
 interface TeacherSubmissionsPanelProps {
   assignment: AssignmentUiState
-  getStudentGrade: (studentId: string, assignmentId: string) => { score: number | null } | undefined
+  getStudentGrade: (studentId: string, assignmentId: string) => { score: number | null } | null | undefined
 }
 
 export function TeacherSubmissionsPanel({
