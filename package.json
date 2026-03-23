@@ -8,7 +8,7 @@
     "build": "vite build",
     "analyze": "ANALYZE=true vite build",
     "preview": "vite preview",
-    "deploy:puter": "npm run build && npx @puter/cli hosting host ./dist --site edusync-lms",
+    "deploy:puter": "npm run build && puter site deploy ./dist edusync-lms",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/",

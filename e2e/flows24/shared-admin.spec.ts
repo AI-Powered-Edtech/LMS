@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test'
 
 // Roles that can be run safely
 test.describe('Shared & Admin Flows', () => {
-  test('Flow 16: Forum / Discussions', async ({ page }) => {
-    test.skip(() => test.info().project.name === 'setup', 'Skip setup')
+  test('Flow 16: Forum / Discussions', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'setup', 'Skip setup')
     await page.goto('/#/app/forum')
 
     // Wait for either the main forum container, the empty state, or loading to finish
@@ -12,8 +12,8 @@ test.describe('Shared & Admin Flows', () => {
     })
   })
 
-  test('Flow 17: Announcements', async ({ page }) => {
-    test.skip(() => test.info().project.name === 'setup', 'Skip setup')
+  test('Flow 17: Announcements', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'setup', 'Skip setup')
     await page.goto('/#/app/announcements')
 
     await expect(
@@ -21,8 +21,8 @@ test.describe('Shared & Admin Flows', () => {
     ).toBeVisible({ timeout: 15000 })
   })
 
-  test('Flow 18: Notifications', async ({ page }) => {
-    test.skip(() => test.info().project.name === 'setup', 'Skip setup')
+  test('Flow 18: Notifications', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'setup', 'Skip setup')
     await page.goto('/#/app/notifications')
 
     await expect(
@@ -30,8 +30,8 @@ test.describe('Shared & Admin Flows', () => {
     ).toBeVisible({ timeout: 15000 })
   })
 
-  test('Flow 19: Calendar', async ({ page }) => {
-    test.skip(() => test.info().project.name === 'setup', 'Skip setup')
+  test('Flow 19: Calendar', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'setup', 'Skip setup')
     await page.goto('/#/app/calendar')
 
     // FullCalendar renders '.fc' class, or we might see "Kalender" text
@@ -40,8 +40,8 @@ test.describe('Shared & Admin Flows', () => {
     ).toBeVisible({ timeout: 15000 })
   })
 
-  test('Flow 23: Profile & Settings', async ({ page }) => {
-    test.skip(() => test.info().project.name === 'setup', 'Skip setup')
+  test('Flow 23: Profile & Settings', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'setup', 'Skip setup')
     await page.goto('/#/app/profile')
 
     await expect(page.locator('text=/Profil|Profile|Simpan/i').first()).toBeVisible({
@@ -49,8 +49,8 @@ test.describe('Shared & Admin Flows', () => {
     })
   })
 
-  test('Flow 20: Admin Dashboard', async ({ page }) => {
-    test.skip(() => test.info().project.name !== 'admin', 'Only run for admin')
+  test('Flow 20: Admin Dashboard', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'admin', 'Only run for admin')
     await page.goto('/#/app/admin/dashboard')
 
     await expect(page.locator('text=/Admin|Administrasi|Pengguna|Dashboard/i').first()).toBeVisible(
