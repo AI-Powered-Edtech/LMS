@@ -24,6 +24,7 @@ import {
 } from '@/src/features/lessons'
 import { CourseBrowser } from '@/src/features/lessons/components/CourseBrowser'
 import { LessonEventTracker } from '@/src/features/lessons/components/LessonEventTracker'
+import { StudentCoursesList } from '@/src/features/lessons/components/StudentCoursesList'
 import {
   LegacyContentFallback,
   LessonBottomNav,
@@ -348,6 +349,10 @@ export function LessonViewer() {
   // ============================================================
   // Render: No module selected → CourseBrowser
   // ============================================================
+  if (!courseId) {
+    return <StudentCoursesList />
+  }
+
   if (!moduleId) {
     return (
       <CourseBrowser onSelectModule={handleSelectModule} tenantId={tenantId!} courseId={courseId} />
