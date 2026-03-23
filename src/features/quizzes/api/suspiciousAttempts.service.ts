@@ -70,6 +70,7 @@ export async function getSuspiciousAttempts(
         quiz_id,
         score,
         status,
+        is_reviewed,
         tenant_id,
         profiles!quiz_attempts_v2_student_id_fkey ( full_name ),
         quizzes!quiz_attempts_v2_quiz_id_fkey ( title )
@@ -138,7 +139,7 @@ export async function getSuspiciousAttempts(
       first_signal_at: sigs.length > 0 ? sigs[0].created_at : null,
       last_signal_at: sigs.length > 0 ? sigs[sigs.length - 1].created_at : null,
       severity: classifySeverity(tabSwitches, blurs),
-      is_reviewed: false, // TODO: add reviewed column to DB
+      is_reviewed: (attempt.is_reviewed as boolean) ?? false,
     })
   }
 

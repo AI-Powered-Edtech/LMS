@@ -1,5 +1,25 @@
 # EduSync LMS — Changelog
 
+## Production Readiness Cleanup — Gelombang 1 & 2 (2026-03-24)
+
+Removed mock/dummy data, guarded console statements, and added `is_reviewed` column to `quiz_attempts_v2`.
+
+### Gelombang 1 — Dummy data removal & console guards
+
+- **Removed `seedDummyVideo()`** function from `lessonService.ts` (dead code, 40 lines)
+- **Removed dummy video UI** from `VideoViewer.tsx` — yellow "Mode Pengembang" button, `isSeeding` state, `handleSeedClick` handler
+- **Removed dummy video handler** from `LegacyContentFallback.tsx` — `handleSeedDummyVideo` and prop pass-through
+- **Wrapped unguarded console statements** with `if (import.meta.env.DEV)` in 4 files:
+  - `lessonService.ts` (4 `console.warn`)
+  - `validate.ts` (2 `console.warn`)
+  - `trackingService.ts` (1 `console.debug`)
+  - `LessonViewer.tsx` (1 `console.debug`)
+
+### Gelombang 2 — `is_reviewed` column for cheating review
+
+- **Migration `20260323180000_add_is_reviewed_to_attempts.sql`**: Added `is_reviewed BOOLEAN NOT NULL DEFAULT false` to `quiz_attempts_v2` (partitioned table, propagates to all partitions)
+- **Updated `suspiciousAttempts.service.ts`**: Reads `is_reviewed` from DB instead of hardcoding `false`. Added column to Supabase select query.
+
 ## God-Component Decomposition — Phase B/C/D (2026-03-24)
 
 Decomposed 6 god-components (500–1100+ lines each) down to manageable sizes, converted 19 `alert()` calls to `useToast`, and added dark mode support to extracted components.

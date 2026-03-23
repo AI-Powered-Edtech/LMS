@@ -261,16 +261,6 @@ export function LessonViewer() {
     }, 100)
   }, [scrollToBlock, state.progress])
 
-  const handleReloadLesson = useCallback(async () => {
-    if (!state.lesson || !tenantId) return
-    actions.loadLesson()
-    const [lesson, progress] = await Promise.all([
-      lessonService.fetchLesson(state.lesson.id, tenantId),
-      user?.id ? lessonService.fetchProgress(state.lesson.id, user.id, tenantId) : null,
-    ])
-    if (lesson) actions.lessonLoaded(lesson, progress || null)
-  }, [state.lesson, tenantId, user?.id, actions])
-
   // ============================================================
   // Effects
   // ============================================================
@@ -557,12 +547,10 @@ export function LessonViewer() {
                           progressPercentage={state.progressPercentage}
                           lastQuizScore={lastQuizScore}
                           lessonId={lessonId}
-                          tenantId={tenantId}
                           userId={user?.id}
                           onProgressUpdate={handleProgressUpdate}
                           onCompletionMet={handleCompletionMet}
                           onStartViewing={actions.startViewing}
-                          onReloadLesson={handleReloadLesson}
                         />
                       )}
                     </motion.div>

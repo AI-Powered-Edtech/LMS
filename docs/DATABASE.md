@@ -34,19 +34,20 @@ PostgreSQL on Supabase. 157 migration files (001–836).
 
 ### Assessment
 
-| Table                    | Purpose                                                                                       |
-| ------------------------ | --------------------------------------------------------------------------------------------- |
-| `quizzes`                | Quiz definitions linked to a lesson/class                                                     |
-| `quiz_questions`         | Questions per quiz. Column `text` (not `question_text`)                                       |
-| `quiz_options`           | Options per question. Column `text` (not `option_text`)                                       |
-| `quiz_attempts`          | Student attempt records. Status: `IN_PROGRESS`, `SUBMITTED`, `GRADED`, `EXPIRED`, `ABANDONED` |
-| `quiz_attempt_questions` | Per-question snapshot for immutability                                                        |
-| `quiz_stats`             | Pre-aggregated quiz-level statistics                                                          |
-| `question_bank`          | Reusable question repository (per-tenant)                                                     |
-| `question_options`       | Options for question bank entries                                                             |
-| `assignments`            | Teacher-created assignments                                                                   |
-| `assignment_submissions` | Student submissions                                                                           |
-| `grades`                 | Grades for submissions                                                                        |
+| Table                    | Purpose                                                                                                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `quizzes`                | Quiz definitions linked to a lesson/class                                                                                                                                       |
+| `quiz_questions`         | Questions per quiz. Column `text` (not `question_text`)                                                                                                                         |
+| `quiz_options`           | Options per question. Column `text` (not `option_text`)                                                                                                                         |
+| `quiz_attempts`          | Student attempt records. Status: `IN_PROGRESS`, `SUBMITTED`, `GRADED`, `EXPIRED`, `ABANDONED`                                                                                   |
+| `quiz_attempts_v2`       | Partitioned replacement for `quiz_attempts` (PARTITION BY RANGE on `started_at`). Columns include `is_reviewed` (boolean, default false) for teacher review of cheating signals |
+| `quiz_attempt_questions` | Per-question snapshot for immutability                                                                                                                                          |
+| `quiz_stats`             | Pre-aggregated quiz-level statistics                                                                                                                                            |
+| `question_bank`          | Reusable question repository (per-tenant)                                                                                                                                       |
+| `question_options`       | Options for question bank entries                                                                                                                                               |
+| `assignments`            | Teacher-created assignments                                                                                                                                                     |
+| `assignment_submissions` | Student submissions                                                                                                                                                             |
+| `grades`                 | Grades for submissions                                                                                                                                                          |
 
 ### Analytics
 

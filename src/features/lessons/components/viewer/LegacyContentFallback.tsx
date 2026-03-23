@@ -7,7 +7,6 @@ import {
 import { ReviewPrompt } from '@/src/features/recommendations'
 
 import type { Lesson } from '../../index'
-import { lessonService } from '../../index'
 
 interface LegacyContentFallbackProps {
   lesson: Lesson
@@ -16,12 +15,10 @@ interface LegacyContentFallbackProps {
   progressPercentage: number
   lastQuizScore: number | null
   lessonId: string | null
-  tenantId: string | null
   userId?: string
   onProgressUpdate: (percentage: number, position?: number) => void
   onCompletionMet: () => void
   onStartViewing: () => void
-  onReloadLesson: () => Promise<void>
 }
 
 export function LegacyContentFallback({
@@ -30,12 +27,10 @@ export function LegacyContentFallback({
   lastPosition,
   lastQuizScore,
   lessonId,
-  tenantId,
   userId: _userId,
   onProgressUpdate,
   onCompletionMet,
   onStartViewing,
-  onReloadLesson,
 }: LegacyContentFallbackProps) {
   const isCompleted = status === 'completed'
 
@@ -43,13 +38,6 @@ export function LegacyContentFallback({
   if (lesson.type === 'video') {
     const videoResource = lesson.lesson_resources?.find((r) => r.type === 'VIDEO')
     const videoUrl = videoResource?.url || videoResource?.content || ''
-
-    const handleSeedDummyVideo = async () => {
-      if (!tenantId) return
-      const { DEV_SEED_VIDEO } = await import('@/src/shared/config/devSeeds')
-      await lessonService.seedDummyVideo(lesson.id, tenantId, DEV_SEED_VIDEO)
-      await onReloadLesson()
-    }
 
     return (
       <VideoViewer
@@ -59,7 +47,6 @@ export function LegacyContentFallback({
         onProgressUpdate={onProgressUpdate}
         onCompletionMet={onCompletionMet}
         onStartViewing={onStartViewing}
-        onSeedDummyVideo={handleSeedDummyVideo}
       />
     )
   }

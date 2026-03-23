@@ -1,7 +1,8 @@
-import { useRef, useState, useEffect, useCallback } from 'react'
-import { Sparkles, AlertTriangle, Lock, FileText, MessageSquare, CheckCircle2 } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, FileText, Lock, MessageSquare, Sparkles } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
 import { cn } from '@/src/utils/cn'
-import { motion, AnimatePresence } from 'motion/react'
 
 interface Transcript {
   time: number
@@ -24,7 +25,6 @@ interface VideoViewerProps {
   onProgressUpdate: (percentage: number, position: number) => void
   onCompletionMet: () => void
   onStartViewing: () => void
-  onSeedDummyVideo?: () => void
 }
 
 export function VideoViewer({
@@ -35,12 +35,10 @@ export function VideoViewer({
   onProgressUpdate,
   onCompletionMet,
   onStartViewing,
-  onSeedDummyVideo,
 }: VideoViewerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [currentTime, setCurrentTime] = useState(0)
   const [maxWatchedTime, setMaxWatchedTime] = useState(savedPosition)
-  const [isSeeding, setIsSeeding] = useState(false)
   const [isStalled, setIsStalled] = useState(false)
   const hasCalledCompletion = useRef(false)
 
@@ -90,17 +88,6 @@ export function VideoViewer({
     }
   }
 
-  const handleSeedClick = async () => {
-    if (!onSeedDummyVideo) return
-    setIsSeeding(true)
-    try {
-      await onSeedDummyVideo()
-    } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to seed dummy video', error)
-      setIsSeeding(false)
-    }
-  }
-
   const handleWaitingOrStalled = useCallback(() => {
     setIsStalled(true)
   }, [])
@@ -139,21 +126,6 @@ export function VideoViewer({
             Materi video untuk pelajaran ini belum ditambahkan. Jika Anda adalah instruktur, silakan
             masukkan URL video terlebih dahulu.
           </p>
-
-          {import.meta.env.DEV && onSeedDummyVideo && (
-            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-xl max-w-md w-full">
-              <p className="text-sm text-yellow-800 dark:text-yellow-300 font-medium mb-3">
-                Mode Pengembang
-              </p>
-              <button
-                onClick={handleSeedClick}
-                disabled={isSeeding}
-                className="w-full bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                {isSeeding ? 'Memuat...' : 'Isi Video Dummy (BigBuckBunny)'}
-              </button>
-            </div>
-          )}
         </div>
       ) : (
         <div className="flex-1 flex flex-col min-w-0">
