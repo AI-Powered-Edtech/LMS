@@ -1,5 +1,25 @@
 # EduSync LMS — Changelog
 
+## Fase F: Production Launch & Puter.com Automation (2026-03-24)
+
+Menyiapkan aplikasi untuk rilis _production_ sesungguhnya dan mengotomatisasikan metode peluncuran ke Puter.com.
+
+### Track 1: Build & Environment Prep
+
+- Memverifikasi implementasi _Lazy Loading_ (`React.lazy`) yang sudah ada di semua halaman router.
+- Memverifikasi PWA Service Worker _generation_ untuk meningkatkan _startup time_ aplikasi di gawai (device) siswa.
+- Mengonfirmasi _Manual Chunk Splitting_ di `vite.config.ts` untuk performa _caching_ (memisahkan modul berat seperti `katex`, `recharts`, dan `supabase-js`).
+
+### Track 2: Puter.com Deployment Automation
+
+- Menambahkan skrip NPM baru: `"deploy:puter": "npm run build && npx @puter/cli hosting host ./dist --site edusync-lms"` ke dalam `package.json`. Ini memungkinkan perilisan satu klik (one-click deploy) dari terminal lokal Anda.
+
+### Track 3 & 4: Panduan Supabase & Testing
+
+- Membuat dokumentasi _runbook_ eksklusif di `docs/DEPLOYMENT.md`. Ini mencakup instruksi langkah-demi-langkah tentang cara mengatur pengaturan _Authentication_ CORS di Supabase agar fitur otentikasi aplikasi berjalan lancar setelah diluncurkan ke Puter.com.
+- Memverifikasi fungsionalitas `npm run build` yang sukses memecah 4.600+ modul tanpa masalah tipe data.
+- Memverifikasi kerangka kerja Playwright E2E yang siap digunakan (berada di `e2e/flows24/`).
+
 ## Production Readiness Cleanup — Phase E: Enterprise Hardening (2026-03-24)
 
 Enforced strict scalability, security, and type safety rules across the codebase.
