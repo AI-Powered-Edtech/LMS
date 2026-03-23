@@ -1,34 +1,35 @@
-import { OptimizedImage } from '@/src/components/ui'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState, useEffect, useRef } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
 import {
-  FileText,
+  AlertCircle,
+  ArrowLeft,
+  Check,
   CheckCircle,
   ChevronLeft,
   ChevronRight,
+  FileText,
+  Loader2,
+  Maximize,
   MessageSquare,
+  MessageSquarePlus,
+  MousePointer2,
   Save,
-  ArrowLeft,
+  Sparkles,
+  X,
   ZoomIn,
   ZoomOut,
-  Maximize,
-  MousePointer2,
-  MessageSquarePlus,
-  Loader2,
-  Check,
-  AlertCircle,
-  X,
-  Sparkles,
 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
-import { motion, AnimatePresence } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+
+import { OptimizedImage } from '@/src/components/ui'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { aiGraderService } from '@/src/features/assignments/api/aiGraderService'
 // TODO: AI grading will be routed through backend API (Phase 5)
 import { useGradebook } from '@/src/features/assignments/hooks/useGradebookQueries'
 import { useComments } from '@/src/features/discussions/hooks/useCommentQueries'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { aiGraderService } from '@/src/services/aiGraderService'
-import { supabase } from '@/src/lib/supabase'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { supabase } from '@/src/services/supabase/client'
+import { cn } from '@/src/utils/cn'
 
 const rubric = [
   {

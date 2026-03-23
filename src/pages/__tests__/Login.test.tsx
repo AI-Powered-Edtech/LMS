@@ -1,0 +1,13 @@
+import React from 'react'
+import { describe, expect, it } from 'vitest'
+
+import { renderWithAllProviders } from '@/src/testing/test-utils'
+
+import { Login } from '../Login'
+
+describe('Login', () => {
+  it('renders without crashing', () => {
+    const { container } = renderWithAllProviders(<Login />)
+    expect(container).toBeTruthy()
+  })
+})
