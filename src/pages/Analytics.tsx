@@ -142,8 +142,6 @@ export function Analytics() {
     setTimeout(() => setAiInsightMessage(null), 4000)
   }
 
-  if (!activeTenant) return null
-
   const radarData = useMemo(
     () =>
       data?.module_completion.map((m) => ({
@@ -183,6 +181,8 @@ export function Analytics() {
     if (diffHours < 24) return `${diffHours} jam yang lalu`
     return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
   }
+
+  if (!activeTenant) return null
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 p-6">
