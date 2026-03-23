@@ -69,11 +69,13 @@ export function Gradebook() {
     }
   }
 
-  const filteredStudents = students.filter(
-    (s) => s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.nis.includes(searchQuery)
-  )
+  const filteredStudents = useMemo(() => {
+    return students.filter(
+      (s) => s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.nis.includes(searchQuery)
+    )
+  }, [students, searchQuery])
 
-  const calculateAverage = (studentId: string) => {
+  const calculateAverage = useCallback((studentId: string) => {
     const studentGrades = grades[studentId]
     if (!studentGrades) return 0
     const scores = Object.values(studentGrades)
@@ -82,9 +84,9 @@ export function Gradebook() {
     if (scores.length === 0) return 0
     const sum = scores.reduce((a, b) => a + b, 0)
     return Math.round(sum / scores.length)
-  }
+  }, [grades])
 
-  const calculateTotal = (studentId: string) => {
+  const calculateTotal = useCallback((studentId: string) => {
     const studentGrades = grades[studentId]
     if (!studentGrades) return 0
     const scores = Object.values(studentGrades)
@@ -92,24 +94,52 @@ export function Gradebook() {
       .filter((score): score is number => score !== null)
     if (scores.length === 0) return 0
     return scores.reduce((a, b) => a + b, 0)
-  }
+  }, [grades])
 
-  // Calculate class stats
-  const allAverages = students.map((s) => calculateAverage(s.id)).filter((avg) => avg > 0)
-  const classAverage =
-    allAverages.length > 0
-      ? Math.round(allAverages.reduce((a, b) => a + b, 0) / allAverages.length)
-      : 0
-  const highestScore = allAverages.length > 0 ? Math.max(...allAverages) : 0
-  const lowestScore = allAverages.length > 0 ? Math.min(...allAverages) : 0
+  // Calculate class stats in a single pass
+  const { classAverage, highestScore, lowestScore, highestStudent, lowestStudent } = useMemo(() => {
+    let sum = 0
+    let count = 0
+    let highest = 0
+    let lowest = Infinity
+    let hStudent = '-'
+    let lStudent = '-'
 
-  let highestStudent = '-'
-  let lowestStudent = '-'
+    for (const student of students) {
+      const avg = calculateAverage(student.id)
+      if (avg > 0) {
+        sum += avg
+        count++
 
-  if (allAverages.length > 0) {
-    highestStudent = students.find((s) => calculateAverage(s.id) === highestScore)?.name || '-'
-    lowestStudent = students.find((s) => calculateAverage(s.id) === lowestScore)?.name || '-'
-  }
+        if (avg > highest) {
+          highest = avg
+          hStudent = student.name
+        }
+        if (avg < lowest) {
+          lowest = avg
+          lStudent = student.name
+        }
+      }
+    }
+
+    if (count === 0) {
+      return {
+        classAverage: 0,
+        highestScore: 0,
+        lowestScore: 0,
+        highestStudent: '-',
+        lowestStudent: '-',
+      }
+    }
+
+    return {
+      classAverage: Math.round(sum / count),
+      highestScore: highest,
+      lowestScore: lowest === Infinity ? 0 : lowest,
+      highestStudent: hStudent,
+      lowestStudent: lStudent,
+    }
+  }, [students, calculateAverage])
 
   const getGradeColor = (score: number | null) => {
     if (score === null || score === 0) return 'text-slate-400'
