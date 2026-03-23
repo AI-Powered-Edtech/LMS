@@ -1,19 +1,21 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import React, { useState, useEffect } from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import { valibotResolver } from '@hookform/resolvers/valibot'
+import React, { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { Navigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+
+import { FormField } from '@/src/components/ui/FormField'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { supabase } from '@/src/services/supabase/client'
+import {
+  type LoginFormData,
+  LoginFormSchema,
+  type RegisterFormData,
+  RegisterFormSchema,
+} from '@/src/shared/schemas/forms'
 import { cn } from '@/src/utils/cn'
 import { loginRateLimiter } from '@/src/utils/rateLimiter'
-import { useForm } from 'react-hook-form'
-import { valibotResolver } from '@hookform/resolvers/valibot'
-import { FormField } from '@/src/components/ui/FormField'
-import {
-  LoginFormSchema,
-  type LoginFormData,
-  RegisterFormSchema,
-  type RegisterFormData,
-} from '@/src/shared/schemas/forms'
+
+import { useAuth } from '../contexts/AuthContext'
 
 interface InviteInfo {
   email: string
@@ -31,7 +33,7 @@ interface ClassInfo {
 }
 
 export function Login() {
-  usePageTitle('Login')
+  usePageTitle('Masuk')
   const { user, signIn, signUp, signInWithGoogle, loading } = useAuth()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [step, setStep] = useState<1 | 2 | 3>(1)
@@ -192,20 +194,30 @@ export function Login() {
     signInWithGoogle()
   }
 
-  const fillAccount = async (role: string) => {
-    const devEmail = `${role}@edusync.dev`
-    const devPassword = import.meta.env.VITE_DEV_PASSWORD || 'password123'
-    loginForm.reset({ email: devEmail, password: devPassword })
-    setMode('login')
-    setError('')
-    setSubmitting(true)
-    try {
-      const { error: err } = await signIn(devEmail, devPassword)
-      if (err) setError(err.message)
-    } finally {
-      setSubmitting(false)
-    }
-  }
+  const fillAccount = import.meta.env.DEV
+    ? async (role: string) => {
+        const devEmail = `${role}@edusync.dev`
+        const devPassword = import.meta.env.VITE_DEV_PASSWORD
+        if (!devPassword) {
+          setError('VITE_DEV_PASSWORD tidak diset di .env')
+          return
+        }
+        loginForm.reset({ email: devEmail, password: devPassword })
+        setMode('login')
+        setError('')
+        setSubmitting(true)
+        try {
+          const { error: err } = await signIn(devEmail, devPassword)
+          if (err) {
+            setError(err.message)
+          }
+        } catch (e: unknown) {
+          setError(e instanceof Error ? e.message : String(e))
+        } finally {
+          setSubmitting(false)
+        }
+      }
+    : undefined
 
   const switchMode = (newMode: 'login' | 'register') => {
     setMode(newMode)
@@ -224,7 +236,7 @@ export function Login() {
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">📚</div>
           <h1 className="text-3xl font-bold text-white">EduSync</h1>
-          <p className="text-blue-300/70 text-sm mt-1">Learning Management System</p>
+          <p className="text-blue-300/70 text-sm mt-1">Sistem Manajemen Pembelajaran</p>
         </div>
 
         <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-8 shadow-2xl">
@@ -235,7 +247,7 @@ export function Login() {
                 🎉 Anda diundang ke {inviteInfo.tenant_name}
               </p>
               <p className="text-white/50 text-xs mt-1">
-                Role: <span className="text-blue-300 font-medium">{inviteInfo.role}</span>
+                Peran: <span className="text-blue-300 font-medium">{inviteInfo.role}</span>
               </p>
             </div>
           )}
@@ -360,7 +372,20 @@ export function Login() {
 
               {/* Login Form */}
               {mode === 'login' && (
-                <form onSubmit={loginForm.handleSubmit(handleSignIn)} className="space-y-4">
+                <form
+                  onSubmit={loginForm.handleSubmit(handleSignIn, () => {
+                    // Show error when form validation fails (e.g., empty fields from autofill issues)
+                    const errors = loginForm.formState.errors
+                    if (errors.email) {
+                      setError(errors.email.message || 'Email tidak valid.')
+                    } else if (errors.password) {
+                      setError(errors.password.message || 'Kata sandi wajib diisi.')
+                    } else {
+                      setError('Silakan isi email dan kata sandi.')
+                    }
+                  })}
+                  className="space-y-4"
+                >
                   <FormField
                     name="email"
                     control={loginForm.control}
@@ -370,18 +395,28 @@ export function Login() {
                     <input
                       type="email"
                       placeholder="kamu@email.com"
+                      autoComplete="email"
+                      onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                        loginForm.setValue('email', e.currentTarget.value, { shouldValidate: true })
+                      }}
                       className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
                     />
                   </FormField>
                   <FormField
                     name="password"
                     control={loginForm.control}
-                    label="Password"
+                    label="Kata Sandi"
                     labelClassName="text-white/60 text-xs font-medium mb-1.5"
                   >
                     <input
                       type="password"
                       placeholder="••••••••"
+                      autoComplete="current-password"
+                      onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                        loginForm.setValue('password', e.currentTarget.value, {
+                          shouldValidate: true,
+                        })
+                      }}
                       className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
                     />
                   </FormField>
@@ -450,7 +485,7 @@ export function Login() {
                   <FormField
                     name="password"
                     control={registerForm.control}
-                    label="Password"
+                    label="Kata Sandi"
                     labelClassName="text-white/60 text-xs font-medium mb-1.5"
                   >
                     <input
@@ -572,8 +607,12 @@ export function Login() {
               {['student', 'teacher', 'admin'].map((r) => (
                 <button
                   key={r}
-                  onClick={() => fillAccount(r)}
-                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/50 rounded-lg text-xs font-medium transition-colors border border-white/5"
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => {
+                    if (fillAccount) fillAccount(r)
+                  }}
+                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/50 rounded-lg text-xs font-medium transition-colors border border-white/5 disabled:opacity-50"
                 >
                   {r === 'student' ? '🎓' : r === 'teacher' ? '👩‍🏫' : '🛡️'} {r}
                 </button>

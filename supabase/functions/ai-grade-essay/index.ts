@@ -4,7 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.8'
 const LLM_TIMEOUT_MS = 15000 // 15s
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('CORS_ORIGIN') ?? '*',
+  'Access-Control-Allow-Origin': Deno.env.get('CORS_ORIGIN') ?? 'https://lms.edusync.dev',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 

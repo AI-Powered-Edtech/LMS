@@ -2,7 +2,7 @@ import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('CORS_ORIGIN') ?? '*',
+  'Access-Control-Allow-Origin': Deno.env.get('CORS_ORIGIN') ?? 'https://lms.edusync.dev',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
@@ -30,8 +30,14 @@ serve(async (req) => {
       })
     }
 
-    // Get tenant_id from user metadata for multi-tenant isolation
-    const tenantId = user.user_metadata?.tenant_id
+    // Get tenant_id and role from user_roles for security
+    const { data: roleData } = await supabaseClient
+      .from('user_roles')
+      .select('tenant_id')
+      .eq('user_id', user.id)
+      .single()
+
+    const tenantId = roleData?.tenant_id
     if (!tenantId) {
       return new Response(
         JSON.stringify({ error: 'Tenant context missing. Please contact administrator.' }),

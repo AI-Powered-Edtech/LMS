@@ -44,7 +44,7 @@ const APP_VERSION = '4.0.0'
 // Health check bersifat publik: izinkan semua origin agar monitoring
 // eksternal dapat mengaksesnya.
 const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('CORS_ORIGIN') ?? '*',
+  'Access-Control-Allow-Origin': Deno.env.get('CORS_ORIGIN') ?? 'https://lms.edusync.dev',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
 }
