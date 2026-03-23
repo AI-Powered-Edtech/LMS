@@ -1,6 +1,5 @@
 export * from './api/lessonService'
-export * from './queries/lessonQueries'
 export * from './blockRegistry'
+export type * from './types'
 export * from './utils/lessonAccess'
 export * from './utils/lessonDuration'
-export type * from './types'

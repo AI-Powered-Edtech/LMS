@@ -11,10 +11,11 @@ interface Classroom {
 
 interface MyClassesSectionProps {
   classrooms: Classroom[]
+  loading?: boolean
   onJoinClass: () => void
 }
 
-export function MyClassesSection({ classrooms, onJoinClass }: MyClassesSectionProps) {
+export function MyClassesSection({ classrooms, loading, onJoinClass }: MyClassesSectionProps) {
   const navigate = useNavigate()
 
   return (
@@ -33,7 +34,11 @@ export function MyClassesSection({ classrooms, onJoinClass }: MyClassesSectionPr
           Gabung Kelas
         </Button>
       </div>
-      {classrooms.length > 0 ? (
+      {loading ? (
+        <div className="flex justify-center p-8">
+          <div className="w-8 h-8 rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-indigo-500 dark:border-t-indigo-400 animate-spin" />
+        </div>
+      ) : classrooms.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {classrooms.map((cls) => (
             <Card key={cls.id} padding="sm" hover onClick={() => navigate(`/classes/${cls.id}`)}>

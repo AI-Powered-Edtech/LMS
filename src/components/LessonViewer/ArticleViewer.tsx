@@ -203,7 +203,7 @@ export function ArticleViewer({
               ),
             }}
           >
-            {content}
+            {content.replace(/\\n/g, '\n')}
           </ReactMarkdown>
         </div>
       </div>

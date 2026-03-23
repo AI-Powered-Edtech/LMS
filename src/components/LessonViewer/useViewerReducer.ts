@@ -57,7 +57,7 @@ type ViewerAction =
 function viewerReducer(state: ViewerState, action: ViewerAction): ViewerState {
   switch (action.type) {
     case 'LOAD_LESSON':
-      return { ...state, status: 'loading', error: null }
+      return { ...state, status: 'loading', error: null, lesson: null }
 
     case 'LESSON_LOADED': {
       const savedProgress = action.progress
