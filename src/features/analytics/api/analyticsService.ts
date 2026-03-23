@@ -1,27 +1,27 @@
 import { supabase } from '@/src/lib/supabase'
+
 import {
-  CourseStatsRow,
-  ActivityEventRow,
-  TenantAnalyticsOverview,
   ActivityMetrics,
-  CourseEngagement,
   ActivityTimePoint,
-  TenantAnalyticsData,
-  TeacherAnalyticsData,
-  CourseAnalytics,
-  LessonAnalytics,
-  StudentSignal,
-  FunnelDefinition,
-  FunnelStepResult,
-  RetentionRow,
   AnalyticsError,
+  CourseAnalytics,
+  CourseEngagement,
+  CourseStatsRow,
   EngagementSummaryRow,
   EngagementTrendPoint,
+  FunnelDefinition,
+  FunnelStepResult,
   LearningPath,
-  StudentPathStep,
-  StudentPrediction,
+  LessonAnalytics,
   PredictionDetail,
   PredictionSummary,
+  RetentionRow,
+  StudentPathStep,
+  StudentPrediction,
+  StudentSignal,
+  TeacherAnalyticsData,
+  TenantAnalyticsData,
+  TenantAnalyticsOverview,
 } from '../types'
 
 /**
@@ -213,37 +213,35 @@ export const analyticsService = {
    * Counts events by type for the tenant within a time range.
    */
   async getActivityMetrics(tenantId: string, days: number = 30): Promise<ActivityMetrics> {
-    const since = new Date()
-    since.setDate(since.getDate() - days)
-
-    const { data, error } = await supabase
-      .from('activity_events')
-      .select('event_type, created_at')
-      .eq('tenant_id', tenantId)
-      .gte('created_at', since.toISOString())
-      .limit(5000)
+    const { data, error } = await supabase.rpc('get_tenant_activity_counts', {
+      p_tenant_id: tenantId,
+      p_days: days,
+    })
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Failed to get activity metrics:', error)
+      if (import.meta.env.DEV) console.error('Failed to get activity metrics via RPC:', error)
       throw new Error('Gagal memuat metrik aktivitas. Silakan coba lagi.')
     }
 
-    const events = (data as ActivityEventRow[]) || []
+    let lessonCompletions = 0
+    let quizAttempts = 0
+    let assignmentSubmissions = 0
+    let totalEvents = 0
 
-    // Count by event type
-    const lessonCompletions = events.filter((e) => e.event_type === 'LESSON_COMPLETED').length
-    const quizAttempts = events.filter(
-      (e) => e.event_type === 'QUIZ_ATTEMPT' || e.event_type === 'QUIZ_SUBMITTED'
-    ).length
-    const assignmentSubmissions = events.filter(
-      (e) => e.event_type === 'ASSIGNMENT_SUBMITTED'
-    ).length
+    const rows = (data as { event_type: string; count: number }[]) || []
+    rows.forEach((r) => {
+      const c = Number(r.count)
+      totalEvents += c
+      if (r.event_type === 'LESSON_COMPLETED') lessonCompletions += c
+      if (r.event_type === 'QUIZ_ATTEMPT' || r.event_type === 'QUIZ_SUBMITTED') quizAttempts += c
+      if (r.event_type === 'ASSIGNMENT_SUBMITTED') assignmentSubmissions += c
+    })
 
     return {
       lessonCompletions,
       quizAttempts,
       assignmentSubmissions,
-      totalEvents: events.length,
+      totalEvents,
     }
   },
 

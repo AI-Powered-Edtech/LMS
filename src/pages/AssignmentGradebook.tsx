@@ -1,35 +1,37 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
-  FileText,
-  Search,
-  Users,
-  Clock,
-  CheckCircle,
-  Loader2,
   ArrowLeft,
-  GraduationCap,
-  Send,
   Award,
+  CheckCircle,
+  Clock,
+  FileText,
+  GraduationCap,
+  Loader2,
+  Search,
+  Send,
+  Users,
 } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+
+import { VirtualTable } from '@/src/components/ui/VirtualTable'
+import { useAuth } from '@/src/contexts/AuthContext'
 import {
+  type Assignment,
   assignmentService,
   type AssignmentSubmission,
-  type Assignment,
 } from '@/src/features/assignments/api/assignmentService'
-import { useAuth } from '@/src/contexts/AuthContext'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { supabase } from '@/src/services/supabase/client'
 import { cn } from '@/src/utils/cn'
-import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/src/lib/supabase'
-import { VirtualTable } from '@/src/components/ui/VirtualTable'
 
 export function AssignmentGradebook() {
-  usePageTitle('Assignment Gradebook')
+  usePageTitle('Buku Nilai Tugas')
   const { user, tenantId } = useAuth()
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null)
   const [submissions, setSubmissions] = useState<AssignmentSubmission[]>([])
 
+  const [_loading, setLoading] = useState(true)
   const [loadingSubmissions, setLoadingSubmissions] = useState(false)
   const [_error, setError] = useState<string | null>(null)
 
@@ -48,7 +50,9 @@ export function AssignmentGradebook() {
         // For now, fetch all assignments in the tenant.
         const { data, error } = await supabase
           .from('assignments')
-          .select('*')
+          .select(
+            'id, tenant_id, course_id, lesson_id, title, instructions, max_points, max_attempts, is_published, due_date, created_by, created_at, updated_at'
+          )
           .eq('tenant_id', tenantId)
           .order('created_at', { ascending: false })
 
@@ -193,7 +197,7 @@ export function AssignmentGradebook() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Assignment Gradebook
+            Buku Nilai Tugas
           </h1>
           <p className="text-slate-500 mt-1">
             Kelola pengiriman tugas dan berikan penilaian kepada siswa.

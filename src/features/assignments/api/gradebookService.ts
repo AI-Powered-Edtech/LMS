@@ -1,4 +1,4 @@
-import { supabase } from '@/src/lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
 
 export type GradeStatus = 'ungraded' | 'graded' | 'needs_revision'
 
@@ -40,12 +40,38 @@ export const gradebookService = {
   async fetchGradebook(tenantId: string): Promise<GradebookData> {
     if (!tenantId) throw new Error('tenantId is required for fetchGradebook')
 
-    // Fetch assignments with tenant_id filter for multi-tenant isolation
-    const { data: assignmentsData } = await supabase
-      .from('assignments')
-      .select('id, title, due_date, created_at, tenant_id')
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false })
+    // PARALLELIZE ALL FOUR QUERIES to cut load time by ~75%
+    const [
+      { data: assignmentsData },
+      { data: submissionsData },
+      { data: profilesData },
+      { data: quizAttempts },
+    ] = await Promise.all([
+      supabase
+        .from('assignments')
+        .select('id, title, due_date, created_at, tenant_id')
+        .eq('tenant_id', tenantId)
+        .order('created_at', { ascending: false })
+        .limit(500),
+      supabase
+        .from('assignment_submissions')
+        .select('id, assignment_id, student_id, status, score, feedback')
+        .eq('tenant_id', tenantId)
+        .order('submitted_at', { ascending: false })
+        .limit(5000),
+      supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email, tenant_id')
+        .eq('tenant_id', tenantId)
+        .eq('is_active', true)
+        .limit(1000),
+      supabase
+        .from('quiz_attempts_v2')
+        .select('id, quiz_id, student_id, score, status, tenant_id')
+        .eq('tenant_id', tenantId)
+        .eq('status', 'GRADED')
+        .limit(5000),
+    ])
 
     const assignments: GradebookAssignment[] = (assignmentsData ?? []).map((a) => ({
       id: a.id,
@@ -56,13 +82,6 @@ export const gradebookService = {
         ? new Date(a.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
         : '',
     }))
-
-    // Fetch submissions with grades - filtered by tenant for multi-tenant isolation
-    const { data: submissionsData } = await supabase
-      .from('assignment_submissions')
-      .select('id, assignment_id, student_id, status, score, feedback')
-      .eq('tenant_id', tenantId)
-      .order('submitted_at', { ascending: false })
 
     // Build grade map from submissions
     const grades: GradeData = {}
@@ -79,26 +98,11 @@ export const gradebookService = {
       })
     }
 
-    // Fetch student profiles with tenant_id filter for multi-tenant isolation
-    const { data: profilesData } = await supabase
-      .from('profiles')
-      .select('id, first_name, last_name, email, tenant_id')
-      .eq('tenant_id', tenantId)
-      .eq('is_active', true)
-
     const students: GradebookStudent[] = (profilesData ?? []).map((p) => ({
       id: p.id,
       name: `${p.first_name} ${p.last_name}`.trim() || p.email,
       nis: p.email.split('@')[0],
     }))
-
-    // CRITICAL BUG #3 FIX: Also fetch quiz attempts and merge into grades
-    // This syncs quiz results to the gradebook
-    const { data: quizAttempts } = await supabase
-      .from('quiz_attempts_v2')
-      .select('id, quiz_id, student_id, score, status, tenant_id')
-      .eq('tenant_id', tenantId)
-      .eq('status', 'GRADED')
 
     // Merge quiz results into grades - quizzes appear as assignments in gradebook
     if (quizAttempts && quizAttempts.length > 0) {
