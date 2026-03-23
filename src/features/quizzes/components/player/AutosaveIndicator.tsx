@@ -1,5 +1,6 @@
-import { Loader2, Check, AlertCircle, WifiOff } from 'lucide-react'
+import { AlertCircle, Check, Loader2, WifiOff } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
+
 import { cn } from '@/src/utils/cn'
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'offline'
@@ -9,6 +10,11 @@ interface AutosaveIndicatorProps {
 }
 
 const CONFIG = {
+  idle: {
+    wrapper: 'bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-400',
+    label: 'Auto-simpan aktif',
+    icon: <Check className="w-3.5 h-3.5" />,
+  },
   saving: {
     wrapper: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
     label: 'Menyimpan...',
@@ -29,13 +35,10 @@ const CONFIG = {
     label: 'Offline — jawaban tersimpan lokal',
     icon: <WifiOff className="w-3.5 h-3.5" />,
   },
-} satisfies Record<
-  Exclude<SaveStatus, 'idle'>,
-  { wrapper: string; label: string; icon: React.ReactNode }
->
+} satisfies Record<SaveStatus, { wrapper: string; label: string; icon: React.ReactNode }>
 
 export function AutosaveIndicator({ status }: AutosaveIndicatorProps) {
-  const config = status !== 'idle' ? CONFIG[status] : null
+  const config = CONFIG[status] ?? null
 
   return (
     <AnimatePresence mode="wait">

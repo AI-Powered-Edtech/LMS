@@ -35,8 +35,7 @@ CREATE INDEX IF NOT EXISTS idx_app_metrics_name_time
 -- Catatan: indeks ini perlu di-rebuild secara berkala atau diganti partisi tabel
 -- jika data tumbuh sangat besar. Untuk sekarang cukup untuk skala awal.
 CREATE INDEX IF NOT EXISTS idx_app_metrics_recent
-  ON app_metrics(tenant_id, metric_name, recorded_at DESC)
-  WHERE recorded_at > now() - INTERVAL '30 days';
+  ON app_metrics(tenant_id, metric_name, recorded_at DESC);
 
 -- ── RLS Policies ────────────────────────────────────────────────────────────
 
@@ -49,7 +48,7 @@ CREATE POLICY "admins_read_metrics"
       SELECT 1 FROM user_roles
       WHERE user_id   = auth.uid()
         AND tenant_id = (SELECT get_my_tenant_id())
-        AND role      = 'admin'
+        AND role      = 'ADMIN'
     )
   );
 
@@ -61,7 +60,7 @@ CREATE POLICY "admins_insert_metrics"
       SELECT 1 FROM user_roles
       WHERE user_id   = auth.uid()
         AND tenant_id = (SELECT get_my_tenant_id())
-        AND role      = 'admin'
+        AND role      = 'ADMIN'
     )
   );
 

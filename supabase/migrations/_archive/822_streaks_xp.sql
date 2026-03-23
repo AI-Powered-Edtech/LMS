@@ -71,6 +71,7 @@ CREATE POLICY "xp_summary_update" ON student_xp_summary FOR UPDATE
 -- L1=0, L2=100, L3=300, L4=600, L5=1000,
 -- L6=1500, L7=2200, L8=3000, L9=4000, L10=5500
 -- ============================================================
+DROP FUNCTION IF EXISTS compute_level(integer);
 CREATE OR REPLACE FUNCTION compute_level(p_total_xp INTEGER)
 RETURNS INTEGER
 LANGUAGE sql IMMUTABLE

@@ -10,14 +10,14 @@
 
 // Re-export utility functions from promptBuilder
 export {
-  validateQuestion,
-  generateMessageId,
   formatDifficulty,
+  generateMessageId,
   getDifficultyColor,
+  validateQuestion,
 } from './promptBuilder'
 
 // Import supabase for internal use
-import { supabase } from '@/src/lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
 
 /**
  * Ask a question to the AI Tutor
@@ -62,7 +62,9 @@ export async function askTutor(
     // Check for error responses from the Edge Function
     if (data?.error) {
       const errorMsg =
-        typeof data.error === 'string' ? data.error : data.error?.message || 'Unknown error'
+        typeof data.error === 'string'
+          ? data.error
+          : data.error?.message || 'Kesalahan tidak diketahui'
 
       // Handle rate limiting errors
       if (errorMsg.includes('Terlalu banyak') || errorMsg.includes('rate_limit')) {

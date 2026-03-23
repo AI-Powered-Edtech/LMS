@@ -5,7 +5,7 @@
  * Teachers can mark attempts as reviewed or override scores.
  */
 
-import { supabase } from '@/src/lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
 import { validateArray } from '@/src/shared/lib/validate'
 import { CheatingSignalRowSchema } from '@/src/shared/schemas'
 

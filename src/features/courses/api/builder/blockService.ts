@@ -1,6 +1,6 @@
-import { supabase } from '@/src/lib/supabase'
-import { DomainBlock } from '@/src/domain/block/types'
-import { mapBlock } from '@/src/domain/block/mappers'
+import { supabase } from '@/src/services/supabase/client'
+import { mapBlock } from '@/src/shared/types/blockMappers'
+import { DomainBlock } from '@/src/shared/types/blockTypes'
 
 /**
  * Block Service for Course Builder (refactored)

@@ -1,30 +1,32 @@
+import { Activity, Award, Clock, FileText, LayoutDashboard, Loader2, Radio, X } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
-import { X, Clock, Loader2, Award, Radio, FileText, LayoutDashboard, Activity } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'motion/react'
+
+import { BadgeManager } from '@/src/features/gamification/components/BadgeManager'
+import { ReportList } from '@/src/features/reports/components/ReportList'
+import { ReportScheduler } from '@/src/features/reports/components/ReportScheduler'
 import { cn } from '@/src/utils/cn'
-import { relativeTime } from '../utils/formatters'
+
 import {
   useCourseDashboard,
   useLessonDashboard,
   useStudentSignals,
 } from '../queries/analyticsQueries'
-import { StruggleAlertBanner } from './StruggleAlertBanner'
-import { CourseOverviewCard } from './CourseOverviewCard'
-import { LessonBreakdownTable } from './LessonBreakdownTable'
-import { StudentProgressTable } from './StudentProgressTable'
-import { FunnelComparison } from './FunnelComparison'
+import { relativeTime } from '../utils/formatters'
+import { ActiveNowIndicator } from './ActiveNowIndicator'
 import { CohortBuilder } from './CohortBuilder'
-import { EngagementDashboard } from './EngagementDashboard'
+import { CourseOverviewCard } from './CourseOverviewCard'
 import { EarlyWarningPanel } from './EarlyWarningPanel'
-import { PathAnalysisDashboard } from './PathAnalysisDashboard'
+import { EngagementDashboard } from './EngagementDashboard'
+import { FunnelComparison } from './FunnelComparison'
 import { GuideAnalytics } from './GuideAnalytics'
+import { LessonBreakdownTable } from './LessonBreakdownTable'
 import { LiveActivityFeed } from './LiveActivityFeed'
 import { LiveLessonMap } from './LiveLessonMap'
-import { ActiveNowIndicator } from './ActiveNowIndicator'
-import { BadgeManager } from '@/src/features/gamification/components/BadgeManager'
-import { ReportList } from '@/src/features/reports/components/ReportList'
-import { ReportScheduler } from '@/src/features/reports/components/ReportScheduler'
+import { PathAnalysisDashboard } from './PathAnalysisDashboard'
+import { StruggleAlertBanner } from './StruggleAlertBanner'
+import { StudentProgressTable } from './StudentProgressTable'
 
 interface TeacherAnalyticsDashboardProps {
   courseId: string
@@ -86,7 +88,7 @@ export function TeacherAnalyticsDashboard({ courseId }: TeacherAnalyticsDashboar
         <div className="flex items-center gap-3 flex-wrap">
           <ActiveNowIndicator count={activeUserCount} />
           <Link
-            to="/teaching/dashboards"
+            to="/app/teacher/dashboards"
             className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
           >
             <LayoutDashboard className="h-4 w-4" />

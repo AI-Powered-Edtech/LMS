@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
+
 import { useApplicableGuides, useRecordInteraction } from '../queries/useGuidanceQueries'
 import type { ApplicableGuide } from '../types'
 import { BannerGuide } from './BannerGuide'
+import { CheckpointGuide } from './CheckpointGuide'
 import { TooltipGuide } from './TooltipGuide'
 import { WalkthroughGuide } from './WalkthroughGuide'
-import { CheckpointGuide } from './CheckpointGuide'
 
 interface Props {
   targetType: 'lesson' | 'course' | 'quiz'
@@ -15,9 +16,12 @@ interface Props {
 const SESSION_KEY = (guideId: string) => `guide_dismissed_${guideId}`
 
 function getNextGuide(guides: ApplicableGuide[]): ApplicableGuide | null {
-  // Find highest-priority guide not yet dismissed this session
+  // Find highest-priority guide not yet dismissed this session or permanently
   for (const guide of guides) {
-    if (!sessionStorage.getItem(SESSION_KEY(guide.id))) {
+    if (
+      !sessionStorage.getItem(SESSION_KEY(guide.id)) &&
+      !localStorage.getItem(SESSION_KEY(guide.id))
+    ) {
       return guide
     }
   }
@@ -37,14 +41,20 @@ export function GuideRenderer({ targetType, targetId }: Props) {
   const idleGuideRef = useRef<ApplicableGuide | null>(null)
 
   const showGuide = (guide: ApplicableGuide) => {
-    if (sessionStorage.getItem(SESSION_KEY(guide.id))) return
+    if (
+      sessionStorage.getItem(SESSION_KEY(guide.id)) ||
+      localStorage.getItem(SESSION_KEY(guide.id))
+    )
+      return
     setActiveGuide(guide)
-    recordInteraction({ guideId: guide.id, action: 'shown' })
+    shownRef.current = true
+    recordInteraction({ guideId: guide.id, action: 'viewed' })
   }
 
   const handleDismiss = () => {
     if (activeGuide) {
       sessionStorage.setItem(SESSION_KEY(activeGuide.id), '1')
+      localStorage.setItem(SESSION_KEY(activeGuide.id), '1') // Persist dismissal across sessions
       recordInteraction({ guideId: activeGuide.id, action: 'dismissed' })
     }
     setActiveGuide(null)
@@ -54,6 +64,7 @@ export function GuideRenderer({ targetType, targetId }: Props) {
   const handleComplete = () => {
     if (activeGuide) {
       sessionStorage.setItem(SESSION_KEY(activeGuide.id), '1')
+      localStorage.setItem(SESSION_KEY(activeGuide.id), '1') // Persist completion across sessions
       recordInteraction({ guideId: activeGuide.id, action: 'completed' })
     }
     setActiveGuide(null)

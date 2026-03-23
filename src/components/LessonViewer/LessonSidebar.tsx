@@ -1,26 +1,27 @@
-import { useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { motion, AnimatePresence } from 'motion/react'
 import {
+  ArrowLeft,
   CheckCircle,
   Circle,
-  PlayCircle,
+  Clock,
   FileText,
   HelpCircle,
   Lock,
-  ArrowLeft,
+  PlayCircle,
   X,
-  Clock,
 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
+import { AnimatePresence, motion } from 'motion/react'
+import { memo, useRef, useState } from 'react'
+
+import { SkeletonCard } from '@/src/components/ui'
 import type { Lesson, LessonProgress } from '@/src/features/lessons'
 import {
-  isLessonLocked,
+  formatDuration,
   getLessonDuration,
   getModuleDuration,
-  formatDuration,
+  isLessonLocked,
 } from '@/src/features/lessons'
-import { SkeletonCard } from '@/src/components/ui'
+import { cn } from '@/src/utils/cn'
 
 interface LessonSidebarProps {
   moduleTitle?: string
@@ -46,7 +47,7 @@ const typeLabels: Record<string, string> = {
   quiz: 'Kuis',
 }
 
-export function LessonSidebar({
+export const LessonSidebar = memo(function LessonSidebar({
   moduleTitle,
   lessons,
   progress,
@@ -329,4 +330,4 @@ export function LessonSidebar({
       {mobileDrawer}
     </>
   )
-}
+})

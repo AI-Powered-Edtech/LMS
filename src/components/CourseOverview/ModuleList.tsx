@@ -1,5 +1,6 @@
-import { CheckCircle, ChevronRight, Layers, BookOpen, Clock } from 'lucide-react'
+import { BookOpen, CheckCircle, ChevronRight, Clock, Layers } from 'lucide-react'
 import { motion } from 'motion/react'
+
 import { cn } from '@/src/utils/cn'
 
 export interface ModuleWithProgress {
@@ -101,7 +102,7 @@ export function ModuleList({ modules, onSelectModule, nextIncompleteModuleId }: 
                   {mod.durationMinutes > 0 && (
                     <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      {mod.durationMinutes} min
+                      {mod.durationMinutes} menit
                     </span>
                   )}
                 </div>

@@ -1,31 +1,32 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import React, { useState, useEffect, useCallback } from 'react'
-import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import {
-  Building2,
-  RefreshCw,
-  CheckCircle,
-  AlertTriangle,
-  Database,
-  Server,
-  Users,
-  GraduationCap,
-  FileText,
-  Settings,
   Activity,
-  ToggleLeft,
-  ToggleRight,
+  AlertCircle,
+  AlertTriangle,
+  Building2,
+  CheckCircle,
+  Database,
+  FileText,
+  GraduationCap,
   LayoutGrid,
   Loader2,
-  AlertCircle,
+  RefreshCw,
+  Server,
+  Settings,
+  ToggleLeft,
+  ToggleRight,
+  Users,
 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
+import React, { useCallback, useEffect, useState } from 'react'
+
 import {
   administrationService,
-  TenantModuleConfig,
   SyncHistoryItem,
   SyncResult,
+  TenantModuleConfig,
 } from '@/src/features/administration/api/administrationService'
+import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { cn } from '@/src/utils/cn'
 
 // Default sync status for initial state (will be replaced with real data)
 const defaultSyncStatus: SyncHistoryItem[] = [
@@ -67,7 +68,7 @@ const defaultSyncStatus: SyncHistoryItem[] = [
 ]
 
 export function AdministrationDashboard() {
-  usePageTitle('Administration Dashboard')
+  usePageTitle('Dasbor Administrasi')
   // State for modules
   const [modules, setModules] = useState<TenantModuleConfig[]>([])
   const [modulesLoading, setModulesLoading] = useState(true)
@@ -402,11 +403,11 @@ export function AdministrationDashboard() {
             </button>
             <button className="w-full p-3 text-left bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 transition-colors flex items-center gap-3">
               <FileText className="w-5 h-5 text-slate-500" />
-              <span className="font-medium text-slate-700 text-sm">Laporan Audit Log</span>
+              <span className="font-medium text-slate-700 text-sm">Laporan Log Audit</span>
             </button>
             <button className="w-full p-3 text-left bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 transition-colors flex items-center gap-3">
               <Database className="w-5 h-5 text-slate-500" />
-              <span className="font-medium text-slate-700 text-sm">Backup Database</span>
+              <span className="font-medium text-slate-700 text-sm">Cadangan Basis Data</span>
             </button>
           </div>
         </div>
@@ -484,7 +485,7 @@ export function AdministrationDashboard() {
                         disabled={isSyncing}
                         className="text-blue-600 hover:text-blue-800 font-bold text-xs disabled:opacity-50"
                       >
-                        Sync Now
+                        Sinkronkan
                       </button>
                     </td>
                   </tr>

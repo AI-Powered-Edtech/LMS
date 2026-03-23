@@ -42,6 +42,8 @@ From prototype to production. Built on a Supabase-centric serverless architectur
 ✅ Phase 12.6 — Technical Debt Clearance (select(*) → explicit columns, moderation→Supabase, analytics RPC security, engagement RPC consolidation)
 ✅ Phase 13 — Performance & Scale (virtualization, infinite scroll, stale-time tiering, bundle splitting, Web Vitals)
 ✅ Phase 14 — E2E Test Coverage (shared helpers, quiz autosave+resume, class join code, CI workflow)
+✅ Phase 15 — Production Readiness Audit (security fixes, dead code removal, performance, DX)
+✅ Phase 16 — QA Browser Testing Gaps (22/22 gaps fixed: auth, routing, navigation, a11y, i18n, UX)
 ```
 
 ---

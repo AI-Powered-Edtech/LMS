@@ -1,4 +1,5 @@
-import { supabase } from '@/src/lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
+
 import type { DashboardConfig, LayoutItem, WidgetConfig } from '../types'
 
 export const dashboardService = {

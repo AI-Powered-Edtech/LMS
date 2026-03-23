@@ -1,6 +1,7 @@
 import { Star, Trophy } from 'lucide-react'
 import { motion } from 'motion/react'
-import { Modal, ModalBody, Button } from '@/src/components/ui'
+
+import { Button, Modal, ModalBody } from '@/src/components/ui'
 import { useReducedMotion } from '@/src/hooks/useReducedMotion'
 
 interface BadgeRewardModalProps {
@@ -14,9 +15,9 @@ export function BadgeRewardModal({ open, onClose }: BadgeRewardModalProps) {
   return (
     <Modal open={open} onClose={onClose} size="sm">
       <ModalBody className="text-center py-8">
-        <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Reward Claimed!</h3>
+        <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Hadiah Diterima!</h3>
         <p className="text-slate-500 dark:text-slate-400 mb-8">
-          You earned 10 XP for logging in today.
+          Kamu mendapatkan 10 XP karena login hari ini.
         </p>
 
         <div className="relative w-48 h-48 mx-auto mb-8 perspective-1000">

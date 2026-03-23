@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
-import { useBuilder } from '@/src/contexts/BuilderContext'
+import { useEffect, useState } from 'react'
+
 import { MarkdownBlock } from '@/src/components/LessonViewer/blocks/MarkdownBlock'
+import { useBuilder } from '@/src/contexts/BuilderContext'
 import { cn } from '@/src/utils/cn'
 
 interface TextBlockEditorProps {
@@ -37,9 +38,11 @@ export function TextBlockEditor({ blockId }: TextBlockEditorProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Tab row */}
-      <div className="flex border-b border-slate-200 mb-3">
+      <div className="flex border-b border-slate-200 mb-3" role="tablist">
         <button
           type="button"
+          role="tab"
+          aria-selected={!previewMode}
           onClick={() => setPreviewMode(false)}
           className={cn(
             'px-4 py-2 text-sm font-medium transition-colors',
@@ -52,6 +55,8 @@ export function TextBlockEditor({ blockId }: TextBlockEditorProps) {
         </button>
         <button
           type="button"
+          role="tab"
+          aria-selected={previewMode}
           onClick={() => setPreviewMode(true)}
           className={cn(
             'px-4 py-2 text-sm font-medium transition-colors',

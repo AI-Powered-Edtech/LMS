@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getTeacherQuizzes, getQuizzesByCourse } from '../api/quizManager.service'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { getQuizzesByCourse, getTeacherQuizzes } from '../api/quizManager.service'
 
 const mockFrom = vi.fn()
 
-vi.mock('../../../lib/supabase', () => ({
+vi.mock('@/src/services/supabase/client', () => ({
   supabase: {
     from: (...args: unknown[]) => mockFrom(...args),
   },

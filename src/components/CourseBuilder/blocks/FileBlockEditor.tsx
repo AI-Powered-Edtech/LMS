@@ -1,8 +1,9 @@
-import { useState, useRef, useCallback } from 'react'
-import { useBuilder } from '@/src/contexts/BuilderContext'
+import { Archive, File, FileText, FileUp, Loader2, Presentation, Sheet } from 'lucide-react'
+import { useCallback, useRef, useState } from 'react'
+
 import { useAuth } from '@/src/contexts/AuthContext'
+import { useBuilder } from '@/src/contexts/BuilderContext'
 import { storageService } from '@/src/features/storage'
-import { FileUp, Loader2, FileText, Presentation, Sheet, Archive, File } from 'lucide-react'
 
 interface FileBlockEditorProps {
   blockId: string
@@ -92,7 +93,7 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
   const handleFile = useCallback(
     async (file: File) => {
       if (!state.courseId || !state.activeLesson) {
-        setError('Course or lesson not loaded')
+        setError('Kursus atau materi belum dimuat')
         return
       }
 

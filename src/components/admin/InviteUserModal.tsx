@@ -1,10 +1,12 @@
+import { valibotResolver } from '@hookform/resolvers/valibot'
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { valibotResolver } from '@hookform/resolvers/valibot'
-import { FormField } from '../ui/FormField'
 import * as v from 'valibot'
-import { supabase } from '../../lib/supabase'
+
+import { supabase } from '@/src/services/supabase/client'
+
 import { useAuth } from '../../contexts/AuthContext'
+import { FormField } from '../ui/FormField'
 
 const InviteUserSchema = v.object({
   email: v.pipe(v.string(), v.email('Email tidak valid')),
@@ -134,7 +136,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
             </div>
 
             <div style={styles.field}>
-              <label style={styles.label}>Role</label>
+              <label style={styles.label}>Peran</label>
               <div style={styles.roleGrid}>
                 {(['STUDENT', 'TEACHER', 'ADMIN'] as InviteRole[]).map((r) => (
                   <button

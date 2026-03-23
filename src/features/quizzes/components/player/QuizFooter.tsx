@@ -1,4 +1,5 @@
 import { ArrowLeft, ArrowRight, CheckSquare } from 'lucide-react'
+
 import { cn } from '@/src/utils/cn'
 
 interface QuizFooterProps {
@@ -22,6 +23,7 @@ export function QuizFooter({
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4 pb-6">
       {/* Previous button */}
       <button
+        type="button"
         onClick={onPrevious}
         disabled={isFirst}
         className={cn(
@@ -46,6 +48,7 @@ export function QuizFooter({
       {/* Next / Finish button */}
       {isLastQuestion ? (
         <button
+          type="button"
           onClick={onFinish}
           className={cn(
             'flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm text-white transition-all duration-150 min-h-[44px] sm:ml-auto',
@@ -61,6 +64,7 @@ export function QuizFooter({
         </button>
       ) : (
         <button
+          type="button"
           onClick={onNext}
           className={cn(
             'flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-bold text-sm text-white transition-all duration-150 min-h-[44px] sm:ml-auto',

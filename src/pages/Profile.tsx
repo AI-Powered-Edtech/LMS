@@ -1,33 +1,34 @@
-import { OptimizedImage } from '@/src/components/ui'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useEffect } from 'react'
 import {
-  Mail,
   Award,
+  BookOpen,
+  CheckCircle,
+  Edit3,
   Flame,
+  GraduationCap,
+  Mail,
+  ShieldCheck,
   Star,
   Trophy,
-  Edit3,
-  GraduationCap,
-  ShieldCheck,
-  CheckCircle,
-  BookOpen,
 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
+import { motion } from 'motion/react'
+import { useEffect } from 'react'
+
+import { OptimizedImage } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { BadgeShowcase } from '@/src/features/gamification/components/BadgeShowcase'
 import { CertificateViewer } from '@/src/features/gamification/components/CertificateViewer'
-import { XPProgressBar } from '@/src/features/gamification/components/XPProgressBar'
 import { StreakCounter } from '@/src/features/gamification/components/StreakCounter'
+import { XPProgressBar } from '@/src/features/gamification/components/XPProgressBar'
 import {
-  useStudentXPProfile,
   useStudentCertificates,
+  useStudentXPProfile,
 } from '@/src/features/gamification/queries/gamificationQueries'
 import { useStudentProgressData } from '@/src/features/progress/hooks/useStudentProgressQueries'
-import { motion } from 'motion/react'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { cn } from '@/src/utils/cn'
 
 export function Profile() {
-  usePageTitle('Profile')
+  usePageTitle('Profil')
   const { user, role, profile } = useAuth()
 
   useEffect(() => {

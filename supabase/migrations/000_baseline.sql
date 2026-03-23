@@ -336,6 +336,7 @@ ALTER FUNCTION "public"."add_question_to_quiz"("p_question_bank_id" "uuid", "p_q
 
 CREATE OR REPLACE FUNCTION "public"."add_user_points"("p_user_id" "uuid", "p_points" integer, "p_class_id" "uuid" DEFAULT NULL::"uuid") RETURNS "void"
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 DECLARE
     v_tenant_id uuid;
@@ -954,6 +955,7 @@ ALTER FUNCTION "public"."auto_set_tenant_id"() OWNER TO "postgres";
 
 CREATE OR REPLACE FUNCTION "public"."award_badge_if_qualified"("p_user_id" "uuid", "p_badge_name" "text", "p_tenant_id" "uuid") RETURNS boolean
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 DECLARE
     v_badge_id uuid;
@@ -989,13 +991,14 @@ DECLARE
 
 BEGIN
 
-    -- Validate attempt ownership
+    -- Validate attempt ownership AND tenant isolation
     IF NOT EXISTS (
         SELECT 1
         FROM quiz_attempts
         WHERE id = p_attempt_id
         AND student_id = v_student_id
         AND status = 'in_progress'
+        AND tenant_id = (SELECT get_my_tenant_id())
     ) THEN
         RAISE EXCEPTION 'Invalid attempt or permission denied';
     END IF;
@@ -1026,7 +1029,6 @@ BEGIN
 
     END LOOP;
 
-
     RETURN TRUE;
 
 END;
@@ -1038,6 +1040,7 @@ ALTER FUNCTION "public"."batch_save_answers"("p_attempt_id" "uuid", "p_answers" 
 
 CREATE OR REPLACE FUNCTION "public"."check_analytics_rate_limit"("p_user_id" "uuid", "p_limit" integer DEFAULT 100, "p_window" interval DEFAULT '01:00:00'::interval) RETURNS boolean
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 DECLARE
     v_record record;
@@ -1475,6 +1478,7 @@ COMMENT ON FUNCTION "public"."ensure_quiz_attempt_partition"("p_year" integer, "
 
 CREATE OR REPLACE FUNCTION "public"."expire_dead_attempt"("p_attempt_id" "uuid") RETURNS boolean
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 BEGIN
 
@@ -1554,7 +1558,7 @@ BEGIN
             SELECT 1
             FROM public.user_roles ur
             WHERE ur.user_id = auth.uid()
-              AND ur.role IN ('admin', 'super_admin')
+              AND ur.role IN ('ADMIN'::public.app_role)
         ) INTO v_is_admin;
 
         IF v_is_admin THEN
@@ -1918,7 +1922,7 @@ BEGIN
         SELECT 1
         FROM public.user_roles ur
         WHERE ur.user_id = auth.uid()
-          AND ur.role IN ('admin', 'super_admin')
+          AND ur.role IN ('ADMIN'::public.app_role)
     ) INTO v_is_admin;
 
     IF NOT v_is_admin AND NOT EXISTS (
@@ -2015,7 +2019,7 @@ DECLARE
 BEGIN
     v_tenant_id := get_my_tenant_id();
 
-    IF auth.uid() <> p_student_id AND (auth.jwt() ->> 'role') NOT IN ('teacher', 'admin') THEN
+    IF auth.uid() <> p_student_id AND (auth.jwt() ->> 'role') NOT IN ('TEACHER', 'ADMIN') THEN
         RAISE EXCEPTION 'Unauthorized';
     END IF;
 
@@ -2089,7 +2093,7 @@ BEGIN
     v_user_role := auth.jwt() ->> 'role';
     
     -- Security: Validate role - only teacher/admin can access analytics
-    IF v_user_role NOT IN ('teacher', 'admin') THEN
+    IF v_user_role NOT IN ('TEACHER', 'ADMIN') THEN
         RAISE EXCEPTION 'Unauthorized: Role must be teacher or admin';
     END IF;
 
@@ -2260,7 +2264,7 @@ BEGIN
     v_user_role := auth.jwt() ->> 'role';
     
     -- Security: Validate role
-    IF v_user_role NOT IN ('teacher', 'admin') THEN
+    IF v_user_role NOT IN ('TEACHER', 'ADMIN') THEN
         RAISE EXCEPTION 'Unauthorized: Role must be teacher or admin';
     END IF;
 
@@ -3778,7 +3782,7 @@ DECLARE
     v_count integer := 0;
 BEGIN
     -- Only allow teachers/admins to run this
-    IF (auth.jwt() ->> 'role') NOT IN ('teacher', 'admin') THEN
+    IF (auth.jwt() ->> 'role') NOT IN ('TEACHER', 'ADMIN') THEN
         RAISE EXCEPTION 'Unauthorized: Only teachers and admins can refresh all course stats';
     END IF;
 
@@ -5031,7 +5035,7 @@ BEGIN
         SELECT 1
         FROM public.user_roles ur
         WHERE ur.user_id = auth.uid()
-          AND ur.role IN ('admin', 'super_admin')
+          AND ur.role IN ('ADMIN'::public.app_role)
     ) INTO v_is_admin;
 
     IF NOT v_is_admin AND NOT EXISTS (
@@ -5084,7 +5088,7 @@ BEGIN
         SELECT 1 
         FROM public.quizzes q
         JOIN public.classes c ON c.id = q.class_id
-        LEFT JOIN public.user_roles ur ON ur.user_id = v_user_id AND ur.tenant_id = v_tenant_id AND ur.role = 'admin'
+        LEFT JOIN public.user_roles ur ON ur.user_id = v_user_id AND ur.tenant_id = v_tenant_id AND ur.role = 'ADMIN'::public.app_role
         WHERE q.id = p_quiz_id 
           AND q.tenant_id = v_tenant_id
           AND (c.teacher_id = v_user_id OR ur.id IS NOT NULL)

@@ -1,8 +1,9 @@
+import { Loader2, Save, X } from 'lucide-react'
 import { useState } from 'react'
-import { Save, X, Loader2 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
+
+import type { GuideSegment, GuideTrigger, GuideType, LearningGuide } from '@/src/features/guidance'
 import { useUpsertGuide } from '@/src/features/guidance'
-import type { LearningGuide, GuideType, GuideTrigger, GuideSegment } from '@/src/features/guidance'
+import { cn } from '@/src/utils/cn'
 
 interface Props {
   courseId: string
@@ -12,26 +13,26 @@ interface Props {
 }
 
 const GUIDE_TYPES: { value: GuideType; label: string }[] = [
-  { value: 'banner', label: 'Banner' },
-  { value: 'tooltip', label: 'Tooltip' },
-  { value: 'walkthrough', label: 'Walkthrough' },
-  { value: 'checkpoint', label: 'Checkpoint' },
+  { value: 'banner', label: 'Spanduk' },
+  { value: 'tooltip', label: 'Keterangan' },
+  { value: 'walkthrough', label: 'Panduan Langkah' },
+  { value: 'checkpoint', label: 'Pos Pemeriksaan' },
 ]
 
 const SEGMENTS: { value: GuideSegment; label: string }[] = [
   { value: 'all', label: 'Semua Siswa' },
   { value: 'at_risk', label: 'Berisiko' },
-  { value: 'low', label: 'Engagement Rendah' },
-  { value: 'medium', label: 'Engagement Sedang' },
-  { value: 'high', label: 'Engagement Tinggi' },
-  { value: 'struggling', label: 'Kesulitan (Struggle)' },
+  { value: 'low', label: 'Keterlibatan Rendah' },
+  { value: 'medium', label: 'Keterlibatan Sedang' },
+  { value: 'high', label: 'Keterlibatan Tinggi' },
+  { value: 'struggling', label: 'Kesulitan' },
 ]
 
 const TRIGGERS: { value: GuideTrigger; label: string; hasValue: boolean }[] = [
   { value: 'on_enter', label: 'Saat memasuki pelajaran', hasValue: false },
   { value: 'after_seconds', label: 'Setelah X detik', hasValue: true },
-  { value: 'on_struggle', label: 'Saat terdeteksi struggle', hasValue: false },
-  { value: 'on_idle', label: 'Saat idle X detik', hasValue: true },
+  { value: 'on_struggle', label: 'Saat terdeteksi kesulitan', hasValue: false },
+  { value: 'on_idle', label: 'Saat diam X detik', hasValue: true },
 ]
 
 export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
@@ -135,7 +136,7 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
         {/* Target Lesson ID */}
         <div>
           <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
-            Target Lesson ID *
+            Target ID Pelajaran *
           </label>
           <input
             value={targetId}
@@ -201,7 +202,7 @@ export function GuideBuilder({ guide, defaultTargetId, onClose }: Props) {
         <div className={cn(selectedTrigger?.hasValue ? 'flex gap-2 items-end' : '')}>
           <div className="flex-1">
             <label className="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400">
-              Trigger
+              Pemicu
             </label>
             <select
               value={triggerType}

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // We import the AnalyticsError type indirectly by testing error parsing behavior
 // Note: analyticsService methods use supabase.rpc — we mock that
@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const mockRpc = vi.fn()
 const mockFrom = vi.fn()
 
-vi.mock('@/src/lib/supabase', () => ({
+vi.mock('@/src/services/supabase/client', () => ({
   supabase: {
     rpc: (...args: unknown[]) => mockRpc(...args),
     from: (...args: unknown[]) => mockFrom(...args),

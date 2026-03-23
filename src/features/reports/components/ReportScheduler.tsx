@@ -1,13 +1,15 @@
+import { Loader2, Save } from 'lucide-react'
 import { useState } from 'react'
-import { Save, Loader2 } from 'lucide-react'
+
 import { cn } from '@/src/utils/cn'
+
 import { useSaveReport } from '../queries/reportQueries'
-import type { ReportType, ReportSchedule, ExportFormat } from '../types'
+import type { ExportFormat, ReportSchedule, ReportType } from '../types'
 
 const REPORT_TYPE_OPTIONS: { value: ReportType; label: string }[] = [
   { value: 'student_list', label: 'Daftar Siswa' },
   { value: 'course_summary', label: 'Ringkasan Kursus' },
-  { value: 'engagement', label: 'Engagement Siswa' },
+  { value: 'engagement', label: 'Keterlibatan Siswa' },
 ]
 
 const SCHEDULE_OPTIONS: { value: ReportSchedule; label: string }[] = [
@@ -96,7 +98,7 @@ export function ReportScheduler({ onSaved }: ReportSchedulerProps) {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-500 mb-1">Format Export</label>
+          <label className="block text-xs font-semibold text-slate-500 mb-1">Format Ekspor</label>
           <select
             value={exportFormat}
             onChange={(e) => setExportFormat(e.target.value as ExportFormat)}

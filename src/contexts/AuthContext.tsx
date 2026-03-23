@@ -1,6 +1,16 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react'
-import { supabase } from '../lib/supabase'
-import type { User, Session } from '@supabase/supabase-js'
+import type { Session, User } from '@supabase/supabase-js'
+import React, {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
+
+import { supabase } from '@/src/services/supabase/client'
 
 export type Role = 'teacher' | 'student' | 'admin'
 
@@ -87,7 +97,7 @@ interface AuthContextType {
   hasRole: (role: Role) => boolean
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 function getPrimaryRole(roles: Role[]): Role {
   if (roles.includes('admin')) return 'admin'
@@ -119,18 +129,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const setActiveTenant = (id: string) => {
-    // Security: Store only tenant_id in localStorage, not the full tenant object.
-    // This is treated as a hint only - must be validated against server memberships.
-    localStorage.setItem('activeTenantId', id)
-    if (rawTenants[id]) {
-      setActiveTenantState(rawTenants[id])
-      setTenantId(id)
-    } else {
-      if (import.meta.env.DEV)
-        console.warn(`Tenant with id ${id} not found in rawTenants - will validate on next auth`)
-    }
-  }
+  const setActiveTenant = useCallback(
+    (id: string) => {
+      // Security: Store only tenant_id in localStorage, not the full tenant object.
+      // This is treated as a hint only - must be validated against server memberships.
+      localStorage.setItem('activeTenantId', id)
+      if (rawTenants[id]) {
+        setActiveTenantState(rawTenants[id])
+        setTenantId(id)
+      } else {
+        if (import.meta.env.DEV)
+          console.warn(`Tenant with id ${id} not found in rawTenants - will validate on next auth`)
+      }
+    },
+    [rawTenants]
+  )
 
   // Get the role for the active tenant
   const activeRole = React.useMemo(() => {
@@ -339,38 +352,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
   /* eslint-enable react-hooks/exhaustive-deps */
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
     return { error: error as Error | null }
-  }
+  }, [])
 
-  const signUp = async (
-    email: string,
-    password: string,
-    firstName: string,
-    lastName: string,
-    signUpTenantId?: string
-  ) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-          ...(signUpTenantId ? { tenant_id: signUpTenantId } : {}),
+  const signUp = useCallback(
+    async (
+      email: string,
+      password: string,
+      firstName: string,
+      lastName: string,
+      signUpTenantId?: string
+    ) => {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            ...(signUpTenantId ? { tenant_id: signUpTenantId } : {}),
+          },
         },
-      },
-    })
-    return { error: error as Error | null }
-  }
+      })
+      return { error: error as Error | null }
+    },
+    []
+  )
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     // Clear localStorage - only store tenant_id hint, not full objects
     localStorage.removeItem('activeTenantId')
+    // Clear user+session eagerly so AuthGuard redirects to /login immediately
+    setUser(null)
+    setSession(null)
     // Clear state eagerly so UI reacts immediately
     setProfile(null)
     setTenantId(null)
@@ -379,50 +398,75 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRawTenants({})
     setRoles([])
     // onAuthStateChange will fire after signOut and set loading=false
-    await supabase.auth.signOut()
-  }
+    try {
+      await supabase.auth.signOut()
+    } catch (err) {
+      // Even if Supabase signOut fails (network error, expired session),
+      // we've already cleared local state so the user is effectively logged out.
+      if (import.meta.env.DEV) console.error('[Auth] signOut error (state already cleared):', err)
+    }
+  }, [])
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = useCallback(async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.origin + window.location.pathname,
       },
     })
-  }
+  }, [])
 
-  const hasRole = (r: Role) => roles.includes(r)
+  const hasRole = useCallback((r: Role) => roles.includes(r), [roles])
 
   const role = getPrimaryRole(roles)
   const permissions = rolePermissions[role]
   const emailVerified = !!user?.email_confirmed_at
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        profile,
-        tenantId,
-        memberships,
-        activeTenant,
-        setActiveTenant,
-        activeRole,
-        roles,
-        role,
-        permissions,
-        loading: loading || loadingMemberships,
-        emailVerified,
-        signIn,
-        signUp,
-        signOut,
-        signInWithGoogle,
-        hasRole,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const contextValue = useMemo<AuthContextType>(
+    () => ({
+      user,
+      session,
+      profile,
+      tenantId,
+      memberships,
+      activeTenant,
+      setActiveTenant,
+      activeRole,
+      roles,
+      role,
+      permissions,
+      loading: loading || loadingMemberships,
+      emailVerified,
+      signIn,
+      signUp,
+      signOut,
+      signInWithGoogle,
+      hasRole,
+    }),
+    [
+      user,
+      session,
+      profile,
+      tenantId,
+      memberships,
+      activeTenant,
+      setActiveTenant,
+      activeRole,
+      roles,
+      role,
+      permissions,
+      loading,
+      loadingMemberships,
+      emailVerified,
+      signIn,
+      signUp,
+      signOut,
+      signInWithGoogle,
+      hasRole,
+    ]
   )
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

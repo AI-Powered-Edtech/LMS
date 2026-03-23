@@ -1,44 +1,46 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { motion, AnimatePresence } from 'motion/react'
 import {
+  AlertCircle,
+  ArrowRight,
+  Camera,
+  CheckCircle2,
+  Clock,
   FileText,
+  FileUp,
+  Filter,
+  Link as LinkIcon,
+  Loader2,
+  MessageSquare,
+  Paperclip,
   Plus,
   Search,
-  Filter,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Paperclip,
-  Link as LinkIcon,
-  Camera,
-  MessageSquare,
   Send,
-  X,
   UploadCloud,
   Users,
-  FileUp,
-  ArrowRight,
-  Loader2,
+  X,
 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
-import { useComments } from '@/src/features/discussions/hooks/useCommentQueries'
-import { useGradebook } from '@/src/features/assignments/hooks/useGradebookQueries'
-import { useAddCalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
-import { useSendNotification } from '@/src/features/notifications'
-import { useAssignments } from '@/src/features/assignments/hooks/useAssignments'
-import { assignmentService } from '@/src/features/assignments/api/assignmentService'
-import { AssignmentUiState } from '@/src/features/assignments/types'
+import { AnimatePresence, motion } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 
-import { EmptyState, Tabs, OptimizedImage } from '@/src/components/ui'
 import type { Tab } from '@/src/components/ui'
+import { useToast } from '@/src/components/ui'
+import { EmptyState, OptimizedImage, Tabs } from '@/src/components/ui'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { assignmentService } from '@/src/features/assignments/api/assignmentService'
 import { AssignmentSkeleton } from '@/src/features/assignments/components/AssignmentSkeleton'
+import { useAssignments } from '@/src/features/assignments/hooks/useAssignments'
+import { useGradebook } from '@/src/features/assignments/hooks/useGradebookQueries'
+import { AssignmentUiState } from '@/src/features/assignments/types'
+import { useAddCalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
+import { useComments } from '@/src/features/discussions/hooks/useCommentQueries'
+import { useSendNotification } from '@/src/features/notifications'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { cn } from '@/src/utils/cn'
 
 // Mock data has been removed and replaced with real backend integration via useAssignments hook.
 
 export function Assignments() {
+  const addToast = useToast((s) => s.addToast)
   usePageTitle('Assignments')
   const { role, tenantId, user } = useAuth()
   const { addEvent } = useAddCalendarEvent()
@@ -174,7 +176,7 @@ export function Assignments() {
       setSelectedFiles((prev) => ({ ...prev, [id]: null }))
     } catch (error) {
       if (import.meta.env.DEV) console.error('Failed to turn in assignment', error)
-      alert('Gagal menyerahkan tugas.')
+      addToast({ type: 'error', message: 'Gagal menyerahkan tugas.' })
     } finally {
       // Clear interval and snap to 100%
       clearInterval(progressInterval)
@@ -227,7 +229,7 @@ export function Assignments() {
 
   const handleCreateAssignment = () => {
     if (!newAssignment.title || !newAssignment.dueDate) {
-      alert('Mohon lengkapi Judul dan Tenggat Waktu.')
+      addToast({ type: 'error', message: 'Mohon lengkapi Judul dan Tenggat Waktu.' })
       return
     }
 

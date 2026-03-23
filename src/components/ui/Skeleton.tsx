@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 import { cn } from '@/src/utils/cn'
 
 /* ─── Base Skeleton ────────────────────────────────────────── */
@@ -7,7 +9,13 @@ export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   height?: string | number
 }
 
-export function Skeleton({ width, height, className, style, ...props }: SkeletonProps) {
+export const Skeleton = memo(function Skeleton({
+  width,
+  height,
+  className,
+  style,
+  ...props
+}: SkeletonProps) {
   return (
     <div
       role="status"
@@ -17,7 +25,7 @@ export function Skeleton({ width, height, className, style, ...props }: Skeleton
       {...props}
     />
   )
-}
+})
 
 /* ─── SkeletonText ─────────────────────────────────────────── */
 
@@ -43,7 +51,10 @@ export interface SkeletonCardProps {
   lines?: number
 }
 
-export function SkeletonCard({ className, lines = 2 }: SkeletonCardProps) {
+export const SkeletonCard = memo(function SkeletonCard({
+  className,
+  lines = 2,
+}: SkeletonCardProps) {
   return (
     <div
       className={cn(
@@ -55,4 +66,4 @@ export function SkeletonCard({ className, lines = 2 }: SkeletonCardProps) {
       <SkeletonText lines={lines} />
     </div>
   )
-}
+})

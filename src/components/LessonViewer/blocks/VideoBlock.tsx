@@ -1,7 +1,8 @@
-import { useRef, useState, useEffect, useCallback } from 'react'
 import { AlertTriangle } from 'lucide-react'
-import { parseVideoUrl, type VideoType } from '@/src/utils/videoUtils'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
 import { useOptionalLearningSession } from '@/src/features/analytics'
+import { parseVideoUrl, type VideoType } from '@/src/utils/videoUtils'
 
 interface VideoBlockProps {
   blockId?: string
@@ -168,7 +169,7 @@ export function VideoBlock({
             className="absolute inset-0 w-full h-full rounded-lg"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            title="Video player"
+            title="Pemutar video"
           />
         </div>
       </div>

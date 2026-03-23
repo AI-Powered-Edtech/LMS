@@ -1,10 +1,12 @@
+import { ChevronRight, Plus, Trash2, TrendingDown } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
-import { Plus, Trash2, ChevronRight, TrendingDown } from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
-import { useFunnelList, useFunnelResults, useDeleteFunnel } from '../queries/analyticsQueries'
+
+import { Skeleton } from '@/src/components/ui'
+
+import { useDeleteFunnel, useFunnelList, useFunnelResults } from '../queries/analyticsQueries'
 import { FunnelBuilder } from './FunnelBuilder'
 import { FunnelChart } from './FunnelChart'
-import { Skeleton } from '@/src/components/ui'
 
 interface FunnelComparisonProps {
   courseId: string
@@ -30,7 +32,7 @@ export function FunnelComparison({ courseId }: FunnelComparisonProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <TrendingDown className="h-5 w-5 text-indigo-500" />
-          <h3 className="text-sm font-semibold text-slate-800 dark:text-white">Analisis Funnel</h3>
+          <h3 className="text-sm font-semibold text-slate-800 dark:text-white">Analisis Corong</h3>
         </div>
         {!showBuilder && (
           <button
@@ -38,7 +40,7 @@ export function FunnelComparison({ courseId }: FunnelComparisonProps) {
             className="flex items-center gap-1 rounded-lg bg-indigo-50 px-2.5 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300"
           >
             <Plus className="h-3.5 w-3.5" />
-            Buat Funnel
+            Buat Corong
           </button>
         )}
       </div>
@@ -102,7 +104,7 @@ export function FunnelComparison({ courseId }: FunnelComparisonProps) {
         </div>
       ) : !showBuilder ? (
         <p className="py-6 text-center text-sm text-slate-400">
-          Belum ada funnel. Buat yang pertama!
+          Belum ada corong. Buat yang pertama!
         </p>
       ) : null}
 
@@ -132,7 +134,7 @@ export function FunnelComparison({ courseId }: FunnelComparisonProps) {
               </div>
             ) : (
               <p className="py-4 text-center text-sm text-slate-400">
-                Belum ada data untuk funnel ini.
+                Belum ada data untuk corong ini.
               </p>
             )}
           </motion.div>

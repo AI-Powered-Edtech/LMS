@@ -1,42 +1,42 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import {
+  ArrowUpDown,
+  BarChart3,
+  BookOpen,
+  Loader2,
+  Search,
+  ShieldAlert,
+  Trophy,
+  Users,
+} from 'lucide-react'
 /**
  * AdminQuizOverview — School-wide quiz analytics for admin role
  *
  * Shows a table of all quizzes across the school with metrics,
  * plus a recent anti-cheat audit log.
  */
+import { useEffect, useState } from 'react'
 
-import { useState, useEffect } from 'react'
-import {
-  BarChart3,
-  Loader2,
-  Search,
-  ShieldAlert,
-  BookOpen,
-  Users,
-  Trophy,
-  ArrowUpDown,
-} from 'lucide-react'
-import { cn } from '@/src/utils/cn'
 import { useAuth } from '@/src/contexts/AuthContext'
 import {
-  getSchoolQuizOverview,
-  getAntiCheatAuditLog,
   type AdminQuizOverviewItem,
   type AntiCheatAuditEntry,
+  getAntiCheatAuditLog,
+  getSchoolQuizOverview,
 } from '@/src/features/quizzes/api/adminQuiz.service'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { cn } from '@/src/utils/cn'
 
 type SortKey = 'quiz_title' | 'total_attempts' | 'avg_score' | 'pass_rate' | 'created_at'
 type SortDir = 'asc' | 'desc'
 
 const statusBadge: Record<string, { label: string; color: string; bg: string }> = {
   draft: { label: 'Draft', color: 'text-slate-600', bg: 'bg-slate-100' },
-  published: { label: 'Published', color: 'text-green-700', bg: 'bg-green-100' },
+  published: { label: 'Diterbitkan', color: 'text-green-700', bg: 'bg-green-100' },
   archived: { label: 'Archived', color: 'text-amber-700', bg: 'bg-amber-100' },
 }
 
 export function AdminQuizOverview() {
-  usePageTitle('Admin Quiz Overview')
+  usePageTitle('Ikhtisar Kuis Admin')
   const { tenantId } = useAuth()
 
   const [quizzes, setQuizzes] = useState<AdminQuizOverviewItem[]>([])

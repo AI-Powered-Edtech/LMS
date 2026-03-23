@@ -122,6 +122,7 @@ All helper functions are `SECURITY DEFINER` with `SET search_path TO 'public'`.
 | ----------------------------------------------------------------------------------------- | --------------------------------- | ------------------- |
 | `v1_start_quiz_attempt(p_quiz_id)`                                                        | Start or resume quiz attempt      | Student             |
 | `v1_save_partial_answers(p_attempt_id, p_answers)`                                        | Autosave answers                  | Student             |
+| `batch_save_answers(p_attempt_id, p_answers)`                                             | Batch autosave (single RPC call)  | Student             |
 | `v1_submit_quiz_attempt(p_attempt_id, p_final_answers)`                                   | Submit and grade                  | Student             |
 | `v1_get_quiz_results(p_attempt_id)`                                                       | Fetch attempt results             | Student             |
 | `get_teacher_analytics(p_course_id, p_limit, p_cursor_student_id)`                        | Paginated analytics JSON          | Teacher/Admin       |

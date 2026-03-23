@@ -1,17 +1,18 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Link } from 'react-router-dom'
 import { AlertTriangle, BookOpen } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
-import { courseService } from '@/src/features/courses'
-import { supabase } from '@/src/lib/supabase'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { LessonSkeleton } from '@/src/features/lessons/components/LessonSkeleton'
+import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+
 import {
   CourseHeader,
-  ProgressSummary,
   ModuleList,
   type ModuleWithProgress,
+  ProgressSummary,
 } from '@/src/components/CourseOverview'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { courseService } from '@/src/features/courses'
+import { LessonSkeleton } from '@/src/features/lessons/components/LessonSkeleton'
+import { supabase } from '@/src/services/supabase/client'
+import { cn } from '@/src/utils/cn'
 
 // ============================================================
 // Types

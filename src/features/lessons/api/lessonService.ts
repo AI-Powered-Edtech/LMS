@@ -1,4 +1,5 @@
-import { supabase } from '../../../lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
+
 import { Lesson, LessonProgress, ProgressQueueItem, SignedProgressQueue } from '../types'
 
 // ============================================================

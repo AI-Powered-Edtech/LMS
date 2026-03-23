@@ -1,8 +1,10 @@
+import { ArrowRight, Loader2, Sparkles } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, Sparkles, Loader2 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
-import { useRecommendations, useRecordRecommendationAction } from '../queries/recommendationQueries'
+
 import { useAuth } from '@/src/contexts/AuthContext'
+import { cn } from '@/src/utils/cn'
+
+import { useRecommendations, useRecordRecommendationAction } from '../queries/recommendationQueries'
 
 interface SmartNextButtonProps {
   courseId: string
@@ -36,9 +38,9 @@ export function SmartNextButton({
       recordAction({ id: nextLessonRec.id, action: 'accepted' })
     }
     if (targetId && currentModuleId) {
-      navigate(`/courses/${courseId}?moduleId=${currentModuleId}&lessonId=${targetId}`)
+      navigate(`/app/student/courses/${courseId}?moduleId=${currentModuleId}&lessonId=${targetId}`)
     } else {
-      navigate(`/courses/${courseId}`)
+      navigate(`/app/student/courses/${courseId}`)
     }
   }
 

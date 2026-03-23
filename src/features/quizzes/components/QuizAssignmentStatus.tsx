@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
-import { quizService, QuizAssignment } from '@/src/features/quizzes'
-import { Loader2, Plus, AlertCircle, Trash2, Calendar } from 'lucide-react'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
+import { AlertCircle, Calendar, Loader2, Plus, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+
 import { useAuth } from '@/src/contexts/AuthContext'
+import { QuizAssignment, quizService } from '@/src/features/quizzes'
 import { useToast } from '@/src/hooks/useToast'
 
 interface QuizAssignmentStatusProps {
@@ -55,7 +56,8 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
       addToast({
         type: 'error',
         message:
-          'Gagal menghapus assignment: ' + (err instanceof Error ? err.message : 'Unknown error'),
+          'Gagal menghapus assignment: ' +
+          (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
       })
     }
   }
@@ -166,7 +168,7 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
                   <button
                     onClick={() => handleRemoveAssignment(assignment.id)}
                     className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Hapus Assignment"
+                    title="Hapus Penugasan"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

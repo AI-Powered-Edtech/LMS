@@ -1,35 +1,36 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import React, { useState, useEffect, useCallback } from 'react'
-import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import {
-  Users,
-  Search,
-  Filter,
-  UserPlus,
-  Shield,
-  GraduationCap,
   BookOpen,
-  MoreVertical,
-  RefreshCw,
-  Mail,
-  XCircle,
   CheckCircle,
+  ChevronDown,
   Clock,
   Copy,
-  ChevronDown,
+  Filter,
+  GraduationCap,
+  Mail,
+  MoreVertical,
+  RefreshCw,
+  Search,
+  Shield,
+  UserPlus,
+  Users,
+  XCircle,
 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
-import {
-  getTenantUsers,
-  getInvitations,
-  updateUserRole,
-  deactivateUser,
-  revokeInvitation,
-  TenantUser,
-  TenantInvitation,
-} from '@/src/services/adminUserService'
+import React, { useCallback, useEffect, useState } from 'react'
+
 import { ChangeRoleModal } from '@/src/components/admin/ChangeRoleModal'
 import { InviteUserModal } from '@/src/components/admin/InviteUserModal'
+import {
+  deactivateUser,
+  getInvitations,
+  getTenantUsers,
+  revokeInvitation,
+  TenantInvitation,
+  TenantUser,
+  updateUserRole,
+} from '@/src/features/administration/api/adminUserService'
+import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { cn } from '@/src/utils/cn'
 
 type Tab = 'users' | 'invitations'
 
@@ -352,7 +353,7 @@ export function UserManagement() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex gap-1 flex-wrap">
-                            {user.roles.map((role) => {
+                            {user.roles.map((role: any) => {
                               const cfg = ROLE_CONFIG[role] || ROLE_CONFIG.STUDENT
                               return (
                                 <span

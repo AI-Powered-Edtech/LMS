@@ -1,33 +1,34 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import {
+  ArrowLeft,
+  BookOpen,
+  CheckCircle2,
+  ChevronDown,
+  Clock,
+  Download,
+  Edit2,
+  Filter,
+  MoreVertical,
+  Plus,
+  Save,
+  Search,
+  TrendingDown,
+  TrendingUp,
+  Users,
+  X,
+} from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  Search,
-  Filter,
-  Download,
-  MoreVertical,
-  ArrowLeft,
-  TrendingUp,
-  TrendingDown,
-  Clock,
-  CheckCircle2,
-  Edit2,
-  Save,
-  X,
-  Plus,
-  Users,
-  BookOpen,
-  ChevronDown,
-} from 'lucide-react'
-import { cn } from '@/src/utils/cn'
-import { useGradebook, Assignment } from '@/src/features/assignments/hooks/useGradebookQueries'
+
 import { EmptyState, OptimizedImage } from '@/src/components/ui'
+import { Assignment, useGradebook } from '@/src/features/assignments/hooks/useGradebookQueries'
 import { useCourses } from '@/src/features/courses/queries/courseQueries'
 import type { Course } from '@/src/features/courses/types'
 import { GradebookTable } from '@/src/features/gradebook/components/GradebookTable'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { cn } from '@/src/utils/cn'
 
 export function Gradebook() {
-  usePageTitle('Gradebook')
+  usePageTitle('Buku Nilai')
   const { students, assignments, grades, updateGrade, addAssignment } = useGradebook()
   const [searchQuery, setSearchQuery] = useState('')
   const [editingCell, setEditingCell] = useState<{
@@ -161,7 +162,7 @@ export function Gradebook() {
       case 'offline':
         return 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
       default:
-        return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+        return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
     }
   }
 

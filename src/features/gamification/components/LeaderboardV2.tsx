@@ -1,14 +1,16 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
-import { Trophy, Flame, TrendingUp, Calendar, Filter } from 'lucide-react'
-import { motion } from 'motion/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { cn } from '@/src/utils/cn'
+import { Calendar, Filter, Flame, TrendingUp, Trophy } from 'lucide-react'
+import { motion } from 'motion/react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+
+import { EmptyState, OptimizedImage, SkeletonCard } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
-import { useLeaderboardV2 } from '../queries/gamificationQueries'
-import { LevelBadge } from './LevelBadge'
-import { SkeletonCard, EmptyState, OptimizedImage } from '@/src/components/ui'
 import { rankLeaderboard } from '@/src/utils/clientCompute'
-import type { LeaderboardSortBy, LeaderboardPeriod, LeaderboardV2Entry } from '../types'
+import { cn } from '@/src/utils/cn'
+
+import { useLeaderboardV2 } from '../queries/gamificationQueries'
+import type { LeaderboardPeriod, LeaderboardSortBy, LeaderboardV2Entry } from '../types'
+import { LevelBadge } from './LevelBadge'
 
 const PERIODS: { value: LeaderboardPeriod; label: string; icon: typeof TrendingUp }[] = [
   { value: 'weekly', label: 'Mingguan', icon: Calendar },
@@ -108,7 +110,7 @@ export function LeaderboardV2() {
       <div className="text-center space-y-2">
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center justify-center gap-3">
           <Trophy className="w-7 h-7 text-yellow-500 fill-yellow-500" />
-          Leaderboard
+          Papan Peringkat
         </h1>
       </div>
 

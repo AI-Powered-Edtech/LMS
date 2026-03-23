@@ -1,4 +1,7 @@
+import { memo } from 'react'
+
 import { cn } from '@/src/utils/cn'
+
 import { Button } from './Button'
 
 export interface EmptyStateProps {
@@ -12,7 +15,13 @@ export interface EmptyStateProps {
   className?: string
 }
 
-export function EmptyState({ icon, title, description, action, className }: EmptyStateProps) {
+export const EmptyState = memo(function EmptyState({
+  icon,
+  title,
+  description,
+  action,
+  className,
+}: EmptyStateProps) {
   return (
     <div
       className={cn('flex flex-col items-center justify-center py-12 px-4 text-center', className)}
@@ -29,4 +38,4 @@ export function EmptyState({ icon, title, description, action, className }: Empt
       )}
     </div>
   )
-}
+})

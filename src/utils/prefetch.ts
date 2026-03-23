@@ -15,10 +15,14 @@ const prefetchMap: Record<string, string[]> = {
   '/app/student/announcements': ['/app/student/dashboard'],
 
   // ── Teacher paths ─────────────────────────────────────────────────────────
-  '/app/teacher/dashboard': ['/app/teacher/classes', '/teaching/courses', '/app/teacher/analytics'],
-  '/app/teacher/classes': ['/app/teacher/classes/', '/teaching/courses'],
-  '/teaching/courses': ['/teaching/courses/', '/app/teacher/dashboard'],
-  '/teaching/courses/': ['/app/teacher/dashboard'],
+  '/app/teacher/dashboard': [
+    '/app/teacher/classes',
+    '/app/teacher/courses',
+    '/app/teacher/analytics',
+  ],
+  '/app/teacher/classes': ['/app/teacher/classes/', '/app/teacher/courses'],
+  '/app/teacher/courses': ['/app/teacher/courses/', '/app/teacher/dashboard'],
+  '/app/teacher/courses/': ['/app/teacher/dashboard'],
   '/app/teacher/analytics': ['/app/teacher/dashboard'],
   '/app/teacher/gradebook': ['/app/teacher/classes'],
   '/app/teacher/assignments': ['/app/teacher/gradebook'],
@@ -67,7 +71,10 @@ export function prefetchRoute(path: string): void {
  */
 export function setupPrefetchListeners(): () => void {
   const handler = (event: Event) => {
-    const anchor = (event.target as HTMLElement).closest('a')
+    const target = event.target
+    // event.target can be a Text node or other non-Element — guard before calling .closest()
+    if (!(target instanceof Element)) return
+    const anchor = target.closest('a')
     if (!anchor) return
 
     const href = anchor.getAttribute('href')

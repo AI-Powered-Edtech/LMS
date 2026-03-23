@@ -1,11 +1,12 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import React, { useState, useEffect, useCallback } from 'react'
-import { Flag, Save, RefreshCw, ToggleLeft, ToggleRight, AlertCircle } from 'lucide-react'
-import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
-import { cn } from '@/src/utils/cn'
-import { supabase } from '@/src/services/supabase/client'
-import { FeatureFlag, invalidateFlagCache } from '@/src/utils/featureFlags'
+import { AlertCircle, Flag, RefreshCw, Save, ToggleLeft, ToggleRight } from 'lucide-react'
+import React, { useCallback, useEffect, useState } from 'react'
+
 import { EmptyState } from '@/src/components/ui'
+import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { supabase } from '@/src/services/supabase/client'
+import { cn } from '@/src/utils/cn'
+import { FeatureFlag, invalidateFlagCache } from '@/src/utils/featureFlags'
 
 // ---------------------------------------------------------------------------
 // Local draft state extends FeatureFlag with a dirty flag
@@ -20,7 +21,7 @@ interface FlagDraft extends FeatureFlag {
 // ---------------------------------------------------------------------------
 
 export default function FeatureFlagsPage() {
-  usePageTitle('Feature Flags Page')
+  usePageTitle('Pengaturan Fitur')
   const [flags, setFlags] = useState<FlagDraft[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)

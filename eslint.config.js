@@ -1,18 +1,12 @@
 import tseslint from '@typescript-eslint/eslint-plugin'
 import tsparser from '@typescript-eslint/parser'
 import reactHooks from 'eslint-plugin-react-hooks'
+import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import eslintConfigPrettier from 'eslint-config-prettier'
 
 export default [
   {
-    ignores: [
-      'dist/',
-      'node_modules/',
-      '_archive/',
-      '*.config.*',
-      'coverage/',
-      'e2e/',
-    ],
+    ignores: ['dist/', 'node_modules/', '_archive/', '*.config.*', 'coverage/', 'e2e/'],
   },
   {
     files: ['src/**/*.{ts,tsx}'],
@@ -27,6 +21,7 @@ export default [
     plugins: {
       '@typescript-eslint': tseslint,
       'react-hooks': reactHooks,
+      'simple-import-sort': simpleImportSort,
     },
     rules: {
       // Base rules
@@ -42,6 +37,10 @@ export default [
       // React hooks rules
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
+
+      // Import sorting
+      'simple-import-sort/imports': 'warn',
+      'simple-import-sort/exports': 'warn',
     },
   },
   // Vitest globals for test files

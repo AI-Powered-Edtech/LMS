@@ -1,12 +1,13 @@
-import { OptimizedImage } from '@/src/components/ui'
-import { useState, useEffect, useCallback } from 'react'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { discussionService, Discussion } from '@/src/features/discussions/api/discussionService'
-import { useToast } from '@/src/hooks/useToast'
 import { formatDistanceToNow } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
-import { Send, MoreVertical, Trash2, Edit2, MessageSquare, Pin } from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
+import { Edit2, MessageSquare, MoreVertical, Pin, Send, Trash2 } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useCallback, useEffect, useState } from 'react'
+
+import { OptimizedImage } from '@/src/components/ui'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { Discussion, discussionService } from '@/src/features/discussions/api/discussionService'
+import { useToast } from '@/src/hooks/useToast'
 import { cn } from '@/src/utils/cn'
 
 interface CommentSectionProps {
@@ -242,7 +243,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
                           }}
                           className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex flex-center gap-2"
                         >
-                          <Edit2 className="w-3.5 h-3.5" /> Edit
+                          <Edit2 className="w-3.5 h-3.5" /> Ubah
                         </button>
                       )}
                       <button

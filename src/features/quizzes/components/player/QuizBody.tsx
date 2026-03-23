@@ -1,6 +1,8 @@
 import { Flag } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
+
 import { SubmitAnswer } from '@/src/features/quizzes'
+import { cn } from '@/src/utils/cn'
+
 import type { QuizAttemptQuestion, QuizOptionSnapshot } from '../../types/quizzes.types'
 
 interface QuizBodyProps {
@@ -27,7 +29,10 @@ export function QuizBody({
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 md:p-8 relative">
       <button
+        type="button"
         onClick={() => onToggleFlag(question.question_id)}
+        aria-label={isFlagged ? 'Hapus tanda' : 'Tandai soal ini'}
+        aria-pressed={isFlagged}
         className={cn(
           'absolute top-6 right-6 p-2 rounded-xl border transition-colors flex items-center gap-2 text-sm font-bold',
           isFlagged
@@ -78,12 +83,15 @@ export function QuizBody({
 
       {/* MCQ / TRUE_FALSE — Radio Buttons */}
       {(questionType === 'MCQ' || questionType === 'TRUE_FALSE') && (
-        <div className="space-y-3">
+        <div className="space-y-3" role="radiogroup" aria-label="Pilihan jawaban">
           {options.map((option: QuizOptionSnapshot) => {
             const isSelected = currentAnswer?.selected_option_ids?.includes(option.id) ?? false
             return (
               <button
+                type="button"
                 key={option.id}
+                role="radio"
+                aria-checked={isSelected}
                 onClick={() =>
                   onAnswer(question.question_id, {
                     question_id: question.question_id,
@@ -118,14 +126,17 @@ export function QuizBody({
 
       {/* MULTIPLE_SELECT — Checkboxes */}
       {questionType === 'MULTIPLE_SELECT' && (
-        <div className="space-y-3">
+        <div className="space-y-3" role="group" aria-label="Pilihan jawaban (pilih beberapa)">
           <p className="text-sm text-slate-500 -mt-4 mb-4 italic">Pilih semua jawaban yang benar</p>
           {options.map((option: QuizOptionSnapshot) => {
             const currentIds = currentAnswer?.selected_option_ids || []
             const isSelected = currentIds.includes(option.id)
             return (
               <button
+                type="button"
                 key={option.id}
+                role="checkbox"
+                aria-checked={isSelected}
                 onClick={() => {
                   const newIds = isSelected
                     ? currentIds.filter((id: string) => id !== option.id)

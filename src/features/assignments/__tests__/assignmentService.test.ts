@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { assignmentService } from '../api/assignmentService'
 
 const mockSingle = vi.fn()
@@ -9,7 +10,7 @@ const _mockUpsert = vi.fn().mockReturnThis()
 const _mockEq = vi.fn().mockReturnThis()
 const mockFrom = vi.fn()
 
-vi.mock('@/src/lib/supabase', () => ({
+vi.mock('@/src/services/supabase/client', () => ({
   supabase: {
     from: (...args: unknown[]) => mockFrom(...args),
   },

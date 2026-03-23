@@ -5,25 +5,26 @@
  * Provides contextual help based on the current lesson.
  */
 
-import { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
-import { Sparkles, Bot, User, Lightbulb } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
-import { useAuth } from '@/src/contexts/AuthContext'
+import { Bot, Lightbulb, Sparkles, User } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
-import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
-import 'katex/dist/katex.min.css'
+import remarkMath from 'remark-math'
+
+import { useAuth } from '@/src/contexts/AuthContext'
 import {
-  askTutor,
-  type AITutorMessage,
-  type DifficultyLevel,
   type AITutorError,
+  type AITutorMessage,
+  askTutor,
+  type DifficultyLevel,
   formatDifficulty,
-  getDifficultyColor,
   generateMessageId,
+  getDifficultyColor,
 } from '@/src/features/ai-tutor'
+import { cn } from '@/src/utils/cn'
 import { aiTutorRateLimiter } from '@/src/utils/rateLimiter'
+
 import { AITutorInput } from './AITutorInput'
 import { AITutorTyping } from './AITutorTyping'
 
@@ -47,6 +48,10 @@ export function AITutorPanel({
   initialDifficulty = 'not_started',
   onClose: _onClose,
 }: AITutorPanelProps) {
+  useEffect(() => {
+    import('katex/dist/katex.min.css')
+  }, [])
+
   const { tenantId } = useAuth()
   // State
   const [messages, setMessages] = useState<AITutorMessage[]>([])
@@ -184,7 +189,7 @@ export function AITutorPanel({
           <div>
             <h2 className="font-bold text-slate-800">Tutor AI</h2>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400">Level:</span>
+              <span className="text-xs text-slate-400">Tingkat:</span>
               <span
                 className={cn(
                   'text-xs font-bold px-2 py-0.5 rounded-md',

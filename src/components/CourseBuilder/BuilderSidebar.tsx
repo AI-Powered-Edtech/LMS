@@ -1,19 +1,20 @@
-import { useState } from 'react'
-import { useBuilder } from '@/src/contexts/BuilderContext'
-import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
+import { DragDropContext, Draggable, Droppable, type DropResult } from '@hello-pangea/dnd'
 import {
-  Plus,
-  GripVertical,
-  ChevronRight,
   ChevronDown,
-  Video,
+  ChevronRight,
   FileText,
-  HelpCircle,
-  Trash2,
   FolderOpen,
+  GripVertical,
+  HelpCircle,
+  Plus,
+  Trash2,
+  Video,
 } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useState } from 'react'
+
+import { useBuilder } from '@/src/contexts/BuilderContext'
 import { cn } from '@/src/utils/cn'
-import { motion, AnimatePresence } from 'motion/react'
 
 export function BuilderSidebar() {
   const { state, actions } = useBuilder()
@@ -90,10 +91,11 @@ export function BuilderSidebar() {
         </div>
         <button
           onClick={handleAddModule}
-          className="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-md shadow-indigo-100 hover:scale-105 active:scale-95"
+          className="flex items-center gap-1 p-2 pr-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-md shadow-indigo-100 hover:scale-105 active:scale-95"
           title="Tambah Modul"
         >
           <Plus className="w-4 h-4" />
+          <span className="text-xs font-bold">Modul</span>
         </button>
       </div>
 
@@ -166,11 +168,13 @@ export function BuilderSidebar() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
-                                if (confirm('Delete this module and all its lessons?')) {
+                                if (confirm('Hapus modul ini beserta seluruh materinya?')) {
                                   actions.deleteModule(mod.id)
                                 }
                               }}
                               className="p-1 opacity-0 group-hover:opacity-100 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded transition-all"
+                              aria-label="Hapus modul"
+                              title="Hapus modul"
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>
@@ -248,7 +252,7 @@ export function BuilderSidebar() {
                                                   </span>
                                                   {!lesson.isPublished && (
                                                     <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-amber-400/90 text-amber-900 shadow-sm shadow-amber-200">
-                                                      DRAFT
+                                                      DRAF
                                                     </span>
                                                   )}
                                                 </div>
@@ -256,7 +260,7 @@ export function BuilderSidebar() {
                                               <button
                                                 onClick={(e) => {
                                                   e.stopPropagation()
-                                                  if (confirm('Delete this lesson?')) {
+                                                  if (confirm('Hapus materi ini?')) {
                                                     actions.deleteLesson(lesson.id)
                                                   }
                                                 }}
@@ -266,6 +270,8 @@ export function BuilderSidebar() {
                                                     ? 'opacity-0 group-hover/lesson:opacity-100 hover:bg-white/20 text-white'
                                                     : 'opacity-0 group-hover/lesson:opacity-100 hover:bg-rose-50 text-slate-400 hover:text-rose-500'
                                                 )}
+                                                aria-label="Hapus pelajaran"
+                                                title="Hapus pelajaran"
                                               >
                                                 <Trash2 className="w-3.5 h-3.5" />
                                               </button>
@@ -296,7 +302,9 @@ export function BuilderSidebar() {
                                                   'text-rose-600 border-rose-200 bg-rose-50/50 hover:bg-rose-50'
                                               )}
                                             >
-                                              {t.type.toUpperCase()}
+                                              {{ article: 'ARTIKEL', video: 'VIDEO', quiz: 'KUIS' }[
+                                                t.type
+                                              ] || t.type.toUpperCase()}
                                             </button>
                                           ))}
                                         </div>

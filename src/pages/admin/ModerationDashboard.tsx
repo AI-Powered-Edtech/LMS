@@ -1,26 +1,27 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import {
+  AlertTriangle,
+  ArrowLeft,
+  CheckCircle,
+  Clock,
+  MessageSquare,
+  Search,
+  User,
+  XCircle,
+} from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
+import { ModerationSkeleton } from '@/src/features/moderation/components/ModerationSkeleton'
 import {
   useModerationReports,
   useResolveReport,
 } from '@/src/features/moderation/queries/moderationQueries'
-import {
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  Search,
-  Clock,
-  User,
-  MessageSquare,
-  ArrowLeft,
-} from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
-import { ModerationSkeleton } from '@/src/features/moderation/components/ModerationSkeleton'
 
 export function ModerationDashboard() {
-  usePageTitle('Moderation Dashboard')
+  usePageTitle('Dasbor Moderasi')
   const navigate = useNavigate()
   const { data: reports = [], isLoading } = useModerationReports()
   const resolveReport = useResolveReport()

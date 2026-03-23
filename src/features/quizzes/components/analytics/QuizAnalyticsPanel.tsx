@@ -2,16 +2,17 @@
 // Container that composes quiz stats overview and question difficulty chart
 // Only visible for TEACHER role
 
-import { useState, useEffect } from 'react'
 import { BarChart3, Loader2 } from 'lucide-react'
-import { QuizStatsOverview } from './QuizStatsOverview'
-import { QuestionDifficultyChart } from './QuestionDifficultyChart'
+import { useEffect, useState } from 'react'
+
 import {
-  getQuizStats,
   getQuestionStats,
-  type QuizStats,
   type QuestionStatsWithQuestion,
+  quizAnalyticsService,
+  type QuizStats,
 } from '../../api/quizAnalytics.service'
+import { QuestionDifficultyChart } from './QuestionDifficultyChart'
+import { QuizStatsOverview } from './QuizStatsOverview'
 
 interface QuizAnalyticsPanelProps {
   quizId: string
@@ -31,7 +32,7 @@ export function QuizAnalyticsPanel({ quizId, className }: QuizAnalyticsPanelProp
 
       try {
         const [quiz, questions] = await Promise.all([
-          getQuizStats(quizId),
+          quizAnalyticsService.getQuizStats(quizId),
           getQuestionStats(quizId),
         ])
 

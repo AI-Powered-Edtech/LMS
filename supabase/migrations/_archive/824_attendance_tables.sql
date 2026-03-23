@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS public.attendance_records CASCADE;
 -- Attendance session records (one per scan/class/date)
 CREATE TABLE IF NOT EXISTS public.attendance_records (
   id          uuid DEFAULT gen_random_uuid() PRIMARY KEY,

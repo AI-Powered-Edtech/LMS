@@ -1,23 +1,26 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { storageService } from '../api/storageService'
 
-const mockStorageRemove = vi.fn()
-const mockStorageFrom = vi.fn(() => ({
-  remove: mockStorageRemove,
-  getPublicUrl: vi.fn(() => ({ data: { publicUrl: 'https://example.com/file.png' } })),
-}))
+const { mockStorageRemove, mockStorageFrom, mockSingle, mockFrom } = vi.hoisted(() => {
+  const mockStorageRemove = vi.fn()
+  const mockStorageFrom = vi.fn(() => ({
+    remove: mockStorageRemove,
+    getPublicUrl: vi.fn(() => ({ data: { publicUrl: 'https://example.com/file.png' } })),
+  }))
 
-const mockDeleteEq = vi.fn()
-const mockDelete = vi.fn(() => ({ eq: mockDeleteEq }))
-const mockSingle = vi.fn()
-const mockSelectEq = vi.fn(() => ({ single: mockSingle }))
-const mockSelect = vi.fn(() => ({ eq: mockSelectEq }))
-const mockFrom = vi.fn(() => ({
-  select: mockSelect,
-  delete: mockDelete,
-}))
+  const mockSingle = vi.fn()
+  const mockFrom = vi.fn(() => ({}))
 
-vi.mock('../../../lib/supabase', () => ({
+  return {
+    mockStorageRemove,
+    mockStorageFrom,
+    mockSingle,
+    mockFrom,
+  }
+})
+
+vi.mock('@/src/services/supabase/client', () => ({
   supabase: {
     from: mockFrom,
     storage: {
@@ -46,7 +49,6 @@ describe('storageService', () => {
         error: null,
       })
       mockStorageRemove.mockResolvedValue({ error: null })
-      mockDeleteEq.mockResolvedValue({ error: null })
 
       await storageService.deleteFile('obj-1')
       expect(mockFrom).toHaveBeenCalledWith('storage_objects')

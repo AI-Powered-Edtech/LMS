@@ -1,23 +1,25 @@
 // Quiz Player - Orchestrator component
 // Part of the Quiz Engine Refactor
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
 import { Eye, WifiOff } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+
 import { cn } from '@/src/utils/cn'
-import type { SubmitAnswer, QuizAttemptQuestion } from '../../types/quizzes.types'
-import { useQuizTimer } from '../../hooks/useQuizTimer'
-import { useQuizAutosave } from '../../hooks/useQuizAutosave'
-import type { SaveStatus } from '../../types/quizzes.types'
-import { useAntiCheat } from '../../hooks/useAntiCheat'
-import { useQuizHeartbeat } from '../../hooks/useQuizHeartbeat'
-import { useQuizPlayerStore } from '../../store/quizPlayer.store'
+
 import * as quizPlayerService from '../../api/quizPlayer.service'
 import { getCurrentQuestionIndex } from '../../api/quizPlayer.service'
-import { QuizHeader } from './QuizHeader'
+import { useAntiCheat } from '../../hooks/useAntiCheat'
+import { useQuizAutosave } from '../../hooks/useQuizAutosave'
+import { useQuizHeartbeat } from '../../hooks/useQuizHeartbeat'
+import { useQuizTimer } from '../../hooks/useQuizTimer'
+import { useQuizPlayerStore } from '../../store/quizPlayer.store'
+import type { QuizAttemptQuestion, SubmitAnswer } from '../../types/quizzes.types'
+import type { SaveStatus } from '../../types/quizzes.types'
+import { QuestionPalette } from './QuestionPalette'
 import { QuizBody } from './QuizBody'
 import { QuizFooter } from './QuizFooter'
-import { QuestionPalette } from './QuestionPalette'
+import { QuizHeader } from './QuizHeader'
 import { QuizReviewScreen } from './QuizReviewScreen'
 
 interface QuizPlayerProps {
@@ -355,7 +357,7 @@ export function QuizPlayer({
                 key={question.id}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
+                exit={{ opacity: 0, x: -20, pointerEvents: 'none' as unknown as undefined }}
                 transition={{ duration: 0.2 }}
               >
                 <QuizBody

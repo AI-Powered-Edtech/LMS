@@ -1,29 +1,30 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
-  Plus,
-  Users,
-  Copy,
-  Link as LinkIcon,
-  Pencil,
-  Trash2,
-  Loader2,
-  X,
-  Check,
-  Search,
   BookOpen,
+  Check,
   ChevronRight,
-  UserPlus,
-  Settings2,
+  Copy,
   Hash,
+  Link as LinkIcon,
+  Loader2,
+  Pencil,
+  Plus,
+  Search,
+  Settings2,
+  Trash2,
+  UserPlus,
+  Users,
+  X,
 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
-import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
+import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
 import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/lib/supabase'
 import { classroomService } from '@/src/features/classroom/api/classroomService'
+import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { supabase } from '@/src/services/supabase/client'
+import { cn } from '@/src/utils/cn'
 
 interface EnrolledStudent {
   id: string
@@ -81,7 +82,7 @@ export function ClassManagement() {
 
       if (!error && data) {
         const counts = data.reduce(
-          (acc, curr) => {
+          (acc: any, curr: any) => {
             acc[curr.class_id] = (acc[curr.class_id] || 0) + 1
             return acc
           },
@@ -123,7 +124,7 @@ export function ClassManagement() {
         if (enrollmentError) throw enrollmentError // Changed `error` to `enrollmentError`
 
         setStudents(
-          (enrollmentData || []).map((e) => {
+          (enrollmentData || []).map((e: any) => {
             const student = Array.isArray(e.student) ? e.student[0] : e.student
             return {
               id: e.id,
@@ -244,8 +245,8 @@ export function ClassManagement() {
             <input
               type="text"
               value={newClassName}
-              onChange={(e) => setNewClassName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateClass()}
+              onChange={(e: any) => setNewClassName(e.target.value)}
+              onKeyDown={(e: any) => e.key === 'Enter' && handleCreateClass()}
               placeholder="Contoh: Kelas 8A, Bahasa Inggris XI-IPA"
               autoFocus
               className="w-full px-4 py-2.5 bg-white border border-indigo-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
@@ -286,7 +287,7 @@ export function ClassManagement() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e: any) => setSearchQuery(e.target.value)}
               placeholder="Cari kelas..."
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"
             />
@@ -371,8 +372,10 @@ export function ClassManagement() {
                         <input
                           type="text"
                           value={renameValue}
-                          onChange={(e) => setRenameValue(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && handleRename(selectedClass.id)}
+                          onChange={(e: any) => setRenameValue(e.target.value)}
+                          onKeyDown={(e: any) =>
+                            e.key === 'Enter' && handleRename(selectedClass.id)
+                          }
                           autoFocus
                           className="text-xl font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 outline-none focus:ring-2 focus:ring-indigo-500 flex-1"
                         />

@@ -1,33 +1,34 @@
-import { OptimizedImage } from '@/src/components/ui'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState, useEffect, useCallback, useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import {
   ArrowLeft,
-  Search,
-  RefreshCw,
-  HelpCircle,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  TrendingUp,
-  ChevronDown,
-  Loader2,
-  Download,
   BarChart3,
+  CheckCircle2,
+  ChevronDown,
+  Clock,
+  Download,
   Eye,
+  HelpCircle,
+  Loader2,
   PenLine,
+  RefreshCw,
+  Search,
+  TrendingUp,
+  XCircle,
 } from 'lucide-react'
-import { supabase } from '@/src/lib/supabase'
-import { cn } from '@/src/utils/cn'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+
 import { AttemptDetailModal } from '@/src/components/AttemptDetailModal'
-import {
-  quizAnalyticsService,
-  QuestionDifficulty,
-} from '@/src/features/quizzes/api/quizAnalyticsService'
-import { quizService, AssignmentResultRow } from '@/src/features/quizzes'
-import { useAuth } from '@/src/contexts/AuthContext'
+import { OptimizedImage } from '@/src/components/ui'
 import { VirtualTable } from '@/src/components/ui/VirtualTable'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { AssignmentResultRow, quizService } from '@/src/features/quizzes'
+import {
+  QuestionDifficulty,
+  quizAnalyticsService,
+} from '@/src/features/quizzes/api/quizAnalyticsService'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { supabase } from '@/src/services/supabase/client'
+import { cn } from '@/src/utils/cn'
 
 interface AssignmentOption {
   id: string
@@ -43,7 +44,7 @@ interface ClassOption {
 }
 
 export function QuizGradebook() {
-  usePageTitle('Quiz Gradebook')
+  usePageTitle('Buku Nilai Kuis')
   const [classes, setClasses] = useState<ClassOption[]>([])
   const [assignments, setAssignments] = useState<AssignmentOption[]>([])
   const [attempts, setAttempts] = useState<AssignmentResultRow[]>([])
@@ -384,7 +385,7 @@ export function QuizGradebook() {
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            Quiz Gradebook
+            Buku Nilai Kuis
           </h1>
           <p className="text-slate-500 mt-1 ml-9 text-sm">Rekap nilai assignment kuis per kelas</p>
         </div>
@@ -395,7 +396,7 @@ export function QuizGradebook() {
             className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm disabled:opacity-50"
           >
             <Download className="w-4 h-4" />
-            Export CSV
+            Ekspor CSV
           </button>
           <button
             onClick={loadAttempts}

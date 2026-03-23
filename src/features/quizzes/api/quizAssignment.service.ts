@@ -1,8 +1,9 @@
 // Quiz Assignment Service - Assignment Management API
 // Extracted from quizService.ts for the Quiz Engine Refactor
 
-import { supabase } from '../../../lib/supabase'
-import type { QuizAssignment, AssignmentUpsertInput } from '../types/quizzes.types'
+import { supabase } from '@/src/services/supabase/client'
+
+import type { AssignmentUpsertInput, QuizAssignment } from '../types/quizzes.types'
 
 // ============================================
 // Helper Functions

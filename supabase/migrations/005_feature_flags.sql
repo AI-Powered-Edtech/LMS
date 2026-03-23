@@ -33,6 +33,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_feature_flags_flag_name
 -- ── RLS Policies ────────────────────────────────────────────────────────────
 
 -- Semua pengguna terautentikasi boleh membaca flags (frontend perlu ini)
+DROP POLICY IF EXISTS "authenticated_users_read_flags" ON feature_flags;
 CREATE POLICY "authenticated_users_read_flags"
   ON feature_flags FOR SELECT
   TO authenticated
@@ -41,13 +42,14 @@ CREATE POLICY "authenticated_users_read_flags"
 -- Hanya admin yang boleh mengubah flags
 -- Catatan: admin di sini berarti admin di tenant mana pun (super-admin)
 -- Untuk keamanan lebih ketat, tambahkan tabel super_admins
+DROP POLICY IF EXISTS "admins_manage_flags" ON feature_flags;
 CREATE POLICY "admins_manage_flags"
   ON feature_flags FOR ALL
   USING (
     EXISTS (
       SELECT 1 FROM user_roles
       WHERE user_id   = auth.uid()
-        AND role      = 'admin'
+        AND role      = 'ADMIN'
     )
   );
 

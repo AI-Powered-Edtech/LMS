@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { calendarService } from '../api/calendarService'
 
 const mockFromChain = vi.fn()
 
-vi.mock('../../../lib/supabase', () => ({
+vi.mock('@/src/services/supabase/client', () => ({
   supabase: {
     from: (table: string) => {
       // Each from() call in fetchEvents chains different methods

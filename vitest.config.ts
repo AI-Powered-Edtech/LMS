@@ -46,6 +46,12 @@ export default defineConfig({
           functions: 70,
           lines: 80,
         },
+        'src/features/**/api/**': {
+          statements: 50,
+          branches: 40,
+          functions: 50,
+          lines: 50,
+        },
       },
     },
   },

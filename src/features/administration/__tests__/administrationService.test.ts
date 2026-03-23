@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { administrationService } from '../api/administrationService'
 
 const mockOrder = vi.fn()
@@ -8,7 +9,7 @@ const _mockFrom = vi.fn(() => ({ select: mockSelect }))
 const mockUpdate = vi.fn(() => ({ eq: mockUpdateEq }))
 const mockUpdateEq = vi.fn()
 
-vi.mock('../../../lib/supabase', () => ({
+vi.mock('@/src/services/supabase/client', () => ({
   supabase: {
     from: (...args: unknown[]) => {
       const table = args[0] as string

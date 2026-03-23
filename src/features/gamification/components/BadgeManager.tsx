@@ -1,13 +1,15 @@
+import { Pencil, Plus, Save, X } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
-import { Plus, Save, X, Pencil } from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
-import { cn } from '@/src/utils/cn'
+
+import { SkeletonCard } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useToast } from '@/src/hooks/useToast'
+import { cn } from '@/src/utils/cn'
+
 import { useBadgeDefinitions, useSaveBadgeDefinition } from '../queries/gamificationQueries'
-import { RARITY_CONFIG } from '../types'
 import type { BadgeRarity, BadgeType } from '../types'
-import { SkeletonCard } from '@/src/components/ui'
+import { RARITY_CONFIG } from '../types'
 
 interface BadgeDefinitionRow {
   id: string
@@ -113,10 +115,10 @@ export function BadgeManager() {
         is_active: editing.is_active,
         tenant_id: tenantId,
       })
-      addToast({ message: 'Badge berhasil disimpan', type: 'success' })
+      addToast({ message: 'Lencana berhasil disimpan', type: 'success' })
       setEditing(null)
     } catch {
-      addToast({ message: 'Gagal menyimpan badge', type: 'error' })
+      addToast({ message: 'Gagal menyimpan lencana', type: 'error' })
     }
   }
 
@@ -158,7 +160,7 @@ export function BadgeManager() {
                     value={editing.name}
                     onChange={(e) => setEditing({ ...editing, name: e.target.value })}
                     className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                    placeholder="Nama badge..."
+                    placeholder="Nama lencana..."
                   />
                 </div>
                 <div>
@@ -181,7 +183,7 @@ export function BadgeManager() {
                   value={editing.description}
                   onChange={(e) => setEditing({ ...editing, description: e.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm"
-                  placeholder="Deskripsi badge..."
+                  placeholder="Deskripsi lencana..."
                 />
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

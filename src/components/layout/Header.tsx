@@ -1,18 +1,19 @@
+import { Activity, Flame, LogOut, Moon, Star, Sun, UserCircle } from 'lucide-react'
+import { memo, useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
 import { OptimizedImage } from '@/src/components/ui'
-import { Flame, Star, UserCircle, LogOut, Moon, Sun, Activity } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
-import { useAuth, Role } from '@/src/contexts/AuthContext'
+import { Role, useAuth } from '@/src/contexts/AuthContext'
+import { useTheme } from '@/src/contexts/ThemeContext'
+import { LevelBadge } from '@/src/features/gamification/components/LevelBadge'
+import { useStudentXPProfile } from '@/src/features/gamification/queries/gamificationQueries'
 import { useNotifications } from '@/src/features/notifications'
 import { NotificationBell as AppNotificationBell } from '@/src/features/notifications'
-import { useTheme } from '@/src/contexts/ThemeContext'
-import { useNavigate } from 'react-router-dom'
-import { useState, useRef, useEffect } from 'react'
 import { useStudentProgressData } from '@/src/features/progress/hooks/useStudentProgressQueries'
 import { NotificationBell as StruggleBell } from '@/src/features/struggle'
-import { useStudentXPProfile } from '@/src/features/gamification/queries/gamificationQueries'
-import { LevelBadge } from '@/src/features/gamification/components/LevelBadge'
+import { cn } from '@/src/utils/cn'
 
-export function Header() {
+export const Header = memo(function Header() {
   const { xp } = useStudentProgressData()
   const { data: xpProfile } = useStudentXPProfile()
 
@@ -44,8 +45,13 @@ export function Header() {
   }, [])
 
   const handleLogout = async () => {
-    await signOut()
-    navigate('/login')
+    try {
+      await signOut()
+    } catch (e) {
+      if (import.meta.env.DEV) console.error('[Header] signOut error:', e)
+    } finally {
+      navigate('/login')
+    }
   }
 
   const roleLabels: Record<Role, string> = {
@@ -186,4 +192,4 @@ export function Header() {
       </div>
     </header>
   )
-}
+})

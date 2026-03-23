@@ -43,6 +43,21 @@ All RPC functions that modify data must:
 2. Use `SET search_path TO 'public'` to prevent search path injection
 3. Derive tenant from `get_my_tenant_id()` — never from a parameter
 
+## Security Fixes Applied (Production Readiness Audit, 2026-03-23)
+
+Eight additional vulnerabilities fixed during the production readiness audit:
+
+| Fix   | Table/Function               | Issue                                                           | Resolution                                             |
+| ----- | ---------------------------- | --------------------------------------------------------------- | ------------------------------------------------------ |
+| AUD-1 | 9 SQL role checks            | Compared lowercase `'admin'`/`'teacher'` against UPPERCASE enum | Changed to `'ADMIN'`/`'TEACHER'` in all 9 locations    |
+| AUD-2 | `add_user_points`            | `SECURITY DEFINER` without `SET search_path`                    | Added `SET search_path TO 'public'`                    |
+| AUD-3 | `award_badge_if_qualified`   | `SECURITY DEFINER` without `SET search_path`                    | Added `SET search_path TO 'public'`                    |
+| AUD-4 | `expire_dead_attempt`        | `SECURITY DEFINER` without `SET search_path`                    | Added `SET search_path TO 'public'`                    |
+| AUD-5 | `check_analytics_rate_limit` | `SECURITY DEFINER` without `SET search_path`                    | Added `SET search_path TO 'public'`                    |
+| AUD-6 | `batch_save_answers`         | `SECURITY DEFINER` bypasses RLS but no tenant check             | Added `tenant_id = (SELECT get_my_tenant_id())` guard  |
+| AUD-7 | `AuthContext` (frontend)     | Dev credentials (`password123`) exposed in production builds    | Guarded `fillAccount()` with `import.meta.env.DEV`     |
+| AUD-8 | `useTenantQuery` (frontend)  | Used `SELECT *` — leaked unnecessary columns to client          | Changed to explicit columns parameter (default `'id'`) |
+
 ## Security Fixes Applied (Migration 836)
 
 Five HIGH vulnerabilities were patched on 2026-03-20:

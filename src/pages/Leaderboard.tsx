@@ -1,9 +1,10 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useEffect } from 'react'
+
 import { LeaderboardV2 } from '@/src/features/gamification/components/LeaderboardV2'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 
 export function Leaderboard() {
-  usePageTitle('Leaderboard')
+  usePageTitle('Papan Peringkat')
   useEffect(() => {
     document.title = 'Papan Peringkat — EduSync'
     return () => {

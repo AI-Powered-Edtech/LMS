@@ -1,31 +1,32 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import React, { useState } from 'react'
 import {
+  CheckCircle,
+  ChevronRight,
+  Clock,
+  Download,
+  FileText,
+  Search,
   UserPlus,
   Users,
-  CheckCircle,
   XCircle,
-  Clock,
-  Search,
-  Download,
-  ChevronRight,
-  FileText,
 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
+import React, { useState } from 'react'
+
 import { VirtualTable } from '@/src/components/ui/VirtualTable'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { cn } from '@/src/utils/cn'
 
 const columns = [
   {
     header: 'ID Pendaftaran',
     key: 'id',
     className: 'px-6 py-4 font-mono text-slate-600',
-    render: (row: Record<string, unknown>) => row.id,
+    render: (row: Record<string, any>) => row.id,
   },
   {
     header: 'Nama Calon Siswa',
     key: 'name',
     className: 'px-6 py-4',
-    render: (row: Record<string, unknown>) => (
+    render: (row: Record<string, any>) => (
       <div>
         <p className="font-bold text-slate-900">{row.name}</p>
         <p className="text-xs text-slate-500">{row.email}</p>
@@ -36,13 +37,13 @@ const columns = [
     header: 'Asal Sekolah',
     key: 'prevSchool',
     className: 'px-6 py-4 text-slate-600',
-    render: (row: Record<string, unknown>) => row.prevSchool,
+    render: (row: Record<string, any>) => row.prevSchool,
   },
   {
     header: 'Nilai Rata-rata',
     key: 'avgScore',
     className: 'px-6 py-4',
-    render: (row: Record<string, unknown>) => (
+    render: (row: Record<string, any>) => (
       <span
         className={cn(
           'font-bold',
@@ -61,13 +62,13 @@ const columns = [
     header: 'Tanggal Daftar',
     key: 'date',
     className: 'px-6 py-4 text-slate-600',
-    render: (row: Record<string, unknown>) => row.date,
+    render: (row: Record<string, any>) => row.date,
   },
   {
     header: 'Status',
     key: 'status',
     className: 'px-6 py-4',
-    render: (row: Record<string, unknown>) => (
+    render: (row: Record<string, any>) => (
       <span
         className={cn(
           'px-2.5 py-1 rounded-full text-xs font-bold border flex items-center w-fit gap-1',
@@ -150,7 +151,7 @@ const applicants = [
 ]
 
 export function PPDBDashboard() {
-  usePageTitle('P P D B Dashboard')
+  usePageTitle('Dasbor PPDB')
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'accepted' | 'rejected'>(
     'all'
   )
@@ -178,7 +179,7 @@ export function PPDBDashboard() {
         </div>
         <div className="flex gap-2">
           <button className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl flex items-center gap-2 hover:bg-slate-50">
-            <Download className="w-4 h-4" /> Export Data
+            <Download className="w-4 h-4" /> Ekspor Data
           </button>
           <button className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl flex items-center gap-2 hover:bg-blue-700">
             <FileText className="w-4 h-4" /> Buka Pendaftaran

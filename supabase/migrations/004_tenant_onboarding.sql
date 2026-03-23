@@ -38,7 +38,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_tenant_invitations_token
 -- Partial index: undangan aktif (belum expired, belum accepted)
 CREATE INDEX IF NOT EXISTS idx_tenant_invitations_active
   ON tenant_invitations(tenant_id, email)
-  WHERE accepted_at IS NULL AND expires_at > now();
+  WHERE accepted_at IS NULL;
 
 -- ── Onboarding Progress ───────────────────────────────────────────────────
 -- Melacak langkah-langkah onboarding yang sudah diselesaikan setiap pengguna.
@@ -70,7 +70,7 @@ CREATE POLICY "admins_manage_invitations"
       SELECT 1 FROM user_roles
       WHERE user_id   = auth.uid()
         AND tenant_id = (SELECT get_my_tenant_id())
-        AND role      = 'admin'
+        AND role      = 'ADMIN'
     )
   );
 
@@ -101,7 +101,7 @@ CREATE POLICY "admins_view_onboarding_progress"
       SELECT 1 FROM user_roles
       WHERE user_id   = auth.uid()
         AND tenant_id = (SELECT get_my_tenant_id())
-        AND role      = 'admin'
+        AND role      = 'ADMIN'
     )
   );
 

@@ -1,28 +1,28 @@
-import { useState, useEffect } from 'react'
 import {
-  HelpCircle,
-  Plus,
-  Trash2,
-  Loader2,
-  CheckCircle,
   AlertTriangle,
-  Search,
   BarChart3,
+  CheckCircle,
   ChevronDown,
   ChevronUp,
+  HelpCircle,
+  Loader2,
+  Plus,
+  Search,
+  Trash2,
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useBuilder } from '@/src/contexts/BuilderContext'
 import {
   courseBuilderService,
   type QuizBlockData,
 } from '@/src/features/courses/api/courseBuilderService'
-import { cn } from '@/src/utils/cn'
-import type { QuestionType, QuizMode } from '@/src/features/quizzes'
 import { QuestionSearchModal } from '@/src/features/question-bank/components/QuestionSearchModal'
+import type { QuestionType, QuizMode } from '@/src/features/quizzes'
 import { QuizAnalyticsPanel } from '@/src/features/quizzes/components/analytics'
-
-type QuizStatus = 'draft' | 'published' | 'archived'
+import { QuizStatus } from '@/src/features/quizzes/types/quizzes.types'
+import { cn } from '@/src/utils/cn'
 
 export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
   const { tenantId } = useAuth()
@@ -87,13 +87,17 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
                   question_type: (q.question_type || 'MCQ') as QuestionType,
                   points: q.points ?? 1,
                   explanation: q.explanation || '',
-                  options: (q.quiz_options || []) as { id?: string; text: string; is_correct: boolean }[],
+                  options: (q.quiz_options || []) as {
+                    id?: string
+                    text: string
+                    is_correct: boolean
+                  }[],
                 })
               ),
           })
         }
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Unknown error')
+        setError(err instanceof Error ? err.message : 'Kesalahan tidak diketahui')
       } finally {
         setIsLoading(false)
       }
@@ -121,7 +125,7 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
       setQuizStatus(targetStatus)
       setQuizData((prev) => ({ ...prev, id: result.quiz_id, status: targetStatus }))
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
+      setError(err instanceof Error ? err.message : 'Kesalahan tidak diketahui')
     } finally {
       setIsSaving(false)
       setIsPublishing(false)

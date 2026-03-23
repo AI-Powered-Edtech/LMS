@@ -1,5 +1,9 @@
+import { useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
+import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
+
 import { cn } from '@/src/utils/cn'
 
 interface MarkdownBlockProps {
@@ -8,6 +12,11 @@ interface MarkdownBlockProps {
 }
 
 export function MarkdownBlock({ content, className }: MarkdownBlockProps) {
+  // Lazy-load KaTeX CSS for math rendering
+  useEffect(() => {
+    import('katex/dist/katex.min.css')
+  }, [])
+
   return (
     <div
       className={cn(
@@ -18,7 +27,8 @@ export function MarkdownBlock({ content, className }: MarkdownBlockProps) {
       )}
     >
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeKatex]}
         components={{
           a: ({ href, children }) => (
             <a href={href} target="_blank" rel="noopener noreferrer">

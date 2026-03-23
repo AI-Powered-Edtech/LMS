@@ -85,7 +85,7 @@ CREATE POLICY "admins_read_audit_log"
       SELECT 1 FROM user_roles
       WHERE user_id   = auth.uid()
         AND tenant_id = (SELECT get_my_tenant_id())
-        AND role      = 'admin'
+        AND role      = 'ADMIN'
     )
   );
 

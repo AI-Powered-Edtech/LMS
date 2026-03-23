@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { struggleService } from '../api/struggleService'
 
 const mockRpc = vi.fn()
 
-vi.mock('@/src/lib/supabase', () => ({
+vi.mock('@/src/services/supabase/client', () => ({
   supabase: {
     rpc: (...args: unknown[]) => mockRpc(...args),
   },

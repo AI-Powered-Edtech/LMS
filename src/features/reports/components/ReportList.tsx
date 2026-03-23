@@ -1,16 +1,18 @@
-import { useState } from 'react'
-import { Loader2, Trash2, Play, Calendar, FileText } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
+import { Calendar, FileText, Loader2, Play, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useReports, useDeleteReport, useGenerateReportData } from '../queries/reportQueries'
-import { ExportButton } from './ExportButton'
+import { useState } from 'react'
+
+import { cn } from '@/src/utils/cn'
+
+import { useDeleteReport, useGenerateReportData, useReports } from '../queries/reportQueries'
 import type { ScheduledReport } from '../types'
+import { ExportButton } from './ExportButton'
 
 const REPORT_TYPE_LABELS: Record<string, string> = {
   dashboard: 'Dashboard',
   student_list: 'Daftar Siswa',
   course_summary: 'Ringkasan Kursus',
-  engagement: 'Engagement',
+  engagement: 'Keterlibatan',
 }
 
 const SCHEDULE_LABELS: Record<string, string> = {
@@ -118,7 +120,7 @@ export function ReportList() {
                 ) : (
                   <Play className="h-3.5 w-3.5" />
                 )}
-                Generate
+                Buat Data
               </button>
 
               {reportData && reportData.length > 0 && (

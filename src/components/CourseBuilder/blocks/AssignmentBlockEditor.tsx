@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
-import { FileText, Loader2, CheckCircle, AlertTriangle, Calendar } from 'lucide-react'
+import { AlertTriangle, Calendar, CheckCircle, FileText, Loader2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useBuilder } from '@/src/contexts/BuilderContext'
 import {
-  courseBuilderService,
   type AssignmentBlockData,
+  courseBuilderService,
 } from '@/src/features/courses/api/courseBuilderService'
 import { cn } from '@/src/utils/cn'
 
@@ -48,7 +49,7 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
           })
         }
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Unknown error')
+        setError(err instanceof Error ? err.message : 'Kesalahan tidak diketahui')
       } finally {
         setIsLoading(false)
       }
@@ -75,7 +76,7 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
       setSavedAssignmentId(result.id)
       setAssignmentData((prev) => ({ ...prev, id: result.id }))
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
+      setError(err instanceof Error ? err.message : 'Kesalahan tidak diketahui')
     } finally {
       setIsSaving(false)
     }

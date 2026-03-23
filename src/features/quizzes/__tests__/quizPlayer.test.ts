@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { startQuizAttempt, submitQuizAttempt } from '../api/quizPlayer.service'
 
 const mockRpc = vi.fn()
 const mockGetSession = vi.fn()
 
-vi.mock('../../../lib/supabase', () => ({
+vi.mock('@/src/services/supabase/client', () => ({
   supabase: {
     rpc: (...args: unknown[]) => mockRpc(...args),
     auth: {

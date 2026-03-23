@@ -1,21 +1,22 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import React, { useState } from 'react'
 import {
-  Wallet,
-  TrendingUp,
-  Download,
-  Search,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Banknote,
   CheckCircle2,
-  XCircle,
   Clock,
   CreditCard,
-  Banknote,
-  ArrowUpRight,
-  ArrowDownLeft,
+  Download,
+  Search,
+  TrendingUp,
+  Wallet,
+  XCircle,
 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
+import React, { useState } from 'react'
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+
 import { VirtualTable } from '@/src/components/ui/VirtualTable'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { cn } from '@/src/utils/cn'
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount)
@@ -26,37 +27,37 @@ const transactionColumns = [
     header: 'ID Transaksi',
     key: 'id',
     className: 'px-6 py-4 font-mono text-slate-600',
-    render: (row: Record<string, unknown>) => row.id,
+    render: (row: Record<string, any>) => row.id,
   },
   {
     header: 'Siswa',
     key: 'student',
     className: 'px-6 py-4 font-bold text-slate-900',
-    render: (row: Record<string, unknown>) => row.student,
+    render: (row: Record<string, any>) => row.student,
   },
   {
     header: 'Jenis Pembayaran',
     key: 'type',
     className: 'px-6 py-4 text-slate-600',
-    render: (row: Record<string, unknown>) => row.type,
+    render: (row: Record<string, any>) => row.type,
   },
   {
     header: 'Metode',
     key: 'method',
     className: 'px-6 py-4 text-slate-600',
-    render: (row: Record<string, unknown>) => row.method,
+    render: (row: Record<string, any>) => row.method,
   },
   {
     header: 'Jumlah',
     key: 'amount',
     className: 'px-6 py-4 font-medium text-slate-900',
-    render: (row: Record<string, unknown>) => formatCurrency(row.amount),
+    render: (row: Record<string, any>) => formatCurrency(row.amount),
   },
   {
     header: 'Status',
     key: 'status',
     className: 'px-6 py-4',
-    render: (row: Record<string, unknown>) => (
+    render: (row: Record<string, any>) => (
       <span
         className={cn(
           'px-2.5 py-1 rounded-full text-xs font-bold border',
@@ -166,7 +167,7 @@ const revenueData = [
 ]
 
 export function FinanceDashboard() {
-  usePageTitle('Finance Dashboard')
+  usePageTitle('Dasbor Keuangan')
   const [activeTab, setActiveTab] = useState<'overview' | 'spp' | 'salary'>('overview')
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -184,7 +185,7 @@ export function FinanceDashboard() {
         </div>
         <div className="flex gap-2">
           <button className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl flex items-center gap-2 hover:bg-slate-50">
-            <Download className="w-4 h-4" /> Export Laporan
+            <Download className="w-4 h-4" /> Ekspor Laporan
           </button>
           <button className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl flex items-center gap-2 hover:bg-blue-700">
             <PlusIcon className="w-4 h-4" /> Catat Transaksi

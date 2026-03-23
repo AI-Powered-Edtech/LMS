@@ -1,4 +1,6 @@
-import { supabase } from '../../../lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
+import { logDevError, logDevWarn } from '@/src/utils/logDevError'
+
 import type { Course, CourseInsert, CourseUpdate, FetchCoursesOptions } from '../types'
 
 export const courseService = {
@@ -50,8 +52,11 @@ export const courseService = {
 
     // Graceful fallback: if the join fails, fetch courses without joined data
     if (error) {
-      if (import.meta.env.DEV)
-        console.warn('Courses join query failed, falling back to simple fetch:', error.message)
+      logDevWarn(
+        'courseService',
+        'Courses join query failed, falling back to simple fetch:',
+        error.message
+      )
       let fallbackQuery = supabase
         .from('courses')
         .select('id, title, description, status, created_at, updated_at, created_by, tenant_id', {
@@ -75,7 +80,7 @@ export const courseService = {
 
       const fallback = await fallbackQuery
       if (fallback.error) {
-        if (import.meta.env.DEV) console.error('Error fetching courses (fallback):', fallback.error)
+        logDevError('courseService', 'Error fetching courses (fallback):', fallback.error)
         throw fallback.error
       }
       data = fallback.data as unknown as typeof data
@@ -100,7 +105,7 @@ export const courseService = {
       .single()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching course by ID:', error)
+      logDevError('courseService', 'Error fetching course by ID:', error)
       throw error
     }
 
@@ -116,7 +121,7 @@ export const courseService = {
     const { data, error } = await supabase.from('courses').insert(courseData).select().single()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error creating course:', error)
+      logDevError('courseService', 'Error creating course:', error)
       throw error
     }
 
@@ -136,7 +141,7 @@ export const courseService = {
       .single()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error updating course:', error)
+      logDevError('courseService', 'Error updating course:', error)
       throw error
     }
 
@@ -154,7 +159,7 @@ export const courseService = {
       .eq('tenant_id', tenantId)
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error deleting course:', error)
+      logDevError('courseService', 'Error deleting course:', error)
       throw error
     }
   },
@@ -173,7 +178,7 @@ export const courseService = {
       .maybeSingle()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error checking course enrollment:', error)
+      logDevError('courseService', 'Error checking course enrollment:', error)
       return false
     }
 

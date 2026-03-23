@@ -1,9 +1,11 @@
 import { Users } from 'lucide-react'
-import { Card, Skeleton, Badge, EmptyState } from '@/src/components/ui'
+
+import { Badge, Card, EmptyState, Skeleton } from '@/src/components/ui'
 import { VirtualTable } from '@/src/components/ui/VirtualTable'
 import { cn } from '@/src/utils/cn'
-import { formatTime, formatPct, relativeTime, struggleColor, pctBgColor } from '../utils/formatters'
-import type { StudentSignal, EngagementSegment } from '../types'
+
+import type { EngagementSegment, StudentSignal } from '../types'
+import { formatPct, formatTime, pctBgColor, relativeTime, struggleColor } from '../utils/formatters'
 import { StudentEngagementCard } from './StudentEngagementCard'
 
 const columns = [
@@ -26,7 +28,7 @@ const columns = [
     render: (row: StudentSignal) => formatTime(row.total_time_spent),
   },
   {
-    header: 'Progress',
+    header: 'Progres',
     key: 'progress',
     className: 'px-4 py-3',
     render: (row: StudentSignal) => {
@@ -54,7 +56,7 @@ const columns = [
     render: (row: StudentSignal) => formatPct(row.max_video_pct),
   },
   {
-    header: 'Struggle',
+    header: 'Kesulitan',
     key: 'struggle_score',
     className: 'px-4 py-3 text-center',
     render: (row: StudentSignal) => {
@@ -72,7 +74,7 @@ const columns = [
     },
   },
   {
-    header: 'Engagement',
+    header: 'Keterlibatan',
     key: 'engagement',
     className: 'px-4 py-3 text-center',
     render: (row: StudentSignal) => (

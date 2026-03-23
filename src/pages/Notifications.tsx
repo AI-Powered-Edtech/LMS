@@ -1,27 +1,28 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Bell, ChevronDown, ChevronUp } from 'lucide-react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { cn } from '@/src/utils/cn'
-import {
-  fetchNotifications,
-  markNotificationRead,
-  markAllNotificationsRead,
-  notificationKeys,
-  NotificationPreferencesPanel,
-} from '@/src/features/notifications'
-import type { Notification, NotificationType } from '@/src/features/notifications'
 import {
   Award,
   BookOpen,
   CheckCircle,
   ClipboardList,
   GraduationCap,
+  Inbox,
   MessageSquare,
   Zap,
-  Inbox,
 } from 'lucide-react'
+import { useState } from 'react'
+
+import { useAuth } from '@/src/contexts/AuthContext'
+import type { Notification, NotificationType } from '@/src/features/notifications'
+import {
+  fetchNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+  notificationKeys,
+  NotificationPreferencesPanel,
+} from '@/src/features/notifications'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { cn } from '@/src/utils/cn'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -101,7 +102,7 @@ interface RowProps {
 }
 
 function NotificationRow({ notification, onMarkRead }: RowProps) {
-  const bodyText = notification.body ?? notification.message
+  const bodyText = notification.message
 
   return (
     <div
@@ -159,7 +160,7 @@ function NotificationRow({ notification, onMarkRead }: RowProps) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function Notifications() {
-  usePageTitle('Notifications')
+  usePageTitle('Notifikasi')
   const { user, tenantId } = useAuth()
   const queryClient = useQueryClient()
 

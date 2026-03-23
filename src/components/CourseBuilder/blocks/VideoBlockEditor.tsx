@@ -1,5 +1,6 @@
-import { useBuilder } from '@/src/contexts/BuilderContext'
 import { Link as LinkIcon, Play, Video } from 'lucide-react'
+
+import { useBuilder } from '@/src/contexts/BuilderContext'
 import { parseVideoUrl } from '@/src/utils/videoUtils'
 
 interface VideoBlockEditorProps {
@@ -42,7 +43,7 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
             className="w-full h-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            title="Video preview"
+            title="Pratinjau video"
           />
         </div>
       ) : url ? (

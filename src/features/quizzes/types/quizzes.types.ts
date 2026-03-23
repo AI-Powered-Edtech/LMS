@@ -9,6 +9,8 @@ export type QuestionType = 'MCQ' | 'TRUE_FALSE' | 'MULTIPLE_SELECT' | 'SHORT_ANS
 
 export type QuizMode = 'practice' | 'graded' | 'exam'
 
+export type QuizStatus = 'draft' | 'published' | 'archived'
+
 export type QuizAttemptStatus =
   | 'NOT_STARTED'
   | 'IN_PROGRESS'

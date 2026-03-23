@@ -1,9 +1,10 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+
 export function NotFound() {
-  usePageTitle('Not Found')
+  usePageTitle('Tidak Ditemukan')
   const navigate = useNavigate()
 
   useEffect(() => {

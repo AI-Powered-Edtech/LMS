@@ -1,15 +1,15 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockInsert = vi.fn()
 const mockFrom = vi.fn()
 
-vi.mock('@/src/lib/supabase', () => ({
+vi.mock('@/src/services/supabase/client', () => ({
   supabase: {
     from: (...args: unknown[]) => mockFrom(...args),
   },
 }))
 
-import { trackLearningEvent, startEventFlushing, stopEventFlushing } from '../api/trackingService'
+import { startEventFlushing, stopEventFlushing, trackLearningEvent } from '../api/trackingService'
 
 describe('trackLearningEvent', () => {
   beforeEach(() => {

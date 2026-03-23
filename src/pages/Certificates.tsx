@@ -1,35 +1,40 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState } from 'react'
 import {
   Award,
-  Download,
-  Search,
   Calendar as CalendarIcon,
   CheckCircle,
-  Share2,
-  QrCode,
-  ShieldCheck,
-  ImageIcon,
+  Download,
   FileText,
+  ImageIcon,
+  LayoutTemplate,
   Linkedin,
+  Loader2,
   MessageCircle,
   Plus,
-  Users,
-  LayoutTemplate,
+  QrCode,
+  Search,
   Settings,
-  Loader2,
+  Share2,
+  ShieldCheck,
+  Users,
 } from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { EmptyState, SkeletonCard } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
-import { useStudentCertificates } from '@/src/features/gamification'
 import type { Certificate } from '@/src/features/gamification'
-import { SkeletonCard, EmptyState } from '@/src/components/ui'
+import { useStudentCertificates } from '@/src/features/gamification'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { useToast } from '@/src/hooks/useToast'
 import { supabase } from '@/src/services/supabase/client'
 
 export function Certificates() {
-  usePageTitle('Certificates')
+  const addToast = useToast((s) => s.addToast)
+  usePageTitle('Sertifikat')
   const { role, profile } = useAuth()
   const isTeacher = role === 'teacher'
+  const navigate = useNavigate()
 
   const { data: certificates = [], isLoading } = useStudentCertificates()
 
@@ -91,7 +96,7 @@ export function Certificates() {
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error('Error generating certificate:', error)
-      alert('Gagal mengunduh sertifikat. Silakan coba lagi.')
+      addToast({ type: 'error', message: 'Gagal mengunduh sertifikat. Silakan coba lagi.' })
     } finally {
       setIsDownloading(null)
     }
@@ -130,10 +135,18 @@ export function Certificates() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="px-4 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-bold flex items-center gap-2 transition-colors">
+            <button
+              onClick={() => navigate('/app/teacher/settings')}
+              className="px-4 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-bold flex items-center gap-2 transition-colors"
+            >
               <Settings className="w-4 h-4" /> Pengaturan
             </button>
-            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center gap-2 transition-colors shadow-sm">
+            <button
+              onClick={() =>
+                addToast({ message: 'Fitur pembuat template akan segera hadir.', type: 'info' })
+              }
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center gap-2 transition-colors shadow-sm"
+            >
               <Plus className="w-4 h-4" /> Buat Template Baru
             </button>
           </div>
@@ -144,12 +157,17 @@ export function Certificates() {
             <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mb-4">
               <LayoutTemplate className="w-6 h-6" />
             </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Template Builder</h2>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Pembuat Template</h2>
             <p className="text-slate-500 text-sm mb-6">
               Desain layout sertifikat dengan fitur drag-and-drop. Atur posisi logo, teks dinamis
               (Nama, Nilai), dan tanda tangan digital.
             </p>
-            <button className="w-full py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors border border-indigo-200">
+            <button
+              onClick={() =>
+                addToast({ message: 'Editor visual sertifikat akan segera hadir.', type: 'info' })
+              }
+              className="w-full py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors border border-indigo-200"
+            >
               Buka Editor Visual
             </button>
           </div>
@@ -165,7 +183,15 @@ export function Certificates() {
               Terbitkan sertifikat secara otomatis untuk seluruh siswa dalam satu kelas yang telah
               memenuhi KKM atau menyelesaikan modul.
             </p>
-            <button className="w-full py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors border border-emerald-200">
+            <button
+              onClick={() =>
+                addToast({
+                  message: 'Penerbitan massal sertifikat akan segera hadir.',
+                  type: 'info',
+                })
+              }
+              className="w-full py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors border border-emerald-200"
+            >
               Pilih Kelas & Terbitkan
             </button>
           </div>

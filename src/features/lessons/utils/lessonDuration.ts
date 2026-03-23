@@ -75,7 +75,7 @@ export function getModuleDuration(lessons: Lesson[]): number {
  */
 export function formatDuration(minutes: number): string {
   if (minutes < 60) {
-    return `${minutes} min`
+    return `${minutes} menit`
   }
   const hours = Math.floor(minutes / 60)
   const remaining = minutes % 60

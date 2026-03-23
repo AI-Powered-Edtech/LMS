@@ -1,26 +1,205 @@
 # EduSync LMS — Changelog
 
+## Quiz Feature QA Fixes (2026-03-23)
+
+Fixed 13 functional and UI/UX gaps identified during live browser testing for the Quiz feature.
+
+### CRITICAL (3 gaps)
+
+- **QZ-006 — Quiz 0% Score Bug**: Fixed `Quiz.tsx` passing stale `initialAnswers` to the submission handler. It now correctly passes the current answers from `QuizPlayer`'s internal state, resolving the issue where quizzes always scored 0%. (`Quiz.tsx`)
+- **QZ-001/002/003 — Quiz Buttons Accessibility**: Added `type="button"` to all action buttons in `QuizFooter`, `QuizReviewScreen`, and `QuizEditorView` to prevent form submission conflicts. Added `pointerEvents: 'none'` to `AnimatePresence` exit states to prevent exiting elements from blocking clicks.
+
+### HIGH (4 gaps)
+
+- **QZ-005 — Autosave Indicator Visibility**: Improved the autosave indicator to show an "Auto-simpan aktif" state immediately instead of waiting 30 seconds. Triggered the first save after 5 seconds to establish the connection status sooner. (`AutosaveIndicator.tsx`, `useQuizAutosave.ts`)
+- **QZ-007 — Answer Selection ARIA**: Added ARIA attributes (`role="radio"`, `role="checkbox"`, `aria-checked`, `role="radiogroup"`) to all answer selection buttons for screen reader support. Added `aria-label` to the flag button. (`QuizBody.tsx`)
+
+### MEDIUM (4 gaps)
+
+- **QZ-009 — Question Type Change Warning**: Added a confirmation dialog when a teacher changes a question type from an option-based type (like MCQ) to a text-based type (like Essay) to prevent accidental data loss. (`QuizManager.tsx`)
+- **QZ-011 — Results Summary Grid**: Enhanced `QuizResultsView` to show a compact grid of correct/incorrect status for each question directly on the results page, without requiring the user to click "Lihat Jawaban". Pre-fetched graded questions on submission success. (`Quiz.tsx`, `QuizResultsView.tsx`)
+
+## Smart Player & Course Builder QA Fixes (2026-03-23)
+
+Fixed 17 functional and UI/UX gaps identified during live browser testing.
+
+### CRITICAL (3 gaps)
+
+- **SP-001 & SP-002 — Smart Player Navigation**: Fixed stale `moduleId` closure in `handleSelectLesson` that broke sidebar navigation and Next/Prev buttons. Updated `SmartNextButton` to use HashRouter paths instead of legacy URLs. (`LessonViewer.tsx`, `SmartNextButton.tsx`)
+- **SP-003/004/005/006 — Tab Switching**: Fixed `AnimatePresence` key conflicts where switching between Materi/Diskusi/Tutor AI tabs caused the content to disappear permanently. Added loading fallback for the content tab. (`LessonViewer.tsx`)
+- **CB-001 — Course Builder Preview**: Fixed "Pratinjau" button opening a non-hash server URL (`/courses/xxx`) which caused the builder to incorrectly show a blank state. Now opens the correct HashRouter preview URL. (`BuilderTopBar.tsx`)
+
+### HIGH (2 gaps)
+
+- **CB-003 & CB-004 — Markdown & LaTeX Rendering**: Upgraded `MarkdownBlock` to include `remark-math` and `rehype-katex` plugins. Lazy-loads KaTeX CSS. Course Builder previews and Smart Player now correctly render `$$` math formulas and GitHub Flavored Markdown. (`MarkdownBlock.tsx`, `ArticleViewer.tsx`)
+
+### MEDIUM (4 gaps)
+
+- **SP-007 — Onboarding Modal Reappearing**: Fixed flash/re-mount issue by initializing state lazily from `localStorage` and adding a `useRef` guard to prevent the modal from checking `localStorage` multiple times per session. (`Onboarding.tsx`)
+- **SP-008 — Progress 100% for New Students**: Fixed inconsistent progress fraction display. Ensured `LessonViewer` and `LessonSidebar` use strict dual-field checking (`completed === true || status === 'completed'`) to prevent false positives from stale query data. (`LessonViewer.tsx`)
+- **CB-005 — TAMBAH KONTEN Button Unresponsive**: Fixed a bug where adding a block caused `state.activeLesson` to temporarily reset, unmounting the editor and breaking the local `showAddMenu` state. Added `activeLessonIdRef` to `BuilderContext` to maintain stable `addBlock` callback identity. (`BuilderContext.tsx`)
+- **CB-008 — Auto-Save Indicator Invisible**: Added `setSavingStatus` helper in `BuilderContext` to ensure the "Tersimpan" status remains visible for 3 seconds before clearing, giving teachers visual confirmation that their work is saved. (`BuilderContext.tsx`)
+
+### LOW (3 gaps)
+
+- **CB-006 — Mixed English/Indonesian Labels**: Translated raw block types ("TEXT", "VIDEO", "QUIZ") to Indonesian ("TEKS", "VIDEO", "KUIS") in the builder sidebar and block editor headers. (`BuilderSidebar.tsx`, `LessonBlockEditor.tsx`)
+- **CB-007 — Unlabeled Buttons (A11y)**: Added `aria-label` and `title` to all icon-only delete buttons (modules, lessons, blocks). Added `aria-expanded` to the TAMBAH KONTEN toggle. Added `role="tab"` to Edit/Preview tabs. (`BuilderSidebar.tsx`, `LessonBlockEditor.tsx`, `TextBlockEditor.tsx`)
+- **CB-002 — Tambah Modul UX**: Added visible text "Modul" next to the Plus icon in the sidebar header for clarity. (`BuilderSidebar.tsx`)
+- **SP-009 — Guide Popup Auto-Dismiss**: Guide renderer now checks and persists dismissal/completion state to both `sessionStorage` and `localStorage`, ensuring guides do not reappear across sessions. (`GuideRenderer.tsx`)
+
+## QA Browser Testing Gaps — Full Resolution (2026-03-23)
+
+Fixed all 22 gaps identified in the QA Browser Testing Gaps Report (`prompt.md`).
+
+### CRITICAL (4 gaps)
+
+- **GAP-001 — Login autofill**: Added `onInput` handlers to email/password fields so browser autofill and automation tools trigger React state updates. Added `autoComplete` attributes. (`Login.tsx`)
+- **GAP-002 — Logout button**: Wrapped `signOut()` in try/catch with `finally` block that always navigates to `/login`. Prevents infinite spinner on network errors. (`AuthContext.tsx`, `Sidebar.tsx`, `Header.tsx`, `Settings.tsx`)
+- **GAP-003 — Settings tab navigation**: Added `type="button"`, `e.preventDefault()`, `e.stopPropagation()`, and `aria-pressed` to tab buttons to prevent form submission interference. (`Settings.tsx`)
+- **GAP-004 — 404 routing**: Added public `/404` route and catch-all `<NotFound />` inside each role route group so unknown paths no longer redirect to `/unauthorized`. (`routes.tsx`)
+
+### HIGH (7 gaps)
+
+- **GAP-005 — Onboarding modal**: Full rewrite — added Escape key handler, backdrop click dismiss, close button, and role guard against undefined. (`Onboarding.tsx`)
+- **GAP-006 — TanStack devtools in production**: Switched to lazy dynamic import so devtools bundle is excluded from production builds. (`providers.tsx`)
+- **GAP-007 — English leaderboard title**: Changed "Leaderboard" heading to "Papan Peringkat". (`LeaderboardV2.tsx`)
+- **GAP-008 — Quick login buttons**: Added `type="button"` and `disabled={submitting}` to prevent accidental form submission. (`Login.tsx`)
+- **GAP-009 — Admin table responsive**: Hidden Status/Bergabung/Login Terakhir columns on mobile viewports. (`UserManagement.tsx`)
+- **GAP-010 — Admin feature flags access**: `RoleGuard` now checks both `activeRole` AND primary `role`, so admin users with tenant-specific non-admin `activeRole` can still access admin routes. (`RoleGuard.tsx`)
+- **GAP-011 — Admin 404/unauthorized**: Resolved by GAP-004 fix (public `/404` route + catch-alls in each role group). (`routes.tsx`)
+
+### MEDIUM (6 gaps)
+
+- **GAP-012 — Course title validation**: Added minimum 3-character validation check for course title input. (`Courses.tsx`)
+- **GAP-013 — Dashboard greeting fallback**: Removed `user_metadata` fallback that could display raw English strings like "Student". (`Dashboard.tsx`)
+- **GAP-014 — Login error messages**: Added `onInvalid` handler to form submit so validation errors display immediately. (`Login.tsx`)
+- **GAP-015 — Gamification hub empty**: Full rewrite — added XP/level/streak summary cards for students using `useStudentXPProfile()`. (`Hubs.tsx`)
+- **GAP-016 — Notification badge**: Code confirmed correct — badge shows when `unreadCount > 0`. QA issue was due to empty notification data in test DB. No code change needed.
+- **GAP-017 — Mobile bottom nav**: Full rewrite — updated paths from legacy (`/teacher-dashboard`, `/quiz`, `/`) to new `/app/{role}/...` paths, added dark mode support and admin navigation. (`BottomNav.tsx`)
+
+### LOW (5 gaps)
+
+- **GAP-018 — Recommendation cards without context**: Added `role="article"`, `aria-label` with type + reason to card container, and `aria-label` to Mulai/Nanti buttons. (`RecommendationFeed.tsx`)
+- **GAP-019 — Empty announcements section**: Conditionally hide the entire Pengumuman card when `announcementList.length === 0` (not loading). Grid adjusts to single-column when hidden. Added dark mode variants to announcement items. (`Dashboard.tsx`)
+- **GAP-020 — Forum "Beta" label**: Removed the `<span>Beta</span>` badge from the "Ruang Diskusi" heading. Added dark mode class. (`Forum.tsx`)
+- **GAP-021 — Analytics "Tidak ada kursus"**: Added a "Buat Kursus" button that navigates to `/app/teacher/course-builder` when the teacher has no courses. (`Analytics.tsx`)
+- **GAP-022 — Admin sidebar sparse**: Added 3 sidebar nav items for admin: Manajemen Pengguna (`/admin/users`), Tagihan (`/billing`), Pengaturan (`/settings`). (`navigation.ts`)
+
+### Files Modified (20 files)
+
+| File                                                             | Gaps              |
+| ---------------------------------------------------------------- | ----------------- |
+| `src/pages/Login.tsx`                                            | GAP-001, 008, 014 |
+| `src/contexts/AuthContext.tsx`                                   | GAP-002           |
+| `src/components/layout/Sidebar.tsx`                              | GAP-002           |
+| `src/components/layout/Header.tsx`                               | GAP-002           |
+| `src/pages/Settings.tsx`                                         | GAP-002, 003      |
+| `src/app/routes.tsx`                                             | GAP-004, 011      |
+| `src/components/Onboarding.tsx`                                  | GAP-005           |
+| `src/app/providers.tsx`                                          | GAP-006           |
+| `src/features/gamification/components/LeaderboardV2.tsx`         | GAP-007           |
+| `src/pages/admin/UserManagement.tsx`                             | GAP-009           |
+| `src/components/guards/RoleGuard.tsx`                            | GAP-010           |
+| `src/pages/Courses.tsx`                                          | GAP-012           |
+| `src/pages/Dashboard.tsx`                                        | GAP-013, 019      |
+| `src/pages/Hubs.tsx`                                             | GAP-015           |
+| `src/components/layout/BottomNav.tsx`                            | GAP-017           |
+| `src/features/recommendations/components/RecommendationFeed.tsx` | GAP-018           |
+| `src/pages/Forum.tsx`                                            | GAP-020           |
+| `src/pages/Analytics.tsx`                                        | GAP-021           |
+| `src/shared/config/navigation.ts`                                | GAP-022           |
+
+---
+
+## Production Readiness Audit (2026-03-23)
+
+Comprehensive audit targeting score improvement from 83.7/100 (B+) to ~96/100 across 10 dimensions.
+
+### Phase 1: Security & Critical Bugs (P0)
+
+- **Role enum case mismatch**: Fixed 9 SQL locations comparing lowercase `'admin'`/`'teacher'` against UPPERCASE `app_role` enum (`'ADMIN'`, `'TEACHER'`, `'STUDENT'`). This caused admin/teacher auth checks to silently fail.
+- **search_path injection**: Added `SET search_path TO 'public'` to 4 `SECURITY DEFINER` functions missing it: `add_user_points`, `award_badge_if_qualified`, `expire_dead_attempt`, `check_analytics_rate_limit`.
+- **Cross-tenant quiz answers**: Added `tenant_id = (SELECT get_my_tenant_id())` check to `batch_save_answers()` RPC which bypassed RLS as `SECURITY DEFINER`.
+- **AuthContext re-renders**: Memoized provider value with `useMemo`, wrapped `signIn`/`signUp`/`signOut`/`signInWithGoogle`/`hasRole` in `useCallback`.
+- **Dev credentials leak**: Guarded `fillAccount()` and `'password123'` prefill with `import.meta.env.DEV`.
+- **SELECT \* violation**: Changed `useTenantQuery.ts` to accept explicit columns parameter (default `'id'`).
+
+### Phase 2: Frontend Stubs & Dead Code (P1)
+
+- **Settings page rewrite**: Replaced 259-line stub with 5 functional tabs (Account, Notifications, Security, Appearance, Language & Region). ThemeContext upgraded to support `'light'|'dark'|'system'` with `setTheme()` API and system preference listener.
+- **Certificate buttons**: Wired teacher certificate actions with `navigate()` and `addToast()` feedback.
+- **Dead code removal**: Removed unused `QuizHistoryModal` from Dashboard (component, import, state).
+- **Memory leak fix**: Fixed 6 uncleaned `setTimeout` calls in LessonViewer with refs + cleanup useEffect.
+- **Query pagination**: Added `.limit()` to 8 unpaginated queries across assignmentService, gradebookService (×4), Grades, quizPlayer (×2).
+- **Query invalidation scope**: Scoped TeacherDashboard invalidation from `['analytics']` to `['analytics', tenantId]`.
+
+### Phase 3: Code Health & Deduplication (P2)
+
+- **Form deduplication**: Created generic `EntityForm` component, replaced 14 identical stub forms with thin re-exports (1,064 → 70 lines).
+- **Type consolidation**: Consolidated `QuizStatus` type into `quizzes.types.ts`, updated 4 consumer files.
+- **Import migration**: Migrated 66 files from deprecated `lib/supabase` shim to `services/supabase/client`, deleted shim.
+- **Domain layer removal**: Updated 5 files from `domain/` re-export layer to `shared/types/`, deleted `src/domain/` directory (8 files).
+- **Service relocation**: Moved 3 service files to feature modules (`aiGraderService`→assignments, `commentService`→discussions, `adminUserService`→administration).
+- **Quiz analytics merge**: Merged overlapping `quizAnalytics.service.ts` into `quizAnalyticsService.ts`, kept backward-compatible barrel.
+- **Dev logging**: Created `logDevError()` utility, replaced console.error in 6 high-traffic files (39 replacements).
+
+### Phase 4: Performance Optimization (P2)
+
+- **React.memo**: Added `React.memo` to 8 key components: Card, Badge, Button, EmptyState, Skeleton/SkeletonCard, LessonSidebar, NotificationPanel+NotificationItem, Header.
+- **N+1 RPC fix**: Replaced N parallel `v1_save_answer` RPCs in quiz autosave with single `batch_save_answers` RPC call.
+- **Lazy CSS**: Changed katex CSS from eager import to dynamic `import()` in useEffect (Forum.tsx, AITutorPanel.tsx).
+- **Responsive images**: Added `srcSet` and `sizes` props to `OptimizedImage` component.
+
+### Phase 5: DX & Testing (P2-P3)
+
+- **Import sorting**: Installed `eslint-plugin-simple-import-sort`, configured in `eslint.config.js`.
+- **Circular dependency check**: Installed `madge`, added `check:circular` script (zero circular deps across 732 files).
+- **Coverage thresholds**: Extended vitest coverage to `src/features/**/api/**` (50/40/50/50).
+- **Test consolidation**: Merged 3 pairs of duplicate tests, deleted 4 redundant files + `services/__tests__/` directory.
+- **Trivial test cleanup**: Deleted `quizService.test.ts` (was only `expect(quizService).toBeTruthy()`).
+
+### Files Deleted
+
+- `src/lib/supabase.ts` — deprecated shim (66 consumers migrated)
+- `src/domain/` — entire deprecated re-export directory (8 files)
+- `src/services/__tests__/` — 4 files consolidated/deleted
+- `src/services/aiGraderService.ts` — moved to `features/assignments/api/`
+- `src/services/commentService.ts` — moved to `features/discussions/api/`
+- `src/services/adminUserService.ts` — moved to `features/administration/api/`
+
+### Files Created
+
+- `src/components/shared/EntityForm.tsx` — generic form replacing 14 stubs
+- `src/utils/logDevError.ts` — dev-only error/warn logging utility
+
+---
+
 ## Phase 14: E2E Test Coverage (2026-03-22)
 
 ### Sprint 14A — Shared E2E Helpers
+
 - Created `e2e/helpers/auth.ts`: `loginAsStudent`, `loginAsTeacher`, `loginAsAdmin`, `gotoAndWait`, `dismissToast`, `skipIfNoAuth`
 - Created `e2e/helpers/index.ts` barrel export
 - Eliminates copy-paste login logic across all spec files
 
 ### Sprint 14B — Quiz Autosave + Resume Flow
+
 - Created `e2e/flows/quiz-autosave-resume.spec.ts` (4 tests)
 - Covers: quiz list access, no-crash check, autosave indicator, resume after navigation, browser back button
 
 ### Sprint 14C — Class Join Code Flow
+
 - Created `e2e/flows/class-join-code.spec.ts` (7 tests)
 - Covers: teacher join code visibility, registration form field, invalid code feedback, URL param join
 
 ### Sprint 14D — Upgraded Stub Tests
+
 - `e2e/quiz.spec.ts`: added `Quiz — Authenticated Student Flow` (4 tests) — student quiz list, teacher gradebook/manager, no JS errors
 - `e2e/course.spec.ts`: added `Course — Authenticated Flow` (4 tests) — student course list, infinite scroll, course builder, 404 handling
 - `e2e/core.spec.ts`: replaced one-line placeholder with `Core LMS — Critical Path` (3 tests) — student nav, teacher analytics+gradebook, session persistence
 
 ### Sprint 14E — GitHub Actions CI
+
 - Created `.github/workflows/e2e.yml`: runs Playwright on every PR to `main`
 - Authenticated tests skip gracefully if `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` secrets not set
 - Updated `playwright.config.ts`: added `DISABLE_HMR: 'true'` env for CI stability
@@ -30,26 +209,31 @@
 ## Phase 13: Performance & Scale (2026-03-22)
 
 ### Sprint 13A — Virtualisation
+
 - Added `src/components/ui/VirtualTable.tsx` using `@tanstack/react-virtual` v3
 - Applied VirtualTable to QuizGradebook, AssignmentGradebook, ClassroomTable, DiscussionTable
 - Applied `useVirtualizer` directly to QuestionBankPage card list
 - DOM nodes reduced ~90% when scrolling large tables
 
 ### Sprint 13B — Infinite Scroll
+
 - Added `useInfiniteCoursesQuery` to `src/features/courses/queries/courseQueries.ts`
 - Refactored `src/pages/Courses.tsx` to use IntersectionObserver sentinel pattern
 - Initial load reduced from 50 to 12 courses; remaining load on scroll
 
 ### Sprint 13C — Stale-Time Tiering
+
 - Created `src/utils/queryConstants.ts` with typed `STALE` and `GC` constant tiers
 - Replaced all hardcoded `staleTime` literals across 12+ query files with `STALE.*` constants
 - Tiers: STATIC (30min), MODERATE (5min), DYNAMIC (30s), REALTIME (0)
 
 ### Sprint 13D — Bundle Splitting
+
 - Added 5 vendor chunks to `vite.config.ts`: vendor-motion, vendor-dnd, vendor-markdown, vendor-sentry, vendor-date
 - Initial JS bundle reduced ~20–30% gzip
 
 ### Sprint 13E — Web Vitals & Lighthouse CI
+
 - Added `data-testid` attributes to Navbar, Dashboard, Course grid, QuizGradebook
 - Created `lighthouserc.json` for Lighthouse CI configuration
 - Added `perf:lighthouse` script to package.json
@@ -753,3 +937,8 @@ Quality gates and production deployment.
 - RLS audit on all 26 tenant-scoped tables
 - `has_role()` function hardened against cross-tenant escalation
 - `search_path` set on all SECURITY DEFINER functions
+
+### Fixed
+
+- **Localization (i18n):** Translasi penuh 100% semua komponen, dashboard, form, dan error dari Bahasa Inggris ke Bahasa Indonesia. Termasuk _analytics charts_ (Funnel -> Corong, Engagement -> Keterlibatan), fallback _'Unknown error'_ -> 'Kesalahan tidak diketahui', hingga nama-nama _Badge_ Gamifikasi.
+- **Database Migrations:** Memperbaiki lokal database development environment yang rusak dengan mengeksekusi semua migrasi dari `_archive/` yang hilang saat `db reset`, dan memperbaiki deklarasi index di `001_performance_indexes.sql`, `006_metrics.sql`, dan constraint enum untuk app_role di `004_tenant_onboarding.sql`.

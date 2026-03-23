@@ -1,9 +1,10 @@
-import { useBuilder } from '@/src/contexts/BuilderContext'
-import { Save, CheckCircle, AlertCircle, Loader2, Eye, ArrowLeft, Users } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
-import { useNavigate } from 'react-router-dom'
+import { AlertCircle, ArrowLeft, CheckCircle, Eye, Loader2, Save, Users } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
 import { AssignCourseModal } from '@/src/components/Classroom/AssignCourseModal'
+import { useBuilder } from '@/src/contexts/BuilderContext'
+import { cn } from '@/src/utils/cn'
 export function BuilderTopBar() {
   const { state, actions } = useBuilder()
   const navigate = useNavigate()
@@ -94,7 +95,7 @@ export function BuilderTopBar() {
         {/* Preview Button */}
         <button
           onClick={() => {
-            window.open(`/courses/${state.courseId}?preview=true`, '_blank')
+            window.open(`/#/app/student/courses/${state.courseId}?preview=true`, '_blank')
           }}
           disabled={!state.courseId}
           className="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200/60 hover:text-indigo-600 hover:bg-white hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"

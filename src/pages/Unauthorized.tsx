@@ -1,10 +1,11 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { ArrowLeft, Home, ShieldX } from 'lucide-react'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ShieldX, ArrowLeft, Home } from 'lucide-react'
+
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 
 export function Unauthorized() {
-  usePageTitle('Unauthorized')
+  usePageTitle('Tidak Diizinkan')
   const navigate = useNavigate()
 
   return (

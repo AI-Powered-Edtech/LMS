@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
 import { Activity, Pause, Play, Radio } from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
-import { supabase } from '@/src/lib/supabase'
+import { AnimatePresence, motion } from 'motion/react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
 import { useAuth } from '@/src/contexts/AuthContext'
+import { supabase } from '@/src/services/supabase/client'
 
 interface LiveEvent {
   id: string

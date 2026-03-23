@@ -5,17 +5,18 @@
  * All methods require tenantId for proper multi-tenant isolation.
  */
 
-import { supabase } from '@/src/lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
+
 import type {
-  UserStreak,
   Badge,
-  UserBadge,
   BadgeDefinition,
   Certificate,
-  StudentXPProfile,
-  LeaderboardV2Entry,
-  LeaderboardSortBy,
   LeaderboardPeriod,
+  LeaderboardSortBy,
+  LeaderboardV2Entry,
+  StudentXPProfile,
+  UserBadge,
+  UserStreak,
 } from '../types'
 
 /**

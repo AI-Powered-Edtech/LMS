@@ -1,14 +1,15 @@
-import { useState, useCallback, useRef } from 'react'
-import { Upload, X, Download, FileText, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react'
-import {
-  parseCSVQuestions,
-  generateTemplateCSV,
-} from '@/src/features/question-bank/utils/csvQuestionParser'
-import type {
-  ParseResult,
-  ParsedQuestion,
-} from '@/src/features/question-bank/utils/csvQuestionParser'
+import { AlertTriangle, CheckCircle, Download, FileText, Loader2, Upload, X } from 'lucide-react'
+import { useCallback, useRef, useState } from 'react'
+
 import { questionBankService } from '@/src/features/question-bank/api/questionBankService'
+import type {
+  ParsedQuestion,
+  ParseResult,
+} from '@/src/features/question-bank/utils/csvQuestionParser'
+import {
+  generateTemplateCSV,
+  parseCSVQuestions,
+} from '@/src/features/question-bank/utils/csvQuestionParser'
 import { useToast } from '@/src/hooks/useToast'
 import { cn } from '@/src/utils/cn'
 
@@ -109,7 +110,7 @@ export function BulkImportModal({ isOpen, onClose, onImportSuccess }: BulkImport
         done++
       } catch (err) {
         errors.push(
-          `"${q.text.slice(0, 40)}...": ${err instanceof Error ? err.message : 'Unknown error'}`
+          `"${q.text.slice(0, 40)}...": ${err instanceof Error ? err.message : 'Kesalahan tidak diketahui'}`
         )
         done++
       }
@@ -135,7 +136,7 @@ export function BulkImportModal({ isOpen, onClose, onImportSuccess }: BulkImport
               <Upload className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-slate-800 tracking-tight">Import Soal CSV</h2>
+              <h2 className="text-lg font-black text-slate-800 tracking-tight">Impor Soal CSV</h2>
               <p className="text-xs text-slate-400">
                 Upload file CSV untuk menambahkan soal massal
               </p>
@@ -317,7 +318,7 @@ export function BulkImportModal({ isOpen, onClose, onImportSuccess }: BulkImport
                 <CheckCircle className="w-8 h-8 text-emerald-500" />
               </div>
               <div className="text-center">
-                <p className="text-lg font-black text-slate-800">Import Selesai!</p>
+                <p className="text-lg font-black text-slate-800">Impor Selesai!</p>
                 <p className="text-sm text-slate-500 mt-1">
                   {importProgress.total - importProgress.errors} soal berhasil diimpor
                   {importProgress.errors > 0 && (

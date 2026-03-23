@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { ArrowRight, Star, Trophy, X } from 'lucide-react'
 import { motion } from 'motion/react'
-import { Trophy, ArrowRight, X, Star } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
+import { useEffect, useRef } from 'react'
+
 import { useReducedMotion } from '@/src/hooks/useReducedMotion'
+import { cn } from '@/src/utils/cn'
 
 interface ModuleCompletionModalProps {
   moduleTitle: string
@@ -179,7 +180,7 @@ export function ModuleCompletionModal({
               'hover:scale-[1.02] active:scale-[0.98]'
             )}
           >
-            {hasNextModule ? 'Lanjut ke Modul Berikutnya' : 'Kembali ke Course'}
+            {hasNextModule ? 'Lanjut ke Modul Berikutnya' : 'Kembali ke Kursus'}
             <ArrowRight className="w-4 h-4" />
           </button>
           <button

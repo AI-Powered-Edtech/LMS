@@ -1,20 +1,21 @@
-import { useState, useEffect } from 'react'
 import {
-  CheckCircle,
-  Loader2,
-  Send,
   AlertTriangle,
   Award,
   Calendar,
+  CheckCircle,
+  Loader2,
   MessageSquare,
+  Send,
 } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useEffect, useState } from 'react'
+
+import { useAuth } from '@/src/contexts/AuthContext'
 import {
   assignmentService,
   AssignmentSubmission,
 } from '@/src/features/assignments/api/assignmentService'
-import { useAuth } from '@/src/contexts/AuthContext'
 import { cn } from '@/src/utils/cn'
-import { motion, AnimatePresence } from 'motion/react'
 
 interface AssignmentViewerProps {
   assignmentId: string
@@ -94,7 +95,7 @@ export function AssignmentViewer({
       setMaxAttempt(result.attempt_number || maxAttempt + 1)
       onCompletionMet()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
+      setError(err instanceof Error ? err.message : 'Kesalahan tidak diketahui')
     } finally {
       setIsSubmitting(false)
     }

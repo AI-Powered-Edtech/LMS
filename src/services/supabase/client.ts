@@ -6,3 +6,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 // Graceful degradation to avoid white screen of death during module evaluation.
 // Client will still work but queries will fail, which can be handled by the UI.
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Expose supabase client on window for dev/testing tools (agent-browser, console)
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
+  ;(window as any).supabase = supabase
+}

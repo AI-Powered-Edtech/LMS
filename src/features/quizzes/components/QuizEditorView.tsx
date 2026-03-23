@@ -1,25 +1,25 @@
-import React from 'react'
 import {
-  ArrowLeft,
-  Plus,
-  Trash2,
-  Loader2,
-  CheckCircle,
   AlertTriangle,
-  Search,
+  ArrowLeft,
+  CheckCircle,
   HelpCircle,
+  Loader2,
+  Plus,
   Save,
+  Search,
+  Trash2,
   X,
 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
-import { type QuestionType, type QuizMode } from '@/src/features/quizzes'
+import React from 'react'
+
 import { QuestionSearchModal } from '@/src/features/question-bank/components/QuestionSearchModal'
+import { type QuestionType, type QuizMode } from '@/src/features/quizzes'
+import { QuizStatus } from '@/src/features/quizzes/types/quizzes.types'
+import { cn } from '@/src/utils/cn'
 
 // ─────────────────────────────────────────────────────────
 // Types (internal to quiz editor)
 // ─────────────────────────────────────────────────────────
-
-type QuizStatus = 'draft' | 'published' | 'archived'
 
 interface QuizQuestion {
   id?: string
@@ -77,7 +77,11 @@ export interface QuizEditorViewProps {
   setShowQuestionModal: (show: boolean) => void
   handleSave: (targetStatus?: QuizStatus) => void
   addQuestion: () => void
-  updateQuestion: <K extends keyof QuizQuestion>(idx: number, field: K, value: QuizQuestion[K]) => void
+  updateQuestion: <K extends keyof QuizQuestion>(
+    idx: number,
+    field: K,
+    value: QuizQuestion[K]
+  ) => void
   removeQuestion: (idx: number) => void
   updateQuestionType: (qIdx: number, newType: QuestionType) => void
   addOption: (qIdx: number) => void
@@ -295,6 +299,7 @@ export function QuizEditorView({
             <div className="flex items-center gap-2">
               {editingQuizId && (
                 <button
+                  type="button"
                   onClick={() => setShowQuestionModal(true)}
                   className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold rounded-lg text-xs flex items-center gap-1 transition-colors"
                 >
@@ -302,6 +307,7 @@ export function QuizEditorView({
                 </button>
               )}
               <button
+                type="button"
                 onClick={addQuestion}
                 className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold rounded-lg text-xs flex items-center gap-1 transition-colors"
               >

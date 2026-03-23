@@ -1,8 +1,10 @@
 import { renderHook } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useTenantQuery } from '../useTenantQuery'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { supabase } from '@/src/services/supabase/client'
+
 import { useAuth } from '../../contexts/AuthContext'
-import { supabase } from '../../lib/supabase'
+import { useTenantQuery } from '../useTenantQuery'
 
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: vi.fn(),
@@ -16,7 +18,7 @@ const fromMock = vi.fn(() => ({
   insert: insertMock,
 }))
 
-vi.mock('../../lib/supabase', () => {
+vi.mock('@/src/services/supabase/client', () => {
   return {
     supabase: {
       from: vi.fn(() => fromMock()),
@@ -42,7 +44,7 @@ describe('useTenantQuery', () => {
 
       // Assert
       expect(supabase.from).toHaveBeenCalledWith('courses')
-      expect(selectMock).toHaveBeenCalledWith('*')
+      expect(selectMock).toHaveBeenCalledWith('id')
       expect(eqMock).toHaveBeenCalledWith('tenant_id', mockTenantId)
     })
 
@@ -56,7 +58,7 @@ describe('useTenantQuery', () => {
 
       // Assert
       expect(supabase.from).toHaveBeenCalledWith('courses')
-      expect(selectMock).toHaveBeenCalledWith('*')
+      expect(selectMock).toHaveBeenCalledWith('id')
       expect(eqMock).not.toHaveBeenCalled()
     })
   })

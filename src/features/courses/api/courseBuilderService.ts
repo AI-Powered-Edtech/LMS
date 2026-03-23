@@ -1,4 +1,4 @@
-import { supabase } from '@/src/lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
 
 // ============================================================
 // Types
@@ -366,7 +366,9 @@ export const courseBuilderService = {
   async getAssignmentByLesson(lessonId: string, tenantId?: string) {
     let query = supabase
       .from('assignments')
-      .select('id, lesson_id, course_id, tenant_id, title, instructions, max_points, max_attempts, is_published, due_date, created_at')
+      .select(
+        'id, lesson_id, course_id, tenant_id, title, instructions, max_points, max_attempts, is_published, due_date, created_at'
+      )
       .eq('lesson_id', lessonId)
 
     if (tenantId) query = query.eq('tenant_id', tenantId)

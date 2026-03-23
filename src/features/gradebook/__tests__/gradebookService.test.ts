@@ -1,14 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { syncGradebook, fetchGradebookSettings } from '../api/gradebookApi'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mockRpc = vi.fn()
-const mockMaybeSingle = vi.fn()
-const mockEq2 = vi.fn(() => ({ maybeSingle: mockMaybeSingle }))
-const mockEq1 = vi.fn(() => ({ eq: mockEq2 }))
-const mockSelect = vi.fn(() => ({ eq: mockEq1 }))
-const mockFrom = vi.fn(() => ({ select: mockSelect }))
+import { fetchGradebookSettings, syncGradebook } from '../api/gradebookApi'
 
-vi.mock('../../../services/supabase/client', () => ({
+const { mockRpc, mockFrom, mockMaybeSingle } = vi.hoisted(() => {
+  const mockMaybeSingle = vi.fn()
+  const mockEq2 = vi.fn(() => ({ maybeSingle: mockMaybeSingle }))
+  const mockEq1 = vi.fn(() => ({ eq: mockEq2 }))
+  const mockSelect = vi.fn(() => ({ eq: mockEq1 }))
+  const mockFrom = vi.fn(() => ({ select: mockSelect }))
+  const mockRpc = vi.fn()
+  return { mockRpc, mockFrom, mockMaybeSingle }
+})
+
+vi.mock('@/src/services/supabase/client', () => ({
   supabase: {
     rpc: mockRpc,
     from: mockFrom,

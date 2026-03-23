@@ -1,9 +1,12 @@
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { BookOpen, CheckCircle, Clock, Sparkles } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
+import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
-import { Sparkles, CheckCircle, Clock, BookOpen } from 'lucide-react'
+import remarkMath from 'remark-math'
+
 import { cn } from '@/src/utils/cn'
-import { motion, AnimatePresence } from 'motion/react'
 
 interface ArticleViewerProps {
   content: string
@@ -28,6 +31,11 @@ export function ArticleViewer({
   const [scrollPercent, setScrollPercent] = useState(0)
   const hasCalledCompletion = useRef(false)
   const hasStarted = useRef(false)
+
+  // Lazy-load KaTeX CSS for math rendering
+  useEffect(() => {
+    import('katex/dist/katex.min.css')
+  }, [])
 
   // Active Visibility Timer
   useEffect(() => {
@@ -134,7 +142,7 @@ export function ArticleViewer({
                       )}
                     >
                       <Clock className="w-3.5 h-3.5" />
-                      Waktu baca: {readingTime}d / {minReadingTimeSeconds}d
+                      Waktu baca: {readingTime}dtk / {minReadingTimeSeconds}dtk
                     </span>
                   </div>
 
@@ -185,7 +193,8 @@ export function ArticleViewer({
           )}
         >
           <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
+            remarkPlugins={[remarkGfm, remarkMath]}
+            rehypePlugins={[rehypeKatex]}
             components={{
               a: ({ href, children }) => (
                 <a href={href} target="_blank" rel="noopener noreferrer">

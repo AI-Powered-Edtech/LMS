@@ -1,24 +1,23 @@
 import {
   createContext,
-  useContext,
-  useReducer,
-  useCallback,
-  useEffect,
-  useRef,
   type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useReducer,
+  useRef,
 } from 'react'
+
 import { useAuth } from '@/src/contexts/AuthContext'
-import { useToast } from '@/src/hooks/useToast'
-
-import { DomainCourse } from '@/src/domain/course/types'
-import { DomainModule } from '@/src/domain/module/types'
-import { DomainLesson } from '@/src/domain/lesson/types'
-import { DomainBlock } from '@/src/domain/block/types'
-
-import { builderCourseService } from '@/src/features/courses/api/builder/courseService'
-import { builderModuleService } from '@/src/features/courses/api/builder/moduleService'
-import { builderLessonService } from '@/src/features/courses/api/builder/lessonService'
 import { builderBlockService } from '@/src/features/courses/api/builder/blockService'
+import { builderCourseService } from '@/src/features/courses/api/builder/courseService'
+import { builderLessonService } from '@/src/features/courses/api/builder/lessonService'
+import { builderModuleService } from '@/src/features/courses/api/builder/moduleService'
+import { useToast } from '@/src/hooks/useToast'
+import { DomainBlock } from '@/src/shared/types/blockTypes'
+import { DomainCourse } from '@/src/shared/types/courseTypes'
+import { DomainLesson } from '@/src/shared/types/lessonTypes'
+import { DomainModule } from '@/src/shared/types/moduleTypes'
 
 // ============================================================
 // State
@@ -245,6 +244,26 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   const addToast = useToast((s) => s.addToast)
   const [state, dispatch] = useReducer(builderReducer, initialState)
   const saveTimerRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
+  const savedStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Ref to track activeLesson.id without causing callback re-creation
+  const activeLessonIdRef = useRef<string | null>(null)
+  activeLessonIdRef.current = state.activeLesson?.id ?? null
+
+  // Helper: set saving status with auto-clear for 'saved' after 3 seconds
+  const setSavingStatus = useCallback((status: BuilderState['savingStatus']) => {
+    if (savedStatusTimerRef.current) {
+      clearTimeout(savedStatusTimerRef.current)
+      savedStatusTimerRef.current = null
+    }
+    dispatch({ type: 'SET_SAVING', status })
+    if (status === 'saved') {
+      savedStatusTimerRef.current = setTimeout(() => {
+        dispatch({ type: 'SET_SAVING', status: 'idle' })
+        savedStatusTimerRef.current = null
+      }, 3000)
+    }
+  }, [])
 
   // ─── beforeunload protection ──────────────
   useEffect(() => {
@@ -300,31 +319,31 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    dispatch({ type: 'SET_SAVING', status: 'saving' })
+    setSavingStatus('saving')
     try {
       await builderCourseService.publishCourse(state.courseId, tenantId)
       dispatch({ type: 'SET_COURSE_STATUS', status: 'published' })
-      dispatch({ type: 'SET_SAVING', status: 'saved' })
-      addToast({ type: 'success', message: 'Kursus berhasil dipublish' })
+      setSavingStatus('saved')
+      addToast({ type: 'success', message: 'Kursus berhasil diterbitkan' })
     } catch (error: unknown) {
       if (import.meta.env.DEV) console.error('Failed to publish course:', error)
-      dispatch({ type: 'SET_SAVING', status: 'error' })
+      setSavingStatus('error')
       addToast({
         type: 'error',
-        message: error instanceof Error ? error.message : 'Gagal mempublish kursus',
+        message: error instanceof Error ? error.message : 'Gagal menerbitkan kursus',
       })
     }
   }
   const draftCourse = useCallback(async () => {
     if (!state.courseId || !tenantId) return
-    dispatch({ type: 'SET_SAVING', status: 'saving' })
+    setSavingStatus('saving')
     try {
       await builderCourseService.draftCourse(state.courseId, tenantId)
-      dispatch({ type: 'SET_SAVING', status: 'saved' })
+      setSavingStatus('saved')
     } catch {
-      dispatch({ type: 'SET_SAVING', status: 'error' })
+      setSavingStatus('error')
     }
-  }, [state.courseId, tenantId])
+  }, [state.courseId, tenantId, setSavingStatus])
 
   // ─── Module Actions ───────────────────────
   const addModule = useCallback(
@@ -338,7 +357,8 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
         addToast({
           type: 'error',
           message:
-            'Gagal menambah modul: ' + (err instanceof Error ? err.message : 'Unknown error'),
+            'Gagal menambah modul: ' +
+            (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
         })
       }
     },
@@ -349,15 +369,15 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     async (moduleId: string, data: { title?: string; description?: string }) => {
       if (!tenantId) return
       dispatch({ type: 'UPDATE_MODULE', moduleId, data })
-      dispatch({ type: 'SET_SAVING', status: 'saving' })
+      setSavingStatus('saving')
       try {
         await builderModuleService.updateModule(moduleId, tenantId, data)
-        dispatch({ type: 'SET_SAVING', status: 'saved' })
+        setSavingStatus('saved')
       } catch {
-        dispatch({ type: 'SET_SAVING', status: 'error' })
+        setSavingStatus('error')
       }
     },
-    [tenantId]
+    [tenantId, setSavingStatus]
   )
 
   const deleteModule = useCallback(
@@ -371,7 +391,8 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
         addToast({
           type: 'error',
           message:
-            'Gagal menghapus modul: ' + (err instanceof Error ? err.message : 'Unknown error'),
+            'Gagal menghapus modul: ' +
+            (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
         })
       }
     },
@@ -400,7 +421,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
           type: 'error',
           message:
             'Gagal mengubah urutan modul: ' +
-            (error instanceof Error ? error.message : 'Unknown error'),
+            (error instanceof Error ? error.message : 'Kesalahan tidak diketahui'),
         })
       }
     },
@@ -419,7 +440,8 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
         addToast({
           type: 'error',
           message:
-            'Gagal menambah materi: ' + (err instanceof Error ? err.message : 'Unknown error'),
+            'Gagal menambah materi: ' +
+            (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
         })
       }
     },
@@ -430,15 +452,15 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     async (lessonId: string, data: Partial<DomainLesson>) => {
       if (!tenantId) return
       dispatch({ type: 'UPDATE_LESSON', lessonId, data })
-      dispatch({ type: 'SET_SAVING', status: 'saving' })
+      setSavingStatus('saving')
       try {
         await builderLessonService.updateLesson(lessonId, tenantId, data)
-        dispatch({ type: 'SET_SAVING', status: 'saved' })
+        setSavingStatus('saved')
       } catch {
-        dispatch({ type: 'SET_SAVING', status: 'error' })
+        setSavingStatus('error')
       }
     },
-    [tenantId]
+    [tenantId, setSavingStatus]
   )
 
   const deleteLesson = useCallback(
@@ -452,7 +474,8 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
         addToast({
           type: 'error',
           message:
-            'Gagal menghapus materi: ' + (err instanceof Error ? err.message : 'Unknown error'),
+            'Gagal menghapus materi: ' +
+            (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
         })
       }
     },
@@ -491,7 +514,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
             type: 'error',
             message:
               'Gagal mengubah urutan materi: ' +
-              (error instanceof Error ? error.message : 'Unknown error'),
+              (error instanceof Error ? error.message : 'Kesalahan tidak diketahui'),
           })
         }
       }
@@ -521,20 +544,22 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   // ─── Block Actions ────────────────────────
   const addBlock = useCallback(
     async (type: string) => {
-      if (!state.activeLesson || !tenantId) return
+      const lessonId = activeLessonIdRef.current
+      if (!lessonId || !tenantId) return
       try {
-        const block = await builderBlockService.createBlock(state.activeLesson.id, type, tenantId)
+        const block = await builderBlockService.createBlock(lessonId, type, tenantId)
         dispatch({ type: 'ADD_BLOCK', block })
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Failed to add block:', err)
         addToast({
           type: 'error',
           message:
-            'Gagal menambah konten: ' + (err instanceof Error ? err.message : 'Unknown error'),
+            'Gagal menambah konten: ' +
+            (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
         })
       }
     },
-    [state.activeLesson, tenantId, addToast]
+    [tenantId, addToast]
   )
 
   const updateBlock = useCallback(
@@ -548,12 +573,12 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
       if (existing) clearTimeout(existing)
 
       const timer = setTimeout(async () => {
-        dispatch({ type: 'SET_SAVING', status: 'saving' })
+        setSavingStatus('saving')
         try {
           await builderBlockService.updateBlock(blockId, tenantId, data)
-          dispatch({ type: 'SET_SAVING', status: 'saved' })
+          setSavingStatus('saved')
         } catch {
-          dispatch({ type: 'SET_SAVING', status: 'error' })
+          setSavingStatus('error')
         }
         saveTimerRef.current.delete(blockId)
       }, 2000)
@@ -574,7 +599,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
       const block = state.activeLesson?.blocks.find((b) => b.id === blockId)
       if (!block) return
 
-      dispatch({ type: 'SET_SAVING', status: 'saving' })
+      setSavingStatus('saving')
       try {
         await builderBlockService.updateBlock(blockId, tenantId, {
           content: block.content,
@@ -582,9 +607,9 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
           title: block.title,
           metadata: block.metadata,
         })
-        dispatch({ type: 'SET_SAVING', status: 'saved' })
+        setSavingStatus('saved')
       } catch {
-        dispatch({ type: 'SET_SAVING', status: 'error' })
+        setSavingStatus('error')
       }
     },
     [state.activeLesson, tenantId]
@@ -601,7 +626,8 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
         addToast({
           type: 'error',
           message:
-            'Gagal menghapus konten: ' + (err instanceof Error ? err.message : 'Unknown error'),
+            'Gagal menghapus konten: ' +
+            (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
         })
       }
     },
@@ -629,7 +655,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
           type: 'error',
           message:
             'Gagal mengubah urutan konten: ' +
-            (error instanceof Error ? error.message : 'Unknown error'),
+            (error instanceof Error ? error.message : 'Kesalahan tidak diketahui'),
         })
       }
     },

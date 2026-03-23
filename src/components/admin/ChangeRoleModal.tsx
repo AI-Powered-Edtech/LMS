@@ -39,7 +39,7 @@ export function ChangeRoleModal({
       await onConfirm(selectedRole)
       onClose()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Gagal mengubah role.')
+      setError(err instanceof Error ? err.message : 'Gagal mengubah peran.')
     } finally {
       setLoading(false)
     }
@@ -55,7 +55,7 @@ export function ChangeRoleModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-bold text-slate-900">Ubah Role</h2>
+          <h2 className="text-lg font-bold text-slate-900">Ubah Peran</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl">
             ✕
           </button>
@@ -101,7 +101,7 @@ export function ChangeRoleModal({
         {isDowngrade && (
           <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
             <p className="text-xs text-amber-700 font-medium">
-              ⚠️ Ini adalah <strong>downgrade</strong>. User akan kehilangan akses fitur{' '}
+              ⚠️ Ini adalah <strong>penurunan</strong>. Pengguna akan kehilangan akses fitur{' '}
               {primaryRole}.
             </p>
           </div>

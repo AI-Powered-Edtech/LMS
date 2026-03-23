@@ -4,8 +4,13 @@
  */
 
 import { supabase } from '@/src/services/supabase/client'
+import { logDevError } from '@/src/utils/logDevError'
+
 import type { Notification, NotificationPreferences } from '../types'
 
+// Only select columns that exist in the baseline notifications table.
+// The 003_notifications migration's CREATE TABLE IF NOT EXISTS is a no-op
+// when the baseline table already exists, so body/metadata/read_at are absent.
 const NOTIFICATION_COLUMNS = `
   id,
   tenant_id,
@@ -13,11 +18,8 @@ const NOTIFICATION_COLUMNS = `
   actor_id,
   type,
   title,
-  body,
   message,
-  metadata,
   is_read,
-  read_at,
   created_at,
   link
 `
@@ -41,7 +43,7 @@ export async function fetchNotifications(
     .range(offset, offset + limit - 1)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('fetchNotifications error:', error)
+    logDevError('notifications', 'fetchNotifications error:', error)
     throw error
   }
 
@@ -52,13 +54,11 @@ export async function fetchNotifications(
  * Mark a single notification as read
  */
 export async function markNotificationRead(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('notifications')
-    .update({ is_read: true, read_at: new Date().toISOString() })
-    .eq('id', id)
+  // Only update is_read — read_at column may not exist in baseline schema
+  const { error } = await supabase.from('notifications').update({ is_read: true }).eq('id', id)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('markNotificationRead error:', error)
+    logDevError('notifications', 'markNotificationRead error:', error)
     throw error
   }
 }
@@ -69,13 +69,13 @@ export async function markNotificationRead(id: string): Promise<void> {
 export async function markAllNotificationsRead(userId: string, tenantId: string): Promise<void> {
   const { error } = await supabase
     .from('notifications')
-    .update({ is_read: true, read_at: new Date().toISOString() })
+    .update({ is_read: true })
     .eq('user_id', userId)
     .eq('tenant_id', tenantId)
     .eq('is_read', false)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('markAllNotificationsRead error:', error)
+    logDevError('notifications', 'markAllNotificationsRead error:', error)
     throw error
   }
 }
@@ -92,7 +92,7 @@ export async function fetchUnreadCount(userId: string, tenantId: string): Promis
     .eq('is_read', false)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('fetchUnreadCount error:', error)
+    logDevError('notifications', 'fetchUnreadCount error:', error)
     throw error
   }
 
@@ -116,7 +116,7 @@ export async function fetchNotificationPreferences(
     .maybeSingle()
 
   if (error) {
-    if (import.meta.env.DEV) console.error('fetchNotificationPreferences error:', error)
+    logDevError('notifications', 'fetchNotificationPreferences error:', error)
     throw error
   }
 
@@ -138,7 +138,7 @@ export async function upsertNotificationPreferences(
     .single()
 
   if (error) {
-    if (import.meta.env.DEV) console.error('upsertNotificationPreferences error:', error)
+    logDevError('notifications', 'upsertNotificationPreferences error:', error)
     throw error
   }
 

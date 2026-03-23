@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fetchNotifications, markAsRead, markAllAsRead } from '../api/notificationService'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { fetchNotifications, markAllAsRead, markAsRead } from '../api/notificationService'
 
 const mockFrom = vi.fn()
 
-vi.mock('@/src/lib/supabase', () => ({
+vi.mock('@/src/services/supabase/client', () => ({
   supabase: {
     from: (...args: unknown[]) => mockFrom(...args),
   },

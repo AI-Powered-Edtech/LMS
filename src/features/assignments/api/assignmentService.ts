@@ -1,4 +1,5 @@
-import { supabase } from '@/src/lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
+import { logDevError } from '@/src/utils/logDevError'
 
 export interface Assignment {
   id: string
@@ -45,7 +46,7 @@ export const assignmentService = {
     const { data, error } = await supabase.from('assignments').insert(assignment).select().single()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error creating assignment:', error)
+      logDevError('assignmentService', 'Error creating assignment:', error)
       throw error
     }
 
@@ -73,7 +74,7 @@ export const assignmentService = {
       .single()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error submitting assignment:', error)
+      logDevError('assignmentService', 'Error submitting assignment:', error)
       throw error
     }
 
@@ -97,7 +98,7 @@ export const assignmentService = {
       .single()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error grading submission:', error)
+      logDevError('assignmentService', 'Error grading submission:', error)
       throw error
     }
 
@@ -117,7 +118,7 @@ export const assignmentService = {
       .maybeSingle()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching assignment by lesson:', error)
+      logDevError('assignmentService', 'Error fetching assignment by lesson:', error)
       throw error
     }
 
@@ -143,7 +144,7 @@ export const assignmentService = {
       .single()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching assignment details:', error)
+      logDevError('assignmentService', 'Error fetching assignment details:', error)
       throw error
     }
 
@@ -167,9 +168,10 @@ export const assignmentService = {
       )
       .eq('assignment_id', assignmentId)
       .order('submitted_at', { ascending: false })
+      .limit(200)
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching assignment submissions:', error)
+      logDevError('assignmentService', 'Error fetching assignment submissions:', error)
       throw error
     }
 
@@ -206,7 +208,7 @@ export const assignmentService = {
       .range(from, to)
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching student assignments:', error)
+      logDevError('assignmentService', 'Error fetching student assignments:', error)
       throw error
     }
 
@@ -260,7 +262,7 @@ export const assignmentService = {
       .range(from, to)
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching assignments:', error)
+      logDevError('assignmentService', 'Error fetching assignments:', error)
       throw error
     }
 

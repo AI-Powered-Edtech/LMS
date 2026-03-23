@@ -1,10 +1,12 @@
-import { useState } from 'react'
 import { Zap } from 'lucide-react'
-import { useEngagementSummary, useEngagementTrend } from '../queries/analyticsQueries'
-import { SegmentPieChart } from './SegmentPieChart'
-import { EngagementTrend } from './EngagementTrend'
-import { EngagementRadar } from './EngagementRadar'
+import { useState } from 'react'
+
 import { Skeleton } from '@/src/components/ui'
+
+import { useEngagementSummary, useEngagementTrend } from '../queries/analyticsQueries'
+import { EngagementRadar } from './EngagementRadar'
+import { EngagementTrend } from './EngagementTrend'
+import { SegmentPieChart } from './SegmentPieChart'
 
 interface EngagementDashboardProps {
   courseId: string
@@ -24,7 +26,7 @@ export function EngagementDashboard({ courseId }: EngagementDashboardProps) {
     <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
       <div className="flex items-center gap-2">
         <Zap className="h-5 w-5 text-amber-500" />
-        <h3 className="text-sm font-semibold text-slate-800 dark:text-white">Skor Engagement</h3>
+        <h3 className="text-sm font-semibold text-slate-800 dark:text-white">Skor Keterlibatan</h3>
       </div>
 
       {/* Summary stats */}

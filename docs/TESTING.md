@@ -21,6 +21,13 @@ Affected accounts (login FAILS, infra limitation, not a code bug):
 - `siswa.budi@smanusantara1.test`
 - `tutor.mandiri@gmail.test`
 
+## Known Limitation: `agent-browser` Click Simulation
+
+When running automated QA via `agent-browser` CLI, standard click simulations sometimes fail on interactive React components (especially those using Framer Motion's `AnimatePresence` or complex portal structures).
+
+- **Workaround:** If `agent-browser click @ref` fails, it may be an artifact of the simulation, not an actual bug in the app. Fall back to testing standard browser usage, or instruct the agent to use `element.click()` in JS.
+- Defensive coding (e.g., adding `type="button"` and managing `pointerEvents: 'none'` during exit animations) helps mitigate this, but absolute compatibility with generic DOM click simulators is not guaranteed.
+
 ## Running the App for Testing
 
 ```bash

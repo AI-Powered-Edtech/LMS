@@ -72,6 +72,19 @@ Semua query pada tabel besar menggunakan pagination (limit 50 per page) untuk me
 - **storage**: Menggunakan Penyimpanan service dengan pagination dan caching
 - **struggle**: Menggunakan Deteksi Kesulitan service dengan pagination dan caching
 
+## Production Readiness Audit Optimizations (2026-03-23)
+
+| Optimization                                                                                                           | Impact                                                                        |
+| ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `React.memo` on 8 hot components (Card, Badge, Button, EmptyState, Skeleton, LessonSidebar, NotificationPanel, Header) | Eliminates unnecessary re-renders in component trees                          |
+| Quiz autosave: N parallel `v1_save_answer` RPCs → single `batch_save_answers` RPC                                      | Reduces network calls from N to 1 per autosave cycle                          |
+| KaTeX CSS lazy-loaded via dynamic `import()` in Forum.tsx and AITutorPanel.tsx                                         | Removes ~30KB CSS from initial bundle for non-math pages                      |
+| `OptimizedImage` gains `srcSet` + `sizes` props                                                                        | Serves appropriately-sized images per viewport                                |
+| `AuthContext` value memoized (`useMemo` + `useCallback`)                                                               | Prevents all `useAuth()` consumers from re-rendering on every provider render |
+| TeacherDashboard query invalidation scoped to `['analytics', tenantId]`                                                | Prevents cross-tenant cache thrashing                                         |
+| 8 unpaginated queries capped with `.limit()`                                                                           | Prevents OOM on large datasets                                                |
+| `logDevError()` replaces `console.error` in 6 high-traffic files                                                       | Zero console noise in production builds                                       |
+
 ## Monitoring
 
 Performance monitoring dilakukan melalui modul **analytics** yang mengtrack Core Web Vitals.

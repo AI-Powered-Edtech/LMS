@@ -3,7 +3,8 @@
  * All functions accept tenantId for defense-in-depth tenant isolation
  */
 
-import { supabase } from '@/src/lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
+
 import type { Notification } from '../types'
 
 /**

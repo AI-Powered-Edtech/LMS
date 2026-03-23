@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { gamificationService } from '../api/gamificationService'
 
 // Supabase mock builder
@@ -18,7 +19,7 @@ function _makeQueryMock(resolveValue: { data: unknown; error: unknown }) {
 }
 
 const mockFrom = vi.fn()
-vi.mock('@/src/lib/supabase', () => ({
+vi.mock('@/src/services/supabase/client', () => ({
   supabase: {
     from: (...args: unknown[]) => mockFrom(...args),
   },

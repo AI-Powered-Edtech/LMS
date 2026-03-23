@@ -1,6 +1,6 @@
-import { supabase } from '@/src/lib/supabase'
-import { DomainLesson } from '@/src/domain/lesson/types'
-import { mapLesson } from '@/src/domain/lesson/mappers'
+import { supabase } from '@/src/services/supabase/client'
+import { mapLesson } from '@/src/shared/types/lessonMappers'
+import { DomainLesson } from '@/src/shared/types/lessonTypes'
 
 /**
  * Lesson Service for Course Builder (refactored)

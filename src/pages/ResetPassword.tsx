@@ -1,11 +1,12 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import React, { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
-import { useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
-import { FormField } from '@/src/components/ui/FormField'
+import React, { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { Link, useNavigate } from 'react-router-dom'
 import * as v from 'valibot'
+
+import { FormField } from '@/src/components/ui/FormField'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { supabase } from '@/src/services/supabase/client'
 
 const resetPasswordSchema = v.pipe(
   v.object({
@@ -25,7 +26,7 @@ const resetPasswordSchema = v.pipe(
 type ResetPasswordFormData = v.InferInput<typeof resetPasswordSchema>
 
 export function ResetPassword() {
-  usePageTitle('Reset Password')
+  usePageTitle('Atur Ulang Kata Sandi')
   const navigate = useNavigate()
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -129,7 +130,7 @@ export function ResetPassword() {
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
-            <FormField control={control} name="password" label="Password Baru">
+            <FormField control={control} name="password" label="Kata Sandi Baru">
               <input
                 type="password"
                 style={styles.input}
@@ -139,7 +140,7 @@ export function ResetPassword() {
               />
             </FormField>
 
-            <FormField control={control} name="confirmPassword" label="Konfirmasi Password">
+            <FormField control={control} name="confirmPassword" label="Konfirmasi Kata Sandi">
               <input
                 type="password"
                 style={styles.input}

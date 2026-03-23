@@ -10,8 +10,11 @@ import {
   Settings,
   Zap,
 } from 'lucide-react'
+import { memo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+
 import { cn } from '@/src/utils/cn'
+
 import { useNotifications } from '../hooks/useNotifications'
 import type { Notification, NotificationType } from '../types'
 
@@ -58,8 +61,6 @@ function relativeTime(dateStr: string): string {
 }
 
 function resolveUrl(notification: Notification): string | null {
-  const meta = notification.metadata
-  if (meta?.url && typeof meta.url === 'string') return meta.url
   if (notification.link) return notification.link
   switch (notification.type) {
     case 'grade_posted':
@@ -90,10 +91,14 @@ interface NotificationItemProps {
   onClose: () => void
 }
 
-function NotificationItem({ notification, onRead, onClose }: NotificationItemProps) {
+const NotificationItem = memo(function NotificationItem({
+  notification,
+  onRead,
+  onClose,
+}: NotificationItemProps) {
   const navigate = useNavigate()
   const url = resolveUrl(notification)
-  const bodyText = notification.body ?? notification.message
+  const bodyText = notification.message
 
   function handleClick() {
     if (!notification.is_read) onRead()
@@ -146,7 +151,7 @@ function NotificationItem({ notification, onRead, onClose }: NotificationItemPro
       </div>
     </div>
   )
-}
+})
 
 // ─── Panel ────────────────────────────────────────────────────────────────────
 
@@ -154,7 +159,9 @@ interface NotificationPanelProps {
   onClose: () => void
 }
 
-export function NotificationPanel({ onClose }: NotificationPanelProps) {
+export const NotificationPanel = memo(function NotificationPanel({
+  onClose,
+}: NotificationPanelProps) {
   const { notifications, unreadCount, isLoading, markRead, markAllRead } = useNotifications()
 
   const recent = notifications.slice(0, 10)
@@ -232,4 +239,4 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
       )}
     </div>
   )
-}
+})

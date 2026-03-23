@@ -1,13 +1,14 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
-import { courseService, Course } from '@/src/features/courses'
+import { ArrowLeft, BookOpen, GraduationCap, Play } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+
 import { useAuth } from '@/src/contexts/AuthContext'
-import { ArrowLeft, BookOpen, Play, GraduationCap } from 'lucide-react'
+import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
+import { Course, courseService } from '@/src/features/courses'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 
 export function StudentClassPage() {
-  usePageTitle('Student Class Page')
+  usePageTitle('Halaman Kelas Siswa')
   const { classId } = useParams()
   const navigate = useNavigate()
   const { classrooms } = useClassroom()

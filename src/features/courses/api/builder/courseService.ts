@@ -1,9 +1,9 @@
-import { supabase } from '@/src/lib/supabase'
-import { DomainCourse } from '@/src/domain/course/types'
-import { mapCourse } from '@/src/domain/course/mappers'
-import { DomainModule } from '@/src/domain/module/types'
-import { mapModule } from '@/src/domain/module/mappers'
 import { BuilderLesson } from '@/src/features/courses/api/courseBuilderService'
+import { supabase } from '@/src/services/supabase/client'
+import { mapCourse } from '@/src/shared/types/courseMappers'
+import { DomainCourse } from '@/src/shared/types/courseTypes'
+import { mapModule } from '@/src/shared/types/moduleMappers'
+import { DomainModule } from '@/src/shared/types/moduleTypes'
 
 /**
  * Course Service for Course Builder (refactored)
@@ -33,7 +33,7 @@ export const builderCourseService = {
       .from('course_modules')
       .select(
         `
-        id, title, description, "order", course_id, tenant_id,
+        id, title, "order", course_id, tenant_id,
         lessons ( id, title, "order", type, is_published, duration_minutes, passing_score, tenant_id )
       `
       )

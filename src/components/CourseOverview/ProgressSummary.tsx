@@ -76,8 +76,8 @@ export function ProgressSummary({
               ) : (
                 <>
                   {remainingMinutes > 60
-                    ? `${Math.floor(remainingMinutes / 60)} jam ${remainingMinutes % 60} min`
-                    : `~${remainingMinutes} min`}
+                    ? `${Math.floor(remainingMinutes / 60)} jam ${remainingMinutes % 60} menit`
+                    : `~${remainingMinutes} menit`}
                 </>
               )}
             </p>

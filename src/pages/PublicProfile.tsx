@@ -1,27 +1,30 @@
-import { OptimizedImage } from '@/src/components/ui'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
 import {
-  UserPlus,
+  Award,
+  BookOpen,
+  CheckCircle,
+  ChevronLeft,
+  Clock,
+  ExternalLink,
+  Flag,
+  Flame,
   MessageSquare,
   ShieldCheck,
-  Award,
   Star,
-  BookOpen,
-  Clock,
-  Flag,
-  CheckCircle,
+  UserPlus,
   Users,
-  ExternalLink,
-  ChevronLeft,
-  Flame,
 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
+import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+
+import { useToast } from '@/src/components/ui'
+import { OptimizedImage } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { cn } from '@/src/utils/cn'
 
 export function PublicProfile() {
-  usePageTitle('Public Profile')
+  const addToast = useToast((s) => s.addToast)
+  usePageTitle('Profil Publik')
   const { username } = useParams()
   const navigate = useNavigate()
   const { role: currentUserRole } = useAuth() // To determine perspective
@@ -48,12 +51,12 @@ export function PublicProfile() {
     badges: [
       {
         id: 1,
-        name: 'Top Contributor',
+        name: 'Kontributor Terbaik',
         icon: Flame,
         color: 'text-orange-500',
         bg: 'bg-orange-100',
       },
-      { id: 2, name: 'Problem Solver', icon: Star, color: 'text-yellow-500', bg: 'bg-yellow-100' },
+      { id: 2, name: 'Pemecah Masalah', icon: Star, color: 'text-yellow-500', bg: 'bg-yellow-100' },
     ],
     highlightedCertificate: {
       title: 'Kelulusan Bootcamp AI & Machine Learning',
@@ -158,7 +161,7 @@ export function PublicProfile() {
               {isTeacherProfile && teacherProfile.isOnline && (
                 <div
                   className="absolute bottom-2 right-2 w-5 h-5 bg-green-500 border-4 border-white rounded-full"
-                  title="Online"
+                  title="Daring"
                 ></div>
               )}
             </div>
@@ -169,7 +172,7 @@ export function PublicProfile() {
                   <h1 className="text-2xl md:text-3xl font-bold text-slate-900 flex items-center gap-2">
                     {profile.name}
                     {isTeacherProfile && (
-                      <span title="Verified Teacher">
+                      <span title="Guru Terverifikasi">
                         <ShieldCheck className="w-6 h-6 text-emerald-500" />
                       </span>
                     )}
@@ -251,7 +254,7 @@ export function PublicProfile() {
                   </div>
                   <div className="pt-3 border-t border-slate-100">
                     <div className="text-slate-500 mb-1 flex items-center gap-1.5">
-                      <Clock className="w-4 h-4" /> Office Hours
+                      <Clock className="w-4 h-4" /> Jam Konsultasi
                     </div>
                     <div className="font-medium text-slate-900">{teacherProfile.officeHours}</div>
                   </div>
@@ -469,7 +472,7 @@ export function PublicProfile() {
               </button>
               <button
                 onClick={() => {
-                  alert('Laporan berhasil dikirim.')
+                  addToast({ type: 'success', message: 'Laporan berhasil dikirim.' })
                   setShowReportModal(false)
                 }}
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm"

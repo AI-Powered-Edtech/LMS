@@ -1,18 +1,18 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState, useEffect, useCallback } from 'react'
 import { HelpCircle } from 'lucide-react'
-import { quizService, type QuestionType, type QuizMode } from '@/src/features/quizzes'
-import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
+import { useCallback, useEffect, useState } from 'react'
+
 import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/lib/supabase'
-import { QuizListView } from '@/src/features/quizzes/components/QuizListView'
+import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
+import { type QuestionType, type QuizMode, quizService } from '@/src/features/quizzes'
 import { QuizEditorView } from '@/src/features/quizzes/components/QuizEditorView'
+import { QuizListView } from '@/src/features/quizzes/components/QuizListView'
+import { QuizStatus } from '@/src/features/quizzes/types/quizzes.types'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { supabase } from '@/src/services/supabase/client'
 
 // ─────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────
-
-type QuizStatus = 'draft' | 'published' | 'archived'
 
 interface QuizListItem {
   id: string
@@ -77,7 +77,7 @@ const emptyForm: QuizFormData = {
 // ─────────────────────────────────────────────────────────
 
 export function QuizManager() {
-  usePageTitle('Quiz Manager')
+  usePageTitle('Manajemen Kuis')
   const { activeClassroomId, classrooms } = useClassroom()
   const { tenantId } = useAuth()
 
@@ -372,6 +372,17 @@ export function QuizManager() {
   }
 
   const updateQuestionType = (qIdx: number, newType: QuestionType) => {
+    const q = form.questions[qIdx]
+    const hasOptions = q.options.some((o) => o.text.trim() !== '')
+    const isToTextType = ['SHORT_ANSWER', 'ESSAY'].includes(newType)
+    const isFromOptionType = ['MCQ', 'TRUE_FALSE', 'MULTIPLE_SELECT'].includes(q.question_type)
+
+    if (isFromOptionType && isToTextType && hasOptions) {
+      if (!confirm('Mengubah tipe soal ini akan menghapus semua opsi jawaban. Lanjutkan?')) {
+        return
+      }
+    }
+
     const qs = [...form.questions]
     qs[qIdx].question_type = newType
     if (newType === 'TRUE_FALSE') {

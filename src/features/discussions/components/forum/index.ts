@@ -1,0 +1,6 @@
+export { CommentThread } from './CommentThread'
+export { CreatePostForm } from './CreatePostForm'
+export { ForumBadge, resolveBadgeType } from './ForumBadge'
+export { ForumHeader } from './ForumHeader'
+export { ForumSearchBar } from './ForumSearchBar'
+export { PostItem } from './PostItem'

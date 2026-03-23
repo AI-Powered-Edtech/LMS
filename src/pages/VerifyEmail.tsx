@@ -1,10 +1,12 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
 import React, { useState } from 'react'
-import { supabase } from '../lib/supabase'
+
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { supabase } from '@/src/services/supabase/client'
+
 import { useAuth } from '../contexts/AuthContext'
 
 export function VerifyEmail() {
-  usePageTitle('Verify Email')
+  usePageTitle('Verifikasi Email')
   const { user, signOut } = useAuth()
   const [resending, setResending] = useState(false)
   const [resent, setResent] = useState(false)

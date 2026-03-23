@@ -1,15 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { onboardingService } from '../api/onboardingService'
 
-const mockSelect = vi.fn()
-const mockEq = vi.fn()
-const mockFrom = vi.fn(() => ({
-  select: mockSelect.mockReturnValue({
-    eq: mockEq,
-  }),
-}))
+const { mockEq, mockFrom } = vi.hoisted(() => {
+  const mockSelect = vi.fn()
+  const mockEq = vi.fn()
+  const mockFrom = vi.fn(() => ({
+    select: mockSelect.mockReturnValue({
+      eq: mockEq,
+    }),
+  }))
+  return { mockEq, mockFrom }
+})
 
-vi.mock('../../../lib/supabase', () => ({
+vi.mock('@/src/services/supabase/client', () => ({
   supabase: {
     from: mockFrom,
     rpc: vi.fn(),

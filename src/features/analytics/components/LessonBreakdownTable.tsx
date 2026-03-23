@@ -1,8 +1,9 @@
-import { Card, Skeleton, Badge } from '@/src/components/ui'
+import { Badge, Card, Skeleton } from '@/src/components/ui'
 import { VirtualTable } from '@/src/components/ui/VirtualTable'
 import { cn } from '@/src/utils/cn'
-import { formatTime, formatPct, pctColor, pctBgColor } from '../utils/formatters'
+
 import type { LessonAnalytics } from '../types'
+import { formatPct, formatTime, pctBgColor, pctColor } from '../utils/formatters'
 
 const columns = [
   {
@@ -24,7 +25,7 @@ const columns = [
     render: (row: LessonAnalytics) => row.total_students,
   },
   {
-    header: 'Avg Selesai',
+    header: 'Rata-rata Selesai',
     key: 'avg_completion_pct',
     className: 'px-4 py-3',
     render: (row: LessonAnalytics) => (
@@ -42,7 +43,7 @@ const columns = [
     ),
   },
   {
-    header: 'Avg Waktu',
+    header: 'Rata-rata Waktu',
     key: 'avg_time_spent',
     className: 'px-4 py-3 text-center text-slate-500 dark:text-slate-400',
     render: (row: LessonAnalytics) => formatTime(row.avg_time_spent),

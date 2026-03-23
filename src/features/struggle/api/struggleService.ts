@@ -1,5 +1,6 @@
-import { supabase } from '@/src/lib/supabase'
-import type { StruggleAlert, StruggleConfig, LessonStatus } from '../types'
+import { supabase } from '@/src/services/supabase/client'
+
+import type { LessonStatus, StruggleAlert, StruggleConfig } from '../types'
 
 export const struggleService = {
   /**

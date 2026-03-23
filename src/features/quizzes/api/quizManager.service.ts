@@ -1,7 +1,8 @@
 // Quiz Manager Service - Teacher-facing API
 // Extracted from quizService.ts for the Quiz Engine Refactor
 
-import { supabase } from '../../../lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
+
 import type { QuestionType, QuizMode } from '../types/quizzes.types'
 
 // ============================================
@@ -28,7 +29,7 @@ function deriveAssignmentStatus(
 /**
  * Get all quizzes for a teacher (tenant-level)
  */
-export async function getTeacherQuizzes(tenantId: string) {
+export async function getTeacherQuizzes() {
   const { data, error } = await supabase
     .from('quizzes')
     .select(
@@ -57,7 +58,7 @@ export async function getTeacherQuizzes(tenantId: string) {
 /**
  * Get quizzes by course
  */
-export async function getQuizzesByCourse(courseId: string, tenantId: string) {
+export async function getQuizzesByCourse(courseId: string) {
   const { data, error } = await supabase
     .from('quizzes')
     .select(
@@ -80,7 +81,7 @@ export async function getQuizzesByCourse(courseId: string, tenantId: string) {
 /**
  * Get quizzes by class
  */
-export async function getQuizzesByClass(classId: string, tenantId: string) {
+export async function getQuizzesByClass(classId: string) {
   const { data, error } = await supabase
     .from('quiz_assignments')
     .select(
@@ -126,7 +127,7 @@ export async function getQuizzesByClass(classId: string, tenantId: string) {
 /**
  * Get quiz with all questions and options
  */
-export async function getQuizWithQuestions(quizId: string, tenantId: string) {
+export async function getQuizWithQuestions(quizId: string) {
   const { data, error } = await supabase
     .from('quizzes')
     .select(
@@ -229,11 +230,7 @@ export async function createQuiz(payload: {
 /**
  * Update quiz details
  */
-export async function updateQuiz(
-  quizId: string,
-  updates: Record<string, unknown>,
-  tenantId: string
-) {
+export async function updateQuiz(quizId: string, updates: Record<string, unknown>) {
   const { error } = await supabase
     .from('quizzes')
     .update({ ...updates, updated_at: new Date().toISOString() })
@@ -246,7 +243,7 @@ export async function updateQuiz(
 /**
  * Delete a quiz
  */
-export async function deleteQuiz(quizId: string, tenantId: string) {
+export async function deleteQuiz(quizId: string) {
   const { error } = await supabase
     .from('quizzes')
     .delete()
@@ -259,11 +256,7 @@ export async function deleteQuiz(quizId: string, tenantId: string) {
 /**
  * Set quiz status (draft/published)
  */
-export async function setQuizStatus(
-  quizId: string,
-  status: 'draft' | 'published',
-  tenantId: string
-) {
+export async function setQuizStatus(quizId: string, status: 'draft' | 'published') {
   const { error } = await supabase
     .from('quizzes')
     .update({ status, updated_at: new Date().toISOString() })
@@ -303,7 +296,7 @@ export async function setQuizStatus(
  */
 export async function addQuestionToQuiz(
   quizId: string,
-  tenantId: string,
+
   question: {
     text: string
     question_type: QuestionType
@@ -349,11 +342,7 @@ export async function addQuestionToQuiz(
 /**
  * Update a quiz question
  */
-export async function updateQuizQuestion(
-  questionId: string,
-  updates: Record<string, unknown>,
-  tenantId: string
-) {
+export async function updateQuizQuestion(questionId: string, updates: Record<string, unknown>) {
   const { error } = await supabase
     .from('quiz_questions')
     .update(updates)
@@ -368,7 +357,7 @@ export async function updateQuizQuestion(
  */
 export async function replaceQuestionOptions(
   questionId: string,
-  tenantId: string,
+
   options: { text: string; is_correct: boolean }[]
 ) {
   // Delete existing options
@@ -438,7 +427,7 @@ export async function gradeAttemptQuestion(
 /**
  * Get assignment results (all student attempts)
  */
-export async function getAssignmentResults(assignmentId: string, tenantId: string) {
+export async function getAssignmentResults(assignmentId: string) {
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -446,7 +435,6 @@ export async function getAssignmentResults(assignmentId: string, tenantId: strin
 
   const { data, error } = await supabase.rpc('v1_get_assignment_results', {
     p_assignment_id: assignmentId,
-    p_tenant_id: tenantId,
   })
 
   if (error) {

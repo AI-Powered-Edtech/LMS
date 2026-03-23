@@ -1,13 +1,14 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState } from 'react'
 import { ArrowLeft, LayoutDashboard } from 'lucide-react'
-import { DashboardBuilder, DashboardList, DashboardViewer } from '@/src/features/dashboards'
+import { useState } from 'react'
+
 import type { DashboardConfig } from '@/src/features/dashboards'
+import { DashboardBuilder, DashboardList, DashboardViewer } from '@/src/features/dashboards'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 
 type View = 'list' | 'create' | 'edit' | 'view'
 
 export function Dashboards() {
-  usePageTitle('Dashboards')
+  usePageTitle('Dasbor')
   const [view, setView] = useState<View>('list')
   const [selectedDashboard, setSelectedDashboard] = useState<DashboardConfig | null>(null)
 

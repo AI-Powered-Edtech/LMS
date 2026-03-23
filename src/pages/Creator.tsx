@@ -1,25 +1,28 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState, useCallback } from 'react'
 import {
-  UploadCloud,
+  BookOpen,
+  Calendar as CalendarIcon,
+  Edit2,
   FileText,
   Settings,
   Sparkles,
-  Edit2,
-  Calendar as CalendarIcon,
-  BookOpen,
+  UploadCloud,
 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
-import { motion, AnimatePresence } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useCallback, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { useToast } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 // TODO: AI generation will be routed through backend API (Phase 5)
 import { useAddCalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
 import { useSendNotification } from '@/src/features/notifications'
-import { useNavigate } from 'react-router-dom'
-import { supabase } from '@/src/lib/supabase'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { supabase } from '@/src/services/supabase/client'
+import { cn } from '@/src/utils/cn'
 
 export function Creator() {
-  usePageTitle('Creator')
+  const addToast = useToast((s) => s.addToast)
+  usePageTitle('Kreator')
   const { user } = useAuth()
   const { addEvent } = useAddCalendarEvent()
   const sendNotification = useSendNotification()
@@ -65,7 +68,7 @@ export function Creator() {
       const droppedFile = e.dataTransfer.files[0]
       // Validation
       if (droppedFile.size > 50 * 1024 * 1024) {
-        alert('Ukuran file maksimal 50MB')
+        addToast({ type: 'error', message: 'Ukuran file maksimal 50MB' })
         return
       }
       const validTypes = [
@@ -76,7 +79,10 @@ export function Creator() {
         'text/csv',
       ]
       if (!validTypes.includes(droppedFile.type)) {
-        alert('Format file tidak didukung. Gunakan .pdf, .docx, .txt, atau .mp4')
+        addToast({
+          type: 'error',
+          message: 'Format file tidak didukung. Gunakan .pdf, .docx, .txt, atau .mp4',
+        })
         return
       }
       setFile(droppedFile)
@@ -166,7 +172,7 @@ export function Creator() {
 
   const handleAddToCourse = () => {
     if (!result) return
-    navigate('/teaching/course-builder', {
+    navigate('/app/teacher/course-builder', {
       state: {
         action: result.type === 'quiz' ? 'add-quiz' : 'add-assignment',
         quizData: {

@@ -1,22 +1,23 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import {
-  FileText,
-  RefreshCw,
-  Filter,
+  ArrowRight,
   ChevronDown,
+  Clock,
+  FileText,
+  Filter,
+  KeyRound,
+  Mail,
+  RefreshCw,
   Shield,
   UserMinus,
   UserPlus,
-  Mail,
-  KeyRound,
-  Clock,
-  ArrowRight,
 } from 'lucide-react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+
+import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { supabase } from '@/src/services/supabase/client'
 import { cn } from '@/src/utils/cn'
-import { supabase } from '@/src/lib/supabase'
 
 interface AuditLog {
   log_id: string
@@ -46,13 +47,13 @@ const ACTION_CONFIG: Record<
     icon: <UserMinus className="w-4 h-4" />,
     color: 'text-red-600',
     bg: 'bg-red-50 border-red-200',
-    label: 'User Dinonaktifkan',
+    label: 'Pengguna Dinonaktifkan',
   },
   USER_ACTIVATED: {
     icon: <UserPlus className="w-4 h-4" />,
     color: 'text-green-600',
     bg: 'bg-green-50 border-green-200',
-    label: 'User Diaktifkan',
+    label: 'Pengguna Diaktifkan',
   },
   INVITATION_SENT: {
     icon: <Mail className="w-4 h-4" />,
@@ -64,7 +65,7 @@ const ACTION_CONFIG: Record<
     icon: <KeyRound className="w-4 h-4" />,
     color: 'text-amber-600',
     bg: 'bg-amber-50 border-amber-200',
-    label: 'Reset Password',
+    label: 'Atur Ulang Kata Sandi',
   },
 }
 
@@ -78,14 +79,14 @@ const DEFAULT_ACTION_CONFIG = {
 const ACTION_OPTIONS = [
   { value: '', label: 'Semua Aktivitas' },
   { value: 'ROLE_CHANGED', label: 'Role Diubah' },
-  { value: 'USER_DEACTIVATED', label: 'User Dinonaktifkan' },
-  { value: 'USER_ACTIVATED', label: 'User Diaktifkan' },
+  { value: 'USER_DEACTIVATED', label: 'Pengguna Dinonaktifkan' },
+  { value: 'USER_ACTIVATED', label: 'Pengguna Diaktifkan' },
   { value: 'INVITATION_SENT', label: 'Undangan Terkirim' },
-  { value: 'PASSWORD_RESET', label: 'Reset Password' },
+  { value: 'PASSWORD_RESET', label: 'Atur Ulang Kata Sandi' },
 ]
 
 export function AuditDashboard() {
-  usePageTitle('Audit Dashboard')
+  usePageTitle('Dasbor Audit')
   const [logs, setLogs] = useState<AuditLog[]>([])
   const [loading, setLoading] = useState(true)
   const [actionFilter, setActionFilter] = useState('')
@@ -260,7 +261,7 @@ export function AuditDashboard() {
               fetchLogs()
             }}
             className="p-2.5 border border-slate-200 rounded-xl hover:bg-slate-50"
-            title="Refresh"
+            title="Muat Ulang"
           >
             <RefreshCw className="w-4 h-4 text-slate-500" />
           </button>

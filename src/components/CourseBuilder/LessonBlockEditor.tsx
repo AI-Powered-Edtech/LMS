@@ -1,27 +1,29 @@
-import { useBuilder } from '@/src/contexts/BuilderContext'
-import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd'
+import { DragDropContext, Draggable, Droppable, type DropResult } from '@hello-pangea/dnd'
 import {
-  Plus,
-  GripVertical,
-  Trash2,
+  File,
   FileText,
-  Video,
+  GripVertical,
   HelpCircle,
   Image,
-  File,
   Loader2,
-  X,
+  Plus,
+  Trash2,
   Type,
+  Video,
+  X,
 } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useState } from 'react'
+
+import { useBuilder } from '@/src/contexts/BuilderContext'
+import { QuizBlockEditor } from '@/src/features/quizzes/components/QuizBlockEditor'
 import { cn } from '@/src/utils/cn'
+
+import { AssignmentBlockEditor } from './blocks/AssignmentBlockEditor'
+import { FileBlockEditor } from './blocks/FileBlockEditor'
+import { ImageBlockEditor } from './blocks/ImageBlockEditor'
 import { TextBlockEditor } from './blocks/TextBlockEditor'
 import { VideoBlockEditor } from './blocks/VideoBlockEditor'
-import { ImageBlockEditor } from './blocks/ImageBlockEditor'
-import { FileBlockEditor } from './blocks/FileBlockEditor'
-import { QuizBlockEditor } from '@/src/features/quizzes/components/QuizBlockEditor'
-import { AssignmentBlockEditor } from './blocks/AssignmentBlockEditor'
-import { useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
 
 export function LessonBlockEditor() {
   const { state, actions } = useBuilder()
@@ -156,7 +158,7 @@ export function LessonBlockEditor() {
                   : 'bg-amber-400 text-amber-900 shadow-amber-50'
               )}
             >
-              {activeLesson?.isPublished ? 'Published' : 'Draft'}
+              {activeLesson?.isPublished ? 'Dipublikasi' : 'Draf'}
             </span>
             <div className="h-4 w-[1px] bg-slate-200 mx-1" />
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -200,7 +202,14 @@ export function LessonBlockEditor() {
                               {getBlockIcon(block.type)}
                             </div>
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex-1">
-                              {block.type}
+                              {{
+                                text: 'TEKS',
+                                video: 'VIDEO',
+                                image: 'GAMBAR',
+                                file: 'FILE',
+                                quiz: 'KUIS',
+                                assignment: 'TUGAS',
+                              }[block.type.toLowerCase()] || block.type.toUpperCase()}
                             </span>
                             <button
                               onClick={() => {
@@ -209,6 +218,8 @@ export function LessonBlockEditor() {
                                 }
                               }}
                               className="p-2 opacity-0 group-hover:opacity-100 hover:bg-rose-50 text-slate-300 hover:text-rose-500 rounded-xl transition-all"
+                              aria-label="Hapus konten"
+                              title="Hapus konten"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -231,6 +242,7 @@ export function LessonBlockEditor() {
         <div className="relative mt-8">
           <button
             onClick={() => setShowAddMenu(!showAddMenu)}
+            aria-expanded={showAddMenu}
             className={cn(
               'w-full py-5 rounded-[24px] font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all',
               'border-2 border-dashed',

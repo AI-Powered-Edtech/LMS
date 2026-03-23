@@ -1,17 +1,20 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import React, { useState, useEffect, useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { BookOpen, Search, Filter, Plus, Loader2 } from 'lucide-react'
+import { BookOpen, Filter, Loader2, Plus, Search } from 'lucide-react'
+import React, { useEffect, useRef, useState } from 'react'
+
+import { useToast } from '@/src/components/ui'
 import {
-  questionBankService,
   QuestionBankItem,
+  questionBankService,
 } from '@/src/features/question-bank/api/questionBankService'
+import { QuestionBankSkeleton } from '@/src/features/question-bank/components/QuestionBankSkeleton'
 import { QuestionCard } from '@/src/features/question-bank/components/QuestionCard'
 import { QuestionEditor } from '@/src/features/question-bank/components/QuestionEditor'
-import { QuestionBankSkeleton } from '@/src/features/question-bank/components/QuestionBankSkeleton'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 
 export function QuestionBankPage() {
-  usePageTitle('Question Bank Page')
+  const addToast = useToast((s) => s.addToast)
+  usePageTitle('Bank Soal')
   const [questions, setQuestions] = useState<QuestionBankItem[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -78,7 +81,7 @@ export function QuestionBankPage() {
       setQuestions((q) => q.filter((item) => item.id !== id))
     } catch (error) {
       if (import.meta.env.DEV) console.error('Failed to delete question:', error)
-      alert('Gagal menghapus soal.')
+      addToast({ type: 'error', message: 'Gagal menghapus soal.' })
     }
   }
 
@@ -94,7 +97,7 @@ export function QuestionBankPage() {
             <BookOpen className="w-6 h-6 text-indigo-600" />
             Bank Soal
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-slate-600 dark:text-slate-400">
             Kelola koleksi soal untuk kuis dan ujian.
           </p>
         </div>
@@ -107,26 +110,26 @@ export function QuestionBankPage() {
         </button>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm mb-6 p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm mb-6 p-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
               type="text"
               placeholder="Cari soal..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2 border dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700/50 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
             />
           </div>
 
           <div className="flex gap-4">
             <div className="w-48 relative">
-              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="w-full pl-9 pr-8 py-2 border dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none"
+                className="w-full pl-9 pr-8 py-2 border dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700/50 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none"
               >
                 <option value="">Semua Tipe</option>
                 <option value="MCQ">Pilihan Ganda</option>
@@ -142,17 +145,17 @@ export function QuestionBankPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
           <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-4" />
-          <p className="text-gray-500">Memuat soal...</p>
+          <p className="text-slate-500">Memuat soal...</p>
         </div>
       ) : questions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm text-center px-4">
-          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700/50 rounded-full flex items-center justify-center mb-4">
-            <Search className="w-8 h-8 text-gray-400" />
+        <div className="flex flex-col items-center justify-center py-24 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm text-center px-4">
+          <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700/50 rounded-full flex items-center justify-center mb-4">
+            <Search className="w-8 h-8 text-slate-400" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">
+          <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-1">
             Tidak ada soal ditemukan
           </h3>
-          <p className="text-gray-500 max-w-sm">
+          <p className="text-slate-500 max-w-sm">
             Coba gunakan kata kunci berbeda atau buat soal baru.
           </p>
         </div>

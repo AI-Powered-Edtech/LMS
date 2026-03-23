@@ -1,5 +1,7 @@
-import { useState, useCallback } from 'react'
+import { useCallback, useState } from 'react'
+
 import { cn } from '@/src/utils/cn'
+
 import { Skeleton } from './Skeleton'
 
 /* ─── Props ────────────────────────────────────────────────── */
@@ -15,6 +17,10 @@ export interface OptimizedImageProps extends Omit<
   className?: string
   /** Enable native lazy loading (default: true) */
   lazy?: boolean
+  /** Responsive image source set */
+  srcSet?: string
+  /** Responsive image sizes */
+  sizes?: string
 }
 
 /* ─── Component ────────────────────────────────────────────── */
@@ -26,6 +32,8 @@ export function OptimizedImage({
   height,
   className,
   lazy = true,
+  srcSet,
+  sizes,
   onLoad,
   onError,
   ...props
@@ -97,6 +105,8 @@ export function OptimizedImage({
         alt={alt}
         width={width}
         height={height}
+        srcSet={srcSet}
+        sizes={sizes}
         loading={lazy ? 'lazy' : 'eager'}
         decoding="async"
         {...props}

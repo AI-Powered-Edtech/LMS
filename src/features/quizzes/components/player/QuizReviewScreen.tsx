@@ -1,10 +1,12 @@
+import { AlertTriangle, ArrowLeft, CheckCircle, Flag, Send, Target } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
-import { Target, CheckCircle, AlertTriangle, Flag, ArrowLeft, Send } from 'lucide-react'
+
 import { SubmitAnswer } from '@/src/features/quizzes'
-import { QuestionPalette } from './QuestionPalette'
 import { cn } from '@/src/utils/cn'
+
 import type { QuizAttemptQuestion, QuizOptionSnapshot } from '../../types/quizzes.types'
+import { QuestionPalette } from './QuestionPalette'
 
 interface QuizReviewScreenProps {
   questions: QuizAttemptQuestion[]
@@ -55,6 +57,7 @@ export function QuizReviewScreen({
       {/* Header */}
       <div className="flex items-center gap-4">
         <button
+          type="button"
           onClick={onBack}
           className={cn(
             'p-2.5 rounded-xl border-2 transition-all',
@@ -319,6 +322,7 @@ export function QuizReviewScreen({
             </p>
             <div className="flex justify-center gap-3">
               <button
+                type="button"
                 onClick={() => setShowConfirm(false)}
                 className={cn(
                   'px-6 py-2.5 rounded-xl font-bold text-sm border-2 transition-all',
@@ -331,6 +335,7 @@ export function QuizReviewScreen({
                 Batal
               </button>
               <button
+                type="button"
                 onClick={onSubmit}
                 disabled={isSubmitting}
                 className={cn(
@@ -359,6 +364,7 @@ export function QuizReviewScreen({
       {!showConfirm && (
         <div className="flex justify-end pt-2">
           <button
+            type="button"
             onClick={handleFinalSubmit}
             disabled={isSubmitting}
             className={cn(

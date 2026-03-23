@@ -1,6 +1,8 @@
-import { supabase } from '../lib/supabase'
-import { useAuth } from '../contexts/AuthContext'
 import { useCallback } from 'react'
+
+import { supabase } from '@/src/services/supabase/client'
+
+import { useAuth } from '../contexts/AuthContext'
 
 /**
  * useTenantQuery — defense-in-depth helper for tenant-scoped queries.
@@ -23,16 +25,17 @@ export function useTenantQuery() {
 
   /**
    * Returns a Supabase query builder pre-filtered by tenant_id.
+   * Caller must chain `.select('col1, col2, ...')` to specify columns.
    * Falls back to an unfiltered query if tenantId is not available
    * (RLS will still enforce isolation).
    */
   const tenantQuery = useCallback(
-    (table: string) => {
+    (table: string, columns = 'id') => {
       const query = supabase.from(table)
       if (tenantId) {
-        return query.select('*').eq('tenant_id', tenantId)
+        return query.select(columns).eq('tenant_id', tenantId)
       }
-      return query.select('*')
+      return query.select(columns)
     },
     [tenantId]
   )

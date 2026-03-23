@@ -1,11 +1,12 @@
-import { useReducer, useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useReducer } from 'react'
+
 import { Lesson, LessonProgress } from '@/src/features/lessons'
 
 // ============================================================
 // State
 // ============================================================
 
-type ViewerStatus =
+export type ViewerStatus =
   | 'idle'
   | 'loading'
   | 'viewing'
@@ -14,7 +15,7 @@ type ViewerStatus =
   | 'completed'
   | 'error'
 
-interface ViewerState {
+export interface ViewerState {
   status: ViewerStatus
   lesson: Lesson | null
   progress: LessonProgress | null
@@ -22,6 +23,8 @@ interface ViewerState {
   lastPosition: number
   error: string | null
 }
+
+export type ViewerActionTypes = ReturnType<typeof useViewerReducer>['actions']
 
 const initialState: ViewerState = {
   status: 'idle',

@@ -1,18 +1,20 @@
+import {
+  AlertCircle,
+  CheckCircle,
+  Edit3,
+  FileDown,
+  FileSignature,
+  FileText,
+  Search,
+  Send,
+} from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useState } from 'react'
+
+import { useToast } from '@/src/components/ui'
 import { OptimizedImage } from '@/src/components/ui'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState } from 'react'
-import {
-  FileText,
-  Edit3,
-  CheckCircle,
-  FileSignature,
-  Send,
-  Search,
-  FileDown,
-  AlertCircle,
-} from 'lucide-react'
 import { cn } from '@/src/utils/cn'
-import { motion, AnimatePresence } from 'motion/react'
 
 const templates = [
   {
@@ -41,7 +43,8 @@ const templates = [
 const steps = ['Draft', 'Review Waka', 'TTD Kepsek', 'Terbit']
 
 export function DocumentManager() {
-  usePageTitle('Document Manager')
+  const addToast = useToast((s) => s.addToast)
+  usePageTitle('Manajemen Dokumen')
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
   const [nisn, setNisn] = useState('')
   const [studentData, setStudentData] = useState<Record<string, unknown> | null>(null)
@@ -113,7 +116,7 @@ export function DocumentManager() {
           </div>
 
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex-1">
-            <h2 className="text-xl font-bold text-slate-800 mb-4">Placeholder Autocomplete</h2>
+            <h2 className="text-xl font-bold text-slate-800 mb-4">Isian Otomatis</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">
@@ -173,7 +176,7 @@ export function DocumentManager() {
         <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
           {/* Approval Stepper */}
           <div className="p-4 md:p-6 border-b border-slate-100 bg-slate-50/50 overflow-x-auto">
-            <h2 className="text-xl font-bold text-slate-800 mb-6">Approval Workflow</h2>
+            <h2 className="text-xl font-bold text-slate-800 mb-6">Alur Persetujuan</h2>
             <div className="flex items-center justify-between relative min-w-[400px] px-4 md:px-0 pb-6 md:pb-0">
               <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-slate-200 rounded-full" />
               <div
@@ -214,7 +217,7 @@ export function DocumentManager() {
           <div className="flex-1 p-6 flex flex-col min-h-0">
             <div className="flex items-center gap-2 mb-4">
               <Edit3 className="w-5 h-5 text-slate-400" />
-              <h3 className="font-bold text-slate-700">Rich Text Editor</h3>
+              <h3 className="font-bold text-slate-700">Editor Teks</h3>
             </div>
             <textarea
               value={content}
@@ -275,7 +278,12 @@ export function DocumentManager() {
                 </button>
               ) : (
                 <button
-                  onClick={() => alert('Dokumen berhasil diunduh dan didistribusikan!')}
+                  onClick={() =>
+                    addToast({
+                      type: 'success',
+                      message: 'Dokumen berhasil diunduh dan didistribusikan!',
+                    })
+                  }
                   className="w-full sm:w-auto px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-sm shadow-green-200"
                 >
                   <FileDown className="w-5 h-5" />

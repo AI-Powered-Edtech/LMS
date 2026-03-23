@@ -1,15 +1,14 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route, Navigate, Outlet, useParams } from 'react-router-dom'
+import { Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
 
-import { Layout } from '../components/layout/Layout'
-import { AppLoading } from '../components/layout/AppLoading'
 import { FeatureErrorBoundary } from '../components/FeatureErrorBoundary'
-
 import { AuthGuard } from '../components/guards/AuthGuard'
-import { TenantGuard } from '../components/guards/TenantGuard'
+import { CourseEnrollmentGuard } from '../components/guards/CourseEnrollmentGuard'
 import { RoleGuard } from '../components/guards/RoleGuard'
 import { RoleResolver } from '../components/guards/RoleResolver'
-import { CourseEnrollmentGuard } from '../components/guards/CourseEnrollmentGuard'
+import { TenantGuard } from '../components/guards/TenantGuard'
+import { AppLoading } from '../components/layout/AppLoading'
+import { Layout } from '../components/layout/Layout'
 
 const withErrorBoundary =
   (Component: React.ComponentType<Record<string, unknown>>, name: string) =>
@@ -21,19 +20,19 @@ const withErrorBoundary =
 
 const Dashboard = withErrorBoundary(
   lazy(() => import('../pages/Dashboard').then((m) => ({ default: m.Dashboard }))),
-  'Dashboard'
+  'Dasbor'
 )
 const Creator = withErrorBoundary(
   lazy(() => import('../pages/Creator').then((m) => ({ default: m.Creator }))),
-  'Creator'
+  'Kreator'
 )
 const CourseBuilder = withErrorBoundary(
   lazy(() => import('../pages/CourseBuilder').then((m) => ({ default: m.CourseBuilder }))),
-  'Course Builder'
+  'Pembuat Kursus'
 )
 const Leaderboard = withErrorBoundary(
   lazy(() => import('../pages/Leaderboard').then((m) => ({ default: m.Leaderboard }))),
-  'Leaderboard'
+  'Papan Peringkat'
 )
 const Forum = withErrorBoundary(
   lazy(() => import('../pages/Forum').then((m) => ({ default: m.Forum }))),
@@ -41,143 +40,143 @@ const Forum = withErrorBoundary(
 )
 const Analytics = withErrorBoundary(
   lazy(() => import('../pages/Analytics').then((m) => ({ default: m.Analytics }))),
-  'Analytics'
+  'Analitik'
 )
 const DocumentManager = withErrorBoundary(
   lazy(() => import('../pages/DocumentManager').then((m) => ({ default: m.DocumentManager }))),
-  'Document Manager'
+  'Manajemen Dokumen'
 )
 const Courses = withErrorBoundary(
   lazy(() => import('../pages/Courses').then((m) => ({ default: m.Courses }))),
-  'Courses'
+  'Kursus'
 )
 const Directory = withErrorBoundary(
   lazy(() => import('../pages/Directory').then((m) => ({ default: m.Directory }))),
-  'Directory'
+  'Direktori'
 )
 const LessonViewer = withErrorBoundary(
   lazy(() => import('../pages/LessonViewer').then((m) => ({ default: m.LessonViewer }))),
-  'Lesson Viewer'
+  'Penampil Pelajaran'
 )
 const SpeedGrader = withErrorBoundary(
   lazy(() => import('../pages/SpeedGrader').then((m) => ({ default: m.SpeedGrader }))),
-  'Speed Grader'
+  'Penilaian Cepat'
 )
 const QuizModule = withErrorBoundary(
   lazy(() => import('../pages/Quiz').then((m) => ({ default: m.QuizModule }))),
-  'Quiz Module'
+  'Modul Kuis'
 )
 const BillingDashboard = withErrorBoundary(
   lazy(() =>
     import('../pages/admin/BillingDashboard').then((m) => ({ default: m.BillingDashboard }))
   ),
-  'Billing Dashboard'
+  'Dasbor Tagihan'
 )
 const TeacherDashboard = withErrorBoundary(
   lazy(() => import('../pages/TeacherDashboard').then((m) => ({ default: m.TeacherDashboard }))),
-  'Teacher Dashboard'
+  'Dasbor Guru'
 )
 const ScanAttendance = withErrorBoundary(
   lazy(() => import('../pages/ScanAttendance').then((m) => ({ default: m.ScanAttendance }))),
-  'Scan Attendance'
+  'Pindai Kehadiran'
 )
 const Profile = withErrorBoundary(
   lazy(() => import('../pages/Profile').then((m) => ({ default: m.Profile }))),
-  'Profile'
+  'Profil'
 )
 const PublicProfile = withErrorBoundary(
   lazy(() => import('../pages/PublicProfile').then((m) => ({ default: m.PublicProfile }))),
-  'Public Profile'
+  'Profil Publik'
 )
 const Settings = withErrorBoundary(
   lazy(() => import('../pages/Settings').then((m) => ({ default: m.Settings }))),
-  'Settings'
+  'Pengaturan'
 )
 const Gradebook = withErrorBoundary(
   lazy(() => import('../pages/Gradebook').then((m) => ({ default: m.Gradebook }))),
-  'Gradebook'
+  'Buku Nilai'
 )
 const QuizGradebook = withErrorBoundary(
   lazy(() => import('../pages/QuizGradebook').then((m) => ({ default: m.QuizGradebook }))),
-  'Quiz Gradebook'
+  'Buku Nilai Kuis'
 )
 const AssignmentGradebook = withErrorBoundary(
   lazy(() =>
     import('../pages/AssignmentGradebook').then((m) => ({ default: m.AssignmentGradebook }))
   ),
-  'Assignment Gradebook'
+  'Buku Nilai Tugas'
 )
 const Certificates = withErrorBoundary(
   lazy(() => import('../pages/Certificates').then((m) => ({ default: m.Certificates }))),
-  'Certificates'
+  'Sertifikat'
 )
 const Calendar = withErrorBoundary(
   lazy(() => import('../pages/Calendar').then((m) => ({ default: m.Calendar }))),
-  'Calendar'
+  'Kalender'
 )
 const Announcements = withErrorBoundary(
   lazy(() => import('../pages/Announcements').then((m) => ({ default: m.Announcements }))),
-  'Announcements'
+  'Pengumuman'
 )
 const Assignments = withErrorBoundary(
   lazy(() => import('../pages/Assignments').then((m) => ({ default: m.Assignments }))),
-  'Assignments'
+  'Tugas'
 )
 const StudentProgress = withErrorBoundary(
   lazy(() => import('../pages/StudentProgress').then((m) => ({ default: m.StudentProgress }))),
-  'Student Progress'
+  'Progres Siswa'
 )
 const GroupAssignment = withErrorBoundary(
   lazy(() => import('../pages/GroupAssignment').then((m) => ({ default: m.GroupAssignment }))),
-  'Group Assignment'
+  'Tugas Kelompok'
 )
 const Grades = withErrorBoundary(
   lazy(() => import('../pages/Grades').then((m) => ({ default: m.Grades }))),
-  'Grades'
+  'Nilai'
 )
 const StudentAttendance = withErrorBoundary(
   lazy(() => import('../pages/StudentAttendance').then((m) => ({ default: m.StudentAttendance }))),
-  'Student Attendance'
+  'Kehadiran Siswa'
 )
 const QuestionBankPage = withErrorBoundary(
   lazy(() => import('../pages/QuestionBankPage').then((m) => ({ default: m.QuestionBankPage }))),
-  'Question Bank Page'
+  'Bank Soal'
 )
 const QuizManager = withErrorBoundary(
   lazy(() => import('../pages/QuizManager').then((m) => ({ default: m.QuizManager }))),
-  'Quiz Manager'
+  'Manajemen Kuis'
 )
 const CourseAnalytics = withErrorBoundary(
   lazy(() => import('../pages/CourseAnalytics').then((m) => ({ default: m.CourseAnalytics }))),
-  'Course Analytics'
+  'Analitik Kursus'
 )
 const Dashboards = withErrorBoundary(
   lazy(() => import('../pages/Dashboards').then((m) => ({ default: m.Dashboards }))),
-  'Dashboards'
+  'Dasbor'
 )
 const ClassManagement = withErrorBoundary(
   lazy(() => import('../pages/ClassManagement').then((m) => ({ default: m.ClassManagement }))),
-  'Class Management'
+  'Manajemen Kelas'
 )
 const StudentClassPage = withErrorBoundary(
   lazy(() => import('../pages/StudentClassPage').then((m) => ({ default: m.StudentClassPage }))),
-  'Student Class Page'
+  'Halaman Kelas Siswa'
 )
 const ModerationDashboard = withErrorBoundary(
   lazy(() =>
     import('../pages/admin/ModerationDashboard').then((m) => ({ default: m.ModerationDashboard }))
   ),
-  'Moderation Dashboard'
+  'Dasbor Moderasi'
 )
 const FinanceDashboard = withErrorBoundary(
   lazy(() =>
     import('../pages/admin/FinanceDashboard').then((m) => ({ default: m.FinanceDashboard }))
   ),
-  'Finance Dashboard'
+  'Dasbor Keuangan'
 )
 const PPDBDashboard = withErrorBoundary(
   lazy(() => import('../pages/admin/PPDBDashboard').then((m) => ({ default: m.PPDBDashboard }))),
-  'P P D B Dashboard'
+  'Dasbor PPDB'
 )
 const AdministrationDashboard = withErrorBoundary(
   lazy(() =>
@@ -185,15 +184,15 @@ const AdministrationDashboard = withErrorBoundary(
       default: m.AdministrationDashboard,
     }))
   ),
-  'Administration Dashboard'
+  'Dasbor Administrasi'
 )
 const UserManagement = withErrorBoundary(
   lazy(() => import('../pages/admin/UserManagement').then((m) => ({ default: m.UserManagement }))),
-  'User Management'
+  'Manajemen Pengguna'
 )
 const AuditDashboard = withErrorBoundary(
   lazy(() => import('../pages/admin/AuditDashboard').then((m) => ({ default: m.AuditDashboard }))),
-  'Audit Dashboard'
+  'Dasbor Audit'
 )
 const AdminAnalyticsDashboard = withErrorBoundary(
   lazy(() =>
@@ -201,65 +200,61 @@ const AdminAnalyticsDashboard = withErrorBoundary(
       default: m.AdminAnalyticsDashboard,
     }))
   ),
-  'Admin Analytics Dashboard'
+  'Dasbor Analitik Admin'
 )
 const SystemHealth = withErrorBoundary(
   lazy(() => import('../pages/admin/SystemHealth').then((m) => ({ default: m.SystemHealth }))),
-  'System Health'
+  'Kesehatan Sistem'
 )
 const FeatureFlagsPage = withErrorBoundary(
   lazy(() => import('../pages/admin/FeatureFlags')),
-  'Feature Flags Page'
+  'Pengaturan Fitur'
 )
 
 const Login = withErrorBoundary(
   lazy(() => import('../pages/Login').then((m) => ({ default: m.Login }))),
-  'Login'
+  'Masuk'
 )
 const ForgotPassword = withErrorBoundary(
   lazy(() => import('../pages/ForgotPassword').then((m) => ({ default: m.ForgotPassword }))),
-  'Forgot Password'
+  'Lupa Kata Sandi'
 )
 const ResetPassword = withErrorBoundary(
   lazy(() => import('../pages/ResetPassword').then((m) => ({ default: m.ResetPassword }))),
-  'Reset Password'
+  'Atur Ulang Kata Sandi'
 )
 const VerifyEmail = withErrorBoundary(
   lazy(() => import('../pages/VerifyEmail').then((m) => ({ default: m.VerifyEmail }))),
-  'Verify Email'
+  'Verifikasi Email'
 )
 
 const TeachingHub = withErrorBoundary(
   lazy(() => import('../pages/Hubs').then((m) => ({ default: m.TeachingHub }))),
-  'Teaching Hub'
+  'Pusat Mengajar'
 )
 const SocialHub = withErrorBoundary(
   lazy(() => import('../pages/Hubs').then((m) => ({ default: m.SocialHub }))),
-  'Social Hub'
+  'Pusat Sosial'
 )
 const GamificationHub = withErrorBoundary(
   lazy(() => import('../pages/Hubs').then((m) => ({ default: m.GamificationHub }))),
-  'Gamification Hub'
-)
-const _AdminHub = withErrorBoundary(
-  lazy(() => import('../pages/Hubs').then((m) => ({ default: m.AdminHub }))),
-  '_ Admin Hub'
+  'Pusat Gamifikasi'
 )
 const WorkspaceSelector = withErrorBoundary(
   lazy(() => import('../pages/WorkspaceSelector').then((m) => ({ default: m.WorkspaceSelector }))),
-  'Workspace Selector'
+  'Pemilihan Ruang Kerja'
 )
 const Unauthorized = withErrorBoundary(
   lazy(() => import('../pages/Unauthorized').then((m) => ({ default: m.Unauthorized }))),
-  'Unauthorized'
+  'Tidak Diizinkan'
 )
 const NotFound = withErrorBoundary(
   lazy(() => import('../pages/NotFound').then((m) => ({ default: m.NotFound }))),
-  'Not Found'
+  'Tidak Ditemukan'
 )
 const NotificationsPage = withErrorBoundary(
   lazy(() => import('../pages/Notifications').then((m) => ({ default: m.Notifications }))),
-  'Notifications Page'
+  'Notifikasi'
 )
 
 /* Parameterized redirect helpers — Navigate cannot interpolate :params */
@@ -330,6 +325,14 @@ export function AppRoutes() {
         element={
           <Suspense fallback={<AppLoading />}>
             <Unauthorized />
+          </Suspense>
+        }
+      />
+      <Route
+        path="/404"
+        element={
+          <Suspense fallback={<AppLoading />}>
+            <NotFound />
           </Suspense>
         }
       />
@@ -464,6 +467,14 @@ export function AppRoutes() {
                   <FeatureErrorBoundary featureName="Leaderboard">
                     <Leaderboard />
                   </FeatureErrorBoundary>
+                </Suspense>
+              }
+            />
+            <Route
+              path="*"
+              element={
+                <Suspense fallback={<AppLoading />}>
+                  <NotFound />
                 </Suspense>
               }
             />
@@ -649,6 +660,14 @@ export function AppRoutes() {
               element={
                 <Suspense fallback={<AppLoading />}>
                   <ModerationDashboard />
+                </Suspense>
+              }
+            />
+            <Route
+              path="*"
+              element={
+                <Suspense fallback={<AppLoading />}>
+                  <NotFound />
                 </Suspense>
               }
             />
@@ -860,6 +879,14 @@ export function AppRoutes() {
               element={
                 <Suspense fallback={<AppLoading />}>
                   <FeatureFlagsPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="*"
+              element={
+                <Suspense fallback={<AppLoading />}>
+                  <NotFound />
                 </Suspense>
               }
             />

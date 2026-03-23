@@ -1,8 +1,9 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { Activity, AlertTriangle, CheckCircle, RefreshCw, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Activity, CheckCircle, AlertTriangle, XCircle, RefreshCw } from 'lucide-react'
-import { supabase } from '@/src/services/supabase/client'
+
 import { Spinner } from '@/src/components/ui'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { supabase } from '@/src/services/supabase/client'
 
 interface HealthCheck {
   status: 'healthy' | 'degraded' | 'down'
@@ -34,7 +35,7 @@ function statusColor(status: 'healthy' | 'degraded' | 'down') {
 }
 
 export function SystemHealth() {
-  usePageTitle('System Health')
+  usePageTitle('Kesehatan Sistem')
   const [health, setHealth] = useState<HealthCheck | null>(null)
   const [metrics, setMetrics] = useState<MetricSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)

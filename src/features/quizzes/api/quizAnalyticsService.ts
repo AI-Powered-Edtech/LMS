@@ -1,4 +1,5 @@
-import { supabase } from '@/src/lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
+import { logDevError } from '@/src/utils/logDevError'
 
 // --- Types ---
 
@@ -22,7 +23,7 @@ export interface AttemptDetailAnswer {
   explanation: string | null
 }
 
-interface QuizStats {
+export interface QuizStats {
   quiz_id: string
   tenant_id: string
   total_attempts: number
@@ -45,6 +46,25 @@ export interface QuestionDifficulty {
   difficulty_percent: number
 }
 
+// --- Question Stats types (merged from quizAnalytics.service.ts) ---
+
+interface QuestionStats {
+  id: string
+  question_id: string
+  quiz_id: string
+  tenant_id: string
+  total_answers: number
+  correct_answers: number
+  difficulty_rate: number
+  avg_time_seconds: number
+  updated_at: string
+}
+
+export interface QuestionStatsWithQuestion extends QuestionStats {
+  question_text: string
+  question_order: number
+}
+
 // --- Service ---
 
 export const quizAnalyticsService = {
@@ -58,7 +78,7 @@ export const quizAnalyticsService = {
     })
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching attempt detail:', error)
+      logDevError('quizAnalytics', 'Error fetching attempt detail:', error)
       throw error
     }
 
@@ -75,7 +95,7 @@ export const quizAnalyticsService = {
     })
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching question difficulty:', error)
+      logDevError('quizAnalytics', 'Error fetching question difficulty:', error)
       throw error
     }
 
@@ -101,7 +121,7 @@ export const quizAnalyticsService = {
     const { data, error } = await query.maybeSingle()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching quiz stats:', error)
+      logDevError('quizAnalytics', 'Error fetching quiz stats:', error)
       throw error
     }
 
@@ -168,4 +188,55 @@ export const quizAnalyticsService = {
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
   },
+}
+
+// --- Standalone functions (merged from quizAnalytics.service.ts) ---
+
+/**
+ * Get question-level statistics for a specific quiz
+ */
+export async function getQuestionStats(quizId: string): Promise<QuestionStatsWithQuestion[]> {
+  // Get question stats
+  const { data: stats, error } = await supabase
+    .from('question_stats')
+    .select(
+      'id, question_id, quiz_id, tenant_id, total_answers, correct_answers, difficulty_rate, avg_time_seconds, updated_at'
+    )
+    .eq('quiz_id', quizId)
+    .order('question_id', { ascending: true })
+
+  if (error) {
+    logDevError('quizAnalytics', 'Error fetching question stats:', error)
+    return []
+  }
+
+  if (!stats || stats.length === 0) {
+    return []
+  }
+
+  // Get question text and order for display
+  const questionIds = stats.map((s) => s.question_id)
+  const { data: questions, error: questionError } = await supabase
+    .from('quiz_questions')
+    .select('id, text, "order"')
+    .in('id', questionIds)
+
+  if (questionError) {
+    logDevError('quizAnalytics', 'Error fetching questions:', questionError)
+    return stats.map((s) => ({
+      ...s,
+      question_text: 'Question',
+      question_order: 0,
+    })) as QuestionStatsWithQuestion[]
+  }
+
+  // Merge stats with question info
+  return stats.map((stat) => {
+    const question = questions?.find((q) => q.id === stat.question_id)
+    return {
+      ...stat,
+      question_text: question?.text?.substring(0, 80) || 'Question',
+      question_order: question?.order || 0,
+    } as QuestionStatsWithQuestion
+  })
 }

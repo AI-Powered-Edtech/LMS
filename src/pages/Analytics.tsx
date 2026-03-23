@@ -1,44 +1,47 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import React, { useState, useEffect, useMemo } from 'react'
 import {
+  Activity,
+  AlertCircle,
+  AlertTriangle,
+  Award,
+  BarChart3,
+  BookOpen,
+  Clock,
+  Eye,
+  Filter,
+  Loader2,
+  RefreshCw,
+  Sparkles,
+  Users,
+  WifiOff,
+} from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
   Radar,
   RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
   ResponsiveContainer,
   Tooltip,
 } from 'recharts'
-import {
-  AlertTriangle,
-  Clock,
-  Filter,
-  Eye,
-  Sparkles,
-  RefreshCw,
-  Users,
-  Activity,
-  BookOpen,
-  Award,
-  Loader2,
-  AlertCircle,
-  WifiOff,
-  BarChart3,
-} from 'lucide-react'
-import { cn } from '@/src/utils/cn'
-import { motion, AnimatePresence } from 'motion/react'
-import { useNavigate } from 'react-router-dom'
+
+import { useToast } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
-import { courseService, Course } from '@/src/features/courses'
 import { AnalyticsError } from '@/src/features/analytics'
 import {
-  useTeacherAnalytics,
   useRefreshCourseStats,
+  useTeacherAnalytics,
 } from '@/src/features/analytics/queries/analyticsQueries'
+import { Course, courseService } from '@/src/features/courses'
 import { StruggleConfigPanel } from '@/src/features/struggle'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { cn } from '@/src/utils/cn'
 
 export function Analytics() {
-  usePageTitle('Analytics')
+  const addToast = useToast((s) => s.addToast)
+  usePageTitle('Analitik')
   const { activeTenant, role } = useAuth()
   const navigate = useNavigate()
   const [courses, setCourses] = useState<Course[]>([])
@@ -131,7 +134,7 @@ export function Analytics() {
         }
       }
 
-      alert(errorMessage)
+      addToast({ type: 'error', message: String(errorMessage) })
     }
   }
 
@@ -212,6 +215,16 @@ export function Analytics() {
             ))}
           </select>
 
+          {courses.length === 0 && !isLoading && (
+            <button
+              onClick={() => navigate('/app/teacher/course-builder')}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-sm"
+            >
+              <BookOpen className="w-4 h-4" />
+              Buat Kursus
+            </button>
+          )}
+
           <button
             onClick={handleManualRefresh}
             disabled={refreshMutation.isPending || isLoading || !selectedCourseId}
@@ -224,7 +237,7 @@ export function Analytics() {
           <button
             onClick={() => {
               if (selectedCourseId) {
-                navigate(`/teaching/course-analytics?courseId=${selectedCourseId}`)
+                navigate(`/app/teacher/course-analytics?courseId=${selectedCourseId}`)
               }
             }}
             disabled={!selectedCourseId}

@@ -1,4 +1,4 @@
-import { supabase } from '@/src/lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
 
 export interface CalendarEvent {
   id: string

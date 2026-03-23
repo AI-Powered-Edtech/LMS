@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
 import { validate, validateArray } from '@/src/shared/lib/validate'
 import { DiscussionPostRowSchema } from '@/src/shared/schemas'
 

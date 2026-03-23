@@ -1,4 +1,5 @@
-import { X, BarChart2, PieChart, TrendingUp, Map, Radio, Trophy, Target } from 'lucide-react'
+import { BarChart2, Map, PieChart, Radio, Target, TrendingUp, Trophy, X } from 'lucide-react'
+
 import type { WidgetType } from '../types'
 
 interface WidgetPickerProps {
@@ -20,14 +21,14 @@ const WIDGET_OPTIONS: {
   },
   {
     type: 'pie_chart',
-    label: 'Pie Chart Segmen',
+    label: 'Diagram Lingkaran Segmen',
     description: 'Distribusi segmentasi siswa',
     icon: <PieChart className="h-6 w-6" />,
   },
   {
     type: 'engagement_trend',
-    label: 'Tren Engagement',
-    description: 'Grafik tren engagement harian',
+    label: 'Tren Keterlibatan',
+    description: 'Grafik tren keterlibatan harian',
     icon: <TrendingUp className="h-6 w-6" />,
   },
   {
@@ -38,19 +39,19 @@ const WIDGET_OPTIONS: {
   },
   {
     type: 'heatmap',
-    label: 'Retention Heatmap',
+    label: 'Peta Panas Retensi',
     description: 'Matriks retensi kohort mingguan',
     icon: <Map className="h-6 w-6" />,
   },
   {
     type: 'funnel',
-    label: 'Funnel Analisis',
-    description: 'Funnel konversi langkah belajar',
+    label: 'Analisis Corong',
+    description: 'Corong konversi langkah belajar',
     icon: <BarChart2 className="h-6 w-6" />,
   },
   {
     type: 'leaderboard',
-    label: 'Leaderboard',
+    label: 'Papan Peringkat',
     description: 'Peringkat siswa berdasarkan XP',
     icon: <Trophy className="h-6 w-6" />,
   },

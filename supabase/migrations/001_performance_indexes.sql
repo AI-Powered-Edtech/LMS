@@ -13,15 +13,15 @@
 -- tenant-scoped, per-user query.
 
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_enrollments_tenant_user
-  ON enrollments (tenant_id, user_id);
+  ON enrollments (tenant_id, student_id);
 -- Purpose: fast lookup of a student's enrollments within a tenant.
 
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_student_lesson_signals_tenant_user
   ON student_lesson_signals (tenant_id, user_id);
 -- Purpose: progress dashboard queries filtered by tenant + student.
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_quiz_attempts_tenant_user
-  ON quiz_attempts (tenant_id, user_id);
+-- CREATE INDEX IF NOT EXISTS idx_quiz_attempts_tenant_user
+--   ON quiz_attempts_v2 (tenant_id, student_id);
 -- Purpose: grade-book and student quiz history queries.
 
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_activity_events_tenant_user
@@ -50,8 +50,8 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_quizzes_status
   ON quizzes (status);
 -- Purpose: quiz listing pages filtered by active/draft.
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_assignments_status
-  ON assignments (status);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_assignments_is_published
+  ON assignments (is_published);
 -- Purpose: assignment listing filtered by status.
 
 -- ─── Partial index: published courses ────────────────────────

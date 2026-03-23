@@ -1,14 +1,15 @@
-import { OptimizedImage } from '@/src/components/ui'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { Award, BarChart2, BookOpen, TrendingUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+
+import { OptimizedImage } from '@/src/components/ui'
 import { progressService, StudentProgressData } from '@/src/features/progress/api/progressService'
-import { Award, TrendingUp, BookOpen, BarChart2 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
 import { ProgressSkeleton } from '@/src/features/progress/components/ProgressSkeleton'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { cn } from '@/src/utils/cn'
 
 export function StudentProgress() {
-  usePageTitle('Student Progress')
+  usePageTitle('Progres Siswa')
   const { studentId } = useParams()
   const [data, setData] = useState<StudentProgressData | null>(null)
   const [loading, setLoading] = useState(true)

@@ -1,4 +1,5 @@
-import { supabase } from '@/src/lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
+
 import type { UploadOptions, UploadResult } from '../types'
 
 // Allowed MIME types for images

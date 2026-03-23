@@ -1,5 +1,6 @@
-import { supabase } from '@/src/lib/supabase'
-import type { ScheduledReport, ReportType, ReportSchedule, ExportFormat } from '../types'
+import { supabase } from '@/src/services/supabase/client'
+
+import type { ExportFormat, ReportSchedule, ReportType, ScheduledReport } from '../types'
 
 export const reportService = {
   async saveReport(params: {

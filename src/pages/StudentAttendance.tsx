@@ -1,10 +1,11 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useQuery } from '@tanstack/react-query'
-import { Calendar, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react'
-import { supabase } from '@/src/lib/supabase'
-import { useAuth } from '@/src/contexts/AuthContext'
+import { AlertCircle, Calendar, CheckCircle, Clock, XCircle } from 'lucide-react'
+
 import { EmptyState } from '@/src/components/ui'
+import { useAuth } from '@/src/contexts/AuthContext'
 import { ProgressSkeleton } from '@/src/features/progress/components/ProgressSkeleton'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { supabase } from '@/src/services/supabase/client'
 
 const STATUS_CONFIG = {
   hadir: {
@@ -38,7 +39,7 @@ const STATUS_CONFIG = {
 }
 
 export function StudentAttendance() {
-  usePageTitle('Student Attendance')
+  usePageTitle('Kehadiran Siswa')
   const { user, tenantId, profile } = useAuth()
 
   const { data: records = [], isLoading } = useQuery({

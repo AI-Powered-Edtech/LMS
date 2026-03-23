@@ -1,5 +1,6 @@
-import { supabase } from '@/src/lib/supabase'
-import type { LearningEvent, LearningEventType, EventMetadata } from '../types/events.types'
+import { supabase } from '@/src/services/supabase/client'
+
+import type { EventMetadata, LearningEvent, LearningEventType } from '../types/events.types'
 
 const MAX_BUFFER_SIZE = 200 // cap to prevent infinite growth on persistent failures
 const FLUSH_INTERVAL = 5000

@@ -1,13 +1,14 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState } from 'react'
-import { motion } from 'motion/react'
-import { Upload, CheckCircle2, Users, Camera, Save } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { supabase } from '@/src/lib/supabase'
+import { Camera, CheckCircle2, Save, Upload, Users } from 'lucide-react'
+import { motion } from 'motion/react'
+import { useState } from 'react'
+
 import { useAuth } from '@/src/contexts/AuthContext'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { supabase } from '@/src/services/supabase/client'
 
 export function ScanAttendance() {
-  usePageTitle('Scan Attendance')
+  usePageTitle('Pindai Kehadiran')
   const { user, tenantId } = useAuth()
   const [isScanning, setIsScanning] = useState(false)
   const [scanResult, setScanResult] = useState<

@@ -1,40 +1,41 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import React from 'react'
-import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import {
-  BarChart3,
-  Users,
-  BookOpen,
-  GraduationCap,
-  FileCheck,
-  ClipboardCheck,
   Activity,
-  TrendingUp,
-  RefreshCw,
   AlertCircle,
-  Loader2,
-  LayoutGrid,
-  Clock,
   BarChart,
+  BarChart3,
+  BookOpen,
+  ClipboardCheck,
+  Clock,
+  FileCheck,
+  GraduationCap,
+  LayoutGrid,
+  Loader2,
+  RefreshCw,
+  TrendingUp,
+  Users,
 } from 'lucide-react'
+import React from 'react'
 import {
-  LineChart,
-  Line,
-  BarChart as RechartsBarChart,
   Bar,
-  PieChart as RechartsPieChart,
-  Pie,
+  BarChart as RechartsBarChart,
+  CartesianGrid,
   Cell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart as RechartsPieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
 } from 'recharts'
-import { cn } from '@/src/utils/cn'
+
+import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
+import { ActivityTimePoint, CourseEngagement } from '@/src/features/analytics'
 import { useTenantAnalytics } from '@/src/features/analytics/queries/analyticsQueries'
-import { CourseEngagement, ActivityTimePoint } from '@/src/features/analytics'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { cn } from '@/src/utils/cn'
 
 // Color palette for charts
 interface MetricCardProps {
@@ -317,7 +318,7 @@ function StudentParticipationChart({
 }
 
 export function AdminAnalyticsDashboard() {
-  usePageTitle('Admin Analytics Dashboard')
+  usePageTitle('Dasbor Analitik Admin')
   const { data: analytics, isLoading, error, refetch } = useTenantAnalytics()
   const [isRefreshing, setIsRefreshing] = React.useState(false)
 
@@ -376,7 +377,7 @@ export function AdminAnalyticsDashboard() {
           {overview.lastRefreshedAt && (
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <Clock className="w-4 h-4" />
-              <span>Update: {new Date(overview.lastRefreshedAt).toLocaleString('id-ID')}</span>
+              <span>Diperbarui: {new Date(overview.lastRefreshedAt).toLocaleString('id-ID')}</span>
             </div>
           )}
           <button

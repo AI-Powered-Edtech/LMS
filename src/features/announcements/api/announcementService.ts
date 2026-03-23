@@ -1,4 +1,5 @@
-import { supabase } from '../../../lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
+
 import { Announcement, AnnouncementRSVP } from '../types'
 
 export const announcementService = {

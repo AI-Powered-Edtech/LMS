@@ -1,16 +1,18 @@
 // Quiz Player Service - Student-facing API
 // Extracted from quizService.ts for the Quiz Engine Refactor
 
-import { supabase } from '../../../lib/supabase'
+import { supabase } from '@/src/services/supabase/client'
+import { logDevError } from '@/src/utils/logDevError'
+
 import type {
-  StartQuizAttemptInput,
-  SubmitAnswer,
-  StartQuizAttemptResult,
-  QuizAttemptResult,
-  QuizAttemptQuestion,
-  StudentQuizAssignment,
-  QuizAttempt,
   QuestionType,
+  QuizAttempt,
+  QuizAttemptQuestion,
+  QuizAttemptResult,
+  StartQuizAttemptInput,
+  StartQuizAttemptResult,
+  StudentQuizAssignment,
+  SubmitAnswer,
 } from '../types/quizzes.types'
 
 // ============================================
@@ -37,7 +39,7 @@ export async function startQuizAttempt(
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Error starting quiz:', error)
+    logDevError('quizPlayer', 'Error starting quiz:', error)
     throw new Error(error.message || 'Failed to start quiz')
   }
 
@@ -66,7 +68,7 @@ export async function submitQuizAttempt(
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Error submitting quiz:', error)
+    logDevError('quizPlayer', 'Error submitting quiz:', error)
     throw new Error(error.message || 'Failed to submit quiz')
   }
 
@@ -75,7 +77,7 @@ export async function submitQuizAttempt(
   // Award XP if passed (fire-and-forget, don't block submit on XP award)
   if (result.passed && session?.user) {
     awardQuizXp(attemptId, session.user.id, result.score).catch((xpError) => {
-      if (import.meta.env.DEV) console.error('Failed to award quiz XP:', xpError)
+      logDevError('quizPlayer', 'Failed to award quiz XP:', xpError)
     })
   }
 
@@ -84,6 +86,7 @@ export async function submitQuizAttempt(
 
 /**
  * Batch save multiple answers (for autosave)
+ * Uses a single RPC call instead of N separate calls.
  */
 export async function batchSaveAnswers(
   attemptId: string,
@@ -94,18 +97,18 @@ export async function batchSaveAnswers(
   } = await supabase.auth.getSession()
   if (!session) throw new Error('Not authenticated')
 
-  const _answeredAt = new Date().toISOString()
+  const { error } = await supabase.rpc('batch_save_answers', {
+    p_attempt_id: attemptId,
+    p_answers: JSON.stringify(
+      answers.map((a) => ({
+        question_id: a.question_id,
+        selected_option_ids: a.selected_option_ids || [],
+        text_answer: a.text_answer || null,
+      }))
+    ),
+  })
 
-  const promises = answers.map((answer) =>
-    supabase.rpc('v1_save_answer', {
-      p_attempt_id: attemptId,
-      p_question_id: answer.question_id,
-      p_selected_option_ids: answer.selected_option_ids || [],
-      p_text_answer: answer.text_answer || null,
-    })
-  )
-
-  await Promise.all(promises)
+  if (error) throw error
   return true
 }
 
@@ -227,7 +230,7 @@ export async function recordCheatingSignal(
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Error recording cheating signal:', error)
+    logDevError('quizPlayer', 'Error recording cheating signal:', error)
   }
 }
 
@@ -240,7 +243,7 @@ export async function recordHeartbeat(attemptId: string): Promise<boolean> {
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Heartbeat error:', error)
+    logDevError('quizPlayer', 'Heartbeat error:', error)
     return false
   }
 
@@ -307,6 +310,7 @@ export async function getStudentQuizAssignments(
     .eq('quizzes.status', 'published')
     .eq('status', 'active')
     .order('available_from', { ascending: true })
+    .limit(100)
 
   if (error) throw error
 
@@ -385,6 +389,7 @@ export async function getUserAttempts(tenantId: string): Promise<QuizAttempt[]> 
     .eq('student_id', session.user.id)
     .eq('tenant_id', tenantId)
     .order('started_at', { ascending: false })
+    .limit(100)
 
   if (error) throw error
   return (data || []) as unknown as QuizAttempt[]
@@ -441,7 +446,7 @@ async function awardQuizXp(attemptId: string, userId: string, score: number): Pr
       .single()
 
     if (attemptError || !attempt) {
-      if (import.meta.env.DEV) console.error('Failed to fetch attempt for XP award:', attemptError)
+      logDevError('quizPlayer', 'Failed to fetch attempt for XP award:', attemptError)
       return
     }
 
@@ -453,7 +458,7 @@ async function awardQuizXp(attemptId: string, userId: string, score: number): Pr
       .single()
 
     if (quizError || !quiz) {
-      if (import.meta.env.DEV) console.error('Failed to fetch quiz for XP award:', quizError)
+      logDevError('quizPlayer', 'Failed to fetch quiz for XP award:', quizError)
       return
     }
 
@@ -473,6 +478,6 @@ async function awardQuizXp(attemptId: string, userId: string, score: number): Pr
     }
   } catch (err) {
     // Log failure but don't throw - this is fire-and-forget
-    if (import.meta.env.DEV) console.error('Error awarding quiz XP:', err)
+    logDevError('quizPlayer', 'Error awarding quiz XP:', err)
   }
 }

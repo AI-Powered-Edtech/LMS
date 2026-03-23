@@ -1,6 +1,7 @@
-import { lazy, Suspense, useState, useEffect } from 'react'
+import { Award, Clock, Eye, Play, Star, ThumbsUp, Trophy, XCircle } from 'lucide-react'
 import { motion } from 'motion/react'
-import { Trophy, Clock, XCircle, Play, Eye, Star, Award, ThumbsUp } from 'lucide-react'
+import { lazy, Suspense, useEffect, useState } from 'react'
+
 import { cn } from '@/src/utils/cn'
 
 // Lazy-loaded Confetti component
@@ -9,6 +10,7 @@ const Confetti = lazy(() => import('./Confetti').then((module) => ({ default: mo
 export function QuizResultsView({
   result,
   quiz,
+  gradedQuestions,
   onRetry,
   onClose,
   onViewAnswers,
@@ -27,6 +29,7 @@ export function QuizResultsView({
   quiz?: {
     show_correct_answers?: boolean
   }
+  gradedQuestions?: { id?: string; is_correct?: boolean | null }[]
   onRetry?: () => void
   onClose?: () => void
   onViewAnswers?: () => void
@@ -207,6 +210,39 @@ export function QuizResultsView({
             </div>
           )}
         </div>
+
+        {/* Per-Question Results Summary Grid */}
+        {showCorrectAnswers && gradedQuestions && gradedQuestions.length > 0 && (
+          <div className="mb-10 max-w-sm mx-auto">
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+              Ringkasan Per Soal
+            </p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {gradedQuestions.map((q, i) => (
+                <div
+                  key={q.id || `q-${i}`}
+                  className={cn(
+                    'w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-colors',
+                    q.is_correct === true
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
+                      : q.is_correct === false
+                        ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
+                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                  )}
+                  title={
+                    q.is_correct === true
+                      ? 'Benar'
+                      : q.is_correct === false
+                        ? 'Salah'
+                        : 'Belum dinilai'
+                  }
+                >
+                  {i + 1}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {passed === false &&
         ((passingScore && passingScore > 0) || (maxAttempts && maxAttempts > 0)) ? (

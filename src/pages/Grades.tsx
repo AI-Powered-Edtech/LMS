@@ -1,13 +1,15 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { supabase } from '@/src/lib/supabase'
+import { BookOpen, Calculator, ChevronDown, Target, Trophy } from 'lucide-react'
+import { useMemo, useState } from 'react'
+
 import { useAuth } from '@/src/contexts/AuthContext'
-import { cn } from '@/src/utils/cn'
 import { useCourses } from '@/src/features/courses/queries/courseQueries'
 import type { Course } from '@/src/features/courses/types'
-import { StudentGradeView } from '@/src/features/gradebook/components/StudentGradeView'
 import { GradebookSkeleton } from '@/src/features/gradebook/components/GradebookSkeleton'
+import { StudentGradeView } from '@/src/features/gradebook/components/StudentGradeView'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { supabase } from '@/src/services/supabase/client'
+import { cn } from '@/src/utils/cn'
 
 interface Assignment {
   id: string
@@ -47,7 +49,7 @@ const DEFAULT_ASSIGNMENTS: Assignment[] = [
 ]
 
 export function Grades() {
-  usePageTitle('Grades')
+  usePageTitle('Nilai')
   const { user, tenantId } = useAuth()
   const [whatIfScores, setWhatIfScores] = useState<Record<string, number | null>>({})
   const [targetGrade, setTargetGrade] = useState<number>(90)
@@ -67,6 +69,7 @@ export function Grades() {
         .eq('student_id', user!.id)
         .eq('tenant_id', tenantId!)
         .order('submitted_at', { ascending: false })
+        .limit(200)
       if (error) throw error
       return data ?? []
     },
@@ -263,9 +266,12 @@ export function Grades() {
                         What-If Score
                       </span>
                       <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-slate-400 mr-1 bg-slate-100 px-2 py-1 rounded-md">
+                          Belum dinilai
+                        </span>
                         <input
                           type="number"
-                          placeholder="?"
+                          placeholder="-"
                           value={
                             whatIfScores[a.id] === undefined || whatIfScores[a.id] === null
                               ? ''
@@ -278,15 +284,26 @@ export function Grades() {
                                 : Math.min(a.maxScore, Math.max(0, Number(e.target.value)))
                             setWhatIfScores((prev) => ({ ...prev, [a.id]: v }))
                           }}
-                          className="w-20 px-3 py-2 bg-blue-50 border-2 border-blue-200 focus:border-blue-500 text-blue-700 font-bold rounded-xl outline-none text-center transition-colors placeholder:text-blue-300"
+                          className="w-16 px-2 py-1.5 bg-blue-50 border-2 border-blue-200 focus:border-blue-500 text-blue-700 font-bold rounded-lg outline-none text-center transition-colors placeholder:text-blue-300"
                         />
-                        <span className="text-slate-400 font-medium">/ {a.maxScore}</span>
+                        <span className="text-slate-400 font-medium text-sm">/ {a.maxScore}</span>
                       </div>
                     </div>
                   )}
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="p-5 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-500">Total Proyeksi Nilai Akhir</p>
+              <p className="text-xs text-slate-400 mt-0.5">Gabungan nilai asli dan skor What-If</p>
+            </div>
+            <div className="text-right">
+              <span className="text-3xl font-black text-blue-600">{projectedGrade.toFixed(1)}</span>
+              <span className="text-slate-400 font-medium text-sm ml-1">/ 100</span>
+            </div>
           </div>
         </div>
       </div>

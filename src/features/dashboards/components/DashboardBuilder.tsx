@@ -1,11 +1,13 @@
-import { useState, useCallback } from 'react'
-import { Plus, Save, Loader2, Trash2, GripVertical } from 'lucide-react'
+import { GripVertical, Loader2, Plus, Save, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
+import { useCallback, useState } from 'react'
+
 import { cn } from '@/src/utils/cn'
-import type { DashboardConfig, LayoutItem, WidgetConfig, WidgetType } from '../types'
-import { WidgetRenderer } from './WidgetRenderer'
-import { WidgetPicker } from './WidgetPicker'
+
 import { useSaveDashboard } from '../queries/dashboardQueries'
+import type { DashboardConfig, LayoutItem, WidgetConfig, WidgetType } from '../types'
+import { WidgetPicker } from './WidgetPicker'
+import { WidgetRenderer } from './WidgetRenderer'
 
 interface DashboardBuilderProps {
   initialDashboard?: DashboardConfig | null
@@ -19,14 +21,14 @@ function generateId() {
 
 const WIDGET_LABEL_MAP: Record<WidgetType, string> = {
   metric_card: 'Metrik',
-  pie_chart: 'Pie Chart',
+  pie_chart: 'Diagram Lingkaran',
   engagement_trend: 'Tren',
   risk_radar: 'Radar Risiko',
-  heatmap: 'Heatmap',
-  funnel: 'Funnel',
-  leaderboard: 'Leaderboard',
-  line_chart: 'Line Chart',
-  bar_chart: 'Bar Chart',
+  heatmap: 'Peta Panas',
+  funnel: 'Corong',
+  leaderboard: 'Papan Peringkat',
+  line_chart: 'Grafik Garis',
+  bar_chart: 'Grafik Batang',
   table: 'Tabel',
   radar: 'Radar',
 }

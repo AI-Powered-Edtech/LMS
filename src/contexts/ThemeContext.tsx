@@ -1,37 +1,75 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
-type Theme = 'light' | 'dark'
+export type Theme = 'light' | 'dark' | 'system'
 
 interface ThemeContextType {
   theme: Theme
+  resolvedTheme: 'light' | 'dark'
+  setTheme: (theme: Theme) => void
   toggleTheme: () => void
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
+function getSystemTheme(): 'light' | 'dark' {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const savedTheme = localStorage.getItem('theme')
-    if (savedTheme === 'light' || savedTheme === 'dark') {
-      return savedTheme
+  const [theme, setThemeState] = useState<Theme>(() => {
+    const saved = localStorage.getItem('theme')
+    if (saved === 'light' || saved === 'dark' || saved === 'system') {
+      return saved
     }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    return 'system'
   })
 
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() =>
+    theme === 'system' ? getSystemTheme() : theme
+  )
+
+  // Sync resolvedTheme when theme changes (user picks light/dark/system)
+  useEffect(() => {
+    setResolvedTheme(theme === 'system' ? getSystemTheme() : theme)
+  }, [theme])
+
+  // Apply class + persist
   useEffect(() => {
     localStorage.setItem('theme', theme)
-    if (theme === 'dark') {
+    if (resolvedTheme === 'dark') {
       document.documentElement.classList.add('dark')
     } else {
       document.documentElement.classList.remove('dark')
     }
+  }, [theme, resolvedTheme])
+
+  // Listen for system theme changes when in 'system' mode
+  useEffect(() => {
+    if (theme !== 'system') return
+    const mql = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = (e: MediaQueryListEvent) => {
+      const newResolved = e.matches ? 'dark' : 'light'
+      setResolvedTheme(newResolved)
+    }
+    mql.addEventListener('change', handler)
+    return () => mql.removeEventListener('change', handler)
   }, [theme])
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
-  }
+  const setTheme = useCallback((t: Theme) => setThemeState(t), [])
 
-  return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>
+  const toggleTheme = useCallback(() => {
+    setThemeState((prev) => {
+      if (prev === 'system') return 'dark'
+      return prev === 'light' ? 'dark' : 'light'
+    })
+  }, [])
+
+  const value = useMemo(
+    () => ({ theme, resolvedTheme, setTheme, toggleTheme }),
+    [theme, resolvedTheme, setTheme, toggleTheme]
+  )
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
 
 export function useTheme() {

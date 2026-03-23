@@ -1,8 +1,9 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useEffect } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+
+import { BuilderSidebar, BuilderTopBar, LessonBlockEditor } from '@/src/components/CourseBuilder'
 import { BuilderProvider, useBuilder } from '@/src/contexts/BuilderContext'
-import { BuilderTopBar, BuilderSidebar, LessonBlockEditor } from '@/src/components/CourseBuilder'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 
 /**
  * CourseBuilderPage — The actual builder UI.
@@ -48,7 +49,7 @@ function CourseBuilderPage() {
             Materi.
           </p>
           <button
-            onClick={() => navigate('/teaching/courses')}
+            onClick={() => navigate('/app/teacher/courses')}
             className="min-h-[44px] px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors shadow-sm"
           >
             Kembali ke Kelola Materi
@@ -102,7 +103,7 @@ function CourseBuilderPage() {
  * Wraps the builder in BuilderProvider context.
  */
 export function CourseBuilder() {
-  usePageTitle('Course Builder')
+  usePageTitle('Pembuat Kursus')
   return (
     <BuilderProvider>
       <CourseBuilderPage />

@@ -1,12 +1,13 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
-import { passwordResetRateLimiter } from '@/src/utils/rateLimiter'
-import { useForm } from 'react-hook-form'
 import { valibotResolver } from '@hookform/resolvers/valibot'
-import { FormField } from '@/src/components/ui/FormField'
+import React, { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { Link } from 'react-router-dom'
 import * as v from 'valibot'
+
+import { FormField } from '@/src/components/ui/FormField'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { supabase } from '@/src/services/supabase/client'
+import { passwordResetRateLimiter } from '@/src/utils/rateLimiter'
 
 const forgotPasswordSchema = v.object({
   email: v.pipe(v.string(), v.email('Email tidak valid.')),
@@ -15,7 +16,7 @@ const forgotPasswordSchema = v.object({
 type ForgotPasswordFormData = v.InferInput<typeof forgotPasswordSchema>
 
 export function ForgotPassword() {
-  usePageTitle('Forgot Password')
+  usePageTitle('Lupa Kata Sandi')
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
 
@@ -60,7 +61,7 @@ export function ForgotPassword() {
       <div style={styles.card}>
         <div style={styles.logo}>
           <span style={styles.logoIcon}>🔐</span>
-          <h1 style={styles.title}>Reset Password</h1>
+          <h1 style={styles.title}>Atur Ulang Kata Sandi</h1>
           <p style={styles.subtitle}>
             {submitted
               ? 'Cek email kamu untuk link reset password'

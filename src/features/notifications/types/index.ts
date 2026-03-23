@@ -21,15 +21,11 @@ export interface Notification {
   actor_id: string | null
   type: NotificationType
   title: string
-  /** Primary body text (new schema) */
-  body: string | null
-  /** Legacy message field — used by NotificationCenter */
+  /** Message text — maps to baseline 'message' column */
   message: string
-  metadata: Record<string, unknown>
   is_read: boolean
-  read_at: string | null
   created_at: string
-  /** Legacy link field — used by NotificationCenter */
+  /** Navigation link — used by NotificationCenter */
   link: string | null
   actor?: {
     full_name: string

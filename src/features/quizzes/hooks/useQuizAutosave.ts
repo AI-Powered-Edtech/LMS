@@ -1,7 +1,7 @@
 // Quiz Autosave Hook - Interval-based background save for Smart Player
 // Part of the Quiz Engine Refactor
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 /**
  * Interface for the quiz service passed to the hook
@@ -113,20 +113,26 @@ export function useQuizAutosave({
   useEffect(() => {
     isMountedRef.current = true
 
-    // Initial save check
-    const currentAnswersJson = serializeAnswers(answers)
-    if (lastSavedAnswersRef.current === null && currentAnswersJson) {
-      lastSavedAnswersRef.current = currentAnswersJson
+    // Set initial lastSavedAnswersRef on mount
+    if (lastSavedAnswersRef.current === null) {
+      // Don't set it immediately so the first 5s timeout triggers a save
+      // lastSavedAnswersRef.current = currentAnswersJson
     }
 
     const intervalId = setInterval(() => {
       performSave()
     }, intervalMs)
 
+    // Trigger first save after 5 seconds to establish connection and status
+    const initialTimeout = setTimeout(() => {
+      performSave()
+    }, 5000)
+
     // Cleanup on unmount
     return () => {
       isMountedRef.current = false
       clearInterval(intervalId)
+      clearTimeout(initialTimeout)
     }
   }, [intervalMs, performSave, serializeAnswers, answers])
 

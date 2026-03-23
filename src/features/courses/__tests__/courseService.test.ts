@@ -1,20 +1,37 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { courseService } from '../api/courseService'
 
 // Mock supabase
-const mockRange = vi.fn().mockReturnThis()
-const mockIlike = vi.fn().mockReturnThis()
-const mockIn = vi.fn().mockReturnThis()
-const mockOrder = vi.fn().mockReturnThis()
-const mockEq = vi.fn().mockReturnThis()
-const mockSingle = vi.fn()
-const mockSelect = vi.fn().mockReturnThis()
-const mockInsert = vi.fn().mockReturnThis()
-const mockUpdate = vi.fn().mockReturnThis()
-const mockDelete = vi.fn().mockReturnThis()
-const mockFrom = vi.fn()
+const {
+  mockRange,
+  mockLimit,
+  mockIlike,
+  mockIn,
+  mockOrder,
+  mockEq,
+  mockSingle,
+  mockSelect,
+  mockInsert,
+  mockUpdate,
+  mockDelete,
+  mockFrom,
+} = vi.hoisted(() => ({
+  mockRange: vi.fn().mockReturnThis(),
+  mockLimit: vi.fn().mockReturnThis(),
+  mockIlike: vi.fn().mockReturnThis(),
+  mockIn: vi.fn().mockReturnThis(),
+  mockOrder: vi.fn().mockReturnThis(),
+  mockEq: vi.fn().mockReturnThis(),
+  mockSingle: vi.fn(),
+  mockSelect: vi.fn().mockReturnThis(),
+  mockInsert: vi.fn().mockReturnThis(),
+  mockUpdate: vi.fn().mockReturnThis(),
+  mockDelete: vi.fn().mockReturnThis(),
+  mockFrom: vi.fn(),
+}))
 
-vi.mock('../../../lib/supabase', () => ({
+vi.mock('@/src/services/supabase/client', () => ({
   supabase: {
     from: (table: string) => {
       mockFrom(table)
@@ -27,6 +44,7 @@ vi.mock('../../../lib/supabase', () => ({
         ilike: mockIlike,
         order: mockOrder,
         range: mockRange,
+        limit: mockLimit,
         in: mockIn,
         single: mockSingle,
       }
@@ -39,6 +57,7 @@ describe('courseService.fetchCourses', () => {
     vi.clearAllMocks()
     // Default: eq returns itself, range returns data
     mockEq.mockReturnThis()
+    mockLimit.mockReturnThis()
     mockOrder.mockReturnThis()
     mockRange.mockResolvedValue({ data: [], count: 0, error: null })
     mockSelect.mockReturnThis()
