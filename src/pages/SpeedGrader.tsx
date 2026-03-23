@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { aiGraderService } from '@/src/features/assignments/api/aiGraderService'
-import { useGradebook } from '@/src/features/assignments/hooks/useGradebookQueries'
 import { useComments } from '@/src/features/discussions/hooks/useCommentQueries'
 import type {
   ActiveTool,
@@ -17,6 +16,7 @@ import {
   RubricPanel,
   SaveStatusToast,
 } from '@/src/features/gradebook/components/speedgrader'
+import { useGradebook } from '@/src/features/gradebook/hooks/useGradebookQueries'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
 import { supabase } from '@/src/services/supabase/client'

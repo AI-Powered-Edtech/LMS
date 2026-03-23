@@ -16,10 +16,10 @@ import {
   TeacherSubmissionsPanel,
 } from '@/src/features/assignments/components/page'
 import { useAssignments } from '@/src/features/assignments/hooks/useAssignments'
-import { useGradebook } from '@/src/features/assignments/hooks/useGradebookQueries'
 import type { AssignmentUiState } from '@/src/features/assignments/types'
 import { useAddCalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
 import { useComments } from '@/src/features/discussions/hooks/useCommentQueries'
+import { useGradebook } from '@/src/features/gradebook/hooks/useGradebookQueries'
 import { useSendNotification } from '@/src/features/notifications'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 

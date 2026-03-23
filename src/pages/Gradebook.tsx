@@ -20,10 +20,10 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { EmptyState, OptimizedImage } from '@/src/components/ui'
-import { Assignment, useGradebook } from '@/src/features/assignments/hooks/useGradebookQueries'
 import { useCourses } from '@/src/features/courses/queries/courseQueries'
 import type { Course } from '@/src/features/courses/types'
 import { GradebookTable } from '@/src/features/gradebook/components/GradebookTable'
+import { Assignment, useGradebook } from '@/src/features/gradebook/hooks/useGradebookQueries'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
 

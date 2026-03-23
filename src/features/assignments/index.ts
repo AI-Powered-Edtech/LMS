@@ -1,22 +1,22 @@
 // API/Services
 export { assignmentService } from './api/assignmentService'
 
-export { gradebookService } from './api/gradebookService'
-
 // Hooks
 export { useAssignments } from './hooks/useAssignments'
-export { useGradebook } from './hooks/useGradebookQueries'
 
 // Types
 export type { Assignment, AssignmentSubmission } from './api/assignmentService'
+export type { AssignmentUiState, Attachment, Comment, StudentSubmission } from './types'
 
+// Legacy gradebook re-exports (moved to @/src/features/gradebook/)
+// Consumers should import directly from gradebook module instead.
 export type {
-  GradeStatus,
   GradebookAssignment,
-  GradeEntry,
-  GradeData,
-  GradebookStudent,
   GradebookData,
-} from './api/gradebookService'
-
-export type { Attachment, Comment, StudentSubmission, AssignmentUiState } from './types'
+  GradeData,
+  GradeEntry,
+  GradeStatus,
+  GradebookStudent as LegacyGradebookStudent,
+} from '@/src/features/gradebook/api/legacyGradebookService'
+export { gradebookService } from '@/src/features/gradebook/api/legacyGradebookService'
+export { useGradebook } from '@/src/features/gradebook/hooks/useGradebookQueries'

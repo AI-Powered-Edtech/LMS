@@ -1,13 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
 import { useAuth } from '@/src/contexts/AuthContext'
 import { createQueryKeys } from '@/src/lib/queryKeys'
+
 import {
-  gradebookService,
-  GradeStatus,
-  GradeEntry,
   GradebookAssignment,
   GradebookData,
-} from '@/src/features/assignments/api/gradebookService'
+  gradebookService,
+  GradeEntry,
+  GradeStatus,
+} from '../api/legacyGradebookService'
 
 export type Assignment = GradebookAssignment
 

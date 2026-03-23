@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { supabase } from '@/src/services/supabase/client'
 
-import { gradebookService } from '../api/gradebookService'
+import { gradebookService } from '../api/legacyGradebookService'
 
 // Mock the Supabase client
 vi.mock('@/src/services/supabase/client', () => {
