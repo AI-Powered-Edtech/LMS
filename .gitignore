@@ -39,3 +39,18 @@ smart-player-qa-state.md
 # Backup files
 supabase/*.bak
 *.bak
+
+# Local editor / AI tool directories
+.kilocode/
+.jules/
+.agents/
+.vscode/
+
+# Temporary dev scripts & local backups
+remediation_script.sql
+verify_rls_policies.sql
+get_table_def.js
+testApi.ts
+supabase_migrations_safe_backup/
+creator-*.png
+
