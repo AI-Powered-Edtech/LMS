@@ -96,10 +96,10 @@ export const analyticsService = {
    * @param courseId - The course ID to refresh stats for
    * @param tenantId - Tenant ID passed to RPC for defense-in-depth isolation
    */
-  async refreshCourseStats(courseId: string, tenantId: string): Promise<void> {
+  async refreshCourseStats(courseId: string, _tenantId: string): Promise<void> {
     const { error } = await supabase.rpc('refresh_course_stats', {
       p_course_id: courseId,
-      p_tenant_id: tenantId,
+      p_tenant_id: _tenantId,
     })
 
     if (error) {
@@ -116,11 +116,11 @@ export const analyticsService = {
    */
   async getTeacherAnalytics(
     courseId: string,
-    tenantId: string
+    _tenantId: string
   ): Promise<TeacherAnalyticsData | null> {
     const { data, error } = await supabase.rpc('get_teacher_analytics', {
       p_course_id: courseId,
-      p_tenant_id: tenantId,
+      p_tenant_id: _tenantId,
     })
 
     if (error) {
@@ -134,7 +134,7 @@ export const analyticsService = {
   /**
    * Refresh all course stats (admin only)
    */
-  async refreshAllCourseStats(_tenantId: string): Promise<void> {
+  async refreshAllCourseStats(__tenantId: string): Promise<void> {
     const { error } = await supabase.rpc('refresh_all_course_stats')
 
     if (error) {
@@ -147,11 +147,11 @@ export const analyticsService = {
    * Fetches tenant-level analytics overview from course_stats table.
    * Aggregates data across all courses in the tenant.
    */
-  async getTenantAnalyticsOverview(tenantId: string): Promise<TenantAnalyticsOverview> {
+  async getTenantAnalyticsOverview(_tenantId: string): Promise<TenantAnalyticsOverview> {
     const { data, error } = await supabase
       .from('course_stats')
       .select('course_id, tenant_id, total_enrolled, active_students, avg_progress, avg_quiz_score, last_refreshed_at')
-      .eq('tenant_id', tenantId)
+      .eq('tenant_id', _tenantId)
 
     if (error) {
       console.error('Failed to get tenant analytics overview:', error)
@@ -210,14 +210,14 @@ export const analyticsService = {
    * Fetches activity metrics from activity_events table.
    * Counts events by type for the tenant within a time range.
    */
-  async getActivityMetrics(tenantId: string, days: number = 30): Promise<ActivityMetrics> {
+  async getActivityMetrics(_tenantId: string, days: number = 30): Promise<ActivityMetrics> {
     const since = new Date()
     since.setDate(since.getDate() - days)
 
     const { data, error } = await supabase
       .from('activity_events')
       .select('event_type, created_at')
-      .eq('tenant_id', tenantId)
+      .eq('tenant_id', _tenantId)
       .gte('created_at', since.toISOString())
       .limit(5000)
 
@@ -249,9 +249,9 @@ export const analyticsService = {
    * Fetches course engagement data via a single RPC that joins course_stats + courses.
    * Replaces the previous two-query pattern.
    */
-  async getCourseEngagementStats(tenantId: string): Promise<CourseEngagement[]> {
+  async getCourseEngagementStats(_tenantId: string): Promise<CourseEngagement[]> {
     const { data, error } = await supabase.rpc('get_course_engagement', {
-      p_tenant_id: tenantId,
+      p_tenant_id: _tenantId,
     })
     if (error) {
       console.error('Failed to get course engagement stats:', error)
@@ -278,9 +278,9 @@ export const analyticsService = {
    * Fetches activity timeline data for charts.
    * Aggregation is done server-side via RPC to avoid loading raw event rows.
    */
-  async getActivityTimeline(tenantId: string, days: number = 14): Promise<ActivityTimePoint[]> {
+  async getActivityTimeline(_tenantId: string, days: number = 14): Promise<ActivityTimePoint[]> {
     const { data, error } = await supabase.rpc('get_activity_timeline', {
-      p_tenant_id: tenantId,
+      p_tenant_id: _tenantId,
       p_days: days,
     })
 
@@ -323,12 +323,12 @@ export const analyticsService = {
    * Fetches all tenant analytics data combined.
    * This is the main entry point for the admin dashboard.
    */
-  async getTenantAnalytics(tenantId: string): Promise<TenantAnalyticsData> {
+  async getTenantAnalytics(_tenantId: string): Promise<TenantAnalyticsData> {
     const [overview, activityMetrics, courseEngagement, activityTimeline] = await Promise.all([
-      this.getTenantAnalyticsOverview(tenantId),
-      this.getActivityMetrics(tenantId),
-      this.getCourseEngagementStats(tenantId),
-      this.getActivityTimeline(tenantId),
+      this.getTenantAnalyticsOverview(_tenantId),
+      this.getActivityMetrics(_tenantId),
+      this.getCourseEngagementStats(_tenantId),
+      this.getActivityTimeline(_tenantId),
     ])
 
     return {
@@ -343,7 +343,7 @@ export const analyticsService = {
 
   async getCourseAnalyticsDashboard(
     courseId: string,
-    tenantId: string
+    _tenantId: string
   ): Promise<CourseAnalytics | null> {
     const { data, error } = await supabase.rpc('get_course_analytics', { p_course_id: courseId })
     if (error) throw parseRpcError(error)
@@ -352,7 +352,7 @@ export const analyticsService = {
 
   async getLessonAnalyticsDashboard(
     courseId: string,
-    tenantId: string
+    _tenantId: string
   ): Promise<LessonAnalytics[]> {
     const { data, error } = await supabase.rpc('get_lesson_analytics', { p_course_id: courseId })
     if (error) throw parseRpcError(error)
@@ -361,7 +361,7 @@ export const analyticsService = {
 
   async getStudentSignalsDashboard(
     courseId: string,
-    tenantId: string,
+    _tenantId: string,
     lessonId?: string
   ): Promise<StudentSignal[]> {
     const { data, error } = await supabase.rpc('get_student_signals', {
