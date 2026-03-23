@@ -142,8 +142,6 @@ export function Analytics() {
     setTimeout(() => setAiInsightMessage(null), 4000)
   }
 
-  if (!activeTenant) return null
-
   const radarData = useMemo(
     () =>
       data?.module_completion.map((m) => ({

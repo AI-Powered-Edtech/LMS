@@ -26,7 +26,6 @@ import {
   CalendarEvent,
 } from '@/src/features/calendar/hooks/useCalendarQueries'
 import { useCalendarStore } from '@/src/features/calendar/hooks/useCalendarQueries'
-import { SkeletonCard } from '@/src/components/ui'
 import { CalendarSkeleton } from '@/src/features/calendar/components/CalendarSkeleton'
 
 type EventType = 'exam' | 'assignment' | 'event' | 'quiz'

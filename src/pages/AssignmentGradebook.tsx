@@ -98,11 +98,6 @@ export function AssignmentGradebook() {
     }
   }, [gradingSubmission, score, feedback])
 
-  if (loading) {
-    return <GradebookSkeleton />
-  }
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const submissionColumns = useMemo(() => [
     {
       key: 'student',
@@ -189,6 +184,10 @@ export function AssignmentGradebook() {
       ),
     },
   ], [selectedAssignment, handleOpenGrading])
+
+  if (loading) {
+    return <GradebookSkeleton />
+  }
 
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">

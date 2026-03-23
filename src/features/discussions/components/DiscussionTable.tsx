@@ -73,7 +73,6 @@ export function DiscussionTable<T extends Record<string, unknown>>({
         render: (row: T, _index: number) =>
           col.render ? col.render(row[col.key], row) : String(row[col.key] ?? ''),
       })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [columns]
   )
 

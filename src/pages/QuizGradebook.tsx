@@ -186,12 +186,12 @@ export function QuizGradebook() {
     loadDifficulty()
   }, [selectedAssignment, attempts])
 
-  const handleOpenAttemptDetail = (attempt: AssignmentResultRow) => {
+  const handleOpenAttemptDetail = useCallback((attempt: AssignmentResultRow) => {
     setSelectedAttemptId(attempt.attempt_id)
     setSelectedStudentName(attempt.student_name || 'Siswa')
     setSelectedScore(attempt.score)
     setSelectedPassed(attempt.passed)
-  }
+  }, [])
 
   const handleExportCSV = () => {
     const csv = quizAnalyticsService.exportGradebookCSV(
@@ -365,7 +365,6 @@ export function QuizGradebook() {
         </div>
       ),
     },
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   ], [passingScore, handleOpenAttemptDetail])
 
   return (
