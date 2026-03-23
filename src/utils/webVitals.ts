@@ -1,8 +1,9 @@
 // EduSync LMS — Core Web Vitals monitoring
 // Dev: coloured console badges. Prod: 10 % sample → activity_events table.
 
-import { onCLS, onLCP, onFCP, onTTFB, onINP } from 'web-vitals'
 import type { Metric } from 'web-vitals'
+import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals'
+
 import { supabase } from '@/src/services/supabase/client'
 
 /* ─── Helpers ──────────────────────────────────────────────── */
@@ -25,13 +26,14 @@ function ratingEmoji(rating: Metric['rating']): string {
 
 function logMetricDev(metric: Metric): void {
   const color = badgeColors[metric.name] ?? '#6b7280'
-  // eslint-disable-next-line no-console
-  if (import.meta.env.DEV)
+
+  if (import.meta.env.DEV) {
     console.log(
       `%c ${metric.name} %c ${metric.value.toFixed(1)} ${ratingEmoji(metric.rating)}`,
       `background:${color};color:#fff;padding:2px 6px;border-radius:3px;font-weight:bold`,
       'color:inherit'
     )
+  }
 }
 
 async function sendMetricProd(metric: Metric): Promise<void> {

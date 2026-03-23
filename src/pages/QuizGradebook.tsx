@@ -276,7 +276,7 @@ export function QuizGradebook() {
                 alt=""
               />
             </div>
-            <span className="font-semibold text-slate-800 text-sm">
+            <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">
               {attempt.student_name || 'Siswa'}
             </span>
           </div>
@@ -328,7 +328,7 @@ export function QuizGradebook() {
         key: 'time_spent',
         header: 'Waktu',
         render: (attempt: AssignmentResultRow) => (
-          <div className="flex justify-center text-sm text-slate-600">
+          <div className="flex justify-center text-sm text-slate-600 dark:text-slate-400">
             <span className="inline-flex items-center gap-1">
               <Clock className="w-3.5 h-3.5 text-slate-400" />
               {formatDuration(attempt.time_spent)}
@@ -340,7 +340,7 @@ export function QuizGradebook() {
         key: 'submitted_at',
         header: 'Diserahkan',
         render: (attempt: AssignmentResultRow) => (
-          <div className="text-center text-sm text-slate-500">
+          <div className="text-center text-sm text-slate-500 dark:text-slate-400">
             {attempt.submitted_at
               ? new Date(attempt.submitted_at).toLocaleString('id-ID', {
                   day: 'numeric',
@@ -362,7 +362,7 @@ export function QuizGradebook() {
                 e.stopPropagation()
                 handleOpenAttemptDetail(attempt)
               }}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
             >
               <Eye className="w-3.5 h-3.5" />
               Detail
@@ -378,22 +378,24 @@ export function QuizGradebook() {
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-3">
             <Link
               to="/teacher-dashboard"
-              className="p-2 -ml-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-500 hover:text-slate-900"
+              className="p-2 -ml-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
             Buku Nilai Kuis
           </h1>
-          <p className="text-slate-500 mt-1 ml-9 text-sm">Rekap nilai assignment kuis per kelas</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 ml-9 text-sm">
+            Rekap nilai assignment kuis per kelas
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleExportCSV}
             disabled={!selectedAssignment || filteredAttempts.length === 0}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm disabled:opacity-50"
           >
             <Download className="w-4 h-4" />
             Ekspor CSV
@@ -401,7 +403,7 @@ export function QuizGradebook() {
           <button
             onClick={loadAttempts}
             disabled={!selectedAssignment || isLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm disabled:opacity-50"
           >
             <RefreshCw className={cn('w-4 h-4', isLoading && 'animate-spin')} />
             Refresh
@@ -411,14 +413,14 @@ export function QuizGradebook() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
             Pilih Kelas
           </label>
           <div className="relative">
             <select
               value={selectedClass}
               onChange={(e) => setSelectedClass(e.target.value)}
-              className="w-full appearance-none px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none shadow-sm pr-10"
+              className="w-full appearance-none px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm pr-10"
             >
               <option value="">-- Pilih kelas --</option>
               {classes.map((classroom) => (
@@ -431,7 +433,7 @@ export function QuizGradebook() {
           </div>
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
             Pilih Assignment
           </label>
           <div className="relative">
@@ -439,7 +441,7 @@ export function QuizGradebook() {
               value={selectedAssignment}
               onChange={(e) => setSelectedAssignment(e.target.value)}
               disabled={!selectedClass || isAssignmentLoading || assignments.length === 0}
-              className="w-full appearance-none px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none shadow-sm pr-10 disabled:opacity-50"
+              className="w-full appearance-none px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm pr-10 disabled:opacity-50"
             >
               <option value="">-- Pilih assignment kuis --</option>
               {assignments.map((assignment) => (
@@ -487,25 +489,29 @@ export function QuizGradebook() {
           ].map((stat) => (
             <div
               key={stat.label}
-              className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm"
+              className="bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-slate-500 font-medium text-xs sm:text-sm">{stat.label}</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium text-xs sm:text-sm">
+                  {stat.label}
+                </span>
                 <div
                   className={cn('w-8 h-8 rounded-lg flex items-center justify-center', stat.color)}
                 >
                   {stat.icon}
                 </div>
               </div>
-              <div className="text-2xl sm:text-3xl font-bold text-slate-800">{stat.value}</div>
-              <p className="text-xs text-slate-500 mt-0.5">{stat.sub}</p>
+              <div className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100">
+                {stat.value}
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{stat.sub}</p>
             </div>
           ))}
         </div>
       )}
 
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between gap-3">
+      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between gap-3">
           <div className="relative w-full sm:w-72">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -513,35 +519,39 @@ export function QuizGradebook() {
               placeholder="Cari nama siswa..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
           </div>
           {selectedAssignmentInfo && (
-            <span className="text-xs font-bold bg-purple-100 text-purple-700 px-3 py-1 rounded-full shrink-0">
+            <span className="text-xs font-bold bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full shrink-0">
               {selectedAssignmentInfo.title}
             </span>
           )}
         </div>
 
         {error && (
-          <div className="p-4 bg-red-50 text-red-600 text-sm border-b border-red-100">{error}</div>
+          <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm border-b border-red-100 dark:border-red-900/30">
+            {error}
+          </div>
         )}
 
         {!selectedAssignment ? (
-          <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+          <div className="flex flex-col items-center justify-center py-16 text-slate-400 dark:text-slate-500">
             <HelpCircle className="w-12 h-12 mb-3 opacity-30" />
-            <p className="font-medium text-slate-500">Pilih kelas dan assignment</p>
+            <p className="font-medium text-slate-500 dark:text-slate-400">
+              Pilih kelas dan assignment
+            </p>
             <p className="text-sm mt-1">untuk melihat rekap nilai siswa.</p>
           </div>
         ) : isLoading ? (
-          <div className="flex items-center justify-center py-16 text-slate-400 gap-2">
+          <div className="flex items-center justify-center py-16 text-slate-400 dark:text-slate-500 gap-2">
             <Loader2 className="w-5 h-5 animate-spin" />
             <span className="text-sm">Memuat data...</span>
           </div>
         ) : filteredAttempts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+          <div className="flex flex-col items-center justify-center py-16 text-slate-400 dark:text-slate-500">
             <Clock className="w-10 h-10 mb-3 opacity-30" />
-            <p className="font-medium text-slate-500">Belum ada percobaan</p>
+            <p className="font-medium text-slate-500 dark:text-slate-400">Belum ada percobaan</p>
             <p className="text-sm mt-1">Siswa belum mengerjakan assignment kuis ini.</p>
           </div>
         ) : (
@@ -556,14 +566,16 @@ export function QuizGradebook() {
       </div>
 
       {selectedAssignment && questionDifficulty.length > 0 && (
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="p-4 border-b border-slate-100 flex items-center gap-2">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-indigo-500" />
-            <h3 className="font-bold text-slate-800">Tingkat Kesulitan Soal</h3>
-            <span className="text-xs text-slate-400 ml-auto">% siswa menjawab benar</span>
+            <h3 className="font-bold text-slate-800 dark:text-slate-200">Tingkat Kesulitan Soal</h3>
+            <span className="text-xs text-slate-400 dark:text-slate-500 ml-auto">
+              % siswa menjawab benar
+            </span>
           </div>
           {isDifficultyLoading ? (
-            <div className="flex items-center justify-center py-8 text-slate-400 gap-2">
+            <div className="flex items-center justify-center py-8 text-slate-400 dark:text-slate-500 gap-2">
               <Loader2 className="w-4 h-4 animate-spin" />
               <span className="text-sm">Memuat...</span>
             </div>
@@ -583,15 +595,15 @@ export function QuizGradebook() {
 
                 return (
                   <div key={question.question_id} className="flex items-center gap-4">
-                    <span className="text-xs font-bold text-slate-400 w-6 text-right shrink-0">
+                    <span className="text-xs font-bold text-slate-400 dark:text-slate-500 w-6 text-right shrink-0">
                       {index + 1}.
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-700 truncate mb-1">
+                      <p className="text-sm text-slate-700 dark:text-slate-300 truncate mb-1">
                         {question.question_text}
                       </p>
                       <div className="flex items-center gap-3">
-                        <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                           <div
                             className={cn('h-full rounded-full transition-all', barColor)}
                             style={{ width: `${percent}%` }}
@@ -601,10 +613,12 @@ export function QuizGradebook() {
                           className={cn('text-xs font-bold w-16 text-right shrink-0', labelColor)}
                         >
                           {percent}%{' '}
-                          <span className="font-normal text-slate-400 text-[10px]">{label}</span>
+                          <span className="font-normal text-slate-400 dark:text-slate-500 text-[10px]">
+                            {label}
+                          </span>
                         </span>
                       </div>
-                      <p className="text-[10px] text-slate-400 mt-0.5">
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
                         {question.correct_count} / {question.total_attempts} siswa benar
                       </p>
                     </div>

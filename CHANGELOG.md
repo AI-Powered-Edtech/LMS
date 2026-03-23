@@ -1,5 +1,40 @@
 # EduSync LMS — Changelog
 
+## God-Component Decomposition — Phase B/C/D (2026-03-24)
+
+Decomposed 6 god-components (500–1100+ lines each) down to manageable sizes, converted 19 `alert()` calls to `useToast`, and added dark mode support to extracted components.
+
+### Phase B — Medium-complexity decompositions
+
+- **Dashboard.tsx** (742 → 176 lines): Extracted 7 section components into `src/features/dashboards/components/sections/` (WelcomeCard, MyClassesSection, UpcomingAssignments, ContinueLearning, AnnouncementsPreview, LeaderboardPreview, GamificationWidgets).
+- **SpeedGrader.tsx** (797 → 234 lines): Extracted 4 components + types into `src/features/gradebook/components/speedgrader/` (SaveStatusToast, GraderTopBar, DocumentViewer, RubricPanel).
+- **Assignments.tsx** (1107 → 399 lines): Extracted 5 components + utils into `src/features/assignments/components/page/` (AssignmentListSidebar, CreateAssignmentModal, StudentSubmissionPanel, TeacherSubmissionsPanel, PrivateCommentsPanel).
+
+### Phase C — High-complexity decompositions
+
+- **LessonViewer.tsx** (1084 → 590 lines): Extracted 4 viewer components into `src/features/lessons/components/viewer/` (LessonTopBar, LegacyContentFallback, LessonCelebrations, LessonBottomNav). All with `dark:` variants.
+- **BuilderContext.tsx** (710 → 132 lines): Extracted reducer + 4 domain action hooks into `src/features/courses/builder/` (builderReducer, useCourseActions, useModuleActions, useLessonActions, useBlockActions). Context is now a thin provider composing the hooks.
+- **routes.tsx** (1099 → 231 lines): Extracted lazy page registry (`lazyPages.tsx`, 281 lines), legacy redirects (`legacyRedirects.tsx`, 79 lines), and `S()` Suspense helper. Route definitions use data-driven patterns to eliminate repetition.
+
+### Phase D — Cleanup
+
+- **19 `alert()` → `useToast`**: Converted all remaining browser `alert()` calls to toast notifications across 5 files: Quiz.tsx (10), ClassManagement.tsx (4), SpeedGrader.tsx (2), UserManagement.tsx (2), Courses.tsx (1). All error messages remain in Bahasa Indonesia.
+- **Dark mode pass (~680 `dark:` variants)**: Added Tailwind `dark:` variants to all 20 page-level files that participate in the app's light/dark toggle. Skipped 4 auth pages (Login, ForgotPassword, ResetPassword, VerifyEmail) and WorkspaceSelector that use a permanently dark aesthetic, plus 4 thin wrappers (Directory, Leaderboard, GroupAssignment, Forum) that delegate all rendering to feature components.
+  - **P1 (high-traffic)**: Quiz.tsx (36), ClassManagement.tsx (50), UserManagement.tsx (47)
+  - **P2 (medium-traffic)**: QuizGradebook.tsx (37), Creator.tsx (40), AdminAnalyticsDashboard.tsx (44), AdministrationDashboard.tsx (55)
+  - **P3 (remaining)**: PublicProfile.tsx (~45), Certificates.tsx (38), FinanceDashboard.tsx (58), AssignmentGradebook.tsx (39), AuditDashboard.tsx (21), DocumentManager.tsx (37), ScanAttendance.tsx (38), PPDBDashboard.tsx (36), ModerationDashboard.tsx (33), StudentAttendance.tsx (18), StudentProgress.tsx (37), StudentClassPage.tsx (16)
+
+### Files created
+
+| Directory                                        | Files                                                |
+| ------------------------------------------------ | ---------------------------------------------------- |
+| `src/features/dashboards/components/sections/`   | 7 section components + `index.ts`                    |
+| `src/features/gradebook/components/speedgrader/` | `types.ts`, 4 components + `index.ts`                |
+| `src/features/assignments/components/page/`      | `assignmentPageUtils.tsx`, 5 components + `index.ts` |
+| `src/features/lessons/components/viewer/`        | 4 components + `index.ts`                            |
+| `src/features/courses/builder/`                  | `builderReducer.ts`, 4 hook files + `index.ts`       |
+| `src/app/`                                       | `lazyPages.tsx`, `legacyRedirects.tsx`               |
+
 ## Quiz Feature QA Fixes (2026-03-23)
 
 Fixed 13 functional and UI/UX gaps identified during live browser testing for the Quiz feature.

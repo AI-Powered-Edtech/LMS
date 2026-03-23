@@ -19,7 +19,7 @@ const columns = [
   {
     header: 'ID Pendaftaran',
     key: 'id',
-    className: 'px-6 py-4 font-mono text-slate-600',
+    className: 'px-6 py-4 font-mono text-slate-600 dark:text-slate-400',
     render: (row: Record<string, any>) => row.id,
   },
   {
@@ -28,15 +28,15 @@ const columns = [
     className: 'px-6 py-4',
     render: (row: Record<string, any>) => (
       <div>
-        <p className="font-bold text-slate-900">{row.name}</p>
-        <p className="text-xs text-slate-500">{row.email}</p>
+        <p className="font-bold text-slate-900 dark:text-slate-100">{row.name}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{row.email}</p>
       </div>
     ),
   },
   {
     header: 'Asal Sekolah',
     key: 'prevSchool',
-    className: 'px-6 py-4 text-slate-600',
+    className: 'px-6 py-4 text-slate-600 dark:text-slate-400',
     render: (row: Record<string, any>) => row.prevSchool,
   },
   {
@@ -51,7 +51,7 @@ const columns = [
             ? 'text-green-600'
             : row.avgScore >= 80
               ? 'text-blue-600'
-              : 'text-slate-600'
+              : 'text-slate-600 dark:text-slate-400'
         )}
       >
         {row.avgScore}
@@ -61,7 +61,7 @@ const columns = [
   {
     header: 'Tanggal Daftar',
     key: 'date',
-    className: 'px-6 py-4 text-slate-600',
+    className: 'px-6 py-4 text-slate-600 dark:text-slate-400',
     render: (row: Record<string, any>) => row.date,
   },
   {
@@ -95,7 +95,7 @@ const columns = [
     key: 'action',
     className: 'px-6 py-4',
     render: () => (
-      <button className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors">
+      <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-400 hover:text-slate-600 transition-colors">
         <ChevronRight className="w-5 h-5" />
       </button>
     ),
@@ -169,16 +169,16 @@ export function PPDBDashboard() {
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <UserPlus className="w-8 h-8 text-blue-600" />
             PPDB Online
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-slate-500 dark:text-slate-400 mt-1">
             Penerimaan Peserta Didik Baru Tahun Ajaran 2026/2027
           </p>
         </div>
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl flex items-center gap-2 hover:bg-slate-50">
+          <button className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700">
             <Download className="w-4 h-4" /> Ekspor Data
           </button>
           <button className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl flex items-center gap-2 hover:bg-blue-700">
@@ -189,47 +189,51 @@ export function PPDBDashboard() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500">Total Pendaftar</p>
-            <h3 className="text-2xl font-bold text-slate-900">1,245</h3>
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              Total Pendaftar
+            </p>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">1,245</h3>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-xl flex items-center justify-center">
             <Clock className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500">Menunggu Verifikasi</p>
-            <h3 className="text-2xl font-bold text-slate-900">45</h3>
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              Menunggu Verifikasi
+            </p>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">45</h3>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center">
             <CheckCircle className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500">Diterima</p>
-            <h3 className="text-2xl font-bold text-slate-900">850</h3>
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Diterima</p>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">850</h3>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 bg-red-100 text-red-600 rounded-xl flex items-center justify-center">
             <XCircle className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500">Ditolak</p>
-            <h3 className="text-2xl font-bold text-slate-900">350</h3>
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Ditolak</p>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">350</h3>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between gap-4">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex flex-col md:flex-row justify-between gap-4">
           <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
             {['all', 'pending', 'accepted', 'rejected'].map((status) => (
               <button
@@ -239,7 +243,7 @@ export function PPDBDashboard() {
                   'px-4 py-2 rounded-xl text-sm font-bold capitalize transition-colors whitespace-nowrap',
                   filterStatus === status
                     ? 'bg-slate-900 text-white'
-                    : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                    : 'bg-slate-50 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                 )}
               >
                 {status === 'all'
@@ -257,7 +261,7 @@ export function PPDBDashboard() {
             <input
               type="text"
               placeholder="Cari nama atau ID..."
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />

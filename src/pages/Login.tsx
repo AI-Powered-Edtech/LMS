@@ -43,11 +43,13 @@ export function Login() {
   const [submitting, setSubmitting] = useState(false)
 
   const loginForm = useForm<LoginFormData>({
+    mode: 'onChange',
     resolver: valibotResolver(LoginFormSchema),
     defaultValues: { email: '', password: '' },
   })
 
   const registerForm = useForm<RegisterFormData>({
+    mode: 'onChange',
     resolver: valibotResolver(RegisterFormSchema),
     defaultValues: { firstName: '', lastName: '', email: '', password: '' },
   })
@@ -398,6 +400,7 @@ export function Login() {
                       autoComplete="email"
                       onInput={(e: React.FormEvent<HTMLInputElement>) => {
                         loginForm.setValue('email', e.currentTarget.value, { shouldValidate: true })
+                        if (error) setError('')
                       }}
                       className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
                     />
@@ -416,6 +419,7 @@ export function Login() {
                         loginForm.setValue('password', e.currentTarget.value, {
                           shouldValidate: true,
                         })
+                        if (error) setError('')
                       }}
                       className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
                     />
@@ -490,7 +494,7 @@ export function Login() {
                   >
                     <input
                       type="password"
-                      placeholder="Minimal 6 karakter"
+                      placeholder="Min 8 karakter, 1 Huruf Besar, 1 Angka"
                       className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
                     />
                   </FormField>

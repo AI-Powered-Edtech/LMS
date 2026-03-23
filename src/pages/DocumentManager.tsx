@@ -77,18 +77,22 @@ export function DocumentManager() {
     <div className="max-w-6xl mx-auto space-y-8 h-full flex flex-col">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             Manajemen Surat & Dokumen
           </h1>
-          <p className="text-slate-500 mt-2">Smart Document Editor dengan Approval Berjenjang.</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">
+            Smart Document Editor dengan Approval Berjenjang.
+          </p>
         </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8 flex-1 min-h-0">
         {/* Left Column: Templates & Autocomplete */}
         <div className="lg:col-span-1 space-y-6 flex flex-col">
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-            <h2 className="text-xl font-bold text-slate-800 mb-4">Template Surat</h2>
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-4">
+              Template Surat
+            </h2>
             <div className="grid gap-3">
               {templates.map((t) => (
                 <button
@@ -98,7 +102,7 @@ export function DocumentManager() {
                     'flex items-center gap-4 p-4 rounded-2xl border transition-all text-left',
                     selectedTemplate === t.id
                       ? 'border-blue-500 bg-blue-50 shadow-sm'
-                      : 'border-slate-100 bg-slate-50 hover:bg-slate-100'
+                      : 'border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700'
                   )}
                 >
                   <div
@@ -109,17 +113,19 @@ export function DocumentManager() {
                   >
                     <t.icon className={cn('w-5 h-5', t.color)} />
                   </div>
-                  <span className="font-bold text-slate-700">{t.name}</span>
+                  <span className="font-bold text-slate-700 dark:text-slate-300">{t.name}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex-1">
-            <h2 className="text-xl font-bold text-slate-800 mb-4">Isian Otomatis</h2>
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 flex-1">
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-4">
+              Isian Otomatis
+            </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                   Cari NISN Siswa (Ketik: 12345)
                 </label>
                 <div className="relative">
@@ -129,7 +135,7 @@ export function DocumentManager() {
                     value={nisn}
                     onChange={handleAutocomplete}
                     placeholder="Masukkan NISN..."
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all font-medium"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all font-medium"
                   />
                 </div>
               </div>
@@ -147,20 +153,20 @@ export function DocumentManager() {
                     </div>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Nama:</span>
-                        <span className="font-bold text-slate-900">
+                        <span className="text-slate-500 dark:text-slate-400">Nama:</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100">
                           {String(studentData.name ?? '')}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Kelas:</span>
-                        <span className="font-bold text-slate-900">
+                        <span className="text-slate-500 dark:text-slate-400">Kelas:</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100">
                           {String(studentData.className ?? '')}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Alamat:</span>
-                        <span className="font-bold text-slate-900 truncate max-w-[150px]">
+                        <span className="text-slate-500 dark:text-slate-400">Alamat:</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100 truncate max-w-[150px]">
                           {String(studentData.address ?? '')}
                         </span>
                       </div>
@@ -173,10 +179,12 @@ export function DocumentManager() {
         </div>
 
         {/* Right Column: Editor & Workflow */}
-        <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden">
           {/* Approval Stepper */}
-          <div className="p-4 md:p-6 border-b border-slate-100 bg-slate-50/50 overflow-x-auto">
-            <h2 className="text-xl font-bold text-slate-800 mb-6">Alur Persetujuan</h2>
+          <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 overflow-x-auto">
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6">
+              Alur Persetujuan
+            </h2>
             <div className="flex items-center justify-between relative min-w-[400px] px-4 md:px-0 pb-6 md:pb-0">
               <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1 bg-slate-200 rounded-full" />
               <div
@@ -194,7 +202,7 @@ export function DocumentManager() {
                         'w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors duration-500 border-2',
                         isCompleted
                           ? 'bg-blue-500 border-blue-500 text-white shadow-md shadow-blue-200'
-                          : 'bg-white border-slate-300 text-slate-400'
+                          : 'bg-white dark:bg-slate-800 border-slate-300 text-slate-400'
                       )}
                     >
                       {isCompleted ? <CheckCircle className="w-4 h-4" /> : index + 1}
@@ -202,7 +210,7 @@ export function DocumentManager() {
                     <span
                       className={cn(
                         'text-xs font-bold absolute -bottom-6 whitespace-nowrap',
-                        isActive ? 'text-blue-600' : 'text-slate-500'
+                        isActive ? 'text-blue-600' : 'text-slate-500 dark:text-slate-400'
                       )}
                     >
                       {step}
@@ -217,13 +225,13 @@ export function DocumentManager() {
           <div className="flex-1 p-6 flex flex-col min-h-0">
             <div className="flex items-center gap-2 mb-4">
               <Edit3 className="w-5 h-5 text-slate-400" />
-              <h3 className="font-bold text-slate-700">Editor Teks</h3>
+              <h3 className="font-bold text-slate-700 dark:text-slate-300">Editor Teks</h3>
             </div>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Pilih template atau ketik surat di sini..."
-              className="flex-1 w-full bg-slate-50 border border-slate-200 rounded-2xl p-6 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all resize-none font-serif text-slate-800 leading-relaxed"
+              className="flex-1 w-full bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all resize-none font-serif text-slate-800 dark:text-slate-200 leading-relaxed"
             />
 
             {/* Digital Signature Preview */}
@@ -232,10 +240,10 @@ export function DocumentManager() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-6 p-4 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 flex items-center justify-between"
+                  className="mt-6 p-4 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50 dark:bg-slate-700/50 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-white rounded-xl border border-slate-200 flex items-center justify-center shadow-sm">
+                    <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-sm">
                       <OptimizedImage
                         src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=EduSyncSignature"
                         alt="QR"
@@ -243,10 +251,10 @@ export function DocumentManager() {
                       />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-500">
+                      <p className="text-sm font-bold text-slate-500 dark:text-slate-400">
                         Ditandatangani secara elektronik oleh:
                       </p>
-                      <p className="text-xl font-black text-slate-900 font-serif italic mt-1">
+                      <p className="text-xl font-black text-slate-900 dark:text-slate-100 font-serif italic mt-1">
                         Dr. H. Ahmad Dahlan, M.Pd.
                       </p>
                       <p className="text-xs text-slate-400 mt-1">

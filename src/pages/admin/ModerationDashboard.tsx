@@ -53,7 +53,7 @@ export function ModerationDashboard() {
       case 'rejected':
         return 'bg-red-100 text-red-700 border-red-200'
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-200'
+        return 'bg-slate-100 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
     }
   }
 
@@ -78,28 +78,28 @@ export function ModerationDashboard() {
         <div>
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-slate-500 hover:text-slate-900 font-bold text-sm mb-4 transition-colors"
+            className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 font-bold text-sm mb-4 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Kembali
           </button>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <AlertTriangle className="w-6 h-6 text-red-500" />
             Moderasi Konten
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-slate-500 dark:text-slate-400 mt-1">
             Tinjau laporan pengguna dan ambil tindakan terhadap konten yang melanggar.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
+        <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
           <button
             onClick={() => setFilterStatus('pending')}
             className={cn(
               'px-4 py-2 rounded-lg text-sm font-bold transition-colors',
               filterStatus === 'pending'
                 ? 'bg-slate-900 text-white'
-                : 'text-slate-600 hover:bg-slate-50'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
             )}
           >
             Perlu Tinjauan
@@ -110,7 +110,7 @@ export function ModerationDashboard() {
               'px-4 py-2 rounded-lg text-sm font-bold transition-colors',
               filterStatus === 'resolved'
                 ? 'bg-slate-900 text-white'
-                : 'text-slate-600 hover:bg-slate-50'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
             )}
           >
             Selesai
@@ -121,7 +121,7 @@ export function ModerationDashboard() {
               'px-4 py-2 rounded-lg text-sm font-bold transition-colors',
               filterStatus === 'all'
                 ? 'bg-slate-900 text-white'
-                : 'text-slate-600 hover:bg-slate-50'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
             )}
           >
             Semua
@@ -137,7 +137,7 @@ export function ModerationDashboard() {
             placeholder="Cari laporan..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           />
         </div>
       </div>
@@ -151,7 +151,7 @@ export function ModerationDashboard() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, height: 0 }}
-                className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+                className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden"
               >
                 <div className="p-4 md:p-6 flex flex-col md:flex-row gap-6">
                   {/* Report Info */}
@@ -178,13 +178,13 @@ export function ModerationDashboard() {
                     </div>
 
                     <div>
-                      <h3 className="font-bold text-slate-900 text-lg mb-1 flex items-center gap-2">
+                      <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg mb-1 flex items-center gap-2">
                         {getReasonLabel(report.reason)}
                         <span className="text-slate-400 font-normal text-sm">
                           oleh {report.reporterName}
                         </span>
                       </h3>
-                      <p className="text-slate-600 text-sm bg-slate-50 p-3 rounded-xl border border-slate-100 italic">
+                      <p className="text-slate-600 dark:text-slate-400 text-sm bg-slate-50 dark:bg-slate-700/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700 italic">
                         "{report.description}"
                       </p>
                     </div>
@@ -194,10 +194,10 @@ export function ModerationDashboard() {
                         <MessageSquare className="w-4 h-4" />
                         Konten yang Dilaporkan ({report.contentType})
                       </div>
-                      <p className="text-slate-800 text-sm line-clamp-3 mb-2">
+                      <p className="text-slate-800 dark:text-slate-200 text-sm line-clamp-3 mb-2">
                         {report.contentSnippet || 'Konten tidak tersedia'}
                       </p>
-                      <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                      <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
                         <User className="w-3 h-3" />
                         Penulis: {report.contentAuthor || 'Tidak diketahui'}
                       </div>
@@ -206,7 +206,7 @@ export function ModerationDashboard() {
 
                   {/* Actions */}
                   {report.status === 'pending' && (
-                    <div className="flex flex-row md:flex-col gap-3 justify-center border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6 md:w-48 shrink-0">
+                    <div className="flex flex-row md:flex-col gap-3 justify-center border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-700 pt-4 md:pt-0 md:pl-6 md:w-48 shrink-0">
                       <button
                         onClick={() =>
                           resolveReport.mutate({ reportId: report.id, status: 'approved' })
@@ -220,7 +220,7 @@ export function ModerationDashboard() {
                         onClick={() =>
                           resolveReport.mutate({ reportId: report.id, status: 'rejected' })
                         }
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold text-sm transition-colors"
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-sm transition-colors"
                       >
                         <XCircle className="w-4 h-4" />
                         Tolak Laporan
@@ -231,10 +231,12 @@ export function ModerationDashboard() {
               </motion.div>
             ))
           ) : (
-            <div className="text-center py-12 bg-slate-50 rounded-3xl border border-slate-200 border-dashed">
+            <div className="text-center py-12 bg-slate-50 dark:bg-slate-700/50 rounded-3xl border border-slate-200 dark:border-slate-700 border-dashed">
               <CheckCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-slate-700">Tidak ada laporan</h3>
-              <p className="text-slate-500 mt-1">Semua aman terkendali!</p>
+              <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">
+                Tidak ada laporan
+              </h3>
+              <p className="text-slate-500 dark:text-slate-400 mt-1">Semua aman terkendali!</p>
             </div>
           )}
         </AnimatePresence>

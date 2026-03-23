@@ -30,6 +30,7 @@ import {
 } from '@/src/features/administration/api/adminUserService'
 import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { useToast } from '@/src/hooks/useToast'
 import { cn } from '@/src/utils/cn'
 
 type Tab = 'users' | 'invitations'
@@ -71,6 +72,7 @@ const STATUS_CONFIG: Record<string, { color: string; bg: string; icon: React.Rea
 
 export function UserManagement() {
   usePageTitle('User Management')
+  const addToast = useToast((s) => s.addToast)
   const [tab, setTab] = useState<Tab>('users')
   const [users, setUsers] = useState<TenantUser[]>([])
   const [invitations, setInvitations] = useState<TenantInvitation[]>([])
@@ -156,7 +158,10 @@ export function UserManagement() {
       setCursor(null)
       await fetchUsers()
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Gagal mengubah status user.')
+      addToast({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Gagal mengubah status user.',
+      })
     }
     setActionMenuId(null)
   }
@@ -166,7 +171,10 @@ export function UserManagement() {
       await revokeInvitation(id)
       await fetchInvitations()
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Gagal merevoke undangan.')
+      addToast({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Gagal merevoke undangan.',
+      })
     }
   }
 
@@ -197,17 +205,17 @@ export function UserManagement() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Users className="w-7 h-7 text-blue-600" />
             Manajemen Pengguna
           </h1>
-          <p className="text-slate-500 mt-1 text-sm">
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
             Kelola pengguna dan undangan dalam sekolah Anda.
           </p>
         </div>
         <button
           onClick={() => setInviteModal(true)}
-          className="px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl flex items-center gap-2 hover:bg-blue-700 transition-all text-sm"
+          className="px-4 py-2.5 bg-blue-600 dark:bg-blue-500 text-white font-bold rounded-xl flex items-center gap-2 hover:bg-blue-700 dark:hover:bg-blue-600 transition-all text-sm"
         >
           <UserPlus className="w-4 h-4" />
           Undang Pengguna
@@ -216,24 +224,24 @@ export function UserManagement() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-slate-200">
-          <p className="text-xs text-slate-500 font-medium">Total Users</p>
-          <p className="text-2xl font-bold text-slate-900">{totalCount}</p>
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Users</p>
+          <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{totalCount}</p>
         </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-200">
-          <p className="text-xs text-slate-500 font-medium">Pending Invites</p>
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Pending Invites</p>
           <p className="text-2xl font-bold text-amber-600">
             {invitations.filter((i) => i.status === 'pending').length}
           </p>
         </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-200">
-          <p className="text-xs text-slate-500 font-medium">Active Users</p>
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Active Users</p>
           <p className="text-2xl font-bold text-green-600">
             {users.filter((u) => u.is_active).length}
           </p>
         </div>
-        <div className="bg-white p-4 rounded-xl border border-slate-200">
-          <p className="text-xs text-slate-500 font-medium">Admins</p>
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Admins</p>
           <p className="text-2xl font-bold text-purple-600">
             {users.filter((u) => u.roles.includes('ADMIN')).length}
           </p>
@@ -241,15 +249,15 @@ export function UserManagement() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="flex border-b border-slate-200">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div className="flex border-b border-slate-200 dark:border-slate-700">
           <button
             onClick={() => setTab('users')}
             className={cn(
               'flex-1 px-6 py-3.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2',
               tab === 'users'
-                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/30'
-                : 'text-slate-500 hover:text-slate-700'
+                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 bg-blue-50/30 dark:bg-blue-900/20'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             )}
           >
             <Users className="w-4 h-4" /> Pengguna ({totalCount})
@@ -259,8 +267,8 @@ export function UserManagement() {
             className={cn(
               'flex-1 px-6 py-3.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2',
               tab === 'invitations'
-                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/30'
-                : 'text-slate-500 hover:text-slate-700'
+                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 bg-blue-50/30 dark:bg-blue-900/20'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
             )}
           >
             <Mail className="w-4 h-4" /> Undangan ({invitations.length})
@@ -271,7 +279,7 @@ export function UserManagement() {
         {tab === 'users' && (
           <>
             {/* Search & Filter */}
-            <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-3">
+            <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
@@ -279,7 +287,7 @@ export function UserManagement() {
                   placeholder="Cari nama atau email..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                  className="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 focus:border-blue-400 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 />
               </div>
               <div className="relative">
@@ -287,7 +295,7 @@ export function UserManagement() {
                 <select
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value)}
-                  className="pl-10 pr-8 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 appearance-none"
+                  className="pl-10 pr-8 py-2.5 text-sm border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 appearance-none"
                 >
                   <option value="">Semua Role</option>
                   <option value="ADMIN">Admin</option>
@@ -301,7 +309,7 @@ export function UserManagement() {
                   setCursor(null)
                   fetchUsers()
                 }}
-                className="p-2.5 border border-slate-200 rounded-xl hover:bg-slate-50"
+                className="p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700"
                 title="Refresh"
               >
                 <RefreshCw className="w-4 h-4 text-slate-500" />
@@ -311,7 +319,7 @@ export function UserManagement() {
             {/* User Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50/80 text-slate-500 text-xs uppercase tracking-wider">
+                <thead className="bg-slate-50/80 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
                   <tr>
                     <th className="px-6 py-3 text-left">User</th>
                     <th className="px-6 py-3 text-left">Role</th>
@@ -321,33 +329,44 @@ export function UserManagement() {
                     <th className="px-6 py-3 text-right">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                   {loading && users.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
+                      <td
+                        colSpan={6}
+                        className="px-6 py-12 text-center text-slate-400 dark:text-slate-500"
+                      >
                         <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2" />
                         Memuat data...
                       </td>
                     </tr>
                   ) : users.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
+                      <td
+                        colSpan={6}
+                        className="px-6 py-12 text-center text-slate-400 dark:text-slate-500"
+                      >
                         Tidak ada pengguna ditemukan.
                       </td>
                     </tr>
                   ) : (
                     users.map((user) => (
-                      <tr key={user.user_id} className="hover:bg-slate-50/50 transition-colors">
+                      <tr
+                        key={user.user_id}
+                        className="hover:bg-slate-50/50 dark:hover:bg-slate-750/50 transition-colors"
+                      >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white flex items-center justify-center text-xs font-bold shrink-0">
                               {getInitials(user.first_name, user.last_name)}
                             </div>
                             <div>
-                              <p className="font-semibold text-slate-900">
+                              <p className="font-semibold text-slate-900 dark:text-slate-100">
                                 {user.first_name} {user.last_name}
                               </p>
-                              <p className="text-xs text-slate-500">{user.email}</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400">
+                                {user.email}
+                              </p>
                             </div>
                           </div>
                         </td>
@@ -388,8 +407,10 @@ export function UserManagement() {
                             {user.is_active ? 'Aktif' : 'Nonaktif'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-slate-600">{formatDate(user.created_at)}</td>
-                        <td className="px-6 py-4 text-slate-600">
+                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
+                          {formatDate(user.created_at)}
+                        </td>
+                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
                           {formatDate(user.last_sign_in_at)}
                         </td>
                         <td className="px-6 py-4 text-right relative">
@@ -397,24 +418,24 @@ export function UserManagement() {
                             onClick={() =>
                               setActionMenuId(actionMenuId === user.user_id ? null : user.user_id)
                             }
-                            className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
+                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                           >
                             <MoreVertical className="w-4 h-4 text-slate-500" />
                           </button>
                           {actionMenuId === user.user_id && (
-                            <div className="absolute right-6 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50 w-48">
+                            <div className="absolute right-6 top-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg py-1 z-50 w-48">
                               <button
                                 onClick={() => {
                                   setRoleModal({ user })
                                   setActionMenuId(null)
                                 }}
-                                className="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 flex items-center gap-2"
+                                className="w-full px-4 py-2 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                               >
                                 <Shield className="w-4 h-4 text-blue-500" /> Ubah Role
                               </button>
                               <button
                                 onClick={() => handleDeactivate(user)}
-                                className="w-full px-4 py-2 text-left text-sm hover:bg-slate-50 flex items-center gap-2"
+                                className="w-full px-4 py-2 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                               >
                                 {user.is_active ? (
                                   <>
@@ -438,11 +459,11 @@ export function UserManagement() {
 
             {/* Load More */}
             {hasMore && (
-              <div className="p-4 border-t border-slate-100 text-center">
+              <div className="p-4 border-t border-slate-100 dark:border-slate-700 text-center">
                 <button
                   onClick={() => fetchUsers(cursor || undefined)}
                   disabled={loading}
-                  className="px-6 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-xl transition-colors disabled:opacity-50"
+                  className="px-6 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-colors disabled:opacity-50"
                 >
                   {loading ? 'Memuat...' : 'Muat Lebih Banyak'}
                 </button>
@@ -455,7 +476,7 @@ export function UserManagement() {
         {tab === 'invitations' && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50/80 text-slate-500 text-xs uppercase tracking-wider">
+              <thead className="bg-slate-50/80 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
                 <tr>
                   <th className="px-6 py-3 text-left">Email</th>
                   <th className="px-6 py-3 text-left">Role</th>
@@ -464,17 +485,23 @@ export function UserManagement() {
                   <th className="px-6 py-3 text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                 {loading && invitations.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
+                    <td
+                      colSpan={5}
+                      className="px-6 py-12 text-center text-slate-400 dark:text-slate-500"
+                    >
                       <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2" />
                       Memuat data...
                     </td>
                   </tr>
                 ) : invitations.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
+                    <td
+                      colSpan={5}
+                      className="px-6 py-12 text-center text-slate-400 dark:text-slate-500"
+                    >
                       Belum ada undangan. Klik "Undang Pengguna" untuk mulai.
                     </td>
                   </tr>
@@ -485,10 +512,15 @@ export function UserManagement() {
                     const isExpired =
                       new Date(invite.expires_at) < new Date() && invite.status === 'pending'
                     return (
-                      <tr key={invite.id} className="hover:bg-slate-50/50 transition-colors">
+                      <tr
+                        key={invite.id}
+                        className="hover:bg-slate-50/50 dark:hover:bg-slate-750/50 transition-colors"
+                      >
                         <td className="px-6 py-4">
-                          <p className="font-medium text-slate-900">{invite.email}</p>
-                          <p className="text-xs text-slate-500">
+                          <p className="font-medium text-slate-900 dark:text-slate-100">
+                            {invite.email}
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
                             Dibuat {formatDate(invite.created_at)}
                           </p>
                         </td>
@@ -518,7 +550,7 @@ export function UserManagement() {
                               : invite.status.charAt(0).toUpperCase() + invite.status.slice(1)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-slate-600">
+                        <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
                           {formatDate(invite.expires_at)}
                         </td>
                         <td className="px-6 py-4 text-right">
@@ -527,14 +559,14 @@ export function UserManagement() {
                               <>
                                 <button
                                   onClick={() => copyInviteLink(invite.token)}
-                                  className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
+                                  className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                                   title="Copy link"
                                 >
                                   <Copy className="w-4 h-4 text-slate-500" />
                                 </button>
                                 <button
                                   onClick={() => handleRevoke(invite.id)}
-                                  className="p-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                                  className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                                   title="Revoke"
                                 >
                                   <XCircle className="w-4 h-4 text-red-500" />

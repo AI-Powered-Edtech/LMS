@@ -68,7 +68,7 @@ async function flushEvents() {
   try {
     if (import.meta.env.DEV) {
       // eslint-disable-next-line no-console
-      console.debug('[Analytics] Flushing', batch.length, 'events')
+      if (import.meta.env.DEV) console.debug('[Analytics] Flushing', batch.length, 'events')
     }
 
     const { error } = await supabase.rpc('insert_learning_events', {

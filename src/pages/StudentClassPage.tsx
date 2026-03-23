@@ -45,7 +45,9 @@ export function StudentClassPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <GraduationCap className="w-16 h-16 text-slate-300 mb-4" />
-        <h2 className="text-xl font-bold text-slate-800">Kelas tidak ditemukan</h2>
+        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
+          Kelas tidak ditemukan
+        </h2>
         <button
           onClick={() => navigate('/dashboard')}
           className="mt-4 text-indigo-600 font-bold hover:underline"
@@ -63,15 +65,15 @@ export function StudentClassPage() {
         <div className="flex items-start gap-4 mb-6">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors text-slate-600"
+            className="p-2 -ml-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-600 dark:text-slate-400"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               {currentClass.name}
             </h1>
-            <p className="text-slate-500 mt-1 flex items-center gap-2 font-medium">
+            <p className="text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2 font-medium">
               <span className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-md text-xs">
                 {currentClass.teacher_name || 'Guru'}
               </span>
@@ -84,15 +86,17 @@ export function StudentClassPage() {
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <BookOpen className="w-6 h-6 text-indigo-500" />
-              <h2 className="text-xl font-bold text-slate-800">Materi Pembelajaran</h2>
+              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
+                Materi Pembelajaran
+              </h2>
             </div>
 
             {loading ? (
-              <div className="p-8 text-center bg-white rounded-3xl border border-slate-200">
+              <div className="p-8 text-center bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700">
                 <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
               </div>
             ) : courses.length === 0 ? (
-              <div className="p-8 text-center bg-white rounded-3xl border border-dashed border-slate-300 text-slate-500">
+              <div className="p-8 text-center bg-white dark:bg-slate-800 rounded-3xl border border-dashed border-slate-300 text-slate-500 dark:text-slate-400">
                 Belum ada materi untuk kelas ini.
               </div>
             ) : (
@@ -101,16 +105,16 @@ export function StudentClassPage() {
                   <div
                     key={course.id}
                     onClick={() => navigate(`/courses/${course.id}`)}
-                    className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group flex items-start gap-4"
+                    className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group flex items-start gap-4"
                   >
                     <div className="w-16 h-16 rounded-xl bg-indigo-100 text-indigo-500 flex items-center justify-center shrink-0">
                       <Play className="w-8 h-8 ml-1" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
+                      <h3 className="font-bold text-slate-900 dark:text-slate-100 truncate group-hover:text-indigo-600 transition-colors">
                         {course.title}
                       </h3>
-                      <p className="text-sm text-slate-500 line-clamp-2 mt-1">
+                      <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mt-1">
                         {course.description || 'Tidak ada deskripsi'}
                       </p>
                     </div>

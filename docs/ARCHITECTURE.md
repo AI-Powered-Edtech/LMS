@@ -31,7 +31,9 @@ EduSync is a Supabase-centric SaaS LMS. There is no traditional backend server. 
 
 **Key files:**
 
-- `src/app/routes.tsx` — full route tree with lazy-loaded pages
+- `src/app/routes.tsx` — route tree orchestrator (~230 lines)
+- `src/app/lazyPages.tsx` — all lazy-loaded page imports with error boundaries
+- `src/app/legacyRedirects.tsx` — backward-compatible URL redirects
 - `src/components/guards/` — all guard components
 - `src/components/RoleRoute.tsx` — simple role-based route wrapper
 
@@ -62,14 +64,14 @@ const { role, activeRole } = useAuth() // 'admin' | 'teacher' | 'student'
 
 ## State Management
 
-| Concern                                     | Mechanism                                            |
-| ------------------------------------------- | ---------------------------------------------------- |
-| Auth user, profile, role, session, tenantId | `AuthContext` (`src/contexts/AuthContext.tsx`)       |
-| Course builder UI state                     | `BuilderContext` (`src/contexts/BuilderContext.tsx`) |
-| Theme (light/dark/system)                   | `ThemeContext` (`src/contexts/ThemeContext.tsx`)     |
-| Toast notifications                         | `ToastContext` (`src/contexts/ToastContext.tsx`)     |
-| Server data (courses, quizzes, etc.)        | React Query hooks in `src/features/*/queries/`       |
-| Quiz player in-progress state               | Zustand store in `src/features/quizzes/store/`       |
+| Concern                                     | Mechanism                                                                                                                        |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Auth user, profile, role, session, tenantId | `AuthContext` (`src/contexts/AuthContext.tsx`)                                                                                   |
+| Course builder UI state                     | `BuilderContext` (`src/contexts/BuilderContext.tsx`) — thin provider composing domain hooks from `src/features/courses/builder/` |
+| Theme (light/dark/system)                   | `ThemeContext` (`src/contexts/ThemeContext.tsx`)                                                                                 |
+| Toast notifications                         | `ToastContext` (`src/contexts/ToastContext.tsx`)                                                                                 |
+| Server data (courses, quizzes, etc.)        | React Query hooks in `src/features/*/queries/`                                                                                   |
+| Quiz player in-progress state               | Zustand store in `src/features/quizzes/store/`                                                                                   |
 
 ## Feature Module Structure
 

@@ -1,47 +1,49 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState, useMemo } from 'react'
+import { CheckCircle, HelpCircle, Loader2, Search, Trophy, Zap } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
-import { HelpCircle, Search, CheckCircle, Trophy, Zap, Loader2 } from 'lucide-react'
-import { QuizSkeleton } from '@/src/features/quizzes/components/QuizSkeleton'
-import { cn } from '@/src/utils/cn'
-import { useAuth } from '@/src/contexts/AuthContext'
-import {
-  type QuizAttemptResult,
-  type SubmitAnswer,
-  type StudentQuizAssignment,
-  type QuizAttempt,
-  type QuizAttemptQuestion,
-} from '@/src/features/quizzes'
-import { quizSubmitRateLimiter } from '@/src/utils/rateLimiter'
-import {
-  getCurrentQuestionIndex,
-  getAttemptQuestions,
-} from '../features/quizzes/api/quizPlayer.service'
-import { QuizPlayer } from '../features/quizzes/components/player/QuizPlayer'
+import { useMemo, useState } from 'react'
+
 import { AttemptDetailModal } from '@/src/components/AttemptDetailModal'
 import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary'
+import { useAuth } from '@/src/contexts/AuthContext'
+import {
+  type QuizAttempt,
+  type QuizAttemptQuestion,
+  type QuizAttemptResult,
+  type StudentQuizAssignment,
+  type SubmitAnswer,
+} from '@/src/features/quizzes'
+import { quizService } from '@/src/features/quizzes'
+import { QuizSkeleton } from '@/src/features/quizzes/components/QuizSkeleton'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { useToast } from '@/src/hooks/useToast'
+import { cn } from '@/src/utils/cn'
+import { quizSubmitRateLimiter } from '@/src/utils/rateLimiter'
 
+import {
+  getAttemptQuestions,
+  getCurrentQuestionIndex,
+} from '../features/quizzes/api/quizPlayer.service'
+import { QuizPlayer } from '../features/quizzes/components/player/QuizPlayer'
+import { QuizAnswerReview } from '../features/quizzes/components/student/QuizAnswerReview'
+import { QuizAttemptCard } from '../features/quizzes/components/student/QuizAttemptCard'
 // Extracted Components
 import { QuizCard } from '../features/quizzes/components/student/QuizCard'
-import { QuizAttemptCard } from '../features/quizzes/components/student/QuizAttemptCard'
 import { QuizResultsView } from '../features/quizzes/components/student/QuizResultsView'
-import { QuizAnswerReview } from '../features/quizzes/components/student/QuizAnswerReview'
-import { quizService } from '@/src/features/quizzes'
 import { StartQuizModal } from '../features/quizzes/components/student/StartQuizModal'
-
+import {
+  useStartQuizAttempt,
+  useSubmitQuizAttempt,
+} from '../features/quizzes/queries/quizPlayer.mutations'
 // React Query Hooks
 import {
   useStudentQuizAssignments,
   useUserAttempts,
 } from '../features/quizzes/queries/quizPlayer.queries'
-import {
-  useStartQuizAttempt,
-  useSubmitQuizAttempt,
-} from '../features/quizzes/queries/quizPlayer.mutations'
 
 export function QuizModule() {
   usePageTitle('Quiz Module')
   const { tenantId } = useAuth()
+  const addToast = useToast((s) => s.addToast)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedClass, setSelectedClass] = useState<string>('all')
   const [activeTab, setActiveTab] = useState<'available' | 'completed'>('available')
@@ -169,9 +171,11 @@ export function QuizModule() {
 
       if (expiredAt && new Date(expiredAt) < new Date()) {
         setIsLoadingQuestions(false)
-        alert(
-          'Waktu habis! Kuis Anda telah ditandai sebagai kedaluwarsa dan akan disubmit otomatis.'
-        )
+        addToast({
+          type: 'warning',
+          message:
+            'Waktu habis! Kuis Anda telah ditandai sebagai kedaluwarsa dan akan disubmit otomatis.',
+        })
         const formattedAnswers = Object.values(recoverAnswers(questions)) as SubmitAnswer[]
         const result = await submitAttemptMutation({
           attemptId,
@@ -197,11 +201,15 @@ export function QuizModule() {
       if (import.meta.env.DEV) console.error('Failed to start/resume', err)
       const message = err instanceof Error ? err.message : ''
       if (message.includes('not enrolled'))
-        alert('Anda tidak terdaftar di kelas untuk assignment kuis ini.')
-      else if (message.includes('not yet available')) alert('Kuis ini belum dibuka.')
+        addToast({
+          type: 'error',
+          message: 'Anda tidak terdaftar di kelas untuk assignment kuis ini.',
+        })
+      else if (message.includes('not yet available'))
+        addToast({ type: 'warning', message: 'Kuis ini belum dibuka.' })
       else if (message.includes('no longer available'))
-        alert('Waktu akses kuis ini sudah berakhir.')
-      else alert(message || 'Gagal memulai kuis.')
+        addToast({ type: 'warning', message: 'Waktu akses kuis ini sudah berakhir.' })
+      else addToast({ type: 'error', message: message || 'Gagal memulai kuis.' })
     }
   }
 
@@ -212,7 +220,10 @@ export function QuizModule() {
     const { allowed, retryAfterMs } = quizSubmitRateLimiter.check(currentAttemptId)
     if (!allowed) {
       const seconds = Math.ceil(retryAfterMs / 1000)
-      alert(`Terlalu banyak percobaan. Silakan coba lagi dalam ${seconds} detik.`)
+      addToast({
+        type: 'warning',
+        message: `Terlalu banyak percobaan. Silakan coba lagi dalam ${seconds} detik.`,
+      })
       return
     }
 
@@ -233,15 +244,22 @@ export function QuizModule() {
       if (import.meta.env.DEV) console.error('Gagal mengirim kuis', err)
       const message = err instanceof Error ? err.message : ''
       if (message.includes('Time limit exceeded')) {
-        alert('Waktu habis! Kuis Anda telah ditandai sebagai kedaluwarsa.')
+        addToast({
+          type: 'warning',
+          message: 'Waktu habis! Kuis Anda telah ditandai sebagai kedaluwarsa.',
+        })
         setIsQuizActive(false)
         refreshQuizData()
       } else if (message.includes('ATTEMPT_VERSION_CONFLICT')) {
-        alert('Kuis ini baru saja disubmit dari tempat lain (tab/perangkat lain). Memuat ulang...')
+        addToast({
+          type: 'warning',
+          message:
+            'Kuis ini baru saja disubmit dari tempat lain (tab/perangkat lain). Memuat ulang...',
+        })
         setIsQuizActive(false)
         refreshQuizData()
       } else {
-        alert('Gagal mengirim kuis. Silakan coba lagi.')
+        addToast({ type: 'error', message: 'Gagal mengirim kuis. Silakan coba lagi.' })
       }
     }
   }
@@ -256,8 +274,8 @@ export function QuizModule() {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-slate-600 font-medium">Memuat soal kuis...</p>
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400 mx-auto mb-4" />
+          <p className="text-slate-600 dark:text-slate-300 font-medium">Memuat soal kuis...</p>
         </div>
       </div>
     )
@@ -267,13 +285,15 @@ export function QuizModule() {
     if (!attemptQuestions || attemptQuestions.length === 0) {
       return (
         <div className="flex-1 max-w-4xl w-full mx-auto px-6 py-8">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-12 text-center">
-            <h3 className="text-xl font-bold text-slate-800 mb-2">Kuis Belum Memiliki Soal</h3>
-            <p className="text-slate-500 mb-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-12 text-center">
+            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+              Kuis Belum Memiliki Soal
+            </h3>
+            <p className="text-slate-500 dark:text-slate-400 mb-6">
               Kuis ini belum memiliki soal yang dapat dikerjakan. Silakan hubungi pengajar Anda.
             </p>
             <button
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
               onClick={() => {
                 setIsQuizActive(false)
                 setShowResults(false)
@@ -312,7 +332,7 @@ export function QuizModule() {
       setShowAnswerReview(true)
     } catch (err) {
       if (import.meta.env.DEV) console.error('Failed to load graded questions:', err)
-      alert('Gagal memuat review jawaban. Silakan coba lagi.')
+      addToast({ type: 'error', message: 'Gagal memuat review jawaban. Silakan coba lagi.' })
     } finally {
       setIsLoadingGradedQuestions(false)
     }
@@ -365,36 +385,48 @@ export function QuizModule() {
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Kuis & Evaluasi</h1>
-          <p className="text-slate-500 mt-1">Uji pemahaman Anda dengan kuis interaktif</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100">
+            Kuis & Evaluasi
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">
+            Uji pemahaman Anda dengan kuis interaktif
+          </p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
-            <HelpCircle className="w-5 h-5 text-blue-600" />
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+            <HelpCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <p className="text-2xl font-black text-slate-800">{quizzes.length}</p>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Kuis</p>
+            <p className="text-2xl font-black text-slate-800 dark:text-slate-100">
+              {quizzes.length}
+            </p>
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Total Kuis
+            </p>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
-            <CheckCircle className="w-5 h-5 text-green-600" />
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
+            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
           </div>
           <div>
-            <p className="text-2xl font-black text-slate-800">{completedAttempts.length}</p>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Selesai</p>
+            <p className="text-2xl font-black text-slate-800 dark:text-slate-100">
+              {completedAttempts.length}
+            </p>
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Selesai
+            </p>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-yellow-100 flex items-center justify-center shrink-0">
-            <Trophy className="w-5 h-5 text-yellow-600" />
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center shrink-0">
+            <Trophy className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
           </div>
           <div>
-            <p className="text-2xl font-black text-slate-800">
+            <p className="text-2xl font-black text-slate-800 dark:text-slate-100">
               {completedAttempts.length > 0
                 ? Math.round(
                     completedAttempts.reduce((acc, a) => acc + (a.score || 0), 0) /
@@ -403,21 +435,25 @@ export function QuizModule() {
                 : 0}
               %
             </p>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Rata-rata</p>
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Rata-rata
+            </p>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
-            <Zap className="w-5 h-5 text-purple-600" />
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
+            <Zap className="w-5 h-5 text-purple-600 dark:text-purple-400" />
           </div>
           <div>
-            <p className="text-2xl font-black text-slate-800">{totalPoints}</p>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Poin Total</p>
+            <p className="text-2xl font-black text-slate-800 dark:text-slate-100">{totalPoints}</p>
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Poin Total
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -426,13 +462,13 @@ export function QuizModule() {
               placeholder="Cari kuis..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
           </div>
           <select
             value={selectedClass}
             onChange={(e) => setSelectedClass(e.target.value)}
-            className="px-4 py-2 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700"
+            className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700 dark:text-slate-200"
           >
             <option value="all">Semua Kelas</option>
             {classes.map((cls) => (
@@ -444,14 +480,14 @@ export function QuizModule() {
         </div>
       </div>
 
-      <div className="flex gap-2 border-b border-slate-200">
+      <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700">
         <button
           onClick={() => setActiveTab('available')}
           className={cn(
             'px-4 py-2 font-bold text-sm border-b-2 transition-colors',
             activeTab === 'available'
               ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
           )}
         >
           Tersedia
@@ -462,7 +498,7 @@ export function QuizModule() {
             'px-4 py-2 font-bold text-sm border-b-2 transition-colors',
             activeTab === 'completed'
               ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
           )}
         >
           Selesai
@@ -494,7 +530,7 @@ export function QuizModule() {
               )
             })
           ) : (
-            <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-10 text-slate-500">
+            <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-10 text-slate-500 dark:text-slate-400">
               Belum ada kuis yang tersedia.
             </div>
           )}
@@ -517,7 +553,7 @@ export function QuizModule() {
               />
             ))
           ) : (
-            <div className="text-center py-10 text-slate-500">
+            <div className="text-center py-10 text-slate-500 dark:text-slate-400">
               Anda belum menyelesaikan kuis apapun.
             </div>
           )}

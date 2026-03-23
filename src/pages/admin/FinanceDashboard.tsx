@@ -26,31 +26,31 @@ const transactionColumns = [
   {
     header: 'ID Transaksi',
     key: 'id',
-    className: 'px-6 py-4 font-mono text-slate-600',
+    className: 'px-6 py-4 font-mono text-slate-600 dark:text-slate-400',
     render: (row: Record<string, any>) => row.id,
   },
   {
     header: 'Siswa',
     key: 'student',
-    className: 'px-6 py-4 font-bold text-slate-900',
+    className: 'px-6 py-4 font-bold text-slate-900 dark:text-slate-100',
     render: (row: Record<string, any>) => row.student,
   },
   {
     header: 'Jenis Pembayaran',
     key: 'type',
-    className: 'px-6 py-4 text-slate-600',
+    className: 'px-6 py-4 text-slate-600 dark:text-slate-400',
     render: (row: Record<string, any>) => row.type,
   },
   {
     header: 'Metode',
     key: 'method',
-    className: 'px-6 py-4 text-slate-600',
+    className: 'px-6 py-4 text-slate-600 dark:text-slate-400',
     render: (row: Record<string, any>) => row.method,
   },
   {
     header: 'Jumlah',
     key: 'amount',
-    className: 'px-6 py-4 font-medium text-slate-900',
+    className: 'px-6 py-4 font-medium text-slate-900 dark:text-slate-100',
     render: (row: Record<string, any>) => formatCurrency(row.amount),
   },
   {
@@ -175,16 +175,16 @@ export function FinanceDashboard() {
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Wallet className="w-8 h-8 text-blue-600" />
             Keuangan & SPP
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-slate-500 dark:text-slate-400 mt-1">
             Kelola pembayaran SPP, gaji guru, dan laporan keuangan sekolah.
           </p>
         </div>
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl flex items-center gap-2 hover:bg-slate-50">
+          <button className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700">
             <Download className="w-4 h-4" /> Ekspor Laporan
           </button>
           <button className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl flex items-center gap-2 hover:bg-blue-700">
@@ -194,7 +194,7 @@ export function FinanceDashboard() {
       </div>
 
       {/* Tabs */}
-      <div className="flex overflow-x-auto border-b border-slate-200">
+      <div className="flex overflow-x-auto border-b border-slate-200 dark:border-slate-700">
         {[
           { id: 'overview', label: 'Ringkasan', icon: TrendingUp },
           { id: 'spp', label: 'Pembayaran SPP', icon: CreditCard },
@@ -205,7 +205,9 @@ export function FinanceDashboard() {
             onClick={() => setActiveTab(tab.id as typeof activeTab)}
             className={cn(
               'flex items-center gap-2 px-6 py-4 font-medium text-sm transition-colors relative whitespace-nowrap',
-              activeTab === tab.id ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'
+              activeTab === tab.id
+                ? 'text-blue-600'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
             )}
           >
             <tab.icon className="w-4 h-4" />
@@ -221,7 +223,7 @@ export function FinanceDashboard() {
         <div className="space-y-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center">
                   <ArrowUpRight className="w-6 h-6" />
@@ -230,22 +232,30 @@ export function FinanceDashboard() {
                   +12.5%
                 </span>
               </div>
-              <p className="text-slate-500 text-sm font-medium">Total Pemasukan (Bulan Ini)</p>
-              <h3 className="text-2xl font-bold text-slate-900 mt-1">Rp 145.250.000</h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+                Total Pemasukan (Bulan Ini)
+              </p>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+                Rp 145.250.000
+              </h3>
             </div>
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-red-100 text-red-600 rounded-xl flex items-center justify-center">
                   <ArrowDownLeft className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 px-2 py-1 rounded-lg">
                   Stabil
                 </span>
               </div>
-              <p className="text-slate-500 text-sm font-medium">Total Pengeluaran (Bulan Ini)</p>
-              <h3 className="text-2xl font-bold text-slate-900 mt-1">Rp 82.100.000</h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+                Total Pengeluaran (Bulan Ini)
+              </p>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+                Rp 82.100.000
+              </h3>
             </div>
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
                   <Wallet className="w-6 h-6" />
@@ -254,15 +264,21 @@ export function FinanceDashboard() {
                   Aman
                 </span>
               </div>
-              <p className="text-slate-500 text-sm font-medium">Saldo Kas Sekolah</p>
-              <h3 className="text-2xl font-bold text-slate-900 mt-1">Rp 320.500.000</h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+                Saldo Kas Sekolah
+              </p>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+                Rp 320.500.000
+              </h3>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Chart */}
-            <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900 mb-6">Tren Pemasukan</h3>
+            <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-6">
+                Tren Pemasukan
+              </h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={revenueData}>
@@ -293,13 +309,15 @@ export function FinanceDashboard() {
             </div>
 
             {/* Recent Transactions */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900 mb-4">Transaksi Terbaru</h3>
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">
+                Transaksi Terbaru
+              </h3>
               <div className="space-y-4">
                 {transactions.slice(0, 4).map((trx) => (
                   <div
                     key={trx.id}
-                    className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100"
+                    className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-700"
                   >
                     <div className="flex items-center gap-3">
                       <div
@@ -321,15 +339,17 @@ export function FinanceDashboard() {
                         )}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-slate-900">{trx.student}</p>
-                        <p className="text-xs text-slate-500">{trx.type}</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                          {trx.student}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{trx.type}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-slate-900">
+                      <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
                         {formatCurrency(trx.amount)}
                       </p>
-                      <p className="text-xs text-slate-500">{trx.date}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{trx.date}</p>
                     </div>
                   </div>
                 ))}
@@ -343,15 +363,17 @@ export function FinanceDashboard() {
       )}
 
       {activeTab === 'spp' && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between gap-4">
-            <h2 className="text-lg font-bold text-slate-900">Daftar Pembayaran SPP</h2>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between gap-4">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+              Daftar Pembayaran SPP
+            </h2>
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Cari siswa..."
-                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -368,16 +390,18 @@ export function FinanceDashboard() {
       )}
 
       {activeTab === 'salary' && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-900">Penggajian Guru & Staf</h2>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+              Penggajian Guru & Staf
+            </h2>
             <button className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl text-sm hover:bg-blue-700">
               Proses Penggajian
             </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-500 font-medium border-b border-slate-200">
+              <thead className="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 font-medium border-b border-slate-200 dark:border-slate-700">
                 <tr>
                   <th className="px-6 py-4">ID Guru</th>
                   <th className="px-6 py-4">Nama</th>
@@ -387,13 +411,17 @@ export function FinanceDashboard() {
                   <th className="px-6 py-4">Tanggal Transfer</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                 {salaryData.map((staff) => (
                   <tr key={staff.id} className="hover:bg-slate-50/50">
-                    <td className="px-6 py-4 font-mono text-slate-600">{staff.id}</td>
-                    <td className="px-6 py-4 font-bold text-slate-900">{staff.name}</td>
-                    <td className="px-6 py-4 text-slate-600">{staff.role}</td>
-                    <td className="px-6 py-4 font-medium text-slate-900">
+                    <td className="px-6 py-4 font-mono text-slate-600 dark:text-slate-400">
+                      {staff.id}
+                    </td>
+                    <td className="px-6 py-4 font-bold text-slate-900 dark:text-slate-100">
+                      {staff.name}
+                    </td>
+                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{staff.role}</td>
+                    <td className="px-6 py-4 font-medium text-slate-900 dark:text-slate-100">
                       {formatCurrency(staff.salary)}
                     </td>
                     <td className="px-6 py-4">
@@ -408,7 +436,7 @@ export function FinanceDashboard() {
                         {staff.status === 'paid' ? 'Dibayarkan' : 'Belum Dibayar'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-600">{staff.date}</td>
+                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{staff.date}</td>
                   </tr>
                 ))}
               </tbody>

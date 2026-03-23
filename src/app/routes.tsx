@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
-import { Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
+import { Suspense } from 'react'
+import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 
 import { FeatureErrorBoundary } from '../components/FeatureErrorBoundary'
 import { AuthGuard } from '../components/guards/AuthGuard'
@@ -9,267 +9,124 @@ import { RoleResolver } from '../components/guards/RoleResolver'
 import { TenantGuard } from '../components/guards/TenantGuard'
 import { AppLoading } from '../components/layout/AppLoading'
 import { Layout } from '../components/layout/Layout'
+import {
+  AdminAnalyticsDashboard,
+  AdministrationDashboard,
+  Analytics,
+  Announcements,
+  AssignmentGradebook,
+  Assignments,
+  AuditDashboard,
+  // Admin
+  BillingDashboard,
+  Calendar,
+  Certificates,
+  ClassManagement,
+  CourseAnalytics,
+  CourseBuilder,
+  Courses,
+  Creator,
+  // Student
+  Dashboard,
+  Dashboards,
+  Directory,
+  DocumentManager,
+  FeatureFlagsPage,
+  FinanceDashboard,
+  ForgotPassword,
+  // Shared
+  Forum,
+  GamificationHub,
+  Gradebook,
+  Grades,
+  GroupAssignment,
+  Leaderboard,
+  LessonViewer,
+  // Auth / Public
+  Login,
+  ModerationDashboard,
+  NotFound,
+  NotificationsPage,
+  PPDBDashboard,
+  Profile,
+  PublicProfile,
+  QuestionBankPage,
+  QuizGradebook,
+  QuizManager,
+  QuizModule,
+  ResetPassword,
+  ScanAttendance,
+  Settings,
+  SocialHub,
+  SpeedGrader,
+  StudentAttendance,
+  StudentClassPage,
+  StudentProgress,
+  SystemHealth,
+  // Teacher
+  TeacherDashboard,
+  // Hubs
+  TeachingHub,
+  Unauthorized,
+  UserManagement,
+  VerifyEmail,
+  WorkspaceSelector,
+} from './lazyPages'
+import { LegacyRedirects } from './legacyRedirects'
 
-const withErrorBoundary =
-  (Component: React.ComponentType<Record<string, unknown>>, name: string) =>
-  (props: Record<string, unknown>) => (
-    <FeatureErrorBoundary featureName={name}>
-      <Component {...props} />
-    </FeatureErrorBoundary>
+// ============================================================
+// Helper: wraps a component in Suspense + optional FeatureErrorBoundary
+// ============================================================
+
+function S({ children, feature }: { children: React.ReactNode; feature?: string }) {
+  const inner = feature ? (
+    <FeatureErrorBoundary featureName={feature}>{children}</FeatureErrorBoundary>
+  ) : (
+    children
   )
-
-const Dashboard = withErrorBoundary(
-  lazy(() => import('../pages/Dashboard').then((m) => ({ default: m.Dashboard }))),
-  'Dasbor'
-)
-const Creator = withErrorBoundary(
-  lazy(() => import('../pages/Creator').then((m) => ({ default: m.Creator }))),
-  'Kreator'
-)
-const CourseBuilder = withErrorBoundary(
-  lazy(() => import('../pages/CourseBuilder').then((m) => ({ default: m.CourseBuilder }))),
-  'Pembuat Kursus'
-)
-const Leaderboard = withErrorBoundary(
-  lazy(() => import('../pages/Leaderboard').then((m) => ({ default: m.Leaderboard }))),
-  'Papan Peringkat'
-)
-const Forum = withErrorBoundary(
-  lazy(() => import('../pages/Forum').then((m) => ({ default: m.Forum }))),
-  'Forum'
-)
-const Analytics = withErrorBoundary(
-  lazy(() => import('../pages/Analytics').then((m) => ({ default: m.Analytics }))),
-  'Analitik'
-)
-const DocumentManager = withErrorBoundary(
-  lazy(() => import('../pages/DocumentManager').then((m) => ({ default: m.DocumentManager }))),
-  'Manajemen Dokumen'
-)
-const Courses = withErrorBoundary(
-  lazy(() => import('../pages/Courses').then((m) => ({ default: m.Courses }))),
-  'Kursus'
-)
-const Directory = withErrorBoundary(
-  lazy(() => import('../pages/Directory').then((m) => ({ default: m.Directory }))),
-  'Direktori'
-)
-const LessonViewer = withErrorBoundary(
-  lazy(() => import('../pages/LessonViewer').then((m) => ({ default: m.LessonViewer }))),
-  'Penampil Pelajaran'
-)
-const SpeedGrader = withErrorBoundary(
-  lazy(() => import('../pages/SpeedGrader').then((m) => ({ default: m.SpeedGrader }))),
-  'Penilaian Cepat'
-)
-const QuizModule = withErrorBoundary(
-  lazy(() => import('../pages/Quiz').then((m) => ({ default: m.QuizModule }))),
-  'Modul Kuis'
-)
-const BillingDashboard = withErrorBoundary(
-  lazy(() =>
-    import('../pages/admin/BillingDashboard').then((m) => ({ default: m.BillingDashboard }))
-  ),
-  'Dasbor Tagihan'
-)
-const TeacherDashboard = withErrorBoundary(
-  lazy(() => import('../pages/TeacherDashboard').then((m) => ({ default: m.TeacherDashboard }))),
-  'Dasbor Guru'
-)
-const ScanAttendance = withErrorBoundary(
-  lazy(() => import('../pages/ScanAttendance').then((m) => ({ default: m.ScanAttendance }))),
-  'Pindai Kehadiran'
-)
-const Profile = withErrorBoundary(
-  lazy(() => import('../pages/Profile').then((m) => ({ default: m.Profile }))),
-  'Profil'
-)
-const PublicProfile = withErrorBoundary(
-  lazy(() => import('../pages/PublicProfile').then((m) => ({ default: m.PublicProfile }))),
-  'Profil Publik'
-)
-const Settings = withErrorBoundary(
-  lazy(() => import('../pages/Settings').then((m) => ({ default: m.Settings }))),
-  'Pengaturan'
-)
-const Gradebook = withErrorBoundary(
-  lazy(() => import('../pages/Gradebook').then((m) => ({ default: m.Gradebook }))),
-  'Buku Nilai'
-)
-const QuizGradebook = withErrorBoundary(
-  lazy(() => import('../pages/QuizGradebook').then((m) => ({ default: m.QuizGradebook }))),
-  'Buku Nilai Kuis'
-)
-const AssignmentGradebook = withErrorBoundary(
-  lazy(() =>
-    import('../pages/AssignmentGradebook').then((m) => ({ default: m.AssignmentGradebook }))
-  ),
-  'Buku Nilai Tugas'
-)
-const Certificates = withErrorBoundary(
-  lazy(() => import('../pages/Certificates').then((m) => ({ default: m.Certificates }))),
-  'Sertifikat'
-)
-const Calendar = withErrorBoundary(
-  lazy(() => import('../pages/Calendar').then((m) => ({ default: m.Calendar }))),
-  'Kalender'
-)
-const Announcements = withErrorBoundary(
-  lazy(() => import('../pages/Announcements').then((m) => ({ default: m.Announcements }))),
-  'Pengumuman'
-)
-const Assignments = withErrorBoundary(
-  lazy(() => import('../pages/Assignments').then((m) => ({ default: m.Assignments }))),
-  'Tugas'
-)
-const StudentProgress = withErrorBoundary(
-  lazy(() => import('../pages/StudentProgress').then((m) => ({ default: m.StudentProgress }))),
-  'Progres Siswa'
-)
-const GroupAssignment = withErrorBoundary(
-  lazy(() => import('../pages/GroupAssignment').then((m) => ({ default: m.GroupAssignment }))),
-  'Tugas Kelompok'
-)
-const Grades = withErrorBoundary(
-  lazy(() => import('../pages/Grades').then((m) => ({ default: m.Grades }))),
-  'Nilai'
-)
-const StudentAttendance = withErrorBoundary(
-  lazy(() => import('../pages/StudentAttendance').then((m) => ({ default: m.StudentAttendance }))),
-  'Kehadiran Siswa'
-)
-const QuestionBankPage = withErrorBoundary(
-  lazy(() => import('../pages/QuestionBankPage').then((m) => ({ default: m.QuestionBankPage }))),
-  'Bank Soal'
-)
-const QuizManager = withErrorBoundary(
-  lazy(() => import('../pages/QuizManager').then((m) => ({ default: m.QuizManager }))),
-  'Manajemen Kuis'
-)
-const CourseAnalytics = withErrorBoundary(
-  lazy(() => import('../pages/CourseAnalytics').then((m) => ({ default: m.CourseAnalytics }))),
-  'Analitik Kursus'
-)
-const Dashboards = withErrorBoundary(
-  lazy(() => import('../pages/Dashboards').then((m) => ({ default: m.Dashboards }))),
-  'Dasbor'
-)
-const ClassManagement = withErrorBoundary(
-  lazy(() => import('../pages/ClassManagement').then((m) => ({ default: m.ClassManagement }))),
-  'Manajemen Kelas'
-)
-const StudentClassPage = withErrorBoundary(
-  lazy(() => import('../pages/StudentClassPage').then((m) => ({ default: m.StudentClassPage }))),
-  'Halaman Kelas Siswa'
-)
-const ModerationDashboard = withErrorBoundary(
-  lazy(() =>
-    import('../pages/admin/ModerationDashboard').then((m) => ({ default: m.ModerationDashboard }))
-  ),
-  'Dasbor Moderasi'
-)
-const FinanceDashboard = withErrorBoundary(
-  lazy(() =>
-    import('../pages/admin/FinanceDashboard').then((m) => ({ default: m.FinanceDashboard }))
-  ),
-  'Dasbor Keuangan'
-)
-const PPDBDashboard = withErrorBoundary(
-  lazy(() => import('../pages/admin/PPDBDashboard').then((m) => ({ default: m.PPDBDashboard }))),
-  'Dasbor PPDB'
-)
-const AdministrationDashboard = withErrorBoundary(
-  lazy(() =>
-    import('../pages/admin/AdministrationDashboard').then((m) => ({
-      default: m.AdministrationDashboard,
-    }))
-  ),
-  'Dasbor Administrasi'
-)
-const UserManagement = withErrorBoundary(
-  lazy(() => import('../pages/admin/UserManagement').then((m) => ({ default: m.UserManagement }))),
-  'Manajemen Pengguna'
-)
-const AuditDashboard = withErrorBoundary(
-  lazy(() => import('../pages/admin/AuditDashboard').then((m) => ({ default: m.AuditDashboard }))),
-  'Dasbor Audit'
-)
-const AdminAnalyticsDashboard = withErrorBoundary(
-  lazy(() =>
-    import('../pages/admin/AdminAnalyticsDashboard').then((m) => ({
-      default: m.AdminAnalyticsDashboard,
-    }))
-  ),
-  'Dasbor Analitik Admin'
-)
-const SystemHealth = withErrorBoundary(
-  lazy(() => import('../pages/admin/SystemHealth').then((m) => ({ default: m.SystemHealth }))),
-  'Kesehatan Sistem'
-)
-const FeatureFlagsPage = withErrorBoundary(
-  lazy(() => import('../pages/admin/FeatureFlags')),
-  'Pengaturan Fitur'
-)
-
-const Login = withErrorBoundary(
-  lazy(() => import('../pages/Login').then((m) => ({ default: m.Login }))),
-  'Masuk'
-)
-const ForgotPassword = withErrorBoundary(
-  lazy(() => import('../pages/ForgotPassword').then((m) => ({ default: m.ForgotPassword }))),
-  'Lupa Kata Sandi'
-)
-const ResetPassword = withErrorBoundary(
-  lazy(() => import('../pages/ResetPassword').then((m) => ({ default: m.ResetPassword }))),
-  'Atur Ulang Kata Sandi'
-)
-const VerifyEmail = withErrorBoundary(
-  lazy(() => import('../pages/VerifyEmail').then((m) => ({ default: m.VerifyEmail }))),
-  'Verifikasi Email'
-)
-
-const TeachingHub = withErrorBoundary(
-  lazy(() => import('../pages/Hubs').then((m) => ({ default: m.TeachingHub }))),
-  'Pusat Mengajar'
-)
-const SocialHub = withErrorBoundary(
-  lazy(() => import('../pages/Hubs').then((m) => ({ default: m.SocialHub }))),
-  'Pusat Sosial'
-)
-const GamificationHub = withErrorBoundary(
-  lazy(() => import('../pages/Hubs').then((m) => ({ default: m.GamificationHub }))),
-  'Pusat Gamifikasi'
-)
-const WorkspaceSelector = withErrorBoundary(
-  lazy(() => import('../pages/WorkspaceSelector').then((m) => ({ default: m.WorkspaceSelector }))),
-  'Pemilihan Ruang Kerja'
-)
-const Unauthorized = withErrorBoundary(
-  lazy(() => import('../pages/Unauthorized').then((m) => ({ default: m.Unauthorized }))),
-  'Tidak Diizinkan'
-)
-const NotFound = withErrorBoundary(
-  lazy(() => import('../pages/NotFound').then((m) => ({ default: m.NotFound }))),
-  'Tidak Ditemukan'
-)
-const NotificationsPage = withErrorBoundary(
-  lazy(() => import('../pages/Notifications').then((m) => ({ default: m.Notifications }))),
-  'Notifikasi'
-)
-
-/* Parameterized redirect helpers — Navigate cannot interpolate :params */
-function RedirectCourseDetail() {
-  const { courseId } = useParams()
-  return <Navigate to={`/app/student/courses/${courseId}`} replace />
+  return <Suspense fallback={<AppLoading />}>{inner}</Suspense>
 }
-function RedirectStudentClass() {
-  const { classId } = useParams()
-  return <Navigate to={`/app/student/classes/${classId}`} replace />
+
+// ============================================================
+// Helper: Shared routes accessible by all authenticated roles
+// ============================================================
+
+function SharedRoutes() {
+  const allRoles = ['teacher', 'student', 'admin'] as const
+  const sharedPages = [
+    { path: 'forum', element: <Forum /> },
+    { path: 'profile', element: <Profile /> },
+    { path: 'p/:username', element: <PublicProfile /> },
+    { path: 'settings', element: <Settings /> },
+    { path: 'calendar', element: <Calendar /> },
+    { path: 'announcements', element: <Announcements /> },
+    { path: 'assignments', element: <Assignments /> },
+    { path: 'group-assignment', element: <GroupAssignment /> },
+    { path: 'directory', element: <Directory /> },
+    { path: 'social-hub', element: <SocialHub /> },
+    { path: 'notifications', element: <NotificationsPage /> },
+  ] as const
+
+  return (
+    <>
+      {sharedPages.map(({ path, element }) => (
+        <Route
+          key={path}
+          path={path}
+          element={
+            <RoleGuard allowedRoles={[...allRoles]}>
+              <S>{element}</S>
+            </RoleGuard>
+          }
+        />
+      ))}
+    </>
+  )
 }
-function RedirectStudentProgress() {
-  const { studentId } = useParams()
-  return <Navigate to={`/app/teacher/student-progress/${studentId}`} replace />
-}
+
+// ============================================================
+// AppRoutes
+// ============================================================
 
 export function AppRoutes() {
   return (
@@ -278,62 +135,61 @@ export function AppRoutes() {
       <Route
         path="/login"
         element={
-          <Suspense fallback={<AppLoading />}>
+          <S>
             <Login />
-          </Suspense>
+          </S>
         }
       />
       <Route
         path="/forgot-password"
         element={
-          <Suspense fallback={<AppLoading />}>
+          <S>
             <ForgotPassword />
-          </Suspense>
+          </S>
         }
       />
       <Route
         path="/reset-password"
         element={
-          <Suspense fallback={<AppLoading />}>
+          <S>
             <ResetPassword />
-          </Suspense>
+          </S>
         }
       />
       <Route
         path="/verify-email"
         element={
           <AuthGuard requireEmailVerification={false}>
-            <Suspense fallback={<AppLoading />}>
+            <S>
               <VerifyEmail />
-            </Suspense>
+            </S>
           </AuthGuard>
         }
       />
-
       <Route
         path="/workspace-selector"
         element={
           <AuthGuard>
-            <Suspense fallback={<AppLoading />}>
+            <S>
               <WorkspaceSelector />
-            </Suspense>
+            </S>
           </AuthGuard>
         }
       />
       <Route
         path="/unauthorized"
         element={
-          <Suspense fallback={<AppLoading />}>
+          <S>
             <Unauthorized />
-          </Suspense>
+          </S>
         }
       />
       <Route
         path="/404"
         element={
-          <Suspense fallback={<AppLoading />}>
+          <S>
             <NotFound />
-          </Suspense>
+          </S>
         }
       />
 
@@ -363,119 +219,107 @@ export function AppRoutes() {
             <Route
               index
               element={
-                <Suspense fallback={<AppLoading />}>
-                  <FeatureErrorBoundary featureName="Dashboard">
-                    <Dashboard />
-                  </FeatureErrorBoundary>
-                </Suspense>
+                <S feature="Dashboard">
+                  <Dashboard />
+                </S>
               }
             />
             <Route
               path="dashboard"
               element={
-                <Suspense fallback={<AppLoading />}>
-                  <FeatureErrorBoundary featureName="Dashboard">
-                    <Dashboard />
-                  </FeatureErrorBoundary>
-                </Suspense>
+                <S feature="Dashboard">
+                  <Dashboard />
+                </S>
               }
             />
             <Route
               path="courses"
               element={
-                <Suspense fallback={<AppLoading />}>
-                  <FeatureErrorBoundary featureName="Lesson Viewer">
-                    <LessonViewer />
-                  </FeatureErrorBoundary>
-                </Suspense>
+                <S feature="Lesson Viewer">
+                  <LessonViewer />
+                </S>
               }
             />
             <Route
               path="courses/:courseId"
               element={
                 <CourseEnrollmentGuard>
-                  <Suspense fallback={<AppLoading />}>
-                    <FeatureErrorBoundary featureName="Lesson Viewer">
-                      <LessonViewer />
-                    </FeatureErrorBoundary>
-                  </Suspense>
+                  <S feature="Lesson Viewer">
+                    <LessonViewer />
+                  </S>
                 </CourseEnrollmentGuard>
               }
             />
             <Route
               path="quizzes"
               element={
-                <Suspense fallback={<AppLoading />}>
-                  <FeatureErrorBoundary featureName="Quiz">
-                    <QuizModule />
-                  </FeatureErrorBoundary>
-                </Suspense>
+                <S feature="Quiz">
+                  <QuizModule />
+                </S>
               }
             />
             <Route
               path="assignments"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <Assignments />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="classes/:classId"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <StudentClassPage />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="certificates"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <Certificates />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="grades"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <Grades />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="attendance"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <StudentAttendance />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="gamification"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <GamificationHub />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="leaderboard"
               element={
-                <Suspense fallback={<AppLoading />}>
-                  <FeatureErrorBoundary featureName="Leaderboard">
-                    <Leaderboard />
-                  </FeatureErrorBoundary>
-                </Suspense>
+                <S feature="Leaderboard">
+                  <Leaderboard />
+                </S>
               }
             />
             <Route
               path="*"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <NotFound />
-                </Suspense>
+                </S>
               }
             />
           </Route>
@@ -492,183 +336,177 @@ export function AppRoutes() {
             <Route
               index
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <TeacherDashboard />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="dashboard"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <TeacherDashboard />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="teaching-hub"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <TeachingHub />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="courses"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <Courses />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="course-builder"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <CourseBuilder />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="quiz-manager"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <QuizManager />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="question-bank"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <QuestionBankPage />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="quiz-gradebook"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <QuizGradebook />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="assignment-gradebook"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <AssignmentGradebook />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="gradebook"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <Gradebook />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="grader"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <SpeedGrader />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="course-analytics"
               element={
-                <Suspense fallback={<AppLoading />}>
-                  <FeatureErrorBoundary featureName="Course Analytics">
-                    <CourseAnalytics />
-                  </FeatureErrorBoundary>
-                </Suspense>
+                <S feature="Course Analytics">
+                  <CourseAnalytics />
+                </S>
               }
             />
             <Route
               path="dashboards"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <Dashboards />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="classes"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <ClassManagement />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="analytics"
               element={
-                <Suspense fallback={<AppLoading />}>
-                  <FeatureErrorBoundary featureName="Analytics">
-                    <Analytics />
-                  </FeatureErrorBoundary>
-                </Suspense>
+                <S feature="Analytics">
+                  <Analytics />
+                </S>
               }
             />
             <Route
               path="scan-attendance"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <ScanAttendance />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="documents"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <DocumentManager />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="creator"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <Creator />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="student-progress/:studentId"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <StudentProgress />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="leaderboard"
               element={
-                <Suspense fallback={<AppLoading />}>
-                  <FeatureErrorBoundary featureName="Leaderboard">
-                    <Leaderboard />
-                  </FeatureErrorBoundary>
-                </Suspense>
+                <S feature="Leaderboard">
+                  <Leaderboard />
+                </S>
               }
             />
             <Route
               path="moderation"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <ModerationDashboard />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="*"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <NotFound />
-                </Suspense>
+                </S>
               }
             />
           </Route>
@@ -685,408 +523,227 @@ export function AppRoutes() {
             <Route
               index
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <AdministrationDashboard />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="dashboard"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <AdministrationDashboard />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="users"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <UserManagement />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="billing"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <BillingDashboard />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="moderation"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <ModerationDashboard />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="finance"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <FinanceDashboard />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="ppdb"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <PPDBDashboard />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="administration"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <AdministrationDashboard />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="audit"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <AuditDashboard />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="analytics"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <AdminAnalyticsDashboard />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="documents"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <DocumentManager />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="creator"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <Creator />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="courses"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <Courses />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="course-builder"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <CourseBuilder />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="quiz-manager"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <QuizManager />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="question-bank"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <QuestionBankPage />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="gradebook"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <Gradebook />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="quiz-gradebook"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <QuizGradebook />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="assignment-gradebook"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <AssignmentGradebook />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="grader"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <SpeedGrader />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="classes"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <ClassManagement />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="scan-attendance"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <ScanAttendance />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="student-progress/:studentId"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <StudentProgress />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="system-health"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <SystemHealth />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="feature-flags"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <FeatureFlagsPage />
-                </Suspense>
+                </S>
               }
             />
             <Route
               path="*"
               element={
-                <Suspense fallback={<AppLoading />}>
+                <S>
                   <NotFound />
-                </Suspense>
+                </S>
               }
             />
           </Route>
         </Route>
 
         {/* === Shared Routes (all authenticated roles) === */}
-        <Route
-          path="forum"
-          element={
-            <RoleGuard allowedRoles={['teacher', 'student', 'admin']}>
-              <Suspense fallback={<AppLoading />}>
-                <Forum />
-              </Suspense>
-            </RoleGuard>
-          }
-        />
-        <Route
-          path="profile"
-          element={
-            <RoleGuard allowedRoles={['teacher', 'student', 'admin']}>
-              <Suspense fallback={<AppLoading />}>
-                <Profile />
-              </Suspense>
-            </RoleGuard>
-          }
-        />
-        <Route
-          path="p/:username"
-          element={
-            <RoleGuard allowedRoles={['teacher', 'student', 'admin']}>
-              <Suspense fallback={<AppLoading />}>
-                <PublicProfile />
-              </Suspense>
-            </RoleGuard>
-          }
-        />
-        <Route
-          path="settings"
-          element={
-            <RoleGuard allowedRoles={['teacher', 'student', 'admin']}>
-              <Suspense fallback={<AppLoading />}>
-                <Settings />
-              </Suspense>
-            </RoleGuard>
-          }
-        />
-        <Route
-          path="calendar"
-          element={
-            <RoleGuard allowedRoles={['teacher', 'student', 'admin']}>
-              <Suspense fallback={<AppLoading />}>
-                <Calendar />
-              </Suspense>
-            </RoleGuard>
-          }
-        />
-        <Route
-          path="announcements"
-          element={
-            <RoleGuard allowedRoles={['teacher', 'student', 'admin']}>
-              <Suspense fallback={<AppLoading />}>
-                <Announcements />
-              </Suspense>
-            </RoleGuard>
-          }
-        />
-        <Route
-          path="assignments"
-          element={
-            <RoleGuard allowedRoles={['teacher', 'student', 'admin']}>
-              <Suspense fallback={<AppLoading />}>
-                <Assignments />
-              </Suspense>
-            </RoleGuard>
-          }
-        />
-        <Route
-          path="group-assignment"
-          element={
-            <RoleGuard allowedRoles={['teacher', 'student', 'admin']}>
-              <Suspense fallback={<AppLoading />}>
-                <GroupAssignment />
-              </Suspense>
-            </RoleGuard>
-          }
-        />
-        <Route
-          path="directory"
-          element={
-            <RoleGuard allowedRoles={['teacher', 'student', 'admin']}>
-              <Suspense fallback={<AppLoading />}>
-                <Directory />
-              </Suspense>
-            </RoleGuard>
-          }
-        />
-        <Route
-          path="social-hub"
-          element={
-            <RoleGuard allowedRoles={['teacher', 'student', 'admin']}>
-              <Suspense fallback={<AppLoading />}>
-                <SocialHub />
-              </Suspense>
-            </RoleGuard>
-          }
-        />
-        <Route
-          path="notifications"
-          element={
-            <RoleGuard allowedRoles={['teacher', 'student', 'admin']}>
-              <Suspense fallback={<AppLoading />}>
-                <NotificationsPage />
-              </Suspense>
-            </RoleGuard>
-          }
-        />
+        {SharedRoutes()}
 
-        {/* === Legacy Redirects (backward compatibility) === */}
-        <Route index element={<Navigate to="/app" replace />} />
-        <Route path="dashboard" element={<Navigate to="/app/student/dashboard" replace />} />
-        <Route path="lesson" element={<Navigate to="/app/student/courses" replace />} />
-        <Route path="quiz" element={<Navigate to="/app/student/quizzes" replace />} />
-        <Route path="courses" element={<Navigate to="/app/student/courses" replace />} />
-        <Route path="courses/:courseId" element={<RedirectCourseDetail />} />
-        <Route path="classes/:classId" element={<RedirectStudentClass />} />
-        <Route path="certificates" element={<Navigate to="/app/student/certificates" replace />} />
-        <Route path="grades" element={<Navigate to="/app/student/grades" replace />} />
-        <Route path="attendance" element={<Navigate to="/app/student/attendance" replace />} />
-        <Route
-          path="gamification-hub"
-          element={<Navigate to="/app/student/gamification" replace />}
-        />
-        <Route path="leaderboard" element={<Navigate to="/app/student/leaderboard" replace />} />
-        <Route
-          path="teacher-dashboard"
-          element={<Navigate to="/app/teacher/dashboard" replace />}
-        />
-        <Route path="teaching" element={<Navigate to="/app/teacher/teaching-hub" replace />} />
-        <Route path="teaching/courses" element={<Navigate to="/app/teacher/courses" replace />} />
-        <Route
-          path="teaching/course-builder"
-          element={<Navigate to="/app/teacher/course-builder" replace />}
-        />
-        <Route
-          path="teaching/quiz-manager"
-          element={<Navigate to="/app/teacher/quiz-manager" replace />}
-        />
-        <Route
-          path="teaching/question-bank"
-          element={<Navigate to="/app/teacher/question-bank" replace />}
-        />
-        <Route
-          path="teaching/quiz-gradebook"
-          element={<Navigate to="/app/teacher/quiz-gradebook" replace />}
-        />
-        <Route
-          path="teaching/assignment-gradebook"
-          element={<Navigate to="/app/teacher/assignment-gradebook" replace />}
-        />
-        <Route
-          path="teaching/course-analytics"
-          element={<Navigate to="/app/teacher/course-analytics" replace />}
-        />
-        <Route
-          path="teaching/dashboards"
-          element={<Navigate to="/app/teacher/dashboards" replace />}
-        />
-        <Route path="teaching/classes" element={<Navigate to="/app/teacher/classes" replace />} />
-        <Route path="grader" element={<Navigate to="/app/teacher/grader" replace />} />
-        <Route path="gradebook" element={<Navigate to="/app/teacher/gradebook" replace />} />
-        <Route path="analytics" element={<Navigate to="/app/teacher/analytics" replace />} />
-        <Route
-          path="scan-attendance"
-          element={<Navigate to="/app/teacher/scan-attendance" replace />}
-        />
-        <Route path="documents" element={<Navigate to="/app/teacher/documents" replace />} />
-        <Route path="creator" element={<Navigate to="/app/teacher/creator" replace />} />
-        <Route path="student-progress/:studentId" element={<RedirectStudentProgress />} />
-        <Route path="admin-hub" element={<Navigate to="/app/admin/dashboard" replace />} />
-        <Route path="admin/moderation" element={<Navigate to="/app/admin/moderation" replace />} />
-        <Route path="admin/finance" element={<Navigate to="/app/admin/finance" replace />} />
-        <Route path="admin/ppdb" element={<Navigate to="/app/admin/ppdb" replace />} />
-        <Route
-          path="admin/administration"
-          element={<Navigate to="/app/admin/administration" replace />}
-        />
-        <Route path="admin/users" element={<Navigate to="/app/admin/users" replace />} />
-        <Route path="admin/audit" element={<Navigate to="/app/admin/audit" replace />} />
-        <Route path="admin/analytics" element={<Navigate to="/app/admin/analytics" replace />} />
-        <Route path="billing" element={<Navigate to="/app/admin/billing" replace />} />
-        <Route path="schedule" element={<Navigate to="/calendar" replace />} />
+        {/* === Legacy Redirects === */}
+        {LegacyRedirects()}
 
         {/* === 404 === */}
         <Route
           path="*"
           element={
-            <Suspense fallback={<AppLoading />}>
+            <S>
               <NotFound />
-            </Suspense>
+            </S>
           }
         />
       </Route>

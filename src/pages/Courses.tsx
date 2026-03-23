@@ -1,12 +1,14 @@
-import { useState, useEffect, useRef } from 'react'
+import { BookOpen, Clock, Layers, Loader2, Plus, RefreshCw, Search, Users } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, BookOpen, Clock, Loader2, RefreshCw, Users, Search, Layers } from 'lucide-react'
+
+import { AssignCourseModal } from '@/src/components/Classroom/AssignCourseModal'
 import { useAuth } from '@/src/contexts/AuthContext'
-import { courseService, Course } from '@/src/features/courses'
+import { Course, courseService } from '@/src/features/courses'
 import { useInfiniteCoursesQuery } from '@/src/features/courses/queries/courseQueries'
 import { useDebounce } from '@/src/hooks/useDebounce'
-import { motion, AnimatePresence } from 'motion/react'
-import { AssignCourseModal } from '@/src/components/Classroom/AssignCourseModal'
+import { useToast } from '@/src/hooks/useToast'
 import { cn } from '@/src/utils/cn'
 
 // Gradient palette rotated per card index
@@ -22,6 +24,7 @@ const CARD_GRADIENTS = [
 export const Courses: React.FC = () => {
   const navigate = useNavigate()
   const { user, activeTenant } = useAuth()
+  const addToast = useToast((s) => s.addToast)
 
   useEffect(() => {
     document.title = 'Kursus — EduSync'
@@ -96,10 +99,13 @@ export const Courses: React.FC = () => {
       })
 
       setIsModalOpen(false)
-      navigate(`/teaching/course-builder?courseId=${newCourse.id}`)
+      navigate(`/app/teacher/course-builder?courseId=${newCourse.id}`)
     } catch (err: unknown) {
       if (import.meta.env.DEV) console.error('Failed to create course:', err)
-      alert(err instanceof Error ? err.message : 'Gagal membuat materi baru.')
+      addToast({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Gagal membuat materi baru.',
+      })
     } finally {
       setIsCreating(false)
     }
@@ -212,7 +218,7 @@ export const Courses: React.FC = () => {
                 course={course}
                 idx={idx}
                 gradientClass={CARD_GRADIENTS[idx % CARD_GRADIENTS.length]}
-                onNavigate={() => navigate(`/teaching/course-builder?courseId=${course.id}`)}
+                onNavigate={() => navigate(`/app/teacher/course-builder?courseId=${course.id}`)}
                 onAssign={() =>
                   setAssignModal({ isOpen: true, courseId: course.id, courseTitle: course.title })
                 }

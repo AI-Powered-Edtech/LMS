@@ -127,17 +127,17 @@ export function Certificates() {
       <div className="max-w-6xl mx-auto space-y-8 p-4 md:p-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               Manajemen Sertifikat
             </h1>
-            <p className="text-slate-500 mt-2">
+            <p className="text-slate-500 dark:text-slate-400 mt-2">
               Desain template dan terbitkan sertifikat untuk siswa Anda.
             </p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate('/app/teacher/settings')}
-              className="px-4 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-bold flex items-center gap-2 transition-colors"
+              className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl font-bold flex items-center gap-2 transition-colors"
             >
               <Settings className="w-4 h-4" /> Pengaturan
             </button>
@@ -153,12 +153,14 @@ export function Certificates() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
             <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mb-4">
               <LayoutTemplate className="w-6 h-6" />
             </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Pembuat Template</h2>
-            <p className="text-slate-500 text-sm mb-6">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+              Pembuat Template
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
               Desain layout sertifikat dengan fitur drag-and-drop. Atur posisi logo, teks dinamis
               (Nama, Nilai), dan tanda tangan digital.
             </p>
@@ -172,14 +174,14 @@ export function Certificates() {
             </button>
           </div>
 
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
             <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-4">
               <Users className="w-6 h-6" />
             </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
               Penerbitan Massal (Bulk Issuance)
             </h2>
-            <p className="text-slate-500 text-sm mb-6">
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
               Terbitkan sertifikat secara otomatis untuk seluruh siswa dalam satu kelas yang telah
               memenuhi KKM atau menyelesaikan modul.
             </p>
@@ -219,8 +221,10 @@ export function Certificates() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Sertifikat Saya</h1>
-          <p className="text-slate-500 mt-2">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+            Sertifikat Saya
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">
             Portofolio digital yang memvalidasi pencapaian akademik Anda.
           </p>
         </div>
@@ -303,7 +307,7 @@ export function Certificates() {
       {/* Gallery & Filters */}
       <div>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <h2 className="text-2xl font-bold text-slate-900">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
             {certificates.length > 0 ? 'Semua Sertifikat' : 'Sertifikat'}
           </h2>
           {certificates.length > 0 && (
@@ -314,7 +318,7 @@ export function Certificates() {
                 placeholder="Cari sertifikat..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 w-full text-sm shadow-sm"
+                className="pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 w-full text-sm shadow-sm"
               />
             </div>
           )}
@@ -334,7 +338,7 @@ export function Certificates() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-3xl border border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col"
+                className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col"
               >
                 {/* Certificate preview header */}
                 <div className="relative h-40 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden">
@@ -351,10 +355,10 @@ export function Certificates() {
                 </div>
 
                 <div className="p-5 flex-1 flex flex-col">
-                  <h3 className="font-bold text-lg text-slate-900 mb-2 line-clamp-2">
+                  <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 mb-2 line-clamp-2">
                     {cert.course_title}
                   </h3>
-                  <p className="text-slate-500 text-sm mb-1 flex items-center gap-1.5">
+                  <p className="text-slate-500 dark:text-slate-400 text-sm mb-1 flex items-center gap-1.5">
                     <ShieldCheck className="w-4 h-4 text-blue-500" />
                     EduSync Academy
                   </p>
@@ -364,11 +368,11 @@ export function Certificates() {
                   </p>
                   <p className="text-xs font-mono text-slate-400 mb-4">{cert.certificate_number}</p>
 
-                  <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between gap-2">
                     <div className="relative">
                       <button
                         onClick={() => setShowShareMenu(showShareMenu === cert.id ? null : cert.id)}
-                        className="p-2.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-transparent hover:border-blue-100"
+                        className="p-2.5 text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-transparent hover:border-blue-100"
                         title="Bagikan"
                       >
                         <Share2 className="w-5 h-5" />
@@ -380,24 +384,24 @@ export function Certificates() {
                             initial={{ opacity: 0, y: 10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                            className="absolute bottom-full left-0 mb-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-20"
+                            className="absolute bottom-full left-0 mb-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl overflow-hidden z-20"
                           >
                             <div className="p-2 space-y-1">
                               <button
                                 onClick={() => handleShare('linkedin', cert)}
-                                className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-colors"
+                                className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-blue-50 hover:text-blue-700 rounded-xl transition-colors"
                               >
                                 <Linkedin className="w-4 h-4" /> LinkedIn
                               </button>
                               <button
                                 onClick={() => handleShare('whatsapp', cert)}
-                                className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-green-50 hover:text-green-700 rounded-xl transition-colors"
+                                className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-green-50 hover:text-green-700 rounded-xl transition-colors"
                               >
                                 <MessageCircle className="w-4 h-4" /> WhatsApp
                               </button>
                               <button
                                 onClick={() => handleShare('twitter', cert)}
-                                className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-sky-50 hover:text-sky-700 rounded-xl transition-colors"
+                                className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-sky-50 hover:text-sky-700 rounded-xl transition-colors"
                               >
                                 <Share2 className="w-4 h-4" /> Twitter / X
                               </button>
@@ -411,7 +415,7 @@ export function Certificates() {
                       <button
                         onClick={() => handleDownload(cert, 'png')}
                         disabled={isDownloading === cert.id}
-                        className="p-2.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-transparent hover:border-blue-100"
+                        className="p-2.5 text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-transparent hover:border-blue-100"
                         title="Unduh PNG"
                       >
                         <ImageIcon className="w-5 h-5" />
@@ -419,7 +423,7 @@ export function Certificates() {
                       <button
                         onClick={() => handleDownload(cert, 'pdf')}
                         disabled={isDownloading === cert.id}
-                        className="px-4 py-2.5 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors border border-slate-200 hover:border-blue-200"
+                        className="px-4 py-2.5 bg-slate-50 dark:bg-slate-700/50 hover:bg-blue-50 text-slate-700 dark:text-slate-300 hover:text-blue-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors border border-slate-200 dark:border-slate-700 hover:border-blue-200"
                       >
                         {isDownloading === cert.id ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -437,10 +441,14 @@ export function Certificates() {
         )}
 
         {filteredCertificates.length === 0 && certificates.length > 0 && (
-          <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 border-dashed">
+          <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 border-dashed">
             <Award className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-slate-700 mb-2">Tidak ditemukan</h3>
-            <p className="text-slate-500">Sertifikat yang Anda cari tidak ditemukan.</p>
+            <h3 className="text-xl font-bold text-slate-700 dark:text-slate-300 mb-2">
+              Tidak ditemukan
+            </h3>
+            <p className="text-slate-500 dark:text-slate-400">
+              Sertifikat yang Anda cari tidak ditemukan.
+            </p>
           </div>
         )}
       </div>

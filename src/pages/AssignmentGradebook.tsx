@@ -120,7 +120,7 @@ export function AssignmentGradebook() {
                 ? sub.user_profiles[0]?.full_name?.charAt(0)
                 : sub.user_profiles?.full_name?.charAt(0) || '?'}
             </div>
-            <span className="font-bold text-slate-700">
+            <span className="font-bold text-slate-700 dark:text-slate-300">
               {Array.isArray(sub.user_profiles)
                 ? sub.user_profiles[0]?.full_name
                 : sub.user_profiles?.full_name || 'Siswa'}
@@ -132,7 +132,7 @@ export function AssignmentGradebook() {
         key: 'submitted_at',
         header: 'Tanggal Pengiriman',
         render: (sub: AssignmentSubmission) => (
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-slate-500 dark:text-slate-400">
             {new Date(sub.submitted_at).toLocaleDateString('id-ID', {
               day: 'numeric',
               month: 'long',
@@ -201,10 +201,10 @@ export function AssignmentGradebook() {
       {/* Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
             Buku Nilai Tugas
           </h1>
-          <p className="text-slate-500 mt-1">
+          <p className="text-slate-500 dark:text-slate-400 mt-1">
             Kelola pengiriman tugas dan berikan penilaian kepada siswa.
           </p>
         </div>
@@ -215,7 +215,7 @@ export function AssignmentGradebook() {
               <input
                 type="text"
                 placeholder="Cari tugas..."
-                className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none w-64 shadow-sm"
+                className="pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none w-64 shadow-sm"
               />
             </div>
           </div>
@@ -226,9 +226,11 @@ export function AssignmentGradebook() {
         /* Assignments Grid */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {assignments.length === 0 ? (
-            <div className="col-span-full p-12 text-center bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl">
+            <div className="col-span-full p-12 text-center bg-slate-50 dark:bg-slate-700/50 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl">
               <FileText className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-slate-600">Belum Ada Tugas</h3>
+              <h3 className="text-lg font-bold text-slate-600 dark:text-slate-400">
+                Belum Ada Tugas
+              </h3>
               <p className="text-slate-400">Buat tugas pertama Anda di Course Builder.</p>
             </div>
           ) : (
@@ -237,12 +239,12 @@ export function AssignmentGradebook() {
                 key={assignment.id}
                 whileHover={{ y: -4 }}
                 onClick={() => handleSelectAssignment(assignment)}
-                className="group text-left bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all flex flex-col h-full"
+                className="group text-left bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all flex flex-col h-full"
               >
                 <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
                   <FileText className="w-6 h-6 text-blue-600" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-800 group-hover:text-blue-700 transition-colors line-clamp-2 flex-1">
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-700 transition-colors line-clamp-2 flex-1">
                   {assignment.title}
                 </h3>
                 <div className="flex items-center gap-4 mt-6 text-xs font-bold text-slate-400 uppercase tracking-widest">
@@ -269,16 +271,18 @@ export function AssignmentGradebook() {
         <div className="space-y-6">
           <button
             onClick={() => setSelectedAssignment(null)}
-            className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors mb-2"
+            className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-blue-600 transition-colors mb-2"
           >
             <ArrowLeft className="w-4 h-4" />
             Kembali ke semua tugas
           </button>
 
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden mb-8">
-            <div className="p-8 border-b border-slate-100 bg-slate-50/30">
-              <h2 className="text-2xl font-extrabold text-slate-800">{selectedAssignment.title}</h2>
-              <div className="flex items-center gap-6 mt-3 text-sm text-slate-500 font-medium">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-8">
+            <div className="p-8 border-b border-slate-100 dark:border-slate-700 bg-slate-50/30">
+              <h2 className="text-2xl font-extrabold text-slate-800 dark:text-slate-200">
+                {selectedAssignment.title}
+              </h2>
+              <div className="flex items-center gap-6 mt-3 text-sm text-slate-500 dark:text-slate-400 font-medium">
                 <span className="flex items-center gap-1.5">
                   <Award className="w-4 h-4 text-blue-500" />
                   Maksimum {selectedAssignment.max_points} Poin
@@ -303,7 +307,7 @@ export function AssignmentGradebook() {
                 maxHeight={550}
                 getRowKey={(sub) => sub.id}
                 emptyState={
-                  <div className="px-8 py-12 text-center text-slate-500 font-medium italic">
+                  <div className="px-8 py-12 text-center text-slate-500 dark:text-slate-400 font-medium italic">
                     Belum ada siswa yang mengirimkan tugas.
                   </div>
                 }
@@ -328,15 +332,15 @@ export function AssignmentGradebook() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-4xl bg-white rounded-[32px] border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+              className="relative w-full max-w-4xl bg-white dark:bg-slate-800 rounded-[32px] border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
             >
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50/50">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
                     <GraduationCap className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-800">
+                    <h3 className="font-bold text-slate-800 dark:text-slate-200">
                       Menilai:{' '}
                       {Array.isArray(gradingSubmission?.user_profiles)
                         ? gradingSubmission?.user_profiles[0]?.full_name
@@ -349,7 +353,7 @@ export function AssignmentGradebook() {
                 </div>
                 <button
                   onClick={() => setGradingSubmission(null)}
-                  className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+                  className="p-2 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors"
                 >
                   <ArrowLeft className="w-5 h-5 text-slate-400 rotate-180" />
                 </button>
@@ -358,10 +362,10 @@ export function AssignmentGradebook() {
               <div className="flex-1 overflow-auto p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Student Submission */}
                 <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest px-1">
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest px-1">
                     Hasil Pekerjaan Siswa
                   </h4>
-                  <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 min-h-[300px] text-slate-700 whitespace-pre-wrap text-sm leading-relaxed italic">
+                  <div className="bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 min-h-[300px] text-slate-700 dark:text-slate-300 whitespace-pre-wrap text-sm leading-relaxed italic">
                     {gradingSubmission.submission_text || 'Siswa tidak menyertakan teks tambahan.'}
                   </div>
                   {gradingSubmission.file_url && (
@@ -369,22 +373,24 @@ export function AssignmentGradebook() {
                       href={gradingSubmission.file_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center gap-2 p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+                      className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                     >
                       <FileText className="w-5 h-5 text-blue-500" />
-                      <span className="text-sm font-bold text-slate-600">Buka File Lampiran</span>
+                      <span className="text-sm font-bold text-slate-600 dark:text-slate-400">
+                        Buka File Lampiran
+                      </span>
                     </a>
                   )}
                 </div>
 
                 {/* Grading Form */}
                 <div className="space-y-6">
-                  <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest px-1">
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest px-1">
                     Berikan Penilaian
                   </h4>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase flex justify-between">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase flex justify-between">
                       Skor (0 - {selectedAssignment?.max_points})
                       <span className="text-blue-600">
                         {score} / {selectedAssignment?.max_points}
@@ -396,19 +402,19 @@ export function AssignmentGradebook() {
                       max={selectedAssignment?.max_points}
                       value={score}
                       onChange={(e) => setScore(parseInt(e.target.value) || 0)}
-                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-lg"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-lg"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                       Umpan Balik (Feedback)
                     </label>
                     <textarea
                       value={feedback}
                       onChange={(e) => setFeedback(e.target.value)}
                       rows={8}
-                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-none"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-none"
                       placeholder="Tuliskan catatan untuk siswa di sini..."
                     />
                   </div>

@@ -102,14 +102,14 @@ export function StudentAttendance() {
   const pct = myRecords.length > 0 ? Math.round((totalHadir / myRecords.length) * 100) : 0
 
   return (
-    <div className="flex-1 bg-slate-50 p-4 md:p-8 overflow-y-auto">
+    <div className="flex-1 bg-slate-50 dark:bg-slate-700/50 p-4 md:p-8 overflow-y-auto">
       <div className="max-w-3xl mx-auto space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Calendar className="w-6 h-6 text-blue-600" />
             Rekap Kehadiran
           </h1>
-          <p className="text-slate-500 mt-1 text-sm">
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
             Riwayat kehadiran kamu berdasarkan data scan guru.
           </p>
         </div>
@@ -127,29 +127,29 @@ export function StudentAttendance() {
               label: 'Hadir',
               value: totalHadir,
               sub: 'pertemuan',
-              color: 'bg-white border border-slate-200',
+              color: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700',
             },
             {
               label: 'Sakit',
               value: totalSakit,
               sub: 'pertemuan',
-              color: 'bg-white border border-slate-200',
+              color: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700',
             },
             {
               label: 'Alpha',
               value: totalAlpha,
               sub: 'pertemuan',
-              color: 'bg-white border border-slate-200',
+              color: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700',
             },
           ].map((s) => (
             <div key={s.label} className={`rounded-2xl p-4 shadow-sm ${s.color}`}>
               <p
-                className={`text-xs font-bold uppercase tracking-wider mb-1 ${s.color.includes('green-600') ? 'text-green-100' : 'text-slate-500'}`}
+                className={`text-xs font-bold uppercase tracking-wider mb-1 ${s.color.includes('green-600') ? 'text-green-100' : 'text-slate-500 dark:text-slate-400'}`}
               >
                 {s.label}
               </p>
               <p
-                className={`text-3xl font-black ${s.color.includes('green-600') ? 'text-white' : 'text-slate-800'}`}
+                className={`text-3xl font-black ${s.color.includes('green-600') ? 'text-white' : 'text-slate-800 dark:text-slate-200'}`}
               >
                 {s.value}
               </p>
@@ -163,9 +163,9 @@ export function StudentAttendance() {
         </div>
 
         {/* Records list */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-            <h2 className="font-bold text-slate-800">Riwayat Pertemuan</h2>
+        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50">
+            <h2 className="font-bold text-slate-800 dark:text-slate-200">Riwayat Pertemuan</h2>
           </div>
           {isLoading ? (
             <div className="p-8 space-y-3">
@@ -182,7 +182,7 @@ export function StudentAttendance() {
               />
             </div>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-slate-100 dark:divide-slate-700">
               {myRecords.map((r) => {
                 const cfg =
                   STATUS_CONFIG[r.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.hadir
@@ -190,10 +190,12 @@ export function StudentAttendance() {
                 return (
                   <div
                     key={r.id}
-                    className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors"
+                    className="flex items-center justify-between px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                   >
                     <div>
-                      <p className="font-medium text-slate-800 text-sm">{r.className}</p>
+                      <p className="font-medium text-slate-800 dark:text-slate-200 text-sm">
+                        {r.className}
+                      </p>
                       <p className="text-xs text-slate-400">
                         {new Date(r.date).toLocaleDateString('id-ID', {
                           weekday: 'long',

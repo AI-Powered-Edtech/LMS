@@ -189,13 +189,13 @@ export function Creator() {
     <div className="max-w-6xl mx-auto space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             AI Course & Quiz Generator
           </h1>
-          <p className="text-slate-500 mt-2">
+          <p className="text-slate-500 dark:text-slate-400 mt-2">
             Gunakan AI untuk membuat materi kursus dan kuis secara otomatis dari dokumen atau video.
           </p>
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-700">
+          <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl text-sm text-blue-700 dark:text-blue-300">
             <strong>AI Creator:</strong> Otomatisasi pembuatan konten dari materi yang ada.
           </div>
         </div>
@@ -204,8 +204,8 @@ export function Creator() {
       {!result ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Upload Area */}
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-            <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
               <UploadCloud className="w-6 h-6 text-blue-500" />
               Unggah Materi
             </h2>
@@ -217,16 +217,16 @@ export function Creator() {
               className={cn(
                 'h-64 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-6 text-center transition-all duration-200',
                 isDragging
-                  ? 'border-blue-500 bg-blue-50 scale-[1.02]'
-                  : 'border-slate-300 bg-slate-50 hover:bg-slate-100',
-                file && 'border-green-500 bg-green-50'
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 scale-[1.02]'
+                  : 'border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800',
+                file && 'border-green-500 bg-green-50 dark:bg-green-900/20'
               )}
             >
               {file ? (
                 <>
                   <FileText className="w-12 h-12 text-green-500 mb-4" />
-                  <p className="font-bold text-slate-700">{file.name}</p>
-                  <p className="text-sm text-slate-500 mt-1">
+                  <p className="font-bold text-slate-700 dark:text-slate-200">{file.name}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                     {(file.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                   <button
@@ -244,11 +244,13 @@ export function Creator() {
                       isDragging ? 'text-blue-500' : 'text-slate-400'
                     )}
                   />
-                  <p className="font-bold text-slate-700">Tarik & Lepas file di sini</p>
-                  <p className="text-sm text-slate-500 mt-2">
+                  <p className="font-bold text-slate-700 dark:text-slate-200">
+                    Tarik & Lepas file di sini
+                  </p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
                     Mendukung .pdf, .docx, .mp4 (Maks 50MB)
                   </p>
-                  <button className="mt-6 px-6 py-2 bg-white border border-slate-200 rounded-xl font-medium text-slate-700 hover:bg-slate-50 shadow-sm">
+                  <button className="mt-6 px-6 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 shadow-sm">
                     Pilih File
                   </button>
                 </>
@@ -257,15 +259,17 @@ export function Creator() {
           </div>
 
           {/* Configuration Area */}
-          <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-            <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
               <Settings className="w-6 h-6 text-slate-500" />
               Konfigurasi AI
             </h2>
 
             <div className="space-y-8">
               <div>
-                <label className="font-bold text-slate-700 block mb-3">Jenis Tugas</label>
+                <label className="font-bold text-slate-700 dark:text-slate-200 block mb-3">
+                  Jenis Tugas
+                </label>
                 <div className="grid grid-cols-3 gap-3">
                   {[
                     { id: 'quiz', label: 'Kuis (PG)' },
@@ -278,8 +282,8 @@ export function Creator() {
                       className={cn(
                         'px-4 py-3 rounded-xl border text-sm font-medium text-center transition-all',
                         assignmentType === type.id
-                          ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
-                          : 'border-slate-200 hover:border-slate-300 text-slate-600'
+                          ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm'
+                          : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 text-slate-600 dark:text-slate-400'
                       )}
                     >
                       {type.label}
@@ -290,10 +294,10 @@ export function Creator() {
 
               <div>
                 <div className="flex justify-between mb-2">
-                  <label className="font-bold text-slate-700">
+                  <label className="font-bold text-slate-700 dark:text-slate-200">
                     {assignmentType === 'writing' ? 'Jumlah Topik' : 'Jumlah Soal'}
                   </label>
-                  <span className="font-bold text-blue-600">
+                  <span className="font-bold text-blue-600 dark:text-blue-400">
                     {assignmentType === 'writing' ? Math.min(questionCount, 3) : questionCount}
                   </span>
                 </div>
@@ -303,12 +307,12 @@ export function Creator() {
                   max={assignmentType === 'writing' ? '3' : '50'}
                   value={assignmentType === 'writing' ? Math.min(questionCount, 3) : questionCount}
                   onChange={(e) => setQuestionCount(Number(e.target.value))}
-                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-3">
+                <label className="font-bold text-slate-700 dark:text-slate-200 block mb-3">
                   Tingkat Kesulitan (Taksonomi Bloom)
                 </label>
                 <div className="grid grid-cols-2 gap-3">
@@ -328,8 +332,8 @@ export function Creator() {
                         className={cn(
                           'px-4 py-3 rounded-xl border text-sm font-medium text-left transition-all',
                           difficulty === code
-                            ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
-                            : 'border-slate-200 hover:border-slate-300 text-slate-600'
+                            ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm'
+                            : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 text-slate-600 dark:text-slate-400'
                         )}
                       >
                         {level}
@@ -340,7 +344,7 @@ export function Creator() {
               </div>
 
               {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium flex items-start gap-3">
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm font-medium flex items-start gap-3">
                   <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
                     <span className="text-red-600 font-bold text-xs">!</span>
                   </div>
@@ -354,7 +358,7 @@ export function Creator() {
                 className={cn(
                   'w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg',
                   !file || isGenerating
-                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
+                    ? 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed shadow-none'
                     : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 active:scale-95 shadow-blue-200'
                 )}
               >
@@ -382,42 +386,42 @@ export function Creator() {
         >
           {/* Left: Summary */}
           <div className="md:col-span-1 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col min-h-[300px] md:min-h-0">
-            <h2 className="text-xl font-bold text-slate-800 mb-4">
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-4">
               {result.type === 'reading'
                 ? 'Teks Bacaan'
                 : result.type === 'writing'
                   ? 'Konteks Topik'
                   : 'Rangkuman Materi'}
             </h2>
-            <div className="flex-1 overflow-y-auto pr-2 text-slate-600 leading-relaxed">
+            <div className="flex-1 overflow-y-auto pr-2 text-slate-600 dark:text-slate-400 leading-relaxed">
               {result.summary}
             </div>
             <button
               onClick={() => setResult(null)}
-              className="mt-4 py-3 border border-slate-200 rounded-xl font-medium text-slate-600 hover:bg-slate-50"
+              className="mt-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
             >
               Buat Baru
             </button>
           </div>
 
           {/* Right: Quiz Cards */}
-          <div className="md:col-span-2 bg-slate-100 p-4 md:p-6 rounded-3xl border border-slate-200 flex flex-col min-h-[500px] md:min-h-0">
+          <div className="md:col-span-2 bg-slate-100 dark:bg-slate-900 p-4 md:p-6 rounded-3xl border border-slate-200 dark:border-slate-700 flex flex-col min-h-[500px] md:min-h-0">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 sm:gap-0">
-              <h2 className="text-xl font-bold text-slate-800">
+              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
                 {result.type === 'writing' ? 'Daftar Topik' : 'Daftar Soal'} (
                 {result.questions.length})
               </h2>
               <div className="flex gap-2 w-full sm:w-auto">
                 <button
                   onClick={handleSaveToCalendar}
-                  className="flex-1 sm:flex-none px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
+                  className="flex-1 sm:flex-none px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
                 >
                   <CalendarIcon className="w-4 h-4" />
                   Jadwalkan
                 </button>
                 <button
                   onClick={handleAddToCourse}
-                  className="flex-1 sm:flex-none px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-200 transition-transform active:scale-95"
+                  className="flex-1 sm:flex-none px-6 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-200 dark:shadow-blue-900 transition-transform active:scale-95"
                 >
                   <BookOpen className="w-4 h-4" />
                   Add to Course Module
@@ -429,10 +433,10 @@ export function Creator() {
               {result.questions.map((q, i: number) => (
                 <div
                   key={q.id}
-                  className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 group"
+                  className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 group"
                 >
                   <div className="flex justify-between items-start mb-4">
-                    <h3 className="font-bold text-slate-800 flex gap-3">
+                    <h3 className="font-bold text-slate-800 dark:text-slate-200 flex gap-3">
                       <span className="text-blue-500">{i + 1}.</span>
                       {q.text}
                     </h3>
@@ -448,8 +452,8 @@ export function Creator() {
                           className={cn(
                             'px-4 py-3 rounded-xl text-sm font-medium border',
                             j === (q.answer as unknown as number)
-                              ? 'bg-green-50 border-green-200 text-green-700'
-                              : 'bg-slate-50 border-slate-200 text-slate-600'
+                              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
+                              : 'bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300'
                           )}
                         >
                           {String.fromCharCode(65 + j)}. {typeof opt === 'string' ? opt : opt.text}
@@ -458,13 +462,13 @@ export function Creator() {
                     </div>
                   )}
                   {result.type !== 'quiz' && q.answer && (
-                    <div className="mt-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                      <p className="text-sm font-bold text-slate-700 mb-1">
+                    <div className="mt-3 p-4 bg-slate-50 dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600">
+                      <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-1">
                         {result.type === 'reading'
                           ? 'Kunci Jawaban / Poin Penting:'
                           : 'Kriteria Penilaian / Rubrik:'}
                       </p>
-                      <p className="text-sm text-slate-600">{q.answer}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">{q.answer}</p>
                     </div>
                   )}
                 </div>

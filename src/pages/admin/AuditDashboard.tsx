@@ -71,8 +71,8 @@ const ACTION_CONFIG: Record<
 
 const DEFAULT_ACTION_CONFIG = {
   icon: <FileText className="w-4 h-4" />,
-  color: 'text-slate-600',
-  bg: 'bg-slate-50 border-slate-200',
+  color: 'text-slate-600 dark:text-slate-400',
+  bg: 'bg-slate-50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-700',
   label: 'Aktivitas',
 }
 
@@ -223,29 +223,29 @@ export function AuditDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <FileText className="w-7 h-7 text-blue-600" />
             Audit Log
           </h1>
-          <p className="text-slate-500 mt-1 text-sm">
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
             Riwayat semua aktivitas admin dalam sekolah Anda.
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-slate-500">
+        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
           <Clock className="w-4 h-4" />
           <span>{totalCount} total entri</span>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-3 items-center">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row gap-3 items-center">
           <div className="relative flex-1 sm:max-w-xs">
             <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <select
               value={actionFilter}
               onChange={(e) => setActionFilter(e.target.value)}
-              className="w-full pl-10 pr-8 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 appearance-none"
+              className="w-full pl-10 pr-8 py-2.5 text-sm border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200 appearance-none"
             >
               {ACTION_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -260,15 +260,18 @@ export function AuditDashboard() {
               setCursor(null)
               fetchLogs()
             }}
-            className="p-2.5 border border-slate-200 rounded-xl hover:bg-slate-50"
+            className="p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700"
             title="Muat Ulang"
           >
-            <RefreshCw className="w-4 h-4 text-slate-500" />
+            <RefreshCw className="w-4 h-4 text-slate-500 dark:text-slate-400" />
           </button>
         </div>
 
         {/* Log Timeline */}
-        <div ref={parentRef} className="max-h-[600px] overflow-auto divide-y divide-slate-100">
+        <div
+          ref={parentRef}
+          className="max-h-[600px] overflow-auto divide-y divide-slate-100 dark:divide-slate-700"
+        >
           {loading && logs.length === 0 ? (
             <div className="px-6 py-16 text-center text-slate-400">
               <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2" />
@@ -277,7 +280,7 @@ export function AuditDashboard() {
           ) : logs.length === 0 ? (
             <div className="px-6 py-16 text-center text-slate-400">
               <FileText className="w-8 h-8 mx-auto mb-3 text-slate-300" />
-              <p className="font-medium text-slate-500">Belum ada aktivitas</p>
+              <p className="font-medium text-slate-500 dark:text-slate-400">Belum ada aktivitas</p>
               <p className="text-sm mt-1">Audit log akan muncul saat admin melakukan perubahan.</p>
             </div>
           ) : (
@@ -318,14 +321,18 @@ export function AuditDashboard() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-sm font-semibold text-slate-900">{cfg.label}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            <span className="font-medium text-slate-700">{log.actor_name}</span>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                            {cfg.label}
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            <span className="font-medium text-slate-700 dark:text-slate-300">
+                              {log.actor_name}
+                            </span>
                             {log.target_name && (
                               <>
                                 {' '}
                                 →{' '}
-                                <span className="font-medium text-slate-700">
+                                <span className="font-medium text-slate-700 dark:text-slate-300">
                                   {log.target_name}
                                 </span>
                               </>
@@ -352,7 +359,7 @@ export function AuditDashboard() {
 
         {/* Load More */}
         {hasMore && (
-          <div className="p-4 border-t border-slate-100 text-center">
+          <div className="p-4 border-t border-slate-100 dark:border-slate-700 text-center">
             <button
               onClick={() => fetchLogs(cursor || undefined)}
               disabled={loading}

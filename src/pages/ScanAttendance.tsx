@@ -112,19 +112,23 @@ export function ScanAttendance() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Scan Buku Absensi</h1>
-        <p className="text-slate-500 mt-2">
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+          Scan Buku Absensi
+        </h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-2">
           Otomatisasi pencatatan kehadiran dengan memindai buku absensi kelas menggunakan AI.
         </p>
       </div>
 
       {/* Class selector */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-        <label className="block text-sm font-bold text-slate-700 mb-2">Pilih Kelas</label>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
+        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+          Pilih Kelas
+        </label>
         <select
           value={selectedClassId}
           onChange={(e) => setSelectedClassId(e.target.value)}
-          className="w-full md:w-80 px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 font-medium focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+          className="w-full md:w-80 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
         >
           <option value="">-- Pilih kelas (opsional) --</option>
           {(classes as { id: string; name: string }[]).map((c) => (
@@ -136,12 +140,14 @@ export function ScanAttendance() {
       </div>
 
       {!scanResult ? (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-12 flex flex-col items-center justify-center text-center">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-12 flex flex-col items-center justify-center text-center">
           <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6">
             <Camera className="w-12 h-12" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Pindai Buku Absensi</h2>
-          <p className="text-slate-500 max-w-md mb-8">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+            Pindai Buku Absensi
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 max-w-md mb-8">
             Arahkan kamera ke halaman buku absensi atau unggah foto buku absensi untuk mendigitalkan
             data kehadiran secara otomatis.
           </p>
@@ -164,7 +170,7 @@ export function ScanAttendance() {
                 </>
               )}
             </button>
-            <button className="px-6 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold flex items-center gap-2 transition-all shadow-sm">
+            <button className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold flex items-center gap-2 transition-all shadow-sm">
               <Upload className="w-5 h-5" />
               Unggah Foto
             </button>
@@ -196,27 +202,35 @@ export function ScanAttendance() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center">
+            <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
               <div className="text-3xl font-black text-blue-600 mb-1">{scanResult.present}</div>
-              <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Hadir</div>
+              <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                Hadir
+              </div>
             </div>
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center">
+            <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
               <div className="text-3xl font-black text-yellow-600 mb-1">{scanResult.sick}</div>
-              <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Sakit</div>
+              <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                Sakit
+              </div>
             </div>
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center">
+            <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
               <div className="text-3xl font-black text-purple-600 mb-1">{scanResult.permit}</div>
-              <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Izin</div>
+              <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                Izin
+              </div>
             </div>
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm text-center">
+            <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm text-center">
               <div className="text-3xl font-black text-red-600 mb-1">{scanResult.absent}</div>
-              <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Alpa</div>
+              <div className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                Alpa
+              </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="font-bold text-slate-900 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+              <h3 className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <Users className="w-5 h-5 text-slate-400" />
                 Detail Kehadiran
               </h3>
@@ -230,19 +244,24 @@ export function ScanAttendance() {
                 Scan Ulang
               </button>
             </div>
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-slate-100 dark:divide-slate-700">
               {scanResult.details.map((student, idx: number) => (
-                <div key={idx} className="p-4 flex items-center justify-between hover:bg-slate-50">
-                  <span className="font-medium text-slate-900">{student.name}</span>
+                <div
+                  key={idx}
+                  className="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700"
+                >
+                  <span className="font-medium text-slate-900 dark:text-slate-100">
+                    {student.name}
+                  </span>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-bold ${statusStyle[student.status] ?? 'bg-slate-100 text-slate-600'}`}
+                    className={`px-3 py-1 rounded-full text-xs font-bold ${statusStyle[student.status] ?? 'bg-slate-100 text-slate-600 dark:text-slate-400'}`}
                   >
                     {statusLabel[student.status] ?? student.status}
                   </span>
                 </div>
               ))}
             </div>
-            <div className="p-6 bg-slate-50 border-t border-slate-100 space-y-3">
+            <div className="p-6 bg-slate-50 dark:bg-slate-700/50 border-t border-slate-100 dark:border-slate-700 space-y-3">
               {saveStatus === 'success' && (
                 <div className="text-sm font-bold text-green-600 text-center">
                   Data kehadiran berhasil disimpan.

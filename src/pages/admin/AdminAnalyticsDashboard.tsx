@@ -52,7 +52,7 @@ interface MetricCardProps {
 
 function MetricCard({ title, value, icon: Icon, trend, color, bgColor }: MetricCardProps) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
       <div className="flex items-start justify-between">
         <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', bgColor)}>
           <Icon className={cn('w-6 h-6', color)} />
@@ -70,8 +70,8 @@ function MetricCard({ title, value, icon: Icon, trend, color, bgColor }: MetricC
         )}
       </div>
       <div className="mt-4">
-        <p className="text-sm text-slate-500 font-medium">{title}</p>
-        <p className="text-3xl font-bold text-slate-900 mt-1">
+        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{title}</p>
+        <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mt-1">
           {typeof value === 'number' ? value.toLocaleString('id-ID') : value}
         </p>
       </div>
@@ -91,11 +91,13 @@ function _LoadingState() {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-20">
-      <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
+      <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
         <BarChart3 className="w-8 h-8 text-slate-400" />
       </div>
-      <h3 className="mt-4 text-lg font-semibold text-slate-900">Belum Ada Data</h3>
-      <p className="mt-2 text-slate-500 text-center max-w-md">
+      <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
+        Belum Ada Data
+      </h3>
+      <p className="mt-2 text-slate-500 dark:text-slate-400 text-center max-w-md">
         Data analitik akan muncul setelah ada aktivitas pembelajaran di platform. Pastikan siswa
         telah enroll dan menyelesaikan lesson.
       </p>
@@ -111,14 +113,16 @@ interface ErrorStateProps {
 function ErrorState({ message, onRetry }: ErrorStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-20">
-      <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+      <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
         <AlertCircle className="w-8 h-8 text-red-600" />
       </div>
-      <h3 className="mt-4 text-lg font-semibold text-slate-900">Terjadi Kesalahan</h3>
-      <p className="mt-2 text-slate-500 text-center max-w-md">{message}</p>
+      <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
+        Terjadi Kesalahan
+      </h3>
+      <p className="mt-2 text-slate-500 dark:text-slate-400 text-center max-w-md">{message}</p>
       <button
         onClick={onRetry}
-        className="mt-6 px-6 py-2 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors flex items-center gap-2"
+        className="mt-6 px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white font-medium rounded-xl hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center gap-2"
       >
         <RefreshCw className="w-4 h-4" />
         Coba Lagi
@@ -138,14 +142,16 @@ function ActivityTimelineChart({ data }: ActivityTimelineChartProps) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
           <Activity className="w-5 h-5 text-blue-600" />
         </div>
         <div>
-          <h3 className="font-semibold text-slate-900">Aktivitas Waktu</h3>
-          <p className="text-sm text-slate-500">Aktivitas pembelajaran 14 hari terakhir</p>
+          <h3 className="font-semibold text-slate-900 dark:text-slate-100">Aktivitas Waktu</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Aktivitas pembelajaran 14 hari terakhir
+          </p>
         </div>
       </div>
       <div className="h-72">
@@ -214,14 +220,18 @@ function CourseEngagementChart({ data }: CourseEngagementChartProps) {
   }))
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+        <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
           <BookOpen className="w-5 h-5 text-emerald-600" />
         </div>
         <div>
-          <h3 className="font-semibold text-slate-900">Engagement per Kursus</h3>
-          <p className="text-sm text-slate-500">Perbandingan enrollment dan aktivitas</p>
+          <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+            Engagement per Kursus
+          </h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Perbandingan enrollment dan aktivitas
+          </p>
         </div>
       </div>
       <div className="h-72">
@@ -268,14 +278,14 @@ function StudentParticipationChart({
     totalEnrolled > 0 ? Math.round((activeStudents / totalEnrolled) * 100) : 0
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+        <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center">
           <Users className="w-5 h-5 text-purple-600" />
         </div>
         <div>
-          <h3 className="font-semibold text-slate-900">Partisipasi Siswa</h3>
-          <p className="text-sm text-slate-500">Rasio siswa aktif vs total</p>
+          <h3 className="font-semibold text-slate-900 dark:text-slate-100">Partisipasi Siswa</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Rasio siswa aktif vs total</p>
         </div>
       </div>
       <div className="h-72 flex items-center justify-center">
@@ -310,8 +320,10 @@ function StudentParticipationChart({
         </ResponsiveContainer>
       </div>
       <div className="text-center mt-4">
-        <p className="text-2xl font-bold text-slate-900">{participationRate}%</p>
-        <p className="text-sm text-slate-500">Tingkat Partisipasi</p>
+        <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+          {participationRate}%
+        </p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Tingkat Partisipasi</p>
       </div>
     </div>
   )
@@ -367,15 +379,17 @@ export function AdminAnalyticsDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <BarChart3 className="w-8 h-8 text-blue-600" />
             Dashboard Analitik
           </h1>
-          <p className="text-slate-500 mt-1">Pantau aktivitas pembelajaran di seluruh organisasi</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">
+            Pantau aktivitas pembelajaran di seluruh organisasi
+          </p>
         </div>
         <div className="flex items-center gap-3">
           {overview.lastRefreshedAt && (
-            <div className="flex items-center gap-2 text-sm text-slate-500">
+            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
               <Clock className="w-4 h-4" />
               <span>Diperbarui: {new Date(overview.lastRefreshedAt).toLocaleString('id-ID')}</span>
             </div>
@@ -383,7 +397,7 @@ export function AdminAnalyticsDashboard() {
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl flex items-center gap-2 hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
+            className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white font-bold rounded-xl flex items-center gap-2 hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
           >
             <RefreshCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} />
             {isRefreshing ? 'Memperbarui...' : 'Perbarui'}
@@ -451,46 +465,50 @@ export function AdminAnalyticsDashboard() {
         />
 
         {/* Summary Stats */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center">
               <LayoutGrid className="w-5 h-5 text-slate-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900">Ringkasan</h3>
-              <p className="text-sm text-slate-500">Metrik tambahan</p>
+              <h3 className="font-semibold text-slate-900 dark:text-slate-100">Ringkasan</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Metrik tambahan</p>
             </div>
           </div>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
               <div className="flex items-center gap-3">
                 <BookOpen className="w-5 h-5 text-blue-600" />
-                <span className="text-slate-700">Rata-rata Progres</span>
+                <span className="text-slate-700 dark:text-slate-300">Rata-rata Progres</span>
               </div>
-              <span className="text-xl font-bold text-slate-900">{overview.avgProgress}%</span>
+              <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                {overview.avgProgress}%
+              </span>
             </div>
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
               <div className="flex items-center gap-3">
                 <BarChart className="w-5 h-5 text-emerald-600" />
-                <span className="text-slate-700">Rata-rata Quiz Score</span>
+                <span className="text-slate-700 dark:text-slate-300">Rata-rata Quiz Score</span>
               </div>
-              <span className="text-xl font-bold text-slate-900">{overview.avgQuizScore}%</span>
+              <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                {overview.avgQuizScore}%
+              </span>
             </div>
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
               <div className="flex items-center gap-3">
                 <Activity className="w-5 h-5 text-purple-600" />
-                <span className="text-slate-700">Total Event (30 Hari)</span>
+                <span className="text-slate-700 dark:text-slate-300">Total Event (30 Hari)</span>
               </div>
-              <span className="text-xl font-bold text-slate-900">
+              <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
                 {activityMetrics.totalEvents.toLocaleString('id-ID')}
               </span>
             </div>
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
               <div className="flex items-center gap-3">
                 <FileCheck className="w-5 h-5 text-amber-600" />
-                <span className="text-slate-700">Lesson Selesai</span>
+                <span className="text-slate-700 dark:text-slate-300">Lesson Selesai</span>
               </div>
-              <span className="text-xl font-bold text-slate-900">
+              <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
                 {activityMetrics.lessonCompletions.toLocaleString('id-ID')}
               </span>
             </div>

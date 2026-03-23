@@ -75,7 +75,8 @@ async function loadSecureQueue(): Promise<ProgressQueueItem[]> {
     return JSON.parse(signedQueue.payload)
   } catch (e) {
     if (import.meta.env.DEV)
-      console.warn('[Offline Queue] Invalid or unauthorized queue detected, clearing.', e)
+      if (import.meta.env.DEV)
+        console.warn('[Offline Queue] Invalid or unauthorized queue detected, clearing.', e)
     localStorage.removeItem(QUEUE_KEY)
     return []
   }
@@ -85,7 +86,8 @@ async function saveSecureQueue(queue: ProgressQueueItem[]): Promise<void> {
   const sessionKey = await getSessionKey()
   if (!sessionKey) {
     if (import.meta.env.DEV)
-      console.warn('[Offline Queue] Cannot save queue without active session')
+      if (import.meta.env.DEV)
+        console.warn('[Offline Queue] Cannot save queue without active session')
     return
   }
 
@@ -314,7 +316,8 @@ export const lessonService = {
       )
     } catch {
       if (import.meta.env.DEV)
-        console.warn('[Offline Queue] Network error, queuing progress for lesson', lessonId)
+        if (import.meta.env.DEV)
+          console.warn('[Offline Queue] Network error, queuing progress for lesson', lessonId)
 
       let queue: ProgressQueueItem[] = await loadSecureQueue()
 
@@ -380,7 +383,8 @@ export const lessonService = {
           )
         } catch {
           if (import.meta.env.DEV)
-            console.warn('[Offline Queue] Failed to sync item, re-queuing', item.lessonId)
+            if (import.meta.env.DEV)
+              console.warn('[Offline Queue] Failed to sync item, re-queuing', item.lessonId)
           remainingQueue.push(item)
         }
       }
@@ -428,44 +432,5 @@ export const lessonService = {
     }
 
     return data as LessonProgress | null
-  },
-
-  /**
-   * Seeds a dummy video resource for development and testing purposes.
-   * MUST NOT be exposed in production.
-   */
-  async seedDummyVideo(lessonId: string, tenantId: string, videoUrl: string): Promise<void> {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
-
-    const row = {
-      lesson_id: lessonId,
-      tenant_id: tenantId,
-      url: videoUrl,
-      title: 'Dummy Video (Seeded from UI)',
-      content: '',
-      metadata: {},
-    }
-
-    // Try lowercase first (post-migration 803), fallback to uppercase enum
-    const { error } = await supabase.from('lesson_resources').insert({ ...row, type: 'video' })
-
-    if (error?.message?.includes('enum resource_type')) {
-      const { error: retryError } = await supabase
-        .from('lesson_resources')
-        .insert({ ...row, type: 'VIDEO' })
-      if (retryError) {
-        if (import.meta.env.DEV) console.error('Error seeding dummy video:', retryError)
-        throw new Error(retryError.message || 'Failed to seed dummy video')
-      }
-      return
-    }
-
-    if (error) {
-      if (import.meta.env.DEV) console.error('Error seeding dummy video:', error)
-      throw new Error(error.message || 'Failed to seed dummy video')
-    }
   },
 }

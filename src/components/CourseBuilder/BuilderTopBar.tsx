@@ -36,7 +36,7 @@ export function BuilderTopBar() {
       {/* Left: Back + Title */}
       <div className="flex items-center gap-6 min-w-0">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/app/teacher/courses')}
           className="p-2.5 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-100 rounded-xl transition-all text-slate-500 group"
           title="Kembali"
         >
