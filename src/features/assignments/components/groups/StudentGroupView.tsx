@@ -386,7 +386,11 @@ export function StudentGroupView() {
                 <button
                   onClick={() => {
                     setIsSubmitting(false)
-                    addToast({ type: 'success', message: 'Tugas kelompok berhasil diserahkan!' })
+                    addToast({
+                      type: 'info',
+                      message:
+                        'Pengumpulan tugas kelompok belum tersedia. Fitur ini sedang dalam pengembangan.',
+                    })
                   }}
                   className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-sm"
                 >

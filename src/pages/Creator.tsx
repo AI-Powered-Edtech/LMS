@@ -28,11 +28,19 @@ export function Creator() {
   const sendNotification = useSendNotification()
   const navigate = useNavigate()
 
+  // Default due date: 3 days from now at 23:59
+  const defaultDueDate = (() => {
+    const d = new Date()
+    d.setDate(d.getDate() + 3)
+    return d.toISOString().slice(0, 10) // YYYY-MM-DD
+  })()
+
   const [isDragging, setIsDragging] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [assignmentType, setAssignmentType] = useState('quiz') // quiz, reading, writing
   const [questionCount, setQuestionCount] = useState(10)
   const [difficulty, setDifficulty] = useState('C3')
+  const [dueDateStr, setDueDateStr] = useState(defaultDueDate)
   const [isGenerating, setIsGenerating] = useState(false)
   const [loadingText, setLoadingText] = useState('Mengekstrak teks...')
   const [result, setResult] = useState<{
@@ -143,10 +151,7 @@ export function Creator() {
   const handleSaveToCalendar = () => {
     if (!result) return
 
-    // Mock date: 3 days from now
-    const dueDate = new Date()
-    dueDate.setDate(dueDate.getDate() + 3)
-    dueDate.setHours(23, 59, 0, 0)
+    const dueDate = new Date(dueDateStr + 'T23:59:00')
 
     addEvent({
       title: `Kuis: ${file?.name.split('.')[0] || 'Materi Baru'}`,
@@ -411,7 +416,15 @@ export function Creator() {
                 {result.type === 'writing' ? 'Daftar Topik' : 'Daftar Soal'} (
                 {result.questions.length})
               </h2>
-              <div className="flex gap-2 w-full sm:w-auto">
+              <div className="flex gap-2 w-full sm:w-auto items-center">
+                <input
+                  type="date"
+                  value={dueDateStr}
+                  onChange={(e) => setDueDateStr(e.target.value)}
+                  min={new Date().toISOString().slice(0, 10)}
+                  className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  title="Tanggal tenggat"
+                />
                 <button
                   onClick={handleSaveToCalendar}
                   className="flex-1 sm:flex-none px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"

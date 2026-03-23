@@ -69,23 +69,6 @@ function getTargetRolesForModule(slug: string): ('teacher' | 'student')[] {
   return roleMapping[slug] || ['teacher', 'student']
 }
 
-// Map frontend module IDs to database slugs
-const _moduleIdToSlug: Record<string, string> = {
-  gradebook: 'gradebook',
-  quiz: 'quiz',
-  assignments: 'assignments',
-  calendar: 'calendar',
-  announcements: 'announcements',
-  directory: 'directory',
-  'ai-creator': 'ai-creator',
-  analytics: 'analytics',
-  attendance: 'attendance',
-  documents: 'documents',
-  'speed-grader': 'speed-grader',
-  'group-assignment': 'group-assignment',
-  forum: 'forum',
-}
-
 /**
  * Parse Supabase error and return user-friendly error
  */

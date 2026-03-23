@@ -10,17 +10,12 @@ import { cn } from '@/src/utils/cn'
 export function TeacherGroupView() {
   const addToast = useToast((s) => s.addToast)
   const [teacherTab, setTeacherTab] = useState('overview')
-  const [isSyncing, setIsSyncing] = useState(false)
 
   const handleSyncGCR = () => {
-    setIsSyncing(true)
-    setTimeout(() => {
-      setIsSyncing(false)
-      addToast({
-        type: 'success',
-        message: 'Berhasil sinkronisasi kelompok dari Google Classroom!',
-      })
-    }, 1500)
+    addToast({
+      type: 'info',
+      message: 'Sinkronisasi Google Classroom belum tersedia. Fitur ini sedang dalam pengembangan.',
+    })
   }
 
   // TODO: Replace with real data from Supabase API
@@ -55,10 +50,9 @@ export function TeacherGroupView() {
         <div className="flex gap-3">
           <button
             onClick={handleSyncGCR}
-            disabled={isSyncing}
-            className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl flex items-center gap-2 transition-colors disabled:opacity-50"
+            className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl flex items-center gap-2 transition-colors"
           >
-            <RefreshCw className={cn('w-5 h-5', isSyncing && 'animate-spin')} />
+            <RefreshCw className="w-5 h-5" />
             Sync GCR
           </button>
           <button className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl flex items-center gap-2 transition-colors shadow-sm shadow-indigo-200">

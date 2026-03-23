@@ -1,12 +1,12 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
 import { useAuth } from '@/src/contexts/AuthContext'
-import { createQueryKeys } from '@/src/lib/queryKeys'
 import {
-  studentProgressService,
-  ModuleStatus,
   AchievementData,
+  ModuleStatus,
+  studentProgressService,
 } from '@/src/features/progress/api/studentProgressService'
-import { REMEDIAL_CONTENT_MAP, RemedialContent } from '@/src/constants/remedialContent'
+import { createQueryKeys } from '@/src/lib/queryKeys'
 
 type Achievement = AchievementData & { icon: 'crown' | 'zap' | 'target' | 'star' }
 
@@ -95,9 +95,6 @@ export function useStudentProgressData() {
     unlockModule: (_moduleId: string) => {
       // This would need to be implemented with a mutation if needed
       if (import.meta.env.DEV) console.warn('unlockModule not implemented in React Query hooks')
-    },
-    getRemedialContent: (quizId: string): RemedialContent | null => {
-      return REMEDIAL_CONTENT_MAP[quizId] || null
     },
   }
 }

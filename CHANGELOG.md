@@ -1,5 +1,19 @@
 # EduSync LMS — Changelog
 
+## Production Readiness Cleanup — Gelombang 3 (2026-03-24)
+
+Eliminated remaining high-visibility mock data and replaced fake states with honest UI.
+
+### Gelombang 3 — Mock Data Elimination
+
+- **PublicProfile**: Replaced entirely hardcoded "Budi Santoso/Alan Turing" mock profile views with an honest "Fitur dalam pengembangan" UI.
+- **ScanAttendance**: Removed fake `setTimeout` camera scan logic that fabricated attendance. Refactored to an honest "Coming Soon" state while keeping the valid DB-driven class selector.
+- **TeacherGroupView**: Removed fake `setTimeout` Google Classroom sync logic.
+- **StudentGroupView**: Removed fake offline task/chat arrays and dummy submission simulation.
+- **Creator**: Replaced hardcoded "now + 3 days" calendar due date with a functional date picker for AI-generated assignments.
+- **administrationService**: Cleaned up unused `_moduleIdToSlug` mapping.
+- **remedialContent**: Deleted dead hardcoded `REMEDIAL_CONTENT_MAP` dictionary, interface, and its consuming functions in progress hooks.
+
 ## Production Readiness Cleanup — Gelombang 1 & 2 (2026-03-24)
 
 Removed mock/dummy data, guarded console statements, and added `is_reviewed` column to `quiz_attempts_v2`.
