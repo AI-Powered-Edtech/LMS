@@ -60,7 +60,13 @@ export const classroomService = {
    * Create a new classroom with auto-generated join code.
    */
   async createClassroom(teacherId: string, name: string, tenantId: string): Promise<void> {
-    const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+    // SECURITY: Use cryptographically secure random number generation for join codes
+    // generating a 6-character alphanumeric string.
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    const array = new Uint8Array(6)
+    globalThis.crypto.getRandomValues(array)
+    const joinCode = Array.from(array, (byte) => chars[byte % chars.length]).join('')
+
     const { error } = await supabase.from('classes').insert({
       name,
       teacher_id: teacherId,
