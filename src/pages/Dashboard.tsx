@@ -1,54 +1,54 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState, useEffect } from 'react'
 import {
-  Star,
-  Crown,
   AlertTriangle,
-  Play,
-  Clock,
   ArrowRight,
+  BookOpen,
+  Clock,
+  Crown,
+  Eye,
+  Megaphone,
+  Play,
+  Plus,
+  Star,
   Target,
   Trophy,
-  Zap,
-  Eye,
   User,
   Users,
-  BookOpen,
-  Megaphone,
-  Plus,
+  Zap,
 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
 import { motion } from 'motion/react'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
-import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { navigationItems } from '@/src/config/navigation'
 import { HubView } from '@/src/components/HubView'
+import { Badge, Button, Card, EmptyState, SkeletonCard } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
-import {
-  useStudentProgressData,
-  useAddXP,
-} from '@/src/features/progress/hooks/useStudentProgressQueries'
+import type { Announcement } from '@/src/features/announcements'
+import { useAnnouncements } from '@/src/features/announcements'
 import { useAssignments } from '@/src/features/assignments/hooks/useAssignments'
 import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
 import { useCourses } from '@/src/features/courses'
-import { useAnnouncements } from '@/src/features/announcements'
-import { useLeaderboard } from '@/src/features/gamification'
-import type { Announcement } from '@/src/features/announcements'
 import type { LeaderboardEntry } from '@/src/features/gamification'
-
-import { Card, Badge, Button, EmptyState, SkeletonCard } from '@/src/components/ui'
-import { JoinClassModal } from './dashboard/JoinClassModal'
-import { QuizHistoryModal } from './dashboard/QuizHistoryModal'
-import { BadgeRewardModal } from './dashboard/BadgeRewardModal'
+import { useLeaderboard } from '@/src/features/gamification'
+import { BadgeShowcase } from '@/src/features/gamification/components/BadgeShowcase'
 import { BadgeUnlockToast } from '@/src/features/gamification/components/BadgeUnlockToast'
 import { LevelUpToast } from '@/src/features/gamification/components/LevelUpToast'
-import { BadgeShowcase } from '@/src/features/gamification/components/BadgeShowcase'
 import { StreakCounter } from '@/src/features/gamification/components/StreakCounter'
 import { XPProgressBar } from '@/src/features/gamification/components/XPProgressBar'
+import {
+  useAddXP,
+  useStudentProgressData,
+} from '@/src/features/progress/hooks/useStudentProgressQueries'
 import { RecommendationFeed } from '@/src/features/recommendations'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { navigationItems } from '@/src/shared/config/navigation'
+import { cn } from '@/src/utils/cn'
+
+// QuizHistoryModal removed — was dead code (setShowQuizHistory(true) never called)
+import { BadgeRewardModal } from './dashboard/BadgeRewardModal'
+import { JoinClassModal } from './dashboard/JoinClassModal'
 
 export function Dashboard() {
-  usePageTitle('Dashboard')
+  usePageTitle('Dasbor')
   const { role, user, profile } = useAuth()
 
   useEffect(() => {
@@ -77,7 +77,6 @@ export function Dashboard() {
   } = useLeaderboard(activeClassroomId)
 
   const [showBadgeModal, setShowBadgeModal] = useState(false)
-  const [showQuizHistory, setShowQuizHistory] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const [joinInitialCode, setJoinInitialCode] = useState('')
   const [isClaiming, setIsClaiming] = useState(false)
@@ -103,8 +102,8 @@ export function Dashboard() {
   const userName = impersonatedStudent
     ? impersonatedStudent.name
     : role === 'teacher'
-      ? (profile?.first_name ?? 'Bapak/Ibu Guru')
-      : (profile?.first_name ?? user?.user_metadata?.full_name?.split(' ')[0] ?? 'Siswa')
+      ? profile?.first_name || 'Bapak/Ibu Guru'
+      : profile?.first_name || 'Siswa'
   const activeCourses = Array.isArray(courses)
     ? courses
     : ((courses as unknown as { courses?: unknown[] })?.courses ?? [])
@@ -180,7 +179,7 @@ export function Dashboard() {
             {role === 'teacher' && (
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-4">
                 <Link
-                  to="/teaching-hub"
+                  to="/app/teacher/teaching-hub"
                   className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors backdrop-blur-sm"
                 >
                   <BookOpen className="w-4 h-4" />
@@ -463,98 +462,107 @@ export function Dashboard() {
         {role === 'student' && user?.id && <RecommendationFeed userId={user.id} />}
 
         {/* Bottom Grid: Pengumuman & Leaderboard */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Pengumuman (FROM API) */}
-          <Card>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Megaphone className="w-5 h-5 text-purple-500" />
-                Pengumuman Terbaru
-              </h2>
-              <Link
-                to="/announcements"
-                className="text-sm font-bold text-blue-600 hover:text-blue-700"
-              >
-                Semua
-              </Link>
-            </div>
-            {loadingAnnouncements ? (
-              <div className="space-y-3">
-                <SkeletonCard lines={2} />
-                <SkeletonCard lines={2} />
+        <div
+          className={cn(
+            'grid gap-6',
+            !loadingAnnouncements && announcementList.length === 0
+              ? 'grid-cols-1'
+              : 'grid-cols-1 lg:grid-cols-2'
+          )}
+        >
+          {/* Pengumuman (FROM API) — hidden when empty to save space */}
+          {(loadingAnnouncements || announcementList.length > 0) && (
+            <Card>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Megaphone className="w-5 h-5 text-purple-500" />
+                  Pengumuman Terbaru
+                </h2>
+                <Link
+                  to="/announcements"
+                  className="text-sm font-bold text-blue-600 hover:text-blue-700"
+                >
+                  Semua
+                </Link>
               </div>
-            ) : announcementList.length > 0 ? (
-              <div className="space-y-4">
-                {announcementList.map((ann) => (
-                  <div
-                    key={ann.id}
-                    role="button"
-                    tabIndex={0}
-                    className={cn(
-                      'p-4 rounded-2xl border transition-colors cursor-pointer',
-                      ann.priority === 'high'
-                        ? 'bg-red-50 border-red-100 hover:bg-red-100/60'
-                        : 'border-slate-100 hover:bg-slate-50'
-                    )}
-                    onClick={() => navigate('/announcements')}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        navigate('/announcements')
-                      }
-                    }}
-                    aria-label={`Pengumuman: ${ann.title}`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant={ann.priority === 'high' ? 'danger' : 'info'} size="sm">
-                        {ann.priority === 'high' ? 'PENTING' : 'INFO'}
-                      </Badge>
-                      <span
+              {loadingAnnouncements ? (
+                <div className="space-y-3">
+                  <SkeletonCard lines={2} />
+                  <SkeletonCard lines={2} />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {announcementList.map((ann) => (
+                    <div
+                      key={ann.id}
+                      role="button"
+                      tabIndex={0}
+                      className={cn(
+                        'p-4 rounded-2xl border transition-colors cursor-pointer',
+                        ann.priority === 'high'
+                          ? 'bg-red-50 border-red-100 hover:bg-red-100/60 dark:bg-red-950/30 dark:border-red-900/40 dark:hover:bg-red-900/40'
+                          : 'border-slate-100 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800'
+                      )}
+                      onClick={() => navigate('/announcements')}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          navigate('/announcements')
+                        }
+                      }}
+                      aria-label={`Pengumuman: ${ann.title}`}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant={ann.priority === 'high' ? 'danger' : 'info'} size="sm">
+                          {ann.priority === 'high' ? 'PENTING' : 'INFO'}
+                        </Badge>
+                        <span
+                          className={cn(
+                            'text-xs font-medium',
+                            ann.priority === 'high'
+                              ? 'text-red-500'
+                              : 'text-slate-500 dark:text-slate-400'
+                          )}
+                        >
+                          {new Date(ann.created_at).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                          })}
+                        </span>
+                      </div>
+                      <h3
                         className={cn(
-                          'text-xs font-medium',
-                          ann.priority === 'high' ? 'text-red-500' : 'text-slate-500'
+                          'font-bold mb-1',
+                          ann.priority === 'high'
+                            ? 'text-red-900 dark:text-red-300'
+                            : 'text-slate-800 dark:text-slate-200'
                         )}
                       >
-                        {new Date(ann.created_at).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'short',
-                        })}
-                      </span>
+                        {ann.title}
+                      </h3>
+                      <p
+                        className={cn(
+                          'text-sm line-clamp-2',
+                          ann.priority === 'high'
+                            ? 'text-red-700/80 dark:text-red-400/80'
+                            : 'text-slate-600 dark:text-slate-400'
+                        )}
+                      >
+                        {ann.content}
+                      </p>
                     </div>
-                    <h3
-                      className={cn(
-                        'font-bold mb-1',
-                        ann.priority === 'high' ? 'text-red-900' : 'text-slate-800'
-                      )}
-                    >
-                      {ann.title}
-                    </h3>
-                    <p
-                      className={cn(
-                        'text-sm line-clamp-2',
-                        ann.priority === 'high' ? 'text-red-700/80' : 'text-slate-600'
-                      )}
-                    >
-                      {ann.content}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                icon={<Megaphone className="w-10 h-10" />}
-                title="Belum ada pengumuman"
-                description="Pengumuman dari guru akan muncul di sini."
-              />
-            )}
-          </Card>
+                  ))}
+                </div>
+              )}
+            </Card>
+          )}
 
           {/* Leaderboard (FROM API) */}
           <Card>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-yellow-500" />
-                Leaderboard Snapshot
+                Cuplikan Papan Peringkat
               </h2>
               <Link
                 to="/leaderboard"
@@ -709,7 +717,7 @@ export function Dashboard() {
 
           {/* Quiz Progress */}
           <Card>
-            <h3 className="font-bold text-slate-900 dark:text-white mb-4">Progress Quiz</h3>
+            <h3 className="font-bold text-slate-900 dark:text-white mb-4">Progres Kuis</h3>
             <EmptyState
               icon={<Clock className="w-8 h-8" />}
               title="Belum ada riwayat kuis"
@@ -726,7 +734,6 @@ export function Dashboard() {
         initialCode={joinInitialCode}
         onJoin={joinClassroom}
       />
-      <QuizHistoryModal open={showQuizHistory} onClose={() => setShowQuizHistory(false)} />
       <BadgeRewardModal open={showBadgeModal} onClose={() => setShowBadgeModal(false)} />
       <BadgeUnlockToast />
       <LevelUpToast />

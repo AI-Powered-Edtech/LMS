@@ -1,54 +1,55 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { useSearchParams, useParams } from 'react-router-dom'
 import {
-  ArrowLeft,
-  Loader2,
   AlertTriangle,
-  CheckCircle,
+  ArrowLeft,
   Award,
   BookOpen,
-  PlayCircle,
+  CheckCircle,
   ChevronLeft,
   ChevronRight,
   FileText,
   HelpCircle,
+  Loader2,
   Menu,
+  PlayCircle,
 } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
-import { motion, AnimatePresence } from 'motion/react'
+import { Info, MessageSquare, Sparkles } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useParams, useSearchParams } from 'react-router-dom'
+
 import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useToast } from '@/src/hooks/useToast'
-import { supabase } from '@/src/lib/supabase'
 import {
-  lessonService,
-  type Lesson,
-  type LessonProgress,
-  isLessonLocked,
-} from '@/src/features/lessons'
-import {
-  VideoViewer,
+  AITutorPanel,
   ArticleViewer,
-  QuizViewer,
   AssignmentViewer,
   LessonSidebar,
-  ProgressReporter,
-  AITutorPanel,
-  useViewerReducer,
-  MultiBlockViewer,
-  ScrollProgressBar,
   ModuleCompletionModal,
+  MultiBlockViewer,
+  ProgressReporter,
+  QuizViewer,
+  ScrollProgressBar,
+  useViewerReducer,
+  VideoViewer,
 } from '@/src/components/LessonViewer'
 import { DiscussionBoard } from '@/src/components/Social/DiscussionBoard'
-import { MessageSquare, Info, Sparkles } from 'lucide-react'
 import { Breadcrumb } from '@/src/components/ui'
+import { useAuth } from '@/src/contexts/AuthContext'
 import { LearningSessionProvider } from '@/src/features/analytics'
+import { GuideRenderer } from '@/src/features/guidance'
+import {
+  isLessonLocked,
+  type Lesson,
+  type LessonProgress,
+  lessonService,
+} from '@/src/features/lessons'
 import { CourseBrowser } from '@/src/features/lessons/components/CourseBrowser'
 import { LessonEventTracker } from '@/src/features/lessons/components/LessonEventTracker'
+import { ReviewPrompt, SmartNextButton } from '@/src/features/recommendations'
 import { StruggleHelpPrompt } from '@/src/features/struggle'
-import { GuideRenderer } from '@/src/features/guidance'
-import { SmartNextButton, ReviewPrompt } from '@/src/features/recommendations'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { useToast } from '@/src/hooks/useToast'
+import { supabase } from '@/src/services/supabase/client'
+import { cn } from '@/src/utils/cn'
 
 // ============================================================
 // LessonViewer Page — State Machine Architecture
@@ -786,7 +787,8 @@ export function LessonViewer() {
                               const handleSeedDummyVideo = async () => {
                                 if (!tenantId || !state.lesson) return
                                 // Safe dynamic import so production bundles aren't impacted
-                                const { DEV_SEED_VIDEO } = await import('@/src/config/devSeeds')
+                                const { DEV_SEED_VIDEO } =
+                                  await import('@/src/shared/config/devSeeds')
                                 await lessonService.seedDummyVideo(
                                   state.lesson.id,
                                   tenantId,

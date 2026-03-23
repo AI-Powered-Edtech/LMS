@@ -1,33 +1,33 @@
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useState, useMemo } from 'react'
-import { motion } from 'motion/react'
-import {
-  Users,
-  Plus,
-  Clock,
-  ChevronRight,
-  BookOpen,
-  AlertCircle,
-  FileText,
-  BarChart3,
-  Settings,
-  RefreshCw,
-} from 'lucide-react'
-import { cn } from '@/src/utils/cn'
-import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
+import {
+  AlertCircle,
+  BarChart3,
+  BookOpen,
+  ChevronRight,
+  Clock,
+  FileText,
+  Plus,
+  RefreshCw,
+  Settings,
+  Users,
+} from 'lucide-react'
+import { motion } from 'motion/react'
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { Badge, Button, Card, EmptyState, SkeletonCard } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useAssignments } from '@/src/features/assignments/hooks/useAssignments'
-import { navigationItems } from '@/src/config/navigation'
-
-import { Card, Badge, Button, EmptyState, SkeletonCard } from '@/src/components/ui'
+import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
 import { DashboardSkeleton } from '@/src/features/dashboards/components/DashboardSkeleton'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { navigationItems } from '@/src/shared/config/navigation'
+import { cn } from '@/src/utils/cn'
 
 export function TeacherDashboard() {
-  usePageTitle('Teacher Dashboard')
+  usePageTitle('Dasbor Guru')
   const { classrooms, setActiveClassroomId, loading: classroomsLoading } = useClassroom()
-  const { profile } = useAuth()
+  const { profile, tenantId } = useAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { assignments } = useAssignments()
@@ -35,7 +35,7 @@ export function TeacherDashboard() {
 
   async function handleRefreshData() {
     setIsRefreshing(true)
-    await queryClient.invalidateQueries({ queryKey: ['analytics'] })
+    await queryClient.invalidateQueries({ queryKey: ['analytics', tenantId] })
     // Brief visual feedback before re-enabling
     setTimeout(() => setIsRefreshing(false), 1000)
   }
@@ -94,7 +94,7 @@ export function TeacherDashboard() {
             </Button>
             <Button
               icon={<BookOpen className="w-4 h-4" />}
-              onClick={() => navigate('/teaching/courses')}
+              onClick={() => navigate('/app/teacher/courses')}
             >
               Kelola Materi
             </Button>
@@ -242,7 +242,7 @@ export function TeacherDashboard() {
                     size="sm"
                     onClick={() => {
                       setActiveClassroomId(classroom.id)
-                      navigate('/teaching/classes')
+                      navigate('/app/teacher/classes')
                     }}
                   >
                     Kelola Kelas <ChevronRight className="w-4 h-4" />
@@ -257,7 +257,7 @@ export function TeacherDashboard() {
               icon={<Users className="w-12 h-12" />}
               title="Belum ada kelas"
               description="Buat kelas pertamamu untuk mulai mengajar."
-              action={{ label: 'Buat Kelas', onClick: () => navigate('/teaching/classes') }}
+              action={{ label: 'Buat Kelas', onClick: () => navigate('/app/teacher/classes') }}
             />
           </Card>
         )}
@@ -270,7 +270,7 @@ export function TeacherDashboard() {
             <Settings className="w-5 h-5 text-blue-500" />
             Peralatan Mengajar
           </h2>
-          <Button variant="ghost" size="sm" onClick={() => navigate('/teaching')}>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/app/teacher')}>
             Lihat Semua <ChevronRight className="w-4 h-4" />
           </Button>
         </div>

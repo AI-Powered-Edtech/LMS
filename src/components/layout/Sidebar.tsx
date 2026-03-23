@@ -1,12 +1,13 @@
+import { Check, ChevronDown, LogOut, Plus } from 'lucide-react'
+import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Plus, ChevronDown, Check, LogOut } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
+
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
-import { useModuleConfig, ModuleId } from '@/src/hooks/useModuleConfig'
-import { useState } from 'react'
-import { navigationItems } from '@/src/config/navigation'
+import { ModuleId, useModuleConfig } from '@/src/hooks/useModuleConfig'
 import { useToast } from '@/src/hooks/useToast'
+import { navigationItems } from '@/src/shared/config/navigation'
+import { cn } from '@/src/utils/cn'
 
 export function Sidebar() {
   const { addToast } = useToast()
@@ -203,8 +204,13 @@ export function Sidebar() {
           type="button"
           data-testid="sidebar-signout-button"
           onClick={async () => {
-            await signOut()
-            navigate('/login')
+            try {
+              await signOut()
+            } catch (e) {
+              if (import.meta.env.DEV) console.error('[Sidebar] signOut error:', e)
+            } finally {
+              navigate('/login')
+            }
           }}
           className="w-full flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-400 hover:text-red-600 font-semibold py-3 px-4 rounded-xl transition-all duration-200 text-sm group"
         >
