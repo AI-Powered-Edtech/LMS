@@ -227,7 +227,7 @@ export function SpeedGrader() {
         <DocumentViewer
           isLoading={isLoading}
           submissionText={submissionText}
-          studentName={currentStudent.name}
+          studentName={currentStudent?.name || ''}
           zoom={zoom}
           activeTool={activeTool}
           annotations={annotations}

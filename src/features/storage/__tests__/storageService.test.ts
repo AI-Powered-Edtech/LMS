@@ -10,7 +10,9 @@ const { mockStorageRemove, mockStorageFrom, mockSingle, mockFrom } = vi.hoisted(
   }))
 
   const mockSingle = vi.fn()
-  const mockFrom = vi.fn(() => ({}))
+  const mockEq = vi.fn(() => ({ single: mockSingle }))
+  const mockSelect = vi.fn(() => ({ eq: mockEq, single: mockSingle }))
+  const mockFrom = vi.fn(() => ({ select: mockSelect, delete: vi.fn(() => ({ eq: mockEq })) }))
 
   return {
     mockStorageRemove,

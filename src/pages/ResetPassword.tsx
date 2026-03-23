@@ -7,7 +7,6 @@ import * as v from 'valibot'
 import { FormField } from '@/src/components/ui/FormField'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { supabase } from '@/src/services/supabase/client'
-import {  } from '@/src/utils/'
 
 const resetPasswordSchema = v.pipe(
   v.object({
@@ -73,13 +72,13 @@ export function ResetPassword() {
       })
 
       if (updateError) {
-        setError((updateError.message))
+        setError(updateError.message)
       } else {
         setSuccess(true)
         setTimeout(() => navigate('/'), 3000)
       }
     } catch (err: unknown) {
-      setError((err instanceof Error ? err.message : 'Terjadi kesalahan.'))
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan.')
     }
   }
 

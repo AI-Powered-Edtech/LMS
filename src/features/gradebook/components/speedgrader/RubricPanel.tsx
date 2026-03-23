@@ -29,18 +29,19 @@ function StudentInfoHeader({
   totalScore: number
   isLoading: boolean
 }) {
+  if (!student) return null
   return (
     <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center overflow-hidden border-2 border-white dark:border-slate-800 shadow-sm">
           <OptimizedImage
-            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${student.name}`}
+            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${student?.name || ''}`}
             alt=""
             className="w-full h-full object-cover"
           />
         </div>
         <div>
-          <h3 className="font-bold text-slate-900 dark:text-white">{student.name}</h3>
+          <h3 className="font-bold text-slate-900 dark:text-white">{student?.name}</h3>
           <span
             className={cn(
               'text-xs font-bold px-2 py-0.5 rounded-full',
