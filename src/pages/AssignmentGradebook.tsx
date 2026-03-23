@@ -13,6 +13,7 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import { useToast } from '@/src/components/ui'
 import { VirtualTable } from '@/src/components/ui/VirtualTable'
 import { useAuth } from '@/src/contexts/AuthContext'
 import {
@@ -26,6 +27,7 @@ import { cn } from '@/src/utils/cn'
 
 export function AssignmentGradebook() {
   usePageTitle('Buku Nilai Tugas')
+  const { addToast } = useToast()
   const { user, tenantId } = useAuth()
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null)
@@ -97,7 +99,10 @@ export function AssignmentGradebook() {
       setSubmissions((prev) => prev.map((s) => (s.id === result.id ? result : s)))
       setGradingSubmission(null)
     } catch (err) {
-      alert('Gagal menyimpan nilai: ' + (err instanceof Error ? err.message : String(err)))
+      addToast({
+        type: 'error',
+        message: 'Gagal menyimpan nilai: ' + (err instanceof Error ? err.message : String(err)),
+      })
     } finally {
       setIsSubmittingGrade(false)
     }

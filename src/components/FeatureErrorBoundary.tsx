@@ -1,5 +1,5 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react'
 import { AlertTriangle, RefreshCcw } from 'lucide-react'
+import React, { Component, ErrorInfo, ReactNode } from 'react'
 
 interface Props {
   children?: ReactNode
@@ -49,13 +49,17 @@ export class FeatureErrorBoundary extends Component<Props, State> {
 
       // Default fallback UI
       return (
-        <div className="flex flex-col items-center justify-center p-8 text-center min-h-[400px] bg-slate-50 rounded-2xl border border-red-100 h-full w-full">
-          <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mb-4 text-red-500 border border-red-200">
+        <div className="flex flex-col items-center justify-center p-8 text-center min-h-[400px] bg-slate-50 dark:bg-slate-900 rounded-2xl border border-red-100 dark:border-red-900/30 h-full w-full">
+          <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mb-4 text-red-500 dark:text-red-400 border border-red-200 dark:border-red-800">
             <AlertTriangle className="w-8 h-8" />
           </div>
-          <h2 className="text-xl font-bold text-slate-800 mb-2">Terjadi kesalahan pada {fn}</h2>
-          <p className="text-slate-500 mb-6 max-w-sm">
-            Maaf, terjadi kesalahan saat memuat {fn}. Coba muat ulang atau coba lagi nanti.
+          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">
+            Terjadi kesalahan pada {fn}
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-sm">
+            {import.meta.env.DEV
+              ? this.state.error?.message || 'Terjadi kesalahan tidak terduga.'
+              : `Maaf, terjadi kesalahan saat memuat ${fn}. Coba muat ulang atau coba lagi nanti.`}
           </p>
           <button
             onClick={this.handleRetry}
