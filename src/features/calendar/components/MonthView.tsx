@@ -45,19 +45,24 @@ export function MonthView({
         </h2>
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={onPrevMonth}
+            aria-label="Bulan sebelumnya"
             className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-600 dark:text-slate-400"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
+            type="button"
             onClick={onTodayClick}
             className="px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-600 dark:text-slate-400 font-bold text-sm"
           >
             Hari Ini
           </button>
           <button
+            type="button"
             onClick={onNextMonth}
+            aria-label="Bulan berikutnya"
             className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-600 dark:text-slate-400"
           >
             <ChevronRight className="w-5 h-5" />
