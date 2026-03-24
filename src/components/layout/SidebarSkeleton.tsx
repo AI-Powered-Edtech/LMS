@@ -1,5 +1,10 @@
 import { useTheme } from '@/src/contexts/ThemeContext'
 
+// ⚡ Perf: Deterministic widths instead of Math.random() in render.
+// Math.random() in a style prop produces a different value on every render,
+// causing visual flicker as skeleton bars jump widths on re-render.
+const SKELETON_WIDTHS = [75, 60, 90, 65, 80, 70]
+
 export function SidebarSkeleton() {
   const { theme } = useTheme()
   const isDark = theme === 'dark'
@@ -16,14 +21,14 @@ export function SidebarSkeleton() {
 
       {/* Nav skeleton items */}
       <nav className="flex-1 space-y-2">
-        {Array.from({ length: 6 }).map((_, i) => (
+        {SKELETON_WIDTHS.map((width, i) => (
           <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-2xl">
             <div
               className={`w-5 h-5 rounded-md animate-pulse ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}
             />
             <div
               className={`h-4 rounded-lg animate-pulse ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}
-              style={{ width: `${60 + Math.random() * 40}%`, animationDelay: `${i * 100}ms` }}
+              style={{ width: `${width}%`, animationDelay: `${i * 100}ms` }}
             />
           </div>
         ))}
