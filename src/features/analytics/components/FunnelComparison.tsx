@@ -95,6 +95,7 @@ export function FunnelComparison({ courseId }: FunnelComparisonProps) {
                   e.stopPropagation()
                   deleteFunnel.mutate(f.funnel_id)
                 }}
+                aria-label="Hapus corong"
                 className="hidden rounded p-1 text-slate-400 hover:text-red-500 group-hover:flex"
               >
                 <Trash2 className="h-3.5 w-3.5" />

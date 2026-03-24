@@ -456,7 +456,10 @@ export function Creator() {
                       <span className="text-blue-500">{i + 1}.</span>
                       {q.text}
                     </h3>
-                    <button className="text-slate-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      className="text-slate-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      aria-label="Edit soal"
+                    >
                       <Edit2 className="w-4 h-4" />
                     </button>
                   </div>

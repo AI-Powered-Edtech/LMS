@@ -641,6 +641,7 @@ export function ClassManagement() {
                           }}
                           className="p-2 text-slate-300 dark:text-slate-600 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors shrink-0"
                           title="Keluarkan dari kelas"
+                          aria-label="Keluarkan dari kelas"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

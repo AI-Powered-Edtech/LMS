@@ -1,5 +1,18 @@
 # EduSync LMS — Changelog
 
+## Accessibility: aria-labels Batch 4 (Final) (2026-03-24)
+
+- Added `aria-label` attributes to remaining icon-only buttons across the codebase to ensure screen reader accessibility:
+  - `Creator.tsx` — edit question
+  - `FunnelComparison.tsx` — delete funnel
+  - `ClassManagement.tsx` — remove student from class
+
+## E2E Test Fixes & Gamification Flow (2026-03-24)
+
+- Fixed hidden navigation elements interfering with page-level headings in E2E tests (used `h1`-scoped selectors)
+- Updated `GAP_ANALYSIS.md` to document network/Supabase delays, lack of `data-testid`, and other UI-to-E2E mismatch findings
+- Fixed React controlled input handlers limiting test suite reliability
+
 ## E2E Test Suite Rewrite (2026-03-24)
 
 - Rewrote all `e2e/flows24/` specs with expanded coverage across auth, student, teacher, admin, and cross-cutting tests
