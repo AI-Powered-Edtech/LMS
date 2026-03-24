@@ -161,6 +161,7 @@ export function DocumentViewer({
                 : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
             )}
             title="Pilih (Pointer)"
+            aria-label="Pilih (Pointer)"
           >
             <MousePointer2 className="w-4 h-4" />
           </button>
@@ -173,6 +174,7 @@ export function DocumentViewer({
                 : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
             )}
             title="Tambah Komentar"
+            aria-label="Tambah komentar"
           >
             <MessageSquarePlus className="w-4 h-4" />
           </button>
@@ -181,6 +183,7 @@ export function DocumentViewer({
         <div className="flex items-center gap-2">
           <button
             onClick={() => onZoomChange(Math.max(50, zoom - 10))}
+            aria-label="Perkecil"
             className="p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
           >
             <ZoomOut className="w-4 h-4" />
@@ -190,6 +193,7 @@ export function DocumentViewer({
           </span>
           <button
             onClick={() => onZoomChange(Math.min(200, zoom + 10))}
+            aria-label="Perbesar"
             className="p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
           >
             <ZoomIn className="w-4 h-4" />
@@ -199,6 +203,7 @@ export function DocumentViewer({
             onClick={() => onZoomChange(100)}
             className="p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
             title="Fit to Width"
+            aria-label="Sesuaikan lebar"
           >
             <Maximize className="w-4 h-4" />
           </button>

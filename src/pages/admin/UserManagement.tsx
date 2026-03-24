@@ -312,6 +312,7 @@ export function UserManagement() {
                 }}
                 className="p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700"
                 title="Refresh"
+                aria-label="Muat ulang daftar pengguna"
               >
                 <RefreshCw className="w-4 h-4 text-slate-500" />
               </button>
@@ -419,6 +420,7 @@ export function UserManagement() {
                             onClick={() =>
                               setActionMenuId(actionMenuId === user.user_id ? null : user.user_id)
                             }
+                            aria-label="Aksi pengguna"
                             className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                           >
                             <MoreVertical className="w-4 h-4 text-slate-500" />
@@ -562,6 +564,7 @@ export function UserManagement() {
                                   onClick={() => copyInviteLink(invite.token)}
                                   className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                                   title="Copy link"
+                                  aria-label="Salin tautan undangan"
                                 >
                                   <Copy className="w-4 h-4 text-slate-500" />
                                 </button>
@@ -569,6 +572,7 @@ export function UserManagement() {
                                   onClick={() => handleRevoke(invite.id)}
                                   className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                                   title="Revoke"
+                                  aria-label="Cabut undangan"
                                 >
                                   <XCircle className="w-4 h-4 text-red-500" />
                                 </button>

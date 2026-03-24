@@ -22,11 +22,8 @@ supabase/.temp/
 playwright-report/
 test-results/
 
-# Claude Code worktrees (temporary agent clones)
-.claude/worktrees/
-
-# Claude agent memory (local-only, not for repo)
-.claude/agent-memory/
+# Claude Code (local-only, not for repo)
+.claude/
 claude/agent-memory/
 
 # QA state files (agent-generated, local-only)

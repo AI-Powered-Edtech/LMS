@@ -234,6 +234,7 @@ export function ClassManagement() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/teacher-dashboard')}
+            aria-label="Kembali ke dashboard"
             className="p-2 -ml-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -293,6 +294,7 @@ export function ClassManagement() {
                 setShowCreateForm(false)
                 setNewClassName('')
               }}
+              aria-label="Tutup formulir"
               className="p-2.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-colors"
             >
               <X className="w-4 h-4" />
@@ -410,12 +412,14 @@ export function ClassManagement() {
                         />
                         <button
                           onClick={() => handleRename(selectedClass.id)}
+                          aria-label="Konfirmasi perubahan nama"
                           className="p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg"
                         >
                           <Check className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setRenamingClassId(null)}
+                          aria-label="Batalkan perubahan nama"
                           className="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
                         >
                           <X className="w-4 h-4" />
@@ -433,6 +437,7 @@ export function ClassManagement() {
                           }}
                           className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
                           title="Rename"
+                          aria-label="Ubah nama kelas"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
@@ -451,6 +456,7 @@ export function ClassManagement() {
                     onClick={() => setClassToDelete(selectedClass.id)}
                     className="p-2 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors"
                     title="Hapus kelas"
+                    aria-label="Hapus kelas"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
