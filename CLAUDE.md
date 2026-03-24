@@ -67,6 +67,9 @@ EduSync is a multi-tenant SaaS Learning Management System (LMS) for Indonesian s
   (not `time_spent_seconds`, `last_event_at`, `quiz_avg_score`)
 - When checking teacher role in analytics RPCs: query `user_roles` table directly
   (do not use `has_role()` — it fails when JWT is missing tenant claim)
+- `courses.status` enum includes `'in_review'` and `'approved'` (added by `20260324160000` migration)
+- `course_collaborators` table uses `auto_set_tenant_id()` trigger — NOT `set_tenant_id_from_user()`
+- Tenant auto-fill trigger function is `auto_set_tenant_id()` — always use this for new tables
 
 ### Auth
 

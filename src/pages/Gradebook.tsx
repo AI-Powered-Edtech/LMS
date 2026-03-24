@@ -16,7 +16,7 @@ import {
   Users,
   X,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { EmptyState, OptimizedImage } from '@/src/components/ui'
@@ -24,6 +24,7 @@ import { useCourses } from '@/src/features/courses/queries/courseQueries'
 import type { Course } from '@/src/features/courses/types'
 import { GradebookTable } from '@/src/features/gradebook/components/GradebookTable'
 import { Assignment, useGradebook } from '@/src/features/gradebook/hooks/useGradebookQueries'
+import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
 
@@ -31,6 +32,8 @@ export function Gradebook() {
   usePageTitle('Buku Nilai')
   const { students, assignments, grades, updateGrade, addAssignment } = useGradebook()
   const [searchQuery, setSearchQuery] = useState('')
+  // ⚡ Perf: Debounce search to avoid re-render + re-filter on every keystroke
+  const debouncedSearch = useDebounce(searchQuery, 300)
   const [editingCell, setEditingCell] = useState<{
     studentId: string
     assignmentId: string
@@ -72,47 +75,72 @@ export function Gradebook() {
     }
   }
 
-  const filteredStudents = students.filter(
-    (s) => s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.nis.includes(searchQuery)
+  // ⚡ Perf: Pre-compute per-student average & total in a single pass, memoized on
+  // [students, grades]. This replaces ~4N redundant calculateAverage() calls
+  // (allAverages build + highestStudent find + lowestStudent find + per-row render)
+  // with O(1) Map lookups. For 40 students × 10 assignments, this eliminates
+  // ~160 array iterations per render.
+  const studentStatsMap = useMemo(() => {
+    const map = new Map<string, { average: number; total: number }>()
+    for (const student of students) {
+      const studentGrades = grades[student.id]
+      if (!studentGrades) {
+        map.set(student.id, { average: 0, total: 0 })
+        continue
+      }
+      const scores = Object.values(studentGrades)
+        .map((entry) => entry.score)
+        .filter((score): score is number => score !== null)
+      if (scores.length === 0) {
+        map.set(student.id, { average: 0, total: 0 })
+        continue
+      }
+      const total = scores.reduce((a, b) => a + b, 0)
+      map.set(student.id, { average: Math.round(total / scores.length), total })
+    }
+    return map
+  }, [students, grades])
+
+  // ⚡ Perf: Memoize class-level stats derived from the pre-computed stats map.
+  // Only recomputes when students or grades change — not on search/edit/modal toggles.
+  const { classAverage, highestScore, lowestScore, highestStudent, lowestStudent } = useMemo(() => {
+    const averages: { name: string; avg: number }[] = []
+    for (const student of students) {
+      const avg = studentStatsMap.get(student.id)?.average ?? 0
+      if (avg > 0) averages.push({ name: student.name, avg })
+    }
+    if (averages.length === 0) {
+      return {
+        classAverage: 0,
+        highestScore: 0,
+        lowestScore: 0,
+        highestStudent: '-',
+        lowestStudent: '-',
+      }
+    }
+    const sum = averages.reduce((a, b) => a + b.avg, 0)
+    const best = averages.reduce((a, b) => (b.avg > a.avg ? b : a))
+    const worst = averages.reduce((a, b) => (b.avg < a.avg ? b : a))
+    return {
+      classAverage: Math.round(sum / averages.length),
+      highestScore: best.avg,
+      lowestScore: worst.avg,
+      highestStudent: best.name,
+      lowestStudent: worst.name,
+    }
+  }, [students, studentStatsMap])
+
+  // ⚡ Perf: Memoize filtered students so the list is only re-derived when
+  // the debounced search term or student list changes — not on every keystroke.
+  const filteredStudents = useMemo(
+    () =>
+      students.filter(
+        (s) =>
+          s.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          s.nis.includes(debouncedSearch)
+      ),
+    [students, debouncedSearch]
   )
-
-  const calculateAverage = (studentId: string) => {
-    const studentGrades = grades[studentId]
-    if (!studentGrades) return 0
-    const scores = Object.values(studentGrades)
-      .map((entry) => entry.score)
-      .filter((score): score is number => score !== null)
-    if (scores.length === 0) return 0
-    const sum = scores.reduce((a, b) => a + b, 0)
-    return Math.round(sum / scores.length)
-  }
-
-  const calculateTotal = (studentId: string) => {
-    const studentGrades = grades[studentId]
-    if (!studentGrades) return 0
-    const scores = Object.values(studentGrades)
-      .map((entry) => entry.score)
-      .filter((score): score is number => score !== null)
-    if (scores.length === 0) return 0
-    return scores.reduce((a, b) => a + b, 0)
-  }
-
-  // Calculate class stats
-  const allAverages = students.map((s) => calculateAverage(s.id)).filter((avg) => avg > 0)
-  const classAverage =
-    allAverages.length > 0
-      ? Math.round(allAverages.reduce((a, b) => a + b, 0) / allAverages.length)
-      : 0
-  const highestScore = allAverages.length > 0 ? Math.max(...allAverages) : 0
-  const lowestScore = allAverages.length > 0 ? Math.min(...allAverages) : 0
-
-  let highestStudent = '-'
-  let lowestStudent = '-'
-
-  if (allAverages.length > 0) {
-    highestStudent = students.find((s) => calculateAverage(s.id) === highestScore)?.name || '-'
-    lowestStudent = students.find((s) => calculateAverage(s.id) === lowestScore)?.name || '-'
-  }
 
   const getGradeColor = (score: number | null) => {
     if (score === null || score === 0) return 'text-slate-400'
@@ -523,8 +551,10 @@ export function Gradebook() {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
               {filteredStudents.map((student) => {
-                const avg = calculateAverage(student.id)
-                const total = calculateTotal(student.id)
+                // ⚡ Perf: O(1) Map lookup instead of recalculating per row
+                const stats = studentStatsMap.get(student.id)
+                const avg = stats?.average ?? 0
+                const total = stats?.total ?? 0
                 return (
                   <tr
                     key={student.id}

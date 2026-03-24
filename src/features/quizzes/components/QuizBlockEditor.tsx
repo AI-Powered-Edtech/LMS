@@ -15,9 +15,9 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useBuilder } from '@/src/contexts/BuilderContext'
 import {
-  courseBuilderService,
+  builderQuizService,
   type QuizBlockData,
-} from '@/src/features/courses/api/courseBuilderService'
+} from '@/src/features/courses/api/builder/quizBuilderService'
 import { QuestionSearchModal } from '@/src/features/question-bank/components/QuestionSearchModal'
 import type { QuestionType, QuizMode } from '@/src/features/quizzes'
 import { QuizAnalyticsPanel } from '@/src/features/quizzes/components/analytics'
@@ -56,7 +56,7 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
     if (!activeLesson) return
     async function load() {
       try {
-        const data = await courseBuilderService.getQuizByLesson(activeLesson!.id, tenantId!)
+        const data = await builderQuizService.getQuizByLesson(activeLesson!.id, tenantId!)
         if (data) {
           setSavedQuizId(data.id)
           setQuizStatus((data.status as QuizStatus) || 'draft')
@@ -116,7 +116,7 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
         id: savedQuizId,
         status: targetStatus,
       }
-      const result = await courseBuilderService.saveQuizData(
+      const result = await builderQuizService.saveQuizData(
         activeLesson.id,
         activeLesson.tenantId,
         payload

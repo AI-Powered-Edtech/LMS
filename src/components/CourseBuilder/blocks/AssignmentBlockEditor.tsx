@@ -5,8 +5,8 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { useBuilder } from '@/src/contexts/BuilderContext'
 import {
   type AssignmentBlockData,
-  courseBuilderService,
-} from '@/src/features/courses/api/courseBuilderService'
+  builderAssignmentService,
+} from '@/src/features/courses/api/builder/assignmentBuilderService'
 import { cn } from '@/src/utils/cn'
 
 export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }) {
@@ -35,7 +35,10 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
     if (!activeLesson) return
     async function load() {
       try {
-        const data = await courseBuilderService.getAssignmentByLesson(activeLesson!.id, tenantId!)
+        const data = await builderAssignmentService.getAssignmentByLesson(
+          activeLesson!.id,
+          tenantId!
+        )
         if (data) {
           setSavedAssignmentId(data.id)
           setAssignmentData({
@@ -67,7 +70,7 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
         ...assignmentData,
         id: savedAssignmentId,
       }
-      const result = await courseBuilderService.saveAssignmentData(
+      const result = await builderAssignmentService.saveAssignmentData(
         activeLesson.id,
         state.courseId ?? '',
         activeLesson.tenantId,
