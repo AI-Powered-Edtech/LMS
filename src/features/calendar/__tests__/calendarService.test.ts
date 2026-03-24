@@ -7,21 +7,22 @@ const mockFromChain = vi.fn()
 vi.mock('@/src/services/supabase/client', () => ({
   supabase: {
     from: (table: string) => {
-      // Each from() call in fetchEvents chains different methods
-      if (table === 'assignments') {
-        return {
-          select: () => ({
-            not: () => ({
-              order: mockFromChain,
-            }),
-          }),
-        }
+      // Return a deeply chainable proxy that ultimately resolves via mockFromChain
+      const chain: Record<string, unknown> = {}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const makeChain = (depth = 0): any => {
+        return new Proxy(chain, {
+          get(_target, prop) {
+            if (prop === 'then') {
+              // Make the chain thenable so `await` resolves it
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              return (resolve: any) => resolve(mockFromChain(table))
+            }
+            return (..._args: unknown[]) => makeChain(depth + 1)
+          },
+        })
       }
-      if (table === 'class_schedules') {
-        return { select: mockFromChain }
-      }
-      // quizzes
-      return { select: mockFromChain }
+      return makeChain()
     },
   },
 }))
@@ -34,34 +35,29 @@ describe('calendarService', () => {
   describe('fetchEvents', () => {
     it('harus mengembalikan array event yang sudah digabung', async () => {
       // Mock all three supabase calls to return empty data
-      mockFromChain.mockResolvedValue({ data: [], error: null })
+      mockFromChain.mockReturnValue({ data: [], error: null })
 
-      const result = await calendarService.fetchEvents()
+      const result = await calendarService.fetchEvents('tenant-1')
       expect(Array.isArray(result)).toBe(true)
     })
 
     it('harus mengembalikan event dari assignments', async () => {
       const tomorrow = new Date(Date.now() + 86400000 * 2).toISOString()
-      // The chain is: from('assignments').select().not().order()
-      // then from('class_schedules').select() and from('quizzes').select()
-      // We need all three calls to resolve
-      let callCount = 0
-      mockFromChain.mockImplementation(() => {
-        callCount++
-        if (callCount === 1) {
-          // assignments order() result
-          return Promise.resolve({
+
+      mockFromChain.mockImplementation((table: string) => {
+        if (table === 'assignments') {
+          return {
             data: [{ id: 'a1', title: 'Tugas 1', due_date: tomorrow, description: 'Desc' }],
             error: null,
-          })
+          }
         }
         // class_schedules and quizzes return empty
-        return Promise.resolve({ data: [], error: null })
+        return { data: [], error: null }
       })
 
-      const result = await calendarService.fetchEvents()
+      const result = await calendarService.fetchEvents('tenant-1')
       const assignmentEvents = result.filter((e) => e.type === 'assignment')
-      expect(assignmentEvents.length).toBeGreaterThanOrEqual(0)
+      expect(assignmentEvents.length).toBeGreaterThanOrEqual(1)
     })
   })
 })
