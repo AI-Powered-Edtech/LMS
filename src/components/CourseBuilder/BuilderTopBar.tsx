@@ -39,6 +39,7 @@ export function BuilderTopBar() {
           onClick={() => navigate('/app/teacher/courses')}
           className="p-2.5 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-100 rounded-xl transition-all text-slate-500 group"
           title="Kembali"
+          aria-label="Kembali"
         >
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
         </button>
