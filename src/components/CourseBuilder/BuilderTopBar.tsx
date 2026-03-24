@@ -52,30 +52,30 @@ export function BuilderTopBar() {
   const status = statusConfig[state.savingStatus]
 
   return (
-    <div className="h-20 bg-white/70 border-b border-slate-200/60 flex items-center justify-between px-8 shrink-0 sticky top-0 z-40 backdrop-blur-xl">
+    <div className="h-20 bg-white/70 dark:bg-slate-900/70 border-b border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between px-8 shrink-0 sticky top-0 z-40 backdrop-blur-xl">
       {/* Left: Back + Title */}
       <div className="flex items-center gap-6 min-w-0">
         <button
           onClick={() => navigate('/app/teacher/courses')}
-          className="p-2.5 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-100 rounded-xl transition-all text-slate-500 group"
+          className="p-2.5 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm border border-transparent hover:border-slate-100 dark:hover:border-slate-700 rounded-xl transition-all text-slate-500 dark:text-slate-400 group"
           title="Kembali"
         >
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
         </button>
 
-        <div className="h-10 w-[1px] bg-slate-200/50" />
+        <div className="h-10 w-[1px] bg-slate-200/50 dark:bg-slate-700/50" />
 
         <div className="min-w-0 flex flex-col justify-center">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-black text-slate-800 tracking-tight truncate">
+            <h1 className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight truncate">
               {state.courseTitle || 'Memuat Kursus...'}
             </h1>
             <div
               className={cn(
                 'px-3 py-1 text-[10px] font-black uppercase tracking-[0.1em] rounded-full shadow-sm',
                 state.courseStatus === 'published'
-                  ? 'bg-emerald-500 text-white shadow-emerald-100'
-                  : 'bg-amber-400 text-amber-900 shadow-amber-100'
+                  ? 'bg-emerald-500 text-white shadow-emerald-100 dark:shadow-emerald-900/30'
+                  : 'bg-amber-400 text-amber-900 shadow-amber-100 dark:shadow-amber-900/30'
               )}
             >
               {state.courseStatus === 'published'
@@ -86,7 +86,7 @@ export function BuilderTopBar() {
             </div>
           </div>
           {state.courseDescription && (
-            <p className="text-xs font-medium text-slate-400 truncate mt-0.5 tracking-wide">
+            <p className="text-xs font-medium text-slate-400 dark:text-slate-500 truncate mt-0.5 tracking-wide">
               {state.courseDescription}
             </p>
           )}
@@ -99,7 +99,7 @@ export function BuilderTopBar() {
         {state.savingStatus !== 'idle' && (
           <div
             className={cn(
-              'flex items-center gap-2 px-4 py-2 bg-white/50 rounded-xl border border-slate-100/50 shadow-sm text-xs font-bold uppercase tracking-widest',
+              'flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-slate-800/50 rounded-xl border border-slate-100/50 dark:border-slate-700/50 shadow-sm text-xs font-bold uppercase tracking-widest',
               status.color
             )}
           >
