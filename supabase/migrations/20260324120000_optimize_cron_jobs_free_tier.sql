@@ -1,16 +1,7 @@
--- =============================================================================
--- Migration: Optimize pg_cron jobs for Supabase Nano Free Tier
--- =============================================================================
--- Reduces CPU and RAM exhaustion by changing 5-15 min cron jobs to run
--- daily (midnight) or disabling heavy analytical crons entirely.
--- =============================================================================
-
--- Enable pg_cron if not already (safety check)
+-- Enable pg_cron if not already
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 
 DO $$
-DECLARE
-    job_record RECORD;
 BEGIN
     -- 1. Unschedule all known heavy background jobs first to prevent duplicates
     PERFORM cron.unschedule('badge-xp-streak-processor');
@@ -21,17 +12,12 @@ BEGIN
     PERFORM cron.unschedule('funnel_analysis_job');
     PERFORM cron.unschedule('path_analysis_job');
 
-    -- 2. Reschedule only the absolute necessary ones to run once a day at 2:00 AM (off-peak)
-    -- This handles gamification processing without killing the DB during the day
+    -- 2. Reschedule only gamification (which doesn't rely on massive MAT VIEWs)
+    -- to run once a day at 2:00 AM. 
+    -- We pass the SQL execution as a literal string block.
     PERFORM cron.schedule(
         'badge-xp-streak-processor',
-        '0 2 * * *', -- At 02:00 AM every day
-        $$ SELECT public.process_gamification_events(); $$
+        '0 2 * * *',
+        'SELECT public.process_gamification_events();'
     );
-
-    -- Note: Analytics and heavy materialized views should now be refreshed 
-    -- either on-demand (via RPC triggered by frontend) or handled 
-    -- gracefully when the user visits the dashboard, not every 15 mins.
-    
-    RAISE NOTICE 'pg_cron optimization complete. Heavy jobs disabled or moved to daily schedule.';
 END $$;
