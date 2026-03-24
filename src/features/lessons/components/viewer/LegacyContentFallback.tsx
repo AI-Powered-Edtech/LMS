@@ -1,9 +1,7 @@
-import {
-  ArticleViewer,
-  AssignmentViewer,
-  QuizViewer,
-  VideoViewer,
-} from '@/src/components/LessonViewer'
+import { Trophy } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+
+import { ArticleViewer, AssignmentViewer, VideoViewer } from '@/src/components/LessonViewer'
 import { ReviewPrompt } from '@/src/features/recommendations'
 
 import type { Lesson } from '../../index'
@@ -33,6 +31,7 @@ export function LegacyContentFallback({
   onStartViewing,
 }: LegacyContentFallbackProps) {
   const isCompleted = status === 'completed'
+  const navigate = useNavigate()
 
   // Video Lesson
   if (lesson.type === 'video') {
@@ -83,20 +82,27 @@ export function LegacyContentFallback({
     }
 
     return (
-      <div>
-        <QuizViewer
-          quizId={quiz.id}
-          title={quiz.title}
-          instructions={quiz.instructions}
-          questions={quiz.quiz_questions}
-          maxAttempts={quiz.max_attempts}
-          passingScore={quiz.passing_score ?? 0}
-          isCompleted={isCompleted}
-          onCompletionMet={onCompletionMet}
-          onStartViewing={onStartViewing}
-        />
+      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-800/20 m-6 rounded-2xl border border-slate-100 dark:border-slate-800">
+        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mb-6">
+          <Trophy className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+        </div>
+        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 text-center">
+          {quiz.title}
+        </h3>
+        <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-md text-center line-clamp-3">
+          {quiz.instructions || 'Silakan kerjakan kuis ini melalui modul Kuis mandiri.'}
+        </p>
+        <button
+          onClick={() => {
+            onCompletionMet()
+            navigate(`/student/quizzes?quizId=${quiz.id}`)
+          }}
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm"
+        >
+          Menuju Halaman Kuis
+        </button>
         {isCompleted && lastQuizScore !== null && (
-          <div className="px-8 pb-4">
+          <div className="mt-8 w-full max-w-md">
             <ReviewPrompt score={lastQuizScore} lessonId={lessonId ?? ''} quizId={quiz.id} />
           </div>
         )}

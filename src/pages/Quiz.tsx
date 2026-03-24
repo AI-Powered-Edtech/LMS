@@ -1,6 +1,7 @@
 import { CheckCircle, HelpCircle, Loader2, Search, Trophy, Zap } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
-import { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 import { AttemptDetailModal } from '@/src/components/AttemptDetailModal'
 import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary'
@@ -44,6 +45,7 @@ export function QuizModule() {
   usePageTitle('Quiz Module')
   const { tenantId } = useAuth()
   const addToast = useToast((s) => s.addToast)
+  const [searchParams, setSearchParams] = useSearchParams()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedClass, setSelectedClass] = useState<string>('all')
   const [activeTab, setActiveTab] = useState<'available' | 'completed'>('available')
@@ -135,6 +137,28 @@ export function QuizModule() {
     })
     return recovered
   }
+
+  // Handle auto-open if quizId is in search params
+  useEffect(() => {
+    const targetQuizId = searchParams.get('quizId')
+    if (targetQuizId && quizzes.length > 0 && !isQuizActive && !showResults && !pendingQuiz) {
+      const quiz = quizzes.find((q) => q.id === targetQuizId)
+      if (quiz) {
+        const activeAttempt = quizAttempts.find(
+          (a) => a.quiz_id === targetQuizId && a.status === 'IN_PROGRESS'
+        )
+        setPendingQuiz({ ...quiz, isResume: !!activeAttempt, activeAttempt })
+        // Clear the search param so it doesn't trigger again on refresh
+        setSearchParams(
+          (prev) => {
+            prev.delete('quizId')
+            return prev
+          },
+          { replace: true }
+        )
+      }
+    }
+  }, [searchParams, quizzes, quizAttempts, isQuizActive, showResults, pendingQuiz, setSearchParams])
 
   const handleStartOrResume = async (
     quiz: StudentQuizAssignment & { isResume?: boolean; activeAttempt?: QuizAttempt }
