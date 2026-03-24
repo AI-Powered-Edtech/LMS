@@ -102,5 +102,6 @@
     "*.{json,md,yml}": [
       "prettier --write"
     ]
-  }
+  },
+  "packageManager": "pnpm@10.30.3"
 }
