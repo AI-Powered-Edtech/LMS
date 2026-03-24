@@ -55,6 +55,7 @@ export function CreateAssignmentModal({
               </div>
               <button
                 onClick={onClose}
+                aria-label="Tutup modal"
                 className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-500 dark:text-slate-400"
               >
                 <X className="w-5 h-5" />

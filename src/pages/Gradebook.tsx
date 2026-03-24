@@ -573,13 +573,17 @@ export function Gradebook() {
                                 className="w-16 px-2 py-1 text-center border-2 border-blue-500 rounded-md text-sm focus:outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
                               />
                               <button
+                                type="button"
                                 onClick={handleSaveEdit}
+                                aria-label="Simpan nilai"
                                 className="p-1 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
                               >
                                 <Save className="w-4 h-4" />
                               </button>
                               <button
+                                type="button"
                                 onClick={() => setEditingCell(null)}
+                                aria-label="Batalkan pengeditan"
                                 className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
                               >
                                 <X className="w-4 h-4" />
@@ -610,7 +614,11 @@ export function Gradebook() {
                       )
                     })}
                     <td className="p-4 text-right">
-                      <button className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                      <button
+                        type="button"
+                        aria-label="Opsi lainnya"
+                        className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                      >
                         <MoreVertical className="w-4 h-4" />
                       </button>
                     </td>

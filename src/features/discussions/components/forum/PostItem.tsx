@@ -79,6 +79,7 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport }: PostItemProp
         <div className="flex flex-col items-center gap-2 shrink-0">
           <button
             onClick={handleUpvote}
+            aria-label="Suka postingan"
             className={cn(
               'w-8 h-8 rounded-full flex items-center justify-center transition-colors',
               upvoted
@@ -102,6 +103,7 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport }: PostItemProp
           </span>
           <button
             onClick={handleDownvote}
+            aria-label="Tidak suka postingan"
             className={cn(
               'w-8 h-8 rounded-full flex items-center justify-center transition-colors',
               downvoted
@@ -148,6 +150,7 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport }: PostItemProp
             <div className="relative">
               <button
                 onClick={() => setShowMenu(!showMenu)}
+                aria-label="Menu postingan"
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
               >
                 <MoreHorizontal className="w-5 h-5" />
