@@ -1,9 +1,13 @@
-import { BuilderLesson } from '@/src/features/courses/api/courseBuilderService'
 import { supabase } from '@/src/services/supabase/client'
 import { mapCourse } from '@/src/shared/types/courseMappers'
 import { DomainCourse } from '@/src/shared/types/courseTypes'
 import { mapModule } from '@/src/shared/types/moduleMappers'
 import { DomainModule } from '@/src/shared/types/moduleTypes'
+
+interface BuilderLessonRow {
+  order: number
+  [key: string]: unknown
+}
 
 /**
  * Course Service for Course Builder (refactored)
@@ -47,8 +51,8 @@ export const builderCourseService = {
     const sorted = (modules || []).map((m) => ({
       ...m,
       description: null,
-      lessons: ((m as unknown as { lessons?: BuilderLesson[] }).lessons || []).sort(
-        (a: BuilderLesson, b: BuilderLesson) => a.order - b.order
+      lessons: ((m as unknown as { lessons?: BuilderLessonRow[] }).lessons || []).sort(
+        (a: BuilderLessonRow, b: BuilderLessonRow) => a.order - b.order
       ),
     }))
 
