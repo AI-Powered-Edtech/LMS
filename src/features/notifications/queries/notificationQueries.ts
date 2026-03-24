@@ -1,12 +1,15 @@
 /**
  * Notification React Query hooks
- * Replaces NotificationContext with proper tenant isolation
+ * Replaces NotificationContext with proper tenant isolation.
+ * Uses polling (60s) instead of WebSocket to reduce Supabase Free Tier load.
  */
 
-import { useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
 import { useAuth } from '@/src/contexts/AuthContext'
 import { createQueryKeys } from '@/src/lib/queryKeys'
+import { STALE } from '@/src/utils/queryConstants'
+
 import * as notificationService from '../api/notificationService'
 
 // Create tenant-scoped query keys
@@ -19,33 +22,19 @@ const notificationKeys = {
 }
 
 /**
- * Main hook for fetching user notifications
- * Replaces NotificationContext usage
+ * Main hook for fetching user notifications.
+ * Polls every 60s instead of holding a WebSocket connection.
  */
 export function useNotifications() {
   const { user, tenantId } = useAuth()
-  const queryClient = useQueryClient()
 
   const query = useQuery({
     queryKey: notificationKeys.user(tenantId!, user!.id),
     queryFn: () => notificationService.fetchNotifications(user!.id, tenantId!),
     enabled: !!tenantId && !!user,
+    staleTime: STALE.DYNAMIC,
+    refetchInterval: 60000, // Poll every minute instead of WebSocket
   })
-
-  // Realtime subscription — lifecycle tied to hook
-  /* eslint-disable react-hooks/exhaustive-deps */
-  useEffect(() => {
-    if (!user || !tenantId) return
-
-    const { unsubscribe } = notificationService.subscribe(user.id, tenantId, () => {
-      queryClient.invalidateQueries({
-        queryKey: notificationKeys.user(tenantId, user.id),
-      })
-    })
-
-    return unsubscribe
-  }, [user?.id, tenantId, queryClient])
-  /* eslint-enable react-hooks/exhaustive-deps */
 
   const notifications = query.data ?? []
   const unreadCount = notifications.filter((n) => !n.is_read).length

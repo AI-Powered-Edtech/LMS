@@ -58,7 +58,7 @@ export const gradebookService = {
         .select('id, assignment_id, student_id, status, score, feedback')
         .eq('tenant_id', tenantId)
         .order('submitted_at', { ascending: false })
-        .limit(5000),
+        .limit(1000),
       supabase
         .from('profiles')
         .select('id, first_name, last_name, email, tenant_id')
@@ -70,7 +70,7 @@ export const gradebookService = {
         .select('id, quiz_id, student_id, score, status, tenant_id')
         .eq('tenant_id', tenantId)
         .eq('status', 'GRADED')
-        .limit(5000),
+        .limit(1000),
     ])
 
     const assignments: GradebookAssignment[] = (assignmentsData ?? []).map((a) => ({

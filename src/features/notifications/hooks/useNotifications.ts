@@ -43,7 +43,7 @@ export function useNotifications(): UseNotificationsReturn {
     queryKey,
     queryFn: () => notificationApi.fetchNotifications(user!.id, tenantId!),
     enabled: !!tenantId && !!user,
-    staleTime: STALE.REALTIME,
+    staleTime: STALE.DYNAMIC,
     refetchInterval: 60000, // Poll every minute instead of WebSocket
   })
 

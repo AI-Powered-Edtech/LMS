@@ -91,7 +91,11 @@ export const calendarService = {
     }
 
     // 3. Quizzes
-    const { data: quizzes } = await supabase.from('quizzes').select('id, title, created_at')
+    const { data: quizzes } = await supabase
+      .from('quizzes')
+      .select('id, title, created_at')
+      .order('created_at', { ascending: false })
+      .limit(200)
 
     if (quizzes) {
       quizzes.forEach((q) => {
