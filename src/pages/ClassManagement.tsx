@@ -75,32 +75,25 @@ export function ClassManagement() {
 
     const fetchCounts = async () => {
       const classIds = classrooms.map((c) => c.id)
-      const { data, error } = await supabase
-        .from('enrollments')
-        .select('class_id')
-        .eq('tenant_id', tenantId)
-        .eq('status', 'ACTIVE')
-        .in('class_id', classIds)
 
-      if (!error && data) {
-        const counts = data.reduce(
-          (acc: Record<string, number>, curr: { class_id: string }) => {
-            acc[curr.class_id] = (acc[curr.class_id] || 0) + 1
-            return acc
-          },
-          {} as Record<string, number>
-        )
+      // ⚡ Perf: Use head:true count queries instead of fetching ALL enrollment rows.
+      // Before: fetched N rows over the network just to count them client-side.
+      // After: N lightweight HEAD requests that only return the count integer.
+      // For 20 classes × 500 students, this reduces payload from ~500 rows to 20 integers.
+      const counts: Record<string, number> = {}
+      await Promise.all(
+        classIds.map(async (id) => {
+          const { count } = await supabase
+            .from('enrollments')
+            .select('id', { count: 'exact', head: true })
+            .eq('class_id', id)
+            .eq('tenant_id', tenantId)
+            .eq('status', 'ACTIVE')
+          counts[id] = count ?? 0
+        })
+      )
 
-        const finalCounts = classrooms.reduce(
-          (acc, cls) => {
-            acc[cls.id] = counts[cls.id] || 0
-            return acc
-          },
-          {} as Record<string, number>
-        )
-
-        setStudentCounts(finalCounts)
-      }
+      setStudentCounts(counts)
     }
     fetchCounts()
   }, [classrooms, tenantId])

@@ -240,11 +240,17 @@ export const courseBuilderService = {
     if (error) throw new Error(error.message)
   },
 
+  // ⚡ Perf: Batch reorder into single upsert instead of N individual UPDATE requests.
+  // Before: 15 lessons = 15 HTTP round-trips. After: 1 upsert call.
+  // Matches the pattern already used by reorderModules above.
   async reorderLessons(lessonIds: string[]): Promise<void> {
-    const updates = lessonIds.map((id, index) =>
-      supabase.from('lessons').update({ order: index }).eq('id', id)
-    )
-    await Promise.all(updates)
+    const updates = lessonIds.map((id, index) => ({
+      id,
+      order: index,
+      updated_at: new Date().toISOString(),
+    }))
+    const { error } = await supabase.from('lessons').upsert(updates)
+    if (error) throw new Error(error.message)
   },
 
   // ─── Block CRUD ─────────────────────────────────────────
@@ -294,11 +300,16 @@ export const courseBuilderService = {
     if (error) throw new Error(error.message)
   },
 
+  // ⚡ Perf: Batch reorder into single upsert instead of N individual UPDATE requests.
+  // Before: 10 blocks = 10 HTTP round-trips. After: 1 upsert call.
   async reorderBlocks(blockIds: string[]): Promise<void> {
-    const updates = blockIds.map((id, index) =>
-      supabase.from('lesson_resources').update({ order_index: index }).eq('id', id)
-    )
-    await Promise.all(updates)
+    const updates = blockIds.map((id, index) => ({
+      id,
+      order_index: index,
+      updated_at: new Date().toISOString(),
+    }))
+    const { error } = await supabase.from('lesson_resources').upsert(updates)
+    if (error) throw new Error(error.message)
   },
 
   // ─── Publish ────────────────────────────────────────────

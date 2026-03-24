@@ -4,6 +4,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useReducer,
   useRef,
 } from 'react'
@@ -116,16 +117,23 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     saveTimerRef
   )
 
-  const value: BuilderContextValue = {
-    state,
-    actions: {
+  // ⚡ Perf: Memoize actions object — the action hooks return stable useCallback refs,
+  // so this only recreates when the hook instances change (effectively never).
+  const actions = useMemo(
+    () => ({
       ...courseActions,
       ...moduleActions,
       ...lessonActions,
       updateLesson: lessonActions.updateLesson,
       ...blockActions,
-    },
-  }
+    }),
+    [courseActions, moduleActions, lessonActions, blockActions]
+  )
+
+  // ⚡ Perf: Memoize context value to prevent ALL consumers from re-rendering
+  // on every provider render. Without this, every keystroke in a block editor
+  // would cascade re-renders to all 10+ BuilderContext consumers.
+  const value: BuilderContextValue = useMemo(() => ({ state, actions }), [state, actions])
 
   return <BuilderContext.Provider value={value}>{children}</BuilderContext.Provider>
 }
