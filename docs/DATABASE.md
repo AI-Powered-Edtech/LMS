@@ -14,14 +14,16 @@ PostgreSQL on Supabase. 157 migration files (001–836).
 
 ### Learning
 
-| Table              | Purpose                                                             |
-| ------------------ | ------------------------------------------------------------------- |
-| `courses`          | Course catalog. Has `tenant_id`, `created_by`, `status`             |
-| `course_modules`   | Modules within a course. Has `"order"` (quoted, reserved word)      |
-| `lessons`          | Lessons within a module. Has `type` (article/video/quiz), `"order"` |
-| `lesson_resources` | Rich content for lessons (blocks, video URLs, etc.)                 |
-| `lesson_progress`  | Per-student lesson completion records                               |
-| `course_progress`  | Per-student, per-course progress percentage                         |
+| Table               | Purpose                                                             |
+| ------------------- | ------------------------------------------------------------------- |
+| `courses`           | Course catalog. Has `tenant_id`, `created_by`, `status`             |
+| `course_modules`    | Modules within a course. Has `"order"` (quoted, reserved word)      |
+| `lessons`           | Lessons within a module. Has `type` (article/video/quiz), `"order"` |
+| `lesson_resources`  | Rich content for lessons (blocks, video URLs, etc.)                 |
+| `lesson_progress`   | Per-student lesson completion records                               |
+| `course_progress`   | Per-student, per-course progress percentage                         |
+| `course_versions`   | JSONB snapshots of course tree for versioning/rollback              |
+| `content_templates` | Reusable course/module/lesson blueprints (per-tenant)               |
 
 ### Classroom
 
@@ -77,6 +79,16 @@ PostgreSQL on Supabase. 157 migration files (001–836).
 | `invoices`           | Billing invoices                         |
 | `payments`           | Payment records                          |
 
+### External Integration (LTI & SCORM)
+
+| Table                        | Purpose                                                                     |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| `lti_platform_registrations` | External LMS platform configs (Canvas, Moodle). One per platform per tenant |
+| `lti_nonces`                 | OIDC replay protection for LTI launches. Short-lived, auto-expired          |
+| `lti_sessions`               | Active LTI guest sessions mapped to Supabase users                          |
+| `scorm_packages`             | Registry of uploaded SCORM 1.2/2004 content linked to lessons               |
+| `scorm_runtime_data`         | Per-user SCORM CMI state: scores, status, suspend_data, total_time          |
+
 ## Important Column Gotchas
 
 | Table                    | Column              | Note                                                       |
@@ -119,26 +131,32 @@ All helper functions are `SECURITY DEFINER` with `SET search_path TO 'public'`.
 
 ## Key RPC Functions
 
-| Function                                                                                  | Purpose                           | Access              |
-| ----------------------------------------------------------------------------------------- | --------------------------------- | ------------------- |
-| `v1_start_quiz_attempt(p_quiz_id)`                                                        | Start or resume quiz attempt      | Student             |
-| `v1_save_partial_answers(p_attempt_id, p_answers)`                                        | Autosave answers                  | Student             |
-| `batch_save_answers(p_attempt_id, p_answers)`                                             | Batch autosave (single RPC call)  | Student             |
-| `v1_submit_quiz_attempt(p_attempt_id, p_final_answers)`                                   | Submit and grade                  | Student             |
-| `v1_get_quiz_results(p_attempt_id)`                                                       | Fetch attempt results             | Student             |
-| `get_teacher_analytics(p_course_id, p_limit, p_cursor_student_id)`                        | Paginated analytics JSON          | Teacher/Admin       |
-| `refresh_course_stats(p_course_id)`                                                       | Recalculate course_stats          | Teacher/Admin       |
-| `award_quiz_xp(p_user_id, p_lesson_id, p_quiz_id, p_score, p_passing_score, p_tenant_id)` | Award XP after quiz               | Student (self only) |
-| `get_leaderboard_v2(p_tenant_id, p_limit)`                                                | Tenant-scoped leaderboard         | Authenticated       |
-| `get_lesson_viewer_payload(p_course_id)`                                                  | Full lesson tree for Smart Player | Student             |
-| `record_xp_transaction(p_user_id, p_xp_amount, p_source_type, p_source_id)`               | Record XP transaction             | System              |
-| `get_student_recommendations(p_user_id, p_limit)`                                         | Next lesson recommendations       | Student             |
-| `start_quiz_attempt(quiz_id)`                                                             | Legacy quiz attempt (v2 API)      | Student             |
-| `submit_quiz_attempt(attempt_id, answers, version)`                                       | Legacy submit (v2 API)            | Student             |
-| `ensure_profile_exists()`                                                                 | Auto-create profile if missing    | Authenticated       |
-| `create_school_tenant(p_school_name, p_full_name, p_role)`                                | B2B onboarding: register school   | Authenticated       |
-| `join_school_via_token(p_token)`                                                          | B2B onboarding: join via invite   | Authenticated       |
-| `onboard_student_join_class(p_join_code, p_full_name)`                                    | Student onboarding via class code | Authenticated       |
+| Function                                                                                  | Purpose                                        | Access                |
+| ----------------------------------------------------------------------------------------- | ---------------------------------------------- | --------------------- |
+| `v1_start_quiz_attempt(p_quiz_id)`                                                        | Start or resume quiz attempt                   | Student               |
+| `v1_save_partial_answers(p_attempt_id, p_answers)`                                        | Autosave answers                               | Student               |
+| `batch_save_answers(p_attempt_id, p_answers)`                                             | Batch autosave (single RPC call)               | Student               |
+| `v1_submit_quiz_attempt(p_attempt_id, p_final_answers)`                                   | Submit and grade                               | Student               |
+| `v1_get_quiz_results(p_attempt_id)`                                                       | Fetch attempt results                          | Student               |
+| `get_teacher_analytics(p_course_id, p_limit, p_cursor_student_id)`                        | Paginated analytics JSON                       | Teacher/Admin         |
+| `refresh_course_stats(p_course_id)`                                                       | Recalculate course_stats                       | Teacher/Admin         |
+| `award_quiz_xp(p_user_id, p_lesson_id, p_quiz_id, p_score, p_passing_score, p_tenant_id)` | Award XP after quiz                            | Student (self only)   |
+| `get_leaderboard_v2(p_tenant_id, p_limit)`                                                | Tenant-scoped leaderboard                      | Authenticated         |
+| `get_lesson_viewer_payload(p_course_id)`                                                  | Full lesson tree for Smart Player              | Student               |
+| `record_xp_transaction(p_user_id, p_xp_amount, p_source_type, p_source_id)`               | Record XP transaction                          | System                |
+| `get_student_recommendations(p_user_id, p_limit)`                                         | Next lesson recommendations                    | Student               |
+| `start_quiz_attempt(quiz_id)`                                                             | Legacy quiz attempt (v2 API)                   | Student               |
+| `submit_quiz_attempt(attempt_id, answers, version)`                                       | Legacy submit (v2 API)                         | Student               |
+| `ensure_profile_exists()`                                                                 | Auto-create profile if missing                 | Authenticated         |
+| `create_school_tenant(p_school_name, p_full_name, p_role)`                                | B2B onboarding: register school                | Authenticated         |
+| `join_school_via_token(p_token)`                                                          | B2B onboarding: join via invite                | Authenticated         |
+| `onboard_student_join_class(p_join_code, p_full_name)`                                    | Student onboarding via class code              | Authenticated         |
+| `save_course_version(p_course_id, p_message)`                                             | Snapshot course tree as version                | Teacher               |
+| `restore_course_version(p_version_id)`                                                    | Rollback course to a snapshot                  | Teacher               |
+| `save_content_template(p_type, p_title, p_description, p_source_id)`                      | Save entity as reusable template               | Teacher               |
+| `import_content_template(p_template_id, p_target_id, p_order)`                            | Import template with new UUIDs                 | Teacher               |
+| `upsert_scorm_runtime(p_user_id, p_scorm_package_id, p_tenant_id, p_cmi_data, ...)`       | Atomic SCORM state save + lesson_progress sync | Student               |
+| `cleanup_expired_lti_nonces()`                                                            | Remove expired LTI nonces                      | System (service_role) |
 
 ## pg_cron Jobs
 
@@ -151,34 +169,38 @@ The `pg_cron` extension is required. Scheduled jobs:
 
 ## Database Triggers
 
-| Trigger                             | Table                | Purpose                                |
-| ----------------------------------- | -------------------- | -------------------------------------- |
-| `handle_new_user`                   | `auth.users`         | Creates profile + user_roles on signup |
-| `auto_set_tenant_id`                | All 26 tenant tables | Auto-fills tenant_id on INSERT         |
-| `custom_access_token_hook`          | Auth hook            | Injects tenant_id + role into JWT      |
-| `handle_lesson_progress_change`     | `lesson_progress`    | Triggers course progress recompute     |
-| `handle_quiz_attempt_status_change` | `quiz_attempts`      | Triggers XP award, badge check         |
-| `handle_streak_on_activity`         | Various              | Updates streak on activity             |
-| `handle_quiz_badges`                | `quiz_attempts`      | Awards quiz-related badges             |
-| `handle_streak_badges`              | `xp_profiles`        | Awards streak-related badges           |
-| `on_badge_earned`                   | `student_badges`     | Emits realtime event for UI            |
-| `recompute_course_progress`         | `lesson_progress`    | Rolls up to course_progress            |
+| Trigger                               | Table                | Purpose                                |
+| ------------------------------------- | -------------------- | -------------------------------------- |
+| `handle_new_user`                     | `auth.users`         | Creates profile + user_roles on signup |
+| `auto_set_tenant_id`                  | All 26 tenant tables | Auto-fills tenant_id on INSERT         |
+| `custom_access_token_hook`            | Auth hook            | Injects tenant_id + role into JWT      |
+| `handle_lesson_progress_change`       | `lesson_progress`    | Triggers course progress recompute     |
+| `handle_quiz_attempt_status_change`   | `quiz_attempts`      | Triggers XP award, badge check         |
+| `handle_streak_on_activity`           | Various              | Updates streak on activity             |
+| `handle_quiz_badges`                  | `quiz_attempts`      | Awards quiz-related badges             |
+| `handle_streak_badges`                | `xp_profiles`        | Awards streak-related badges           |
+| `on_badge_earned`                     | `student_badges`     | Emits realtime event for UI            |
+| `recompute_course_progress`           | `lesson_progress`    | Rolls up to course_progress            |
+| `course_versions_tenant_id_trigger`   | `course_versions`    | Auto-fills tenant_id on INSERT         |
+| `content_templates_tenant_id_trigger` | `content_templates`  | Auto-fills tenant_id on INSERT         |
 
 ## Migration Reference
 
 Migrations are in `supabase/migrations/` numbered `001` through `836`. Apply in numeric order. Key milestones:
 
-| Range   | Domain                                                    |
-| ------- | --------------------------------------------------------- |
-| 001–062 | Core schema, auth, RLS foundation                         |
-| 063–071 | Quiz engine v1/v2                                         |
-| 072–095 | Analytics engine                                          |
-| 096–200 | Various features                                          |
-| 291–297 | Critical bug fixes (quiz grading, analytics auth)         |
-| 810–820 | Advanced analytics (engagement, cohort, funnel, struggle) |
-| 821–822 | Gamification v2 (XP, badges, leaderboard, streaks)        |
-| 823–825 | Registration helpers, attendance, seed data               |
-| 836     | Security fixes (5 HIGH vulnerabilities)                   |
+| Range          | Domain                                                                                        |
+| -------------- | --------------------------------------------------------------------------------------------- |
+| 001–062        | Core schema, auth, RLS foundation                                                             |
+| 063–071        | Quiz engine v1/v2                                                                             |
+| 072–095        | Analytics engine                                                                              |
+| 096–200        | Various features                                                                              |
+| 291–297        | Critical bug fixes (quiz grading, analytics auth)                                             |
+| 810–820        | Advanced analytics (engagement, cohort, funnel, struggle)                                     |
+| 821–822        | Gamification v2 (XP, badges, leaderboard, streaks)                                            |
+| 823–825        | Registration helpers, attendance, seed data                                                   |
+| 836            | Security fixes (5 HIGH vulnerabilities)                                                       |
+| 20260324150000 | Course Builder Phase 1: versioning + template library                                         |
+| 20260324200000 | LTI 1.3 + SCORM integration: platform registrations, nonces, sessions, packages, runtime data |
 
 <!-- Phase 5 Feature Cross-Reference -->
 

@@ -1,7 +1,20 @@
+export interface InteractiveEvent {
+  timeInSeconds: number
+  type: 'quiz' | 'info'
+  quizId?: string
+  content?: string
+}
+
+export interface InteractiveVideoMetadata {
+  durationInSeconds?: number
+  interactiveEvents?: InteractiveEvent[]
+  [key: string]: unknown // preserve other metadata
+}
+
 export interface LessonResource {
   id: string
   lesson_id: string
-  type: string // 'text' | 'video' | 'image' | 'file' | 'quiz' | 'assignment'
+  type: string // 'text' | 'video' | 'image' | 'file' | 'quiz' | 'assignment' | 'scorm'
   url: string | null // nullable — text/quiz/assignment blocks have no URL
   title: string | null
   content: string | null

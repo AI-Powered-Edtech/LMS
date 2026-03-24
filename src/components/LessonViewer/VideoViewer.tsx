@@ -2,6 +2,8 @@ import { AlertTriangle, CheckCircle2, FileText, Lock, MessageSquare, Sparkles } 
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { useInteractiveVideoEvents } from '@/src/features/lessons/hooks/useInteractiveVideoEvents'
+import { QuizViewer } from '@/src/features/quizzes/components/QuizViewer'
 import { cn } from '@/src/utils/cn'
 
 interface Transcript {
@@ -20,6 +22,7 @@ interface VideoViewerProps {
   videoUrl: string
   transcripts?: Transcript[]
   inVideoQuizzes?: InVideoQuiz[]
+  metadata?: Record<string, unknown>
   savedPosition: number
   isCompleted: boolean
   onProgressUpdate: (percentage: number, position: number) => void
@@ -30,6 +33,7 @@ interface VideoViewerProps {
 export function VideoViewer({
   videoUrl,
   transcripts,
+  metadata,
   savedPosition,
   isCompleted,
   onProgressUpdate,
@@ -41,6 +45,10 @@ export function VideoViewer({
   const [maxWatchedTime, setMaxWatchedTime] = useState(savedPosition)
   const [isStalled, setIsStalled] = useState(false)
   const hasCalledCompletion = useRef(false)
+
+  // Interactive Video — shared hook
+  const { activeEvent, loadedQuizzes, checkForEvent, handleEventComplete } =
+    useInteractiveVideoEvents({ metadata, videoRef })
 
   // Session restore: seek to saved position
   useEffect(() => {
@@ -56,6 +64,9 @@ export function VideoViewer({
     const duration = videoRef.current.duration
     setCurrentTime(time)
 
+    // Interactive event check (pauses video if triggered)
+    if (checkForEvent(time)) return
+
     if (time > maxWatchedTime) {
       setMaxWatchedTime(time)
     }
@@ -69,7 +80,7 @@ export function VideoViewer({
         onCompletionMet()
       }
     }
-  }, [maxWatchedTime, isCompleted, onProgressUpdate, onCompletionMet])
+  }, [maxWatchedTime, isCompleted, onProgressUpdate, onCompletionMet, checkForEvent])
 
   const handleSeeking = useCallback(() => {
     if (videoRef.current && videoRef.current.currentTime > maxWatchedTime + 1) {
@@ -141,7 +152,7 @@ export function VideoViewer({
             <video
               ref={videoRef}
               src={videoUrl}
-              controls
+              controls={!activeEvent}
               onTimeUpdate={handleTimeUpdate}
               onSeeking={handleSeeking}
               onPlay={handlePlay}
@@ -152,6 +163,40 @@ export function VideoViewer({
               className="w-full h-full object-cover"
               controlsList="nodownload"
             />
+
+            {/* Interactive Event Overlay */}
+            <AnimatePresence>
+              {activeEvent &&
+                activeEvent.type === 'quiz' &&
+                activeEvent.quizId &&
+                loadedQuizzes[activeEvent.quizId] && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-black/95 z-20 flex items-center justify-center rounded-lg overflow-y-auto"
+                  >
+                    <div className="w-full max-w-4xl p-6 bg-white dark:bg-slate-900 rounded-2xl max-h-full overflow-y-auto">
+                      <div className="mb-4 flex items-center sticky top-0 bg-white dark:bg-slate-900 z-10 py-2 border-b border-slate-100 dark:border-slate-800">
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100">
+                          Kuis Pop-up
+                        </h3>
+                      </div>
+                      <QuizViewer
+                        quizId={loadedQuizzes[activeEvent.quizId].id}
+                        title={loadedQuizzes[activeEvent.quizId].title}
+                        instructions={loadedQuizzes[activeEvent.quizId].instructions}
+                        questions={loadedQuizzes[activeEvent.quizId].quiz_questions}
+                        maxAttempts={loadedQuizzes[activeEvent.quizId].max_attempts}
+                        passingScore={loadedQuizzes[activeEvent.quizId].passing_score ?? 0}
+                        isCompleted={false}
+                        onCompletionMet={handleEventComplete}
+                        onStartViewing={() => {}}
+                      />
+                    </div>
+                  </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Network Stall Overlay */}
             <AnimatePresence>

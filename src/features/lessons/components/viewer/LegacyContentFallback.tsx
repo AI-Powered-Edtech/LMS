@@ -38,6 +38,7 @@ export function LegacyContentFallback({
     return (
       <VideoViewer
         videoUrl={videoUrl}
+        metadata={videoResource?.metadata}
         savedPosition={lastPosition}
         isCompleted={isCompleted}
         onProgressUpdate={onProgressUpdate}

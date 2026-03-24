@@ -1,5 +1,5 @@
+import { File, FileText, HelpCircle, Image, Package, Type, Video } from 'lucide-react'
 import type { ComponentType } from 'react'
-import { Type, Video, Image, File, HelpCircle, FileText } from 'lucide-react'
 
 export interface BlockDefinition {
   /** Indonesian UI label shown in builder menus */
@@ -54,6 +54,13 @@ export const BLOCK_REGISTRY = {
     label: 'Tugas',
     icon: FileText,
     color: 'text-indigo-600 bg-indigo-50/30 border-indigo-100',
+    hasUrl: false,
+    completionRule: 'submit',
+  },
+  scorm: {
+    label: 'SCORM',
+    icon: Package,
+    color: 'text-purple-600 bg-purple-50/30 border-purple-100',
     hasUrl: false,
     completionRule: 'submit',
   },

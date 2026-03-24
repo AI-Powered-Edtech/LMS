@@ -1,12 +1,16 @@
 import { AlertTriangle } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useOptionalLearningSession } from '@/src/features/analytics'
+import { useInteractiveVideoEvents } from '@/src/features/lessons/hooks/useInteractiveVideoEvents'
+import { QuizViewer } from '@/src/features/quizzes/components/QuizViewer'
 import { parseVideoUrl, type VideoType } from '@/src/utils/videoUtils'
 
 interface VideoBlockProps {
   blockId?: string
   url: string
+  metadata?: Record<string, unknown>
   isCompleted: boolean
   savedVideoPosition?: number | null // seconds
   onProgressUpdate?: (percentage: number) => void
@@ -23,10 +27,12 @@ interface VideoBlockProps {
  * - Direct video support via video element
  * - Progress tracking using timeupdate (direct) or IntersectionObserver (embed)
  * - 16:9 aspect ratio wrapper
+ * - Interactive Video (pop-up quizzes at specific timestamps)
  */
 export function VideoBlock({
   blockId,
   url,
+  metadata,
   isCompleted,
   savedVideoPosition,
   onProgressUpdate = () => {},
@@ -38,10 +44,13 @@ export function VideoBlock({
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const hasCalledCompletion = useRef(false)
-  const _intersectionStartTime = useRef<number | null>(null)
   const lastReportedSecond = useRef(0)
   const [videoType, setVideoType] = useState<VideoType>('direct')
   const [embedUrl, setEmbedUrl] = useState<string | null>(null)
+
+  // Interactive Video — shared hook
+  const { activeEvent, loadedQuizzes, checkForEvent, handleEventComplete } =
+    useInteractiveVideoEvents({ metadata, videoRef })
 
   // Parse URL on mount or when URL changes
   useEffect(() => {
@@ -63,6 +72,9 @@ export function VideoBlock({
     const video = videoRef.current
     const currentTime = video.currentTime
     const duration = video.duration
+
+    // Interactive event check (pauses video if triggered)
+    if (checkForEvent(currentTime)) return
 
     if (duration > 0) {
       const percentage = Math.round((currentTime / duration) * 100)
@@ -95,6 +107,7 @@ export function VideoBlock({
     onVideoTimeUpdate,
     trackEvent,
     blockId,
+    checkForEvent,
   ])
 
   // Progress tracking for embedded videos (YouTube/Vimeo) using IntersectionObserver + timer
@@ -188,13 +201,45 @@ export function VideoBlock({
           <video
             ref={videoRef}
             src={url}
-            controls
+            controls={!activeEvent}
             onTimeUpdate={handleTimeUpdate}
             onPlay={handlePlay}
             onCanPlay={handleCanPlay}
             className="absolute inset-0 w-full h-full rounded-lg"
             controlsList="nodownload"
           />
+
+          {/* Interactive Event Overlay */}
+          <AnimatePresence>
+            {activeEvent &&
+              activeEvent.type === 'quiz' &&
+              activeEvent.quizId &&
+              loadedQuizzes[activeEvent.quizId] && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-black/95 z-20 flex items-center justify-center rounded-lg overflow-y-auto"
+                >
+                  <div className="w-full max-w-4xl p-6 bg-white dark:bg-slate-900 rounded-2xl max-h-full overflow-y-auto">
+                    <div className="mb-4 flex items-center sticky top-0 bg-white dark:bg-slate-900 z-10 py-2 border-b border-slate-100 dark:border-slate-800">
+                      <h3 className="font-bold text-slate-800 dark:text-slate-100">Kuis Pop-up</h3>
+                    </div>
+                    <QuizViewer
+                      quizId={loadedQuizzes[activeEvent.quizId].id}
+                      title={loadedQuizzes[activeEvent.quizId].title}
+                      instructions={loadedQuizzes[activeEvent.quizId].instructions}
+                      questions={loadedQuizzes[activeEvent.quizId].quiz_questions}
+                      maxAttempts={loadedQuizzes[activeEvent.quizId].max_attempts}
+                      passingScore={loadedQuizzes[activeEvent.quizId].passing_score ?? 0}
+                      isCompleted={false}
+                      onCompletionMet={handleEventComplete}
+                      onStartViewing={() => {}}
+                    />
+                  </div>
+                </motion.div>
+              )}
+          </AnimatePresence>
         </div>
       </div>
     )
@@ -211,13 +256,15 @@ function VideoUnavailable() {
   return (
     <div className="px-6 py-4">
       <div
-        className="relative w-full bg-slate-100 border border-slate-200 rounded-lg flex flex-col items-center justify-center"
+        className="relative w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex flex-col items-center justify-center"
         style={{ aspectRatio: '16/9' }}
       >
-        <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center mb-3">
-          <AlertTriangle className="w-6 h-6 text-slate-400" />
+        <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center mb-3">
+          <AlertTriangle className="w-6 h-6 text-slate-400 dark:text-slate-500" />
         </div>
-        <p className="text-sm text-slate-500 font-medium">Video tidak tersedia</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+          Video tidak tersedia
+        </p>
       </div>
     </div>
   )

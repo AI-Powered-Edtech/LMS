@@ -44,6 +44,8 @@ import {
   LessonViewer,
   // Auth / Public
   Login,
+  // LTI Integration
+  LtiCallback,
   ModerationDashboard,
   NotFound,
   NotificationsPage,
@@ -189,6 +191,14 @@ export function AppRoutes() {
         element={
           <S>
             <NotFound />
+          </S>
+        }
+      />
+      <Route
+        path="/lti/callback"
+        element={
+          <S>
+            <LtiCallback />
           </S>
         }
       />

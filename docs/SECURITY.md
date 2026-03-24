@@ -92,6 +92,47 @@ Before merging any PR:
 - [ ] All new RPCs have `auth.uid()` check and `SET search_path TO 'public'`
 - [ ] `useAuth()` used for identity — never hardcoded
 
+## LTI 1.3 Security Model
+
+EduSync acts as an **LTI Tool Provider** allowing external platforms (Canvas, Moodle) to launch into EduSync content.
+
+### Authentication Flow
+
+1. External platform sends OIDC login initiation → `lti-oidc-login` Edge Function
+2. EduSync validates issuer against `lti_platform_registrations`, generates state + nonce (stored in `lti_nonces`)
+3. Redirects to platform's OIDC authorization endpoint
+4. Platform sends back `id_token` (JWT) via form POST → `lti-launch` Edge Function
+5. EduSync validates: state replay protection, JWT signature (against platform JWKS), issuer, audience, nonce, LTI claims
+6. Provisions or finds Supabase user, assigns tenant from platform registration
+7. Generates magic link session token, redirects to `/#/lti/callback`
+
+### Security Measures
+
+| Measure                | Implementation                                                                                |
+| ---------------------- | --------------------------------------------------------------------------------------------- |
+| Replay protection      | `lti_nonces` table with 10-minute TTL, single-use deletion                                    |
+| JWT verification       | RSA signature verified against platform's published JWKS                                      |
+| Tenant isolation       | LTI guest users inherit `tenant_id` from the pre-registered platform configuration            |
+| Role mapping           | LTI role URIs mapped to EduSync roles (instructor → teacher, learner → student)               |
+| RLS on LTI tables      | `lti_nonces` deny-all for anon/authenticated (service-role only); others use tenant isolation |
+| No secrets in frontend | RSA keys (`LTI_RSA_PRIVATE_KEY`, `LTI_RSA_PUBLIC_KEY`) are Edge Function env vars only        |
+
+### SCORM Sandboxing
+
+SCORM content runs inside an `<iframe>` with restricted sandbox attributes:
+
+```html
+<iframe sandbox="allow-scripts allow-same-origin allow-forms allow-popups" />
+```
+
+- `allow-scripts`: Required for SCORM JavaScript API communication
+- `allow-same-origin`: Required for SCORM API bridge to find `window.API` on parent frame
+- `allow-forms`: Some SCORM content uses form submissions
+- `allow-popups`: Some SCORM content opens help windows
+- **NOT allowed**: `allow-top-navigation`, `allow-modals`, `allow-downloads` (blocked by default)
+
+SCORM runtime data (`scorm_runtime_data`) is protected by own-data-only RLS — students can only read/write their own CMI state.
+
 <!-- Phase 5 Feature Cross-Reference -->
 
 ## Feature Module Cross-Reference

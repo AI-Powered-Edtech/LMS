@@ -83,6 +83,10 @@ export const StudentAttendance = withErrorBoundary(
   lazy(() => import('../pages/StudentAttendance').then((m) => ({ default: m.StudentAttendance }))),
   'Kehadiran Siswa'
 )
+export const LtiCallback = withErrorBoundary(
+  lazy(() => import('../pages/LtiCallback').then((m) => ({ default: m.LtiCallback }))),
+  'LTI Callback'
+)
 
 // ============================================================
 // Teacher pages
