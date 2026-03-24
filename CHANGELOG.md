@@ -1,5 +1,35 @@
 # EduSync LMS — Changelog
 
+## Supabase Free Tier (Nano 0.5GB) Survival Optimizations (2026-03-24)
+
+### Phase 1: Kill Background Load
+
+- Downgraded all pg_cron jobs from every 5-15 min → once daily at 2 AM
+- SQL migration: `20260324120000_optimize_cron_jobs_free_tier.sql`
+
+### Phase 2: Kill Realtime WebSocket Connections (target: 0 per user)
+
+- Removed WebSocket `subscribe()` from `notificationService.ts` — last remaining WebSocket consumer
+- Removed WebSocket subscription from `notificationQueries.ts` → polling (60s)
+- Removed WebSocket from `LiveActivityFeed.tsx` → polling (15s)
+- Removed `subscribeToChanges` from `classroomService.ts` + `useClassroomQueries.ts`
+- Removed `subscribeToLeaderboard` from `leaderboardService.ts` → polling (60s)
+- Removed unused `subscribe` from `discussionService.ts`
+- Removed redundant `useNotifications()` warm-up call from `Header.tsx`
+
+### Phase 3: Reduce Query Payload
+
+- `notificationService.ts`: replaced `SELECT *` with explicit columns
+- `legacyGradebookService.ts`: lowered `.limit(5000)` → `.limit(1000)` on submissions + quiz_attempts
+- `calendarService.ts`: added `.limit(200)` + `.order()` on unbounded quizzes query
+- `templateService.ts`: replaced `select('*')` with explicit columns + `.limit(50)`
+
+### Phase 4: Optimize Frontend Caching
+
+- `useNotifications` hook: changed `staleTime` from `STALE.REALTIME` (0ms) → `STALE.DYNAMIC` (30s)
+- Reduced Playwright workers to 1 + `fullyParallel: false` to prevent server overload during testing
+- Added `useDebounce(search, 500)` to `UserManagement.tsx`
+
 ## Accessibility: aria-labels Batch 4 (Final) (2026-03-24)
 
 - Added `aria-label` attributes to remaining icon-only buttons across the codebase to ensure screen reader accessibility:

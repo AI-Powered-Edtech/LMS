@@ -112,7 +112,7 @@ gantt
 | Supabase Project   | `omfnkoufjqjqilswldtz` — active                                                                                                          |
 | Migrations applied | 157 files (001–825)                                                                                                                      |
 | Edge Functions     | 7 deployed (ai-tutor, ai-grade-essay, grade-quiz-attempt, load-quiz-data, progress-events, process-progress-events, generate-ai-content) |
-| pg_cron jobs       | badge-xp-streak-processor (every 5 min), aggregation jobs                                                                                |
+| pg_cron jobs       | badge-xp-streak-processor (daily 2 AM), aggregation jobs (daily 2 AM) — optimized for Free Tier Nano                                     |
 | Frontend deploy    | Vite + Vercel/Netlify                                                                                                                    |
 
 <!-- Phase 5 Feature Cross-Reference -->
