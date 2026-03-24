@@ -1,5 +1,32 @@
 # EduSync LMS — Changelog
 
+## E2E Test Suite Rewrite (2026-03-24)
+
+- Rewrote all `e2e/flows24/` specs with expanded coverage across auth, student, teacher, admin, and cross-cutting tests
+- Updated `global.setup.ts` with improved auth state handling
+- Updated `docs/TESTING.md` with new test architecture documentation
+
+## Quiz Deep-Link from Lesson Viewer (2026-03-24)
+
+### Feature
+
+- `Quiz.tsx`: Auto-opens quiz confirmation modal when navigated with `?quizId=` search param
+- `LegacyContentFallback.tsx`: Replaced inline `QuizViewer` embed with a navigation CTA button ("Menuju Halaman Kuis") that redirects students to the standalone quiz page
+- Eliminates the old embedded quiz experience in favor of the full-featured Quiz module
+
+## Accessibility: aria-labels Batch 3 (2026-03-24)
+
+- Added `aria-label` attributes to icon-only buttons in:
+  - `DashboardBuilder.tsx` — widget delete
+  - `WidgetPicker.tsx` — close picker
+  - `DocumentViewer.tsx` — pointer, comment, zoom in/out, fit-to-width
+  - `ClassManagement.tsx` — back, close form, rename confirm/cancel, edit, delete
+  - `UserManagement.tsx` — refresh, user actions, copy invite link, revoke invite
+
+## Housekeeping (2026-03-24)
+
+- Simplified `.gitignore` to ignore entire `.claude/` directory instead of individual subdirectories
+
 ## Redesign: Role-Based Onboarding Flow (2026-03-24)
 
 ### New Onboarding UX (Duolingo for Schools style)
