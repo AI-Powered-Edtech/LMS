@@ -6,6 +6,7 @@ import {
   HelpCircle,
   Image,
   Loader2,
+  Package,
   Plus,
   Trash2,
   Type,
@@ -22,6 +23,7 @@ import { cn } from '@/src/utils/cn'
 import { AssignmentBlockEditor } from './blocks/AssignmentBlockEditor'
 import { FileBlockEditor } from './blocks/FileBlockEditor'
 import { ImageBlockEditor } from './blocks/ImageBlockEditor'
+import { ScormBlockEditor } from './blocks/ScormBlockEditor'
 import { TextBlockEditor } from './blocks/TextBlockEditor'
 import { VideoBlockEditor } from './blocks/VideoBlockEditor'
 
@@ -76,6 +78,8 @@ export function LessonBlockEditor() {
         return <HelpCircle className="w-4 h-4 text-rose-500" />
       case 'ASSIGNMENT':
         return <FileText className="w-4 h-4 text-indigo-500" />
+      case 'SCORM':
+        return <Package className="w-4 h-4 text-teal-500" />
       default:
         return <FileText className="w-4 h-4 text-slate-400" />
     }
@@ -130,6 +134,12 @@ export function LessonBlockEditor() {
       label: 'Tugas',
       icon: <FileText className="w-5 h-5" />,
       color: 'text-indigo-600 bg-indigo-50/30 hover:bg-indigo-50 border-indigo-100',
+    },
+    {
+      type: 'scorm',
+      label: 'SCORM',
+      icon: <Package className="w-5 h-5" />,
+      color: 'text-teal-600 bg-teal-50/30 hover:bg-teal-50 border-teal-100',
     },
   ]
 
@@ -209,6 +219,7 @@ export function LessonBlockEditor() {
                                 file: 'FILE',
                                 quiz: 'KUIS',
                                 assignment: 'TUGAS',
+                                scorm: 'SCORM',
                               }[block.type.toLowerCase()] || block.type.toUpperCase()}
                             </span>
                             <button
@@ -305,6 +316,8 @@ function renderBlockContent(block: {
       return <QuizBlockEditor blockId={block.id} />
     case 'ASSIGNMENT':
       return <AssignmentBlockEditor blockId={block.id} />
+    case 'SCORM':
+      return <ScormBlockEditor blockId={block.id} />
     default:
       return <p className="text-xs text-slate-400">Unknown block type: {block.type}</p>
   }
