@@ -158,6 +158,14 @@ The `flows24/` suite uses a separate Playwright config with pre-authenticated st
 | CC-3 | Console Error Sweep                    | 18    | cross-cutting.spec.ts |
 | CC-4 | Loading & Empty States                 | 14    | cross-cutting.spec.ts |
 
+## Gap Analysis (March 2026)
+
+A detailed gap analysis based on test execution results is available in `docs/GAP_ANALYSIS.md`. Key findings include:
+
+- Need for robust `data-testid` usage globally (tests currently rely on Bahasa Indonesia display text matching).
+- Handling Supabase connection delays under concurrent test load.
+- Properly hiding visually hidden navigation elements (`span.text-[10px]`) from broad `text=/Pattern/` queries to prevent false positives before `h1` headings render.
+
 ### Clearing Auth State
 
 If tests fail during setup (e.g., password changed, Supabase down), delete the cached auth state:

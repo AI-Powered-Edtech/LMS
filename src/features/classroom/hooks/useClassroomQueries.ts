@@ -1,9 +1,10 @@
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { create } from 'zustand'
+
 import { useAuth } from '@/src/contexts/AuthContext'
+import { Classroom, classroomService } from '@/src/features/classroom/api/classroomService'
 import { createQueryKeys } from '@/src/lib/queryKeys'
-import { classroomService, Classroom } from '@/src/features/classroom/api/classroomService'
 
 const classroomKeys = createQueryKeys('classrooms')
 
@@ -22,7 +23,6 @@ function useClassroomsQuery() {
   const { user, role, tenantId } = useAuth()
   const setActiveClassroomId = useClassroomStore((s) => s.setActiveClassroomId)
   const activeClassroomId = useClassroomStore((s) => s.activeClassroomId)
-  const queryClient = useQueryClient()
 
   const query = useQuery<Classroom[]>({
     queryKey: [...classroomKeys.all(tenantId!), user?.id, role],
@@ -42,20 +42,11 @@ function useClassroomsQuery() {
     }
   }, [query.data, activeClassroomId, setActiveClassroomId])
 
-  // Realtime subscription — invalidate only this tenant's cache
-  useEffect(() => {
-    if (!user || !tenantId) return
-    return classroomService.subscribeToChanges(() => {
-      queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
-    })
-  }, [user, tenantId, queryClient])
-
   return query
 }
 
 function useAddClassroom() {
   const { user, tenantId } = useAuth()
-  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (name: string) => {
@@ -70,7 +61,6 @@ function useAddClassroom() {
 
 function useUpdateClassroom() {
   const { tenantId } = useAuth()
-  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
@@ -84,7 +74,6 @@ function useUpdateClassroom() {
 
 function useJoinClassroom() {
   const { tenantId } = useAuth()
-  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (joinCode: string) => {

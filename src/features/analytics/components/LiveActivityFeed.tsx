@@ -1,6 +1,6 @@
 import { Activity, Pause, Play, Radio } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { supabase } from '@/src/services/supabase/client'
@@ -48,61 +48,52 @@ export function LiveActivityFeed({
   const [events, setEvents] = useState<LiveEvent[]>([])
   const [isPaused, setIsPaused] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
-  const bufferRef = useRef<LiveEvent[]>([])
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
-
-  const flushBuffer = useCallback(() => {
-    if (bufferRef.current.length === 0) return
-    const toAdd = [...bufferRef.current]
-    bufferRef.current = []
-    if (!isPaused) {
-      setEvents((prev) => {
-        const merged = [...toAdd, ...prev].slice(0, 50)
-        return merged
-      })
-    }
-  }, [isPaused])
 
   useEffect(() => {
     if (!activeTenant) return
 
-    const channel = supabase
-      .channel(`live-activity-${activeTenant}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'learning_events',
-          filter: `tenant_id=eq.${activeTenant}`,
-        },
-        (payload) => {
-          const raw = payload.new as Record<string, unknown>
-          const event: LiveEvent = {
-            id: raw.id as string,
-            user_id: raw.user_id as string,
-            event_type: raw.event_type as string,
-            lesson_id: raw.lesson_id as string | undefined,
-            course_id: raw.course_id as string | undefined,
-            created_at: raw.created_at as string,
-            metadata: raw.metadata as Record<string, unknown> | undefined,
-          }
-          bufferRef.current.push(event)
-        }
-      )
-      .subscribe((status) => {
-        setIsConnected(status === 'SUBSCRIBED')
-      })
+    let isMounted = true
 
-    // Flush buffer every second
-    timerRef.current = setInterval(flushBuffer, 1000)
+    const fetchLatestEvents = async () => {
+      if (isPaused) return
+      try {
+        const { data } = await supabase
+          .from('learning_events')
+          .select('id, user_id, event_type, lesson_id, course_id, created_at, metadata')
+          .eq('tenant_id', activeTenant)
+          .order('created_at', { ascending: false })
+          .limit(10)
+
+        if (isMounted && data) {
+          setEvents((prev) => {
+            const newEvents = data.filter((d) => !prev.some((p) => p.id === d.id))
+            const merged = [...newEvents, ...prev]
+            // sort by created_at desc so latest is first
+            merged.sort(
+              (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            )
+            return merged.slice(0, 50)
+          })
+          setIsConnected(true)
+        }
+      } catch (err) {
+        console.error('Failed to fetch live events', err)
+        if (isMounted) setIsConnected(false)
+      }
+    }
+
+    // Initial fetch
+    fetchLatestEvents()
+
+    // Poll every 15 seconds instead of keeping a WebSocket open
+    const pollInterval = setInterval(fetchLatestEvents, 15000)
 
     return () => {
-      supabase.removeChannel(channel)
-      if (timerRef.current) clearInterval(timerRef.current)
+      isMounted = false
+      clearInterval(pollInterval)
     }
-  }, [activeTenant, flushBuffer])
+  }, [activeTenant, isPaused])
 
   // Update active users/lessons for parent components
   useEffect(() => {

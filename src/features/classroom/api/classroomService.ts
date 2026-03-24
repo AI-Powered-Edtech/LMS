@@ -156,24 +156,6 @@ export const classroomService = {
     if (error) throw error
     return data?.map((item) => item.class_id) || []
   },
-
-  /**
-   * Subscribe to realtime classroom changes.
-   * Returns cleanup function.
-   */
-  subscribeToChanges(onUpdate: () => void): () => void {
-    const channel = supabase
-      .channel('classrooms-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, onUpdate)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'enrollments' }, onUpdate)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'course_classes' }, onUpdate)
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  },
-
   /**
    * Delete a classroom by ID.
    */

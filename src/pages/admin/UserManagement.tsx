@@ -29,6 +29,7 @@ import {
   updateUserRole,
 } from '@/src/features/administration/api/adminUserService'
 import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
+import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
 import { cn } from '@/src/utils/cn'
@@ -78,6 +79,7 @@ export function UserManagement() {
   const [invitations, setInvitations] = useState<TenantInvitation[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 500)
   const [roleFilter, setRoleFilter] = useState('')
   const [totalCount, setTotalCount] = useState(0)
   const [cursor, setCursor] = useState<string | null>(null)
@@ -95,7 +97,7 @@ export function UserManagement() {
       setLoading(true)
       try {
         const data = await getTenantUsers({
-          search: search || undefined,
+          search: debouncedSearch || undefined,
           role: roleFilter || undefined,
           cursor: newCursor || undefined,
           limit: PAGE_SIZE,
@@ -119,7 +121,7 @@ export function UserManagement() {
         setLoading(false)
       }
     },
-    [search, roleFilter]
+    [debouncedSearch, roleFilter]
   )
 
   const fetchInvitations = useCallback(async () => {
@@ -142,7 +144,7 @@ export function UserManagement() {
     } else {
       fetchInvitations()
     }
-  }, [tab, search, roleFilter])
+  }, [tab, debouncedSearch, roleFilter])
   /* eslint-enable react-hooks/exhaustive-deps */
 
   const handleRoleChange = async (newRole: string) => {

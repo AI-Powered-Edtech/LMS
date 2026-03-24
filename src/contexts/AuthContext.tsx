@@ -190,7 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // Fetch roles and tenants
-      const { data: rolesData, error: _rolesErr } = await supabase
+      const { data: rolesData, error: rolesErr } = await supabase
         .from('user_roles')
         .select(
           `
@@ -205,6 +205,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         `
         )
         .eq('user_id', userId)
+
+      if (rolesErr) {
+        console.error('Failed to fetch user roles:', rolesErr)
+      }
 
       if (rolesData) {
         const userRoles = rolesData.map(

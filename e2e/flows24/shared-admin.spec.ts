@@ -13,11 +13,12 @@ test.describe('Flow 16: Forum / Discussions', () => {
     await page.goto('/#/app/forum')
     await page.waitForTimeout(5000)
 
-    await expect(page.locator('text=/Ruang Diskusi|Forum|Belum ada diskusi/i').first()).toBeVisible(
-      {
-        timeout: 30000,
-      }
-    )
+    await expect(
+      page
+        .locator('h1')
+        .filter({ hasText: /Ruang Diskusi|Forum/i })
+        .or(page.locator('text=/Belum ada diskusi/i'))
+    ).toBeVisible({ timeout: 30000 })
   })
 
   test('F16.2 — Forum shows discussion list or empty state', async ({ page }, testInfo) => {
@@ -36,8 +37,8 @@ test.describe('Flow 16: Forum / Discussions', () => {
       .isVisible({ timeout: 5000 })
       .catch(() => false)
     const hasHeading = await page
-      .locator('text=/Ruang Diskusi|Forum/i')
-      .first()
+      .locator('h1')
+      .filter({ hasText: /Ruang Diskusi|Forum/i })
       .isVisible({ timeout: 5000 })
       .catch(() => false)
 
@@ -93,8 +94,9 @@ test.describe('Flow 16: Forum / Discussions', () => {
 
     // Verify the page is functional (either form is shown or empty state)
     const pageLoaded = await page
-      .locator('text=/Ruang Diskusi|Forum|Belum ada diskusi/i')
-      .first()
+      .locator('h1')
+      .filter({ hasText: /Ruang Diskusi|Forum/i })
+      .or(page.locator('text=/Belum ada diskusi/i'))
       .isVisible({ timeout: 5000 })
       .catch(() => false)
     expect(pageLoaded).toBeTruthy()
@@ -138,7 +140,7 @@ test.describe('Flow 17: Announcements', () => {
     await page.goto('/#/app/announcements')
     await page.waitForTimeout(5000)
 
-    await expect(page.locator('text=/Pengumuman|Announcements/i').first()).toBeVisible({
+    await expect(page.locator('h1').filter({ hasText: /Pengumuman/i })).toBeVisible({
       timeout: 30000,
     })
   })
@@ -154,8 +156,8 @@ test.describe('Flow 17: Announcements', () => {
       .isVisible({ timeout: 10000 })
       .catch(() => false)
     const hasPageContent = await page
-      .locator('text=/Pengumuman/i')
-      .first()
+      .locator('h1')
+      .filter({ hasText: /Pengumuman/i })
       .isVisible({ timeout: 5000 })
       .catch(() => false)
 
@@ -209,8 +211,9 @@ test.describe('Flow 17: Announcements', () => {
 
       // Page should update (either show unread items or empty state)
       const hasContent = await page
-        .locator('text=/Pengumuman|Tidak ada pengumuman/i')
-        .first()
+        .locator('h1')
+        .filter({ hasText: /Pengumuman/i })
+        .or(page.locator('text=/Tidak ada pengumuman/i'))
         .isVisible({ timeout: 5000 })
         .catch(() => false)
       expect(hasContent).toBeTruthy()
@@ -243,8 +246,8 @@ test.describe('Flow 17: Announcements', () => {
       .isVisible({ timeout: 5000 })
       .catch(() => false)
     const hasHeading = await page
-      .locator('text=/Pengumuman/i')
-      .first()
+      .locator('h1')
+      .filter({ hasText: /Pengumuman/i })
       .isVisible({ timeout: 5000 })
       .catch(() => false)
 
@@ -275,7 +278,7 @@ test.describe('Flow 18: Notifications', () => {
     await page.goto('/#/app/notifications')
     await page.waitForTimeout(5000)
 
-    await expect(page.locator('text=/Notifikasi|Notifications/i').first()).toBeVisible({
+    await expect(page.locator('h1').filter({ hasText: /Notifikasi/i })).toBeVisible({
       timeout: 30000,
     })
   })
@@ -298,8 +301,8 @@ test.describe('Flow 18: Notifications', () => {
       .isVisible({ timeout: 5000 })
       .catch(() => false)
     const hasNotifPage = await page
-      .locator('text=/Notifikasi/i')
-      .first()
+      .locator('h1')
+      .filter({ hasText: /Notifikasi/i })
       .isVisible({ timeout: 5000 })
       .catch(() => false)
 
@@ -340,8 +343,9 @@ test.describe('Flow 18: Notifications', () => {
 
       // Should filter notifications
       const hasFiltered = await page
-        .locator('text=/Notifikasi|Tidak ada notifikasi/i')
-        .first()
+        .locator('h1')
+        .filter({ hasText: /Notifikasi/i })
+        .or(page.locator('text=/Tidak ada notifikasi/i'))
         .isVisible({ timeout: 5000 })
         .catch(() => false)
       expect(hasFiltered).toBeTruthy()
@@ -388,8 +392,8 @@ test.describe('Flow 18: Notifications', () => {
       .isVisible({ timeout: 5000 })
       .catch(() => false)
     const hasPage = await page
-      .locator('text=/Notifikasi/i')
-      .first()
+      .locator('h1')
+      .filter({ hasText: /Notifikasi/i })
       .isVisible({ timeout: 5000 })
       .catch(() => false)
 
@@ -450,7 +454,7 @@ test.describe('Flow 19: Calendar', () => {
     await page.waitForTimeout(5000)
 
     // Calendar heading is "Jadwal & Kalender"
-    await expect(page.locator('text=/Jadwal|Kalender|Calendar/i').first()).toBeVisible({
+    await expect(page.locator('h1').filter({ hasText: /Jadwal|Kalender/i })).toBeVisible({
       timeout: 30000,
     })
   })
@@ -703,7 +707,10 @@ test.describe('Flow 23: Profile & Settings', () => {
     await page.waitForTimeout(5000)
 
     await expect(
-      page.locator('text=/Profil Pengguna|Profil|Guru|Siswa|Admin/i').first()
+      page
+        .locator('h1')
+        .filter({ hasText: /Profil Pengguna|Profil/i })
+        .or(page.locator('text=/Guru Terverifikasi|Siswa|Admin/i'))
     ).toBeVisible({
       timeout: 30000,
     })

@@ -156,31 +156,6 @@ export const discussionService = {
   },
 
   /**
-   * Real-time subscription for discussions in a specific context
-   */
-  subscribe(
-    contextId: string,
-    contextType: 'announcement' | 'lesson' | 'course',
-    callback: (payload: unknown) => void
-  ) {
-    const filterColumn = `${contextType}_id`
-
-    return supabase
-      .channel(`discussions:${contextId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'discussions',
-          filter: `${filterColumn}=eq.${contextId}`,
-        },
-        callback
-      )
-      .subscribe()
-  },
-
-  /**
    * Vote on a discussion post (fire-and-forget).
    */
   async voteDiscussion(discussionId: string): Promise<void> {

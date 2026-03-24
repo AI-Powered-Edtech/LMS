@@ -166,7 +166,7 @@ test.describe('Flow 8: Quiz Taking', () => {
     await page.goto('/#/app/student/quizzes')
     await page.waitForTimeout(3000)
 
-    await expect(page.locator('text=/Kuis|Evaluasi|Quiz/i').first()).toBeVisible({
+    await expect(page.locator('h1').filter({ hasText: /Kuis|Evaluasi/i })).toBeVisible({
       timeout: 15000,
     })
   })
@@ -256,8 +256,8 @@ test.describe('Flow 8: Quiz Taking', () => {
       .isVisible({ timeout: 3000 })
       .catch(() => false)
     const hasPage = await page
-      .locator('text=/Kuis|Evaluasi/i')
-      .first()
+      .locator('h1')
+      .filter({ hasText: /Kuis|Evaluasi/i })
       .isVisible({ timeout: 3000 })
       .catch(() => false)
 
@@ -271,7 +271,12 @@ test.describe('Flow 11: Assignments', () => {
     await page.goto('/#/app/student/assignments')
     await page.waitForTimeout(3000)
 
-    await expect(page.locator('text=/Tugas Kelas|Tugas|Pilih Tugas/i').first()).toBeVisible({
+    await expect(
+      page
+        .locator('h1')
+        .filter({ hasText: /Tugas Kelas/i })
+        .or(page.locator('text=/Pilih Tugas/i'))
+    ).toBeVisible({
       timeout: 15000,
     })
   })

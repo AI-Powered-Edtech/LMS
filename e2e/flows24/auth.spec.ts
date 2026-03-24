@@ -285,10 +285,11 @@ test.describe('Flow 3: Role Switching & Tenant Guard', () => {
     test.skip(testInfo.project.name === 'setup', 'Skip setup')
     await page.goto('/#/app/forum')
     await page.waitForTimeout(5000)
-    await expect(page.locator('text=/Ruang Diskusi|Forum|Belum ada diskusi/i').first()).toBeVisible(
-      {
-        timeout: 30000,
-      }
-    )
+    await expect(
+      page
+        .locator('h1')
+        .filter({ hasText: /Ruang Diskusi|Forum/i })
+        .or(page.locator('text=/Belum ada diskusi/i'))
+    ).toBeVisible({ timeout: 30000 })
   })
 })

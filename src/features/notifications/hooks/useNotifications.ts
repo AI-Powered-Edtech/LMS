@@ -3,11 +3,8 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { useToast } from '@/src/hooks/useToast'
-import { supabase } from '@/src/services/supabase/client'
 import { STALE } from '@/src/utils/queryConstants'
 
 import * as notificationApi from '../api/notificationApi'
@@ -39,7 +36,6 @@ export interface UseNotificationsReturn {
 export function useNotifications(): UseNotificationsReturn {
   const { user, tenantId } = useAuth()
   const queryClient = useQueryClient()
-  const addToast = useToast((s) => s.addToast)
 
   const queryKey = notificationKeys.list(tenantId!, user!.id)
 
@@ -48,43 +44,8 @@ export function useNotifications(): UseNotificationsReturn {
     queryFn: () => notificationApi.fetchNotifications(user!.id, tenantId!),
     enabled: !!tenantId && !!user,
     staleTime: STALE.REALTIME,
+    refetchInterval: 60000, // Poll every minute instead of WebSocket
   })
-
-  // Realtime subscription — lifecycle tied to this hook instance
-  /* eslint-disable react-hooks/exhaustive-deps */
-  useEffect(() => {
-    if (!user || !tenantId) return
-
-    const channel = supabase
-      .channel(`notifications:${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          // Invalidate list and unread count
-          queryClient.invalidateQueries({ queryKey: notificationKeys.all(tenantId) })
-
-          // Show toast for new notification
-          const incoming = payload.new as Partial<Notification>
-          addToast({
-            type: 'info',
-            message: incoming.title ?? 'Notifikasi baru',
-            description: incoming.message ?? undefined,
-          })
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [user?.id, tenantId, queryClient, addToast])
-  /* eslint-enable react-hooks/exhaustive-deps */
 
   const markReadMutation = useMutation({
     mutationFn: (id: string) => notificationApi.markNotificationRead(id),

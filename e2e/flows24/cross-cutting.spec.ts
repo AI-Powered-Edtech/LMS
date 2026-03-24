@@ -608,8 +608,9 @@ test.describe('CC-4: Loading & Empty States', () => {
 
     // Should not be stuck on loading spinner
     const hasContent = await page
-      .locator('text=/Kuis|Evaluasi|Belum ada kuis|Total Kuis|Uji pemahaman/i')
-      .first()
+      .locator('h1')
+      .filter({ hasText: /Kuis|Evaluasi/i })
+      .or(page.locator('text=/Belum ada kuis|Total Kuis|Uji pemahaman/i'))
       .isVisible({ timeout: 15000 })
       .catch(() => false)
 

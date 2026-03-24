@@ -1,6 +1,6 @@
 import { CheckCircle, HelpCircle, Loader2, Search, Trophy, Zap } from 'lucide-react'
 import { AnimatePresence } from 'motion/react'
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { AttemptDetailModal } from '@/src/components/AttemptDetailModal'
@@ -83,7 +83,6 @@ export function QuizModule() {
   const [attemptQuestions, setAttemptQuestions] = useState<QuizAttemptQuestion[]>([])
   const [initialAnswers, setInitialAnswers] = useState<Record<string, SubmitAnswer>>({})
   const [initialQuestionIndex, setInitialQuestionIndex] = useState<number>(0)
-  const [_showReview, setShowReview] = useState(false)
 
   // Results State
   const [showResults, setShowResults] = useState(false)
@@ -100,7 +99,6 @@ export function QuizModule() {
   // Answer Review State
   const [showAnswerReview, setShowAnswerReview] = useState(false)
   const [gradedQuestions, setGradedQuestions] = useState<QuizAttemptQuestion[]>([])
-  const [_isLoadingGradedQuestions, setIsLoadingGradedQuestions] = useState(false)
 
   const completedAttempts = quizAttempts.filter(
     (attempt) => attempt.status === 'SUBMITTED' || attempt.status === 'GRADED'
@@ -215,7 +213,6 @@ export function QuizModule() {
       }
 
       setInitialAnswers(recoveredAnswers)
-      setShowReview(false)
       setIsQuizActive(true)
       setShowResults(false)
       setPendingQuiz(null)
@@ -349,7 +346,6 @@ export function QuizModule() {
   // Handle viewing answer review
   const handleViewAnswers = async () => {
     if (!currentAttemptId) return
-    setIsLoadingGradedQuestions(true)
     try {
       const questions = await getAttemptQuestions(currentAttemptId)
       setGradedQuestions(questions)
@@ -358,7 +354,6 @@ export function QuizModule() {
       if (import.meta.env.DEV) console.error('Failed to load graded questions:', err)
       addToast({ type: 'error', message: 'Gagal memuat review jawaban. Silakan coba lagi.' })
     } finally {
-      setIsLoadingGradedQuestions(false)
     }
   }
 
