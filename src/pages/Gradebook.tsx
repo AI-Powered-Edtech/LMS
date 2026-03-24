@@ -270,16 +270,25 @@ export function Gradebook() {
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => setIsAddModalOpen(true)}
+            aria-label="Tambah kolom nilai"
             className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 flex items-center gap-2 text-sm sm:text-base shadow-sm shadow-blue-200 transition-all active:scale-95"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Tambah Kolom</span>
           </button>
-          <button className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-sm sm:text-base shadow-sm transition-all">
+          <button
+            type="button"
+            aria-label="Filter"
+            className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-sm sm:text-base shadow-sm transition-all"
+          >
             <Filter className="w-4 h-4" />
             <span className="hidden sm:inline">Filter</span>
           </button>
-          <button className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-sm sm:text-base shadow-sm transition-all">
+          <button
+            type="button"
+            aria-label="Ekspor CSV"
+            className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-sm sm:text-base shadow-sm transition-all"
+          >
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Ekspor CSV</span>
           </button>
@@ -296,6 +305,7 @@ export function Gradebook() {
               </h3>
               <button
                 onClick={() => setIsAddModalOpen(false)}
+                aria-label="Tutup modal"
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 <X className="w-5 h-5" />
