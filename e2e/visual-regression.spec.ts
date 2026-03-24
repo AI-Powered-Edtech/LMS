@@ -1,6 +1,7 @@
 import { test, expect, Page } from '@playwright/test'
 import path from 'path'
 import fs from 'fs'
+import { fileURLToPath } from 'url'
 
 /**
  * EduSync Visual Regression E2E Tests
@@ -13,6 +14,9 @@ import fs from 'fs'
  *   teacher@edusync.dev / password123
  *   admin@edusync.dev   / password123
  */
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const SCREENSHOTS_DIR = path.join(__dirname, 'screenshots')
 

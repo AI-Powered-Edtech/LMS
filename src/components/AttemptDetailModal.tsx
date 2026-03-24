@@ -114,14 +114,7 @@ export function AttemptDetailModal({
       const isCorrect = scoreVal >= answer.max_points * 0.7
       const comment = gradingComments[answer.question_id] || undefined
 
-      await gradeAttemptQuestion(
-        attemptId,
-        answer.question_id,
-        tenantId!,
-        scoreVal,
-        isCorrect,
-        comment
-      )
+      await gradeAttemptQuestion(attemptId, answer.question_id, tenantId!, scoreVal, isCorrect, comment)
 
       // Update local state to reflect the grading
       setAnswers((prev) =>
