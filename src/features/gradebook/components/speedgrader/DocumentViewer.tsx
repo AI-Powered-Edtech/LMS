@@ -92,6 +92,7 @@ function AnnotationPin({
       <div className="relative group">
         <button
           onClick={() => onToggle(annotation.id)}
+          aria-label="Buka komentar anotasi"
           className="absolute -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-yellow-400 text-yellow-900 rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform z-10 border-2 border-white dark:border-slate-800"
         >
           <MessageSquare className="w-4 h-4" />
@@ -105,6 +106,7 @@ function AnnotationPin({
               </span>
               <button
                 onClick={() => onDelete(annotation.id)}
+                aria-label="Hapus anotasi"
                 className="text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
               >
                 <X className="w-4 h-4" />

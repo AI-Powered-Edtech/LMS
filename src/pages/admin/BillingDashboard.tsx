@@ -335,6 +335,7 @@ export function BillingDashboard() {
                       <button
                         className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
                         title="Unduh PDF"
+                        aria-label="Unduh PDF"
                       >
                         <Download className="w-4 h-4" />
                       </button>

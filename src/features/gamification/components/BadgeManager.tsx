@@ -379,6 +379,7 @@ function BadgeRow({
       {!isSystem && onEdit && (
         <button
           onClick={onEdit}
+          aria-label="Edit lencana"
           className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
         >
           <Pencil className="h-3.5 w-3.5 text-slate-400" />

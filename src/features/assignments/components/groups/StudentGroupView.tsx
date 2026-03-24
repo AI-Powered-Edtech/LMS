@@ -204,6 +204,7 @@ export function StudentGroupView() {
                         <div className="flex items-center gap-4">
                           <button
                             onClick={() => toggleTaskStatus(task.id)}
+                            aria-label={`Ubah status: ${task.title}`}
                             className={cn(
                               'w-6 h-6 rounded flex items-center justify-center border transition-colors',
                               task.status === 'completed'
@@ -237,7 +238,11 @@ export function StudentGroupView() {
                             </p>
                           </div>
                         </div>
-                        <button className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                        <button
+                          type="button"
+                          aria-label="Opsi sub-tugas"
+                          className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                        >
                           <MoreVertical className="w-4 h-4" />
                         </button>
                       </div>
@@ -258,6 +263,7 @@ export function StudentGroupView() {
                     <button
                       onClick={handleAddTask}
                       disabled={!newTaskTitle.trim()}
+                      aria-label="Tambah sub-tugas"
                       className="px-4 py-2.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 font-bold rounded-xl transition-colors disabled:opacity-50"
                     >
                       <Plus className="w-5 h-5" />
