@@ -263,6 +263,7 @@ export function BillingDashboard() {
               placeholder="Cari nomor tagihan..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Cari nomor tagihan"
               className="w-full sm:w-64 pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:text-white placeholder-slate-400"
             />
           </div>

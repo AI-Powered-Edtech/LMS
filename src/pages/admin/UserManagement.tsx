@@ -287,6 +287,7 @@ export function UserManagement() {
                   placeholder="Cari nama atau email..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
+                  aria-label="Cari nama atau email"
                   className="w-full pl-10 pr-4 py-2.5 text-sm border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 focus:border-blue-400 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 />
               </div>
