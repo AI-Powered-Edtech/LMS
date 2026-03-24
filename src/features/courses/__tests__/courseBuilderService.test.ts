@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { courseBuilderService } from '../api/courseBuilderService'
+import { builderCourseService } from '../api/builder/courseService'
+import { builderLessonService } from '../api/builder/lessonService'
 
 const mockFrom = vi.fn()
 
@@ -10,7 +11,7 @@ vi.mock('@/src/services/supabase/client', () => ({
   },
 }))
 
-describe('courseBuilderService', () => {
+describe('builderCourseService', () => {
   beforeEach(() => vi.clearAllMocks())
 
   describe('fetchCourseStructure', () => {
@@ -26,7 +27,7 @@ describe('courseBuilderService', () => {
       })
       mockFrom.mockImplementation(fromSpy)
       try {
-        await courseBuilderService.fetchCourseStructure('course-1')
+        await builderCourseService.fetchCourseStructure('course-1', 'tenant-1')
       } catch {
         // function may require different args
       }
@@ -34,6 +35,10 @@ describe('courseBuilderService', () => {
       expect(tables.some((t: unknown) => typeof t === 'string' && t.includes('module'))).toBe(true)
     })
   })
+})
+
+describe('builderLessonService', () => {
+  beforeEach(() => vi.clearAllMocks())
 
   describe('updateLesson', () => {
     it('updates a lesson in the lessons table', async () => {
@@ -47,7 +52,7 @@ describe('courseBuilderService', () => {
       })
       mockFrom.mockImplementation(fromSpy)
       try {
-        await courseBuilderService.updateLesson('lesson-1', { title: 'Test Lesson' })
+        await builderLessonService.updateLesson('lesson-1', 'tenant-1', { title: 'Test Lesson' })
       } catch {
         // ok — just verify the table was accessed
       }
