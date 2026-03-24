@@ -75,4 +75,22 @@ export const builderCourseService = {
       .eq('tenant_id', tenantId)
     if (error) throw new Error(error.message)
   },
+
+  async submitForReview(courseId: string, tenantId: string): Promise<void> {
+    const { error } = await supabase
+      .from('courses')
+      .update({ status: 'in_review' })
+      .eq('id', courseId)
+      .eq('tenant_id', tenantId)
+    if (error) throw new Error(error.message)
+  },
+
+  async approveCourse(courseId: string, tenantId: string): Promise<void> {
+    const { error } = await supabase
+      .from('courses')
+      .update({ status: 'approved' })
+      .eq('id', courseId)
+      .eq('tenant_id', tenantId)
+    if (error) throw new Error(error.message)
+  },
 }

@@ -32,6 +32,8 @@ interface BuilderContextValue {
     loadCourse: (courseId: string) => Promise<void>
     publishCourse: () => Promise<void>
     draftCourse: () => Promise<void>
+    submitForReview: () => Promise<void>
+    approveCourse: () => Promise<void>
     addModule: (title: string) => Promise<void>
     updateModule: (
       moduleId: string,

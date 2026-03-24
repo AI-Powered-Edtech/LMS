@@ -11,7 +11,7 @@ export interface BuilderState {
   courseId: string | null
   courseTitle: string
   courseDescription: string | null
-  courseStatus: 'draft' | 'published' | 'archived'
+  courseStatus: 'draft' | 'in_review' | 'approved' | 'published' | 'archived'
   modules: DomainModule[]
   activeLesson: {
     id: string
@@ -46,7 +46,10 @@ export type BuilderAction =
   | { type: 'LOAD_COURSE_START' }
   | { type: 'LOAD_COURSE_SUCCESS'; course: DomainCourse; modules: DomainModule[] }
   | { type: 'LOAD_COURSE_ERROR'; error: string }
-  | { type: 'SET_COURSE_STATUS'; status: 'draft' | 'published' | 'archived' }
+  | {
+      type: 'SET_COURSE_STATUS'
+      status: 'draft' | 'in_review' | 'approved' | 'published' | 'archived'
+    }
   | { type: 'SET_MODULES'; modules: DomainModule[] }
   | { type: 'ADD_MODULE'; module: DomainModule }
   | { type: 'UPDATE_MODULE'; moduleId: string; data: Partial<DomainModule> }
