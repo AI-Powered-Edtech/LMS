@@ -194,16 +194,17 @@ export function ClassManagement() {
     }
   }
 
-  const handleDeleteClass = async (classId: string) => {
-    if (
-      !confirm(
-        'Hapus kelas ini? Semua data enrollment akan hilang. Aksi ini tidak bisa dibatalkan.'
-      )
-    )
-      return
+  const [classToDelete, setClassToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const confirmDeleteClass = async () => {
+    if (!classToDelete) return
+
+    setIsDeleting(true)
     try {
-      await classroomService.deleteClassroom(classId)
-      if (selectedClassId === classId) setSelectedClassId(null)
+      await classroomService.deleteClassroom(classToDelete)
+      if (selectedClassId === classToDelete) setSelectedClassId(null)
+      setClassToDelete(null)
     } catch (err: unknown) {
       addToast({
         type: 'error',
@@ -211,6 +212,8 @@ export function ClassManagement() {
           'Gagal menghapus kelas: ' +
           (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
       })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -445,7 +448,7 @@ export function ClassManagement() {
                     </p>
                   </div>
                   <button
-                    onClick={() => handleDeleteClass(selectedClass.id)}
+                    onClick={() => setClassToDelete(selectedClass.id)}
                     className="p-2 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors"
                     title="Hapus kelas"
                   >
@@ -644,6 +647,42 @@ export function ClassManagement() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {classToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+              Hapus Kelas
+            </h3>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
+              Apakah Anda yakin ingin menghapus kelas ini? Semua data enrollment akan hilang. Aksi
+              ini tidak bisa dibatalkan.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setClassToDelete(null)}
+                className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
+                disabled={isDeleting}
+              >
+                Batal
+              </button>
+              <button
+                onClick={confirmDeleteClass}
+                disabled={isDeleting}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+                Hapus Kelas
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

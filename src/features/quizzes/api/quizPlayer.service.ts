@@ -99,13 +99,11 @@ export async function batchSaveAnswers(
 
   const { error } = await supabase.rpc('batch_save_answers', {
     p_attempt_id: attemptId,
-    p_answers: JSON.stringify(
-      answers.map((a) => ({
-        question_id: a.question_id,
-        selected_option_ids: a.selected_option_ids || [],
-        text_answer: a.text_answer || null,
-      }))
-    ),
+    p_answers: answers.map((a) => ({
+      question_id: a.question_id,
+      selected_option_ids: a.selected_option_ids || [],
+      text_answer: a.text_answer || null,
+    })),
   })
 
   if (error) throw error
