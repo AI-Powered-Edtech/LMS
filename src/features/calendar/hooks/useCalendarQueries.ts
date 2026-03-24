@@ -53,7 +53,7 @@ export function useCalendarEvents() {
   return useQuery({
     queryKey: calendarKeys.events(tenantId!),
     queryFn: async () => {
-      const data = await calendarService.fetchEvents()
+      const data = await calendarService.fetchEvents(tenantId!)
       setEvents(data)
       return data
     },

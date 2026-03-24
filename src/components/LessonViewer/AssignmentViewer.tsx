@@ -57,7 +57,7 @@ export function AssignmentViewer({
 
     async function loadSubmission() {
       try {
-        const data = await assignmentService.getAssignmentDetails(assignmentId, user!.id)
+        const data = await assignmentService.getAssignmentDetails(assignmentId, user!.id, tenantId!)
         if (data && data.assignment_submissions?.length > 0) {
           const sub = data.assignment_submissions[0]
           setSubmission(sub)

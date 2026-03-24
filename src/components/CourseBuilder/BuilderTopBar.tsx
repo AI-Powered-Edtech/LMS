@@ -150,7 +150,7 @@ export function BuilderTopBar() {
         <button
           onClick={() => setIsSettingsOpen(true)}
           disabled={!state.courseId}
-          className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200/60 hover:text-indigo-600 hover:bg-white hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           title="Pengaturan Kursus"
         >
           <Settings className="w-4 h-4" />
@@ -161,7 +161,7 @@ export function BuilderTopBar() {
         {state.courseStatus === 'draft' && (
           <button
             onClick={() => actions.submitForReview()}
-            className="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-100 hover:shadow-blue-200 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 group"
+            className="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-100 dark:shadow-blue-900/30 hover:shadow-blue-200 dark:hover:shadow-blue-900/50 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 group"
           >
             <Send className="w-4 h-4 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
             Ajukan Review
@@ -171,7 +171,7 @@ export function BuilderTopBar() {
         {state.courseStatus === 'in_review' && (
           <button
             onClick={() => actions.approveCourse()}
-            className="px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-xl shadow-emerald-100 hover:shadow-emerald-200 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 group"
+            className="px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-xl shadow-emerald-100 dark:shadow-emerald-900/30 hover:shadow-emerald-200 dark:hover:shadow-emerald-900/50 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 group"
           >
             <ThumbsUp className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" />
             Setujui
@@ -182,14 +182,14 @@ export function BuilderTopBar() {
         {state.courseStatus === 'published' ? (
           <button
             onClick={() => actions.draftCourse()}
-            className="px-5 py-2.5 text-sm font-bold text-amber-600 bg-white border border-amber-200/60 hover:bg-amber-50 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm"
+            className="px-5 py-2.5 text-sm font-bold text-amber-600 dark:text-amber-400 bg-white dark:bg-slate-800 border border-amber-200/60 dark:border-amber-700/60 hover:bg-amber-50 dark:hover:bg-amber-950/30 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm"
           >
             BATALKAN PUBLIKASI
           </button>
         ) : (
           <button
             onClick={() => actions.publishCourse()}
-            className="px-6 py-2.5 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100 hover:shadow-indigo-200 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 group"
+            className="px-6 py-2.5 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100 dark:shadow-indigo-900/30 hover:shadow-indigo-200 dark:hover:shadow-indigo-900/50 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 group"
           >
             <Save className="w-4 h-4 group-hover:scale-110 transition-transform" />
             Publikasi
@@ -198,7 +198,7 @@ export function BuilderTopBar() {
 
         <button
           onClick={() => setIsAssignModalOpen(true)}
-          className="px-5 py-2.5 text-sm font-black text-white bg-slate-900 hover:bg-black shadow-xl shadow-slate-200 hover:shadow-slate-300 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2"
+          className="px-5 py-2.5 text-sm font-black text-white bg-slate-900 hover:bg-black dark:bg-slate-700 dark:hover:bg-slate-600 shadow-xl shadow-slate-200 dark:shadow-slate-900/30 hover:shadow-slate-300 dark:hover:shadow-slate-900/50 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2"
         >
           <Users className="w-4 h-4" />
           Bagikan

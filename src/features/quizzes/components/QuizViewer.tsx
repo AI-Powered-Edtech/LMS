@@ -472,7 +472,9 @@ export function QuizViewer({
       {instructions && <p className="text-slate-600 text-sm mb-8">{instructions}</p>}
 
       <div className="space-y-6">
-        {questions
+        {/* ⚡ Perf: Copy before sorting — .sort() mutates the original array in-place,
+            which can corrupt React state/props and cause stale UI or infinite loops. */}
+        {[...questions]
           .sort((a, b) => a.order - b.order)
           .map((question, qIdx) => renderQuestion(question, qIdx))}
       </div>

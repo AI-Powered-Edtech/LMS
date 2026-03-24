@@ -38,12 +38,23 @@ export interface AssignmentSubmission {
     | { full_name: string; avatar_url?: string | null }[]
 }
 
+// Explicit columns for assignment queries (no SELECT *)
+const ASSIGNMENT_COLUMNS =
+  'id, tenant_id, course_id, lesson_id, title, instructions, max_points, max_attempts, is_published, due_date, created_by, created_at, updated_at'
+
+const SUBMISSION_COLUMNS =
+  'id, tenant_id, assignment_id, student_id, submission_text, file_url, score, feedback, status, attempt_number, submitted_at, graded_at'
+
 export const assignmentService = {
   /**
    * Creates a new assignment linked to a lesson.
    */
   async createAssignment(assignment: Omit<Assignment, 'id' | 'created_at' | 'updated_at'>) {
-    const { data, error } = await supabase.from('assignments').insert(assignment).select().single()
+    const { data, error } = await supabase
+      .from('assignments')
+      .insert(assignment)
+      .select(ASSIGNMENT_COLUMNS)
+      .single()
 
     if (error) {
       logDevError('assignmentService', 'Error creating assignment:', error)
@@ -70,7 +81,7 @@ export const assignmentService = {
         status: 'submitted',
         submitted_at: new Date().toISOString(),
       })
-      .select()
+      .select(SUBMISSION_COLUMNS)
       .single()
 
     if (error) {
@@ -84,7 +95,7 @@ export const assignmentService = {
   /**
    * Teachers grade a submission.
    */
-  async gradeSubmission(submissionId: string, score: number, feedback: string) {
+  async gradeSubmission(submissionId: string, tenantId: string, score: number, feedback: string) {
     const { data, error } = await supabase
       .from('assignment_submissions')
       .update({
@@ -94,7 +105,8 @@ export const assignmentService = {
         graded_at: new Date().toISOString(),
       })
       .eq('id', submissionId)
-      .select()
+      .eq('tenant_id', tenantId)
+      .select(SUBMISSION_COLUMNS)
       .single()
 
     if (error) {
@@ -108,13 +120,12 @@ export const assignmentService = {
   /**
    * Fetches assignment details by lesson_id.
    */
-  async getAssignmentByLesson(lessonId: string) {
+  async getAssignmentByLesson(lessonId: string, tenantId: string) {
     const { data, error } = await supabase
       .from('assignments')
-      .select(
-        'id, tenant_id, course_id, lesson_id, title, instructions, max_points, max_attempts, is_published, due_date, created_by, created_at, updated_at'
-      )
+      .select(ASSIGNMENT_COLUMNS)
       .eq('lesson_id', lessonId)
+      .eq('tenant_id', tenantId)
       .maybeSingle()
 
     if (error) {
@@ -128,18 +139,19 @@ export const assignmentService = {
   /**
    * Fetches assignment details along with student's current submission if any.
    */
-  async getAssignmentDetails(assignmentId: string, studentId: string) {
+  async getAssignmentDetails(assignmentId: string, studentId: string, tenantId: string) {
     const { data, error } = await supabase
       .from('assignments')
       .select(
         `
-                *,
+                ${ASSIGNMENT_COLUMNS},
                 assignment_submissions!left (
-                    *
+                    ${SUBMISSION_COLUMNS}
                 )
             `
       )
       .eq('id', assignmentId)
+      .eq('tenant_id', tenantId)
       .eq('assignment_submissions.student_id', studentId)
       .single()
 
@@ -154,12 +166,12 @@ export const assignmentService = {
   /**
    * Fetches all submissions for an assignment (for Teacher Gradebook).
    */
-  async getAssignmentSubmissions(assignmentId: string) {
+  async getAssignmentSubmissions(assignmentId: string, tenantId: string) {
     const { data, error } = await supabase
       .from('assignment_submissions')
       .select(
         `
-                *,
+                ${SUBMISSION_COLUMNS},
                 user_profiles:student_id (
                     full_name,
                     avatar_url
@@ -167,6 +179,7 @@ export const assignmentService = {
             `
       )
       .eq('assignment_id', assignmentId)
+      .eq('tenant_id', tenantId)
       .order('submitted_at', { ascending: false })
       .limit(200)
 
@@ -191,7 +204,7 @@ export const assignmentService = {
       .from('assignments')
       .select(
         `
-                *,
+                ${ASSIGNMENT_COLUMNS},
                 assignment_submissions!left (
                     id,
                     status,
@@ -243,7 +256,7 @@ export const assignmentService = {
       .from('assignments')
       .select(
         `
-                *,
+                ${ASSIGNMENT_COLUMNS},
                 assignment_submissions!left (
                     id,
                     status,

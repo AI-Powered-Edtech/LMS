@@ -1,6 +1,9 @@
-import { Settings, Users, X } from 'lucide-react'
+import { CheckCircle, Loader2, Settings, Users, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
+import { useAuth } from '@/src/contexts/AuthContext'
+import { supabase } from '@/src/services/supabase/client'
 
 import { CourseCollaborators } from './CourseCollaborators'
 
@@ -9,6 +12,223 @@ interface CourseSettingsModalProps {
   onClose: () => void
   courseId: string
 }
+
+// ── General Settings Tab ────────────────────────────────────
+
+interface CourseGeneralData {
+  title: string
+  description: string
+  subject: string
+  level: string
+}
+
+function GeneralSettingsTab({ courseId }: { courseId: string }) {
+  const { tenantId } = useAuth()
+  const [data, setData] = useState<CourseGeneralData>({
+    title: '',
+    description: '',
+    subject: '',
+    level: '',
+  })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Fetch course data on mount
+  useEffect(() => {
+    if (!courseId || !tenantId) return
+
+    let cancelled = false
+
+    async function fetchCourse() {
+      setLoading(true)
+      const { data: course, error: fetchErr } = await supabase
+        .from('courses')
+        .select('title, description, subject, level')
+        .eq('id', courseId)
+        .eq('tenant_id', tenantId)
+        .single()
+
+      if (cancelled) return
+
+      if (fetchErr) {
+        setError('Gagal memuat data kursus.')
+        setLoading(false)
+        return
+      }
+
+      setData({
+        title: course.title || '',
+        description: course.description || '',
+        subject: course.subject || '',
+        level: course.level || '',
+      })
+      setLoading(false)
+    }
+
+    fetchCourse()
+
+    return () => {
+      cancelled = true
+    }
+  }, [courseId, tenantId])
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
+    }
+  }, [])
+
+  // Debounced save
+  const debouncedSave = useCallback(
+    (updatedData: CourseGeneralData) => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
+
+      saveTimerRef.current = setTimeout(async () => {
+        if (!courseId || !tenantId) return
+
+        setSaving(true)
+        setSaved(false)
+        setError(null)
+
+        const { error: updateErr } = await supabase
+          .from('courses')
+          .update({
+            title: updatedData.title,
+            description: updatedData.description || null,
+            subject: updatedData.subject || null,
+            level: updatedData.level || null,
+          })
+          .eq('id', courseId)
+          .eq('tenant_id', tenantId)
+
+        setSaving(false)
+
+        if (updateErr) {
+          setError('Gagal menyimpan perubahan.')
+        } else {
+          setSaved(true)
+          savedTimerRef.current = setTimeout(() => setSaved(false), 3000)
+        }
+      }, 800)
+    },
+    [courseId, tenantId]
+  )
+
+  const handleChange = (field: keyof CourseGeneralData, value: string) => {
+    const updated = { ...data, [field]: value }
+    setData(updated)
+    debouncedSave(updated)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
+      </div>
+    )
+  }
+
+  const inputClass =
+    'w-full px-4 py-3 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 dark:focus:border-indigo-500 transition-all'
+
+  return (
+    <div className="space-y-6">
+      {/* Save status */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">
+          Informasi Kursus
+        </h3>
+        <div className="flex items-center gap-2 text-xs font-bold">
+          {saving && (
+            <span className="flex items-center gap-1.5 text-amber-500">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              Menyimpan...
+            </span>
+          )}
+          {saved && (
+            <span className="flex items-center gap-1.5 text-emerald-500">
+              <CheckCircle className="w-3 h-3" />
+              Tersimpan
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Title */}
+      <div>
+        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
+          Judul Kursus
+        </label>
+        <input
+          type="text"
+          value={data.title}
+          onChange={(e) => handleChange('title', e.target.value)}
+          className={inputClass}
+          placeholder="Masukkan judul kursus..."
+        />
+      </div>
+
+      {/* Description */}
+      <div>
+        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
+          Deskripsi
+        </label>
+        <textarea
+          value={data.description}
+          onChange={(e) => handleChange('description', e.target.value)}
+          rows={4}
+          className={`${inputClass} resize-none`}
+          placeholder="Deskripsi singkat tentang kursus ini..."
+        />
+      </div>
+
+      {/* Subject & Level — side by side */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
+            Mata Pelajaran
+          </label>
+          <input
+            type="text"
+            value={data.subject}
+            onChange={(e) => handleChange('subject', e.target.value)}
+            className={inputClass}
+            placeholder="Contoh: Matematika"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
+            Tingkat
+          </label>
+          <select
+            value={data.level}
+            onChange={(e) => handleChange('level', e.target.value)}
+            className={inputClass}
+          >
+            <option value="">Pilih tingkat...</option>
+            <option value="SD">SD</option>
+            <option value="SMP">SMP</option>
+            <option value="SMA">SMA</option>
+            <option value="SMK">SMK</option>
+            <option value="Universitas">Universitas</option>
+            <option value="Umum">Umum</option>
+          </select>
+        </div>
+      </div>
+
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+    </div>
+  )
+}
+
+// ── Modal ────────────────────────────────────────────────────
 
 export function CourseSettingsModal({ isOpen, onClose, courseId }: CourseSettingsModalProps) {
   const [activeTab, setActiveTab] = useState<'general' | 'collaborators'>('general')
@@ -67,9 +287,7 @@ export function CourseSettingsModal({ isOpen, onClose, courseId }: CourseSetting
             {/* Content Area */}
             <div className="flex-1 p-6 overflow-y-auto">
               {activeTab === 'general' ? (
-                <div className="text-center py-12 text-slate-500 text-sm">
-                  Pengaturan umum materi belum tersedia.
-                </div>
+                <GeneralSettingsTab courseId={courseId} />
               ) : (
                 <CourseCollaborators courseId={courseId} />
               )}

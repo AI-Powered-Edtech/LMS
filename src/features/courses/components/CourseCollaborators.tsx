@@ -5,14 +5,8 @@ import { useState } from 'react'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { useToast } from '@/src/hooks/useToast'
-import { supabase } from '@/src/services/supabase/client'
 
-interface Collaborator {
-  id: string
-  user_id: string
-  role: 'author' | 'reviewer' | 'publisher'
-  profile: { full_name: string; email: string }
-}
+import { type Collaborator, collaboratorService } from '../api/builder/collaboratorService'
 
 export function CourseCollaborators({ courseId }: { courseId: string }) {
   const { tenantId } = useAuth()
@@ -20,79 +14,35 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebounce(search, 300)
-  const [selectedRole, setSelectedRole] = useState<'author' | 'reviewer' | 'publisher'>('reviewer')
+  const [selectedRole, setSelectedRole] = useState<Collaborator['role']>('reviewer')
 
   const { data: collaborators, isLoading } = useQuery({
     queryKey: ['course-collaborators', courseId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('course_collaborators')
-        .select(
-          `
-          id, user_id, role,
-          profiles:user_id ( full_name, email )
-        `
-        )
-        .eq('course_id', courseId)
-        .eq('tenant_id', tenantId)
-
-      if (error) throw error
-      return (data || []).map((c: any) => ({
-        id: c.id,
-        user_id: c.user_id,
-        role: c.role,
-        profile: c.profiles,
-      })) as Collaborator[]
-    },
+    queryFn: () => collaboratorService.fetchCollaborators(courseId, tenantId!),
     enabled: !!courseId && !!tenantId,
   })
 
   const { data: searchResults } = useQuery({
     queryKey: ['teachers-search', debouncedSearch],
-    queryFn: async () => {
-      if (!debouncedSearch) return []
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, full_name, email')
-        .eq('tenant_id', tenantId)
-        .ilike('full_name', `%${debouncedSearch}%`)
-        // Ensure we only search teachers or admins, this requires joining user_roles or relying on the fact that only they can be added
-        .limit(5)
-      if (error) throw error
-      return data || []
-    },
+    queryFn: () => collaboratorService.searchUsers(debouncedSearch, tenantId!),
     enabled: !!debouncedSearch && !!tenantId,
   })
 
   const addCollabMut = useMutation({
-    mutationFn: async (userId: string) => {
-      const { error } = await supabase.from('course_collaborators').insert({
-        course_id: courseId,
-        user_id: userId,
-        role: selectedRole,
-        tenant_id: tenantId!,
-      })
-      if (error) throw error
-    },
+    mutationFn: (userId: string) =>
+      collaboratorService.addCollaborator(courseId, userId, selectedRole, tenantId!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course-collaborators', courseId] })
       addToast({ type: 'success', message: 'Kolaborator ditambahkan' })
       setSearch('')
     },
-    onError: (err: any) => {
+    onError: (err: Error) => {
       addToast({ type: 'error', message: err.message || 'Gagal menambahkan kolaborator' })
     },
   })
 
   const removeCollabMut = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('course_collaborators')
-        .delete()
-        .eq('id', id)
-        .eq('tenant_id', tenantId!)
-      if (error) throw error
-    },
+    mutationFn: (id: string) => collaboratorService.removeCollaborator(id, tenantId!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course-collaborators', courseId] })
       addToast({ type: 'success', message: 'Kolaborator dihapus' })
@@ -135,7 +85,7 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
           </div>
           <select
             value={selectedRole}
-            onChange={(e) => setSelectedRole(e.target.value as any)}
+            onChange={(e) => setSelectedRole(e.target.value as Collaborator['role'])}
             className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium"
           >
             <option value="reviewer">Peninjau</option>

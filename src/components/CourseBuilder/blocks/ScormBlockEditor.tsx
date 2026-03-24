@@ -135,7 +135,11 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
     // Remove the scorm_packages record (cascade will clean up runtime data)
     if (scormMeta?.scorm_package_id) {
       try {
-        await supabase.from('scorm_packages').delete().eq('id', scormMeta.scorm_package_id)
+        await supabase
+          .from('scorm_packages')
+          .delete()
+          .eq('id', scormMeta.scorm_package_id)
+          .eq('tenant_id', tenantId!)
       } catch {
         // Non-fatal — metadata will be cleared regardless
       }
