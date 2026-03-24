@@ -1,5 +1,88 @@
 # EduSync LMS — Changelog
 
+## Redesign: Role-Based Onboarding Flow (2026-03-24)
+
+### New Onboarding UX (Duolingo for Schools style)
+
+- **Murid**: Masukkan kode kelas dari guru → langsung terdaftar sebagai siswa di sekolah & kelas tersebut
+- **Guru**: Isi nama + nama sekolah → sekolah baru dibuat, langsung terdaftar sebagai guru
+- **Admin**: Isi nama + nama sekolah → sekolah baru dibuat, langsung terdaftar sebagai admin
+
+### Database Changes (`20260324110000_role_based_onboarding.sql`)
+
+- Updated `create_school_tenant()` to accept `p_role` param (`teacher` or `admin`), generate slug, and update profile name
+- New `onboard_student_join_class()` RPC: looks up class by join_code, adds student to tenant + class + course enrollment in one call
+
+### Frontend Changes
+
+- Complete rewrite of `WorkspaceSelector.tsx`: role-picker → role-specific form, color-coded (emerald/blue/amber)
+
+## Fix: Google OAuth Profile Creation & B2B Onboarding (2026-03-24)
+
+### Bug Fix
+
+- **Root cause**: Google OAuth users got a 406 error because `handle_new_user` trigger failed to create a `profiles` row. The trigger used a hardcoded fallback tenant UUID that didn't exist, causing FK violation. Google also sends `full_name`/`name` metadata, not `first_name`/`last_name`.
+- **Result**: New Google users saw the old "Tidak Ada Akses Ruang Kerja" dead-end because `fetchUserData` silently failed on the 406.
+
+### Database Changes (`20260324100000_fix_handle_new_user_google_oauth.sql`)
+
+- Rewrote `handle_new_user()` trigger: parses Google OAuth metadata (`full_name`, `name`, `avatar_url`, `picture`), allows `NULL` tenant_id for B2B onboarding flow.
+- Created `ensure_profile_exists()` RPC: client-side safety net that auto-creates a profile if the trigger somehow missed it.
+- Backfill query: creates profile rows for any existing `auth.users` missing one.
+
+### Frontend Changes
+
+- `AuthContext.tsx`: `fetchUserData` now detects 406 (missing profile) and calls `ensure_profile_exists()` RPC as fallback, ensuring the onboarding UI always renders correctly.
+
+## Comprehensive E2E Test Suite — 24 Flows + Cross-Cutting (2026-03-24)
+
+Rewrote the entire `e2e/flows24/` Playwright test suite to provide deep, functional E2E coverage for all 24 production features plus 4 cross-cutting quality checks.
+
+### Test Coverage Summary (604 total test cases)
+
+- **Flow 1-3 (Auth & Access):** 18 tests — login form rendering, validation, invalid credentials, auth guard on all role routes, registration tab/form/step-2, role switching (student/teacher/admin cross-access), tenant guard, shared route access.
+- **Flow 4 (Course Browsing):** 3 tests — page load, enrolled courses or empty state, course navigation.
+- **Flow 5 (Course Builder):** 6 tests — teacher courses page, grid/empty state, search, create modal (open/fields/close), course builder page, back navigation.
+- **Flow 6 (Smart Player):** 3 tests — lesson viewer load, idle state, content/discussion/AI tutor tabs.
+- **Flow 7 (Class Management):** 6 tests — page load, class list/empty, create form, search, detail view (join code, students), quick action buttons.
+- **Flow 8 (Quiz Taking):** 5 tests — page load, stat cards, search/filter, tabs (Tersedia/Selesai), quiz cards/empty state.
+- **Flow 9 (Quiz Builder):** 4 tests — quiz manager load, class selector prompt, question bank, quiz gradebook.
+- **Flow 10 (SpeedGrader):** 2 tests — page load, grading interface/empty state.
+- **Flow 11 (Assignments):** 3 tests — page load, list/empty state, detail view interaction.
+- **Flow 12 (Student Dashboard):** 6 tests — dashboard load, XP/achievements, classes section, hub section, grades page, course selector.
+- **Flow 13 (Teacher Analytics):** 9 tests — analytics page, course selector, no-course prompt, overview cards on selection, teacher dashboard overview, class cards, teaching tools, action buttons, course analytics.
+- **Flow 14 (Gamification):** 3 tests — leaderboard, gamification hub, ranking/empty state.
+- **Flow 15 (Gradebook):** 6 tests — page load, course selector, stat cards, toolbar (search/filter/add/export), add column modal, assignment gradebook.
+- **Flow 16 (Forum):** 5 tests — page load, discussion list/empty, search/category filter, create post form, post click interaction.
+- **Flow 17 (Announcements):** 7 tests — page load, subtitle, search, filter buttons, filter interaction, list/empty, teacher create button.
+- **Flow 18 (Notifications):** 8 tests — page load, unread/all-read, filter tabs, tab switching, mark all read, empty state, pagination, settings collapsible.
+- **Flow 19 (Calendar):** 5 tests — page load, heading, view toggle (Bulan/Agenda), add button, month grid/agenda.
+- **Flow 20 (Admin Dashboard):** 11 tests — dashboard load, subtitle, system status, sync button, module config, quick actions, sync history, PDDIKTI integration, user management, admin analytics, moderation.
+- **Flow 21 (Attendance):** 3 tests — page load, summary cards/empty, history section.
+- **Flow 22 (Certificates):** 3 tests — page load, portfolio/empty, search.
+- **Flow 23 (Profile & Settings):** 11 tests — profile load, user info, student stats, teacher welcome, settings load, sidebar tabs, account form, security/password form, appearance themes, language/locale, danger zone logout.
+- **Flow 24 (AI Tutor):** 2 tests — dashboard FAB access, chat interface interaction.
+- **CC-1 (Dark Mode):** 18 tests — full sweep across all student/teacher/admin pages + login.
+- **CC-2 (Mobile 375px):** 20 tests — responsive sweep with overflow detection + bottom nav check.
+- **CC-3 (Console Errors):** 18 tests — error collection with smart ignore list across all pages.
+- **CC-4 (Loading/Empty States):** 14 tests — verifies no stuck spinners, proper empty states render.
+
+### Architecture
+
+- Uses `playwright-24.config.ts` with pre-authenticated storage state per role (student/teacher/admin).
+- `global.setup.ts` authenticates all 3 roles and saves to `e2e/.auth/*.json`.
+- Tests use `test.skip(testInfo.project.name !== 'role')` for role-specific filtering.
+- Resilient selectors: tests use Bahasa Indonesia text patterns with regex fallbacks.
+- Non-destructive: tests observe and verify UI state without mutating production data.
+
+### Files Modified
+
+- `e2e/flows24/auth.spec.ts` — Flows 1-3 (18 tests)
+- `e2e/flows24/student.spec.ts` — Flows 4, 6, 8, 11, 12, 14, 21, 22, 24 (37 tests)
+- `e2e/flows24/teacher.spec.ts` — Flows 5, 7, 9, 10, 13, 15 (37 tests)
+- `e2e/flows24/shared-admin.spec.ts` — Flows 16-20, 23 (65 tests)
+- `e2e/flows24/cross-cutting.spec.ts` — CC-1 to CC-4 (70 tests)
+
 ## Fase F: Production Launch & Puter.com Automation (2026-03-24)
 
 Menyiapkan aplikasi untuk rilis _production_ sesungguhnya dan mengotomatisasikan metode peluncuran ke Puter.com.

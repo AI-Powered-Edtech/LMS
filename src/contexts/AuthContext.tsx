@@ -157,11 +157,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchLock.current = true
     try {
       // Fetch profile
-      const { data: profileData, error: _profileErr } = await supabase
+      let { data: profileData, error: profileErr } = await supabase
         .from('profiles')
         .select('id, email, first_name, last_name, avatar_url, tenant_id')
         .eq('id', userId)
         .single()
+
+      // If profile doesn't exist (406 = no rows from .single()), auto-create via RPC
+      if (!profileData && profileErr) {
+        if (import.meta.env.DEV)
+          console.warn('[Auth] Profile missing for user, calling ensure_profile_exists()...')
+        const { data: rpcResult, error: rpcErr } = await supabase.rpc('ensure_profile_exists')
+        if (rpcResult && !rpcErr) {
+          // RPC returns full profile row as JSON — extract the fields we need
+          const p = rpcResult as Record<string, unknown>
+          profileData = {
+            id: p.id as string,
+            email: p.email as string,
+            first_name: (p.first_name as string) || '',
+            last_name: (p.last_name as string) || '',
+            avatar_url: (p.avatar_url as string) || null,
+            tenant_id: (p.tenant_id as string) || null,
+          }
+        } else if (import.meta.env.DEV) {
+          console.error('[Auth] ensure_profile_exists() failed:', rpcErr)
+        }
+      }
 
       if (profileData) {
         setProfile(profileData)

@@ -135,6 +135,10 @@ All helper functions are `SECURITY DEFINER` with `SET search_path TO 'public'`.
 | `get_student_recommendations(p_user_id, p_limit)`                                         | Next lesson recommendations       | Student             |
 | `start_quiz_attempt(quiz_id)`                                                             | Legacy quiz attempt (v2 API)      | Student             |
 | `submit_quiz_attempt(attempt_id, answers, version)`                                       | Legacy submit (v2 API)            | Student             |
+| `ensure_profile_exists()`                                                                 | Auto-create profile if missing    | Authenticated       |
+| `create_school_tenant(p_school_name, p_full_name, p_role)`                                | B2B onboarding: register school   | Authenticated       |
+| `join_school_via_token(p_token)`                                                          | B2B onboarding: join via invite   | Authenticated       |
+| `onboard_student_join_class(p_join_code, p_full_name)`                                    | Student onboarding via class code | Authenticated       |
 
 ## pg_cron Jobs
 
