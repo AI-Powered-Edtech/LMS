@@ -212,25 +212,34 @@ export function QuizGradebook() {
     quizAnalyticsService.downloadCSV(csv, `gradebook_${assignmentTitle.replace(/\s+/g, '_')}.csv`)
   }
 
-  const filteredAttempts = useMemo(
-    () =>
-      attempts.filter((attempt) =>
-        attempt.student_name.toLowerCase().includes(searchQuery.toLowerCase())
-      ),
-    [attempts, searchQuery]
-  )
+  const filteredAttempts = useMemo(() => {
+    if (!searchQuery) return attempts
+    const lowerQuery = searchQuery.toLowerCase()
+    return attempts.filter((attempt) => attempt.student_name.toLowerCase().includes(lowerQuery))
+  }, [attempts, searchQuery])
 
   const { avgScore, passCount, failCount } = useMemo(() => {
-    const scoredAttempts = filteredAttempts.filter((attempt) => attempt.score !== null)
+    let scoreSum = 0
+    let scoredCount = 0
+    let passCount = 0
+    let failCount = 0
+
+    for (const attempt of filteredAttempts) {
+      if (attempt.score !== null) {
+        scoreSum += attempt.score
+        scoredCount++
+      }
+      if (attempt.passed === true) {
+        passCount++
+      } else if (attempt.passed === false) {
+        failCount++
+      }
+    }
+
     return {
-      avgScore: scoredAttempts.length
-        ? Math.round(
-            scoredAttempts.reduce((sum, attempt) => sum + (attempt.score ?? 0), 0) /
-              scoredAttempts.length
-          )
-        : 0,
-      passCount: filteredAttempts.filter((attempt) => attempt.passed).length,
-      failCount: filteredAttempts.filter((attempt) => attempt.passed === false).length,
+      avgScore: scoredCount > 0 ? Math.round(scoreSum / scoredCount) : 0,
+      passCount,
+      failCount,
     }
   }, [filteredAttempts])
 
