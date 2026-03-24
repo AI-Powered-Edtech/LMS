@@ -1,5 +1,71 @@
 # EduSync LMS — Changelog
 
+## External Integration: LTI 1.3 & SCORM Player (2026-03-24)
+
+### LTI 1.3 Tool Provider
+
+- EduSync can now be launched from external LMS platforms (Canvas, Moodle) via LTI 1.3
+- New Edge Functions:
+  - `lti-oidc-login` — OIDC third-party login initiation (validates issuer, generates state/nonce, redirects to platform auth endpoint)
+  - `lti-launch` — Receives and validates platform `id_token` (JWT signature verification against platform JWKS), provisions Supabase user with `lti-guest` role, generates magic link session
+  - `lti-jwks` — Public JWKS endpoint serving EduSync's RSA public key for platform verification
+- New tables: `lti_platform_registrations`, `lti_nonces` (replay protection, 10-min TTL), `lti_sessions`
+- LTI role mapping: platform instructor/teacher → EduSync teacher, learner → student
+- New frontend route `/#/lti/callback` with `LtiCallback.tsx` — verifies OTP token and redirects to target content
+
+### SCORM 1.2 & 2004 Player
+
+- New `ScormPlayer.tsx` component renders SCORM content in a sandboxed iframe
+- Full SCORM API Bridge (`scormApiBridge.ts`) implementing both SCORM 1.2 (`window.API`) and SCORM 2004 (`window.API_1484_11`)
+  - Supports: `Initialize`, `GetValue`, `SetValue`, `Commit`, `Terminate` (and SCORM 1.2 `LMS*` equivalents)
+  - Captures: `cmi.core.score.raw`, `cmi.core.lesson_status`, `cmi.suspend_data`, `cmi.core.total_time`
+  - Error code handling for both SCORM versions
+- New `scorm-extract` Edge Function — receives SCORM ZIP upload, validates `imsmanifest.xml`, extracts files to `scorm-packages` Storage bucket, creates DB records
+- New tables: `scorm_packages` (linked to lessons), `scorm_runtime_data` (per-user CMI state with own-data-only RLS)
+- New RPC `upsert_scorm_runtime` — atomic SCORM state save + `lesson_progress` sync via existing `update_lesson_progress_monotonic`
+- SCORM status mapping: completed/passed → lesson completed (100%), failed → in_progress, incomplete → in_progress (50%)
+- `lesson_resources.type` CHECK constraint extended with `'scorm'`
+- New `scorm` block type in `blockRegistry.ts` + `BlockRenderer.tsx` dispatch
+- Progress persistence: 2s debounced commits, immediate persist on Terminate, `beforeunload` flush via `sendBeacon`
+
+### Database
+
+- Migration: `20260324200000_lti_scorm_integration.sql`
+- 5 new tables with RLS, tenant isolation, and auto-set triggers
+- 2 new RPCs: `upsert_scorm_runtime`, `cleanup_expired_lti_nonces`
+- New Storage bucket: `scorm-packages`
+
+### Environment Variables Required
+
+- `LTI_RSA_PRIVATE_KEY` / `LTI_RSA_PUBLIC_KEY` — RSA keypair for LTI JWT signing/verification
+- `LTI_LAUNCH_URL` — Callback URL for LTI launch
+- `APP_URL` — Frontend URL for redirect after LTI session creation
+
+## Course Builder Phase 1: Content Versioning & Template Library (2026-03-24)
+
+### Content Versioning
+
+- New `course_versions` table with JSONB snapshot of full course tree (modules → lessons → resources)
+- `save_course_version(p_course_id, p_message)` RPC — creates numbered checkpoint with optional commit message
+- `restore_course_version(p_version_id)` RPC — UPSERT-based rollback preserving original UUIDs (keeps student progress data intact), with orphan cleanup
+- Version History Drawer UI in Course Builder top bar with timeline, checkpoint creation form, and restore confirmation
+
+### Template Library
+
+- New `content_templates` table supporting three levels: course, module, and lesson
+- `save_content_template(p_type, p_title, p_description, p_source_id)` RPC — saves entity as reusable blueprint (no IDs stored)
+- `import_content_template(p_template_id, p_target_id, p_order)` RPC — imports template with new UUIDs
+- Save-as-template buttons on course (top bar), module headers, and lesson items in Builder sidebar
+- Template browser modal with search and grid layout for importing modules/lessons from templates
+- Split buttons on "+ Modul" and "+ Tambah Materi" with "Dari Template" option
+
+### Infrastructure
+
+- RLS policies on both tables using `tenant_id = (SELECT get_my_tenant_id())` pattern
+- Tenant ID auto-fill triggers via `auto_set_tenant_id()`
+- Performance indexes: `course_versions(course_id, version_number)`, `course_versions(tenant_id)`, `content_templates(tenant_id, type)`
+- Migration: `20260324150000_course_builder_phase1.sql`
+
 ## Supabase Free Tier (Nano 0.5GB) Survival Optimizations (2026-03-24)
 
 ### Phase 1: Kill Background Load
