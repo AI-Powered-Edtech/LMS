@@ -97,19 +97,21 @@ export function BuilderSidebar() {
   }
 
   return (
-    <div className="w-[340px] bg-slate-50/30 border-r border-slate-200/60 flex flex-col h-full shrink-0 relative z-10 backdrop-blur-xl">
+    <div className="w-[340px] bg-slate-50/30 dark:bg-slate-900/30 border-r border-slate-200/60 dark:border-slate-700/60 flex flex-col h-full shrink-0 relative z-10 backdrop-blur-xl">
       {/* Header */}
-      <div className="px-6 py-5 border-b border-slate-200/50 flex items-center justify-between bg-white/50">
+      <div className="px-6 py-5 border-b border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between bg-white/50 dark:bg-slate-800/50">
         <div>
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-0.5">
+          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] block mb-0.5">
             Struktur Kursus
           </span>
-          <span className="text-sm font-bold text-slate-800">Kurikulum Materi</span>
+          <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+            Kurikulum Materi
+          </span>
         </div>
         <div className="flex items-center">
           <button
             onClick={handleAddModule}
-            className="flex items-center gap-1 p-2 pr-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-xl transition-all shadow-md shadow-indigo-100 active:scale-95"
+            className="flex items-center gap-1 p-2 pr-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95"
             title="Buat Modul Baru"
           >
             <Plus className="w-4 h-4" />
@@ -122,7 +124,7 @@ export function BuilderSidebar() {
               }
             }}
             disabled={!state.courseId}
-            className="flex items-center p-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-r-xl transition-all shadow-md shadow-indigo-100 active:scale-95 border-l border-indigo-700/30 disabled:opacity-50"
+            className="flex items-center p-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-r-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95 border-l border-indigo-700/30 disabled:opacity-50"
             title="Import dari Template"
           >
             <Import className="w-3.5 h-3.5" />
@@ -138,11 +140,13 @@ export function BuilderSidebar() {
           </div>
         ) : state.modules.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-            <div className="w-16 h-16 bg-slate-50/80 rounded-2xl flex items-center justify-center mb-4 border border-slate-100/50">
-              <FolderOpen className="w-8 h-8 text-slate-300" />
+            <div className="w-16 h-16 bg-slate-50/80 dark:bg-slate-800/80 rounded-2xl flex items-center justify-center mb-4 border border-slate-100/50 dark:border-slate-700/50">
+              <FolderOpen className="w-8 h-8 text-slate-300 dark:text-slate-600" />
             </div>
-            <p className="text-sm font-bold text-slate-600 mb-2">Belum ada modul</p>
-            <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+            <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">
+              Belum ada modul
+            </p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mb-6 leading-relaxed">
               Mulai bangun kursus Anda dengan menambahkan modul pertama sebagai kerangka.
             </p>
             <button
@@ -166,16 +170,17 @@ export function BuilderSidebar() {
                           {...dragProvided.draggableProps}
                           className={cn(
                             'rounded-lg transition-colors',
-                            snapshot.isDragging && 'shadow-lg ring-2 ring-blue-200 bg-blue-50'
+                            snapshot.isDragging &&
+                              'shadow-lg ring-2 ring-blue-200 dark:ring-blue-800 bg-blue-50 dark:bg-blue-950'
                           )}
                         >
                           {/* Module Header */}
                           <div
                             className={cn(
                               'flex items-center gap-2 px-3 py-3 rounded-xl cursor-pointer group',
-                              'hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-slate-200/50',
+                              'hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm transition-all border border-transparent hover:border-slate-200/50 dark:hover:border-slate-700/50',
                               expandedModules.has(mod.id) &&
-                                'bg-white shadow-sm border-slate-200/50 mb-1'
+                                'bg-white dark:bg-slate-800 shadow-sm border-slate-200/50 dark:border-slate-700/50 mb-1'
                             )}
                             onClick={() => toggleModule(mod.id)}
                           >
@@ -190,7 +195,7 @@ export function BuilderSidebar() {
                             ) : (
                               <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                             )}
-                            <span className="text-xs font-bold text-slate-700 truncate flex-1">
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate flex-1">
                               {mod.title}
                             </span>
                             <span className="text-[10px] text-slate-400 font-medium">
@@ -261,10 +266,10 @@ export function BuilderSidebar() {
                                               className={cn(
                                                 'flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer group/lesson transition-all text-xs border border-transparent mb-1',
                                                 state.activeLesson?.id === lesson.id
-                                                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100 font-bold'
-                                                  : 'text-slate-600 hover:bg-white hover:border-slate-100',
+                                                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 font-bold'
+                                                  : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:border-slate-100 dark:hover:border-slate-700',
                                                 lesSnapshot.isDragging &&
-                                                  'shadow-xl ring-2 ring-indigo-500 bg-white scale-105 z-50'
+                                                  'shadow-xl ring-2 ring-indigo-500 bg-white dark:bg-slate-800 scale-105 z-50'
                                               )}
                                             >
                                               <div
@@ -272,7 +277,7 @@ export function BuilderSidebar() {
                                                   'p-1.5 rounded-lg transition-colors',
                                                   state.activeLesson?.id === lesson.id
                                                     ? 'bg-white/20'
-                                                    : 'bg-slate-100 group-hover/lesson:bg-white'
+                                                    : 'bg-slate-100 dark:bg-slate-700 group-hover/lesson:bg-white dark:group-hover/lesson:bg-slate-600'
                                                 )}
                                               >
                                                 {getLessonIcon(lesson.type)}
@@ -283,7 +288,7 @@ export function BuilderSidebar() {
                                                     'text-sm font-bold truncate',
                                                     state.activeLesson?.id === lesson.id
                                                       ? 'text-white'
-                                                      : 'text-slate-700'
+                                                      : 'text-slate-700 dark:text-slate-300'
                                                   )}
                                                 >
                                                   {lesson.title}

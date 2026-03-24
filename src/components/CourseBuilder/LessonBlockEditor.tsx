@@ -33,13 +33,15 @@ export function LessonBlockEditor() {
 
   if (!state.activeLesson) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-slate-50/50 p-6">
-        <div className="text-center max-w-sm p-12 bg-white rounded-[32px] shadow-xl shadow-slate-200/50 border border-slate-100/80">
-          <div className="w-24 h-24 bg-indigo-50 text-indigo-600 rounded-[32px] flex items-center justify-center mx-auto mb-8 shadow-inner">
+      <div className="flex-1 flex items-center justify-center bg-slate-50/50 dark:bg-slate-900/50 p-6">
+        <div className="text-center max-w-sm p-12 bg-white dark:bg-slate-800 rounded-[32px] shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 border border-slate-100/80 dark:border-slate-700/80">
+          <div className="w-24 h-24 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 rounded-[32px] flex items-center justify-center mx-auto mb-8 shadow-inner">
             <FileText className="w-12 h-12" />
           </div>
-          <h3 className="text-2xl font-black text-slate-800 mb-4 tracking-tight">Mulai Menyusun</h3>
-          <p className="text-sm font-medium text-slate-500 leading-relaxed max-w-[280px] mx-auto">
+          <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-4 tracking-tight">
+            Mulai Menyusun
+          </h3>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-[280px] mx-auto">
             Pilih satu materi dari daftar kurikulum untuk mulai mengisi konten pembelajaran.
           </p>
         </div>
@@ -52,7 +54,7 @@ export function LessonBlockEditor() {
       <div className="flex-1 flex items-center justify-center bg-transparent">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-          <p className="text-sm font-medium text-slate-500 animate-pulse">
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 animate-pulse">
             Memuat data pelajaran...
           </p>
         </div>
@@ -144,10 +146,10 @@ export function LessonBlockEditor() {
   ]
 
   return (
-    <div className="flex-1 overflow-y-auto bg-slate-50">
+    <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900">
       <div className="max-w-3xl mx-auto py-8 px-6">
         {/* Lesson Header */}
-        <div className="mb-10 p-8 bg-white rounded-[32px] border border-slate-200/60 shadow-sm">
+        <div className="mb-10 p-8 bg-white dark:bg-slate-800 rounded-[32px] border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
           <input
             type="text"
             value={activeLesson?.title || ''}
@@ -156,7 +158,7 @@ export function LessonBlockEditor() {
                 actions.updateLesson(activeLesson.id, { title: e.target.value })
               }
             }}
-            className="w-full text-3xl font-black text-slate-800 bg-transparent border-none outline-none placeholder:text-slate-200 focus:ring-0 tracking-tight"
+            className="w-full text-3xl font-black text-slate-800 dark:text-slate-100 bg-transparent border-none outline-none placeholder:text-slate-200 dark:placeholder:text-slate-700 focus:ring-0 tracking-tight"
             placeholder="Judul Materi..."
           />
           <div className="flex items-center gap-3 mt-4">
@@ -194,21 +196,21 @@ export function LessonBlockEditor() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.95 }}
                           className={cn(
-                            'bg-white rounded-[24px] border shadow-sm group transition-all',
+                            'bg-white dark:bg-slate-800 rounded-[24px] border shadow-sm group transition-all',
                             snapshot.isDragging
                               ? 'shadow-2xl ring-2 ring-indigo-500/20 border-indigo-400 z-50 scale-[1.02]'
-                              : 'border-slate-200/70 hover:shadow-md hover:border-slate-300'
+                              : 'border-slate-200/70 dark:border-slate-700/70 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600'
                           )}
                         >
                           {/* Block Header */}
-                          <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-50">
+                          <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-50 dark:border-slate-700/50">
                             <div
                               {...dragProvided.dragHandleProps}
-                              className="p-1 text-slate-300 hover:text-slate-500 cursor-grab hover:bg-slate-50 rounded-lg transition-colors"
+                              className="p-1 text-slate-300 dark:text-slate-600 hover:text-slate-500 dark:hover:text-slate-400 cursor-grab hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors"
                             >
                               <GripVertical className="w-4 h-4" />
                             </div>
-                            <div className="p-1.5 bg-slate-50 rounded-lg">
+                            <div className="p-1.5 bg-slate-50 dark:bg-slate-700 rounded-lg">
                               {getBlockIcon(block.type)}
                             </div>
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex-1">
@@ -258,8 +260,8 @@ export function LessonBlockEditor() {
               'w-full py-5 rounded-[24px] font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all',
               'border-2 border-dashed',
               showAddMenu
-                ? 'border-indigo-300 bg-indigo-50 text-indigo-600 shadow-inner'
-                : 'border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-300 hover:bg-white hover:shadow-md'
+                ? 'border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 shadow-inner'
+                : 'border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 dark:hover:border-indigo-700 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md'
             )}
           >
             {showAddMenu ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
