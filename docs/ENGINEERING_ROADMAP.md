@@ -44,6 +44,9 @@ From prototype to production. Built on a Supabase-centric serverless architectur
 ✅ Phase 14 — E2E Test Coverage (shared helpers, quiz autosave+resume, class join code, CI workflow)
 ✅ Phase 15 — Production Readiness Audit (security fixes, dead code removal, performance, DX)
 ✅ Phase 16 — QA Browser Testing Gaps (22/22 gaps fixed: auth, routing, navigation, a11y, i18n, UX)
+✅ Phase 17 — Free Tier Survival (remove all WebSockets, downgrade pg_cron to daily, debounce searches, cap query limits)
+✅ Phase 18 — LTI 1.3 + SCORM Integration (external LMS launch, SCORM 1.2/2004 player, Interactive Video pop-up quizzes)
+✅ Phase 19 — Course Builder Enhancement (content versioning, template library, collaborators, review workflow)
 ```
 
 ---
@@ -107,13 +110,13 @@ gantt
 
 ## Infrastructure
 
-| Item               | Status                                                                                                                                   |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Supabase Project   | `omfnkoufjqjqilswldtz` — active                                                                                                          |
-| Migrations applied | 157 files (001–825)                                                                                                                      |
-| Edge Functions     | 7 deployed (ai-tutor, ai-grade-essay, grade-quiz-attempt, load-quiz-data, progress-events, process-progress-events, generate-ai-content) |
-| pg_cron jobs       | badge-xp-streak-processor (daily 2 AM), aggregation jobs (daily 2 AM) — optimized for Free Tier Nano                                     |
-| Frontend deploy    | Vite + Vercel/Netlify                                                                                                                    |
+| Item               | Status                                                                                                                                                                                         |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Supabase Project   | `omfnkoufjqjqilswldtz` — active                                                                                                                                                                |
+| Migrations applied | 161 files (001–825, 20260324100000–20260324200000)                                                                                                                                             |
+| Edge Functions     | 11 deployed (ai-tutor, ai-grade-essay, grade-quiz-attempt, load-quiz-data, progress-events, process-progress-events, generate-ai-content, lti-jwks, lti-oidc-login, lti-launch, scorm-extract) |
+| pg_cron jobs       | badge-xp-streak-processor (daily 2 AM), aggregation jobs (daily 2 AM) — optimized for Free Tier Nano                                                                                           |
+| Frontend deploy    | Vite + Vercel/Netlify                                                                                                                                                                          |
 
 <!-- Phase 5 Feature Cross-Reference -->
 

@@ -14,16 +14,17 @@ PostgreSQL on Supabase. 157 migration files (001–836).
 
 ### Learning
 
-| Table               | Purpose                                                             |
-| ------------------- | ------------------------------------------------------------------- |
-| `courses`           | Course catalog. Has `tenant_id`, `created_by`, `status`             |
-| `course_modules`    | Modules within a course. Has `"order"` (quoted, reserved word)      |
-| `lessons`           | Lessons within a module. Has `type` (article/video/quiz), `"order"` |
-| `lesson_resources`  | Rich content for lessons (blocks, video URLs, etc.)                 |
-| `lesson_progress`   | Per-student lesson completion records                               |
-| `course_progress`   | Per-student, per-course progress percentage                         |
-| `course_versions`   | JSONB snapshots of course tree for versioning/rollback              |
-| `content_templates` | Reusable course/module/lesson blueprints (per-tenant)               |
+| Table                  | Purpose                                                             |
+| ---------------------- | ------------------------------------------------------------------- |
+| `courses`              | Course catalog. Has `tenant_id`, `created_by`, `status`             |
+| `course_modules`       | Modules within a course. Has `"order"` (quoted, reserved word)      |
+| `lessons`              | Lessons within a module. Has `type` (article/video/quiz), `"order"` |
+| `lesson_resources`     | Rich content for lessons (blocks, video URLs, etc.)                 |
+| `lesson_progress`      | Per-student lesson completion records                               |
+| `course_progress`      | Per-student, per-course progress percentage                         |
+| `course_versions`      | JSONB snapshots of course tree for versioning/rollback              |
+| `content_templates`    | Reusable course/module/lesson blueprints (per-tenant)               |
+| `course_collaborators` | Multi-author collaboration: author/reviewer/publisher roles         |
 
 ### Classroom
 
@@ -169,20 +170,21 @@ The `pg_cron` extension is required. Scheduled jobs:
 
 ## Database Triggers
 
-| Trigger                               | Table                | Purpose                                |
-| ------------------------------------- | -------------------- | -------------------------------------- |
-| `handle_new_user`                     | `auth.users`         | Creates profile + user_roles on signup |
-| `auto_set_tenant_id`                  | All 26 tenant tables | Auto-fills tenant_id on INSERT         |
-| `custom_access_token_hook`            | Auth hook            | Injects tenant_id + role into JWT      |
-| `handle_lesson_progress_change`       | `lesson_progress`    | Triggers course progress recompute     |
-| `handle_quiz_attempt_status_change`   | `quiz_attempts`      | Triggers XP award, badge check         |
-| `handle_streak_on_activity`           | Various              | Updates streak on activity             |
-| `handle_quiz_badges`                  | `quiz_attempts`      | Awards quiz-related badges             |
-| `handle_streak_badges`                | `xp_profiles`        | Awards streak-related badges           |
-| `on_badge_earned`                     | `student_badges`     | Emits realtime event for UI            |
-| `recompute_course_progress`           | `lesson_progress`    | Rolls up to course_progress            |
-| `course_versions_tenant_id_trigger`   | `course_versions`    | Auto-fills tenant_id on INSERT         |
-| `content_templates_tenant_id_trigger` | `content_templates`  | Auto-fills tenant_id on INSERT         |
+| Trigger                               | Table                  | Purpose                                |
+| ------------------------------------- | ---------------------- | -------------------------------------- |
+| `handle_new_user`                     | `auth.users`           | Creates profile + user_roles on signup |
+| `auto_set_tenant_id`                  | All 26 tenant tables   | Auto-fills tenant_id on INSERT         |
+| `custom_access_token_hook`            | Auth hook              | Injects tenant_id + role into JWT      |
+| `handle_lesson_progress_change`       | `lesson_progress`      | Triggers course progress recompute     |
+| `handle_quiz_attempt_status_change`   | `quiz_attempts`        | Triggers XP award, badge check         |
+| `handle_streak_on_activity`           | Various                | Updates streak on activity             |
+| `handle_quiz_badges`                  | `quiz_attempts`        | Awards quiz-related badges             |
+| `handle_streak_badges`                | `xp_profiles`          | Awards streak-related badges           |
+| `on_badge_earned`                     | `student_badges`       | Emits realtime event for UI            |
+| `recompute_course_progress`           | `lesson_progress`      | Rolls up to course_progress            |
+| `course_versions_tenant_id_trigger`   | `course_versions`      | Auto-fills tenant_id on INSERT         |
+| `content_templates_tenant_id_trigger` | `content_templates`    | Auto-fills tenant_id on INSERT         |
+| `set_tenant_id_course_collaborators`  | `course_collaborators` | Auto-fills tenant_id on INSERT         |
 
 ## Migration Reference
 
@@ -200,6 +202,7 @@ Migrations are in `supabase/migrations/` numbered `001` through `836`. Apply in 
 | 823–825        | Registration helpers, attendance, seed data                                                   |
 | 836            | Security fixes (5 HIGH vulnerabilities)                                                       |
 | 20260324150000 | Course Builder Phase 1: versioning + template library                                         |
+| 20260324160000 | Course Collaborators: multi-author roles, review workflow, updated RLS policies               |
 | 20260324200000 | LTI 1.3 + SCORM integration: platform registrations, nonces, sessions, packages, runtime data |
 
 <!-- Phase 5 Feature Cross-Reference -->
