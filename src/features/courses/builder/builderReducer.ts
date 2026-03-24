@@ -22,7 +22,22 @@ export interface BuilderState {
   loadingCourse: boolean
   loadingBlocks: boolean
   error: string | null
+  // Undo/Redo history
+  _history: UndoSnapshot[]
+  _future: UndoSnapshot[]
 }
+
+/**
+ * Snapshot of the undoable portion of state.
+ * We only track structural changes (modules, lessons, blocks) —
+ * NOT transient UI state (loading, saving, activeBlockId, etc.).
+ */
+interface UndoSnapshot {
+  modules: DomainModule[]
+  activeLesson: BuilderState['activeLesson']
+}
+
+const MAX_HISTORY = 50
 
 export const initialBuilderState: BuilderState = {
   courseId: null,
@@ -36,6 +51,8 @@ export const initialBuilderState: BuilderState = {
   loadingCourse: false,
   loadingBlocks: false,
   error: null,
+  _history: [],
+  _future: [],
 }
 
 // ============================================================
@@ -66,12 +83,43 @@ export type BuilderAction =
   | { type: 'SET_BLOCKS'; blocks: DomainBlock[] }
   | { type: 'SET_SAVING'; status: BuilderState['savingStatus'] }
   | { type: 'CLOSE_LESSON' }
+  | { type: 'UNDO' }
+  | { type: 'REDO' }
 
 // ============================================================
-// Reducer
+// Helpers
 // ============================================================
 
-export function builderReducer(state: BuilderState, action: BuilderAction): BuilderState {
+function takeSnapshot(state: BuilderState): UndoSnapshot {
+  return {
+    modules: state.modules,
+    activeLesson: state.activeLesson,
+  }
+}
+
+/**
+ * Actions that produce undoable structural changes.
+ * UI-only actions (loading, saving, active selection) are excluded.
+ */
+const UNDOABLE_ACTIONS = new Set([
+  'ADD_MODULE',
+  'UPDATE_MODULE',
+  'DELETE_MODULE',
+  'SET_MODULES',
+  'ADD_LESSON',
+  'UPDATE_LESSON',
+  'DELETE_LESSON',
+  'ADD_BLOCK',
+  'UPDATE_BLOCK',
+  'DELETE_BLOCK',
+  'SET_BLOCKS',
+])
+
+// ============================================================
+// Core Reducer (no history logic)
+// ============================================================
+
+function coreReducer(state: BuilderState, action: BuilderAction): BuilderState {
   switch (action.type) {
     case 'LOAD_COURSE_START':
       return { ...state, loadingCourse: true, error: null }
@@ -190,4 +238,52 @@ export function builderReducer(state: BuilderState, action: BuilderAction): Buil
     default:
       return state
   }
+}
+
+// ============================================================
+// Public Reducer (with undo/redo wrapper)
+// ============================================================
+
+export function builderReducer(state: BuilderState, action: BuilderAction): BuilderState {
+  // Handle UNDO
+  if (action.type === 'UNDO') {
+    if (state._history.length === 0) return state
+    const previous = state._history[state._history.length - 1]
+    const currentSnapshot = takeSnapshot(state)
+    return {
+      ...state,
+      modules: previous.modules,
+      activeLesson: previous.activeLesson,
+      _history: state._history.slice(0, -1),
+      _future: [currentSnapshot, ...state._future].slice(0, MAX_HISTORY),
+    }
+  }
+
+  // Handle REDO
+  if (action.type === 'REDO') {
+    if (state._future.length === 0) return state
+    const next = state._future[0]
+    const currentSnapshot = takeSnapshot(state)
+    return {
+      ...state,
+      modules: next.modules,
+      activeLesson: next.activeLesson,
+      _history: [...state._history, currentSnapshot].slice(-MAX_HISTORY),
+      _future: state._future.slice(1),
+    }
+  }
+
+  // For undoable actions, push current state to history before applying
+  if (UNDOABLE_ACTIONS.has(action.type)) {
+    const snapshot = takeSnapshot(state)
+    const nextState = coreReducer(state, action)
+    return {
+      ...nextState,
+      _history: [...state._history, snapshot].slice(-MAX_HISTORY),
+      _future: [], // clear redo stack on new action
+    }
+  }
+
+  // Non-undoable actions pass through without touching history
+  return coreReducer(state, action)
 }
