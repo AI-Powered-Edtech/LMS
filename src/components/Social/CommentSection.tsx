@@ -73,14 +73,6 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
 
   useEffect(() => {
     loadComments()
-
-    const subscription = discussionService.subscribe(entityId, entityType, () => {
-      loadComments() // Refresh on changes
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
   }, [entityId, entityType, loadComments])
 
   const handleSubmit = async (e?: React.FormEvent, parentId: string | null = null) => {

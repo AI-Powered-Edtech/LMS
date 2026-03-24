@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { create } from 'zustand'
 
@@ -47,6 +47,7 @@ function useClassroomsQuery() {
 
 function useAddClassroom() {
   const { user, tenantId } = useAuth()
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (name: string) => {
@@ -61,6 +62,7 @@ function useAddClassroom() {
 
 function useUpdateClassroom() {
   const { tenantId } = useAuth()
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
@@ -74,6 +76,7 @@ function useUpdateClassroom() {
 
 function useJoinClassroom() {
   const { tenantId } = useAuth()
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (joinCode: string) => {

@@ -1,8 +1,9 @@
 // EduSync LMS — Background Sync
 // Processes the offline sync queue when connectivity is restored
 
-import { getPendingSubmissions, markSynced } from './offlineStorage'
 import { supabase } from '@/src/services/supabase/client'
+
+import { getPendingSubmissions, markSynced } from './offlineStorage'
 
 // Exponential back-off delays: 1 s → 5 s → 30 s → 5 min
 const DELAYS = [1000, 5000, 30000, 300000] as const

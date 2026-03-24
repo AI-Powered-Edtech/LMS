@@ -1,7 +1,8 @@
+import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+
+import { type Toast as ToastType, useToast } from '@/src/hooks/useToast'
 import { cn } from '@/src/utils/cn'
-import { useToast, type Toast as ToastType } from '@/src/hooks/useToast'
-import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react'
 
 /* ─── Icon Map ────────────────────────────────────────────────── */
 
@@ -116,5 +117,5 @@ export function ToastContainer() {
 
 /* ─── Re-export for convenience ───────────────────────────────── */
 
-export { useToast } from '@/src/hooks/useToast'
 export type { Toast } from '@/src/hooks/useToast'
+export { useToast } from '@/src/hooks/useToast'

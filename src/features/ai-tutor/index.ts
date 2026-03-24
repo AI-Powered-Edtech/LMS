@@ -7,11 +7,11 @@
 // API exports
 export {
   askTutor,
-  validateQuestion,
-  generateMessageId,
   formatDifficulty,
+  generateMessageId,
   getDifficultyColor,
+  validateQuestion,
 } from './api/aiTutorService'
 
 // Types exports
-export type { DifficultyLevel, AITutorMessage, AITutorError } from './types'
+export type { AITutorError, AITutorMessage, DifficultyLevel } from './types'
