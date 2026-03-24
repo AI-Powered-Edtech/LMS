@@ -127,7 +127,7 @@ export function BuilderTopBar() {
         <button
           onClick={() => setIsSaveTemplateOpen(true)}
           disabled={!state.courseId}
-          className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200/60 hover:text-emerald-600 hover:bg-white hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           title="Simpan sebagai Template Kursus"
         >
           <BookCopy className="w-4 h-4" />
@@ -140,7 +140,7 @@ export function BuilderTopBar() {
             window.open(`/#/app/student/courses/${state.courseId}?preview=true`, '_blank')
           }}
           disabled={!state.courseId}
-          className="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200/60 hover:text-indigo-600 hover:bg-white hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Eye className="w-4 h-4" />
           Pratinjau
