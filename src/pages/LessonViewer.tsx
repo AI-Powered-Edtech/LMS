@@ -549,10 +549,8 @@ export function LessonViewer() {
                           lesson={state.lesson}
                           status={state.status}
                           lastPosition={state.lastPosition}
-                          progressPercentage={state.progressPercentage}
                           lastQuizScore={lastQuizScore}
                           lessonId={lessonId}
-                          userId={user?.id}
                           onProgressUpdate={handleProgressUpdate}
                           onCompletionMet={handleCompletionMet}
                           onStartViewing={actions.startViewing}

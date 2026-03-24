@@ -10,10 +10,8 @@ interface LegacyContentFallbackProps {
   lesson: Lesson
   status: string
   lastPosition: number
-  progressPercentage: number
   lastQuizScore: number | null
   lessonId: string | null
-  userId?: string
   onProgressUpdate: (percentage: number, position?: number) => void
   onCompletionMet: () => void
   onStartViewing: () => void
@@ -25,7 +23,6 @@ export function LegacyContentFallback({
   lastPosition,
   lastQuizScore,
   lessonId,
-  userId: _userId,
   onProgressUpdate,
   onCompletionMet,
   onStartViewing,
@@ -95,7 +92,7 @@ export function LegacyContentFallback({
         <button
           onClick={() => {
             onCompletionMet()
-            navigate(`/student/quizzes?quizId=${quiz.id}`)
+            navigate(`/app/student/quizzes?quizId=${quiz.id}`)
           }}
           className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm"
         >
