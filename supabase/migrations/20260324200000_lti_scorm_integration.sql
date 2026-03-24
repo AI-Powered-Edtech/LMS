@@ -387,12 +387,17 @@ $$;
 
 -- ────────────────────────────────────────────────────────────────
 -- 9. STORAGE BUCKET: scorm-packages
--- Public read so iframe can load SCORM content.
--- Write restricted to teachers/admins via RLS policy.
+-- MUST be public: iframes load SCORM content via plain GET requests
+-- (no Authorization header) and SCORM packages contain interlinked
+-- files (HTML/JS/CSS/images) with relative paths, so signed URLs
+-- for individual files won't work either.
+-- Write restricted to teachers/admins via RLS policy on storage.objects.
+-- Read security: storage paths include {tenant_id}/{package_id}/...
+-- and the scorm_packages table has RLS for metadata isolation.
 -- ────────────────────────────────────────────────────────────────
 INSERT INTO storage.buckets (id, name, public)
-VALUES ('scorm-packages', 'scorm-packages', false)
-ON CONFLICT (id) DO NOTHING;
+VALUES ('scorm-packages', 'scorm-packages', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
 
 -- Teachers/admins can upload SCORM files
 DO $$
@@ -438,15 +443,10 @@ BEGIN
       )
     );
 
-    -- Authenticated read only (tenant content should not be publicly accessible)
+    -- Public bucket: no SELECT policy needed (public buckets allow
+    -- unauthenticated reads). Clean up any leftover policies.
     DROP POLICY IF EXISTS "scorm_packages_public_read" ON storage.objects;
     DROP POLICY IF EXISTS "scorm_packages_authenticated_read" ON storage.objects;
-    CREATE POLICY "scorm_packages_authenticated_read"
-    ON storage.objects FOR SELECT
-    USING (
-      bucket_id = 'scorm-packages'
-      AND auth.role() = 'authenticated'
-    );
   END IF;
 END $$;
 

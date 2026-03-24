@@ -133,6 +133,17 @@ SCORM content runs inside an `<iframe>` with restricted sandbox attributes:
 
 SCORM runtime data (`scorm_runtime_data`) is protected by own-data-only RLS — students can only read/write their own CMI state.
 
+#### SCORM Storage Bucket
+
+The `scorm-packages` storage bucket is **public** (`public: true`). This is intentional — iframes load SCORM content via plain GET requests without Authorization headers, and SCORM packages contain interlinked files (HTML/JS/CSS/images) with relative paths, making signed URLs impractical.
+
+**Mitigations:**
+
+- Storage paths include `{tenant_id}/{package_id}/...` — cross-tenant enumeration requires guessing UUIDs
+- The `scorm_packages` table has tenant-isolated RLS — students can only discover packages belonging to their tenant
+- Write access (upload/update/delete) is restricted to teachers/admins via storage object policies
+- The SCORM content itself is educational material (not sensitive PII)
+
 <!-- Phase 5 Feature Cross-Reference -->
 
 ## Feature Module Cross-Reference
