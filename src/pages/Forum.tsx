@@ -104,7 +104,7 @@ export function Forum() {
   }
 
   const handleMarkBestAnswer = async (postId: string, commentId: string) => {
-    await discussionService.setBestAnswer(postId, commentId)
+    await discussionService.setBestAnswer(postId, commentId, tenantId!)
     queryClient.invalidateQueries({ queryKey: ['forum-posts', tenantId] })
   }
 

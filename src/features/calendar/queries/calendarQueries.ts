@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
+import { useAuth } from '@/src/contexts/AuthContext'
+
 import { calendarService } from '../api/calendarService'
 
 export const calendarKeys = {
@@ -13,9 +15,10 @@ export const calendarKeys = {
  * Query hook untuk daftar Kalender.
  */
 export function useCalendarList() {
+  const { tenantId } = useAuth()
   return useQuery({
-    queryKey: ['calendar'],
-    queryFn: () => calendarService.fetchEvents(),
-    enabled: true,
+    queryKey: calendarKeys.all(tenantId!),
+    queryFn: () => calendarService.fetchEvents(tenantId!),
+    enabled: !!tenantId,
   })
 }
