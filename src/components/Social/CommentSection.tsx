@@ -2,13 +2,258 @@ import { formatDistanceToNow } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { Edit2, MessageSquare, MoreVertical, Pin, Send, Trash2 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 
 import { OptimizedImage } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { Discussion, discussionService } from '@/src/features/discussions/api/discussionService'
 import { useToast } from '@/src/hooks/useToast'
 import { cn } from '@/src/utils/cn'
+
+// ⚡ Perf: CommentItem extracted to file-level and wrapped in React.memo.
+// Previously defined INSIDE CommentSection's render body, which caused React
+// to treat it as a brand-new component type on every parent render — unmounting
+// and remounting all comment DOM (losing focus, scroll position, animations).
+interface CommentItemProps {
+  comment: Discussion
+  isReply?: boolean
+  userId?: string
+  userRole?: string | null
+  editingComment: string | null
+  editContent: string
+  openMenuId: string | null
+  replyingTo: string | null
+  newComment: string
+  onSetEditingComment: (id: string | null) => void
+  onSetEditContent: (content: string) => void
+  onSetOpenMenuId: (id: string | null) => void
+  onSetReplyingTo: (id: string | null) => void
+  onSetNewComment: (content: string) => void
+  onSubmit: (e?: React.FormEvent, parentId?: string | null) => void
+  onDelete: (id: string) => void
+  onTogglePin: (id: string, currentPin: boolean) => void
+}
+
+const CommentItem = memo(function CommentItem({
+  comment,
+  isReply = false,
+  userId,
+  userRole,
+  editingComment,
+  editContent,
+  openMenuId,
+  replyingTo,
+  newComment,
+  onSetEditingComment,
+  onSetEditContent,
+  onSetOpenMenuId,
+  onSetReplyingTo,
+  onSetNewComment,
+  onSubmit,
+  onDelete,
+  onTogglePin,
+}: CommentItemProps) {
+  const isAuthor = comment.author_id === userId
+  const isAdmin = userRole === 'admin' || userRole === 'teacher'
+  const canManage = isAuthor || isAdmin
+
+  return (
+    <div className={cn('flex gap-3', isReply && 'ml-11 mt-4')}>
+      <div className="w-8 h-8 bg-slate-200 rounded-full shrink-0 overflow-hidden">
+        {comment.author?.avatar_url ? (
+          <OptimizedImage
+            src={comment.author.avatar_url}
+            alt={`Foto profil ${comment.author?.full_name || 'pengguna'}`}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <OptimizedImage
+            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.author?.full_name || comment.author_id}`}
+            alt={`Foto profil ${comment.author?.full_name || 'pengguna'}`}
+            className="w-full h-full object-cover"
+          />
+        )}
+      </div>
+      <div className="flex-1">
+        <div className="bg-slate-50 p-3 rounded-2xl rounded-tl-none border border-slate-100 group relative">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-sm font-bold text-slate-900">
+              {comment.author?.full_name || 'User'}
+            </span>
+            <span className="text-xs text-slate-500">
+              {formatDistanceToNow(new Date(comment.created_at), {
+                addSuffix: true,
+                locale: localeId,
+              })}
+            </span>
+          </div>
+
+          {editingComment === comment.id ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                onSubmit(undefined, comment.parent_id)
+              }}
+              className="mt-2"
+            >
+              <textarea
+                autoFocus
+                value={editContent}
+                onChange={(e) => onSetEditContent(e.target.value)}
+                className="w-full p-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                rows={2}
+              />
+              <div className="flex justify-end gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={() => onSetEditingComment(null)}
+                  className="text-xs text-slate-500 hover:text-slate-700"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="text-xs px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Simpan
+                </button>
+              </div>
+            </form>
+          ) : (
+            <p
+              className={cn(
+                'text-sm text-slate-700 whitespace-pre-wrap',
+                comment.is_deleted && 'text-slate-400 italic'
+              )}
+            >
+              {comment.content}
+            </p>
+          )}
+
+          {/* Menu */}
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+            {isAdmin && !comment.is_deleted && (
+              <button
+                onClick={() => onTogglePin(comment.id, !!comment.is_pinned)}
+                className="p-1 text-slate-400 hover:text-blue-600 rounded"
+                title={comment.is_pinned ? 'Lepaskan sematan' : 'Sematkan'}
+              >
+                <Pin
+                  className={cn('w-4 h-4', comment.is_pinned && 'fill-blue-500 text-blue-500')}
+                />
+              </button>
+            )}
+            {!comment.is_deleted && canManage && (
+              <div className="relative">
+                <button
+                  onClick={() => onSetOpenMenuId(openMenuId === comment.id ? null : comment.id)}
+                  className="p-1 text-slate-400 hover:text-slate-600 rounded"
+                >
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+                {openMenuId === comment.id && (
+                  <div className="absolute right-0 mt-1 w-32 bg-white rounded-lg shadow-lg border border-slate-100 py-1 z-10">
+                    {isAuthor && (
+                      <button
+                        onClick={() => {
+                          onSetEditingComment(comment.id)
+                          onSetEditContent(comment.content)
+                          onSetOpenMenuId(null)
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex flex-center gap-2"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" /> Ubah
+                      </button>
+                    )}
+                    <button
+                      onClick={() => onDelete(comment.id)}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Hapus
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Actions */}
+        {!comment.is_deleted && !isReply && (
+          <div className="flex items-center gap-4 mt-1 ml-2">
+            <button
+              onClick={() => onSetReplyingTo(replyingTo === comment.id ? null : comment.id)}
+              className="text-xs text-slate-500 font-medium hover:text-blue-600 transition-colors"
+            >
+              Balas
+            </button>
+          </div>
+        )}
+
+        {/* Reply Input */}
+        <AnimatePresence>
+          {replyingTo === comment.id && !isReply && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="mt-3 overflow-hidden"
+            >
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  onSubmit(undefined, comment.id)
+                }}
+                className="flex gap-3"
+              >
+                <input
+                  type="text"
+                  autoFocus
+                  value={newComment}
+                  onChange={(e) => onSetNewComment(e.target.value)}
+                  placeholder="Tulis balasan..."
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="submit"
+                  disabled={!newComment.trim()}
+                  className="p-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Nested Replies */}
+        {comment.replies &&
+          comment.replies.map((reply) => (
+            <CommentItem
+              key={reply.id}
+              comment={reply}
+              isReply
+              userId={userId}
+              userRole={userRole}
+              editingComment={editingComment}
+              editContent={editContent}
+              openMenuId={openMenuId}
+              replyingTo={replyingTo}
+              newComment={newComment}
+              onSetEditingComment={onSetEditingComment}
+              onSetEditContent={onSetEditContent}
+              onSetOpenMenuId={onSetOpenMenuId}
+              onSetReplyingTo={onSetReplyingTo}
+              onSetNewComment={onSetNewComment}
+              onSubmit={onSubmit}
+              onDelete={onDelete}
+              onTogglePin={onTogglePin}
+            />
+          ))}
+      </div>
+    </div>
+  )
+})
 
 interface CommentSectionProps {
   entityId: string
@@ -31,6 +276,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
   const loadComments = useCallback(async () => {
     try {
       const _data = await discussionService.fetchDiscussions({
+        tenantId: tenantId!,
         [`${entityType}Id`]: entityId,
         parentId: null, // Fetch top-level comments first
       })
@@ -39,6 +285,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
       // or fetch replies on demand. For simplicity, we fetch all for this entity if parentId isn't specified,
       // but let's fetch all and tree-ify them in memory for now.
       const allComments = await discussionService.fetchDiscussions({
+        tenantId: tenantId!,
         [`${entityType}Id`]: entityId,
       })
 
@@ -104,208 +351,23 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
   const handleDelete = async (id: string) => {
     if (!confirm('Hapus komentar ini?')) return
     try {
-      await discussionService.deleteDiscussion(id)
+      await discussionService.deleteDiscussion(id, tenantId!)
       setOpenMenuId(null)
     } catch {
       addToast({ type: 'error', message: 'Gagal menghapus komentar' })
     }
   }
 
-  const handleTogglePin = async (id: string, currentPin: boolean) => {
-    try {
-      await discussionService.togglePin(id, !currentPin)
-    } catch {
-      addToast({ type: 'error', message: 'Gagal mengubah status sematan komentar' })
-    }
-  }
-
-  const CommentItem = ({
-    comment,
-    isReply = false,
-  }: {
-    comment: Discussion
-    isReply?: boolean
-  }) => {
-    const isAuthor = comment.author_id === user?.id
-    const isAdmin = role === 'admin' || role === 'teacher'
-    const canManage = isAuthor || isAdmin
-
-    return (
-      <div className={cn('flex gap-3', isReply && 'ml-11 mt-4')}>
-        <div className="w-8 h-8 bg-slate-200 rounded-full shrink-0 overflow-hidden">
-          {comment.author?.avatar_url ? (
-            <OptimizedImage
-              src={comment.author.avatar_url}
-              alt={`Foto profil ${comment.author?.full_name || 'pengguna'}`}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <OptimizedImage
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.author?.full_name || comment.author_id}`}
-              alt={`Foto profil ${comment.author?.full_name || 'pengguna'}`}
-              className="w-full h-full object-cover"
-            />
-          )}
-        </div>
-        <div className="flex-1">
-          <div className="bg-slate-50 p-3 rounded-2xl rounded-tl-none border border-slate-100 group relative">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-bold text-slate-900">
-                {comment.author?.full_name || 'User'}
-              </span>
-              <span className="text-xs text-slate-500">
-                {formatDistanceToNow(new Date(comment.created_at), {
-                  addSuffix: true,
-                  locale: localeId,
-                })}
-              </span>
-            </div>
-
-            {editingComment === comment.id ? (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  handleSubmit(undefined, comment.parent_id)
-                }}
-                className="mt-2"
-              >
-                <textarea
-                  autoFocus
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full p-2 bg-white border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                  rows={2}
-                />
-                <div className="flex justify-end gap-2 mt-2">
-                  <button
-                    type="button"
-                    onClick={() => setEditingComment(null)}
-                    className="text-xs text-slate-500 hover:text-slate-700"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    className="text-xs px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    Simpan
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <p
-                className={cn(
-                  'text-sm text-slate-700 whitespace-pre-wrap',
-                  comment.is_deleted && 'text-slate-400 italic'
-                )}
-              >
-                {comment.content}
-              </p>
-            )}
-
-            {/* Menu */}
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-              {isAdmin && !comment.is_deleted && (
-                <button
-                  onClick={() => handleTogglePin(comment.id, !!comment.is_pinned)}
-                  className="p-1 text-slate-400 hover:text-blue-600 rounded"
-                  title={comment.is_pinned ? 'Lepaskan sematan' : 'Sematkan'}
-                >
-                  <Pin
-                    className={cn('w-4 h-4', comment.is_pinned && 'fill-blue-500 text-blue-500')}
-                  />
-                </button>
-              )}
-              {!comment.is_deleted && canManage && (
-                <div className="relative">
-                  <button
-                    onClick={() => setOpenMenuId(openMenuId === comment.id ? null : comment.id)}
-                    className="p-1 text-slate-400 hover:text-slate-600 rounded"
-                  >
-                    <MoreVertical className="w-4 h-4" />
-                  </button>
-                  {openMenuId === comment.id && (
-                    <div className="absolute right-0 mt-1 w-32 bg-white rounded-lg shadow-lg border border-slate-100 py-1 z-10">
-                      {isAuthor && (
-                        <button
-                          onClick={() => {
-                            setEditingComment(comment.id)
-                            setEditContent(comment.content)
-                            setOpenMenuId(null)
-                          }}
-                          className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex flex-center gap-2"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" /> Ubah
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleDelete(comment.id)}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" /> Hapus
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Actions */}
-          {!comment.is_deleted && !isReply && (
-            <div className="flex items-center gap-4 mt-1 ml-2">
-              <button
-                onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-                className="text-xs text-slate-500 font-medium hover:text-blue-600 transition-colors"
-              >
-                Balas
-              </button>
-            </div>
-          )}
-
-          {/* Reply Input */}
-          <AnimatePresence>
-            {replyingTo === comment.id && !isReply && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="mt-3 overflow-hidden"
-              >
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    handleSubmit(undefined, comment.id)
-                  }}
-                  className="flex gap-3"
-                >
-                  <input
-                    type="text"
-                    autoFocus
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Tulis balasan..."
-                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!newComment.trim()}
-                    className="p-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    <Send className="w-4 h-4" />
-                  </button>
-                </form>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Nested Replies */}
-          {comment.replies &&
-            comment.replies.map((reply) => <CommentItem key={reply.id} comment={reply} isReply />)}
-        </div>
-      </div>
-    )
-  }
+  const handleTogglePin = useCallback(
+    async (id: string, currentPin: boolean) => {
+      try {
+        await discussionService.togglePin(id, !currentPin, tenantId!)
+      } catch {
+        addToast({ type: 'error', message: 'Gagal mengubah status sematan komentar' })
+      }
+    },
+    [addToast]
+  )
 
   if (loading) {
     return <div className="py-8 text-center text-slate-500 text-sm">Memuat diskusi...</div>
@@ -322,7 +384,25 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
 
       <div className="space-y-4">
         {comments.map((comment) => (
-          <CommentItem key={comment.id} comment={comment} />
+          <CommentItem
+            key={comment.id}
+            comment={comment}
+            userId={user?.id}
+            userRole={role}
+            editingComment={editingComment}
+            editContent={editContent}
+            openMenuId={openMenuId}
+            replyingTo={replyingTo}
+            newComment={newComment}
+            onSetEditingComment={setEditingComment}
+            onSetEditContent={setEditContent}
+            onSetOpenMenuId={setOpenMenuId}
+            onSetReplyingTo={setReplyingTo}
+            onSetNewComment={setNewComment}
+            onSubmit={handleSubmit}
+            onDelete={handleDelete}
+            onTogglePin={handleTogglePin}
+          />
         ))}
         {comments.length === 0 && (
           <p className="text-center text-sm text-slate-500 py-4">
