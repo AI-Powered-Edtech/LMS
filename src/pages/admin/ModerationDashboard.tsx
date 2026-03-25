@@ -217,9 +217,10 @@ export function ModerationDashboard() {
                   {report.status === 'pending' && (
                     <div className="flex flex-row md:flex-col gap-3 justify-center border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-700 pt-4 md:pt-0 md:pl-6 md:w-48 shrink-0">
                       <button
-                        onClick={() =>
+                        onClick={() => {
+                          if (!confirm('Hapus konten ini? Aksi ini tidak bisa dibatalkan.')) return
                           resolveReport.mutate({ reportId: report.id, status: 'approved' })
-                        }
+                        }}
                         className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition-colors shadow-sm"
                       >
                         <CheckCircle className="w-4 h-4" />

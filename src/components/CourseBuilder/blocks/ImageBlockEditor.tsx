@@ -84,6 +84,7 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
   /* eslint-enable react-hooks/exhaustive-deps */
 
   const handleDelete = async () => {
+    if (!confirm('Hapus gambar ini? File akan dihapus permanen dari penyimpanan.')) return
     const storageObjectId = (block as unknown as { storage_object_id?: string })?.storage_object_id
 
     if (storageObjectId) {

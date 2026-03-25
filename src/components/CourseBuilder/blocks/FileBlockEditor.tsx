@@ -145,6 +145,7 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
   )
 
   const handleDelete = async () => {
+    if (!confirm('Hapus file ini? File akan dihapus permanen dari penyimpanan.')) return
     const storageObjectId = (block as unknown as { storage_object_id?: string })?.storage_object_id
 
     if (storageObjectId) {
