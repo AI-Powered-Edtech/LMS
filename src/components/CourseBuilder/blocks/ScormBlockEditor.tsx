@@ -289,7 +289,7 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
               {uploadProgress || 'Memproses...'}
             </p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Proses ini mungkin memerlukan beberapa saat untuk paket besar
             </p>
           </>
@@ -301,12 +301,12 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Unggah paket SCORM
             </p>
-            <p className="text-xs text-slate-400 dark:text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               File ZIP dengan imsmanifest.xml (maks. 100MB)
             </p>
             <div className="flex items-center gap-2 mt-3">
-              <FileArchive className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-bold">
+              <FileArchive className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+              <span className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">
                 SCORM 1.2 &amp; 2004
               </span>
             </div>
@@ -315,7 +315,10 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+        <div
+          role="alert"
+          className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400"
+        >
           <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
         </div>

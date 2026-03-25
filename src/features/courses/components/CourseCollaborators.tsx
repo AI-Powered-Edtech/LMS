@@ -57,19 +57,24 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
         </h3>
         <div className="flex gap-3 relative">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input
               type="text"
               placeholder="Cari nama guru..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
+              aria-label="Cari pengguna"
             />
             {searchResults && searchResults.length > 0 && search && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden">
+              <div
+                role="listbox"
+                className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-50 overflow-hidden"
+              >
                 {searchResults.map((user) => (
                   <button
                     key={user.id}
+                    role="option"
                     onClick={() => addCollabMut.mutate(user.id)}
                     className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center justify-between"
                   >
@@ -77,7 +82,7 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
                       <div className="text-sm font-bold">{user.full_name}</div>
                       <div className="text-xs text-slate-500">{user.email}</div>
                     </div>
-                    <Plus className="w-4 h-4 text-slate-400" />
+                    <Plus className="w-4 h-4 text-slate-500" />
                   </button>
                 ))}
               </div>
@@ -87,6 +92,7 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
             value={selectedRole}
             onChange={(e) => setSelectedRole(e.target.value as Collaborator['role'])}
             className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium"
+            aria-label="Peran kolaborator"
           >
             <option value="reviewer">Peninjau</option>
             <option value="author">Penulis</option>
@@ -133,6 +139,7 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
                   <button
                     onClick={() => removeCollabMut.mutate(c.id)}
                     className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                    aria-label="Hapus kolaborator"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

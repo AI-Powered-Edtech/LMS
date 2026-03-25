@@ -89,10 +89,22 @@ function CourseBuilderPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] -mx-6 -mt-6 bg-slate-50 dark:bg-slate-900 overflow-hidden">
-      <BuilderTopBar />
+      <a
+        href="#builder-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:shadow-lg"
+      >
+        Langsung ke konten
+      </a>
+      <header>
+        <BuilderTopBar />
+      </header>
       <div className="flex flex-1 min-h-0 overflow-x-auto">
-        <BuilderSidebar />
-        <LessonBlockEditor />
+        <nav aria-label="Struktur kursus">
+          <BuilderSidebar />
+        </nav>
+        <main id="builder-main" aria-label="Editor konten">
+          <LessonBlockEditor />
+        </main>
       </div>
     </div>
   )
