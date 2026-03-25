@@ -1,7 +1,6 @@
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
-
+import { X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { motion, AnimatePresence } from 'motion/react'
 import type { ApplicableGuide } from '../types'
 
 interface Props {

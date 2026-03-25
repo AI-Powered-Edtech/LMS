@@ -1,22 +1,21 @@
+import { useState, useEffect } from 'react'
 import {
-  AlertTriangle,
-  CheckCircle2,
-  Loader2,
-  MessageSquare,
-  PenLine,
-  Save,
   X,
+  CheckCircle2,
   XCircle,
+  Loader2,
+  AlertTriangle,
+  Save,
+  PenLine,
+  MessageSquare,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
-
-import { useAuth } from '@/src/contexts/AuthContext'
 import {
-  AttemptDetailAnswer,
   quizAnalyticsService,
+  AttemptDetailAnswer,
 } from '@/src/features/quizzes/api/quizAnalyticsService'
 import { gradeAttemptQuestion } from '@/src/features/quizzes/api/quizManager.service'
 import { cn } from '@/src/utils/cn'
+import { useAuth } from '@/src/contexts/AuthContext'
 
 interface AttemptDetailModalProps {
   attemptId: string
@@ -115,14 +114,7 @@ export function AttemptDetailModal({
       const isCorrect = scoreVal >= answer.max_points * 0.7
       const comment = gradingComments[answer.question_id] || undefined
 
-      await gradeAttemptQuestion(
-        attemptId,
-        answer.question_id,
-        tenantId!,
-        scoreVal,
-        isCorrect,
-        comment
-      )
+      await gradeAttemptQuestion(attemptId, answer.question_id, tenantId!, scoreVal, isCorrect, comment)
 
       // Update local state to reflect the grading
       setAnswers((prev) =>

@@ -1,7 +1,6 @@
-import { CheckCircle, Clock, XCircle } from 'lucide-react'
-
-import type { QuizAttempt } from '@/src/features/quizzes'
+import { CheckCircle, XCircle, Clock } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
+import type { QuizAttempt } from '@/src/features/quizzes'
 
 export function QuizAttemptCard({
   attempt,

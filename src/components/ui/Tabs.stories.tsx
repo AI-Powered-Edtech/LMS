@@ -1,8 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { BarChart3, BookOpen, FileText, Users } from 'lucide-react'
 import { useState } from 'react'
-
+import type { Meta, StoryObj } from '@storybook/react'
 import { Tabs } from './Tabs'
+import { BookOpen, FileText, BarChart3, Users } from 'lucide-react'
 
 const meta: Meta<typeof Tabs> = {
   title: 'UI/Tabs',

@@ -1,18 +1,17 @@
 // Question Difficulty Chart Component
 // Shows a horizontal bar chart of correct% vs incorrect% per question
 
-import { AlertTriangle } from 'lucide-react'
 import {
-  Bar,
   BarChart,
-  Cell,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
+  Bar,
   XAxis,
   YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  ReferenceLine,
 } from 'recharts'
-
+import { AlertTriangle } from 'lucide-react'
 import type { QuestionStatsWithQuestion } from '../../api/quizAnalytics.service'
 
 interface QuestionDifficultyChartProps {

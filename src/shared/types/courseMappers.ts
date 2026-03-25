@@ -1,6 +1,6 @@
-import { validate } from '../lib/validate'
-import { CourseRowSchema } from '../schemas'
 import { DomainCourse } from './courseTypes'
+import { CourseRowSchema } from '../schemas'
+import { validate } from '../lib/validate'
 
 export function mapCourse(row: unknown): DomainCourse {
   const r = validate(CourseRowSchema, row, 'CourseRow')

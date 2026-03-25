@@ -1,8 +1,7 @@
-import { Loader2, Play, Target } from 'lucide-react'
 import { motion } from 'motion/react'
-
-import type { StudentQuizAssignment } from '@/src/features/quizzes'
+import { Target, Loader2, Play } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
+import type { StudentQuizAssignment } from '@/src/features/quizzes'
 
 export function QuizCard({
   quiz,

@@ -1,5 +1,4 @@
 import { cn } from '@/src/utils/cn'
-
 import type { LearningPath, PathStep } from '../types'
 
 interface Props {

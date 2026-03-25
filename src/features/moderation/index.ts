@@ -4,9 +4,9 @@ export { moderationService } from './api/moderationService'
 // Query Hooks
 export {
   useModerationReports,
-  useResolveReport,
   useSubmitReport,
+  useResolveReport,
 } from './queries/moderationQueries'
 
 // Types
-export type { ContentType, Report, ReportReason, ReportStatus } from './api/moderationService'
+export type { Report, ReportStatus, ReportReason, ContentType } from './api/moderationService'

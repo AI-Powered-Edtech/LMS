@@ -1,9 +1,8 @@
 import { useAuth } from '@/src/contexts/AuthContext'
-
-import { AdminLayout } from './AdminLayout'
-import { OfflineBanner } from './OfflineBanner'
 import { StudentLayout } from './StudentLayout'
 import { TeacherLayout } from './TeacherLayout'
+import { AdminLayout } from './AdminLayout'
+import { OfflineBanner } from './OfflineBanner'
 
 export function Layout() {
   const { role } = useAuth()

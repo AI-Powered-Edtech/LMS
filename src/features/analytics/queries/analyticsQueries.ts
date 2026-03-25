@@ -1,11 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createQueryKeys } from '@/src/lib/queryKeys'
-import { STALE } from '@/src/utils/queryConstants'
-
+import { useAuth } from '@/src/contexts/AuthContext'
 import { analyticsService } from '../api/analyticsService'
-import { AnalyticsError, TeacherAnalyticsData } from '../types'
+import { TeacherAnalyticsData, AnalyticsError } from '../types'
+import { STALE } from '@/src/utils/queryConstants'
 
 const base = createQueryKeys('analytics')
 const analyticsKeys = {
