@@ -134,6 +134,7 @@ export function AITutorInput({
         <button
           onClick={handleSubmit}
           disabled={!question.trim() || isLoading || disabled}
+          aria-label="Kirim pertanyaan"
           className={cn(
             'shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center transition-all',
             question.trim() && !isLoading && !disabled

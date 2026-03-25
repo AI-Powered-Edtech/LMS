@@ -252,6 +252,7 @@ export function CourseSettingsModal({ isOpen, onClose, courseId }: CourseSetting
             <button
               onClick={onClose}
               className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+              aria-label="Tutup"
             >
               <X className="w-5 h-5" />
             </button>

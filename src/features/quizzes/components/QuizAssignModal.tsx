@@ -115,6 +115,7 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
           <button
             onClick={onClose}
             className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
+            aria-label="Tutup"
           >
             <X className="w-5 h-5" />
           </button>

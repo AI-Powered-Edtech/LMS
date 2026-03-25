@@ -203,6 +203,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
             <button
               onClick={onClose}
               className="p-2 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg"
+              aria-label="Tutup"
             >
               <X className="w-5 h-5" />
             </button>

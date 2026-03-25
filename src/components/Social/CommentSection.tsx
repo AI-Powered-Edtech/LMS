@@ -218,6 +218,7 @@ const CommentItem = memo(function CommentItem({
                   type="submit"
                   disabled={!newComment.trim()}
                   className="p-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
+                  aria-label="Kirim balasan"
                 >
                   <Send className="w-4 h-4" />
                 </button>
@@ -434,6 +435,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
             type="submit"
             disabled={!!replyingTo || !newComment.trim()}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:hover:bg-blue-600"
+            aria-label="Kirim komentar"
           >
             <Send className="w-4 h-4" />
           </button>

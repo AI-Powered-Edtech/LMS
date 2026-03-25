@@ -102,6 +102,7 @@ export function AssignCourseModal({
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
+                aria-label="Tutup"
               >
                 <X className="w-5 h-5 text-slate-400" />
               </button>
