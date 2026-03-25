@@ -200,7 +200,9 @@ export async function createQuiz(payload: {
       available_until: dueAt,
       status: 'draft',
     })
-    .select()
+    .select(
+      'id, title, origin_class_id, class_id, course_id, tenant_id, instructions, mode, time_limit_minutes, max_attempts, passing_score, shuffle_questions, shuffle_options, show_correct_answers, available_from, available_until, status, created_at, updated_at'
+    )
     .single()
 
   if (error) throw error
@@ -326,7 +328,7 @@ export async function addQuestionToQuiz(
       explanation: question.explanation || null,
       order: question.order,
     })
-    .select()
+    .select('id, quiz_id, tenant_id, text, question_type, points, explanation, "order"')
     .single()
 
   if (questionError) throw questionError

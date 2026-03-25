@@ -221,7 +221,7 @@ async function getOrCreateSession(
       status: 'active',
       title: 'New Conversation',
     })
-    .select()
+    .select('id, tenant_id, user_id, lesson_id, status, message_count')
     .single()
 
   if (createError || !newSession) throw new Error('SESSION_CREATION_FAILED')

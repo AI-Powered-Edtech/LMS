@@ -33,7 +33,7 @@ export const builderBlockService = {
         order_index: count || 0,
         tenant_id: tenantId,
       })
-      .select()
+      .select('id, lesson_id, tenant_id, order_index, type, url, title, content, metadata')
       .single()
 
     if (error) throw new Error(error.message)

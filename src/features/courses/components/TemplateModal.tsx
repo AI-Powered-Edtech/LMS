@@ -1,9 +1,10 @@
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { Book, CheckCircle, FileText, FolderOpen, Import, Loader2, Search } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Modal, ModalHeader } from '@/src/components/ui/Modal'
+import { useDebounce } from '@/src/hooks/useDebounce'
 
 import { useImportTemplate, useTemplates } from '../queries/useTemplates'
 
@@ -20,6 +21,9 @@ export function TemplateModal({ isOpen, onClose, type, targetId, order }: Templa
   const importTemplateMutation = useImportTemplate()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
+  const debouncedSearch = useDebounce(searchQuery, 300)
 
   // Reset state when modal closes
   const prevOpenRef = useRef(isOpen)
@@ -58,12 +62,16 @@ export function TemplateModal({ isOpen, onClose, type, targetId, order }: Templa
     lesson: <FileText className="w-5 h-5" />,
   }
 
-  const filteredTemplates =
-    templates?.filter(
-      (t) =>
-        t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (t.description && t.description.toLowerCase().includes(searchQuery.toLowerCase()))
-    ) || []
+  // ⚡ Perf: Memoize filteredTemplates — was recomputed on every render without useMemo
+  const filteredTemplates = useMemo(
+    () =>
+      templates?.filter(
+        (t) =>
+          t.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          (t.description && t.description.toLowerCase().includes(debouncedSearch.toLowerCase()))
+      ) || [],
+    [templates, debouncedSearch]
+  )
 
   return (
     <Modal open={isOpen} onClose={onClose} size="lg">

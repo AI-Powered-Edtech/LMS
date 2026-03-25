@@ -57,7 +57,7 @@ export function useUpdateOnboardingProgress(tenantId: string, userId: string) {
           completed_at: allDone ? new Date().toISOString() : null,
         })
         .eq('id', progressId)
-        .select()
+        .select('id, tenant_id, user_id, steps_completed, completed_at')
         .single()
       if (error) throw error
       return data as OnboardingProgress

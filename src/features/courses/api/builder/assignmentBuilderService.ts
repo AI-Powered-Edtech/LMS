@@ -52,7 +52,9 @@ export const builderAssignmentService = {
         })
         .eq('id', data.id)
         .eq('tenant_id', tenantId)
-        .select()
+        .select(
+          'id, lesson_id, course_id, tenant_id, title, instructions, max_points, max_attempts, is_published, due_date, created_at'
+        )
         .single()
       if (error) throw new Error(error.message)
       return result
@@ -70,7 +72,9 @@ export const builderAssignmentService = {
           is_published: data.is_published,
           due_date: data.due_date,
         })
-        .select()
+        .select(
+          'id, lesson_id, course_id, tenant_id, title, instructions, max_points, max_attempts, is_published, due_date, created_at'
+        )
         .single()
       if (error) throw new Error(error.message)
       return result

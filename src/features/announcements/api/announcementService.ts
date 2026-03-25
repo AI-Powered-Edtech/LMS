@@ -98,7 +98,11 @@ export const announcementService = {
     const { data, error } = await supabase
       .from('announcements')
       .upsert(announcement)
-      .select()
+      .select(
+        `id, tenant_id, course_id, title, content, priority, target_audience,
+                status, is_pinned, allow_comments, requires_rsvp, location, contact_person,
+                created_by, created_at, updated_at`
+      )
       .single()
 
     if (error) {
@@ -140,7 +144,7 @@ export const announcementService = {
         response,
         responded_at: new Date().toISOString(),
       })
-      .select()
+      .select('id, tenant_id, announcement_id, user_id, response, responded_at')
       .single()
 
     if (error) {

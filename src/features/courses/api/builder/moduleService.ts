@@ -22,7 +22,7 @@ export const builderModuleService = {
         order: count || 0,
         tenant_id: tenantId,
       })
-      .select()
+      .select('id, course_id, title, "order", tenant_id')
       .single()
 
     if (error) throw new Error(error.message)

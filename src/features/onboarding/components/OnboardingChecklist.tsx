@@ -53,7 +53,7 @@ function OnboardingChecklistInner({ tenantId, userId }: InnerProps) {
           steps_completed: {},
           completed_at: null,
         })
-        .select()
+        .select('id, tenant_id, user_id, steps_completed, completed_at')
         .single()
       if (created) setProgress(created as OnboardingProgress)
     }
@@ -86,7 +86,7 @@ function OnboardingChecklistInner({ tenantId, userId }: InnerProps) {
         completed_at: allComplete ? new Date().toISOString() : null,
       })
       .eq('id', progress.id)
-      .select()
+      .select('id, tenant_id, user_id, steps_completed, completed_at')
       .single()
 
     if (data) setProgress(data as OnboardingProgress)
