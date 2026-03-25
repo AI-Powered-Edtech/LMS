@@ -5,6 +5,7 @@ import { useToast } from '@/src/hooks/useToast'
 import { DomainBlock } from '@/src/shared/types/blockTypes'
 
 import type { BuilderAction, BuilderState } from './builderReducer'
+import type { PresenceData } from './useBuilderPresence'
 
 export function useBlockActions(
   state: BuilderState,
@@ -12,7 +13,10 @@ export function useBlockActions(
   tenantId: string | null,
   setSavingStatus: (status: BuilderState['savingStatus']) => void,
   activeLessonIdRef: MutableRefObject<string | null>,
-  saveTimerRef: MutableRefObject<Map<string, ReturnType<typeof setTimeout>>>
+  saveTimerRef: MutableRefObject<Map<string, ReturnType<typeof setTimeout>>>,
+  broadcast?: (action: BuilderAction, userName: string) => void,
+  userName?: string,
+  getBlockLocker?: (blockId: string) => PresenceData | null
 ) {
   const addToast = useToast((s) => s.addToast)
 
@@ -23,6 +27,7 @@ export function useBlockActions(
       try {
         const block = await builderBlockService.createBlock(lessonId, type, tenantId)
         dispatch({ type: 'ADD_BLOCK', block })
+        broadcast?.({ type: 'ADD_BLOCK', block }, userName ?? '')
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Failed to add block:', err)
         addToast({
@@ -33,7 +38,7 @@ export function useBlockActions(
         })
       }
     },
-    [tenantId, dispatch, addToast, activeLessonIdRef]
+    [tenantId, dispatch, addToast, activeLessonIdRef, broadcast, userName]
   )
 
   const updateBlock = useCallback(
@@ -49,6 +54,7 @@ export function useBlockActions(
         try {
           await builderBlockService.updateBlock(blockId, tenantId, data)
           setSavingStatus('saved')
+          broadcast?.({ type: 'UPDATE_BLOCK', blockId, data }, userName ?? '')
         } catch {
           setSavingStatus('error')
         }
@@ -57,12 +63,24 @@ export function useBlockActions(
 
       saveTimerRef.current.set(blockId, timer)
     },
-    [tenantId, dispatch, setSavingStatus, saveTimerRef]
+    [tenantId, dispatch, setSavingStatus, saveTimerRef, broadcast, userName]
   )
 
   const saveBlock = useCallback(
     async (blockId: string) => {
       if (!tenantId) return
+
+      // Conflict guard: check if block is locked by another user
+      if (getBlockLocker) {
+        const locker = getBlockLocker(blockId)
+        if (locker) {
+          console.warn(
+            `Block ${blockId} sedang diedit oleh ${locker.fullName}, melewati penyimpanan`
+          )
+          return
+        }
+      }
+
       const existing = saveTimerRef.current.get(blockId)
       if (existing) clearTimeout(existing)
       saveTimerRef.current.delete(blockId)
@@ -70,20 +88,31 @@ export function useBlockActions(
       const block = state.activeLesson?.blocks.find((b) => b.id === blockId)
       if (!block) return
 
+      const data = {
+        content: block.content,
+        url: block.url,
+        title: block.title,
+        metadata: block.metadata,
+      }
+
       setSavingStatus('saving')
       try {
-        await builderBlockService.updateBlock(blockId, tenantId, {
-          content: block.content,
-          url: block.url,
-          title: block.title,
-          metadata: block.metadata,
-        })
+        await builderBlockService.updateBlock(blockId, tenantId, data)
         setSavingStatus('saved')
+        broadcast?.({ type: 'UPDATE_BLOCK', blockId, data }, userName ?? '')
       } catch {
         setSavingStatus('error')
       }
     },
-    [state.activeLesson, tenantId, setSavingStatus, saveTimerRef]
+    [
+      state.activeLesson,
+      tenantId,
+      setSavingStatus,
+      saveTimerRef,
+      broadcast,
+      userName,
+      getBlockLocker,
+    ]
   )
 
   const deleteBlock = useCallback(
@@ -92,6 +121,7 @@ export function useBlockActions(
       dispatch({ type: 'DELETE_BLOCK', blockId })
       try {
         await builderBlockService.deleteBlock(blockId, tenantId)
+        broadcast?.({ type: 'DELETE_BLOCK', blockId }, userName ?? '')
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Failed to delete block:', err)
         addToast({
@@ -102,7 +132,7 @@ export function useBlockActions(
         })
       }
     },
-    [tenantId, dispatch, addToast]
+    [tenantId, dispatch, addToast, broadcast, userName]
   )
 
   const reorderBlocks = useCallback(
@@ -119,6 +149,7 @@ export function useBlockActions(
 
       try {
         await builderBlockService.reorderBlocks(state.activeLesson!.id, blockIds, tenantId!)
+        broadcast?.({ type: 'SET_BLOCKS', blocks: reordered as DomainBlock[] }, userName ?? '')
       } catch (error: unknown) {
         if (import.meta.env.DEV) console.error('Failed to reorder blocks', error)
         dispatch({ type: 'SET_BLOCKS', blocks: previousBlocks })
@@ -130,7 +161,7 @@ export function useBlockActions(
         })
       }
     },
-    [state.activeLesson, tenantId, dispatch, addToast]
+    [state.activeLesson, tenantId, dispatch, addToast, broadcast, userName]
   )
 
   const selectBlock = useCallback(

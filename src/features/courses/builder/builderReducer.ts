@@ -83,6 +83,18 @@ export type BuilderAction =
   | { type: 'SET_BLOCKS'; blocks: DomainBlock[] }
   | { type: 'SET_SAVING'; status: BuilderState['savingStatus'] }
   | { type: 'CLOSE_LESSON' }
+  // Remote action types (from collaborative editing — bypass undo/redo history)
+  | { type: 'REMOTE_ADD_MODULE'; module: DomainModule }
+  | { type: 'REMOTE_UPDATE_MODULE'; moduleId: string; data: Partial<DomainModule> }
+  | { type: 'REMOTE_DELETE_MODULE'; moduleId: string }
+  | { type: 'REMOTE_SET_MODULES'; modules: DomainModule[] }
+  | { type: 'REMOTE_ADD_LESSON'; moduleId: string; lesson: DomainLesson }
+  | { type: 'REMOTE_UPDATE_LESSON'; lessonId: string; data: Partial<DomainLesson> }
+  | { type: 'REMOTE_DELETE_LESSON'; lessonId: string }
+  | { type: 'REMOTE_ADD_BLOCK'; block: DomainBlock }
+  | { type: 'REMOTE_UPDATE_BLOCK'; blockId: string; data: Partial<DomainBlock> }
+  | { type: 'REMOTE_DELETE_BLOCK'; blockId: string }
+  | { type: 'REMOTE_SET_BLOCKS'; blocks: DomainBlock[] }
   | { type: 'UNDO' }
   | { type: 'REDO' }
 
@@ -100,6 +112,7 @@ function takeSnapshot(state: BuilderState): UndoSnapshot {
 /**
  * Actions that produce undoable structural changes.
  * UI-only actions (loading, saving, active selection) are excluded.
+ * REMOTE_* actions are also excluded — they bypass undo/redo history.
  */
 const UNDOABLE_ACTIONS = new Set([
   'ADD_MODULE',
@@ -137,10 +150,13 @@ function coreReducer(state: BuilderState, action: BuilderAction): BuilderState {
       return { ...state, loadingCourse: false, error: action.error }
     case 'SET_COURSE_STATUS':
       return { ...state, courseStatus: action.status }
+    case 'REMOTE_SET_MODULES':
     case 'SET_MODULES':
       return { ...state, modules: action.modules }
+    case 'REMOTE_ADD_MODULE':
     case 'ADD_MODULE':
       return { ...state, modules: [...state.modules, action.module] }
+    case 'REMOTE_UPDATE_MODULE':
     case 'UPDATE_MODULE':
       return {
         ...state,
@@ -148,6 +164,7 @@ function coreReducer(state: BuilderState, action: BuilderAction): BuilderState {
           m.id === action.moduleId ? { ...m, ...action.data } : m
         ),
       }
+    case 'REMOTE_DELETE_MODULE':
     case 'DELETE_MODULE':
       return {
         ...state,
@@ -160,6 +177,7 @@ function coreReducer(state: BuilderState, action: BuilderAction): BuilderState {
             ? null
             : state.activeLesson,
       }
+    case 'REMOTE_ADD_LESSON':
     case 'ADD_LESSON':
       return {
         ...state,
@@ -167,6 +185,7 @@ function coreReducer(state: BuilderState, action: BuilderAction): BuilderState {
           m.id === action.moduleId ? { ...m, lessons: [...m.lessons, action.lesson] } : m
         ),
       }
+    case 'REMOTE_UPDATE_LESSON':
     case 'UPDATE_LESSON':
       return {
         ...state,
@@ -175,6 +194,7 @@ function coreReducer(state: BuilderState, action: BuilderAction): BuilderState {
           lessons: m.lessons.map((l) => (l.id === action.lessonId ? { ...l, ...action.data } : l)),
         })),
       }
+    case 'REMOTE_DELETE_LESSON':
     case 'DELETE_LESSON':
       return {
         ...state,
@@ -197,6 +217,7 @@ function coreReducer(state: BuilderState, action: BuilderAction): BuilderState {
       return { ...state, activeLesson: null, activeBlockId: null }
     case 'SET_ACTIVE_BLOCK':
       return { ...state, activeBlockId: action.blockId }
+    case 'REMOTE_ADD_BLOCK':
     case 'ADD_BLOCK':
       if (!state.activeLesson) return state
       return {
@@ -206,6 +227,7 @@ function coreReducer(state: BuilderState, action: BuilderAction): BuilderState {
           blocks: [...state.activeLesson.blocks, action.block],
         },
       }
+    case 'REMOTE_UPDATE_BLOCK':
     case 'UPDATE_BLOCK':
       if (!state.activeLesson) return state
       return {
@@ -217,6 +239,7 @@ function coreReducer(state: BuilderState, action: BuilderAction): BuilderState {
           ),
         },
       }
+    case 'REMOTE_DELETE_BLOCK':
     case 'DELETE_BLOCK':
       if (!state.activeLesson) return state
       return {
@@ -227,6 +250,7 @@ function coreReducer(state: BuilderState, action: BuilderAction): BuilderState {
         },
         activeBlockId: state.activeBlockId === action.blockId ? null : state.activeBlockId,
       }
+    case 'REMOTE_SET_BLOCKS':
     case 'SET_BLOCKS':
       if (!state.activeLesson) return state
       return {
@@ -284,6 +308,6 @@ export function builderReducer(state: BuilderState, action: BuilderAction): Buil
     }
   }
 
-  // Non-undoable actions pass through without touching history
+  // Non-undoable actions (including REMOTE_*) pass through without touching history
   return coreReducer(state, action)
 }
