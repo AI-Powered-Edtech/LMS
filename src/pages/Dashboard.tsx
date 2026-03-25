@@ -1,5 +1,5 @@
 import { Trophy } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { HubView } from '@/src/components/HubView'
@@ -72,22 +72,42 @@ export function Dashboard() {
     }
   }, [location, role])
 
-  // Derived data
-  const userName = impersonatedStudent
-    ? impersonatedStudent.name
-    : role === 'teacher'
-      ? profile?.first_name || 'Bapak/Ibu Guru'
-      : profile?.first_name || 'Siswa'
-  const activeCourses = Array.isArray(courses)
-    ? courses
-    : ((courses as unknown as { courses?: unknown[] })?.courses ?? [])
-  const announcementList: Announcement[] = Array.isArray(announcements) ? announcements : []
-  const leaderboardList: LeaderboardEntry[] = Array.isArray(leaderboard) ? leaderboard : []
+  // ⚡ Perf: memoize all derived data to prevent recalculation on every render
+  const userName = useMemo(() => {
+    return impersonatedStudent
+      ? impersonatedStudent.name
+      : role === 'teacher'
+        ? profile?.first_name || 'Bapak/Ibu Guru'
+        : profile?.first_name || 'Siswa'
+  }, [impersonatedStudent, role, profile])
 
-  const hubItems = navigationItems.filter(
-    (item) => item.location === 'learning-hub' && item.roles.includes(role)
-  )
-  const openJoinModal = () => setShowJoinModal(true)
+  const activeCourses = useMemo(() => {
+    return Array.isArray(courses)
+      ? courses
+      : ((courses as unknown as { courses?: unknown[] })?.courses ?? [])
+  }, [courses])
+
+  const announcementList: Announcement[] = useMemo(() => {
+    return Array.isArray(announcements) ? announcements : []
+  }, [announcements])
+
+  const leaderboardList: LeaderboardEntry[] = useMemo(() => {
+    return Array.isArray(leaderboard) ? leaderboard : []
+  }, [leaderboard])
+
+  // ⚡ Perf: memoize hub items filter — navigationItems is static, only role changes
+  const hubItems = useMemo(() => {
+    return navigationItems.filter(
+      (item) => item.location === 'learning-hub' && item.roles.includes(role)
+    )
+  }, [role])
+
+  // ⚡ Perf: stabilize callback refs to prevent child re-renders
+  const openJoinModal = useCallback(() => setShowJoinModal(true), [])
+  const handleNavigateBack = useCallback(() => navigate(-1), [navigate])
+  const handleRetryLeaderboard = useCallback(() => refetchLeaderboard(), [refetchLeaderboard])
+  const handleCloseJoinModal = useCallback(() => setShowJoinModal(false), [])
+  const handleCloseBadgeModal = useCallback(() => setShowBadgeModal(false), [])
 
   return (
     <div
@@ -99,7 +119,7 @@ export function Dashboard() {
           userName={userName}
           role={role}
           impersonatedStudent={impersonatedStudent}
-          onNavigateBack={() => navigate(-1)}
+          onNavigateBack={handleNavigateBack}
           xp={xp}
         />
 
@@ -147,7 +167,7 @@ export function Dashboard() {
             leaderboardList={leaderboardList}
             loading={loadingLeaderboard}
             error={leaderboardError}
-            onRetry={() => refetchLeaderboard()}
+            onRetry={handleRetryLeaderboard}
           />
         </div>
 
@@ -166,11 +186,11 @@ export function Dashboard() {
       {/* Modals */}
       <JoinClassModal
         open={showJoinModal}
-        onClose={() => setShowJoinModal(false)}
+        onClose={handleCloseJoinModal}
         initialCode={joinInitialCode}
         onJoin={joinClassroom}
       />
-      <BadgeRewardModal open={showBadgeModal} onClose={() => setShowBadgeModal(false)} />
+      <BadgeRewardModal open={showBadgeModal} onClose={handleCloseBadgeModal} />
       <BadgeUnlockToast />
       <LevelUpToast />
     </div>

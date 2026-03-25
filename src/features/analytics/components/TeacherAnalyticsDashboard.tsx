@@ -1,6 +1,6 @@
 import { Activity, Award, Clock, FileText, LayoutDashboard, Loader2, Radio, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { BadgeManager } from '@/src/features/gamification/components/BadgeManager'
@@ -49,13 +49,15 @@ export function TeacherAnalyticsDashboard({ courseId }: TeacherAnalyticsDashboar
     selectedLessonId ?? undefined
   )
 
-  const selectedLessonTitle = lessonData?.find(
-    (l) => l.lesson_id === selectedLessonId
-  )?.lesson_title
+  // ⚡ Perf: memoize .find() lookup — only recalc when lessonData or selection changes
+  const selectedLessonTitle = useMemo(() => {
+    return lessonData?.find((l) => l.lesson_id === selectedLessonId)?.lesson_title
+  }, [lessonData, selectedLessonId])
 
-  const handleLessonSelect = (lessonId: string) => {
+  // ⚡ Perf: stabilize callback ref passed to LessonBreakdownTable (large table)
+  const handleLessonSelect = useCallback((lessonId: string) => {
     setSelectedLessonId((prev) => (prev === lessonId ? null : lessonId))
-  }
+  }, [])
 
   const isAnyLoading = courseLoading || lessonLoading
 
