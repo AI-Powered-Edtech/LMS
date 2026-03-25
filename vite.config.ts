@@ -50,6 +50,14 @@ export default defineConfig(({ mode }) => {
               },
             },
             {
+              urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/v1\/object\/.*/i,
+              handler: 'StaleWhileRevalidate' as const,
+              options: {
+                cacheName: 'supabase-storage',
+                expiration: { maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60 }, // 7 days
+              },
+            },
+            {
               urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
               handler: 'CacheFirst',
               options: {
