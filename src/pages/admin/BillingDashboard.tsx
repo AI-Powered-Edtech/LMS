@@ -10,10 +10,11 @@ import {
   Search,
 } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useToast } from '@/src/components/ui/Toast'
 import { useAuth } from '@/src/contexts/AuthContext'
+import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { supabase } from '@/src/services/supabase/client'
 import { cn } from '@/src/utils/cn'
@@ -102,6 +103,9 @@ export function BillingDashboard() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
 
+  // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
+  const debouncedSearch = useDebounce(searchQuery, 300)
+
   useEffect(() => {
     async function fetchData() {
       if (!tenantId) return
@@ -144,13 +148,20 @@ export function BillingDashboard() {
     fetchData()
   }, [tenantId, addToast])
 
-  const filteredInvoices = invoices.filter((inv) =>
-    inv.id.toLowerCase().includes(searchQuery.toLowerCase())
+  // ⚡ Perf: Memoize filteredInvoices — was recomputed on every render without useMemo
+  const filteredInvoices = useMemo(
+    () => invoices.filter((inv) => inv.id.toLowerCase().includes(debouncedSearch.toLowerCase())),
+    [invoices, debouncedSearch]
   )
 
-  const unpaidTotal = invoices
-    .filter((i) => i.status === 'open')
-    .reduce((sum, inv) => sum + inv.amount_due - inv.amount_paid, 0)
+  // ⚡ Perf: Memoize unpaidTotal — was recomputed on every render without useMemo
+  const unpaidTotal = useMemo(
+    () =>
+      invoices
+        .filter((i) => i.status === 'open')
+        .reduce((sum, inv) => sum + inv.amount_due - inv.amount_paid, 0),
+    [invoices]
+  )
 
   if (loading) {
     return (

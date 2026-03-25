@@ -16,12 +16,13 @@ import {
   Users,
   X,
 } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { classroomService } from '@/src/features/classroom/api/classroomService'
 import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
+import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
 import { supabase } from '@/src/services/supabase/client'
@@ -223,8 +224,13 @@ export function ClassManagement() {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
-  const filteredClassrooms = classrooms.filter((c) =>
-    c.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
+  const debouncedSearch = useDebounce(searchQuery, 300)
+
+  // ⚡ Perf: Memoize filteredClassrooms — was recomputed on every render without useMemo
+  const filteredClassrooms = useMemo(
+    () => classrooms.filter((c) => c.name.toLowerCase().includes(debouncedSearch.toLowerCase())),
+    [classrooms, debouncedSearch]
   )
 
   return (

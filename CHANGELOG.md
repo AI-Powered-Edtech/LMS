@@ -1,5 +1,48 @@
 # EduSync LMS — Changelog
 
+## Security & Performance Cleanup (2026-03-25)
+
+### Security: Eliminate all bare `.select()` after mutations
+
+Replaced every remaining bare `.select()` (equivalent to `SELECT *`) after `insert/update/upsert` calls with explicit column lists. This prevents leaking unnecessary data and aligns with the project convention of never using `SELECT *`.
+
+**Files fixed (17 instances across 11 files):**
+
+- `assignmentBuilderService.ts` — update & insert branches
+- `lessonService.ts` — createLesson insert
+- `moduleService.ts` — createModule insert
+- `blockService.ts` — createBlock insert
+- `courseService.ts` — createCourse & updateCourse
+- `quizManager.service.ts` — createQuiz insert & addQuestionToQuiz insert
+- `gamificationService.ts` — saveBadgeDefinition update & insert branches
+- `announcementService.ts` — saveAnnouncement upsert & submitRSVP upsert
+- `onboardingQueries.ts` — useUpdateOnboardingProgress mutation
+- `OnboardingChecklist.tsx` — insert & update calls
+- `ai-tutor` Edge Function — session creation insert
+
+### Security: tenant_id filters & explicit columns (prior commit)
+
+- Fixed 5 HIGH severity issues: `calendarService.ts` (3 queries missing tenant_id), `discussionService.ts` (missing tenant_id), `assignmentService.ts` (double `SELECT *`)
+- Added `DISCUSSION_COLUMNS`, `ASSIGNMENT_COLUMNS`, `SUBMISSION_COLUMNS` constants
+- Added tenant_id on all mutation queries in calendar, discussion, assignment services
+
+### Performance: memoization & debounce improvements
+
+- `TemplateModal.tsx` — debounced search (300ms) + memoized filtered templates list
+- `AdminQuizOverview.tsx` — debounced search (300ms), memoized filter/sort, single-pass summary stats computation (was 4 separate array traversals)
+
+### Course Builder Enhancements (prior commit)
+
+- Undo/redo support via `builderReducer.ts` (UNDO, REDO actions with history stack)
+- `GeneralSettingsTab` in `CourseSettingsModal` with debounced autosave
+- `collaboratorService.ts` extracted from inline Supabase calls
+- Dark mode variants on `BuilderTopBar` (template/preview buttons)
+
+### Dead Code Removal
+
+- Deleted old monolithic `courseBuilderService.ts` (435 lines) — all functions already extracted to `builder/` directory services
+- Updated test file references
+
 ## External Integration: LTI 1.3 & SCORM Player (2026-03-24)
 
 ### LTI 1.3 Tool Provider

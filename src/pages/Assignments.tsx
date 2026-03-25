@@ -1,6 +1,6 @@
 import { ArrowRight, Clock, FileText, Plus, Users, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useToast } from '@/src/components/ui'
@@ -21,6 +21,7 @@ import { useAddCalendarEvent } from '@/src/features/calendar/hooks/useCalendarQu
 import { useComments } from '@/src/features/discussions/hooks/useCommentQueries'
 import { useGradebook } from '@/src/features/gradebook/hooks/useGradebookQueries'
 import { useSendNotification } from '@/src/features/notifications'
+import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 
 export function Assignments() {
@@ -54,6 +55,9 @@ export function Assignments() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filter, setFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
+
+  // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
+  const debouncedSearch = useDebounce(searchTerm, 300)
   const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [newComment, setNewComment] = useState('')
@@ -73,19 +77,24 @@ export function Assignments() {
   const activeAssignment = assignments.find((a) => a.id === selectedAssignment)
   const activeSelectedFile = activeAssignment ? selectedFiles[activeAssignment.id] : null
 
-  const filteredAssignments = (assignments || []).filter((a) => {
-    const matchesSearch = a.title.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus =
-      filter === 'all' ||
-      a.status === filter ||
-      (filter === 'assigned' && a.status === 'late') ||
-      (filter === 'submitted' && (a.status as string) === 'turned_in') ||
-      (filter === 'graded' && (a.status as string) === 'returned') ||
-      (filter === 'turned_in' && a.status === 'submitted') ||
-      (filter === 'returned' && a.status === 'graded')
-    const matchesType = typeFilter === 'all' || a.type === typeFilter
-    return matchesSearch && matchesStatus && matchesType
-  })
+  // ⚡ Perf: Memoize filteredAssignments — was recomputed on every render without useMemo
+  const filteredAssignments = useMemo(
+    () =>
+      (assignments || []).filter((a) => {
+        const matchesSearch = a.title.toLowerCase().includes(debouncedSearch.toLowerCase())
+        const matchesStatus =
+          filter === 'all' ||
+          a.status === filter ||
+          (filter === 'assigned' && a.status === 'late') ||
+          (filter === 'submitted' && (a.status as string) === 'turned_in') ||
+          (filter === 'graded' && (a.status as string) === 'returned') ||
+          (filter === 'turned_in' && a.status === 'submitted') ||
+          (filter === 'returned' && a.status === 'graded')
+        const matchesType = typeFilter === 'all' || a.type === typeFilter
+        return matchesSearch && matchesStatus && matchesType
+      }),
+    [assignments, debouncedSearch, filter, typeFilter]
+  )
 
   if (loading) return <AssignmentSkeleton />
 

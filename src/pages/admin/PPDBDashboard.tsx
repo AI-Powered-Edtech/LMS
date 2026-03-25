@@ -9,9 +9,10 @@ import {
   Users,
   XCircle,
 } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
 import { VirtualTable } from '@/src/components/ui/VirtualTable'
+import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
 
@@ -157,13 +158,21 @@ export function PPDBDashboard() {
   )
   const [searchQuery, setSearchQuery] = useState('')
 
-  const filteredApplicants = applicants.filter((app) => {
-    const matchesStatus = filterStatus === 'all' || app.status === filterStatus
-    const matchesSearch =
-      app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.id.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesStatus && matchesSearch
-  })
+  // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
+  const debouncedSearch = useDebounce(searchQuery, 300)
+
+  // ⚡ Perf: Memoize filteredApplicants — was recomputed on every render without useMemo
+  const filteredApplicants = useMemo(
+    () =>
+      applicants.filter((app) => {
+        const matchesStatus = filterStatus === 'all' || app.status === filterStatus
+        const matchesSearch =
+          app.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          app.id.toLowerCase().includes(debouncedSearch.toLowerCase())
+        return matchesStatus && matchesSearch
+      }),
+    [filterStatus, debouncedSearch]
+  )
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">

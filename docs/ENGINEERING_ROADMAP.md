@@ -47,6 +47,7 @@ From prototype to production. Built on a Supabase-centric serverless architectur
 ✅ Phase 17 — Free Tier Survival (remove all WebSockets, downgrade pg_cron to daily, debounce searches, cap query limits)
 ✅ Phase 18 — LTI 1.3 + SCORM Integration (external LMS launch, SCORM 1.2/2004 player, Interactive Video pop-up quizzes)
 ✅ Phase 19 — Course Builder Enhancement (content versioning, template library, collaborators, review workflow)
+✅ Phase 20 — Security & Performance Cleanup (bare .select() elimination, tenant_id audit, memoization, dead code removal)
 ```
 
 ---

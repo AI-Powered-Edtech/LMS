@@ -18,13 +18,14 @@ import {
   Users,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { EmptyState, SkeletonCard } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 import type { Certificate } from '@/src/features/gamification'
 import { useStudentCertificates } from '@/src/features/gamification'
+import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
 import { supabase } from '@/src/services/supabase/client'
@@ -42,12 +43,20 @@ export function Certificates() {
   const [isDownloading, setIsDownloading] = useState<string | null>(null)
   const [showShareMenu, setShowShareMenu] = useState<string | null>(null)
 
+  // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
+  const debouncedSearch = useDebounce(searchTerm, 300)
+
   const studentName = profile
     ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim()
     : 'Siswa'
 
-  const filteredCertificates = certificates.filter((cert) =>
-    cert.course_title.toLowerCase().includes(searchTerm.toLowerCase())
+  // ⚡ Perf: Memoize filteredCertificates — was recomputed on every render without useMemo
+  const filteredCertificates = useMemo(
+    () =>
+      certificates.filter((cert) =>
+        cert.course_title.toLowerCase().includes(debouncedSearch.toLowerCase())
+      ),
+    [certificates, debouncedSearch]
   )
 
   const highlightedCert = certificates.length > 0 ? certificates[0] : null

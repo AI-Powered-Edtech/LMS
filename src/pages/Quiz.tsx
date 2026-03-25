@@ -15,6 +15,7 @@ import {
 } from '@/src/features/quizzes'
 import { quizService } from '@/src/features/quizzes'
 import { QuizSkeleton } from '@/src/features/quizzes/components/QuizSkeleton'
+import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
 import { cn } from '@/src/utils/cn'
@@ -100,8 +101,16 @@ export function QuizModule() {
   const [showAnswerReview, setShowAnswerReview] = useState(false)
   const [gradedQuestions, setGradedQuestions] = useState<QuizAttemptQuestion[]>([])
 
-  const completedAttempts = quizAttempts.filter(
-    (attempt) => attempt.status === 'SUBMITTED' || attempt.status === 'GRADED'
+  // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
+  const debouncedSearch = useDebounce(searchQuery, 300)
+
+  // ⚡ Perf: Memoize completedAttempts — was recomputed on every render
+  const completedAttempts = useMemo(
+    () =>
+      quizAttempts.filter(
+        (attempt) => attempt.status === 'SUBMITTED' || attempt.status === 'GRADED'
+      ),
+    [quizAttempts]
   )
 
   // Compute total points from completed attempts
@@ -109,14 +118,20 @@ export function QuizModule() {
     return completedAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0)
   }, [completedAttempts])
 
-  const filteredQuizzes = quizzes.filter((quiz) => {
-    if (quiz.status === 'draft') return false
-    const matchesSearch = quiz.title?.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesClass = selectedClass === 'all' || quiz.class_name === selectedClass
-    return matchesSearch && matchesClass
-  })
+  // ⚡ Perf: Memoize filteredQuizzes — was recomputed on every render without useMemo
+  const filteredQuizzes = useMemo(
+    () =>
+      quizzes.filter((quiz) => {
+        if (quiz.status === 'draft') return false
+        const matchesSearch = quiz.title?.toLowerCase().includes(debouncedSearch.toLowerCase())
+        const matchesClass = selectedClass === 'all' || quiz.class_name === selectedClass
+        return matchesSearch && matchesClass
+      }),
+    [quizzes, debouncedSearch, selectedClass]
+  )
 
-  const classes = [...new Set(quizzes.map((q) => q.class_name || 'Umum'))]
+  // ⚡ Perf: Memoize class list — was recomputed via Set on every render
+  const classes = useMemo(() => [...new Set(quizzes.map((q) => q.class_name || 'Umum'))], [quizzes])
 
   const refreshQuizData = async () => {
     await Promise.all([refetchQuizzes(), refetchAttempts()])
