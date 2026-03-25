@@ -98,7 +98,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
           <p style={styles.subtitle}>
             Ke <strong>{activeTenant?.name ?? 'tenant'}</strong>
           </p>
-          <button style={styles.closeBtn} onClick={handleClose}>
+          <button style={styles.closeBtn} onClick={handleClose} aria-label="Tutup modal">
             ✕
           </button>
         </div>
