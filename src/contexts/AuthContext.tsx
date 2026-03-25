@@ -84,6 +84,7 @@ export interface AuthContextType {
   permissions: Permissions
   loading: boolean
   emailVerified: boolean
+  sessionExpired: boolean
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signUp: (
     email: string,
@@ -119,6 +120,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   // Add a specific loading state for memberships to prevent hydration UI flashes
   const [loadingMemberships, setLoadingMemberships] = useState(true)
+  const [sessionExpired, setSessionExpired] = useState(false)
+  // Track whether user was previously authenticated (to detect session expiry vs fresh load)
+  const wasAuthenticatedRef = useRef(false)
   const fetchLock = useRef(false)
 
   // Pre-resolve tenant id hint from local storage (will be validated after auth)
@@ -328,6 +332,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(s)
       setUser(s?.user ?? null)
       if (s?.user) {
+        wasAuthenticatedRef.current = true
         fetchUserData(s.user.id)
           .then(() => processPendingInvite(s!.user.id))
           .then(() => processPendingJoinCode())
@@ -347,6 +352,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(s)
       setUser(s?.user ?? null)
       if (s?.user) {
+        wasAuthenticatedRef.current = true
         // FIX: Set loadingMemberships=true BEFORE fetch starts.
         // Without this, there is a brief window where loading=false AND
         // memberships=[] — causing WorkspaceSelector to flash
@@ -362,6 +368,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setLoading(false)
           })
       } else {
+        // Detect session expiry: user was authenticated but session became null
+        if (wasAuthenticatedRef.current && _event === 'SIGNED_OUT') {
+          setSessionExpired(true)
+        }
+        wasAuthenticatedRef.current = false
         setProfile(null)
         setTenantId(null)
         setMemberships([])
@@ -377,7 +388,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
   /* eslint-enable react-hooks/exhaustive-deps */
 
+  // B6: Proactive JWT refresh — check every 60s, refresh if expiring within 5 min
+  useEffect(() => {
+    if (!session) return
+
+    const INTERVAL_MS = 60_000
+    const REFRESH_THRESHOLD_S = 5 * 60 // 5 minutes in seconds
+
+    const checkAndRefresh = async () => {
+      const currentSession = (await supabase.auth.getSession()).data.session
+      if (!currentSession) return
+
+      const expiresAt = currentSession.expires_at // unix timestamp in seconds
+      if (!expiresAt) return
+
+      const nowS = Math.floor(Date.now() / 1000)
+      const remainingS = expiresAt - nowS
+
+      if (remainingS <= REFRESH_THRESHOLD_S) {
+        if (import.meta.env.DEV)
+          console.info(`[Auth] Token expires in ${remainingS}s, refreshing proactively...`)
+
+        const { error } = await supabase.auth.refreshSession()
+        if (error) {
+          console.error('[Auth] Proactive token refresh failed:', error)
+          // If refresh fails and we had an active session, mark as expired and sign out
+          setSessionExpired(true)
+          await signOut()
+        }
+      }
+    }
+
+    const interval = setInterval(checkAndRefresh, INTERVAL_MS)
+    return () => clearInterval(interval)
+    // signOut is a stable callback; session identity change triggers re-subscribe
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.access_token])
+
   const signIn = useCallback(async (email: string, password: string) => {
+    setSessionExpired(false)
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -462,6 +511,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       permissions,
       loading: loading || loadingMemberships,
       emailVerified,
+      sessionExpired,
       signIn,
       signUp,
       signOut,
@@ -483,6 +533,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       loadingMemberships,
       emailVerified,
+      sessionExpired,
       signIn,
       signUp,
       signOut,

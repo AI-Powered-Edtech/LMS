@@ -181,7 +181,7 @@ export function StudentGroupView() {
               <div className="p-6 flex flex-col h-full">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                    To-Do List Kelompok
+                    Daftar Tugas Kelompok
                   </h3>
                   <span className="text-sm font-bold text-slate-500 dark:text-slate-400">
                     {tasks.filter((t) => t.status === 'completed').length}/{tasks.length} Selesai
@@ -234,7 +234,7 @@ export function StudentGroupView() {
                               {task.title}
                             </p>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                              PIC: {task.assignee}
+                              Penanggung Jawab: {task.assignee}
                             </p>
                           </div>
                         </div>

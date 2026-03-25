@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { useAuth } from '../../../contexts/AuthContext'
+import { useAuth } from '@/src/contexts/AuthContext'
+
 import { announcementService } from '../api/announcementService'
 import { Announcement } from '../types'
 import { announcementKeys } from './announcementKeys'

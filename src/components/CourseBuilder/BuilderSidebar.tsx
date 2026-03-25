@@ -1,4 +1,10 @@
-import { DragDropContext, Draggable, Droppable, type DropResult } from '@hello-pangea/dnd'
+import {
+  DragDropContext,
+  Draggable,
+  type DragStart,
+  Droppable,
+  type DropResult,
+} from '@hello-pangea/dnd'
 import {
   ChevronDown,
   ChevronRight,
@@ -11,6 +17,7 @@ import {
   Save,
   Trash2,
   Video,
+  X,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
@@ -21,7 +28,7 @@ import { TemplateModal } from '@/src/features/courses/components/TemplateModal'
 import { cn } from '@/src/utils/cn'
 
 export function BuilderSidebar() {
-  const { state, actions } = useBuilder()
+  const { state, actions, mobile } = useBuilder()
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const [addingLessonTo, setAddingLessonTo] = useState<string | null>(null)
 
@@ -56,7 +63,17 @@ export function BuilderSidebar() {
       case 'quiz':
         return <HelpCircle className="w-4 h-4 text-rose-500" />
       default:
-        return <FileText className="w-4 h-4 text-slate-400" />
+        return <FileText className="w-4 h-4 text-slate-500" />
+    }
+  }
+
+  const handleDragStart = (_start: DragStart) => {
+    if (mobile.isMobile || mobile.isTablet) {
+      try {
+        navigator.vibrate?.(50)
+      } catch {
+        // ignore
+      }
     }
   }
 
@@ -92,48 +109,63 @@ export function BuilderSidebar() {
     const typeLabel = type.charAt(0).toUpperCase() + type.slice(1)
     actions.addLesson(moduleId, type, `New ${typeLabel}`)
     setAddingLessonTo(null)
-    // Auto-expand the module
     setExpandedModules((prev) => new Set(prev).add(moduleId))
   }
 
-  return (
-    <div className="w-[340px] bg-slate-50/30 dark:bg-slate-900/30 border-r border-slate-200/60 dark:border-slate-700/60 flex flex-col h-full shrink-0 relative z-10 backdrop-blur-xl">
+  const sidebarContent = (
+    <div
+      className={cn(
+        'w-[340px] bg-slate-50/30 dark:bg-slate-900/30 border-r border-slate-200/60 dark:border-slate-700/60 flex flex-col h-full shrink-0 relative z-10 backdrop-blur-xl',
+        mobile.isMobile && 'w-[85vw] max-w-[340px] bg-white dark:bg-slate-900'
+      )}
+    >
       {/* Header */}
       <div className="px-6 py-5 border-b border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between bg-white/50 dark:bg-slate-800/50">
         <div>
-          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] block mb-0.5">
+          <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] block mb-0.5">
             Struktur Kursus
           </span>
           <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
             Kurikulum Materi
           </span>
         </div>
-        <div className="flex items-center">
-          <button
-            onClick={handleAddModule}
-            className="flex items-center gap-1 p-2 pr-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95"
-            title="Buat Modul Baru"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="text-xs font-bold">Modul</span>
-          </button>
-          <button
-            onClick={() => {
-              if (state.courseId) {
-                setTemplateModalConfig({ isOpen: true, type: 'module', targetId: state.courseId })
-              }
-            }}
-            disabled={!state.courseId}
-            className="flex items-center p-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-r-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95 border-l border-indigo-700/30 disabled:opacity-50"
-            title="Import dari Template"
-          >
-            <Import className="w-3.5 h-3.5" />
-          </button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center">
+            <button
+              onClick={handleAddModule}
+              className="flex items-center gap-1 p-2 pr-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95"
+              title="Buat Modul Baru"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="text-xs font-bold">Modul</span>
+            </button>
+            <button
+              onClick={() => {
+                if (state.courseId) {
+                  setTemplateModalConfig({ isOpen: true, type: 'module', targetId: state.courseId })
+                }
+              }}
+              disabled={!state.courseId}
+              className="flex items-center p-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-r-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95 border-l border-indigo-700/30 disabled:opacity-50"
+              title="Import dari Template"
+            >
+              <Import className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          {mobile.isMobile && (
+            <button
+              onClick={mobile.closeSidebar}
+              className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+              aria-label="Tutup navigasi"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
       </div>
 
       {/* Module Tree */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-1">
+      <div className="flex-1 overflow-y-auto p-2 space-y-1 touch-manipulation">
         {state.loadingCourse ? (
           <div className="flex items-center justify-center py-12">
             <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -146,7 +178,7 @@ export function BuilderSidebar() {
             <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-2">
               Belum ada modul
             </p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mb-6 leading-relaxed">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
               Mulai bangun kursus Anda dengan menambahkan modul pertama sebagai kerangka.
             </p>
             <button
@@ -158,7 +190,12 @@ export function BuilderSidebar() {
             </button>
           </div>
         ) : (
-          <DragDropContext onDragEnd={handleDragEnd}>
+          <DragDropContext
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            // Screen reader announcements in Bahasa Indonesia
+            // (Providing a custom screenReaderInstructions isn't fully supported by simple props without aria-live, but we can do our best with what's available or leave it to standard DnD)
+          >
             <Droppable droppableId="modules" type="MODULE">
               {(provided) => (
                 <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-1">
@@ -171,13 +208,22 @@ export function BuilderSidebar() {
                           className={cn(
                             'rounded-lg transition-colors',
                             snapshot.isDragging &&
-                              'shadow-lg ring-2 ring-blue-200 dark:ring-blue-800 bg-blue-50 dark:bg-blue-950'
+                              'shadow-2xl ring-2 ring-blue-300 dark:ring-blue-700 bg-blue-50 dark:bg-blue-900/50 scale-[1.02]'
                           )}
                         >
                           {/* Module Header */}
                           <div
+                            role="button"
+                            tabIndex={0}
+                            aria-expanded={expandedModules.has(mod.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                toggleModule(mod.id)
+                              }
+                            }}
                             className={cn(
-                              'flex items-center gap-2 px-3 py-3 rounded-xl cursor-pointer group',
+                              'flex items-center gap-2 px-3 py-3 rounded-xl cursor-pointer group outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
                               'hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm transition-all border border-transparent hover:border-slate-200/50 dark:hover:border-slate-700/50',
                               expandedModules.has(mod.id) &&
                                 'bg-white dark:bg-slate-800 shadow-sm border-slate-200/50 dark:border-slate-700/50 mb-1'
@@ -186,19 +232,20 @@ export function BuilderSidebar() {
                           >
                             <div
                               {...dragProvided.dragHandleProps}
-                              className="p-0.5 text-slate-300 hover:text-slate-500"
+                              className="p-1 min-w-[32px] min-h-[32px] flex items-center justify-center text-slate-400 hover:text-slate-600 touch-none"
+                              aria-label="Pindah modul"
                             >
-                              <GripVertical className="w-3.5 h-3.5" />
+                              <GripVertical className="w-4 h-4" />
                             </div>
                             {expandedModules.has(mod.id) ? (
-                              <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <ChevronDown className="w-4 h-4 text-slate-500 shrink-0" />
                             ) : (
-                              <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <ChevronRight className="w-4 h-4 text-slate-500 shrink-0" />
                             )}
                             <span className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate flex-1">
                               {mod.title}
                             </span>
-                            <span className="text-[10px] text-slate-400 font-medium">
+                            <span className="text-xs text-slate-500 font-medium">
                               {mod.lessons.length}
                             </span>
                             <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
@@ -212,11 +259,11 @@ export function BuilderSidebar() {
                                     defaultTitle: mod.title,
                                   })
                                 }}
-                                className="p-1 hover:bg-indigo-50 text-slate-400 hover:text-indigo-500 rounded transition-colors"
+                                className="p-2 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 rounded transition-colors"
                                 aria-label="Simpan sebagai Template"
                                 title="Simpan sebagai Template"
                               >
-                                <Save className="w-3 h-3" />
+                                <Save className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={(e) => {
@@ -225,11 +272,11 @@ export function BuilderSidebar() {
                                     actions.deleteModule(mod.id)
                                   }
                                 }}
-                                className="p-1 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded transition-colors ml-0.5"
+                                className="p-2 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded transition-colors ml-0.5"
                                 aria-label="Hapus modul"
                                 title="Hapus modul"
                               >
-                                <Trash2 className="w-3 h-3" />
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           </div>
@@ -261,17 +308,26 @@ export function BuilderSidebar() {
                                             <div
                                               ref={lesDragProvided.innerRef}
                                               {...lesDragProvided.draggableProps}
-                                              {...lesDragProvided.dragHandleProps}
-                                              onClick={() => actions.selectLesson(lesson.id)}
+                                              onClick={() => {
+                                                actions.selectLesson(lesson.id)
+                                                if (mobile.isMobile) mobile.closeSidebar()
+                                              }}
                                               className={cn(
-                                                'flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer group/lesson transition-all text-xs border border-transparent mb-1',
+                                                'flex items-center gap-2 px-1 py-1.5 rounded-xl cursor-pointer group/lesson transition-all text-xs border border-transparent mb-1',
                                                 state.activeLesson?.id === lesson.id
                                                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 font-bold'
                                                   : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:border-slate-100 dark:hover:border-slate-700',
                                                 lesSnapshot.isDragging &&
-                                                  'shadow-xl ring-2 ring-indigo-500 bg-white dark:bg-slate-800 scale-105 z-50'
+                                                  'shadow-xl ring-2 ring-indigo-500 bg-white dark:bg-slate-800 scale-[1.03] z-50'
                                               )}
                                             >
+                                              <div
+                                                {...lesDragProvided.dragHandleProps}
+                                                className="p-2 flex items-center justify-center min-w-[32px] min-h-[32px] text-slate-400 hover:text-slate-600 touch-none"
+                                                aria-label="Pindah materi"
+                                              >
+                                                <GripVertical className="w-4 h-4" />
+                                              </div>
                                               <div
                                                 className={cn(
                                                   'p-1.5 rounded-lg transition-colors',
@@ -296,16 +352,16 @@ export function BuilderSidebar() {
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                   <span
                                                     className={cn(
-                                                      'text-[10px] font-medium uppercase tracking-wider',
+                                                      'text-xs font-medium uppercase tracking-wider',
                                                       state.activeLesson?.id === lesson.id
                                                         ? 'text-white/70'
-                                                        : 'text-slate-400'
+                                                        : 'text-slate-500'
                                                     )}
                                                   >
                                                     {lesson.type}
                                                   </span>
                                                   {!lesson.isPublished && (
-                                                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-amber-400/90 text-amber-900 shadow-sm shadow-amber-200">
+                                                    <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-amber-400/90 text-amber-900 shadow-sm shadow-amber-200">
                                                       DRAF
                                                     </span>
                                                   )}
@@ -330,15 +386,15 @@ export function BuilderSidebar() {
                                                     })
                                                   }}
                                                   className={cn(
-                                                    'p-1 rounded-md transition-colors',
+                                                    'p-2 rounded-md transition-colors',
                                                     state.activeLesson?.id === lesson.id
                                                       ? 'hover:bg-white/20 text-white/70 hover:text-white'
-                                                      : 'hover:bg-indigo-50 text-slate-400 hover:text-indigo-500'
+                                                      : 'hover:bg-indigo-50 text-slate-500 hover:text-indigo-600'
                                                   )}
                                                   aria-label="Simpan sebagai Template"
                                                   title="Simpan sebagai Template"
                                                 >
-                                                  <Save className="w-3 h-3" />
+                                                  <Save className="w-3.5 h-3.5" />
                                                 </button>
                                                 <button
                                                   onClick={(e) => {
@@ -348,15 +404,15 @@ export function BuilderSidebar() {
                                                     }
                                                   }}
                                                   className={cn(
-                                                    'p-1 rounded-md transition-colors',
+                                                    'p-2 rounded-md transition-colors',
                                                     state.activeLesson?.id === lesson.id
                                                       ? 'hover:bg-white/20 text-white/70 hover:text-white'
-                                                      : 'hover:bg-rose-50 text-slate-400 hover:text-rose-500'
+                                                      : 'hover:bg-rose-50 text-slate-500 hover:text-rose-600'
                                                   )}
                                                   aria-label="Hapus pelajaran"
                                                   title="Hapus pelajaran"
                                                 >
-                                                  <Trash2 className="w-3 h-3" />
+                                                  <Trash2 className="w-3.5 h-3.5" />
                                                 </button>
                                               </div>
                                             </div>
@@ -378,7 +434,7 @@ export function BuilderSidebar() {
                                                 key={t.type}
                                                 onClick={() => handleAddLesson(mod.id, t.type)}
                                                 className={cn(
-                                                  'flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all border border-dashed hover:scale-105 active:scale-95',
+                                                  'flex-1 py-2 rounded-lg text-xs font-bold transition-all border border-dashed hover:scale-105 active:scale-95',
                                                   t.type === 'article' &&
                                                     'text-indigo-600 border-indigo-200 bg-indigo-50/50 hover:bg-indigo-50',
                                                   t.type === 'video' &&
@@ -404,18 +460,18 @@ export function BuilderSidebar() {
                                                 targetId: mod.id,
                                               })
                                             }}
-                                            className="w-full py-1.5 rounded-lg text-[10px] font-bold text-emerald-600 border border-dashed border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-1"
+                                            className="w-full py-2 rounded-lg text-xs font-bold text-emerald-600 border border-dashed border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-1"
                                           >
-                                            <Import className="w-3 h-3" />
+                                            <Import className="w-4 h-4" />
                                             DARI TEMPLATE
                                           </button>
                                         </div>
                                       ) : (
                                         <button
                                           onClick={() => setAddingLessonTo(mod.id)}
-                                          className="w-full mt-2 py-2 text-[10px] font-black text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm rounded-xl transition-all flex items-center justify-center gap-1.5 border border-dashed border-slate-200 hover:border-indigo-200 group/add"
+                                          className="w-full mt-2 py-3 text-xs font-black text-slate-500 hover:text-indigo-600 hover:bg-white hover:shadow-sm rounded-xl transition-all flex items-center justify-center gap-1.5 border border-dashed border-slate-200 hover:border-indigo-200 group/add"
                                         >
-                                          <Plus className="w-3.5 h-3.5 group-hover/add:rotate-90 transition-transform duration-300" />
+                                          <Plus className="w-4 h-4 group-hover/add:rotate-90 transition-transform duration-300" />
                                           TAMBAH MATERI
                                         </button>
                                       )}
@@ -455,5 +511,40 @@ export function BuilderSidebar() {
         />
       )}
     </div>
+  )
+
+  return (
+    <>
+      <nav aria-label="Struktur kursus" className="contents">
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:contents">{sidebarContent}</div>
+
+        {/* Mobile Drawer */}
+        <AnimatePresence>
+          {mobile.isMobile && mobile.sidebarOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex lg:hidden"
+            >
+              <div
+                className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                onClick={mobile.closeSidebar}
+              />
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="relative z-10 flex h-full shadow-2xl"
+              >
+                {sidebarContent}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
+    </>
   )
 }

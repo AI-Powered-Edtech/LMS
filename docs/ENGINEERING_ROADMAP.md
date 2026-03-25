@@ -48,6 +48,7 @@ From prototype to production. Built on a Supabase-centric serverless architectur
 ✅ Phase 18 — LTI 1.3 + SCORM Integration (external LMS launch, SCORM 1.2/2004 player, Interactive Video pop-up quizzes)
 ✅ Phase 19 — Course Builder Enhancement (content versioning, template library, collaborators, review workflow)
 ✅ Phase 20 — Security & Performance Cleanup (bare .select() elimination, tenant_id audit, memoization, dead code removal)
+✅ Phase 21 — Production Perfection (UI/UX polish, logic hardening, code health, technical hardening, documentation)
 ```
 
 ---
@@ -77,6 +78,10 @@ gantt
     Phase 12 Consolidation   :done, p12, after p9, 7d
     Phase 13 Performance     :done, p13, after p12, 5d
     Phase 14 E2E Tests       :done, p14b, after p13, 5d
+
+    section Production
+    Phase 15-20 Hardening    :done, p15, after p14b, 10d
+    Phase 21 Perfection      :done, p21, after p15, 3d
 ```
 
 ---
@@ -109,15 +114,71 @@ gantt
 
 ---
 
+## Completed: Phase 21 — Production Perfection
+
+**Goal:** Final polish pass — eliminate every rough edge before public launch.
+
+### 21A: UI/UX Polish
+
+```
+✅ Session expiry modal — warns users before automatic logout on token expiry
+✅ LazyLoadTimeout component — shows helpful message when lazy chunks take too long
+✅ Micro-animations — subtle Framer Motion transitions on page/component mounts
+✅ RouteAnnouncer — live region announces route changes for screen readers (a11y)
+✅ Dark mode audit — fixed remaining components missing dark: variants
+```
+
+### 21B: Logic & Product Hardening
+
+```
+✅ Global error handling — FeatureErrorBoundary with retry and fallback UI
+✅ Token refresh monitoring — AuthContext tracks refresh cycles, prevents infinite spinner
+✅ i18n cleanup — eliminated remaining English strings in UI (buttons, labels, errors)
+✅ Creator page improvements — better UX for course creation flow
+✅ Offline resilience — OfflineIndicator component, service worker improvements
+```
+
+### 21C: Code Health
+
+```
+✅ Route splitting — monolithic routes.tsx split into src/app/routes/ (7 domain files)
+✅ 10 page refactors — extracted logic into feature-module hooks/components
+✅ 4 service file splits — decomposed oversized services into focused modules
+✅ ESLint rule enforcement — stricter rules, deep import restrictions
+✅ Coverage thresholds — configured minimum coverage gates
+```
+
+### 21D: Technical Hardening
+
+```
+✅ SECURITY DEFINER fixes — 19 functions patched with SET search_path (20260325_fix_search_path.sql)
+✅ CSP enforcement — upgraded from report-only to enforced Content-Security-Policy
+✅ Bundle size checks — CI gate for chunk size regressions
+✅ Deploy pipeline — documented deployment procedures
+✅ Sentry hardening — sensitive data filtering (tokens, passwords, keys) in beforeSend/beforeBreadcrumb
+✅ DR documentation — docs/DISASTER_RECOVERY.md (RPO 1h / RTO 4h, PITR, rollback procedures)
+✅ PWA install prompt — deferred install banner with 30-day dismiss cooldown
+✅ Push notifications — send-push Edge Function for notification delivery
+```
+
+### 21E: Documentation
+
+```
+✅ Updated docs/DATABASE.md, docs/ARCHITECTURE.md, docs/SECURITY.md
+✅ Updated docs/ENGINEERING_ROADMAP.md, CHANGELOG.md
+```
+
+---
+
 ## Infrastructure
 
-| Item               | Status                                                                                                                                                                                         |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Supabase Project   | `omfnkoufjqjqilswldtz` — active                                                                                                                                                                |
-| Migrations applied | 161 files (001–825, 20260324100000–20260324200000)                                                                                                                                             |
-| Edge Functions     | 11 deployed (ai-tutor, ai-grade-essay, grade-quiz-attempt, load-quiz-data, progress-events, process-progress-events, generate-ai-content, lti-jwks, lti-oidc-login, lti-launch, scorm-extract) |
-| pg_cron jobs       | badge-xp-streak-processor (daily 2 AM), aggregation jobs (daily 2 AM) — optimized for Free Tier Nano                                                                                           |
-| Frontend deploy    | Vite + Vercel/Netlify                                                                                                                                                                          |
+| Item               | Status                                                                                                                                                                                                                                                   |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Supabase Project   | `omfnkoufjqjqilswldtz` — active                                                                                                                                                                                                                          |
+| Migrations applied | 162 files (001–825, 20260324100000–20260324200000, 20260325_fix_search_path)                                                                                                                                                                             |
+| Edge Functions     | 14 deployed (ai-tutor, ai-grade-essay, generate-ai-content, generate-pdf, grade-quiz-attempt, health-check, load-quiz-data, lti-jwks, lti-launch, lti-oidc-login, process-progress-events, progress-events, scorm-extract, send-email-digest, send-push) |
+| pg_cron jobs       | badge-xp-streak-processor (daily 2 AM), aggregation jobs (daily 2 AM) — optimized for Free Tier Nano                                                                                                                                                     |
+| Frontend deploy    | Vite + Vercel/Netlify                                                                                                                                                                                                                                    |
 
 <!-- Phase 5 Feature Cross-Reference -->
 

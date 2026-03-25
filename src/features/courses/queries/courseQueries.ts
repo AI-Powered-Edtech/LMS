@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 
-import { useAuth } from '../../../contexts/AuthContext'
+import { useAuth } from '@/src/contexts/AuthContext'
+
 import { courseService } from '../api/courseService'
 import { FetchCoursesOptions } from '../types'
 import { courseKeys } from './courseKeys'

@@ -190,20 +190,49 @@ The `pg_cron` extension is required. Scheduled jobs:
 
 Migrations are in `supabase/migrations/` numbered `001` through `836`. Apply in numeric order. Key milestones:
 
-| Range          | Domain                                                                                        |
-| -------------- | --------------------------------------------------------------------------------------------- |
-| 001–062        | Core schema, auth, RLS foundation                                                             |
-| 063–071        | Quiz engine v1/v2                                                                             |
-| 072–095        | Analytics engine                                                                              |
-| 096–200        | Various features                                                                              |
-| 291–297        | Critical bug fixes (quiz grading, analytics auth)                                             |
-| 810–820        | Advanced analytics (engagement, cohort, funnel, struggle)                                     |
-| 821–822        | Gamification v2 (XP, badges, leaderboard, streaks)                                            |
-| 823–825        | Registration helpers, attendance, seed data                                                   |
-| 836            | Security fixes (5 HIGH vulnerabilities)                                                       |
-| 20260324150000 | Course Builder Phase 1: versioning + template library                                         |
-| 20260324160000 | Course Collaborators: multi-author roles, review workflow, updated RLS policies               |
-| 20260324200000 | LTI 1.3 + SCORM integration: platform registrations, nonces, sessions, packages, runtime data |
+| Range                    | Domain                                                                                        |
+| ------------------------ | --------------------------------------------------------------------------------------------- |
+| 001–062                  | Core schema, auth, RLS foundation                                                             |
+| 063–071                  | Quiz engine v1/v2                                                                             |
+| 072–095                  | Analytics engine                                                                              |
+| 096–200                  | Various features                                                                              |
+| 291–297                  | Critical bug fixes (quiz grading, analytics auth)                                             |
+| 810–820                  | Advanced analytics (engagement, cohort, funnel, struggle)                                     |
+| 821–822                  | Gamification v2 (XP, badges, leaderboard, streaks)                                            |
+| 823–825                  | Registration helpers, attendance, seed data                                                   |
+| 836                      | Security fixes (5 HIGH vulnerabilities)                                                       |
+| 20260324150000           | Course Builder Phase 1: versioning + template library                                         |
+| 20260324160000           | Course Collaborators: multi-author roles, review workflow, updated RLS policies               |
+| 20260324200000           | LTI 1.3 + SCORM integration: platform registrations, nonces, sessions, packages, runtime data |
+| 20260325_fix_search_path | SECURITY DEFINER `search_path` fix for 19 functions (see below)                               |
+
+### Migration 20260325_fix_search_path — SECURITY DEFINER Hardening
+
+All 19 `SECURITY DEFINER` functions that were created without `SET search_path TO 'public'` have been patched. Without an explicit `search_path`, a malicious actor who can control the session `search_path` could trick these functions into resolving unqualified names to attacker-controlled objects.
+
+**Functions fixed:**
+
+1. `grade_attempt_question(uuid, numeric, boolean, text)`
+2. `handle_course_unassigned_from_class()`
+3. `is_enrolled_in_course(uuid)`
+4. `log_analytics_access(text, uuid, jsonb)`
+5. `notify_announcement_published()`
+6. `notify_assignment_graded()`
+7. `notify_course_published()`
+8. `notify_discussion_reply()`
+9. `notify_quiz_published()`
+10. `on_assignment_submitted()`
+11. `recalculate_attempt_score(uuid)`
+12. `recompute_leaderboard(uuid)`
+13. `recompute_weekly_leaderboard(uuid, uuid, timestamptz)`
+14. `refresh_weekly_leaderboard(uuid, uuid)`
+15. `search_lesson_resources(uuid, uuid, text, integer)`
+16. `sync_points_to_weekly_leaderboard()`
+17. `sync_user_points_to_leaderboard()`
+18. `update_streak(uuid, uuid)`
+19. `v1_get_quiz_results(uuid)`
+
+> **Note:** A `rate_limits` table for RPC rate limiting was planned during Phase 21D but has not yet been implemented. Rate limiting is currently handled at the application level via `check_analytics_rate_limit()` and Supabase's built-in API rate limits.
 
 <!-- Phase 5 Feature Cross-Reference -->
 

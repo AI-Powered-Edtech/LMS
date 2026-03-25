@@ -15,6 +15,10 @@ export {
   useNotifications,
 } from './hooks/useNotifications'
 
+// Push subscription hook
+export type { UsePushSubscriptionReturn } from './hooks/usePushSubscription'
+export { usePushSubscription } from './hooks/usePushSubscription'
+
 // Legacy query hooks (used by NotificationCenter, Header, Creator, Assignments)
 // Note: useNotifications is NOT re-exported from notificationQueries to avoid conflict
 export { useMarkAllAsRead, useMarkAsRead, useSendNotification } from './queries/notificationQueries'
@@ -23,3 +27,4 @@ export { useMarkAllAsRead, useMarkAsRead, useSendNotification } from './queries/
 export { NotificationBell } from './components/NotificationBell'
 export { NotificationPanel } from './components/NotificationPanel'
 export { NotificationPreferencesPanel } from './components/NotificationPreferencesPanel'
+export { PushPermissionPrompt } from './components/PushPermissionPrompt'

@@ -1,113 +1,40 @@
-import { valibotResolver } from '@hookform/resolvers/valibot'
-import React, { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import React from 'react'
 import { Navigate } from 'react-router-dom'
 
-import { FormField } from '@/src/components/ui/FormField'
+import { LoginForm } from '@/src/features/auth/components/LoginForm'
+import { RegisterStep1, RegisterStep2 } from '@/src/features/auth/components/RegisterForm'
+import { useLoginState } from '@/src/features/auth/hooks/useLoginState'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
-import {
-  type LoginFormData,
-  LoginFormSchema,
-  type RegisterFormData,
-  RegisterFormSchema,
-} from '@/src/shared/schemas/forms'
 import { cn } from '@/src/utils/cn'
-import { loginRateLimiter } from '@/src/utils/rateLimiter'
-import { translateAuthError } from '@/src/utils/translateAuthError'
-
-import { useAuth } from '../contexts/AuthContext'
-
-interface InviteInfo {
-  email: string
-  role: string
-  tenant_name: string
-  tenant_id: string
-}
-
-interface ClassInfo {
-  class_id: string
-  class_name: string
-  teacher_name: string
-  tenant_id: string
-  tenant_name: string
-}
 
 export function Login() {
   usePageTitle('Masuk')
-  const { user, signIn, signUp, signInWithGoogle, loading } = useAuth()
-  const [mode, setMode] = useState<'login' | 'register'>('login')
-  const [step, setStep] = useState<1 | 2 | 3>(1)
-
-  // Shared
-  const [error, setError] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-
-  const loginForm = useForm<LoginFormData>({
-    mode: 'onChange',
-    resolver: valibotResolver(LoginFormSchema),
-    defaultValues: { email: '', password: '' },
-  })
-
-  const registerForm = useForm<RegisterFormData>({
-    mode: 'onChange',
-    resolver: valibotResolver(RegisterFormSchema),
-    defaultValues: { firstName: '', lastName: '', email: '', password: '' },
-  })
-
-  // Register step 2
-  const [joinCode, setJoinCode] = useState('')
-  const [classInfo, setClassInfo] = useState<ClassInfo | null>(null)
-  const [classLookupLoading, setClassLookupLoading] = useState(false)
-  const [classLookupError, setClassLookupError] = useState('')
-
-  // Invite token from URL
-  const [inviteToken, setInviteToken] = useState<string | null>(null)
-  const [inviteInfo, setInviteInfo] = useState<InviteInfo | null>(null)
-
-  useEffect(() => {
-    const hash = window.location.hash
-    const queryPart = hash.split('?')[1]
-    if (queryPart) {
-      const params = new URLSearchParams(queryPart)
-      const token = params.get('invite')
-      if (token) {
-        setInviteToken(token)
-        setMode('register')
-        supabase.rpc('validate_invitation', { p_token: token }).then(({ data }) => {
-          if (data?.valid) {
-            setInviteInfo(data as InviteInfo)
-            registerForm.setValue('email', data.email)
-          } else {
-            setError(data?.error || 'Undangan tidak valid atau sudah kedaluwarsa.')
-          }
-        })
-      }
-    }
-  }, [registerForm])
-
-  // Live class code lookup
-  useEffect(() => {
-    const code = joinCode.trim().toUpperCase()
-    if (code.length < 4) {
-      setClassInfo(null)
-      setClassLookupError('')
-      return
-    }
-    const timer = setTimeout(async () => {
-      setClassLookupLoading(true)
-      const { data } = await supabase.rpc('public_lookup_class', { p_join_code: code })
-      setClassLookupLoading(false)
-      if (data?.found) {
-        setClassInfo(data as ClassInfo)
-        setClassLookupError('')
-      } else {
-        setClassInfo(null)
-        if (code.length >= 5) setClassLookupError(data?.error ?? 'Kode tidak ditemukan')
-      }
-    }, 500)
-    return () => clearTimeout(timer)
-  }, [joinCode])
+  const {
+    user,
+    loading,
+    mode,
+    step,
+    setStep,
+    error,
+    setError,
+    submitting,
+    loginForm,
+    registerForm,
+    joinCode,
+    setJoinCode,
+    classInfo,
+    classLookupLoading,
+    classLookupError,
+    inviteToken,
+    inviteInfo,
+    handleSignIn,
+    handleRegisterStep1,
+    handleRegisterSubmit,
+    handleGoogleAuth,
+    fillAccount,
+    switchMode,
+    setMode,
+  } = useLoginState()
 
   if (loading) {
     return (
@@ -118,103 +45,6 @@ export function Login() {
   }
 
   if (user) return <Navigate to="/" replace />
-
-  const handleSignIn = async (data: LoginFormData) => {
-    setError('')
-
-    const { allowed, retryAfterMs } = loginRateLimiter.check('login')
-    if (!allowed) {
-      const seconds = Math.ceil(retryAfterMs / 1000)
-      setError(`Terlalu banyak percobaan. Silakan coba lagi dalam ${seconds} detik.`)
-      return
-    }
-
-    setSubmitting(true)
-    try {
-      const { error: err } = await signIn(data.email, data.password)
-      if (err) setError(translateAuthError(err.message))
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleRegisterStep1 = (_data: RegisterFormData) => {
-    setError('')
-    if (inviteToken) {
-      handleRegisterSubmit()
-    } else {
-      setStep(2)
-    }
-  }
-
-  const handleRegisterSubmit = async () => {
-    setError('')
-    setSubmitting(true)
-    try {
-      const data = registerForm.getValues()
-      const tenantId = classInfo?.tenant_id || inviteInfo?.tenant_id
-      const { error: err } = await signUp(
-        data.email,
-        data.password,
-        data.firstName,
-        data.lastName,
-        tenantId
-      )
-      if (err) {
-        setError(translateAuthError(err.message))
-        return
-      }
-
-      if (joinCode.trim() && classInfo) {
-        localStorage.setItem('pendingJoinCode', joinCode.trim().toUpperCase())
-      }
-      if (inviteToken) {
-        localStorage.setItem('pendingInviteToken', inviteToken)
-      }
-      setStep(3)
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleGoogleAuth = () => {
-    signInWithGoogle()
-  }
-
-  const fillAccount = import.meta.env.DEV
-    ? async (role: string) => {
-        const devEmail = `${role}@edusync.dev`
-        const devPassword = import.meta.env.VITE_DEV_PASSWORD
-        if (!devPassword) {
-          setError('VITE_DEV_PASSWORD tidak diset di .env')
-          return
-        }
-        loginForm.reset({ email: devEmail, password: devPassword })
-        setMode('login')
-        setError('')
-        setSubmitting(true)
-        try {
-          const { error: err } = await signIn(devEmail, devPassword)
-          if (err) {
-            setError(err.message)
-          }
-        } catch (e: unknown) {
-          setError(e instanceof Error ? e.message : String(e))
-        } finally {
-          setSubmitting(false)
-        }
-      }
-    : undefined
-
-  const switchMode = (newMode: 'login' | 'register') => {
-    setMode(newMode)
-    setStep(1)
-    setError('')
-    setJoinCode('')
-    setClassInfo(null)
-    loginForm.reset()
-    registerForm.reset()
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 p-4">
@@ -322,7 +152,7 @@ export function Login() {
                 </div>
               )}
 
-              {/* Google OAuth Button (shown on step 1 for both modes) */}
+              {/* Google OAuth Button */}
               {(mode === 'login' || (mode === 'register' && step === 1)) && (
                 <>
                   <button
@@ -357,230 +187,39 @@ export function Login() {
                 </>
               )}
 
-              {/* Login Form */}
               {mode === 'login' && (
-                <form
-                  onSubmit={loginForm.handleSubmit(handleSignIn, () => {
-                    // Show error when form validation fails (e.g., empty fields from autofill issues)
-                    const errors = loginForm.formState.errors
-                    if (errors.email) {
-                      setError(errors.email.message || 'Email tidak valid.')
-                    } else if (errors.password) {
-                      setError(errors.password.message || 'Kata sandi wajib diisi.')
-                    } else {
-                      setError('Silakan isi email dan kata sandi.')
-                    }
-                  })}
-                  className="space-y-4"
-                >
-                  <FormField
-                    name="email"
-                    control={loginForm.control}
-                    label="Email"
-                    labelClassName="text-white/60 text-xs font-medium mb-1.5"
-                  >
-                    <input
-                      type="email"
-                      placeholder="kamu@email.com"
-                      autoComplete="email"
-                      onInput={(e: React.FormEvent<HTMLInputElement>) => {
-                        loginForm.setValue('email', e.currentTarget.value, { shouldValidate: true })
-                        if (error) setError('')
-                      }}
-                      className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
-                    />
-                  </FormField>
-                  <FormField
-                    name="password"
-                    control={loginForm.control}
-                    label="Kata Sandi"
-                    labelClassName="text-white/60 text-xs font-medium mb-1.5"
-                  >
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                      onInput={(e: React.FormEvent<HTMLInputElement>) => {
-                        loginForm.setValue('password', e.currentTarget.value, {
-                          shouldValidate: true,
-                        })
-                        if (error) setError('')
-                      }}
-                      className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
-                    />
-                  </FormField>
-                  {error && (
-                    <p
-                      id="login-error"
-                      role="alert"
-                      className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3"
-                    >
-                      {error}
-                    </p>
-                  )}
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 font-semibold transition-colors mt-2"
-                  >
-                    {submitting ? 'Masuk...' : 'Masuk'}
-                  </button>
-                </form>
+                <LoginForm
+                  loginForm={loginForm}
+                  error={error}
+                  setError={setError}
+                  submitting={submitting}
+                  onSubmit={handleSignIn}
+                />
               )}
 
-              {/* Register Step 1 */}
               {mode === 'register' && step === 1 && (
-                <form
-                  onSubmit={registerForm.handleSubmit(handleRegisterStep1)}
-                  className="space-y-4"
-                >
-                  <div className="grid grid-cols-2 gap-3">
-                    <FormField
-                      name="firstName"
-                      control={registerForm.control}
-                      label="Nama Depan"
-                      labelClassName="text-white/60 text-xs font-medium mb-1.5"
-                    >
-                      <input
-                        placeholder="Budi"
-                        className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
-                      />
-                    </FormField>
-                    <FormField
-                      name="lastName"
-                      control={registerForm.control}
-                      label="Nama Belakang"
-                      labelClassName="text-white/60 text-xs font-medium mb-1.5"
-                    >
-                      <input
-                        placeholder="Santoso"
-                        className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
-                      />
-                    </FormField>
-                  </div>
-                  <FormField
-                    name="email"
-                    control={registerForm.control}
-                    label="Email"
-                    labelClassName="text-white/60 text-xs font-medium mb-1.5"
-                  >
-                    <input
-                      type="email"
-                      placeholder="kamu@email.com"
-                      readOnly={!!inviteInfo}
-                      className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm disabled:opacity-60"
-                    />
-                  </FormField>
-                  <FormField
-                    name="password"
-                    control={registerForm.control}
-                    label="Kata Sandi"
-                    labelClassName="text-white/60 text-xs font-medium mb-1.5"
-                  >
-                    <input
-                      type="password"
-                      placeholder="Min 8 karakter, 1 Huruf Besar, 1 Angka"
-                      className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
-                    />
-                  </FormField>
-                  {error && (
-                    <p
-                      role="alert"
-                      className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3"
-                    >
-                      {error}
-                    </p>
-                  )}
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 font-semibold transition-colors mt-2"
-                  >
-                    {inviteToken
-                      ? submitting
-                        ? 'Membuat Akun...'
-                        : 'Buat Akun & Bergabung'
-                      : 'Lanjut →'}
-                  </button>
-                </form>
+                <RegisterStep1
+                  registerForm={registerForm}
+                  error={error}
+                  submitting={submitting}
+                  inviteToken={inviteToken}
+                  inviteInfo={inviteInfo}
+                  onSubmit={handleRegisterStep1}
+                />
               )}
 
-              {/* Register Step 2 - Class Code */}
               {mode === 'register' && step === 2 && (
-                <div className="space-y-5">
-                  <div>
-                    <label
-                      htmlFor="reg-join-code"
-                      className="block text-white/60 text-xs font-medium mb-1.5"
-                    >
-                      Kode Kelas dari Guru / Tutor
-                    </label>
-                    <input
-                      id="reg-join-code"
-                      value={joinCode}
-                      onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                      placeholder="Contoh: ABC123"
-                      maxLength={10}
-                      className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm tracking-widest font-mono uppercase"
-                    />
-                    {classLookupLoading && (
-                      <p className="text-white/40 text-xs mt-2 flex items-center gap-1">
-                        <span className="inline-block w-3 h-3 border border-white/20 border-t-white/60 rounded-full animate-spin" />
-                        Mencari kelas...
-                      </p>
-                    )}
-                    {classInfo && (
-                      <div className="mt-2 p-3 bg-green-500/10 border border-green-500/20 rounded-xl">
-                        <p className="text-green-300 text-xs font-semibold">Kelas ditemukan</p>
-                        <p className="text-white/80 text-sm font-medium mt-0.5">
-                          {classInfo.class_name}
-                        </p>
-                        <p className="text-white/40 text-xs">
-                          {classInfo.teacher_name} · {classInfo.tenant_name}
-                        </p>
-                      </div>
-                    )}
-                    {classLookupError && joinCode.length >= 5 && (
-                      <p className="text-red-400 text-xs mt-2">{classLookupError}</p>
-                    )}
-                  </div>
-
-                  <p className="text-white/30 text-xs text-center">
-                    Minta kode kelas dari guru atau tutor kamu. Jika belum punya, lewati langkah
-                    ini.
-                  </p>
-
-                  {error && (
-                    <p
-                      role="alert"
-                      className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3"
-                    >
-                      {error}
-                    </p>
-                  )}
-
-                  <div className="flex gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setStep(1)}
-                      className="flex-1 bg-white/5 hover:bg-white/10 text-white/60 rounded-xl py-3 font-semibold transition-colors text-sm"
-                    >
-                      Kembali
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleRegisterSubmit}
-                      disabled={submitting}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 font-semibold transition-colors text-sm"
-                    >
-                      {submitting
-                        ? 'Membuat...'
-                        : classInfo
-                          ? 'Daftar & Bergabung'
-                          : 'Lewati & Daftar'}
-                    </button>
-                  </div>
-                </div>
+                <RegisterStep2
+                  joinCode={joinCode}
+                  setJoinCode={setJoinCode}
+                  classInfo={classInfo}
+                  classLookupLoading={classLookupLoading}
+                  classLookupError={classLookupError}
+                  error={error}
+                  submitting={submitting}
+                  onBack={() => setStep(1)}
+                  onSubmit={handleRegisterSubmit}
+                />
               )}
             </>
           )}

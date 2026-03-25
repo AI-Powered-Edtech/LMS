@@ -15,14 +15,14 @@ import { cn } from '@/src/utils/cn'
 
 const navItems = [
   // Teacher Primary
-  { name: 'Dashboard', path: '/app/teacher/dashboard', icon: GraduationCap, roles: ['teacher'] },
+  { name: 'Dasbor', path: '/app/teacher/dashboard', icon: GraduationCap, roles: ['teacher'] },
 
   // Student Primary
   { name: 'Beranda', path: '/app/student/dashboard', icon: Home, roles: ['student'] },
   { name: 'Kuis', path: '/app/student/quizzes', icon: HelpCircle, roles: ['student'] },
 
   // Admin Primary
-  { name: 'Dashboard', path: '/app/admin/dashboard', icon: Building2, roles: ['admin'] },
+  { name: 'Dasbor', path: '/app/admin/dashboard', icon: Building2, roles: ['admin'] },
 
   // Shared Primary
   { name: 'Tugas', path: '/assignments', icon: FolderKanban, roles: ['teacher', 'student'] },

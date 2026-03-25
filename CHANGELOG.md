@@ -1,5 +1,73 @@
 # EduSync LMS — Changelog
 
+## Phase 21: Production Perfection (2026-03-25)
+
+Final polish pass covering UI/UX, logic hardening, code health, security, and documentation.
+
+### Sprint 21A: UI/UX Polish
+
+- **Session expiry modal** — warns users before automatic logout when token expires, preventing data loss
+- **LazyLoadTimeout component** (`src/components/ui/LazyLoadTimeout.tsx`) — shows helpful message when lazy-loaded chunks take too long to load, with retry option
+- **Micro-animations** — added subtle Framer Motion transitions on page and component mounts for a polished feel
+- **RouteAnnouncer** (`src/components/layout/RouteAnnouncer.tsx`) — ARIA live region announces route changes for screen reader users (a11y)
+- **Dark mode audit** — fixed remaining components missing `dark:` Tailwind variants across layout components, Tabs, Onboarding, and feature modules
+
+### Sprint 21B: Logic & Product Hardening
+
+- **Global error handling** — `FeatureErrorBoundary` with retry capability and graceful fallback UI
+- **Token refresh monitoring** — `AuthContext` tracks Supabase session refresh cycles; handles failures by clearing state and redirecting to login (prevents infinite spinner)
+- **i18n cleanup** — eliminated remaining English strings in UI buttons, labels, error messages, and headers
+- **Creator page improvements** — better UX flow for course creation in `src/pages/Creator.tsx`
+- **Offline resilience** — `OfflineIndicator` component, improved service worker registration, offline-aware hooks for course builder
+
+### Sprint 21C: Code Health
+
+- **Route splitting** — monolithic `routes.tsx` split into `src/app/routes/` directory with 7 domain-based files: `studentRoutes.tsx`, `teacherRoutes.tsx`, `adminRoutes.tsx`, `sharedRoutes.tsx`, `legacyRedirects.tsx`, `utils.tsx`, `index.tsx`
+- **10 page refactors** — extracted business logic from large page components into feature-module hooks (`src/features/*/hooks/`) and UI into composable components (`src/features/*/components/`)
+- **4 service file splits** — decomposed oversized service files into focused, single-responsibility modules collocated with feature directories
+- **ESLint rule enforcement** — stricter rules, deep import path restrictions to enforce module boundaries
+- **Coverage thresholds** — configured minimum test coverage gates for CI
+
+### Sprint 21D: Technical Hardening
+
+- **SECURITY DEFINER `search_path` fixes** — migration `20260325_fix_search_path.sql` patches 19 functions missing `SET search_path TO 'public'`, closing search-path injection vectors
+- **CSP enforcement** — upgraded Content-Security-Policy from report-only to enforced mode; restricts script-src, connect-src, frame-src
+- **Bundle size checks** — CI gate to catch chunk size regressions
+- **Deploy pipeline** — documented deployment procedures and rollback steps
+- **Sentry hardening** — `beforeBreadcrumb` strips Authorization headers; `beforeSend` recursively scrubs tokens, passwords, secrets, and API keys from event payloads; `scrubSensitiveData()` reusable utility
+- **DR documentation** — `docs/DISASTER_RECOVERY.md` covering RPO (1h) / RTO (4h), PITR restore, Edge Function rollback, migration repair, incident response checklist, monthly DR drills
+- **PWA install prompt** — `usePWAInstall` hook with deferred prompt and 30-day dismiss cooldown; `InstallPrompt` slide-up banner
+- **Push notifications** — `send-push` Edge Function for notification delivery
+
+### Sprint 21E: Documentation
+
+- Updated `docs/DATABASE.md` — added `20260325_fix_search_path` migration entry, listed 19 patched functions, noted `rate_limits` table is planned but not yet implemented
+- Updated `docs/ARCHITECTURE.md` — added route splitting section, page refactors, service file splits
+- Updated `docs/SECURITY.md` — added CSP enforcement, SECURITY DEFINER fixes, Sentry filtering, token refresh monitoring sections
+- Updated `docs/ENGINEERING_ROADMAP.md` — added Phase 21 as completed with full sprint breakdown
+- Updated `CHANGELOG.md` — comprehensive Phase 21 entry
+
+---
+
+## Sprint 21D: Monitoring, DR, and PWA Install (2026-03-25)
+
+### D7: Sentry Monitoring Enhancement
+
+- Added `beforeBreadcrumb` callback to strip `Authorization` headers from XHR/fetch breadcrumbs
+- Enhanced `beforeSend` to scrub sensitive data (tokens, passwords, secrets, API keys) from event payloads, request headers, request bodies, query strings, breadcrumb data, and extra context
+- Enabled `enableLongTask` and `enableInp` on `browserTracingIntegration` for page-load performance tracking
+- Extracted reusable `scrubSensitiveData()` utility for recursive key-pattern scrubbing
+
+### D9: Disaster Recovery Documentation
+
+- Created `docs/DISASTER_RECOVERY.md` covering: RPO (1 hour) / RTO (4 hours) targets, PITR and `pg_dump` restore procedures, Edge Function rollback, migration rollback with `supabase migration repair`, Vercel frontend rollback, full DR procedure (triage/isolate/restore/validate/post-incident), incident response checklist, and monthly DR drill schedule
+
+### D11: PWA Install Prompt
+
+- Created `src/hooks/usePWAInstall.ts` — listens for `beforeinstallprompt`, stores deferred prompt, tracks 30-day dismiss cooldown in localStorage
+- Created `src/components/ui/InstallPrompt.tsx` — slide-up banner with "Pasang EduSync di perangkat Anda" message, install/dismiss buttons, dark mode support, Framer Motion animation
+- Updated `vite.config.ts` PWA manifest with `screenshots` (desktop + mobile), `categories: ['education']`, and `shortcuts` (Dashboard, Kursus Saya)
+
 ## Security & Performance Cleanup (2026-03-25)
 
 ### Security: Eliminate all bare `.select()` after mutations

@@ -36,6 +36,37 @@ export default defineConfig(({ mode }) => {
               purpose: 'maskable',
             },
           ],
+          categories: ['education'],
+          screenshots: [
+            {
+              src: '/screenshots/desktop-dashboard.png',
+              sizes: '1280x720',
+              type: 'image/png',
+              form_factor: 'wide',
+              label: 'Dashboard guru EduSync',
+            },
+            {
+              src: '/screenshots/mobile-courses.png',
+              sizes: '750x1334',
+              type: 'image/png',
+              form_factor: 'narrow',
+              label: 'Daftar kursus di perangkat mobile',
+            },
+          ],
+          shortcuts: [
+            {
+              name: 'Dashboard',
+              short_name: 'Dashboard',
+              url: '/#/app/student/dashboard',
+              icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }],
+            },
+            {
+              name: 'Kursus Saya',
+              short_name: 'Kursus',
+              url: '/#/app/student/courses',
+              icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }],
+            },
+          ],
         },
         workbox: {
           navigateFallback: '/offline.html',

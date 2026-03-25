@@ -9,7 +9,7 @@ import type { ScheduledReport } from '../types'
 import { ExportButton } from './ExportButton'
 
 const REPORT_TYPE_LABELS: Record<string, string> = {
-  dashboard: 'Dashboard',
+  dashboard: 'Dasbor',
   student_list: 'Daftar Siswa',
   course_summary: 'Ringkasan Kursus',
   engagement: 'Keterlibatan',

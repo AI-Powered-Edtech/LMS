@@ -82,6 +82,46 @@ Five additional issues were found and fixed in earlier migrations:
 | `enroll_student` RPC bypassed tenant isolation | Added tenant filter on class lookup and insert |
 | `mark_lesson_complete` RPC bypassed tenant_id  | Added `tenant_id = get_my_tenant_id()`         |
 
+## Content Security Policy (CSP) — Phase 21D
+
+CSP enforcement was upgraded from report-only mode to full enforcement. The CSP header is configured in the deployment layer (Vercel/Netlify) and restricts:
+
+- **script-src**: `'self'` only (no inline scripts, no `eval`)
+- **style-src**: `'self'` plus `'unsafe-inline'` (required by Tailwind's runtime)
+- **connect-src**: `'self'` plus Supabase API endpoints and Sentry DSN
+- **img-src**: `'self'`, `data:`, and Supabase storage bucket domains
+- **frame-src**: `'self'` (SCORM iframes load from same origin via storage)
+- **default-src**: `'none'` (deny by default)
+
+Previously CSP was in `Content-Security-Policy-Report-Only` mode. The upgrade to enforcement blocks XSS and data exfiltration vectors.
+
+## SECURITY DEFINER search_path Fixes — Phase 21D
+
+All `SECURITY DEFINER` functions now include `SET search_path TO 'public'`. Migration `20260325_fix_search_path.sql` patched 19 functions that were missing this setting. Without it, an attacker who can control the session `search_path` could redirect unqualified name resolution to malicious schema objects.
+
+This completes the security posture: every `SECURITY DEFINER` function in the system now has an explicit `search_path`. Previous fixes (migration 836, production readiness audit) covered 8 functions; this migration covers the remaining 19.
+
+See `docs/DATABASE.md` for the full list of patched functions.
+
+## Sentry Sensitive Data Filtering — Phase 21D
+
+Sentry integration includes multi-layer sensitive data scrubbing:
+
+- **`beforeBreadcrumb`**: Strips `Authorization` headers from XHR/fetch breadcrumbs before they leave the client
+- **`beforeSend`**: Recursively scrubs event payloads, request headers, request bodies, query strings, breadcrumb data, and extra context for patterns matching tokens, passwords, secrets, and API keys
+- **Utility**: `scrubSensitiveData()` is a reusable recursive scrubber that redacts values for keys matching `/token|password|secret|key|authorization|cookie|session/i`
+
+This prevents accidental PII or credential leakage through error reporting.
+
+## Token Refresh Monitoring — Phase 21D
+
+The `AuthContext` now monitors Supabase session token refresh cycles:
+
+- Listens for `TOKEN_REFRESHED` and `SIGNED_OUT` auth events
+- Logs refresh timestamps for observability
+- Handles refresh failures gracefully by clearing state and redirecting to login (preventing infinite spinner states)
+- Session expiry is surfaced to the user via a modal prompt before automatic logout
+
 ## Frontend Security Checklist
 
 Before merging any PR:

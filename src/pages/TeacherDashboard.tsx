@@ -185,70 +185,72 @@ export function TeacherDashboard() {
           </div>
         ) : classrooms.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {classrooms.map((classroom) => (
-              <Card
+            {classrooms.map((classroom, idx) => (
+              <motion.div
                 key={classroom.id}
-                padding="none"
-                hover
-                className="overflow-hidden flex flex-col"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.07, duration: 0.3 }}
               >
-                <div className="p-6 border-b border-slate-100 dark:border-slate-700">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                        {classroom.name}
-                      </h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                        {classroom.student_count ?? 0} Siswa
-                      </p>
+                <Card padding="none" hover className="overflow-hidden flex flex-col">
+                  <div className="p-6 border-b border-slate-100 dark:border-slate-700">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                          {classroom.name}
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                          {classroom.student_count ?? 0} Siswa
+                        </p>
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 font-bold">
+                        {classroom.name.substring(0, 2).toUpperCase()}
+                      </div>
                     </div>
-                    <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 font-bold">
-                      {classroom.name.substring(0, 2).toUpperCase()}
+                    <div className="grid grid-cols-2 gap-4 mt-6">
+                      <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">
+                          Siswa
+                        </p>
+                        <p className="text-lg font-black text-slate-800 dark:text-white">
+                          {classroom.student_count ?? 0}
+                        </p>
+                      </div>
+                      <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">
+                          Status
+                        </p>
+                        <Badge variant="success" size="sm">
+                          Aktif
+                        </Badge>
+                      </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 mt-6">
-                    <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl">
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">
-                        Siswa
-                      </p>
-                      <p className="text-lg font-black text-slate-800 dark:text-white">
-                        {classroom.student_count ?? 0}
-                      </p>
-                    </div>
-                    <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl">
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">
-                        Status
-                      </p>
-                      <Badge variant="success" size="sm">
-                        Aktif
-                      </Badge>
-                    </div>
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center mt-auto">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={<BarChart3 className="w-4 h-4" />}
+                      onClick={() => {
+                        setActiveClassroomId(classroom.id)
+                        navigate('/analytics')
+                      }}
+                    >
+                      Analytics
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setActiveClassroomId(classroom.id)
+                        navigate('/app/teacher/classes')
+                      }}
+                    >
+                      Kelola Kelas <ChevronRight className="w-4 h-4" />
+                    </Button>
                   </div>
-                </div>
-                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center mt-auto">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    icon={<BarChart3 className="w-4 h-4" />}
-                    onClick={() => {
-                      setActiveClassroomId(classroom.id)
-                      navigate('/analytics')
-                    }}
-                  >
-                    Analytics
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setActiveClassroomId(classroom.id)
-                      navigate('/app/teacher/classes')
-                    }}
-                  >
-                    Kelola Kelas <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </Card>
+                </Card>
+              </motion.div>
             ))}
           </div>
         ) : (

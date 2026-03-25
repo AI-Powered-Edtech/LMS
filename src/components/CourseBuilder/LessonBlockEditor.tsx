@@ -1,5 +1,13 @@
-import { DragDropContext, Draggable, Droppable, type DropResult } from '@hello-pangea/dnd'
 import {
+  DragDropContext,
+  Draggable,
+  type DragStart,
+  Droppable,
+  type DropResult,
+} from '@hello-pangea/dnd'
+import {
+  ArrowDown,
+  ArrowUp,
   File,
   FileText,
   GripVertical,
@@ -26,14 +34,19 @@ import { ImageBlockEditor } from './blocks/ImageBlockEditor'
 import { ScormBlockEditor } from './blocks/ScormBlockEditor'
 import { TextBlockEditor } from './blocks/TextBlockEditor'
 import { VideoBlockEditor } from './blocks/VideoBlockEditor'
+import { CollaboratorCursor } from './CollaboratorCursor'
 
 export function LessonBlockEditor() {
-  const { state, actions } = useBuilder()
+  const { state, actions, presence, mobile } = useBuilder()
   const [showAddMenu, setShowAddMenu] = useState(false)
 
   if (!state.activeLesson) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-slate-50/50 dark:bg-slate-900/50 p-6">
+      <main
+        id="builder-main"
+        aria-label="Editor konten"
+        className="flex-1 flex items-center justify-center bg-slate-50/50 dark:bg-slate-900/50 p-6"
+      >
         <div className="text-center max-w-sm p-12 bg-white dark:bg-slate-800 rounded-[32px] shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 border border-slate-100/80 dark:border-slate-700/80">
           <div className="w-24 h-24 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 rounded-[32px] flex items-center justify-center mx-auto mb-8 shadow-inner">
             <FileText className="w-12 h-12" />
@@ -45,20 +58,24 @@ export function LessonBlockEditor() {
             Pilih satu materi dari daftar kurikulum untuk mulai mengisi konten pembelajaran.
           </p>
         </div>
-      </div>
+      </main>
     )
   }
 
   if (state.loadingBlocks) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-transparent">
+      <main
+        id="builder-main"
+        aria-label="Editor konten"
+        className="flex-1 flex items-center justify-center bg-transparent"
+      >
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400 animate-pulse">
             Memuat data pelajaran...
           </p>
         </div>
-      </div>
+      </main>
     )
   }
 
@@ -83,7 +100,17 @@ export function LessonBlockEditor() {
       case 'SCORM':
         return <Package className="w-4 h-4 text-teal-500" />
       default:
-        return <FileText className="w-4 h-4 text-slate-400" />
+        return <FileText className="w-4 h-4 text-slate-500" />
+    }
+  }
+
+  const handleDragStart = (_start: DragStart) => {
+    if (mobile.isMobile || mobile.isTablet) {
+      try {
+        navigator.vibrate?.(50)
+      } catch {
+        /* ignore */
+      }
     }
   }
 
@@ -92,6 +119,25 @@ export function LessonBlockEditor() {
     const blockIds = state.activeLesson!.blocks.map((b) => b.id)
     const [moved] = blockIds.splice(result.source.index, 1)
     blockIds.splice(result.destination.index, 0, moved)
+    actions.reorderBlocks(blockIds)
+  }
+
+  const handleMoveUp = (index: number) => {
+    if (index === 0) return
+    const blockIds = state.activeLesson!.blocks.map((b) => b.id)
+    const temp = blockIds[index]
+    blockIds[index] = blockIds[index - 1]
+    blockIds[index - 1] = temp
+    actions.reorderBlocks(blockIds)
+  }
+
+  const handleMoveDown = (index: number) => {
+    const blocks = state.activeLesson!.blocks
+    if (index === blocks.length - 1) return
+    const blockIds = blocks.map((b) => b.id)
+    const temp = blockIds[index]
+    blockIds[index] = blockIds[index + 1]
+    blockIds[index + 1] = temp
     actions.reorderBlocks(blockIds)
   }
 
@@ -146,10 +192,14 @@ export function LessonBlockEditor() {
   ]
 
   return (
-    <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900">
-      <div className="max-w-3xl mx-auto py-8 px-6">
+    <main
+      id="builder-main"
+      aria-label="Editor konten"
+      className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900"
+    >
+      <div className={cn('max-w-3xl mx-auto py-8', mobile.isMobile ? 'px-4' : 'px-6')}>
         {/* Lesson Header */}
-        <div className="mb-10 p-8 bg-white dark:bg-slate-800 rounded-[32px] border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
+        <div className="mb-10 p-6 md:p-8 bg-white dark:bg-slate-800 rounded-[32px] border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
           <input
             type="text"
             value={activeLesson?.title || ''}
@@ -158,8 +208,12 @@ export function LessonBlockEditor() {
                 actions.updateLesson(activeLesson.id, { title: e.target.value })
               }
             }}
-            className="w-full text-3xl font-black text-slate-800 dark:text-slate-100 bg-transparent border-none outline-none placeholder:text-slate-200 dark:placeholder:text-slate-700 focus:ring-0 tracking-tight"
+            className={cn(
+              'w-full font-black text-slate-800 dark:text-slate-100 bg-transparent border-none outline-none placeholder:text-slate-400 focus:ring-0 tracking-tight',
+              mobile.isMobile ? 'text-2xl' : 'text-3xl'
+            )}
             placeholder="Judul Materi..."
+            aria-label="Judul materi"
           />
           <div className="flex items-center gap-3 mt-4">
             <span
@@ -173,77 +227,123 @@ export function LessonBlockEditor() {
               {activeLesson?.isPublished ? 'Dipublikasi' : 'Draf'}
             </span>
             <div className="h-4 w-[1px] bg-slate-200 mx-1" />
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              {state.activeLesson.blocks.length}{' '}
-              {state.activeLesson.blocks.length === 1 ? 'KONTEN' : 'KONTEN'}
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              {state.activeLesson.blocks.length} KONTEN
             </span>
           </div>
         </div>
 
         {/* Block List with DND */}
-        <DragDropContext onDragEnd={handleDragEnd}>
+        <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <Droppable droppableId="blocks" type="BLOCK">
             {(provided) => (
-              <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-3">
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className="space-y-4 md:space-y-3"
+              >
                 <AnimatePresence>
-                  {state.activeLesson!.blocks.map((block, idx) => (
-                    <Draggable key={block.id} draggableId={block.id} index={idx}>
-                      {(dragProvided, snapshot) => (
-                        <motion.div
-                          ref={dragProvided.innerRef}
-                          {...dragProvided.draggableProps}
-                          initial={{ opacity: 0, y: 15 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          className={cn(
-                            'bg-white dark:bg-slate-800 rounded-[24px] border shadow-sm group transition-all',
-                            snapshot.isDragging
-                              ? 'shadow-2xl ring-2 ring-indigo-500/20 border-indigo-400 z-50 scale-[1.02]'
-                              : 'border-slate-200/70 dark:border-slate-700/70 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600'
-                          )}
-                        >
-                          {/* Block Header */}
-                          <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-50 dark:border-slate-700/50">
-                            <div
-                              {...dragProvided.dragHandleProps}
-                              className="p-1 text-slate-300 dark:text-slate-600 hover:text-slate-500 dark:hover:text-slate-400 cursor-grab hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                            >
-                              <GripVertical className="w-4 h-4" />
-                            </div>
-                            <div className="p-1.5 bg-slate-50 dark:bg-slate-700 rounded-lg">
-                              {getBlockIcon(block.type)}
-                            </div>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex-1">
-                              {{
-                                text: 'TEKS',
-                                video: 'VIDEO',
-                                image: 'GAMBAR',
-                                file: 'FILE',
-                                quiz: 'KUIS',
-                                assignment: 'TUGAS',
-                                scorm: 'SCORM',
-                              }[block.type.toLowerCase()] || block.type.toUpperCase()}
-                            </span>
-                            <button
-                              onClick={() => {
-                                if (confirm('Hapus konten ini?')) {
-                                  actions.deleteBlock(block.id)
-                                }
-                              }}
-                              className="p-2 opacity-0 group-hover:opacity-100 hover:bg-rose-50 text-slate-300 hover:text-rose-500 rounded-xl transition-all"
-                              aria-label="Hapus konten"
-                              title="Hapus konten"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                  {state.activeLesson!.blocks.map((block, idx) => {
+                    const locker = presence.getBlockLocker(block.id)
+                    const isLocked = !!locker
 
-                          {/* Block Content */}
-                          <div className="px-6 py-5">{renderBlockContent(block)}</div>
-                        </motion.div>
-                      )}
-                    </Draggable>
-                  ))}
+                    return (
+                      <Draggable
+                        key={block.id}
+                        draggableId={block.id}
+                        index={idx}
+                        isDragDisabled={isLocked}
+                      >
+                        {(dragProvided, snapshot) => (
+                          <motion.div
+                            ref={dragProvided.innerRef}
+                            {...dragProvided.draggableProps}
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            onClick={() => {
+                              if (!isLocked) presence.updateActiveBlock(block.id)
+                            }}
+                            className={cn(
+                              'bg-white dark:bg-slate-800 rounded-[24px] border shadow-sm group transition-all relative overflow-hidden',
+                              snapshot.isDragging
+                                ? 'shadow-2xl ring-2 ring-indigo-500/20 border-indigo-400 z-50 scale-[1.02]'
+                                : 'border-slate-200/70 dark:border-slate-700/70 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600',
+                              isLocked && 'pointer-events-none opacity-90 grayscale-[0.3]'
+                            )}
+                          >
+                            {/* Collaborator overlay if locked */}
+                            {locker && <CollaboratorCursor locker={locker} />}
+
+                            {/* Block Header */}
+                            <div className="flex items-center gap-2 md:gap-3 px-3 md:px-5 py-3 md:py-4 border-b border-slate-50 dark:border-slate-700/50">
+                              <div
+                                {...dragProvided.dragHandleProps}
+                                className="p-2 flex items-center justify-center min-w-[44px] min-h-[44px] text-slate-400 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 cursor-grab hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors touch-none"
+                                aria-label="Pindah konten"
+                              >
+                                <GripVertical className="w-5 h-5" />
+                              </div>
+                              <div className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                                {getBlockIcon(block.type)}
+                              </div>
+                              <span className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] flex-1">
+                                {{
+                                  text: 'TEKS',
+                                  video: 'VIDEO',
+                                  image: 'GAMBAR',
+                                  file: 'FILE',
+                                  quiz: 'KUIS',
+                                  assignment: 'TUGAS',
+                                  scorm: 'SCORM',
+                                }[block.type.toLowerCase()] || block.type.toUpperCase()}
+                              </span>
+
+                              {/* Non-drag alternative buttons */}
+                              <div className="flex items-center md:opacity-0 md:group-hover:opacity-100 transition-opacity gap-1 mr-2">
+                                <button
+                                  onClick={() => handleMoveUp(idx)}
+                                  disabled={idx === 0}
+                                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 rounded-xl transition-all disabled:opacity-30"
+                                  aria-label="Pindah ke atas"
+                                  title="Pindah ke atas"
+                                >
+                                  <ArrowUp className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleMoveDown(idx)}
+                                  disabled={idx === state.activeLesson!.blocks.length - 1}
+                                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 rounded-xl transition-all disabled:opacity-30"
+                                  aria-label="Pindah ke bawah"
+                                  title="Pindah ke bawah"
+                                >
+                                  <ArrowDown className="w-4 h-4" />
+                                </button>
+                              </div>
+
+                              <button
+                                onClick={() => {
+                                  if (confirm('Hapus konten ini?')) {
+                                    actions.deleteBlock(block.id)
+                                  }
+                                }}
+                                className="p-2 md:opacity-0 md:group-hover:opacity-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 rounded-xl transition-all"
+                                aria-label="Hapus konten"
+                                title="Hapus konten"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                            </div>
+
+                            {/* Block Content */}
+                            <div className={cn('py-4 md:py-5', mobile.isMobile ? 'px-4' : 'px-6')}>
+                              {renderBlockContent(block)}
+                            </div>
+                          </motion.div>
+                        )}
+                      </Draggable>
+                    )
+                  })}
                 </AnimatePresence>
                 {provided.placeholder}
               </div>
@@ -258,13 +358,13 @@ export function LessonBlockEditor() {
             aria-expanded={showAddMenu}
             className={cn(
               'w-full py-5 rounded-[24px] font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all',
-              'border-2 border-dashed',
+              'border-2 border-dashed outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
               showAddMenu
                 ? 'border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 shadow-inner'
-                : 'border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 dark:hover:border-indigo-700 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md'
+                : 'border-slate-200 dark:border-slate-700 text-slate-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md'
             )}
           >
-            {showAddMenu ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            {showAddMenu ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
             {showAddMenu ? 'BATALKAN' : 'TAMBAH KONTEN'}
           </button>
 
@@ -275,18 +375,18 @@ export function LessonBlockEditor() {
                 initial={{ opacity: 0, y: 15, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="mt-4 grid grid-cols-3 gap-3"
+                className={cn('mt-4 grid gap-3', mobile.isMobile ? 'grid-cols-2' : 'grid-cols-3')}
               >
                 {blockTypes.map((bt) => (
                   <button
                     key={bt.type}
                     onClick={() => handleAddBlock(bt.type)}
                     className={cn(
-                      'py-5 rounded-[24px] font-black text-[10px] uppercase tracking-[0.1em] flex flex-col items-center gap-3 transition-all border shadow-sm hover:shadow-md hover:-translate-y-1',
+                      'py-5 rounded-[24px] font-black text-xs uppercase tracking-[0.1em] flex flex-col items-center gap-3 transition-all border shadow-sm hover:shadow-md hover:-translate-y-1 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
                       bt.color
                     )}
                   >
-                    <div className="p-2.5 bg-white rounded-xl shadow-sm">{bt.icon}</div>
+                    <div className="p-3 bg-white rounded-xl shadow-sm">{bt.icon}</div>
                     {bt.label}
                   </button>
                 ))}
@@ -295,7 +395,7 @@ export function LessonBlockEditor() {
           </AnimatePresence>
         </div>
       </div>
-    </div>
+    </main>
   )
 }
 
@@ -321,6 +421,6 @@ function renderBlockContent(block: {
     case 'SCORM':
       return <ScormBlockEditor blockId={block.id} />
     default:
-      return <p className="text-xs text-slate-400">Unknown block type: {block.type}</p>
+      return <p className="text-xs text-slate-500">Unknown block type: {block.type}</p>
   }
 }

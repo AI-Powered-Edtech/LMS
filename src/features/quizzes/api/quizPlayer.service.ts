@@ -1,114 +1,23 @@
-// Quiz Player Service - Student-facing API
-// Extracted from quizService.ts for the Quiz Engine Refactor
+// ==========================================================================
+// Quiz Player Service — quizPlayer.service.ts
+//
+// Student-facing API. Orchestration + data retrieval functions.
+// Delegates attempt/submission to quizAttemptService.ts and
+// timer/helpers to quizTimerService.ts.
+// ==========================================================================
 
 import { supabase } from '@/src/services/supabase/client'
-import { logDevError } from '@/src/utils/logDevError'
 
 import type {
   QuestionType,
   QuizAttempt,
   QuizAttemptQuestion,
-  QuizAttemptResult,
-  StartQuizAttemptInput,
-  StartQuizAttemptResult,
   StudentQuizAssignment,
-  SubmitAnswer,
 } from '../types/quizzes.types'
 
-// ============================================
-// Quiz Player Service
-// ============================================
-
-/**
- * Start a new quiz attempt or recover an existing one
- */
-export async function startQuizAttempt(
-  input: StartQuizAttemptInput
-): Promise<StartQuizAttemptResult> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-  if (!session) throw new Error('Not authenticated')
-
-  const quizId = typeof input === 'string' ? input : input.quizId
-  const assignmentId = typeof input === 'string' ? null : (input.assignmentId ?? null)
-
-  const { data, error } = await supabase.rpc('v1_start_quiz_attempt', {
-    p_quiz_id: quizId,
-    p_assignment_id: assignmentId,
-  })
-
-  if (error) {
-    logDevError('quizPlayer', 'Error starting quiz:', error)
-    throw new Error(error.message || 'Failed to start quiz')
-  }
-
-  return data as StartQuizAttemptResult
-}
-
-/**
- * Submit a quiz attempt with all answers
- */
-export async function submitQuizAttempt(
-  attemptId: string,
-  answers: SubmitAnswer[],
-  version?: number
-): Promise<QuizAttemptResult> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-  if (!session) throw new Error('Not authenticated')
-
-  const normalizedAnswers = normalizeFinalAnswers(answers)
-
-  const { data, error } = await supabase.rpc('v1_submit_quiz_attempt', {
-    p_attempt_id: attemptId,
-    p_final_answers: normalizedAnswers,
-    p_telemetry_data: version ? { client_version: version } : {},
-  })
-
-  if (error) {
-    logDevError('quizPlayer', 'Error submitting quiz:', error)
-    throw new Error(error.message || 'Failed to submit quiz')
-  }
-
-  const result = data as QuizAttemptResult
-
-  // Award XP if passed (fire-and-forget, don't block submit on XP award)
-  if (result.passed && session?.user) {
-    awardQuizXp(attemptId, session.user.id, result.score).catch((xpError) => {
-      logDevError('quizPlayer', 'Failed to award quiz XP:', xpError)
-    })
-  }
-
-  return result
-}
-
-/**
- * Batch save multiple answers (for autosave)
- * Uses a single RPC call instead of N separate calls.
- */
-export async function batchSaveAnswers(
-  attemptId: string,
-  answers: SubmitAnswer[]
-): Promise<boolean> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-  if (!session) throw new Error('Not authenticated')
-
-  const { error } = await supabase.rpc('batch_save_answers', {
-    p_attempt_id: attemptId,
-    p_answers: answers.map((a) => ({
-      question_id: a.question_id,
-      selected_option_ids: a.selected_option_ids || [],
-      text_answer: a.text_answer || null,
-    })),
-  })
-
-  if (error) throw error
-  return true
-}
+// Re-export everything from submodules for backward compatibility
+export { batchSaveAnswers, startQuizAttempt, submitQuizAttempt } from './quizAttemptService'
+export { getCurrentQuestionIndex, recordCheatingSignal, recordHeartbeat } from './quizTimerService'
 
 /**
  * Get all questions for an attempt with current answers
@@ -152,7 +61,7 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
 
   if (questionError) throw questionError
 
-  // Build Maps for O(1) lookup instead of O(n) find() - fixes O(n²) performance
+  // Build Maps for O(1) lookup instead of O(n) find() - fixes O(n^2) performance
   const questionsMap = new Map<string, (typeof questions)[0]>()
   questions.forEach((q) => questionsMap.set(q.id, q))
 
@@ -211,41 +120,6 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
       },
     } satisfies QuizAttemptQuestion
   })
-}
-
-/**
- * Record a cheating signal (tab switch, etc.)
- */
-export async function recordCheatingSignal(
-  attemptId: string,
-  signalType: string,
-  metadata: Record<string, unknown> = {}
-): Promise<void> {
-  const { error } = await supabase.rpc('record_cheating_signal', {
-    p_attempt_id: attemptId,
-    p_signal_type: signalType,
-    p_metadata: metadata,
-  })
-
-  if (error) {
-    logDevError('quizPlayer', 'Error recording cheating signal:', error)
-  }
-}
-
-/**
- * Record a heartbeat to indicate the quiz is still in progress
- */
-export async function recordHeartbeat(attemptId: string): Promise<boolean> {
-  const { data, error } = await supabase.rpc('record_quiz_heartbeat', {
-    p_attempt_id: attemptId,
-  })
-
-  if (error) {
-    logDevError('quizPlayer', 'Heartbeat error:', error)
-    return false
-  }
-
-  return !!data
 }
 
 /**
@@ -391,91 +265,4 @@ export async function getUserAttempts(tenantId: string): Promise<QuizAttempt[]> 
 
   if (error) throw error
   return (data || []) as unknown as QuizAttempt[]
-}
-
-// ============================================
-// Helper Functions
-// ============================================
-
-/**
- * Get the first unanswered question index for resume functionality.
- * Returns the index of the first question that has no answer recorded.
- * If all questions are answered, returns the last question index.
- */
-export function getCurrentQuestionIndex(
-  questions: QuizAttemptQuestion[],
-  answers: Record<string, SubmitAnswer>
-): number {
-  if (!questions || questions.length === 0) return 0
-
-  // Find first unanswered question
-  const unansweredIdx = questions.findIndex((q) => {
-    const answer = answers[q.question_id]
-    const hasSelectedAnswer = answer?.selected_option_ids && answer.selected_option_ids.length > 0
-    const hasTextAnswer = answer?.text_answer && answer.text_answer.trim().length > 0
-    return !hasSelectedAnswer && !hasTextAnswer
-  })
-
-  // If all answered, return last question index, otherwise return first unanswered
-  return unansweredIdx === -1 ? questions.length - 1 : unansweredIdx
-}
-
-function normalizeFinalAnswers(answers: SubmitAnswer[]) {
-  return answers.map((answer) => ({
-    question_id: answer.question_id,
-    student_answers:
-      answer.text_answer && answer.text_answer.trim().length > 0
-        ? answer.text_answer.trim()
-        : answer.selected_option_ids || [],
-  }))
-}
-
-/**
- * Award XP for passing a quiz (fire-and-forget)
- * Called after successful quiz submission when student passes
- */
-async function awardQuizXp(attemptId: string, userId: string, score: number): Promise<void> {
-  try {
-    // Get attempt info to find quiz_id and tenant_id
-    const { data: attempt, error: attemptError } = await supabase
-      .from('quiz_attempts_v2')
-      .select('quiz_id, tenant_id, student_id')
-      .eq('id', attemptId)
-      .single()
-
-    if (attemptError || !attempt) {
-      logDevError('quizPlayer', 'Failed to fetch attempt for XP award:', attemptError)
-      return
-    }
-
-    // Get quiz info to find passing_score and lesson_id
-    const { data: quiz, error: quizError } = await supabase
-      .from('quizzes')
-      .select('passing_score, lesson_id')
-      .eq('id', attempt.quiz_id)
-      .single()
-
-    if (quizError || !quiz) {
-      logDevError('quizPlayer', 'Failed to fetch quiz for XP award:', quizError)
-      return
-    }
-
-    const passingScore = quiz.passing_score ?? 0
-    const lessonId = quiz.lesson_id
-
-    // Only award XP if score meets passing threshold
-    if (score >= passingScore && lessonId) {
-      await supabase.rpc('award_quiz_xp', {
-        p_user_id: userId,
-        p_lesson_id: lessonId,
-        p_quiz_id: attempt.quiz_id,
-        p_score: score,
-        p_passing_score: passingScore,
-        p_tenant_id: attempt.tenant_id,
-      })
-    }
-  } catch (err) {
-    // Log failure but don't throw - this is fire-and-forget
-    logDevError('quizPlayer', 'Error awarding quiz XP:', err)
-  }
 }

@@ -33,13 +33,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setResolvedTheme(theme === 'system' ? getSystemTheme() : theme)
   }, [theme])
 
-  // Apply class + persist
+  // Apply class + persist + ensure smooth transition
   useEffect(() => {
     localStorage.setItem('theme', theme)
+    const el = document.documentElement
+    // Ensure the html element has a smooth transition for dark mode toggle
+    if (!el.style.transition) {
+      el.style.setProperty('transition', 'background-color 0.3s ease, color 0.3s ease')
+    }
     if (resolvedTheme === 'dark') {
-      document.documentElement.classList.add('dark')
+      el.classList.add('dark')
     } else {
-      document.documentElement.classList.remove('dark')
+      el.classList.remove('dark')
     }
   }, [theme, resolvedTheme])
 

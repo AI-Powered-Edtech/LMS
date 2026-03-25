@@ -222,3 +222,41 @@ export async function getAllDirtyDrafts(): Promise<unknown[]> {
   )
   return result.map((r) => r.state)
 }
+
+// ---------------------------------------------------------------------------
+// Pending count — efficient IndexedDB count() across all queues
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the total number of items waiting to be synced across the
+ * sync-queue and upload-queue stores.  Uses IDBObjectStore.count()
+ * which is O(1) in most IndexedDB implementations, avoiding the need
+ * to deserialise every record.
+ */
+export async function getPendingCount(): Promise<number> {
+  try {
+    const db = await openDB()
+    const tx = db.transaction([STORES.SYNC_QUEUE, STORES.UPLOAD_QUEUE], 'readonly')
+    const [syncCount, uploadCount] = await Promise.all([
+      wrapRequest<number>(tx.objectStore(STORES.SYNC_QUEUE).count()),
+      wrapRequest<number>(tx.objectStore(STORES.UPLOAD_QUEUE).count()),
+    ])
+    return syncCount + uploadCount
+  } catch {
+    // IndexedDB unavailable or transaction failed — treat as zero pending
+    return 0
+  }
+}
+
+// ---------------------------------------------------------------------------
+// IndexedDB availability check
+// ---------------------------------------------------------------------------
+
+/** Returns true if IndexedDB is available in the current environment. */
+export function isIndexedDBAvailable(): boolean {
+  try {
+    return typeof indexedDB !== 'undefined' && indexedDB !== null
+  } catch {
+    return false
+  }
+}

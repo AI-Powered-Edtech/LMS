@@ -53,7 +53,7 @@ export function TeacherGroupView() {
             className="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl flex items-center gap-2 transition-colors"
           >
             <RefreshCw className="w-5 h-5" />
-            Sync GCR
+            Sinkronkan GCR
           </button>
           <button className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl flex items-center gap-2 transition-colors shadow-sm shadow-indigo-200">
             <Plus className="w-5 h-5" />
@@ -210,7 +210,7 @@ export function TeacherGroupView() {
               </label>
               <select className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-slate-100">
                 <option>Otomatis (Acak)</option>
-                <option>Sinkronisasi dari Google Classroom (Student Groups)</option>
+                <option>Sinkronisasi dari Google Classroom (Kelompok Siswa)</option>
                 <option>Pilih Manual</option>
                 <option>Siswa Memilih Sendiri</option>
               </select>
@@ -241,7 +241,7 @@ export function TeacherGroupView() {
                   <input type="radio" name="doc_collab" className="mt-1 w-4 h-4 text-indigo-600" />
                   <div>
                     <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">
-                      Folder Bersama (Shared Folder)
+                      Folder Bersama
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
                       Buat folder Google Drive khusus untuk tiap kelompok.
@@ -253,7 +253,7 @@ export function TeacherGroupView() {
 
             <div className="space-y-3">
               <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                Penilaian Sejawat (Peer Assessment)
+                Penilaian Sejawat
               </label>
               <label className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                 <input

@@ -3,7 +3,7 @@
 
 import { Clock, TrendingUp, Trophy, Users } from 'lucide-react'
 
-import { cn } from '../../../../utils/cn'
+import { cn } from '@/src/utils/cn'
 
 // Format time helper
 function formatTime(seconds: number): string {
