@@ -1,4 +1,5 @@
 import { valibotResolver } from '@hookform/resolvers/valibot'
+import { Eye, EyeOff } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
@@ -41,6 +42,7 @@ export function ResetPassword() {
     resolver: valibotResolver(resetPasswordSchema),
     defaultValues: { password: '', confirmPassword: '' },
   })
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     // Supabase auto-logs the user in when they click the recovery link.
@@ -130,24 +132,60 @@ export function ResetPassword() {
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
-            <FormField control={control} name="password" label="Kata Sandi Baru">
-              <input
-                type="password"
-                style={styles.input}
-                {...register('password')}
-                placeholder="Minimal 6 karakter"
-                autoFocus
-              />
-            </FormField>
+            <div style={{ position: 'relative' }}>
+              <FormField control={control} name="password" label="Kata Sandi Baru">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  style={{ ...styles.input, paddingRight: '2.5rem' }}
+                  {...register('password')}
+                  placeholder="Minimal 6 karakter"
+                  autoFocus
+                />
+              </FormField>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: 12,
+                  top: 40,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                }}
+                aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
 
-            <FormField control={control} name="confirmPassword" label="Konfirmasi Kata Sandi">
-              <input
-                type="password"
-                style={styles.input}
-                {...register('confirmPassword')}
-                placeholder="Ulangi password baru"
-              />
-            </FormField>
+            <div style={{ position: 'relative' }}>
+              <FormField control={control} name="confirmPassword" label="Konfirmasi Kata Sandi">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  style={{ ...styles.input, paddingRight: '2.5rem' }}
+                  {...register('confirmPassword')}
+                  placeholder="Ulangi password baru"
+                />
+              </FormField>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: 12,
+                  top: 40,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                }}
+                aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
 
             {error && <div style={styles.error}>{error}</div>}
 

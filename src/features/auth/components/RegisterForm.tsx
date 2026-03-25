@@ -1,4 +1,5 @@
-import React from 'react'
+import { Eye, EyeOff } from 'lucide-react'
+import React, { useState } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 
 import { FormField } from '@/src/components/ui/FormField'
@@ -22,6 +23,8 @@ export function RegisterStep1({
   inviteInfo,
   onSubmit,
 }: RegisterStep1Props) {
+  const [showPassword, setShowPassword] = useState(false)
+
   return (
     <form onSubmit={registerForm.handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-2 gap-3">
@@ -61,18 +64,28 @@ export function RegisterStep1({
           className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm disabled:opacity-60"
         />
       </FormField>
-      <FormField
-        name="password"
-        control={registerForm.control}
-        label="Kata Sandi"
-        labelClassName="text-white/60 text-xs font-medium mb-1.5"
-      >
-        <input
-          type="password"
-          placeholder="Min 8 karakter, 1 Huruf Besar, 1 Angka"
-          className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
-        />
-      </FormField>
+      <div className="relative">
+        <FormField
+          name="password"
+          control={registerForm.control}
+          label="Kata Sandi"
+          labelClassName="text-white/60 text-xs font-medium mb-1.5"
+        >
+          <input
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Min 8 karakter, 1 Huruf Besar, 1 Angka"
+            className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
+          />
+        </FormField>
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-3 top-9 text-white/40 hover:text-white/60 transition-colors"
+          aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+        >
+          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        </button>
+      </div>
       {error && (
         <p
           role="alert"
