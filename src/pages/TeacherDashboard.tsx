@@ -270,7 +270,7 @@ export function TeacherDashboard() {
             <Settings className="w-5 h-5 text-blue-500" />
             Peralatan Mengajar
           </h2>
-          <Button variant="ghost" size="sm" onClick={() => navigate('/app/teacher')}>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/app/teacher/teaching-hub')}>
             Lihat Semua <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
