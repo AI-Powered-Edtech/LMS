@@ -30,9 +30,10 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
       {/* URL Input */}
       <div className="flex gap-2">
         <div className="relative group flex-1">
-          <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
+          <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-500 transition-colors" />
           <input
             type="text"
+            aria-label="URL video YouTube atau Vimeo"
             placeholder="Tempel tautan YouTube atau video di sini..."
             value={url}
             onChange={(e) => {
@@ -41,7 +42,7 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
             onBlur={() => {
               actions.saveBlock(blockId)
             }}
-            className="w-full pl-11 pr-4 py-3 border border-slate-200/60 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all bg-slate-50/50 focus:bg-white placeholder:text-slate-300 shadow-inner"
+            className="w-full pl-11 pr-4 py-3 border border-slate-200/60 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all bg-slate-50/50 focus:bg-white placeholder:text-slate-400 shadow-inner"
           />
         </div>
         <button

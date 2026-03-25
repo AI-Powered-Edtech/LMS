@@ -76,6 +76,7 @@ export function TextBlockEditor({ blockId }: TextBlockEditorProps) {
         </div>
       ) : (
         <textarea
+          aria-label="Konten teks markdown"
           value={localContent}
           onChange={(e) => setLocalContent(e.target.value)}
           onBlur={() => {
@@ -83,7 +84,7 @@ export function TextBlockEditor({ blockId }: TextBlockEditorProps) {
             actions.saveBlock(blockId)
           }}
           placeholder="Ketik materi materi di sini... (Mendukung Markdown)"
-          className="w-full min-h-[160px] p-0 text-base text-slate-700 bg-transparent border-none outline-none resize-y font-sans leading-relaxed placeholder:text-slate-200 focus:ring-0"
+          className="w-full min-h-[160px] p-0 text-base text-slate-700 bg-transparent border-none outline-none resize-y font-sans leading-relaxed placeholder:text-slate-400 focus:ring-0"
           rows={6}
         />
       )}

@@ -168,26 +168,34 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
       {/* Assignment Settings */}
       <div className="grid grid-cols-1 gap-6 p-8 bg-slate-50/50 rounded-[32px] border border-slate-200/50">
         <div>
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">
+          <label
+            htmlFor="assignment-title"
+            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+          >
             Judul Tugas
           </label>
           <input
+            id="assignment-title"
             type="text"
             value={assignmentData.title}
             onChange={(e) => setAssignmentData({ ...assignmentData, title: e.target.value })}
-            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-200 shadow-sm"
+            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-400 shadow-sm"
             placeholder="Masukkan judul tugas..."
           />
         </div>
         <div>
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">
+          <label
+            htmlFor="assignment-instructions"
+            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+          >
             Instruksi Tugas
           </label>
           <textarea
+            id="assignment-instructions"
             value={assignmentData.instructions || ''}
             onChange={(e) => setAssignmentData({ ...assignmentData, instructions: e.target.value })}
             rows={6}
-            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-200 shadow-sm leading-relaxed"
+            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-400 shadow-sm leading-relaxed"
             placeholder="Masukkan instruksi lengkap untuk dikerjakan siswa..."
           />
         </div>
@@ -225,11 +233,15 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
           </div>
         </div>
         <div>
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">
+          <label
+            htmlFor="assignment-due-date"
+            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+          >
             Tenggat Waktu (Opsional)
           </label>
           <div className="relative group">
             <input
+              id="assignment-due-date"
               type="date"
               value={assignmentData.due_date || ''}
               onChange={(e) =>
@@ -237,7 +249,7 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
               }
               className="w-full px-5 py-3 pl-11 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 shadow-sm"
             />
-            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
+            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
           </div>
         </div>
       </div>

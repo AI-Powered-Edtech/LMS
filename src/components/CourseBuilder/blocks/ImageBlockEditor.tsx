@@ -190,6 +190,7 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
           accept=".jpg,.jpeg,.png,.webp,.gif"
           onChange={handleFileChange}
           className="hidden"
+          aria-label="Pilih gambar"
         />
 
         {isUploading ? (

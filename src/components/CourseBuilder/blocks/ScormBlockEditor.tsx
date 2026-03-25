@@ -234,10 +234,14 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
           accept=".zip"
           onChange={handleFileChange}
           className="hidden"
+          aria-label="Pilih paket SCORM"
         />
 
         {error && (
-          <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+          <div
+            role="alert"
+            className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400"
+          >
             <AlertCircle className="w-4 h-4 shrink-0" />
             {error}
           </div>
@@ -254,6 +258,14 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            if (!isUploading) inputRef.current?.click()
+          }
+        }}
         className={[
           'relative flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed cursor-pointer transition-all',
           isDragOver
@@ -268,6 +280,7 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
           accept=".zip"
           onChange={handleFileChange}
           className="hidden"
+          aria-label="Pilih paket SCORM"
         />
 
         {isUploading ? (

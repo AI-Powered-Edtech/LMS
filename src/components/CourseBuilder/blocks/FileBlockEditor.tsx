@@ -255,6 +255,7 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
           accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip"
           onChange={handleFileChange}
           className="hidden"
+          aria-label="Pilih file"
         />
 
         {isUploading ? (
