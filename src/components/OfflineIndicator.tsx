@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
 import { WifiOff } from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useEffect, useState } from 'react'
 
 export function OfflineIndicator() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine)

@@ -2,15 +2,15 @@
 
 // Types — only externally consumed
 export type {
-  QuestionType,
-  QuizMode,
   AssignmentResultRow,
-  SubmitAnswer,
+  QuestionType,
   QuizAssignment,
-  QuizAttemptResult,
-  QuizAttemptQuestion,
-  StudentQuizAssignment,
   QuizAttempt,
+  QuizAttemptQuestion,
+  QuizAttemptResult,
+  QuizMode,
+  StudentQuizAssignment,
+  SubmitAnswer,
 } from './types/quizzes.types'
 
 // Backward-compat namespace (mirrors legacy services/quizService.ts export)

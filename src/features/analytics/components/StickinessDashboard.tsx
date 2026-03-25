@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+
 import { RetentionRow } from '../types'
 
 interface StickinessDashboardProps {

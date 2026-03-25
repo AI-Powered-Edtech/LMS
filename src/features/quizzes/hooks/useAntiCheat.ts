@@ -1,7 +1,8 @@
 // Anti-Cheat Hook - Tab switch detection + cheating signal RPC
 // Part of the Quiz Engine Refactor
 
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+
 import * as quizPlayerService from '../api/quizPlayer.service'
 
 interface UseAntiCheatOptions {

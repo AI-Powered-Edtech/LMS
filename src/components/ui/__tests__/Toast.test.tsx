@@ -1,8 +1,10 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect, beforeEach } from 'vitest'
-import { useToast } from '@/src/hooks/useToast'
-import { ToastContainer } from '../Toast'
 import { act } from 'react'
+import { beforeEach, describe, expect, it } from 'vitest'
+
+import { useToast } from '@/src/hooks/useToast'
+
+import { ToastContainer } from '../Toast'
 
 describe('useToast', () => {
   beforeEach(() => {
