@@ -123,10 +123,13 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <div className="flex items-center gap-3 mr-4 border-r border-slate-100 pr-4">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            <label className="text-xs font-black text-slate-500 uppercase tracking-widest">
               STATUS:
             </label>
             <button
+              role="switch"
+              aria-checked={assignmentData.is_published}
+              aria-label="Publikasi tugas"
               onClick={() =>
                 setAssignmentData({ ...assignmentData, is_published: !assignmentData.is_published })
               }
@@ -153,13 +156,16 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
             ) : (
               <CheckCircle className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
             )}
-            SIMPAN PERUBAHAN
+            <span aria-live="polite">{isSaving ? 'Menyimpan...' : 'SIMPAN PERUBAHAN'}</span>
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl flex items-start gap-2">
+        <div
+          role="alert"
+          className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl flex items-start gap-2"
+        >
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -201,10 +207,14 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
         </div>
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">
+            <label
+              htmlFor="assignment-max-points"
+              className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+            >
               Maks. Poin
             </label>
             <input
+              id="assignment-max-points"
               type="number"
               min="1"
               value={assignmentData.max_points}
@@ -215,10 +225,14 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
             />
           </div>
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">
+            <label
+              htmlFor="assignment-max-attempts"
+              className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+            >
               Maks. Percobaan
             </label>
             <input
+              id="assignment-max-attempts"
               type="number"
               min="1"
               value={assignmentData.max_attempts}

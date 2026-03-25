@@ -230,7 +230,11 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
           </div>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && (
+          <p role="alert" className="text-sm text-red-600">
+            {error}
+          </p>
+        )}
       </div>
     )
   }
@@ -243,6 +247,14 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            if (!isUploading) inputRef.current?.click()
+          }
+        }}
         className={`
           relative flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed cursor-pointer transition-all
           ${isDragOver ? 'border-orange-400 bg-orange-50' : 'border-slate-300 hover:border-slate-400 bg-slate-50'}
@@ -263,7 +275,7 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
             <Loader2 className="w-8 h-8 text-orange-600 animate-spin mb-2" />
             <p className="text-sm text-slate-600">Mengunggah...</p>
             {uploadFileName && (
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 {uploadFileName} ({uploadFileSize ? formatFileSize(uploadFileSize) : ''})
               </p>
             )}
@@ -274,12 +286,16 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
               <FileUp className="w-8 h-8 text-orange-500" />
             </div>
             <p className="text-sm text-slate-600 mb-1">Pilih file untuk diunggah</p>
-            <p className="text-xs text-slate-400">PDF, Word, PowerPoint, Excel, ZIP (maks. 20MB)</p>
+            <p className="text-xs text-slate-500">PDF, Word, PowerPoint, Excel, ZIP (maks. 20MB)</p>
           </>
         )}
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-red-600">
+          {error}
+        </p>
+      )}
     </div>
   )
 }
