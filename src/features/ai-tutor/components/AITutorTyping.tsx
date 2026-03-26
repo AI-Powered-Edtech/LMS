@@ -4,8 +4,8 @@
  * Animated loading indicator shown while AI is generating a response.
  */
 
-import { Sparkles } from 'lucide-react'
 import { motion } from 'motion/react'
+import { Sparkles } from 'lucide-react'
 
 interface AITutorTypingProps {
   message?: string

@@ -1,0 +1,4 @@
+## 2026-03-22 - [Insecure Randomness in Classroom Join Codes]
+**Vulnerability:** `Math.random()` was used to generate sensitive access codes (`joinCode`) for classrooms in `src/features/classroom/api/classroomService.ts`.
+**Learning:** Predictable PRNGs (`Math.random()`) expose the application to code prediction and enumeration attacks. Since join codes bypass standard authorization by directly granting access via RPC (`enroll_student`), their generation must be cryptographically secure to prevent unauthorized classroom access.
+**Prevention:** Always use `globalThis.crypto.getRandomValues()` or `globalThis.crypto.randomUUID()` when generating security-sensitive values like join codes, tokens, or passwords. For high-entropy alphanumeric strings, `crypto.getRandomValues()` should be preferred and manually mapped to the required character set.

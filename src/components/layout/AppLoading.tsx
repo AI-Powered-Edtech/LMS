@@ -1,7 +1,6 @@
 import { useTheme } from '@/src/contexts/ThemeContext'
-
-import { HeaderSkeleton } from './HeaderSkeleton'
 import { SidebarSkeleton } from './SidebarSkeleton'
+import { HeaderSkeleton } from './HeaderSkeleton'
 
 /**
  * App Shell loading state that mirrors the real app layout.

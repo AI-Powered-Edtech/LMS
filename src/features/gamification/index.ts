@@ -6,8 +6,9 @@
  */
 
 // Types
-export type { Certificate, LeaderboardEntry } from './types'
+export type { LeaderboardEntry, Certificate } from './types'
 
 // Query Hooks
 export { useStudentCertificates } from './queries/gamificationQueries'
+
 export { useLeaderboard } from './queries/leaderboardQueries'

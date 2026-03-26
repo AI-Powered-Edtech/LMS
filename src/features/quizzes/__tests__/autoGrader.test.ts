@@ -1,9 +1,8 @@
-import { describe, expect, it } from 'vitest'
-
+import { describe, it, expect } from 'vitest'
 import {
-  type GradeableQuestion,
   gradeAnswer,
   gradeAttempt,
+  type GradeableQuestion,
   type StudentAnswer,
 } from '../utils/autoGrader'
 

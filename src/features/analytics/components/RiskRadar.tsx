@@ -1,14 +1,13 @@
 import {
-  CartesianGrid,
-  Cell,
-  ResponsiveContainer,
-  Scatter,
   ScatterChart,
-  Tooltip,
+  Scatter,
   XAxis,
   YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
 } from 'recharts'
-
 import type { StudentPrediction } from '../types'
 
 interface Props {

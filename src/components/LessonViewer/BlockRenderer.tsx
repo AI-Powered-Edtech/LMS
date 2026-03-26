@@ -1,12 +1,11 @@
 import type { LessonResource } from '@/src/features/lessons/types'
-import type { Assignment, Quiz } from '@/src/features/lessons/types'
-import { QuizViewer } from '@/src/features/quizzes/components/QuizViewer'
-
-import { AssignmentViewer } from './AssignmentViewer'
-import { FileBlockViewer } from './blocks/FileBlockViewer'
-import { ImageBlockViewer } from './blocks/ImageBlockViewer'
+import type { Quiz, Assignment } from '@/src/features/lessons/types'
 import { MarkdownBlock } from './blocks/MarkdownBlock'
 import { VideoBlock } from './blocks/VideoBlock'
+import { ImageBlockViewer } from './blocks/ImageBlockViewer'
+import { FileBlockViewer } from './blocks/FileBlockViewer'
+import { QuizViewer } from '@/src/features/quizzes/components/QuizViewer'
+import { AssignmentViewer } from './AssignmentViewer'
 
 interface BlockRendererProps {
   block: LessonResource

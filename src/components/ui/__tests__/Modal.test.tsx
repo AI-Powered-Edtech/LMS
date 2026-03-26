@@ -1,7 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
-
-import { Modal, ModalBody, ModalFooter, ModalHeader } from '../Modal'
+import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '../Modal'
 
 describe('Modal', () => {
   it('renders when open is true', () => {

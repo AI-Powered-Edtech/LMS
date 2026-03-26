@@ -1,7 +1,7 @@
-import { validate } from '../lib/validate'
-import { ModuleRowSchema } from '../schemas'
-import { mapLesson } from './lessonMappers'
 import { DomainModule } from './moduleTypes'
+import { ModuleRowSchema } from '../schemas'
+import { validate } from '../lib/validate'
+import { mapLesson } from './lessonMappers'
 
 export function mapModule(row: unknown): DomainModule {
   const r = validate(ModuleRowSchema, row, 'ModuleRow')

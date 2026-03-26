@@ -1,10 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { create } from 'zustand'
-
 import { useAuth } from '@/src/contexts/AuthContext'
-import { Classroom, classroomService } from '@/src/features/classroom/api/classroomService'
 import { createQueryKeys } from '@/src/lib/queryKeys'
+import { classroomService, Classroom } from '@/src/features/classroom/api/classroomService'
 
 const classroomKeys = createQueryKeys('classrooms')
 

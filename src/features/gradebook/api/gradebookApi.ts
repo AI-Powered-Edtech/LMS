@@ -1,7 +1,5 @@
 import Papa from 'papaparse'
-
 import { supabase } from '@/src/services/supabase/client'
-
 import type { GradebookColumn, GradebookEntry, GradebookSettings } from '../types'
 
 // ── Fetch ────────────────────────────────────────────────────────────────────

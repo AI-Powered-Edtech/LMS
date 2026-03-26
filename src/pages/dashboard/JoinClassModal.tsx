@@ -1,12 +1,11 @@
-import { valibotResolver } from '@hookform/resolvers/valibot'
-import { AlertTriangle, CheckCircle2, Plus } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { CheckCircle2, AlertTriangle, Plus } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useEffect, useState } from 'react'
+import { Modal, ModalHeader, ModalBody, Button, Input } from '@/src/components/ui'
 import { useForm } from 'react-hook-form'
-import * as v from 'valibot'
-
-import { Button, Input, Modal, ModalBody, ModalHeader } from '@/src/components/ui'
+import { valibotResolver } from '@hookform/resolvers/valibot'
 import { FormField } from '@/src/components/ui/FormField'
+import * as v from 'valibot'
 
 const JoinClassSchema = v.object({
   code: v.pipe(v.string(), v.minLength(1, 'Wajib diisi')),

@@ -1,21 +1,19 @@
-import { Activity, Loader2 } from 'lucide-react'
-
-import { EngagementTrend } from '@/src/features/analytics/components/EngagementTrend'
-import { FunnelChart } from '@/src/features/analytics/components/FunnelChart'
-import { RetentionHeatmap } from '@/src/features/analytics/components/RetentionHeatmap'
-import { RiskRadar } from '@/src/features/analytics/components/RiskRadar'
-import { SegmentPieChart } from '@/src/features/analytics/components/SegmentPieChart'
+import { Loader2, Activity } from 'lucide-react'
+import type { WidgetConfig } from '../types'
 import {
-  useAtRiskStudents,
   useEngagementSummary,
   useEngagementTrend,
+  useAtRiskStudents,
+  useRetentionMatrix,
   useFunnelList,
   useFunnelResults,
-  useRetentionMatrix,
 } from '@/src/features/analytics/queries/analyticsQueries'
+import { SegmentPieChart } from '@/src/features/analytics/components/SegmentPieChart'
+import { EngagementTrend } from '@/src/features/analytics/components/EngagementTrend'
+import { RiskRadar } from '@/src/features/analytics/components/RiskRadar'
+import { RetentionHeatmap } from '@/src/features/analytics/components/RetentionHeatmap'
+import { FunnelChart } from '@/src/features/analytics/components/FunnelChart'
 import { LeaderboardV2 } from '@/src/features/gamification/components/LeaderboardV2'
-
-import type { WidgetConfig } from '../types'
 
 interface WidgetRendererProps {
   widget: WidgetConfig

@@ -1,5 +1,4 @@
 import { Timer } from 'lucide-react'
-
 import { cn } from '@/src/utils/cn'
 
 interface QuizTimerProps {

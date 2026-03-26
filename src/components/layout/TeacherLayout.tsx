@@ -1,13 +1,11 @@
-import { AnimatePresence, motion } from 'motion/react'
-import { Outlet, useLocation } from 'react-router-dom'
-
 import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary'
-import { useTheme } from '@/src/contexts/ThemeContext'
-
-import { Onboarding } from '../Onboarding'
+import { Outlet, useLocation } from 'react-router-dom'
+import { Sidebar } from './Sidebar'
 import { BottomNav } from './BottomNav'
 import { Header } from './Header'
-import { Sidebar } from './Sidebar'
+import { Onboarding } from '../Onboarding'
+import { motion, AnimatePresence } from 'motion/react'
+import { useTheme } from '@/src/contexts/ThemeContext'
 
 const hiddenNavPaths = ['/lesson', '/grader', '/kiosk']
 

@@ -2,7 +2,6 @@
 // Part of the Quiz Engine Refactor
 
 import { useQuery } from '@tanstack/react-query'
-
 import * as quizPlayerService from '../api/quizPlayer.service'
 import { QuizKeys } from './queryKeys'
 

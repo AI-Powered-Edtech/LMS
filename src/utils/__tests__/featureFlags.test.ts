@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // Mock Supabase before importing featureFlags
 vi.mock('@/src/services/supabase/client', () => {
@@ -20,13 +20,13 @@ vi.mock('@/src/services/supabase/client', () => {
   }
 })
 
-import type { FeatureFlag } from '../featureFlags'
 import {
-  invalidateFlagCache,
-  isFeatureEnabled,
   loadFeatureFlags,
+  isFeatureEnabled,
   useFeatureFlag,
+  invalidateFlagCache,
 } from '../featureFlags'
+import type { FeatureFlag } from '../featureFlags'
 
 // Access mock helpers
 const supabaseMock = await import('@/src/services/supabase/client')

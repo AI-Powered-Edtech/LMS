@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-
 import { discussionService } from '../api/discussionService'
 
 export const discussionKeys = {

@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-
 import { assignmentService } from '../api/assignmentService'
 
 export const assignmentKeys = {

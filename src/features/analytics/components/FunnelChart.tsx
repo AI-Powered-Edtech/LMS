@@ -1,14 +1,13 @@
 import {
-  Bar,
   BarChart,
-  Cell,
-  LabelList,
-  ResponsiveContainer,
-  Tooltip,
+  Bar,
   XAxis,
   YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  LabelList,
 } from 'recharts'
-
 import { FunnelStepResult } from '../types'
 
 const EVENT_LABELS: Record<string, string> = {
