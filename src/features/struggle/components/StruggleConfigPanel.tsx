@@ -1,14 +1,7 @@
-<<<<<<< Updated upstream
-import { CheckCircle, Save } from 'lucide-react'
-import { useEffect, useState } from 'react'
-=======
-import { CheckCircle,Save } from 'lucide-react'
-import { useEffect,useState } from 'react'
->>>>>>> Stashed changes
-
-import { Card, Skeleton } from '@/src/components/ui'
+import { useState, useEffect } from 'react'
+import { Save, CheckCircle } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
-
+import { Card, Skeleton } from '@/src/components/ui'
 import { useStruggleConfig, useUpdateStruggleConfig } from '../queries/useStruggleQueries'
 import type { StruggleConfig } from '../types'
 

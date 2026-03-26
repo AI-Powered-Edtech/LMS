@@ -1,12 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-
-<<<<<<< Updated upstream
-import { GC, STALE } from '@/src/utils/queryConstants'
-=======
-import { GC,STALE } from '@/src/utils/queryConstants'
->>>>>>> Stashed changes
-
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { reportService } from '../api/reportService'
+import { STALE, GC } from '@/src/utils/queryConstants'
 
 const REPORT_KEYS = {
   all: ['scheduled_reports'] as const,

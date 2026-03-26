@@ -5,22 +5,13 @@
  * Each hook owns tenantId from useAuth context.
  */
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createQueryKeys } from '@/src/lib/queryKeys'
+import { useAuth } from '@/src/contexts/AuthContext'
+import { gamificationService } from '../api/gamificationService'
 import { cachedQuery, CacheKeys } from '@/src/utils/cache'
-<<<<<<< Updated upstream
-import { GC, STALE } from '@/src/utils/queryConstants'
-
-import { gamificationService } from '../api/gamificationService'
-import type { LeaderboardPeriod, LeaderboardSortBy } from '../types'
-=======
-import { GC,STALE } from '@/src/utils/queryConstants'
-
-import { gamificationService } from '../api/gamificationService'
-import type { LeaderboardPeriod,LeaderboardSortBy } from '../types'
->>>>>>> Stashed changes
+import type { LeaderboardSortBy, LeaderboardPeriod } from '../types'
+import { STALE, GC } from '@/src/utils/queryConstants'
 
 // Create query keys with tenant scoping
 const base = createQueryKeys('gamification')

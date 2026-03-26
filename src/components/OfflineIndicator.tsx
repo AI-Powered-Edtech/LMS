@@ -1,11 +1,6 @@
+import { useState, useEffect } from 'react'
 import { WifiOff } from 'lucide-react'
-<<<<<<< Updated upstream
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useState } from 'react'
-=======
-import { AnimatePresence,motion } from 'motion/react'
-import { useEffect,useState } from 'react'
->>>>>>> Stashed changes
+import { motion, AnimatePresence } from 'motion/react'
 
 export function OfflineIndicator() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine)

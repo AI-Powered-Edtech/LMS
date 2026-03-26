@@ -1,23 +1,12 @@
+import React, { useState, useEffect, useRef } from 'react'
+import { Bell, Check, ExternalLink, Inbox } from 'lucide-react'
+import type { Notification } from '@/src/features/notifications'
+import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '@/src/features/notifications'
+import { cn } from '../../utils/cn'
 import { formatDistanceToNow } from 'date-fns'
 import { id } from 'date-fns/locale'
-import { Bell, Check, ExternalLink, Inbox } from 'lucide-react'
-<<<<<<< Updated upstream
-import { AnimatePresence, motion } from 'motion/react'
-import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-
-import type { Notification } from '@/src/features/notifications'
-import { useMarkAllAsRead, useMarkAsRead, useNotifications } from '@/src/features/notifications'
-=======
-import { AnimatePresence,motion } from 'motion/react'
-import React, { useEffect, useRef,useState } from 'react'
-import { Link } from 'react-router-dom'
-
-import type { Notification } from '@/src/features/notifications'
-import { useMarkAllAsRead,useMarkAsRead, useNotifications } from '@/src/features/notifications'
->>>>>>> Stashed changes
-
-import { cn } from '../../utils/cn'
+import { motion, AnimatePresence } from 'motion/react'
 
 export const NotificationCenter: React.FC = () => {
   const { notifications, unreadCount, isLoading: loading } = useNotifications()

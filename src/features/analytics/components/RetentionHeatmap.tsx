@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-
 import { RetentionRow } from '../types'
 
 interface RetentionHeatmapProps {

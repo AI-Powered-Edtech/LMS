@@ -1,11 +1,5 @@
-<<<<<<< Updated upstream
-import { act, renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-=======
-import { act,renderHook } from '@testing-library/react'
-import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
->>>>>>> Stashed changes
-
+import { renderHook, act } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { useDebounce } from '../useDebounce'
 
 describe('useDebounce', () => {

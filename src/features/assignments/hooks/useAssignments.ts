@@ -1,12 +1,6 @@
-<<<<<<< Updated upstream
-import { useEffect, useState } from 'react'
-=======
-import { useEffect,useState } from 'react'
->>>>>>> Stashed changes
-
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useState, useEffect } from 'react'
 import { assignmentService } from '@/src/features/assignments/api/assignmentService'
-
+import { useAuth } from '@/src/contexts/AuthContext'
 import { AssignmentUiState, StudentSubmission } from '../types'
 
 // Raw database response type (snake_case from Supabase)

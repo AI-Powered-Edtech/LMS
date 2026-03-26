@@ -1,10 +1,5 @@
 import { useMemo } from 'react'
-<<<<<<< Updated upstream
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-=======
-import { Line, LineChart, ResponsiveContainer,Tooltip, XAxis, YAxis } from 'recharts'
->>>>>>> Stashed changes
-
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { RetentionRow } from '../types'
 
 interface StickinessDashboardProps {

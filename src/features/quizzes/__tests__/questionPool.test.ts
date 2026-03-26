@@ -1,15 +1,10 @@
-<<<<<<< Updated upstream
-import { describe, expect, it } from 'vitest'
-=======
-import { describe, expect,it } from 'vitest'
->>>>>>> Stashed changes
-
+import { describe, it, expect } from 'vitest'
 import {
-  getPoolSummary,
-  type PoolConfig,
   seededShuffle,
   selectFromPool,
   validatePoolConfig,
+  getPoolSummary,
+  type PoolConfig,
 } from '../utils/questionPool'
 
 // ─── seededShuffle ───────────────────────────────────────

@@ -1,11 +1,6 @@
-import { X } from 'lucide-react'
-<<<<<<< Updated upstream
-import { createContext, useCallback, useContext, useEffect, useId, useRef } from 'react'
-=======
-import { createContext, useCallback, useContext,useEffect, useId, useRef } from 'react'
->>>>>>> Stashed changes
-
+import { useEffect, useRef, useCallback, useId, createContext, useContext } from 'react'
 import { cn } from '@/src/utils/cn'
+import { X } from 'lucide-react'
 
 /* ─── Modal ────────────────────────────────────────────────── */
 

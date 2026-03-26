@@ -4,18 +4,10 @@
  * Question input with validation, rate limit display, and send functionality.
  */
 
-<<<<<<< Updated upstream
-import { AlertCircle, Clock, Loader2, Send } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-
-import { type AITutorError, validateQuestion } from '@/src/features/ai-tutor'
-=======
-import { AlertCircle, Clock, Loader2,Send } from 'lucide-react'
-import { useEffect,useRef, useState } from 'react'
-
-import { type AITutorError,validateQuestion } from '@/src/features/ai-tutor'
->>>>>>> Stashed changes
+import { useState, useRef, useEffect } from 'react'
+import { Send, AlertCircle, Clock, Loader2 } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
+import { validateQuestion, type AITutorError } from '@/src/features/ai-tutor'
 
 interface AITutorInputProps {
   onSendQuestion: (question: string) => Promise<void>

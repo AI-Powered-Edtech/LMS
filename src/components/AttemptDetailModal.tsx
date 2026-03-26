@@ -1,26 +1,21 @@
+import { useState, useEffect } from 'react'
 import {
-  AlertTriangle,
-  CheckCircle2,
-  Loader2,
-  MessageSquare,
-  PenLine,
-  Save,
   X,
+  CheckCircle2,
   XCircle,
+  Loader2,
+  AlertTriangle,
+  Save,
+  PenLine,
+  MessageSquare,
 } from 'lucide-react'
-<<<<<<< Updated upstream
-import { useEffect, useState } from 'react'
-=======
-import { useEffect,useState } from 'react'
->>>>>>> Stashed changes
-
-import { useAuth } from '@/src/contexts/AuthContext'
 import {
-  AttemptDetailAnswer,
   quizAnalyticsService,
+  AttemptDetailAnswer,
 } from '@/src/features/quizzes/api/quizAnalyticsService'
 import { gradeAttemptQuestion } from '@/src/features/quizzes/api/quizManager.service'
 import { cn } from '@/src/utils/cn'
+import { useAuth } from '@/src/contexts/AuthContext'
 
 interface AttemptDetailModalProps {
   attemptId: string

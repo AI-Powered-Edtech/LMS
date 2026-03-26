@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from 'react'
-<<<<<<< Updated upstream
-import { Navigate, useLocation, useParams } from 'react-router-dom'
-=======
-import { Navigate, useLocation,useParams } from 'react-router-dom'
->>>>>>> Stashed changes
-
+import { useParams, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { courseService } from '../../features/courses'
 

@@ -1,9 +1,5 @@
-<<<<<<< Updated upstream
-import { File, FileText, HelpCircle, Image, Type, Video } from 'lucide-react'
-=======
-import { File, FileText,HelpCircle, Image, Type, Video } from 'lucide-react'
->>>>>>> Stashed changes
 import type { ComponentType } from 'react'
+import { Type, Video, Image, File, HelpCircle, FileText } from 'lucide-react'
 
 export interface BlockDefinition {
   /** Indonesian UI label shown in builder menus */

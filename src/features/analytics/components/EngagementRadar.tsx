@@ -1,12 +1,11 @@
 import {
-  PolarAngleAxis,
-  PolarGrid,
-  Radar,
   RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  Radar,
   ResponsiveContainer,
   Tooltip,
 } from 'recharts'
-
 import { EngagementSummaryRow } from '../types'
 
 interface EngagementRadarProps {

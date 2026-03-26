@@ -1,19 +1,12 @@
-import { Filter, Loader2, Plus, Search, X } from 'lucide-react'
-<<<<<<< Updated upstream
-import { AnimatePresence, motion } from 'motion/react'
-import React, { useEffect, useState } from 'react'
-=======
-import { AnimatePresence,motion } from 'motion/react'
-import React, { useEffect,useState } from 'react'
->>>>>>> Stashed changes
-
+import React, { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
+import { Search, Loader2, Plus, Filter, X } from 'lucide-react'
 import {
-  QuestionBankItem,
   questionBankService,
+  QuestionBankItem,
 } from '@/src/features/question-bank/api/questionBankService'
-import { useToast } from '@/src/hooks/useToast'
-
 import { QuestionCard } from './QuestionCard'
+import { useToast } from '@/src/hooks/useToast'
 
 interface QuestionSearchModalProps {
   quizId: string

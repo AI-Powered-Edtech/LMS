@@ -1,8 +1,4 @@
-<<<<<<< Updated upstream
-import { useEffect, useState } from 'react'
-=======
-import { useEffect,useState } from 'react'
->>>>>>> Stashed changes
+import { useState, useEffect } from 'react'
 
 export function useReducedMotion(): boolean {
   const [prefersReduced, setPrefersReduced] = useState(() => {

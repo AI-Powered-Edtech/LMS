@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-
 import { progressService } from '../api/progressService'
 
 export const progressKeys = {

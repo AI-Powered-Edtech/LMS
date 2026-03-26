@@ -1,15 +1,10 @@
-<<<<<<< Updated upstream
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-=======
-import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
->>>>>>> Stashed changes
-
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import {
-  aiTutorRateLimiter,
   createRateLimiter,
   loginRateLimiter,
-  passwordResetRateLimiter,
   quizSubmitRateLimiter,
+  aiTutorRateLimiter,
+  passwordResetRateLimiter,
 } from '../rateLimiter'
 
 describe('createRateLimiter', () => {

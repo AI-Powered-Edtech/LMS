@@ -1,13 +1,6 @@
-<<<<<<< Updated upstream
-import { Minus, TrendingDown, TrendingUp } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-=======
-import { Minus,TrendingDown, TrendingUp } from 'lucide-react'
-import { AnimatePresence,motion } from 'motion/react'
->>>>>>> Stashed changes
-
+import { motion, AnimatePresence } from 'motion/react'
+import { TrendingDown, TrendingUp, Minus } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
-
 import type { StudentPrediction } from '../types'
 
 interface Props {

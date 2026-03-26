@@ -1,6 +1,5 @@
 import { ChevronRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
-
 import { cn } from '@/src/utils/cn'
 
 export interface BreadcrumbItem {

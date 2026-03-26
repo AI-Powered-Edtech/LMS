@@ -1,15 +1,9 @@
-<<<<<<< Updated upstream
-import { Activity, BookOpen, CheckCircle, Users } from 'lucide-react'
-=======
-import { Activity, BookOpen,CheckCircle, Users } from 'lucide-react'
->>>>>>> Stashed changes
+import { Users, Activity, CheckCircle, BookOpen } from 'lucide-react'
 import { motion } from 'motion/react'
-
 import { Card, Skeleton } from '@/src/components/ui'
 import { cn } from '@/src/utils/cn'
-
-import type { CourseAnalytics } from '../types'
 import { formatPct, pctColor } from '../utils/formatters'
+import type { CourseAnalytics } from '../types'
 
 interface CourseOverviewCardProps {
   data: CourseAnalytics | null

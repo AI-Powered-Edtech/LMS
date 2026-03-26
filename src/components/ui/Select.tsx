@@ -1,7 +1,6 @@
-import { ChevronDown } from 'lucide-react'
 import { forwardRef, useId } from 'react'
-
 import { cn } from '@/src/utils/cn'
+import { ChevronDown } from 'lucide-react'
 
 /* ─── Types ───────────────────────────────────────────────────── */
 

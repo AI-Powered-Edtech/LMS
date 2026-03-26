@@ -1,21 +1,11 @@
-<<<<<<< Updated upstream
-import { AlertTriangle, CheckCircle, Clock, Cloud, FileText, Loader2, XCircle } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
-
-import { useOptionalLearningSession } from '@/src/features/analytics'
-import { type QuestionType, type QuizAttemptResult, quizService } from '@/src/features/quizzes'
-=======
-import { AlertTriangle, CheckCircle, Clock, Cloud,FileText, Loader2, XCircle } from 'lucide-react'
-import { AnimatePresence,motion } from 'motion/react'
-import { useEffect, useMemo,useRef, useState } from 'react'
-
-import { useOptionalLearningSession } from '@/src/features/analytics'
-import { type QuestionType,type QuizAttemptResult, quizService } from '@/src/features/quizzes'
->>>>>>> Stashed changes
+import { useState, useRef, useEffect, useMemo } from 'react'
+import { AlertTriangle, CheckCircle, XCircle, Loader2, Clock, FileText, Cloud } from 'lucide-react'
+import { cn } from '@/src/utils/cn'
+import { motion, AnimatePresence } from 'motion/react'
+import { quizService, type QuizAttemptResult, type QuestionType } from '@/src/features/quizzes'
 import { useQuizAutosave } from '@/src/features/quizzes/hooks/useQuizAutosave'
 import type { SubmitAnswer } from '@/src/features/quizzes/types/quizzes.types'
-import { cn } from '@/src/utils/cn'
+import { useOptionalLearningSession } from '@/src/features/analytics'
 
 interface QuizOption {
   id: string

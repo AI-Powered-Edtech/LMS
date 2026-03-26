@@ -1,15 +1,9 @@
-<<<<<<< Updated upstream
-import { AnimatePresence, motion } from 'motion/react'
-=======
-import { AnimatePresence,motion } from 'motion/react'
->>>>>>> Stashed changes
-import { Outlet, useLocation } from 'react-router-dom'
-
 import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary'
-import { useTheme } from '@/src/contexts/ThemeContext'
-
-import { Header } from './Header'
+import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
+import { Header } from './Header'
+import { motion, AnimatePresence } from 'motion/react'
+import { useTheme } from '@/src/contexts/ThemeContext'
 
 const hiddenNavPaths = ['/lesson', '/grader', '/kiosk']
 

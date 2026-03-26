@@ -1,11 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react'
-<<<<<<< Updated upstream
-import { Mail, Search } from 'lucide-react'
-=======
-import { Mail,Search } from 'lucide-react'
->>>>>>> Stashed changes
-
 import { Input } from './Input'
+import { Search, Mail } from 'lucide-react'
 
 const meta: Meta<typeof Input> = {
   title: 'UI/Input',

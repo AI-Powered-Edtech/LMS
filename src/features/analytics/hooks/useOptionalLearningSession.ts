@@ -1,11 +1,6 @@
 import { useContext } from 'react'
-
 import { LearningSessionContext } from '../context/LearningSessionContext'
-<<<<<<< Updated upstream
-import type { EventMetadata, LearningEventType } from '../types/events.types'
-=======
-import type { EventMetadata,LearningEventType } from '../types/events.types'
->>>>>>> Stashed changes
+import type { LearningEventType, EventMetadata } from '../types/events.types'
 
 interface LearningSessionValue {
   sessionId: string

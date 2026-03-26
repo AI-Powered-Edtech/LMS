@@ -1,8 +1,4 @@
-<<<<<<< Updated upstream
-import { useCallback, useState } from 'react'
-=======
-import { useCallback,useState } from 'react'
->>>>>>> Stashed changes
+import { useState, useCallback } from 'react'
 
 export type ModuleId =
   | 'gradebook'

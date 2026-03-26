@@ -1,10 +1,8 @@
-import { BookOpen, Medal, Star, Trophy } from 'lucide-react'
 import { useMemo } from 'react'
-
-import { EmptyState, Skeleton } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
+import { BookOpen, Medal, Star, Trophy } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
-
+import { useAuth } from '@/src/contexts/AuthContext'
+import { EmptyState, Skeleton } from '@/src/components/ui'
 import { useGradebookEntries } from '../queries/useGradebook'
 import type { GradebookEntry } from '../types'
 

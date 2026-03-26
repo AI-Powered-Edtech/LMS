@@ -1,11 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { createQueryKeys } from '@/src/lib/queryKeys'
-import { STALE } from '@/src/utils/queryConstants'
-
 import { struggleService } from '../api/struggleService'
 import type { StruggleConfig } from '../types'
+import { STALE } from '@/src/utils/queryConstants'
 
 // ----------------------------------------------------------------
 // Query key factory

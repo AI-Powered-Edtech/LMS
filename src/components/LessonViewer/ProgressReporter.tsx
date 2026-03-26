@@ -1,9 +1,4 @@
-<<<<<<< Updated upstream
-import { useCallback, useEffect, useRef } from 'react'
-=======
-import { useCallback,useEffect, useRef } from 'react'
->>>>>>> Stashed changes
-
+import { useEffect, useRef, useCallback } from 'react'
 import { lessonService } from '@/src/features/lessons'
 
 interface ProgressReporterProps {

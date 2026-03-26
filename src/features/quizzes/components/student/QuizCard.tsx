@@ -1,12 +1,7 @@
-<<<<<<< Updated upstream
-import { Loader2, Play, Target } from 'lucide-react'
-=======
-import { Loader2, Play,Target } from 'lucide-react'
->>>>>>> Stashed changes
 import { motion } from 'motion/react'
-
-import type { StudentQuizAssignment } from '@/src/features/quizzes'
+import { Target, Loader2, Play } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
+import type { StudentQuizAssignment } from '@/src/features/quizzes'
 
 export function QuizCard({
   quiz,
