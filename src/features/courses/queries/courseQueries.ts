@@ -1,8 +1,13 @@
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
-import { courseService } from '../api/courseService'
-import { courseKeys } from './courseKeys'
+<<<<<<< Updated upstream
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+=======
+import { useInfiniteQuery,useQuery } from '@tanstack/react-query'
+>>>>>>> Stashed changes
+
 import { useAuth } from '../../../contexts/AuthContext'
+import { courseService } from '../api/courseService'
 import { FetchCoursesOptions } from '../types'
+import { courseKeys } from './courseKeys'
 
 export function useCourses(filters?: Omit<FetchCoursesOptions, 'tenantId'>) {
   const { tenantId } = useAuth()

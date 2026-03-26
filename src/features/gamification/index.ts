@@ -6,9 +6,12 @@
  */
 
 // Types
-export type { LeaderboardEntry, Certificate } from './types'
+<<<<<<< Updated upstream
+export type { Certificate, LeaderboardEntry } from './types'
+=======
+export type { Certificate,LeaderboardEntry } from './types'
+>>>>>>> Stashed changes
 
 // Query Hooks
 export { useStudentCertificates } from './queries/gamificationQueries'
-
 export { useLeaderboard } from './queries/leaderboardQueries'

@@ -1,6 +1,11 @@
-import { CheckCircle, XCircle, Clock } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
+<<<<<<< Updated upstream
+import { CheckCircle, Clock, XCircle } from 'lucide-react'
+=======
+import { CheckCircle, Clock,XCircle } from 'lucide-react'
+>>>>>>> Stashed changes
+
 import type { QuizAttempt } from '@/src/features/quizzes'
+import { cn } from '@/src/utils/cn'
 
 export function QuizAttemptCard({
   attempt,

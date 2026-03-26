@@ -1,8 +1,14 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect, beforeEach } from 'vitest'
-import { useToast } from '@/src/hooks/useToast'
-import { ToastContainer } from '../Toast'
 import { act } from 'react'
+<<<<<<< Updated upstream
+import { beforeEach, describe, expect, it } from 'vitest'
+=======
+import { beforeEach,describe, expect, it } from 'vitest'
+>>>>>>> Stashed changes
+
+import { useToast } from '@/src/hooks/useToast'
+
+import { ToastContainer } from '../Toast'
 
 describe('useToast', () => {
   beforeEach(() => {

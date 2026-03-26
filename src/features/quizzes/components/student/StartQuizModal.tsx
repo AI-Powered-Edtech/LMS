@@ -1,5 +1,10 @@
+<<<<<<< Updated upstream
+import { AlertTriangle, Clock, Loader2, Play, X } from 'lucide-react'
+=======
+import { AlertTriangle, Clock, Loader2,Play, X } from 'lucide-react'
+>>>>>>> Stashed changes
 import { motion } from 'motion/react'
-import { X, Play, Clock, AlertTriangle, Loader2 } from 'lucide-react'
+
 import type { StudentQuizAssignment } from '../../types/quizzes.types'
 
 interface PendingQuiz extends StudentQuizAssignment {

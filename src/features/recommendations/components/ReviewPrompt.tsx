@@ -1,8 +1,14 @@
-import { useState } from 'react'
 import { AlertTriangle, RotateCcw, X } from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
+<<<<<<< Updated upstream
+import { AnimatePresence, motion } from 'motion/react'
+=======
+import { AnimatePresence,motion } from 'motion/react'
+>>>>>>> Stashed changes
+import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+
 import { useAuth } from '@/src/contexts/AuthContext'
+
 import { useRecommendations, useRecordRecommendationAction } from '../queries/recommendationQueries'
 
 interface ReviewPromptProps {

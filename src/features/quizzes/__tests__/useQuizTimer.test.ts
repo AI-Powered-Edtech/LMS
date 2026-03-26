@@ -1,5 +1,11 @@
-import { renderHook, act } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+<<<<<<< Updated upstream
+import { act, renderHook } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+=======
+import { act,renderHook } from '@testing-library/react'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
+>>>>>>> Stashed changes
+
 import { useQuizTimer } from '../hooks/useQuizTimer'
 
 describe('useQuizTimer', () => {

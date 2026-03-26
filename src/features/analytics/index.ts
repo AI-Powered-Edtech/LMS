@@ -1,5 +1,9 @@
 // Types — only externally consumed types
-export type { CourseEngagement, ActivityTimePoint } from './types'
+<<<<<<< Updated upstream
+export type { ActivityTimePoint, CourseEngagement } from './types'
+=======
+export type { ActivityTimePoint,CourseEngagement } from './types'
+>>>>>>> Stashed changes
 export { AnalyticsError } from './types'
 
 // Learning event tracking (SP-12)

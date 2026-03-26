@@ -1,4 +1,8 @@
-import { useState, useEffect } from 'react'
+<<<<<<< Updated upstream
+import { useEffect, useState } from 'react'
+=======
+import { useEffect,useState } from 'react'
+>>>>>>> Stashed changes
 
 export interface NetworkStatus {
   isOnline: boolean

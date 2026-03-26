@@ -1,7 +1,12 @@
-import { useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import { Modal, ModalHeader, ModalBody, ModalFooter } from './Modal'
+import { useState } from 'react'
+
 import { Button } from './Button'
+<<<<<<< Updated upstream
+import { Modal, ModalBody, ModalFooter, ModalHeader } from './Modal'
+=======
+import { Modal, ModalBody, ModalFooter,ModalHeader } from './Modal'
+>>>>>>> Stashed changes
 
 const meta: Meta<typeof Modal> = {
   title: 'UI/Modal',

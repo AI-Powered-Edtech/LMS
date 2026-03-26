@@ -1,5 +1,6 @@
 import { AlertTriangle } from 'lucide-react'
 import { motion } from 'motion/react'
+
 import type { LessonAnalytics } from '../types'
 
 interface StruggleAlertBannerProps {

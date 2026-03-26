@@ -1,11 +1,16 @@
-import { describe, it, expect } from 'vitest'
+<<<<<<< Updated upstream
+import { describe, expect, it } from 'vitest'
+=======
+import { describe, expect,it } from 'vitest'
+>>>>>>> Stashed changes
+
 import {
+  calculateProgress,
+  calculateStreak,
+  calculateTotalXP,
   computeLevel,
   computeXPToNextLevel,
-  calculateTotalXP,
-  calculateStreak,
   getEngagementSegment,
-  calculateProgress,
   rankLeaderboard,
 } from '../clientCompute'
 

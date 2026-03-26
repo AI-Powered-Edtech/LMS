@@ -1,7 +1,11 @@
 // Quiz Timer Hook - Pure logic extracted from QuizTimer.tsx
 // Part of the Quiz Engine Refactor
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+<<<<<<< Updated upstream
+import { useCallback, useEffect, useRef, useState } from 'react'
+=======
+import { useCallback,useEffect, useRef, useState } from 'react'
+>>>>>>> Stashed changes
 
 interface UseQuizTimerOptions {
   expiresAt: string | null

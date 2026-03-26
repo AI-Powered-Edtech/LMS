@@ -2,9 +2,19 @@
 // Shows graded answers with explanations after quiz submission
 // Only displays when show_correct_answers is enabled
 
-import { CheckCircle, XCircle, HelpCircle, ArrowLeft } from 'lucide-react'
+<<<<<<< Updated upstream
+import { ArrowLeft, CheckCircle, HelpCircle, XCircle } from 'lucide-react'
+
 import { cn } from '@/src/utils/cn'
-import type { QuizAttemptQuestion, QuestionType } from '../../types/quizzes.types'
+
+import type { QuestionType, QuizAttemptQuestion } from '../../types/quizzes.types'
+=======
+import { ArrowLeft,CheckCircle, HelpCircle, XCircle } from 'lucide-react'
+
+import { cn } from '@/src/utils/cn'
+
+import type { QuestionType,QuizAttemptQuestion } from '../../types/quizzes.types'
+>>>>>>> Stashed changes
 
 interface QuizAnswerReviewProps {
   questions: QuizAttemptQuestion[]

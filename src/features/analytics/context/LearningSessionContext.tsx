@@ -1,14 +1,20 @@
 import {
   createContext,
+  type ReactNode,
   useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
-  type ReactNode,
 } from 'react'
-import type { LearningEventType, EventMetadata } from '../types/events.types'
-import { trackLearningEvent, startEventFlushing, stopEventFlushing } from '../api/trackingService'
+
+<<<<<<< Updated upstream
+import { startEventFlushing, stopEventFlushing, trackLearningEvent } from '../api/trackingService'
+import type { EventMetadata, LearningEventType } from '../types/events.types'
+=======
+import { startEventFlushing, stopEventFlushing,trackLearningEvent } from '../api/trackingService'
+import type { EventMetadata,LearningEventType } from '../types/events.types'
+>>>>>>> Stashed changes
 
 interface LearningSessionContextValue {
   sessionId: string

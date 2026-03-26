@@ -1,6 +1,11 @@
-import { useRef, useState, useEffect } from 'react'
 import { Bell } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
+<<<<<<< Updated upstream
+import { useEffect, useRef, useState } from 'react'
+=======
+import { useEffect,useRef, useState } from 'react'
+>>>>>>> Stashed changes
+
 import { useNotifications } from '../hooks/useNotifications'
 import { NotificationPanel } from './NotificationPanel'
 

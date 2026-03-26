@@ -5,9 +5,16 @@
  * Teachers can see which students triggered anti-cheat detection.
  */
 
-import { useState, useEffect } from 'react'
-import { Shield, ShieldAlert, Eye, Loader2, AlertTriangle } from 'lucide-react'
+<<<<<<< Updated upstream
+import { AlertTriangle, Eye, Loader2, Shield, ShieldAlert } from 'lucide-react'
+import { useEffect, useState } from 'react'
+=======
+import { AlertTriangle,Eye, Loader2, Shield, ShieldAlert } from 'lucide-react'
+import { useEffect,useState } from 'react'
+>>>>>>> Stashed changes
+
 import { cn } from '@/src/utils/cn'
+
 import { getSuspiciousAttempts, type SuspiciousAttempt } from '../../api/suspiciousAttempts.service'
 
 interface SuspiciousAttemptsPanelProps {

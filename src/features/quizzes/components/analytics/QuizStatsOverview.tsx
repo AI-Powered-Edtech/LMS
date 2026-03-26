@@ -1,7 +1,12 @@
 // Quiz Stats Overview Component
 // Shows summary statistics cards for a quiz
 
-import { Users, Trophy, Clock, TrendingUp } from 'lucide-react'
+<<<<<<< Updated upstream
+import { Clock, TrendingUp, Trophy, Users } from 'lucide-react'
+=======
+import { Clock, TrendingUp,Trophy, Users } from 'lucide-react'
+>>>>>>> Stashed changes
+
 import { cn } from '../../../../utils/cn'
 
 // Format time helper

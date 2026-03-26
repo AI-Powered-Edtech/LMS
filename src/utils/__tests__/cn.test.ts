@@ -1,4 +1,9 @@
-import { describe, it, expect } from 'vitest'
+<<<<<<< Updated upstream
+import { describe, expect, it } from 'vitest'
+=======
+import { describe, expect,it } from 'vitest'
+>>>>>>> Stashed changes
+
 import { cn } from '../cn'
 
 describe('cn', () => {

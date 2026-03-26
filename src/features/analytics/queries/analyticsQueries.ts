@@ -1,9 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
 import { useAuth } from '@/src/contexts/AuthContext'
-import { analyticsService } from '../api/analyticsService'
-import { TeacherAnalyticsData, AnalyticsError } from '../types'
+import { createQueryKeys } from '@/src/lib/queryKeys'
 import { STALE } from '@/src/utils/queryConstants'
+
+import { analyticsService } from '../api/analyticsService'
+<<<<<<< Updated upstream
+import { AnalyticsError, TeacherAnalyticsData } from '../types'
+=======
+import { AnalyticsError,TeacherAnalyticsData } from '../types'
+>>>>>>> Stashed changes
 
 const base = createQueryKeys('analytics')
 const analyticsKeys = {

@@ -1,9 +1,14 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { create } from 'zustand'
+
 import { useAuth } from '@/src/contexts/AuthContext'
+<<<<<<< Updated upstream
+import { Classroom, classroomService } from '@/src/features/classroom/api/classroomService'
+=======
+import { Classroom,classroomService } from '@/src/features/classroom/api/classroomService'
+>>>>>>> Stashed changes
 import { createQueryKeys } from '@/src/lib/queryKeys'
-import { classroomService, Classroom } from '@/src/features/classroom/api/classroomService'
 
 const classroomKeys = createQueryKeys('classrooms')
 

@@ -1,10 +1,17 @@
 // SP-18: In-App Learning Guidance
 
 // Types
-export type { LearningGuide, GuideType, GuideTrigger, GuideSegment } from './types'
+<<<<<<< Updated upstream
+export type { GuideSegment, GuideTrigger, GuideType, LearningGuide } from './types'
 
 // Hooks
-export { useGuideList, useUpsertGuide, useDeleteGuide } from './queries/useGuidanceQueries'
+export { useDeleteGuide, useGuideList, useUpsertGuide } from './queries/useGuidanceQueries'
+=======
+export type { GuideSegment,GuideTrigger, GuideType, LearningGuide } from './types'
+
+// Hooks
+export { useDeleteGuide,useGuideList, useUpsertGuide } from './queries/useGuidanceQueries'
+>>>>>>> Stashed changes
 
 // Student-facing components
 export { GuideRenderer } from './components/GuideRenderer'

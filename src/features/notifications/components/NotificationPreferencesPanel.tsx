@@ -1,6 +1,12 @@
-import { useState, useEffect } from 'react'
 import { Bell, Mail, Smartphone } from 'lucide-react'
+<<<<<<< Updated upstream
+import { useEffect, useState } from 'react'
+=======
+import { useEffect,useState } from 'react'
+>>>>>>> Stashed changes
+
 import { cn } from '@/src/utils/cn'
+
 import { useNotificationPreferences } from '../hooks/useNotifications'
 import type { NotificationType } from '../types'
 

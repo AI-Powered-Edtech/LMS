@@ -1,7 +1,13 @@
-import { useRef, useState, useEffect } from 'react'
 import { Bell } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
+<<<<<<< Updated upstream
+import { useEffect, useRef, useState } from 'react'
+=======
+import { useEffect,useRef, useState } from 'react'
+>>>>>>> Stashed changes
+
 import { useAuth } from '@/src/contexts/AuthContext'
+
 import { useUnreadAlertCount } from '../queries/useStruggleQueries'
 import { StruggleAlertPanel } from './StruggleAlertPanel'
 

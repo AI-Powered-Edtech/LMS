@@ -7,11 +7,15 @@
 // API exports
 export {
   askTutor,
-  validateQuestion,
-  generateMessageId,
   formatDifficulty,
+  generateMessageId,
   getDifficultyColor,
+  validateQuestion,
 } from './api/aiTutorService'
 
 // Types exports
-export type { DifficultyLevel, AITutorMessage, AITutorError } from './types'
+<<<<<<< Updated upstream
+export type { AITutorError, AITutorMessage, DifficultyLevel } from './types'
+=======
+export type { AITutorError,AITutorMessage, DifficultyLevel } from './types'
+>>>>>>> Stashed changes
