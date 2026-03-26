@@ -1,10 +1,11 @@
+import { AlertTriangle, CheckCircle, Flag, X } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
-import { X, AlertTriangle, Flag, CheckCircle } from 'lucide-react'
+
 import {
-  useSubmitReport,
-  ReportReason,
   ContentType,
+  ReportReason,
+  useSubmitReport,
 } from '@/src/features/moderation/queries/moderationQueries'
 
 interface ReportModalProps {

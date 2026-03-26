@@ -1,6 +1,7 @@
 import { useContext } from 'react'
+
 import { LearningSessionContext } from '../context/LearningSessionContext'
-import type { LearningEventType, EventMetadata } from '../types/events.types'
+import type { EventMetadata, LearningEventType } from '../types/events.types'
 
 interface LearningSessionValue {
   sessionId: string

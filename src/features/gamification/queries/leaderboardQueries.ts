@@ -6,10 +6,12 @@
  * Realtime subscription lifecycle is tied to the hook lifecycle.
  */
 
-import { useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { useEffect } from 'react'
+
 import { useAuth } from '@/src/contexts/AuthContext'
+import { createQueryKeys } from '@/src/lib/queryKeys'
+
 import { leaderboardService } from '../api/leaderboardService'
 
 // Create query keys with tenant scoping

@@ -1,4 +1,5 @@
 import { AlertTriangle } from 'lucide-react'
+
 import type { LearningPath } from '../types'
 
 interface Props {

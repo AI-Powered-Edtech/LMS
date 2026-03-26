@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
-import { parseVideoUrl, isEmbeddedVideo } from '../videoUtils'
+import { describe, expect, it } from 'vitest'
+
+import { isEmbeddedVideo, parseVideoUrl } from '../videoUtils'
 
 describe('parseVideoUrl', () => {
   describe('empty / invalid input', () => {

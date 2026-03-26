@@ -1,5 +1,5 @@
 // Types — only externally consumed types
-export type { CourseEngagement, ActivityTimePoint } from './types'
+export type { ActivityTimePoint, CourseEngagement } from './types'
 export { AnalyticsError } from './types'
 
 // Learning event tracking (SP-12)

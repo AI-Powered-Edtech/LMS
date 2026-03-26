@@ -3,10 +3,12 @@
  * Replaces NotificationContext with proper tenant isolation
  */
 
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+
 import { useAuth } from '@/src/contexts/AuthContext'
 import { createQueryKeys } from '@/src/lib/queryKeys'
+
 import * as notificationService from '../api/notificationService'
 
 // Create tenant-scoped query keys
