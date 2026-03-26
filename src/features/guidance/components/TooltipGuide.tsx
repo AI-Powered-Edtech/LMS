@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import { motion } from 'motion/react'
+
 import type { ApplicableGuide } from '../types'
 
 interface Props {

@@ -1,7 +1,9 @@
-import { useEffect, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useEffect, useRef } from 'react'
+
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useToast } from '@/src/hooks/useToast'
+
 import { gamificationKeys } from '../queries/gamificationQueries'
 import type { StudentXPProfile } from '../types'
 

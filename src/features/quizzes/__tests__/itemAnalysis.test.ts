@@ -1,11 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
+
 import {
-  computeDifficultyIndex,
-  computeDiscriminationIndex,
-  computeDiscriminationFromScores,
-  computePointBiserial,
-  classifyQuestionQuality,
   analyzeQuestions,
+  classifyQuestionQuality,
+  computeDifficultyIndex,
+  computeDiscriminationFromScores,
+  computeDiscriminationIndex,
+  computePointBiserial,
 } from '../utils/itemAnalysis'
 
 // ─── computeDifficultyIndex ──────────────────────────────

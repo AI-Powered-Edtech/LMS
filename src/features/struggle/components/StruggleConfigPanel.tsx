@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react'
-import { Save, CheckCircle } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
+import { CheckCircle, Save } from 'lucide-react'
+import { useEffect, useState } from 'react'
+
 import { Card, Skeleton } from '@/src/components/ui'
+import { cn } from '@/src/utils/cn'
+
 import { useStruggleConfig, useUpdateStruggleConfig } from '../queries/useStruggleQueries'
 import type { StruggleConfig } from '../types'
 
