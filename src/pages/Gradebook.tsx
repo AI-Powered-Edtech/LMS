@@ -16,7 +16,7 @@ import {
   Users,
   X,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { EmptyState, OptimizedImage } from '@/src/components/ui'
@@ -72,80 +72,47 @@ export function Gradebook() {
     }
   }
 
-  const filteredStudents = useMemo(() => {
-    return students.filter(
-      (s) => s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.nis.includes(searchQuery)
-    )
-  }, [students, searchQuery])
+  const filteredStudents = students.filter(
+    (s) => s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.nis.includes(searchQuery)
+  )
 
-  // PERFORMANCE: Pre-calculate student stats (average and total) using useMemo to avoid repeated map/filter/reduce O(N) operations in render loop
-  const studentStats = useMemo(() => {
-    const stats: Record<string, { avg: number; total: number }> = {}
-    for (const student of students) {
-      const studentGrades = grades[student.id]
-      if (!studentGrades) {
-        stats[student.id] = { avg: 0, total: 0 }
-        continue
-      }
-      let sum = 0
-      let count = 0
-      for (const assignmentId in studentGrades) {
-        const score = studentGrades[assignmentId].score
-        if (score !== null) {
-          sum += score
-          count++
-        }
-      }
-      stats[student.id] = {
-        avg: count > 0 ? Math.round(sum / count) : 0,
-        total: sum,
-      }
-    }
-    return stats
-  }, [students, grades])
+  const calculateAverage = (studentId: string) => {
+    const studentGrades = grades[studentId]
+    if (!studentGrades) return 0
+    const scores = Object.values(studentGrades)
+      .map((entry) => entry.score)
+      .filter((score): score is number => score !== null)
+    if (scores.length === 0) return 0
+    const sum = scores.reduce((a, b) => a + b, 0)
+    return Math.round(sum / scores.length)
+  }
+
+  const calculateTotal = (studentId: string) => {
+    const studentGrades = grades[studentId]
+    if (!studentGrades) return 0
+    const scores = Object.values(studentGrades)
+      .map((entry) => entry.score)
+      .filter((score): score is number => score !== null)
+    if (scores.length === 0) return 0
+    return scores.reduce((a, b) => a + b, 0)
+  }
 
   // Calculate class stats
-  const classStats = useMemo(() => {
-    const allAverages: number[] = []
-    let highestScore = 0
-    let lowestScore = Infinity
-    let highestStudent = '-'
-    let lowestStudent = '-'
+  const allAverages = students.map((s) => calculateAverage(s.id)).filter((avg) => avg > 0)
+  const classAverage =
+    allAverages.length > 0
+      ? Math.round(allAverages.reduce((a, b) => a + b, 0) / allAverages.length)
+      : 0
+  const highestScore = allAverages.length > 0 ? Math.max(...allAverages) : 0
+  const lowestScore = allAverages.length > 0 ? Math.min(...allAverages) : 0
 
-    for (const student of students) {
-      const avg = studentStats[student.id]?.avg || 0
-      if (avg > 0) {
-        allAverages.push(avg)
-        if (avg > highestScore) {
-          highestScore = avg
-          highestStudent = student.name
-        }
-        if (avg < lowestScore) {
-          lowestScore = avg
-          lowestStudent = student.name
-        }
-      }
-    }
+  let highestStudent = '-'
+  let lowestStudent = '-'
 
-    if (allAverages.length === 0) {
-      lowestScore = 0
-    }
-
-    const classAverage =
-      allAverages.length > 0
-        ? Math.round(allAverages.reduce((a, b) => a + b, 0) / allAverages.length)
-        : 0
-
-    return {
-      classAverage,
-      highestScore,
-      lowestScore,
-      highestStudent,
-      lowestStudent,
-    }
-  }, [students, studentStats])
-
-  const { classAverage, highestScore, lowestScore, highestStudent, lowestStudent } = classStats
+  if (allAverages.length > 0) {
+    highestStudent = students.find((s) => calculateAverage(s.id) === highestScore)?.name || '-'
+    lowestStudent = students.find((s) => calculateAverage(s.id) === lowestScore)?.name || '-'
+  }
 
   const getGradeColor = (score: number | null) => {
     if (score === null || score === 0) return 'text-slate-400'
@@ -545,8 +512,8 @@ export function Gradebook() {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
               {filteredStudents.map((student) => {
-                const avg = studentStats[student.id]?.avg || 0
-                const total = studentStats[student.id]?.total || 0
+                const avg = calculateAverage(student.id)
+                const total = calculateTotal(student.id)
                 return (
                   <tr
                     key={student.id}
