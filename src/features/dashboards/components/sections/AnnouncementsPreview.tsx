@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Megaphone } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -54,7 +55,7 @@ export function AnnouncementsPreview({ announcements, loading }: AnnouncementsPr
                   e.preventDefault()
                   navigate('/announcements')
                 }
-              }}
+              %DCLOSE%}
               aria-label={`Pengumuman: ${ann.title}`}
             >
               <div className="flex items-center gap-2 mb-2">

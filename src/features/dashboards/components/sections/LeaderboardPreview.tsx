@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Crown, Trophy } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -57,7 +58,7 @@ export function LeaderboardPreview({
           <div className="w-full max-w-xs bg-slate-100 dark:bg-slate-700 rounded-full h-2 mb-2 mt-4">
             <div
               className="bg-yellow-400 h-2 rounded-full transition-all duration-500"
-              style={{ width: `${xp % 100}%` }}
+              style={%DOPEN% width: `${xp % 100}%` %DCLOSE%}
             />
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">

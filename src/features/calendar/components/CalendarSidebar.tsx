@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import {
   Bell,
   Calendar as CalendarIcon,
@@ -70,9 +71,9 @@ export function CalendarSidebar({
             return (
               <motion.div
                 key={event.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
+                initial={%DOPEN% opacity: 0, x: 20 %DCLOSE%}
+                animate={%DOPEN% opacity: 1, x: 0 %DCLOSE%}
+                transition={%DOPEN% delay: index * 0.1 %DCLOSE%}
                 className={cn(
                   'bg-white dark:bg-slate-800 p-5 rounded-2xl border shadow-sm transition-all',
                   event.completed

@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { GripVertical, Loader2, Plus, Save, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useCallback, useState } from 'react'
@@ -175,10 +176,10 @@ export function DashboardBuilder({ initialDashboard, courseId, onSaved }: Dashbo
             {widgets.map((widget) => (
               <motion.div
                 key={widget.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
+                initial={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
+                animate={%DOPEN% opacity: 1, scale: 1 %DCLOSE%}
                 className="relative rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden"
-                style={{ minHeight: '200px' }}
+                style={%DOPEN% minHeight: '200px' %DCLOSE%}
               >
                 {/* Widget header */}
                 <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 dark:border-slate-800">
@@ -196,7 +197,7 @@ export function DashboardBuilder({ initialDashboard, courseId, onSaved }: Dashbo
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <div className="p-3" style={{ height: '160px' }}>
+                <div className="p-3" style={%DOPEN% height: '160px' %DCLOSE%}>
                   <WidgetRenderer widget={widget} courseId={courseId} className="h-full" />
                 </div>
               </motion.div>

@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Bell, CheckCircle2, Circle, Clock, MapPin, Paperclip, Video } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -32,9 +33,9 @@ export function AgendaView({ events, today, onToggleCompletion }: AgendaViewProp
           return (
             <motion.div
               key={event.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
+              initial={%DOPEN% opacity: 0, y: 10 %DCLOSE%}
+              animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
+              transition={%DOPEN% delay: index * 0.05 %DCLOSE%}
               className={cn(
                 'flex gap-4 p-4 rounded-2xl border transition-all',
                 event.completed

@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Eye, EyeOff } from 'lucide-react'
 import React, { useState } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
@@ -43,7 +44,7 @@ export function LoginForm({ loginForm, error, setError, submitting, onSubmit }: 
           onInput={(e: React.FormEvent<HTMLInputElement>) => {
             loginForm.setValue('email', e.currentTarget.value, { shouldValidate: true })
             if (error) setError('')
-          }}
+          %DCLOSE%}
           className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
         />
       </FormField>
@@ -63,7 +64,7 @@ export function LoginForm({ loginForm, error, setError, submitting, onSubmit }: 
                 shouldValidate: true,
               })
               if (error) setError('')
-            }}
+            %DCLOSE%}
             className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-white/20 text-sm"
           />
         </FormField>

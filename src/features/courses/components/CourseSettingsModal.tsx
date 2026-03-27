@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { CheckCircle, Loader2, Settings, Users, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -307,9 +308,9 @@ export function CourseSettingsModal({ isOpen, onClose, courseId }: CourseSetting
           role="dialog"
           aria-modal="true"
           aria-labelledby="settings-modal-title"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
+          initial={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
+          animate={%DOPEN% opacity: 1, scale: 1 %DCLOSE%}
+          exit={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
           className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col max-h-[85vh]"
         >
           {/* Header */}
