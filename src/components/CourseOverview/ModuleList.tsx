@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { BookOpen, CheckCircle, ChevronRight, Clock, Layers } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -21,9 +22,9 @@ interface ModuleListProps {
 export function ModuleList({ modules, onSelectModule, nextIncompleteModuleId }: ModuleListProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: 0.16 }}
+      initial={%DOPEN% opacity: 0, y: 12 %DCLOSE%}
+      animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
+      transition={%DOPEN% duration: 0.35, delay: 0.16 %DCLOSE%}
     >
       <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
         <Layers className="w-5 h-5 text-slate-400" />
@@ -40,11 +41,11 @@ export function ModuleList({ modules, onSelectModule, nextIncompleteModuleId }: 
           return (
             <motion.button
               key={mod.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.18 + mi * 0.05, duration: 0.3 }}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
+              initial={%DOPEN% opacity: 0, y: 10 %DCLOSE%}
+              animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
+              transition={%DOPEN% delay: 0.18 + mi * 0.05, duration: 0.3 %DCLOSE%}
+              whileHover={%DOPEN% scale: 1.01 %DCLOSE%}
+              whileTap={%DOPEN% scale: 0.99 %DCLOSE%}
               onClick={() => onSelectModule(mod.id)}
               className={cn(
                 'w-full flex items-center gap-4 p-4 md:p-5 rounded-2xl border text-left transition-all duration-200 group',
@@ -113,7 +114,7 @@ export function ModuleList({ modules, onSelectModule, nextIncompleteModuleId }: 
                     <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full transition-all duration-500"
-                        style={{ width: `${percentage}%` }}
+                        style={%DOPEN% width: `${percentage}%` %DCLOSE%}
                       />
                     </div>
                     <span className="text-[10px] font-semibold text-slate-400">{percentage}%</span>

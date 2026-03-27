@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import {
   DragDropContext,
   Draggable,
@@ -207,7 +208,7 @@ export function LessonBlockEditor() {
               if (activeLesson) {
                 actions.updateLesson(activeLesson.id, { title: e.target.value })
               }
-            }}
+            %DCLOSE%}
             className={cn(
               'w-full font-black text-slate-800 dark:text-slate-100 bg-transparent border-none outline-none placeholder:text-slate-400 focus:ring-0 tracking-tight',
               mobile.isMobile ? 'text-2xl' : 'text-3xl'
@@ -258,12 +259,12 @@ export function LessonBlockEditor() {
                           <motion.div
                             ref={dragProvided.innerRef}
                             {...dragProvided.draggableProps}
-                            initial={{ opacity: 0, y: 15 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
+                            initial={%DOPEN% opacity: 0, y: 15 %DCLOSE%}
+                            animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
+                            exit={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
                             onClick={() => {
                               if (!isLocked) presence.updateActiveBlock(block.id)
-                            }}
+                            %DCLOSE%}
                             className={cn(
                               'bg-white dark:bg-slate-800 rounded-[24px] border shadow-sm group transition-all relative overflow-hidden',
                               snapshot.isDragging
@@ -288,7 +289,7 @@ export function LessonBlockEditor() {
                                 {getBlockIcon(block.type)}
                               </div>
                               <span className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] flex-1">
-                                {{
+                                {%DOPEN%
                                   text: 'TEKS',
                                   video: 'VIDEO',
                                   image: 'GAMBAR',
@@ -326,7 +327,7 @@ export function LessonBlockEditor() {
                                   if (confirm('Hapus konten ini?')) {
                                     actions.deleteBlock(block.id)
                                   }
-                                }}
+                                %DCLOSE%}
                                 className="p-2 md:opacity-0 md:group-hover:opacity-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 rounded-xl transition-all"
                                 aria-label="Hapus konten"
                                 title="Hapus konten"
@@ -372,9 +373,9 @@ export function LessonBlockEditor() {
           <AnimatePresence>
             {showAddMenu && (
               <motion.div
-                initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
+                initial={%DOPEN% opacity: 0, y: 15, scale: 0.95 %DCLOSE%}
+                animate={%DOPEN% opacity: 1, y: 0, scale: 1 %DCLOSE%}
+                exit={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
                 className={cn('mt-4 grid gap-3', mobile.isMobile ? 'grid-cols-2' : 'grid-cols-3')}
               >
                 {blockTypes.map((bt) => (

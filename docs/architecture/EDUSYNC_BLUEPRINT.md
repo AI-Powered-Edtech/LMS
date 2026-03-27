@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 # EduSync LMS — Architecture Blueprint
 
 ## Current State Summary
@@ -743,15 +744,15 @@ export function VirtualList<T>({ items, renderItem, estimateSize = 60 }) {
   });
 
   return (
-    <div ref={parentRef} style={{ overflow: 'auto', height: '100%' }}>
-      <div style={{ height: virtualizer.getTotalSize() }}>
+    <div ref={parentRef} style={%DOPEN% overflow: 'auto', height: '100%' %DCLOSE%}>
+      <div style={%DOPEN% height: virtualizer.getTotalSize() %DCLOSE%}>
         {virtualizer.getVirtualItems().map(virtualRow => (
-          <div key={virtualRow.key} style={{
+          <div key={virtualRow.key} style={%DOPEN%
             position: 'absolute',
             top: virtualRow.start,
             height: virtualRow.size,
             width: '100%',
-          }}>
+          %DCLOSE%}>
             {renderItem(items[virtualRow.index], virtualRow.index)}
           </div>
         ))}

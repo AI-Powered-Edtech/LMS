@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 # EduSync LMS — Auth & Roles Architecture (Production Reference)
 
 > **Status**: Living document — updated as part of the P0 security remediation (migrations 96–98).
@@ -273,7 +274,7 @@ AuthGuard
 | Check | Outcome |
 |-------|---------|
 | `loading === true` | Show `<AppLoading />` |
-| `!session \|\| !user` | `<Navigate to="/login" state={{ from: location }} />` |
+| `!session \|\| !user` | `<Navigate to="/login" state={%DOPEN% from: location %DCLOSE%} />` |
 | `emailVerified === false` (when `requireEmailVerification` is default `true`) | `<Navigate to="/verify-email" />` |
 | All pass | Render children |
 
@@ -298,7 +299,7 @@ AuthGuard
 | Check | Outcome |
 |-------|---------|
 | `loading === true` | Show `<AppLoading />` |
-| `!activeTenant` | `<Navigate to="/workspace-selector" state={{ from: location }} />` |
+| `!activeTenant` | `<Navigate to="/workspace-selector" state={%DOPEN% from: location %DCLOSE%} />` |
 | All pass | Render children |
 
 ### RoleGuard (Layer 3)

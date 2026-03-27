@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import {
   AlertTriangle,
   CheckCircle2,
@@ -462,7 +463,7 @@ export function AttemptDetailModal({
                       ? 'bg-amber-500'
                       : 'bg-red-500'
                 )}
-                style={{ width: `${(correctCount / answers.length) * 100}%` }}
+                style={%DOPEN% width: `${(correctCount / answers.length) * 100}%` %DCLOSE%}
               />
             </div>
           </div>

@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { ArrowRight } from 'lucide-react'
 import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'
@@ -27,9 +28,9 @@ export function HubView({ title, description, items }: HubViewProps) {
         {items.map((page, index) => (
           <motion.div
             key={page.path}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
+            initial={%DOPEN% opacity: 0, y: 20 %DCLOSE%}
+            animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
+            transition={%DOPEN% delay: index * 0.05 %DCLOSE%}
             className="h-full"
           >
             <Link

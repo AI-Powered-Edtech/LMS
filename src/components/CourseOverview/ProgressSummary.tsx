@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { BookOpen, Clock, Trophy } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -20,9 +21,9 @@ export function ProgressSummary({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: 0.08 }}
+      initial={%DOPEN% opacity: 0, y: 12 %DCLOSE%}
+      animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
+      transition={%DOPEN% duration: 0.35, delay: 0.08 %DCLOSE%}
       className="bg-white rounded-2xl border border-slate-200/70 shadow-md shadow-slate-200/40 p-6"
     >
       {/* Progress bar */}
@@ -37,9 +38,9 @@ export function ProgressSummary({
         </div>
         <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
           <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${percentage}%` }}
-            transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
+            initial={%DOPEN% width: 0 %DCLOSE%}
+            animate={%DOPEN% width: `${percentage}%` %DCLOSE%}
+            transition={%DOPEN% duration: 0.8, delay: 0.2, ease: 'easeOut' %DCLOSE%}
             className={`h-full rounded-full ${
               isComplete
                 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500'
