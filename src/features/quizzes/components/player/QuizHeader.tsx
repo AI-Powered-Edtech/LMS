@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { cn } from '@/src/utils/cn'
 
 import { AutosaveIndicator, SaveStatus } from './AutosaveIndicator'
@@ -35,7 +36,7 @@ export function QuizHeader({
       <div className="h-1 bg-slate-100 dark:bg-slate-800">
         <div
           className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500"
-          style={{ width: `${progress}%` }}
+          style={%DOPEN% width: `${progress}%` %DCLOSE%}
         />
       </div>
 

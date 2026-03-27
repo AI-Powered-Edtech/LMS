@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { BarChart3, Loader2 } from 'lucide-react'
 
 import type { QuestionDifficulty } from '@/src/features/quizzes/api/quizAnalyticsService'
@@ -51,7 +52,7 @@ export function QuestionDifficultyPanel({
                     <div className="flex-1 h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                       <div
                         className={cn('h-full rounded-full transition-all', barColor)}
-                        style={{ width: `${percent}%` }}
+                        style={%DOPEN% width: `${percent}%` %DCLOSE%}
                       />
                     </div>
                     <span className={cn('text-xs font-bold w-16 text-right shrink-0', labelColor)}>

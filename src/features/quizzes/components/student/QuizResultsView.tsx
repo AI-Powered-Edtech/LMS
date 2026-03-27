@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Award, Clock, Eye, Play, Star, ThumbsUp, Trophy, XCircle } from 'lucide-react'
 import { motion } from 'motion/react'
 import { lazy, Suspense, useEffect, useState } from 'react'
@@ -112,9 +113,9 @@ export function QuizResultsView({
         />
 
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', damping: 10 }}
+          initial={%DOPEN% scale: 0 %DCLOSE%}
+          animate={%DOPEN% scale: 1 %DCLOSE%}
+          transition={%DOPEN% type: 'spring', damping: 10 %DCLOSE%}
           className={cn(
             'w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6',
             passed === true
@@ -151,8 +152,8 @@ export function QuizResultsView({
         {/* Badge Display */}
         {passed !== null && !isPendingGrade && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={%DOPEN% opacity: 0, y: 10 %DCLOSE%}
+            animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
             className={cn(
               'inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6',
               badge.color

@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { CheckCircle2, ChevronDown, ChevronUp, Circle, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -138,7 +139,7 @@ function OnboardingChecklistInner({ tenantId, userId }: InnerProps) {
         <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
           <div
             className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-500"
-            style={{ width: `${pct}%` }}
+            style={%DOPEN% width: `${pct}%` %DCLOSE%}
           />
         </div>
       </div>

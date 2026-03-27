@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import {
   AlertTriangle,
   ArrowLeft,
@@ -127,8 +128,8 @@ export function QuizEditorView({
             onClick={() => {
               setView('list')
               loadQuizzes()
-            }}
-            className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-500 hover:text-slate-900"
+            %DCLOSE%}
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -148,7 +149,7 @@ export function QuizEditorView({
           <button
             onClick={() => handleSave()}
             disabled={isSaving}
-            className="px-4 py-2 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors flex items-center gap-1.5"
+            className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors flex items-center gap-1.5"
           >
             {isSaving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             <Save className="w-3.5 h-3.5" />
@@ -186,37 +187,37 @@ export function QuizEditorView({
         </h3>
 
         <div>
-          <label className="block text-xs font-bold text-slate-500 mb-1">Judul Kuis</label>
+          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Judul Kuis</label>
           <input
             type="text"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             disabled={isPublished}
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-60 text-sm"
+            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none disabled:opacity-60 text-sm dark:text-slate-100"
             placeholder="Masukkan judul kuis..."
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-500 mb-1">Instruksi</label>
+          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Instruksi</label>
           <textarea
             value={form.instructions}
             onChange={(e) => setForm({ ...form, instructions: e.target.value })}
             disabled={isPublished}
             rows={2}
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none disabled:opacity-60 text-sm"
+            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none disabled:opacity-60 text-sm dark:text-slate-100"
             placeholder="Instruksi pengerjaan kuis..."
           />
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div>
-            <label className="block text-xs font-bold text-slate-500 mb-1">Mode</label>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Mode</label>
             <select
               value={form.mode}
               onChange={(e) => setForm({ ...form, mode: e.target.value as QuizMode })}
               disabled={isPublished}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 dark:text-slate-100"
             >
               <option value="practice">Latihan</option>
               <option value="graded">Penilaian</option>
@@ -224,7 +225,7 @@ export function QuizEditorView({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-500 mb-1">Waktu (menit)</label>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Waktu (menit)</label>
             <input
               type="number"
               min="0"
@@ -234,12 +235,12 @@ export function QuizEditorView({
                 setForm({ ...form, time_limit_minutes: parseInt(e.target.value) || null })
               }
               disabled={isPublished}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 dark:text-slate-100"
               placeholder="0 = tanpa batas"
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-500 mb-1">Maks. Percobaan</label>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Maks. Percobaan</label>
             <input
               type="number"
               min="1"
@@ -247,11 +248,11 @@ export function QuizEditorView({
               value={form.max_attempts}
               onChange={(e) => setForm({ ...form, max_attempts: parseInt(e.target.value) || 1 })}
               disabled={isPublished}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 dark:text-slate-100"
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-500 mb-1">Nilai Lulus (%)</label>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Nilai Lulus (%)</label>
             <input
               type="number"
               min="0"
@@ -259,7 +260,7 @@ export function QuizEditorView({
               value={form.passing_score}
               onChange={(e) => setForm({ ...form, passing_score: parseInt(e.target.value) || 0 })}
               disabled={isPublished}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 dark:text-slate-100"
             />
           </div>
         </div>
@@ -280,7 +281,7 @@ export function QuizEditorView({
                 disabled={isPublished}
                 className="w-4 h-4 rounded accent-blue-600"
               />
-              <span className="text-xs text-slate-600 font-medium">{item.label}</span>
+              <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">{item.label}</span>
             </label>
           ))}
         </div>
@@ -291,7 +292,7 @@ export function QuizEditorView({
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             Daftar Soal
-            <span className="ml-2 text-xs font-normal text-slate-400">
+            <span className="ml-2 text-xs font-normal text-slate-400 dark:text-slate-500">
               ({form.questions.length} soal)
             </span>
           </h3>
@@ -318,10 +319,10 @@ export function QuizEditorView({
         </div>
 
         {form.questions.length === 0 ? (
-          <div className="text-center p-8 border-2 border-dashed border-slate-200 rounded-2xl">
-            <HelpCircle className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-            <p className="text-sm font-medium text-slate-500">Belum ada soal.</p>
-            <p className="text-xs text-slate-400 mt-1">
+          <div className="text-center p-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
+            <HelpCircle className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Belum ada soal.</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
               Klik "Tambah Soal" untuk mulai membuat pertanyaan.
             </p>
           </div>
@@ -330,7 +331,7 @@ export function QuizEditorView({
             {form.questions.map((q, qIdx) => (
               <div
                 key={q.id || `new-${qIdx}`}
-                className="p-4 border border-slate-200 rounded-2xl bg-slate-50/50 space-y-3"
+                className="p-4 border border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 space-y-3"
               >
                 {/* Question header */}
                 <div className="flex items-center gap-2">
@@ -341,7 +342,7 @@ export function QuizEditorView({
                     value={q.question_type}
                     onChange={(e) => updateQuestionType(qIdx, e.target.value as QuestionType)}
                     disabled={isPublished}
-                    className="px-2 py-1 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500 font-medium disabled:opacity-60"
+                    className="px-2 py-1 text-xs bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg outline-none focus:ring-1 focus:ring-blue-500 font-medium disabled:opacity-60 dark:text-slate-100"
                   >
                     {Object.entries(questionTypeLabels).map(([val, label]) => (
                       <option key={val} value={val}>
@@ -356,7 +357,7 @@ export function QuizEditorView({
                     value={q.points}
                     onChange={(e) => updateQuestion(qIdx, 'points', parseInt(e.target.value) || 1)}
                     disabled={isPublished}
-                    className="w-14 px-2 py-1 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-60"
+                    className="w-14 px-2 py-1 text-xs bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-60 dark:text-slate-100"
                     title="Poin"
                   />
                   <span className="text-[10px] text-slate-400">poin</span>
@@ -365,13 +366,13 @@ export function QuizEditorView({
                     value={q.text}
                     onChange={(e) => updateQuestion(qIdx, 'text', e.target.value)}
                     disabled={isPublished}
-                    className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-medium text-sm disabled:opacity-60"
+                    className="flex-1 px-3 py-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-medium text-sm disabled:opacity-60 dark:text-slate-100"
                     placeholder="Tulis pertanyaan di sini..."
                   />
                   {!isPublished && (
                     <button
                       onClick={() => removeQuestion(qIdx)}
-                      className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                      className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -450,7 +451,7 @@ export function QuizEditorView({
                 {/* Text type hint */}
                 {(q.question_type === 'SHORT_ANSWER' || q.question_type === 'ESSAY') && (
                   <div className="pl-8">
-                    <p className="text-xs text-slate-400 italic bg-white p-3 rounded-lg border border-dashed border-slate-200">
+                    <p className="text-xs text-slate-400 dark:text-slate-500 italic bg-white dark:bg-slate-700 p-3 rounded-lg border border-dashed border-slate-200 dark:border-slate-600">
                       {q.question_type === 'SHORT_ANSWER'
                         ? '🖊️ Siswa akan mengetik jawaban singkat (dinilai manual)'
                         : '📝 Siswa akan menulis esai (dinilai manual)'}
@@ -497,7 +498,7 @@ export function QuizEditorView({
               ],
             }))
             setShowQuestionModal(false)
-          }}
+          %DCLOSE%}
         />
       )}
     </div>

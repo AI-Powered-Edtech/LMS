@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { AlertTriangle, Cloud, Loader2 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
@@ -124,9 +125,9 @@ export function QuizViewer({
       <AnimatePresence>
         {(showSavedIndicator || isSaving) && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
+            initial={%DOPEN% opacity: 0, y: 10 %DCLOSE%}
+            animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
+            exit={%DOPEN% opacity: 0 %DCLOSE%}
             className="fixed bottom-6 right-6 z-40"
           >
             <div

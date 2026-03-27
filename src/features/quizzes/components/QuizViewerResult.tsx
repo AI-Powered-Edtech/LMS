@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { CheckCircle, Clock, FileText, XCircle } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -24,8 +25,8 @@ export function QuizViewerResult({
   return (
     <div className="p-6 md:p-8 max-w-2xl mx-auto">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={%DOPEN% opacity: 0, y: 20 %DCLOSE%}
+        animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
         className={cn(
           'rounded-2xl p-8 text-center border shadow-sm',
           result.has_ungraded
@@ -73,7 +74,7 @@ export function QuizViewerResult({
           <>
             <div
               className="text-4xl font-bold mb-4"
-              style={{ color: result.passed ? '#16a34a' : '#dc2626' }}
+              style={%DOPEN% color: result.passed ? '#16a34a' : '#dc2626' %DCLOSE%}
             >
               {result.score}%
             </div>
