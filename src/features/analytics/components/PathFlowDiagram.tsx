@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { cn } from '@/src/utils/cn'
 
 import type { LearningPath, PathStep } from '../types'
@@ -34,7 +35,7 @@ function StepNode({ step, index }: { step: PathStep; index: number }) {
                 ? 'bg-amber-500'
                 : 'bg-red-400'
           )}
-          style={{ width: `${step.completion_pct}%` }}
+          style={%DOPEN% width: `${step.completion_pct}%` %DCLOSE%}
         />
       </div>
     </div>

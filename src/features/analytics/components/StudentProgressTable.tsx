@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Users } from 'lucide-react'
 
 import { Badge, Card, EmptyState, Skeleton } from '@/src/components/ui'
@@ -42,7 +43,7 @@ const columns = [
           <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
             <div
               className={cn('h-full rounded-full transition-all', pctBgColor(progressPct))}
-              style={{ width: `${Math.min(progressPct, 100)}%` }}
+              style={%DOPEN% width: `${Math.min(progressPct, 100)}%` %DCLOSE%}
             />
           </div>
         </div>

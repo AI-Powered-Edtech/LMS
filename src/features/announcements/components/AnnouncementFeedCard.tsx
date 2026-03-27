@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import {
   Calendar as CalendarIcon,
   CheckCircle2,
@@ -63,9 +64,9 @@ export function AnnouncementFeedCard({
 }: AnnouncementFeedCardProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
+      initial={%DOPEN% opacity: 0, y: 20 %DCLOSE%}
+      animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
+      transition={%DOPEN% delay: index * 0.1 %DCLOSE%}
       className={cn(
         'bg-white dark:bg-slate-800 rounded-3xl border transition-all duration-300 hover:shadow-md relative overflow-hidden group',
         !announcement.isRead
@@ -274,9 +275,9 @@ export function AnnouncementFeedCard({
         <AnimatePresence>
           {isCommentsExpanded && announcement.allow_comments && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
+              initial={%DOPEN% height: 0, opacity: 0 %DCLOSE%}
+              animate={%DOPEN% height: 'auto', opacity: 1 %DCLOSE%}
+              exit={%DOPEN% height: 0, opacity: 0 %DCLOSE%}
               className="overflow-hidden"
             >
               <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-700">

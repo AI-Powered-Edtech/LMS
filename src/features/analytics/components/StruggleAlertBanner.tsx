@@ -1,5 +1,7 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { AlertTriangle } from 'lucide-react'
 import { motion } from 'motion/react'
+import { useMemo } from 'react'
 
 import type { LessonAnalytics } from '../types'
 
@@ -8,18 +10,23 @@ interface StruggleAlertBannerProps {
 }
 
 export function StruggleAlertBanner({ lessonAnalytics }: StruggleAlertBannerProps) {
-  const lessonsWithStruggle = lessonAnalytics.filter((l) => l.struggling_students > 0)
+  // ⚡ Perf: memoize filter/reduce chain — prevents recalculation on every parent re-render
+  const { lessonsWithStruggle, totalStruggling, totalHighRisk } = useMemo(() => {
+    const filtered = lessonAnalytics.filter((l) => l.struggling_students > 0)
+    return {
+      lessonsWithStruggle: filtered,
+      totalStruggling: filtered.reduce((sum, l) => sum + l.struggling_students, 0),
+      totalHighRisk: filtered.reduce((sum, l) => sum + l.high_risk_students, 0),
+    }
+  }, [lessonAnalytics])
 
   if (lessonsWithStruggle.length === 0) return null
 
-  const totalStruggling = lessonsWithStruggle.reduce((sum, l) => sum + l.struggling_students, 0)
-  const totalHighRisk = lessonsWithStruggle.reduce((sum, l) => sum + l.high_risk_students, 0)
-
   return (
     <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      initial={%DOPEN% opacity: 0, y: -8 %DCLOSE%}
+      animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
+      transition={%DOPEN% duration: 0.3 %DCLOSE%}
       className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4
                        dark:border-amber-700/50 dark:bg-amber-900/20"
     >

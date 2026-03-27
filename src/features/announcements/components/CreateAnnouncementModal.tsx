@@ -1,12 +1,14 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+import { valibotResolver } from '@hookform/resolvers/valibot'
 import { Paperclip, Send, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { type Resolver,useForm } from 'react-hook-form'
 
-interface FormData {
-  title: string
-  content: string
+import { OfflineFormNotice } from '@/src/components/ui/OfflineFormNotice'
+import { type AnnouncementFormData,AnnouncementFormSchema } from '@/src/shared/schemas/forms'
+
+interface ExtendedFormData extends AnnouncementFormData {
   target_audience: 'all_students' | 'course_students' | 'course_staff' | 'system'
-  priority: 'normal' | 'high' | 'low'
   is_pinned: boolean
   allow_comments: boolean
   requires_rsvp: boolean
@@ -18,15 +20,12 @@ interface FormData {
 interface CreateAnnouncementModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (formData: FormData, status: 'draft' | 'published') => Promise<void>
+  onSubmit: (formData: ExtendedFormData, status: 'draft' | 'published') => Promise<void>
   isPending: boolean
 }
 
-const INITIAL_FORM: FormData = {
-  title: '',
-  content: '',
-  target_audience: 'all_students',
-  priority: 'normal',
+const EXTRA_DEFAULTS = {
+  target_audience: 'all_students' as const,
   is_pinned: false,
   allow_comments: true,
   requires_rsvp: false,
@@ -41,11 +40,40 @@ export function CreateAnnouncementModal({
   onSubmit,
   isPending,
 }: CreateAnnouncementModalProps) {
-  const [formData, setFormData] = useState<FormData>(INITIAL_FORM)
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<ExtendedFormData>({
+    resolver: (valibotResolver(AnnouncementFormSchema) as unknown) as Resolver<ExtendedFormData>,
+    defaultValues: {
+      title: '',
+      content: '',
+      priority: 'normal',
+      ...EXTRA_DEFAULTS,
+    },
+  })
 
-  const handleSubmit = async (status: 'draft' | 'published') => {
-    await onSubmit(formData, status)
-    setFormData(INITIAL_FORM)
+  const is_pinned = watch('is_pinned')
+  const allow_comments = watch('allow_comments')
+  const requires_rsvp = watch('requires_rsvp')
+
+  const handleFormSubmit = handleSubmit(async (data) => {
+    await onSubmit(data, 'published')
+    reset({ title: '', content: '', priority: 'normal', ...EXTRA_DEFAULTS })
+  })
+
+  const handleDraft = handleSubmit(async (data) => {
+    await onSubmit(data, 'draft')
+    reset({ title: '', content: '', priority: 'normal', ...EXTRA_DEFAULTS })
+  })
+
+  const handleClose = () => {
+    reset()
+    onClose()
   }
 
   return (
@@ -53,9 +81,9 @@ export function CreateAnnouncementModal({
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            initial={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
+            animate={%DOPEN% opacity: 1, scale: 1 %DCLOSE%}
+            exit={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
             className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col"
           >
             <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-700 shrink-0">
@@ -63,7 +91,8 @@ export function CreateAnnouncementModal({
                 Buat Pengumuman Baru
               </h2>
               <button
-                onClick={onClose}
+                type="button"
+                onClick={handleClose}
                 aria-label="Tutup modal"
                 className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-500 dark:text-slate-400"
               >
@@ -71,46 +100,71 @@ export function CreateAnnouncementModal({
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
+            <form
+              id="announcement-form"
+              onSubmit={handleFormSubmit}
+              noValidate
+              className="p-6 overflow-y-auto custom-scrollbar space-y-6"
+            >
+              <OfflineFormNotice />
+
               <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                <label
+                  htmlFor="ann-title"
+                  className="text-sm font-bold text-slate-700 dark:text-slate-300"
+                >
                   Judul Pengumuman
                 </label>
                 <input
+                  id="ann-title"
                   type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  {...register('title')}
                   placeholder="Contoh: Libur Nasional Idul Fitri"
-                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100"
+                  aria-invalid={!!errors.title}
+                  aria-describedby={errors.title ? 'ann-title-error' : undefined}
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100 aria-[invalid=true]:border-red-400"
                 />
+                {errors.title && (
+                  <p id="ann-title-error" className="text-xs text-red-500 mt-1">
+                    {errors.title.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                <label
+                  htmlFor="ann-content"
+                  className="text-sm font-bold text-slate-700 dark:text-slate-300"
+                >
                   Isi Pengumuman
                 </label>
                 <textarea
+                  id="ann-content"
                   rows={5}
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  {...register('content')}
                   placeholder="Tuliskan detail pengumuman di sini..."
-                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-900 dark:text-slate-100"
+                  aria-invalid={!!errors.content}
+                  aria-describedby={errors.content ? 'ann-content-error' : undefined}
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-slate-900 dark:text-slate-100 aria-[invalid=true]:border-red-400"
                 />
+                {errors.content && (
+                  <p id="ann-content-error" className="text-xs text-red-500 mt-1">
+                    {errors.content.message}
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-100 dark:border-slate-700 pt-6">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                  <label
+                    htmlFor="ann-audience"
+                    className="text-sm font-bold text-slate-700 dark:text-slate-300"
+                  >
                     Target Penerima
                   </label>
                   <select
-                    value={formData.target_audience}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        target_audience: e.target.value as FormData['target_audience'],
-                      })
-                    }
+                    id="ann-audience"
+                    {...register('target_audience')}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-900 dark:text-slate-100"
                   >
                     <option value="all_students">Semua Siswa</option>
@@ -120,17 +174,15 @@ export function CreateAnnouncementModal({
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                  <label
+                    htmlFor="ann-priority"
+                    className="text-sm font-bold text-slate-700 dark:text-slate-300"
+                  >
                     Prioritas
                   </label>
                   <select
-                    value={formData.priority}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        priority: e.target.value as FormData['priority'],
-                      })
-                    }
+                    id="ann-priority"
+                    {...register('priority')}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-900 dark:text-slate-100"
                   >
                     <option value="normal">Normal</option>
@@ -142,25 +194,31 @@ export function CreateAnnouncementModal({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                  <label
+                    htmlFor="ann-location"
+                    className="text-sm font-bold text-slate-700 dark:text-slate-300"
+                  >
                     Lokasi (Opsional)
                   </label>
                   <input
+                    id="ann-location"
                     type="text"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    {...register('location')}
                     placeholder="Contoh: Aula Serbaguna"
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-900 dark:text-slate-100"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                  <label
+                    htmlFor="ann-contact"
+                    className="text-sm font-bold text-slate-700 dark:text-slate-300"
+                  >
                     Narahubung (Opsional)
                   </label>
                   <input
+                    id="ann-contact"
                     type="text"
-                    value={formData.contact_person}
-                    onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
+                    {...register('contact_person')}
                     placeholder="Contoh: Ibu Rina (0812...)"
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-slate-900 dark:text-slate-100"
                   />
@@ -175,8 +233,8 @@ export function CreateAnnouncementModal({
                 <label className="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                   <input
                     type="checkbox"
-                    checked={formData.is_pinned}
-                    onChange={(e) => setFormData({ ...formData, is_pinned: e.target.checked })}
+                    checked={is_pinned}
+                    onChange={(e) => setValue('is_pinned', e.target.checked)}
                     className="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
                   />
                   <div>
@@ -192,8 +250,8 @@ export function CreateAnnouncementModal({
                 <label className="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                   <input
                     type="checkbox"
-                    checked={formData.allow_comments}
-                    onChange={(e) => setFormData({ ...formData, allow_comments: e.target.checked })}
+                    checked={allow_comments}
+                    onChange={(e) => setValue('allow_comments', e.target.checked)}
                     className="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
                   />
                   <div>
@@ -209,8 +267,8 @@ export function CreateAnnouncementModal({
                 <label className="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                   <input
                     type="checkbox"
-                    checked={formData.requires_rsvp}
-                    onChange={(e) => setFormData({ ...formData, requires_rsvp: e.target.checked })}
+                    checked={requires_rsvp}
+                    onChange={(e) => setValue('requires_rsvp', e.target.checked)}
                     className="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
                   />
                   <div>
@@ -223,23 +281,28 @@ export function CreateAnnouncementModal({
                   </div>
                 </label>
               </div>
-            </div>
+            </form>
 
             <div className="p-6 border-t border-slate-100 dark:border-slate-700 shrink-0 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50">
-              <button className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-bold text-sm px-4 py-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+              <button
+                type="button"
+                className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-bold text-sm px-4 py-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              >
                 <Paperclip className="w-4 h-4" /> Tambah Lampiran
               </button>
               <div className="flex gap-3">
                 <button
+                  type="button"
                   disabled={isPending}
-                  onClick={() => handleSubmit('draft')}
+                  onClick={handleDraft}
                   className="px-5 py-2.5 text-slate-600 dark:text-slate-400 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors disabled:opacity-50"
                 >
                   Simpan Draf
                 </button>
                 <button
+                  type="submit"
+                  form="announcement-form"
                   disabled={isPending}
-                  onClick={() => handleSubmit('published')}
                   className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm shadow-blue-200 flex items-center gap-2 disabled:opacity-50"
                 >
                   {isPending ? (

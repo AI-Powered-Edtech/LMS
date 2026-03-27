@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { BookOpen, Loader2, Plus, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'
@@ -26,13 +27,6 @@ const SEGMENT_LABELS: Record<string, string> = {
   medium: 'Sedang',
   high: 'Tinggi',
   struggling: 'Kesulitan',
-}
-
-const _TRIGGER_LABELS: Record<string, string> = {
-  on_enter: 'Saat masuk',
-  after_seconds: 'Setelah',
-  on_struggle: 'Saat struggle',
-  on_idle: 'Saat idle',
 }
 
 export function GuideAnalytics({ courseId }: Props) {
@@ -76,7 +70,7 @@ export function GuideAnalytics({ courseId }: Props) {
           onClick={() => {
             setEditingGuide(null)
             setShowBuilder(true)
-          }}
+          %DCLOSE%}
           className="flex items-center gap-1.5 rounded-lg bg-teal-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-teal-700 transition-colors"
         >
           <Plus className="h-4 w-4" />
@@ -87,9 +81,9 @@ export function GuideAnalytics({ courseId }: Props) {
       {/* Builder (inline) */}
       {showBuilder && (
         <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
+          initial={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
+          animate={%DOPEN% opacity: 1, height: 'auto' %DCLOSE%}
+          exit={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
           className="mb-5 overflow-hidden"
         >
           <GuideBuilder courseId={courseId} guide={editingGuide} onClose={handleBuilderClose} />
