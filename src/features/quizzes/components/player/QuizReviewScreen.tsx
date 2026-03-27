@@ -58,6 +58,7 @@ export function QuizReviewScreen({
       <div className="flex items-center gap-4">
         <button
           type="button"
+          aria-label="Kembali ke soal terakhir"
           onClick={onBack}
           className={cn(
             'p-2.5 rounded-xl border-2 transition-all',
