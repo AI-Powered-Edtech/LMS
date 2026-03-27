@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { CheckCircle, Flag, GraduationCap, MoreHorizontal, ThumbsUp } from 'lucide-react'
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
@@ -92,7 +93,7 @@ export function CommentThread({
                       onClick={() => {
                         onReport(comment.id, 'comment', comment.content, comment.author)
                         setShowReport(false)
-                      }}
+                      %DCLOSE%}
                       className="w-full text-left px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
                     >
                       <Flag className="w-3 h-3" /> Laporkan

@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { X } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -11,10 +12,10 @@ interface Props {
 export function TooltipGuide({ guide, onDismiss }: Props) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.2 }}
+      initial={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
+      animate={%DOPEN% opacity: 1, scale: 1 %DCLOSE%}
+      exit={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
+      transition={%DOPEN% duration: 0.2 %DCLOSE%}
       className="relative inline-block max-w-xs rounded-lg bg-slate-800 px-4 py-3 text-white shadow-lg dark:bg-slate-700"
     >
       {/* Arrow */}

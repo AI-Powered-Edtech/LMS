@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Plus, User, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -55,7 +56,7 @@ export function MyClassesSection({ classrooms, loading, onJoinClass }: MyClasses
           icon={<Users className="w-12 h-12" />}
           title="Belum bergabung di kelas mana pun"
           description="Masukkan kode kelas dari gurumu untuk mulai belajar."
-          action={{ label: 'Masukkan Kode Kelas', onClick: onJoinClass }}
+          action={%DOPEN% label: 'Masukkan Kode Kelas', onClick: onJoinClass %DCLOSE%}
         />
       )}
     </Card>

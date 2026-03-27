@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Award, Lock } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -27,10 +28,10 @@ function BadgeCard({
 
   return (
     <motion.div
-      initial={reducedMotion ? false : { opacity: 0, scale: 0.85 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={reducedMotion ? { duration: 0 } : { duration: 0.3 }}
-      whileHover={reducedMotion ? undefined : { scale: isEarned ? 1.07 : 1.02 }}
+      initial={reducedMotion ? false : { opacity: 0, scale: 0.85 %DCLOSE%}
+      animate={%DOPEN% opacity: 1, scale: 1 %DCLOSE%}
+      transition={reducedMotion ? { duration: 0 } : { duration: 0.3 %DCLOSE%}
+      whileHover={reducedMotion ? undefined : { scale: isEarned ? 1.07 : 1.02 %DCLOSE%}
       className={cn(
         'relative flex flex-col items-center gap-2 rounded-xl border-2 p-3 text-center transition-shadow cursor-default select-none',
         rarity.border,

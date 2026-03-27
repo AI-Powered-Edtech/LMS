@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { AlertTriangle, EyeOff, Send } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
@@ -68,9 +69,9 @@ export function CreatePostForm({
           <AnimatePresence>
             {profanityWarning && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
+                initial={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
+                animate={%DOPEN% opacity: 1, height: 'auto' %DCLOSE%}
+                exit={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
                 className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 border border-red-200 dark:border-red-800"
               >
                 <AlertTriangle className="w-4 h-4" />
