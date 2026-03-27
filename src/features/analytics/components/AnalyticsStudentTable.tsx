@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { AlertTriangle, Clock, Eye, Filter } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import React from 'react'
@@ -29,15 +30,15 @@ export function AnalyticsStudentTable({
   getStatus,
 }: AnalyticsStudentTableProps) {
   return (
-    <div className="lg:col-span-2 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-      <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-        <h2 className="text-xl font-bold text-slate-800">Daftar Siswa (Terbaik & Berisiko)</h2>
+    <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
+      <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Daftar Siswa (Terbaik & Berisiko)</h2>
         <div className="flex items-center gap-2">
           <Filter className="w-5 h-5 text-slate-400" />
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block p-2 font-medium"
+            className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block p-2 font-medium"
           >
             <option value="Semua">Semua Status</option>
             <option value="Aman">Aman</option>
@@ -48,8 +49,8 @@ export function AnalyticsStudentTable({
       </div>
 
       <div className="overflow-x-auto flex-1">
-        <table className="w-full text-sm text-left text-slate-600">
-          <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+        <table className="w-full text-sm text-left text-slate-600 dark:text-slate-400">
+          <thead className="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
             <tr>
               <th scope="col" className="px-6 py-4 font-bold">
                 Nama Siswa
@@ -89,13 +90,13 @@ export function AnalyticsStudentTable({
                   <React.Fragment key={student.student_id}>
                     <tr
                       className={cn(
-                        'border-b border-slate-100 transition-colors',
+                        'border-b border-slate-100 dark:border-slate-700 transition-colors',
                         isKritis && !isExpanded
-                          ? 'bg-red-50/30 hover:bg-red-50/80'
-                          : 'hover:bg-slate-50'
+                          ? 'bg-red-50/30 dark:bg-red-900/20 hover:bg-red-50/80 dark:hover:bg-red-900/30'
+                          : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
                       )}
                     >
-                      <td className="px-6 py-4 font-semibold text-slate-900">
+                      <td className="px-6 py-4 font-semibold text-slate-900 dark:text-slate-100">
                         {student.name}
                         {isKritis && (
                           <span className="ml-2 inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse" />
@@ -111,13 +112,13 @@ export function AnalyticsStudentTable({
                           >
                             {Math.round(student.progress)}%
                           </span>
-                          <div className="w-16 h-1.5 bg-slate-100 rounded-full mt-1 overflow-hidden">
+                          <div className="w-16 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full mt-1 overflow-hidden">
                             <div
                               className={cn(
                                 'h-full rounded-full',
                                 isKritis ? 'bg-red-500' : 'bg-indigo-500'
                               )}
-                              style={{ width: `${student.progress}%` }}
+                              style={%DOPEN% width: `${student.progress}%` %DCLOSE%}
                             />
                           </div>
                         </div>
@@ -164,13 +165,13 @@ export function AnalyticsStudentTable({
                     <AnimatePresence>
                       {isExpanded && (
                         <motion.tr
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="bg-slate-50/80 border-b border-slate-200"
+                          initial={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
+                          animate={%DOPEN% opacity: 1, height: 'auto' %DCLOSE%}
+                          exit={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
+                          className="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700"
                         >
                           <td colSpan={5} className="px-6 py-4">
-                            <div className="bg-white p-4 rounded-xl border border-slate-200 text-sm shadow-sm flex items-start gap-3">
+                            <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-sm shadow-sm flex items-start gap-3">
                               <AlertTriangle
                                 className={cn(
                                   'w-5 h-5 shrink-0 mt-0.5',
@@ -178,12 +179,12 @@ export function AnalyticsStudentTable({
                                 )}
                               />
                               <div>
-                                <p className="font-semibold text-slate-800 mb-1">
+                                <p className="font-semibold text-slate-800 dark:text-slate-200 mb-1">
                                   Sistem mendeteksi bahwa {student.name}{' '}
                                   {isKritis ? 'sangat tertinggal' : 'sedikit tertinggal'} dari
                                   target kelas.
                                 </p>
-                                <p className="text-slate-600 mb-3">
+                                <p className="text-slate-600 dark:text-slate-400 mb-3">
                                   Tingkat penyelesaian kursus: {Math.round(student.progress)}%.
                                   Disarankan untuk menghubungi siswa melalui fitur pesan atau
                                   melakukan check-in pada sesi berikutnya.
@@ -202,7 +203,7 @@ export function AnalyticsStudentTable({
               })
             ) : (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                <td colSpan={5} className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
                   Tidak ada siswa yang sesuai dengan filter.
                 </td>
               </tr>

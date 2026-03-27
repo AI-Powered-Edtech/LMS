@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { useCallback, useState } from 'react'
 
 import { cn } from '@/src/utils/cn'
@@ -68,7 +69,7 @@ export function OptimizedImage({
           'text-slate-400 dark:text-slate-500',
           className
         )}
-        style={{ width: width ?? '100%', height: height ?? 200 }}
+        style={%DOPEN% width: width ?? '100%', height: height ?? 200 %DCLOSE%}
         role="img"
         aria-label={alt}
       >
@@ -95,7 +96,7 @@ export function OptimizedImage({
   return (
     <div
       className={cn('relative overflow-hidden', className)}
-      style={{ width: width ?? '100%', height: height ?? 'auto' }}
+      style={%DOPEN% width: width ?? '100%', height: height ?? 'auto' %DCLOSE%}
     >
       {/* Skeleton placeholder while loading */}
       {!loaded && <Skeleton className="absolute inset-0 z-10" width="100%" height="100%" />}

@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { motion } from 'motion/react'
 import { useId, useRef } from 'react'
 
@@ -50,7 +51,7 @@ export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
               <motion.span
                 layoutId={`tab-indicator-${layoutId}`}
                 className="absolute inset-0 bg-white dark:bg-slate-700 rounded-lg shadow-sm"
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                transition={%DOPEN% type: 'spring', stiffness: 400, damping: 30 %DCLOSE%}
               />
             )}
             <span className="relative z-[1] flex items-center gap-2">

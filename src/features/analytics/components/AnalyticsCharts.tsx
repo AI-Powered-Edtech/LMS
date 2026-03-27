@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { BookOpen } from 'lucide-react'
 import {
   PolarAngleAxis,
@@ -8,6 +9,8 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts'
+
+import { useTheme } from '@/src/contexts/ThemeContext'
 
 interface RadarDataItem {
   subject: string
@@ -20,10 +23,14 @@ interface AnalyticsChartsProps {
 }
 
 export function AnalyticsCharts({ radarData }: AnalyticsChartsProps) {
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
   return (
-    <div className="lg:col-span-1 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-      <h2 className="text-xl font-bold text-slate-800 mb-2">Penyelesaian Modul</h2>
-      <p className="text-sm text-slate-500 mb-4">
+    <div className="lg:col-span-1 bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
+      <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+        Penyelesaian Modul
+      </h2>
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
         Tingkat penyelesaian rata-rata tiap modul dalam kursus ini.
       </p>
 
@@ -31,10 +38,10 @@ export function AnalyticsCharts({ radarData }: AnalyticsChartsProps) {
         <div className="h-80 w-full -ml-4">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
-              <PolarGrid stroke="#e2e8f0" />
+              <PolarGrid stroke={isDark ? '#334155' : '#e2e8f0'} />
               <PolarAngleAxis
                 dataKey="subject"
-                tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }}
+                tick={%DOPEN% fill: isDark ? '#94a3b8' : '#64748b', fontSize: 11, fontWeight: 600 %DCLOSE%}
               />
               <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
               <Radar
@@ -45,12 +52,13 @@ export function AnalyticsCharts({ radarData }: AnalyticsChartsProps) {
                 fillOpacity={0.4}
               />
               <Tooltip
-                contentStyle={{
-                  borderRadius: '12px',
-                  border: 'none',
-                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                }}
-                itemStyle={{ fontWeight: 'bold' }}
+                contentStyle={%DOPEN%
+                  backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                  border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                  borderRadius: '0.5rem',
+                  color: isDark ? '#f1f5f9' : '#0f172a',
+                %DCLOSE%}
+                itemStyle={%DOPEN% fontWeight: 'bold', color: isDark ? '#f1f5f9' : '#0f172a' %DCLOSE%}
               />
             </RadarChart>
           </ResponsiveContainer>

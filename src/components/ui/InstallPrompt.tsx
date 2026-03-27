@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Download, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
@@ -15,10 +16,10 @@ export function InstallPrompt() {
         <motion.div
           role="banner"
           aria-label="Pasang aplikasi"
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 100, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          initial={%DOPEN% y: 100, opacity: 0 %DCLOSE%}
+          animate={%DOPEN% y: 0, opacity: 1 %DCLOSE%}
+          exit={%DOPEN% y: 100, opacity: 0 %DCLOSE%}
+          transition={%DOPEN% type: 'spring', stiffness: 300, damping: 30 %DCLOSE%}
           className={cn(
             'fixed bottom-4 inset-x-4 z-[60] sm:left-auto sm:right-4 sm:max-w-sm',
             'flex items-center gap-3 rounded-xl p-4 shadow-lg',

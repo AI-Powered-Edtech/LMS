@@ -1,13 +1,14 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary'
 import { useAuth } from '@/src/contexts/AuthContext'
-import { useTheme } from '@/src/contexts/ThemeContext'
 import { useToast } from '@/src/hooks/useToast'
 
 import { Onboarding } from '../Onboarding'
+import { HelpButton } from '../ui/HelpButton'
 import { BottomNav } from './BottomNav'
 import { Header } from './Header'
 import { RouteAnnouncer } from './RouteAnnouncer'
@@ -19,7 +20,6 @@ export function TeacherLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const isHidden = hiddenNavPaths.includes(location.pathname)
-  const { theme } = useTheme()
   const { sessionExpired } = useAuth()
   const addToast = useToast((s) => s.addToast)
 
@@ -33,7 +33,7 @@ export function TeacherLayout() {
 
   return (
     <div
-      className={`flex h-[100dvh] overflow-hidden font-sans flex-col transition-colors duration-300 ${theme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}
+      className="flex h-[100dvh] overflow-hidden font-sans flex-col transition-colors duration-300 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
     >
       <RouteAnnouncer />
       <a
@@ -54,10 +54,10 @@ export function TeacherLayout() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
+                initial={%DOPEN% opacity: 0, y: 10 %DCLOSE%}
+                animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
+                exit={%DOPEN% opacity: 0, y: -10 %DCLOSE%}
+                transition={%DOPEN% duration: 0.2 %DCLOSE%}
                 className={`${isHidden ? 'max-w-none' : 'max-w-5xl'} mx-auto w-full flex-1 flex flex-col`}
               >
                 <FeatureErrorBoundary>
@@ -69,6 +69,7 @@ export function TeacherLayout() {
           {!isHidden && <BottomNav />}
         </div>
       </div>
+      {!isHidden && <HelpButton />}
     </div>
   )
 }

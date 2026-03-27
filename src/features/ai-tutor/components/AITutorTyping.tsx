@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 /**
  * AI Tutor Typing Indicator
  *
@@ -24,33 +25,33 @@ export function AITutorTyping({ message = 'AI sedang berpikir...' }: AITutorTypi
         <div className="flex items-center gap-1">
           <motion.div
             className="w-2 h-2 bg-slate-400 rounded-full"
-            animate={{ y: [0, -4, 0] }}
-            transition={{
+            animate={%DOPEN% y: [0, -4, 0] %DCLOSE%}
+            transition={%DOPEN%
               duration: 0.6,
               repeat: Infinity,
               delay: 0,
               ease: 'easeInOut',
-            }}
+            %DCLOSE%}
           />
           <motion.div
             className="w-2 h-2 bg-slate-400 rounded-full"
-            animate={{ y: [0, -4, 0] }}
-            transition={{
+            animate={%DOPEN% y: [0, -4, 0] %DCLOSE%}
+            transition={%DOPEN%
               duration: 0.6,
               repeat: Infinity,
               delay: 0.15,
               ease: 'easeInOut',
-            }}
+            %DCLOSE%}
           />
           <motion.div
             className="w-2 h-2 bg-slate-400 rounded-full"
-            animate={{ y: [0, -4, 0] }}
-            transition={{
+            animate={%DOPEN% y: [0, -4, 0] %DCLOSE%}
+            transition={%DOPEN%
               duration: 0.6,
               repeat: Infinity,
               delay: 0.3,
               ease: 'easeInOut',
-            }}
+            %DCLOSE%}
           />
         </div>
       </div>

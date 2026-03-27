@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Skeleton } from '@/src/components/ui'
 
 export function QuizSkeleton() {
@@ -24,7 +25,7 @@ export function QuizSkeleton() {
               className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700"
             >
               <Skeleton className="h-5 w-5 rounded-full shrink-0" />
-              <Skeleton className="h-4 flex-1" style={{ width: `${65 + i * 8}%` }} />
+              <Skeleton className="h-4 flex-1" style={%DOPEN% width: `${65 + i * 8}%` %DCLOSE%} />
             </div>
           ))}
         </div>

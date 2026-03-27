@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import {
   BookOpen,
   CheckCircle,
@@ -162,7 +163,7 @@ export function UserTable({
                         onClick={() => {
                           onChangeRole(user)
                           setActionMenuId(null)
-                        }}
+                        %DCLOSE%}
                         className="w-full px-4 py-2 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                       >
                         <Shield className="w-4 h-4 text-blue-500" /> Ubah Role
