@@ -1,6 +1,7 @@
-import { useRef, useState, useEffect } from 'react'
 import { Bell } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
+
 import { useNotifications } from '../hooks/useNotifications'
 import { NotificationPanel } from './NotificationPanel'
 

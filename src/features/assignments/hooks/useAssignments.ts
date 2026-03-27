@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react'
-import { assignmentService } from '@/src/features/assignments/api/assignmentService'
+import { useEffect, useState } from 'react'
+
 import { useAuth } from '@/src/contexts/AuthContext'
+import { assignmentService } from '@/src/features/assignments/api/assignmentService'
+
 import { AssignmentUiState, StudentSubmission } from '../types'
 
 // Raw database response type (snake_case from Supabase)

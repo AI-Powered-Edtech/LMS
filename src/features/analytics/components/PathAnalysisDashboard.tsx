@@ -1,11 +1,13 @@
-import { useState } from 'react'
 import { GitBranch, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+
 import { cn } from '@/src/utils/cn'
-import { relativeTime } from '../utils/formatters'
+
 import { useLearningPaths } from '../queries/analyticsQueries'
-import { PathFlowDiagram } from './PathFlowDiagram'
-import { PathComparison } from './PathComparison'
+import { relativeTime } from '../utils/formatters'
 import { DeadEndDetector } from './DeadEndDetector'
+import { PathComparison } from './PathComparison'
+import { PathFlowDiagram } from './PathFlowDiagram'
 
 type Tab = 'flow' | 'compare' | 'deadend'
 

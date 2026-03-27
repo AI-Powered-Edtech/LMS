@@ -1,11 +1,13 @@
-import { useRef, useEffect, useCallback, useState } from 'react'
 import { motion } from 'motion/react'
-import type { Lesson } from '@/src/features/lessons/types'
-import { BlockRenderer } from './BlockRenderer'
-import { BLOCK_REGISTRY, isValidBlockType } from '@/src/features/lessons/blockRegistry'
-import { BlockSkeleton } from './blocks/BlockSkeleton'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
 import { useOptionalLearningSession } from '@/src/features/analytics'
+import { BLOCK_REGISTRY, isValidBlockType } from '@/src/features/lessons/blockRegistry'
+import type { Lesson } from '@/src/features/lessons/types'
 import { cn } from '@/src/utils/cn'
+
+import { BlockRenderer } from './BlockRenderer'
+import { BlockSkeleton } from './blocks/BlockSkeleton'
 
 interface MultiBlockViewerProps {
   lesson: Lesson

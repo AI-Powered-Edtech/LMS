@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query'
+
 import { useToast } from '@/src/hooks/useToast'
 
 export const queryClient = new QueryClient({

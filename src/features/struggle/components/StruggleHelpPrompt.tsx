@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
-import { X, RefreshCw, BookOpen } from 'lucide-react'
+import { BookOpen, RefreshCw, X } from 'lucide-react'
 import { motion } from 'motion/react'
+import { useEffect, useState } from 'react'
+
 import { useMyLessonStatus } from '../queries/useStruggleQueries'
 
 interface Props {

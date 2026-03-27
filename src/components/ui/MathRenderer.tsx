@@ -1,5 +1,6 @@
-import React, { Suspense, useMemo } from 'react'
 import DOMPurify from 'dompurify'
+import React, { Suspense, useMemo } from 'react'
+
 import { Skeleton } from './Skeleton'
 
 /* ─── Lazy-load KaTeX ──────────────────────────────────────── */

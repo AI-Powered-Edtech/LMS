@@ -1,5 +1,6 @@
-import { cn } from '@/src/utils/cn'
 import { X } from 'lucide-react'
+
+import { cn } from '@/src/utils/cn'
 
 export interface BulkAction {
   label: string
