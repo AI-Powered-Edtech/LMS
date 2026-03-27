@@ -1,13 +1,11 @@
-import { AlertTriangle, Loader2, ShieldAlert, TrendingDown, Users } from 'lucide-react'
-import { motion } from 'motion/react'
 import { useState } from 'react'
-
+import { AlertTriangle, TrendingDown, Users, ShieldAlert, Loader2 } from 'lucide-react'
+import { motion } from 'motion/react'
 import { cn } from '@/src/utils/cn'
-
 import { useAtRiskStudents, usePredictionSummary } from '../queries/analyticsQueries'
-import type { StudentPrediction } from '../types'
 import { PredictionCard } from './PredictionCard'
 import { RiskRadar } from './RiskRadar'
+import type { StudentPrediction } from '../types'
 
 interface Props {
   courseId: string

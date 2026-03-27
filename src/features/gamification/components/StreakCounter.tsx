@@ -1,12 +1,10 @@
-import { Flame } from 'lucide-react'
-import { motion } from 'motion/react'
 import { useMemo } from 'react'
-
-import { useReducedMotion } from '@/src/hooks/useReducedMotion'
-import { calculateStreak } from '@/src/utils/clientCompute'
+import { motion } from 'motion/react'
+import { Flame } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
-
 import { useStudentXPProfile } from '../queries/gamificationQueries'
+import { calculateStreak } from '@/src/utils/clientCompute'
+import { useReducedMotion } from '@/src/hooks/useReducedMotion'
 
 interface StreakCounterProps {
   compact?: boolean

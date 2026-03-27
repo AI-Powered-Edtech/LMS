@@ -1,8 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { fn } from '@storybook/test'
-import { BookOpen, FileText, Search, Users } from 'lucide-react'
-
 import { EmptyState } from './EmptyState'
+import { BookOpen, FileText, Users, Search } from 'lucide-react'
+import { fn } from '@storybook/test'
 
 const meta: Meta<typeof EmptyState> = {
   title: 'UI/EmptyState',

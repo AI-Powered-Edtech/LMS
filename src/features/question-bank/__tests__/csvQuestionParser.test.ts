@@ -1,6 +1,5 @@
-import { describe, expect, it } from 'vitest'
-
-import { generateTemplateCSV, parseCSVLine, parseCSVQuestions } from '../utils/csvQuestionParser'
+import { describe, it, expect } from 'vitest'
+import { parseCSVLine, parseCSVQuestions, generateTemplateCSV } from '../utils/csvQuestionParser'
 
 describe('parseCSVLine', () => {
   it('splits simple comma-separated values', () => {

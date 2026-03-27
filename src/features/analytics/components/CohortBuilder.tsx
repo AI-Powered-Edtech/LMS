@@ -1,11 +1,9 @@
-import { Users } from 'lucide-react'
 import { useState } from 'react'
-
-import { Skeleton } from '@/src/components/ui'
-
+import { Users } from 'lucide-react'
 import { useRetentionMatrix } from '../queries/analyticsQueries'
 import { RetentionHeatmap } from './RetentionHeatmap'
 import { StickinessDashboard } from './StickinessDashboard'
+import { Skeleton } from '@/src/components/ui'
 
 interface CohortBuilderProps {
   courseId: string

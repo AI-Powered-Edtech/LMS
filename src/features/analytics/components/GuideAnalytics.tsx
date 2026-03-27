@@ -1,11 +1,9 @@
-import { BookOpen, Loader2, Plus, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react'
-import { motion } from 'motion/react'
 import { useState } from 'react'
-
-import type { LearningGuide } from '@/src/features/guidance'
-import { useDeleteGuide, useGuideList } from '@/src/features/guidance'
+import { BookOpen, Plus, Loader2, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react'
+import { motion } from 'motion/react'
 import { cn } from '@/src/utils/cn'
-
+import { useGuideList, useDeleteGuide } from '@/src/features/guidance'
+import type { LearningGuide } from '@/src/features/guidance'
 import { GuideBuilder } from './GuideBuilder'
 
 interface Props {

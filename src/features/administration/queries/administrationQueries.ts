@@ -1,10 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { createQueryKeys } from '@/src/lib/queryKeys'
-import { GC, STALE } from '@/src/utils/queryConstants'
-
 import { administrationService } from '../api/administrationService'
+import { STALE, GC } from '@/src/utils/queryConstants'
 
 const base = createQueryKeys('administration')
 

@@ -1,5 +1,4 @@
 import { Users } from 'lucide-react'
-
 import { cn } from '@/src/utils/cn'
 
 interface ActiveNowIndicatorProps {

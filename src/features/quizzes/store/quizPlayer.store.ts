@@ -2,7 +2,6 @@
 // Part of the Quiz Engine Refactor
 
 import { create } from 'zustand'
-
 import type { SubmitAnswer } from '../types/quizzes.types'
 
 // ============================================

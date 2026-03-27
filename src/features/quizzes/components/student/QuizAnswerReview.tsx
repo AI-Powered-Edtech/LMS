@@ -2,11 +2,9 @@
 // Shows graded answers with explanations after quiz submission
 // Only displays when show_correct_answers is enabled
 
-import { ArrowLeft, CheckCircle, HelpCircle, XCircle } from 'lucide-react'
-
+import { CheckCircle, XCircle, HelpCircle, ArrowLeft } from 'lucide-react'
 import { cn } from '@/src/utils/cn'
-
-import type { QuestionType, QuizAttemptQuestion } from '../../types/quizzes.types'
+import type { QuizAttemptQuestion, QuestionType } from '../../types/quizzes.types'
 
 interface QuizAnswerReviewProps {
   questions: QuizAttemptQuestion[]

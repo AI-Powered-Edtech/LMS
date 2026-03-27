@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react'
-
 import { Skeleton, SkeletonCard } from './Skeleton'
 
 const meta: Meta<typeof Skeleton> = {

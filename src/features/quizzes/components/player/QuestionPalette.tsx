@@ -1,6 +1,5 @@
-import { SubmitAnswer } from '@/src/features/quizzes'
 import { cn } from '@/src/utils/cn'
-
+import { SubmitAnswer } from '@/src/features/quizzes'
 import type { QuizAttemptQuestion } from '../../types/quizzes.types'
 
 interface QuestionPaletteProps {

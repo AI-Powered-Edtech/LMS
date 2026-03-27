@@ -1,5 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { dashboardService } from '../api/dashboardService'
 
 const DASHBOARD_KEYS = {

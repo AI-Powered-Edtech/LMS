@@ -1,4 +1,4 @@
-import { Archive, Download, ExternalLink, File, FileText, Presentation, Sheet } from 'lucide-react'
+import { FileText, Presentation, Sheet, Archive, File, Download, ExternalLink } from 'lucide-react'
 
 interface FileBlockViewerProps {
   url: string

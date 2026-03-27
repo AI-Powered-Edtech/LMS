@@ -3,10 +3,10 @@ export { calendarService } from './api/calendarService'
 
 // Hooks
 export {
-  useAddCalendarEvent,
   useCalendarEvents,
-  useCalendarStore,
+  useAddCalendarEvent,
   useUpdateCalendarEvent,
+  useCalendarStore,
 } from './hooks/useCalendarQueries'
 
 // Types

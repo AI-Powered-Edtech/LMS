@@ -1,13 +1,12 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
+  getCached,
+  setCache,
+  clearCache,
   cachedQuery,
   CacheKeys,
-  clearCache,
-  getCached,
-  invalidateCourseCache,
   invalidateUserCache,
-  setCache,
+  invalidateCourseCache,
 } from '../cache'
 
 // jsdom provides localStorage — we use the real implementation in tests

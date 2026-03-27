@@ -1,15 +1,14 @@
 import {
   createContext,
-  type ReactNode,
   useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from 'react'
-
-import { startEventFlushing, stopEventFlushing, trackLearningEvent } from '../api/trackingService'
-import type { EventMetadata, LearningEventType } from '../types/events.types'
+import type { LearningEventType, EventMetadata } from '../types/events.types'
+import { trackLearningEvent, startEventFlushing, stopEventFlushing } from '../api/trackingService'
 
 interface LearningSessionContextValue {
   sessionId: string

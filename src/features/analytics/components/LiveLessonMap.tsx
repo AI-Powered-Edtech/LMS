@@ -1,7 +1,5 @@
 import { BookOpen, Circle } from 'lucide-react'
-
 import { cn } from '@/src/utils/cn'
-
 import { useCourseDashboard } from '../queries/analyticsQueries'
 
 interface LiveLessonMapProps {
