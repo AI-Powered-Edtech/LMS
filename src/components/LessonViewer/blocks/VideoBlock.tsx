@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { AlertTriangle } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -176,7 +177,7 @@ export function VideoBlock({
 
     return (
       <div className="px-6 py-4">
-        <div ref={containerRef} className="relative w-full" style={{ aspectRatio: '16/9' }}>
+        <div ref={containerRef} className="relative w-full" style={%DOPEN% aspectRatio: '16/9' %DCLOSE%}>
           <iframe
             src={embedUrl}
             className="absolute inset-0 w-full h-full rounded-lg"
@@ -197,7 +198,7 @@ export function VideoBlock({
 
     return (
       <div className="px-6 py-4">
-        <div ref={containerRef} className="relative w-full" style={{ aspectRatio: '16/9' }}>
+        <div ref={containerRef} className="relative w-full" style={%DOPEN% aspectRatio: '16/9' %DCLOSE%}>
           <video
             ref={videoRef}
             src={url}
@@ -216,9 +217,9 @@ export function VideoBlock({
               activeEvent.quizId &&
               loadedQuizzes[activeEvent.quizId] && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
+                  initial={%DOPEN% opacity: 0 %DCLOSE%}
+                  animate={%DOPEN% opacity: 1 %DCLOSE%}
+                  exit={%DOPEN% opacity: 0 %DCLOSE%}
                   className="absolute inset-0 bg-black/95 z-20 flex items-center justify-center rounded-lg overflow-y-auto"
                 >
                   <div className="w-full max-w-4xl p-6 bg-white dark:bg-slate-900 rounded-2xl max-h-full overflow-y-auto">
@@ -234,7 +235,7 @@ export function VideoBlock({
                       passingScore={loadedQuizzes[activeEvent.quizId].passing_score ?? 0}
                       isCompleted={false}
                       onCompletionMet={handleEventComplete}
-                      onStartViewing={() => {}}
+                      onStartViewing={() => {%DCLOSE%}
                     />
                   </div>
                 </motion.div>
@@ -257,7 +258,7 @@ function VideoUnavailable() {
     <div className="px-6 py-4">
       <div
         className="relative w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex flex-col items-center justify-center"
-        style={{ aspectRatio: '16/9' }}
+        style={%DOPEN% aspectRatio: '16/9' %DCLOSE%}
       >
         <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center mb-3">
           <AlertTriangle className="w-6 h-6 text-slate-400 dark:text-slate-500" />

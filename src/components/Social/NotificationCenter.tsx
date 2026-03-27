@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { formatDistanceToNow } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { Bell, Check, ExternalLink, Inbox } from 'lucide-react'
@@ -64,9 +65,9 @@ export const NotificationCenter: React.FC = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            initial={%DOPEN% opacity: 0, y: 10, scale: 0.95 %DCLOSE%}
+            animate={%DOPEN% opacity: 1, y: 0, scale: 1 %DCLOSE%}
+            exit={%DOPEN% opacity: 0, y: 10, scale: 0.95 %DCLOSE%}
             className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden"
           >
             {/* Header */}

@@ -1,3 +1,4 @@
+// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import React, { useEffect, useState } from 'react'
 import { Navigate, useLocation, useParams } from 'react-router-dom'
 
@@ -73,7 +74,7 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
     return (
       <Navigate
         to="/courses"
-        state={{ from: location, error: 'You are not enrolled in this course.' }}
+        state={%DOPEN% from: location, error: 'You are not enrolled in this course.' %DCLOSE%}
         replace
       />
     )
