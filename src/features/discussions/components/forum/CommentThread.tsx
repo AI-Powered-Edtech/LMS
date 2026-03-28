@@ -80,9 +80,9 @@ export function CommentThread({
               <span className="text-xs text-slate-400 dark:text-slate-500">{comment.time}</span>
               <div className="relative">
                 <button
+                  aria-label="Opsi lainnya"
                   onClick={() => setShowReport(!showReport)}
-                  aria-label="Menu komentar"
-                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
                 >
                   <MoreHorizontal className="w-4 h-4" />
                 </button>
@@ -110,9 +110,10 @@ export function CommentThread({
         </div>
         <div className="flex items-center gap-4 mt-2 ml-2">
           <button
+            aria-label={upvoted ? 'Batal upvote komentar' : 'Upvote komentar'}
             onClick={() => setUpvoted(!upvoted)}
             className={cn(
-              'flex items-center gap-1.5 text-xs font-medium transition-colors',
+              'flex items-center gap-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded px-1',
               upvoted
                 ? 'text-blue-600'
                 : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
