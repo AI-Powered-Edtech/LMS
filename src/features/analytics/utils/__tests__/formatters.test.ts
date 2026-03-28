@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
 import {
-  formatTime,
   formatPct,
-  relativeTime,
-  pctColor,
+  formatTime,
   pctBgColor,
+  pctColor,
+  relativeTime,
   struggleColor,
 } from '../formatters'
 
@@ -96,7 +97,10 @@ describe('formatters', () => {
       // Localized depending on system, testing exact format depends on ID locale output.
       // Often looks like "8 Okt" or "15 Sep" depending on exact ID formatting
       const expected7 = then7.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
-      const expectedMonth = thenMonth.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+      const expectedMonth = thenMonth.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+      })
 
       expect(relativeTime(then7.toISOString())).toBe(expected7)
       expect(relativeTime(thenMonth.toISOString())).toBe(expectedMonth)
