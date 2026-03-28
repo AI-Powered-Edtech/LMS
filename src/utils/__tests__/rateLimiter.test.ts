@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
 import {
+  aiTutorRateLimiter,
   createRateLimiter,
   loginRateLimiter,
-  quizSubmitRateLimiter,
-  aiTutorRateLimiter,
   passwordResetRateLimiter,
+  quizSubmitRateLimiter,
 } from '../rateLimiter'
 
 describe('createRateLimiter', () => {

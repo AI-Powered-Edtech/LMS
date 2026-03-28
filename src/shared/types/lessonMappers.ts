@@ -1,6 +1,6 @@
-import { DomainLesson } from './lessonTypes'
-import { LessonRowSchema } from '../schemas'
 import { validate } from '../lib/validate'
+import { LessonRowSchema } from '../schemas'
+import { DomainLesson } from './lessonTypes'
 
 export function mapLesson(row: unknown): DomainLesson {
   const r = validate(LessonRowSchema, row, 'LessonRow')

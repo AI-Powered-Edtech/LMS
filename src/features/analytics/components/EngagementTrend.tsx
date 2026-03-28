@@ -1,12 +1,13 @@
 import {
-  AreaChart,
   Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
 } from 'recharts'
+
 import { EngagementTrendPoint } from '../types'
 
 interface EngagementTrendProps {

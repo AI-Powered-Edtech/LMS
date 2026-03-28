@@ -2,6 +2,7 @@
 // Part of the Quiz Engine Refactor
 
 import { useEffect } from 'react'
+
 import * as quizPlayerService from '../api/quizPlayer.service'
 
 interface UseQuizHeartbeatOptions {

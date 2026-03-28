@@ -79,36 +79,22 @@ export function Gradebook() {
   const calculateAverage = (studentId: string) => {
     const studentGrades = grades[studentId]
     if (!studentGrades) return 0
-
-    // PERFORMANCE: Combine multiple array traversals into a single pass to reduce O(N) operations.
-    let sum = 0
-    let count = 0
-    for (const key in studentGrades) {
-      const score = studentGrades[key].score
-      if (score !== null) {
-        sum += score
-        count++
-      }
-    }
-
-    if (count === 0) return 0
-    return Math.round(sum / count)
+    const scores = Object.values(studentGrades)
+      .map((entry) => entry.score)
+      .filter((score): score is number => score !== null)
+    if (scores.length === 0) return 0
+    const sum = scores.reduce((a, b) => a + b, 0)
+    return Math.round(sum / scores.length)
   }
 
   const calculateTotal = (studentId: string) => {
     const studentGrades = grades[studentId]
     if (!studentGrades) return 0
-
-    // PERFORMANCE: Combine multiple array traversals into a single pass to reduce O(N) operations.
-    let sum = 0
-    for (const key in studentGrades) {
-      const score = studentGrades[key].score
-      if (score !== null) {
-        sum += score
-      }
-    }
-
-    return sum
+    const scores = Object.values(studentGrades)
+      .map((entry) => entry.score)
+      .filter((score): score is number => score !== null)
+    if (scores.length === 0) return 0
+    return scores.reduce((a, b) => a + b, 0)
   }
 
   // Calculate class stats

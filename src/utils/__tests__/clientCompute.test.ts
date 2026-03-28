@@ -1,11 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
+
 import {
+  calculateProgress,
+  calculateStreak,
+  calculateTotalXP,
   computeLevel,
   computeXPToNextLevel,
-  calculateTotalXP,
-  calculateStreak,
   getEngagementSegment,
-  calculateProgress,
   rankLeaderboard,
 } from '../clientCompute'
 

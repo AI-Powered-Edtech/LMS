@@ -1,6 +1,7 @@
+import { RotateCcw, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+
 import { OptimizedImage } from '@/src/components/ui'
-import { useState, useEffect } from 'react'
-import { X, RotateCcw } from 'lucide-react'
 
 interface ImageBlockViewerProps {
   url: string

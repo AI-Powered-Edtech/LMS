@@ -1,11 +1,12 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
 import { useAuth } from '@/src/contexts/AuthContext'
-import { createQueryKeys } from '@/src/lib/queryKeys'
 import {
+  ContentType,
   moderationService,
   ReportReason,
-  ContentType,
 } from '@/src/features/moderation/api/moderationService'
+import { createQueryKeys } from '@/src/lib/queryKeys'
 
 const base = createQueryKeys('moderation')
 const moderationKeys = {
@@ -85,4 +86,4 @@ export function useResolveReport() {
 }
 
 // Re-export types from moderationService for convenience
-export type { ReportReason, ContentType } from '@/src/features/moderation/api/moderationService'
+export type { ContentType, ReportReason } from '@/src/features/moderation/api/moderationService'

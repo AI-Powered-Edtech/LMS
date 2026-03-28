@@ -1,6 +1,6 @@
-import { DomainBlock } from './blockTypes'
-import { BlockRowSchema } from '../schemas'
 import { validate } from '../lib/validate'
+import { BlockRowSchema } from '../schemas'
+import { DomainBlock } from './blockTypes'
 
 export function mapBlock(row: unknown): DomainBlock {
   const r = validate(BlockRowSchema, row, 'BlockRow')

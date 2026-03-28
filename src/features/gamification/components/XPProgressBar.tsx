@@ -1,10 +1,12 @@
-import { motion } from 'motion/react'
 import { Star, Zap } from 'lucide-react'
+import { motion } from 'motion/react'
+
+import { useReducedMotion } from '@/src/hooks/useReducedMotion'
+import { computeXPToNextLevel } from '@/src/utils/clientCompute'
 import { cn } from '@/src/utils/cn'
+
 import { useStudentXPProfile } from '../queries/gamificationQueries'
 import { getLevelTier } from './LevelBadge'
-import { computeXPToNextLevel } from '@/src/utils/clientCompute'
-import { useReducedMotion } from '@/src/hooks/useReducedMotion'
 
 interface XPProgressBarProps {
   compact?: boolean

@@ -1,11 +1,13 @@
-import { motion } from 'motion/react'
 import { Award, Lock } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
-import { useStudentBadges } from '../queries/gamificationQueries'
-import { RARITY_CONFIG } from '../types'
-import type { BadgeDefinition, BadgeRarity } from '../types'
+import { motion } from 'motion/react'
+
 import { SkeletonCard } from '@/src/components/ui'
 import { useReducedMotion } from '@/src/hooks/useReducedMotion'
+import { cn } from '@/src/utils/cn'
+
+import { useStudentBadges } from '../queries/gamificationQueries'
+import type { BadgeDefinition, BadgeRarity } from '../types'
+import { RARITY_CONFIG } from '../types'
 
 interface BadgeShowcaseProps {
   compact?: boolean
