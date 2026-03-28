@@ -12,6 +12,7 @@ import { getCurrentQuestionIndex } from '../../api/quizPlayer.service'
 import { useAntiCheat } from '../../hooks/useAntiCheat'
 import { useQuizAutosave } from '../../hooks/useQuizAutosave'
 import { useQuizHeartbeat } from '../../hooks/useQuizHeartbeat'
+import { useNetworkStatus } from '@/src/hooks/useNetworkStatus'
 import { useQuizTimer } from '../../hooks/useQuizTimer'
 import { useQuizPlayerStore } from '../../store/quizPlayer.store'
 import type { QuizAttemptQuestion, SubmitAnswer } from '../../types/quizzes.types'
@@ -146,7 +147,7 @@ export function QuizPlayer({
 
   // Map to compatible interface for QuizHeader
   const saveStatus: SaveStatus = isSaving ? 'saving' : lastSaved ? 'saved' : 'idle'
-  const isOnline = true // QuizPlayer handles offline differently
+  const { isOnline } = useNetworkStatus()
 
   const { tabWarning } = useAntiCheat({ attemptId })
 
