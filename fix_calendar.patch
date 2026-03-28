@@ -1,0 +1,19 @@
+--- src/features/calendar/utils/calendarUtils.ts
++++ src/features/calendar/utils/calendarUtils.ts
+@@ -35,11 +35,14 @@
+
+ /** Calculate countdown label for upcoming events */
+ export function getCountdown(eventDate: Date, today: Date): string | null {
+-  const diffTime = eventDate.getTime() - today.getTime()
+-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
++  const eventDay = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate())
++  const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
++
++  const diffTime = eventDay.getTime() - todayDay.getTime()
++  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
+
+   if (diffDays === 0) return 'Hari ini'
+   if (diffDays === 1) return 'Besok'
+   if (diffDays > 1 && diffDays <= 7) return `H-${diffDays}`
+   return null
+ }
