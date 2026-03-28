@@ -172,7 +172,7 @@ export function AdminQuizOverview() {
           </div>
           <div>
             <p className="text-2xl font-black text-slate-800">{publishedCount}</p>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Published</p>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Diterbitkan</p>
           </div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
