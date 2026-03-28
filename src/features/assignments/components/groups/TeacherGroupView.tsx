@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import {
   ArrowLeft,
   CheckCircle2,
@@ -212,7 +211,7 @@ export function TeacherGroupView({ assignmentId }: Props) {
                 <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-emerald-500 rounded-full transition-all"
-                    style={%DOPEN% width: groups.length > 0 ? `${(submittedCount / groups.length) * 100}%` : '0%' %DCLOSE%}
+                    style={{ width: groups.length > 0 ? `${(submittedCount / groups.length) * 100}%` : '0%' }}
                   />
                 </div>
               </div>

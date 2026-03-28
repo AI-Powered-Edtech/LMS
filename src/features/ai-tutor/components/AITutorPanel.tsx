@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 /**
  * AI Tutor Panel Component
  *
@@ -239,9 +238,9 @@ export function AITutorPanel({
           {messages.map((message) => (
             <motion.div
               key={message.id}
-              initial={%DOPEN% opacity: 0, y: 10 %DCLOSE%}
-              animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-              exit={%DOPEN% opacity: 0 %DCLOSE%}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
               className={cn(
                 'flex items-start gap-3',
                 message.role === 'user' && 'flex-row-reverse'
@@ -283,7 +282,7 @@ export function AITutorPanel({
                   <ReactMarkdown
                     remarkPlugins={[remarkMath]}
                     rehypePlugins={[rehypeKatex]}
-                    components={%DOPEN%
+                    components={{
                       p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
                       ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
                       ol: ({ children }) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
@@ -292,7 +291,7 @@ export function AITutorPanel({
                           {children}
                         </code>
                       ),
-                    %DCLOSE%}
+                    }}
                   >
                     {message.content}
                   </ReactMarkdown>

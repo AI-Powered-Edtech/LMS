@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Loader2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'
@@ -51,9 +50,9 @@ export function GradeGroupModal({ group, assignmentId, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
       <motion.div
-        initial={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
-        animate={%DOPEN% opacity: 1, scale: 1 %DCLOSE%}
-        exit={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
         className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl w-full max-w-md p-6"
       >
         <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">

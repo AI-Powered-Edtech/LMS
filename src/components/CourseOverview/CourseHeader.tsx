@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { BookOpen, PlayCircle, User } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -17,9 +16,9 @@ export function CourseHeader({
 }: CourseHeaderProps) {
   return (
     <motion.div
-      initial={%DOPEN% opacity: 0, y: 12 %DCLOSE%}
-      animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-      transition={%DOPEN% duration: 0.35 %DCLOSE%}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
       className="bg-white rounded-2xl border border-slate-200/70 shadow-md shadow-slate-200/40 p-6 md:p-8"
     >
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
@@ -50,8 +49,8 @@ export function CourseHeader({
         </div>
 
         <motion.button
-          whileHover={%DOPEN% scale: 1.03 %DCLOSE%}
-          whileTap={%DOPEN% scale: 0.97 %DCLOSE%}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
           onClick={onContinueLearning}
           className="flex items-center gap-2.5 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-shadow shrink-0"
         >

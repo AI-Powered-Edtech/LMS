@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { BookOpen } from 'lucide-react'
 import {
   PolarAngleAxis,
@@ -41,7 +40,7 @@ export function AnalyticsCharts({ radarData }: AnalyticsChartsProps) {
               <PolarGrid stroke={isDark ? '#334155' : '#e2e8f0'} />
               <PolarAngleAxis
                 dataKey="subject"
-                tick={%DOPEN% fill: isDark ? '#94a3b8' : '#64748b', fontSize: 11, fontWeight: 600 %DCLOSE%}
+                tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 11, fontWeight: 600 }}
               />
               <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
               <Radar
@@ -52,13 +51,13 @@ export function AnalyticsCharts({ radarData }: AnalyticsChartsProps) {
                 fillOpacity={0.4}
               />
               <Tooltip
-                contentStyle={%DOPEN%
+                contentStyle={{
                   backgroundColor: isDark ? '#1e293b' : '#ffffff',
                   border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
                   borderRadius: '0.5rem',
                   color: isDark ? '#f1f5f9' : '#0f172a',
-                %DCLOSE%}
-                itemStyle={%DOPEN% fontWeight: 'bold', color: isDark ? '#f1f5f9' : '#0f172a' %DCLOSE%}
+                }}
+                itemStyle={{ fontWeight: 'bold', color: isDark ? '#f1f5f9' : '#0f172a' }}
               />
             </RadarChart>
           </ResponsiveContainer>

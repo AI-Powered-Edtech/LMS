@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { motion } from 'motion/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
@@ -294,9 +293,9 @@ export function MultiBlockViewer({
               key={block.id}
               id={`block-${block.id}`}
               data-block-id={block.id}
-              initial={%DOPEN% opacity: 0, y: 10 %DCLOSE%}
-              animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-              transition={%DOPEN% duration: 0.25, delay: Math.min(idx * 0.05, 0.3) %DCLOSE%}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, delay: Math.min(idx * 0.05, 0.3) }}
               className="py-2"
             >
               {/* Block type label header */}

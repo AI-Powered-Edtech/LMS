@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { useVirtualizer } from '@tanstack/react-virtual'
 import {
   ArrowLeft,
@@ -114,7 +113,7 @@ export const LessonSidebar = memo(function LessonSidebar({
                 <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-500"
-                    style={%DOPEN% width: `${progressPct}%` %DCLOSE%}
+                    style={{ width: `${progressPct}%` }}
                   />
                 </div>
               </>
@@ -133,10 +132,10 @@ export const LessonSidebar = memo(function LessonSidebar({
         <AnimatePresence>
           {toastMessage && (
             <motion.div
-              initial={%DOPEN% opacity: 0, y: -10 %DCLOSE%}
-              animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-              exit={%DOPEN% opacity: 0, y: -10 %DCLOSE%}
-              transition={%DOPEN% duration: 0.2 %DCLOSE%}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
               className="absolute top-2 left-4 right-4 z-30 bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3 rounded-lg shadow-lg"
             >
               {toastMessage}
@@ -152,7 +151,7 @@ export const LessonSidebar = memo(function LessonSidebar({
         ) : (
           <div
             className="w-full relative"
-            style={%DOPEN% height: `${rowVirtualizer.getTotalSize() + 32}px` %DCLOSE%} // +32px for top/bottom padding 16px
+            style={{ height: `${rowVirtualizer.getTotalSize() + 32}px` }} // +32px for top/bottom padding 16px
           >
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const lesson = lessons[virtualRow.index]
@@ -167,9 +166,9 @@ export const LessonSidebar = memo(function LessonSidebar({
                   data-index={virtualRow.index}
                   ref={rowVirtualizer.measureElement}
                   className="absolute top-0 left-0 w-full px-4 pb-3"
-                  style={%DOPEN%
+                  style={{
                     transform: `translateY(${virtualRow.start + 16}px)`, // +16px top padding offset
-                  %DCLOSE%}
+                  }}
                 >
                   <button
                     onClick={() => {
@@ -180,7 +179,7 @@ export const LessonSidebar = memo(function LessonSidebar({
                       }
                       onSelectLesson(lesson.id)
                       onMobileClose?.()
-                    %DCLOSE%}
+                    }}
                     aria-current={isActive ? 'page' : undefined}
                     aria-disabled={isLocked}
                     className={cn(
@@ -285,10 +284,10 @@ export const LessonSidebar = memo(function LessonSidebar({
       <AnimatePresence>
         {isMobileOpen && (
           <motion.div
-            initial={%DOPEN% opacity: 0 %DCLOSE%}
-            animate={%DOPEN% opacity: 1 %DCLOSE%}
-            exit={%DOPEN% opacity: 0 %DCLOSE%}
-            transition={%DOPEN% duration: 0.2 %DCLOSE%}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-black/60 dark:bg-black/60 z-40 lg:hidden pointer-events-auto"
             onClick={onMobileClose}
             aria-hidden="true"
@@ -300,10 +299,10 @@ export const LessonSidebar = memo(function LessonSidebar({
       <AnimatePresence>
         {isMobileOpen && (
           <motion.aside
-            initial={%DOPEN% x: '-100%' %DCLOSE%}
-            animate={%DOPEN% x: 0 %DCLOSE%}
-            exit={%DOPEN% x: '-100%' %DCLOSE%}
-            transition={%DOPEN% type: 'spring', damping: 25, stiffness: 300 %DCLOSE%}
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white border-r border-slate-200/70 flex flex-col shadow-2xl shadow-slate-900/30 z-50 lg:hidden dark:bg-slate-900 dark:border-slate-700"
           >
             {sidebarContent}

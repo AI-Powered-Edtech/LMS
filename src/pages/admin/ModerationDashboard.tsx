@@ -9,7 +9,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { ModerationSkeleton } from '@/src/features/moderation/components/ModerationSkeleton'

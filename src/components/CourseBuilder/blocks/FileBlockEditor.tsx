@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Archive, File, FileText, FileUp, Loader2, Presentation, Sheet } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
@@ -256,7 +255,7 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
             e.preventDefault()
             if (!isUploading) inputRef.current?.click()
           }
-        %DCLOSE%}
+        }}
         className={`
           relative flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed cursor-pointer transition-all
           ${isDragOver ? 'border-orange-400 dark:border-orange-600 bg-orange-50 dark:bg-orange-900/30' : 'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 bg-slate-50 dark:bg-slate-800/30'}

@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Edit2, Loader2, Plus, Share2, Star, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'
@@ -73,9 +72,9 @@ export function DashboardList({ onEdit, onCreate, onView }: DashboardListProps) 
           {list.map((dashboard, i) => (
             <motion.div
               key={dashboard.id}
-              initial={%DOPEN% opacity: 0, y: 16 %DCLOSE%}
-              animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-              transition={%DOPEN% delay: i * 0.05 %DCLOSE%}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
               className="group relative rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors cursor-pointer"
               onClick={() => onView(dashboard)}
             >

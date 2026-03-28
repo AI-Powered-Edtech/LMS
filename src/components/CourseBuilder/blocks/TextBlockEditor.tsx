@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { useEffect, useState } from 'react'
 
 import { MarkdownBlock } from '@/src/components/LessonViewer/blocks/MarkdownBlock'
@@ -83,7 +82,7 @@ export function TextBlockEditor({ blockId }: TextBlockEditorProps) {
           onBlur={() => {
             actions.updateBlock(blockId, { content: localContent })
             actions.saveBlock(blockId)
-          %DCLOSE%}
+          }}
           placeholder="Ketik materi materi di sini... (Mendukung Markdown)"
           className="w-full min-h-[160px] p-0 text-base text-slate-700 bg-transparent border-none outline-none resize-y font-sans leading-relaxed placeholder:text-slate-400 focus:ring-0"
           rows={6}

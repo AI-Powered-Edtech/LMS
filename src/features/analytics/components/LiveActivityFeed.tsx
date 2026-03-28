@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Activity, Pause, Play, Radio } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
@@ -155,10 +154,10 @@ export function LiveActivityFeed({
             {events.map((event) => (
               <motion.div
                 key={event.id}
-                initial={%DOPEN% opacity: 0, y: -8, scale: 0.98 %DCLOSE%}
-                animate={%DOPEN% opacity: 1, y: 0, scale: 1 %DCLOSE%}
-                exit={%DOPEN% opacity: 0 %DCLOSE%}
-                transition={%DOPEN% duration: 0.2 %DCLOSE%}
+                initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
                 className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
               >
                 <div

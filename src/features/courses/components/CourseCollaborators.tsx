@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, Search, Shield, Trash2, User } from 'lucide-react'
 import { useState } from 'react'
@@ -134,14 +133,14 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
                   <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-700 rounded-md text-xs font-medium text-slate-600 dark:text-slate-300">
                     <Shield className="w-3 h-3" />
                     <span>
-                      {%DOPEN% author: 'Penulis', reviewer: 'Peninjau', publisher: 'Penerbit' }[c.role]}
+                      {{ author: 'Penulis', reviewer: 'Peninjau', publisher: 'Penerbit' }[c.role]}
                     </span>
                   </div>
                   <button
                     onClick={() => {
                       if (!confirm('Hapus kolaborator ini dari kursus?')) return
                       removeCollabMut.mutate(c.id)
-                    %DCLOSE%}
+                    }}
                     className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                     aria-label="Hapus kolaborator"
                   >

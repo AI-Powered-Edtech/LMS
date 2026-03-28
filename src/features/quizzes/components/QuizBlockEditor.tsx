@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { BarChart3, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 
 import { QuestionSearchModal } from '@/src/features/question-bank/components/QuestionSearchModal'
@@ -204,7 +203,7 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
               ],
             }))
             s.setShowQuestionModal(false)
-          %DCLOSE%}
+          }}
         />
       )}
 

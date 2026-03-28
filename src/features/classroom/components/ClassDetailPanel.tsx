@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import {
   BookOpen,
   Check,
@@ -117,7 +116,7 @@ export function ClassDetailPanel({
                     onClick={() => {
                       onSetRenamingClassId(selectedClass.id)
                       onSetRenameValue(selectedClass.name)
-                    %DCLOSE%}
+                    }}
                     className="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
                     title="Rename"
                     aria-label="Ubah nama kelas"
@@ -208,7 +207,7 @@ export function ClassDetailPanel({
               onClick={() => {
                 onSetActiveClassroomId(selectedClass.id)
                 onNavigate('/teaching/quiz-manager')
-              %DCLOSE%}
+              }}
               className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-bold text-xs rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
             >
               <BookOpen className="w-3.5 h-3.5" />
@@ -219,7 +218,7 @@ export function ClassDetailPanel({
               onClick={() => {
                 onSetActiveClassroomId(selectedClass.id)
                 onNavigate('/assignments')
-              %DCLOSE%}
+              }}
               className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-bold text-xs rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
             >
               <BookOpen className="w-3.5 h-3.5" />
@@ -230,7 +229,7 @@ export function ClassDetailPanel({
               onClick={() => {
                 onSetActiveClassroomId(selectedClass.id)
                 onNavigate('/analytics')
-              %DCLOSE%}
+              }}
               className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-bold text-xs rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
             >
               <BookOpen className="w-3.5 h-3.5" />

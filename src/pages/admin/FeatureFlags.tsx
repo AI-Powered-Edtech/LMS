@@ -1,5 +1,5 @@
 import { AlertCircle, Flag, RefreshCw, Save, ToggleLeft, ToggleRight } from 'lucide-react'
-import React, { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { EmptyState } from '@/src/components/ui'
 import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'

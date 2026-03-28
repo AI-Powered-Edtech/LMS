@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { X } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -12,10 +11,10 @@ interface Props {
 export function BannerGuide({ guide, onDismiss }: Props) {
   return (
     <motion.div
-      initial={%DOPEN% opacity: 0, y: -8 %DCLOSE%}
-      animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-      exit={%DOPEN% opacity: 0, y: -8 %DCLOSE%}
-      transition={%DOPEN% duration: 0.25 %DCLOSE%}
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.25 }}
       className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800/60 dark:bg-blue-900/20"
     >
       <div className="flex-1 min-w-0">

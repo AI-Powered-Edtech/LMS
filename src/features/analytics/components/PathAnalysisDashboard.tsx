@@ -1,5 +1,5 @@
 import { GitBranch, Loader2 } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 import { cn } from '@/src/utils/cn'
 
@@ -27,7 +27,8 @@ export function PathAnalysisDashboard({ courseId }: Props) {
 
   const { data: paths = [], isLoading } = useLearningPaths(courseId)
 
-  const handlePathSelect = (hash: string) => {
+  // ⚡ Perf: stabilize callback ref passed to PathFlowDiagram (renders list of paths with buttons)
+  const handlePathSelect = useCallback((hash: string) => {
     setSelectedHashes((prev) => {
       if (prev[0] === hash) return [null, prev[1]]
       if (prev[1] === hash) return [prev[0], null]
@@ -35,7 +36,7 @@ export function PathAnalysisDashboard({ courseId }: Props) {
       if (!prev[1]) return [prev[0], hash]
       return [hash, null]
     })
-  }
+  }, [])
 
   const computedAt = paths[0]?.computed_at
 

@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 /**
  * HelpButton — tombol mengambang di sudut kanan bawah yang menampilkan
  * panel bantuan kontekstual berdasarkan halaman yang sedang dibuka.
@@ -26,10 +25,10 @@ export function HelpButton() {
         {isOpen && (
           <motion.div
             key="help-panel"
-            initial={%DOPEN% opacity: 0, y: 12, scale: 0.97 %DCLOSE%}
-            animate={%DOPEN% opacity: 1, y: 0, scale: 1 %DCLOSE%}
-            exit={%DOPEN% opacity: 0, y: 12, scale: 0.97 %DCLOSE%}
-            transition={%DOPEN% duration: 0.2 %DCLOSE%}
+            initial={{ opacity: 0, y: 12, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.97 }}
+            transition={{ duration: 0.2 }}
             role="dialog"
             aria-modal="false"
             aria-label={`Bantuan: ${helpItem.title}`}
@@ -93,20 +92,20 @@ export function HelpButton() {
           {isOpen ? (
             <motion.span
               key="close"
-              initial={%DOPEN% rotate: -90, opacity: 0 %DCLOSE%}
-              animate={%DOPEN% rotate: 0, opacity: 1 %DCLOSE%}
-              exit={%DOPEN% rotate: 90, opacity: 0 %DCLOSE%}
-              transition={%DOPEN% duration: 0.15 %DCLOSE%}
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 90, opacity: 0 }}
+              transition={{ duration: 0.15 }}
             >
               <X className="w-5 h-5" />
             </motion.span>
           ) : (
             <motion.span
               key="open"
-              initial={%DOPEN% rotate: 90, opacity: 0 %DCLOSE%}
-              animate={%DOPEN% rotate: 0, opacity: 1 %DCLOSE%}
-              exit={%DOPEN% rotate: -90, opacity: 0 %DCLOSE%}
-              transition={%DOPEN% duration: 0.15 %DCLOSE%}
+              initial={{ rotate: 90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: -90, opacity: 0 }}
+              transition={{ duration: 0.15 }}
             >
               <HelpCircle className="w-5 h-5" />
             </motion.span>

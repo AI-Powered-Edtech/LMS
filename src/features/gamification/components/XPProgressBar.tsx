@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Star, Zap } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -41,9 +40,9 @@ export function XPProgressBar({ compact }: XPProgressBarProps) {
         <div className="relative w-20 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
           <motion.div
             className="h-full rounded-full bg-gradient-to-r from-yellow-400 to-orange-400"
-            initial={reducedMotion ? false : { width: 0 %DCLOSE%}
-            animate={%DOPEN% width: `${progressPct}%` %DCLOSE%}
-            transition={reducedMotion ? { duration: 0 } : { duration: 0.8, ease: 'easeOut' %DCLOSE%}
+            initial={reducedMotion ? false : { width: 0 }}
+            animate={{ width: `${progressPct}%` }}
+            transition={reducedMotion ? { duration: 0 } : { duration: 0.8, ease: 'easeOut' }}
           />
         </div>
         <span className="text-[10px] font-bold text-yellow-600 dark:text-yellow-500">
@@ -73,9 +72,9 @@ export function XPProgressBar({ compact }: XPProgressBarProps) {
       <div className="relative w-full h-4 bg-slate-100 dark:bg-slate-800/80 rounded-full overflow-hidden shadow-inner">
         <motion.div
           className="h-full rounded-full bg-gradient-to-r from-yellow-400 via-orange-400 to-orange-500 shadow-sm"
-          initial={reducedMotion ? false : { width: 0 %DCLOSE%}
-          animate={%DOPEN% width: `${progressPct}%` %DCLOSE%}
-          transition={reducedMotion ? { duration: 0 } : { duration: 1.1, ease: [0.4, 0, 0.2, 1] %DCLOSE%}
+          initial={reducedMotion ? false : { width: 0 }}
+          animate={{ width: `${progressPct}%` }}
+          transition={reducedMotion ? { duration: 0 } : { duration: 1.1, ease: [0.4, 0, 0.2, 1] }}
         />
         {/* Shine overlay */}
         <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />

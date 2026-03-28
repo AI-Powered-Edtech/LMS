@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import {
   AlertCircle,
   ArrowLeft,
@@ -157,16 +156,16 @@ export function BuilderTopBar() {
             <AnimatePresence>
               {isMobileMenuOpen && (
                 <motion.div
-                  initial={%DOPEN% opacity: 0, y: 10 %DCLOSE%}
-                  animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-                  exit={%DOPEN% opacity: 0, y: 10 %DCLOSE%}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
                   className="absolute top-16 right-4 w-48 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 flex flex-col z-50"
                 >
                   <button
                     onClick={() => {
                       setIsSettingsOpen(true)
                       setIsMobileMenuOpen(false)
-                    %DCLOSE%}
+                    }}
                     className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3"
                   >
                     <Settings className="w-4 h-4 text-slate-500" /> Pengaturan
@@ -175,7 +174,7 @@ export function BuilderTopBar() {
                     onClick={() => {
                       setIsVersionHistoryOpen(true)
                       setIsMobileMenuOpen(false)
-                    %DCLOSE%}
+                    }}
                     className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3"
                   >
                     <History className="w-4 h-4 text-slate-500" /> Riwayat Versi
@@ -184,7 +183,7 @@ export function BuilderTopBar() {
                     onClick={() => {
                       setIsSaveTemplateOpen(true)
                       setIsMobileMenuOpen(false)
-                    %DCLOSE%}
+                    }}
                     className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3"
                   >
                     <BookCopy className="w-4 h-4 text-slate-500" /> Jadikan Template
@@ -193,7 +192,7 @@ export function BuilderTopBar() {
                     onClick={() => {
                       setIsAssignModalOpen(true)
                       setIsMobileMenuOpen(false)
-                    %DCLOSE%}
+                    }}
                     className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3"
                   >
                     <Users className="w-4 h-4 text-slate-500" /> Bagikan
@@ -202,7 +201,7 @@ export function BuilderTopBar() {
                   <button
                     onClick={() => {
                       navigate('/app/teacher/courses')
-                    %DCLOSE%}
+                    }}
                     className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3 text-rose-500"
                   >
                     <ArrowLeft className="w-4 h-4" /> Keluar
@@ -241,7 +240,7 @@ export function BuilderTopBar() {
             <button
               onClick={() => {
                 window.open(`/#/app/student/courses/${state.courseId}?preview=true`, '_blank')
-              %DCLOSE%}
+              }}
               disabled={!state.courseId}
               className="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Pratinjau kursus"

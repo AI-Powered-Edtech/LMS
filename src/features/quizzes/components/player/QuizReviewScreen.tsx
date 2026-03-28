@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { AlertTriangle, ArrowLeft, CheckCircle, Flag, Send, Target } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
@@ -83,10 +82,10 @@ export function QuizReviewScreen({
       <AnimatePresence>
         {unansweredCount > 0 && (
           <motion.div
-            initial={%DOPEN% opacity: 0, y: -8 %DCLOSE%}
-            animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-            exit={%DOPEN% opacity: 0, y: -8 %DCLOSE%}
-            transition={%DOPEN% duration: 0.2 %DCLOSE%}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
             className={cn(
               'flex items-start gap-3 p-4 rounded-2xl border',
               'bg-amber-50 dark:bg-amber-900/20',
@@ -304,10 +303,10 @@ export function QuizReviewScreen({
       <AnimatePresence>
         {showConfirm && (
           <motion.div
-            initial={%DOPEN% opacity: 0, y: 12, scale: 0.97 %DCLOSE%}
-            animate={%DOPEN% opacity: 1, y: 0, scale: 1 %DCLOSE%}
-            exit={%DOPEN% opacity: 0, y: 12, scale: 0.97 %DCLOSE%}
-            transition={%DOPEN% duration: 0.2, ease: 'easeOut' %DCLOSE%}
+            initial={{ opacity: 0, y: 12, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.97 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
             className={cn(
               'rounded-2xl border p-6 text-center',
               'bg-red-50 dark:bg-red-900/20',

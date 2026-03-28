@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import {
   Camera,
   CheckCircle2,
@@ -77,7 +76,7 @@ export function StudentSubmissionPanel({
                 <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-slate-200 dark:bg-slate-700">
                   <div
                     className="h-full bg-blue-500 dark:bg-blue-400 transition-all duration-200"
-                    style={%DOPEN% width: `${uploadProgress[assignment.id]}%` %DCLOSE%}
+                    style={{ width: `${uploadProgress[assignment.id]}%` }}
                   />
                 </div>
               )}

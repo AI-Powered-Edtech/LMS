@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import {
   AlertTriangle,
   Award,
@@ -107,7 +106,7 @@ export function LessonTopBar({
               >
                 <div
                   className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                  style={%DOPEN% width: `${(completedLessonCount / moduleLessons.length) * 100}%` %DCLOSE%}
+                  style={{ width: `${(completedLessonCount / moduleLessons.length) * 100}%` }}
                 />
               </div>
               <span className="text-sm text-slate-500 dark:text-slate-400">

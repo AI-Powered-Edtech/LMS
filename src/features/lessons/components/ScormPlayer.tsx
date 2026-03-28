@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { AlertTriangle, Loader2, Package, RefreshCw } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
@@ -381,14 +380,14 @@ export function ScormPlayer({
       {/* SCORM Content iframe */}
       <div
         className="relative w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden"
-        style={%DOPEN% minHeight: '500px' %DCLOSE%}
+        style={{ minHeight: '500px' }}
       >
         <iframe
           ref={iframeRef}
           src={iframeUrl}
           title={packageInfo?.title || 'Konten SCORM'}
           className="w-full border-0"
-          style={%DOPEN% height: '600px', minHeight: '500px' %DCLOSE%}
+          style={{ height: '600px', minHeight: '500px' }}
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
           allow="autoplay; fullscreen"
         />

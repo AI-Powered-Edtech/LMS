@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { memo } from 'react'
 
 import { cn } from '@/src/utils/cn'
@@ -22,7 +21,7 @@ export const Skeleton = memo(function Skeleton({
       role="status"
       aria-busy="true"
       className={cn('animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700', className)}
-      style={%DOPEN% width, height, ...style %DCLOSE%}
+      style={{ width, height, ...style }}
       {...props}
     />
   )
@@ -39,7 +38,7 @@ function SkeletonText({ lines = 3, className }: SkeletonTextProps) {
   return (
     <div className={cn('space-y-2', className)}>
       {Array.from({ length: lines }).map((_, i) => (
-        <Skeleton key={i} className="h-4" style={%DOPEN% width: i === lines - 1 ? '60%' : '100%' %DCLOSE%} />
+        <Skeleton key={i} className="h-4" style={{ width: i === lines - 1 ? '60%' : '100%' }} />
       ))}
     </div>
   )

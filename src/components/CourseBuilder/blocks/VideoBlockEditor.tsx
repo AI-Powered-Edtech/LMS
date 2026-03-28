@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Clock, Link as LinkIcon, Play, Video } from 'lucide-react'
 import { useState } from 'react'
 
@@ -39,10 +38,10 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
             value={url}
             onChange={(e) => {
               actions.updateBlock(blockId, { url: e.target.value })
-            %DCLOSE%}
+            }}
             onBlur={() => {
               actions.saveBlock(blockId)
-            %DCLOSE%}
+            }}
             className="w-full pl-11 pr-4 py-3 border border-slate-200/60 dark:border-slate-700/60 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30 focus:border-indigo-300 dark:focus:border-indigo-600 outline-none transition-all bg-slate-50/50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-900 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-white shadow-inner"
           />
         </div>
@@ -95,7 +94,7 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
 
       {showInteractiveEditor && (
         <InteractiveVideoEditor
-          metadata={(block.metadata as InteractiveVideoMetadata) || {%DCLOSE%}
+          metadata={(block.metadata as InteractiveVideoMetadata) || {}}
           onSave={handleSaveInteractiveMetadata}
           onClose={() => setShowInteractiveEditor(false)}
         />

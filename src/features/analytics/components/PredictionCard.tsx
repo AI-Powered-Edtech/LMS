@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Minus, TrendingDown, TrendingUp } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
@@ -47,10 +46,10 @@ export function PredictionCard({ prediction, isExpanded = true }: Props) {
     <AnimatePresence>
       {isExpanded && (
         <motion.div
-          initial={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
-          animate={%DOPEN% opacity: 1, height: 'auto' %DCLOSE%}
-          exit={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
-          transition={%DOPEN% duration: 0.2 %DCLOSE%}
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.2 }}
           className={cn(
             'overflow-hidden rounded-lg border p-4 mt-2',
             riskBg(prediction.churn_risk)
@@ -73,7 +72,7 @@ export function PredictionCard({ prediction, isExpanded = true }: Props) {
                         ? 'bg-amber-500'
                         : 'bg-emerald-500'
                   )}
-                  style={%DOPEN% width: `${prediction.churn_risk * 100}%` %DCLOSE%}
+                  style={{ width: `${prediction.churn_risk * 100}%` }}
                 />
               </div>
             </div>
@@ -87,7 +86,7 @@ export function PredictionCard({ prediction, isExpanded = true }: Props) {
               <div className="mt-1 h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-700">
                 <div
                   className="h-1.5 rounded-full bg-indigo-500"
-                  style={%DOPEN% width: `${prediction.completion_likelihood * 100}%` %DCLOSE%}
+                  style={{ width: `${prediction.completion_likelihood * 100}%` }}
                 />
               </div>
             </div>

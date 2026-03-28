@@ -49,6 +49,7 @@ From prototype to production. Built on a Supabase-centric serverless architectur
 ✅ Phase 19 — Course Builder Enhancement (content versioning, template library, collaborators, review workflow)
 ✅ Phase 20 — Security & Performance Cleanup (bare .select() elimination, tenant_id audit, memoization, dead code removal)
 ✅ Phase 21 — Production Perfection (UI/UX polish, logic hardening, code health, technical hardening, documentation)
+✅ Phase 22 — Quick Wins, UX Polish, Feature Completion & Test Coverage (22A: lazy/error/animations; 22B: undo, offline forms, keyboard nav, help; 22C: group assignments, public profile, form validation; 22D: 26 unit tests + 5 E2E flows)
 ```
 
 ---
@@ -82,6 +83,7 @@ gantt
     section Production
     Phase 15-20 Hardening    :done, p15, after p14b, 10d
     Phase 21 Perfection      :done, p21, after p15, 3d
+    Phase 22 Builder Adv     :done, p22, after p21, 3d
 ```
 
 ---
@@ -166,6 +168,59 @@ gantt
 ```
 ✅ Updated docs/DATABASE.md, docs/ARCHITECTURE.md, docs/SECURITY.md
 ✅ Updated docs/ENGINEERING_ROADMAP.md, CHANGELOG.md
+```
+
+---
+
+## Completed: Phase 22 — Quick Wins, UX Polish, Feature Completion & Test Coverage
+
+**Goal:** Close UX gaps, complete group assignment and public profile features, enforce form validation, and raise test coverage with unit and E2E tests.
+
+### 22A: Quick Wins
+
+```
+✅ LazyLoadTimeout component with retry option
+✅ FeatureErrorBoundary session detection → redirect to login on expired session
+✅ Token refresh failure hardening in AuthContext
+✅ ESLint no-floating-promises enforced across async handlers
+✅ Status i18n fixes — English status values translated to Bahasa Indonesia
+✅ Playwright visual project added for screenshot regression tests
+✅ Stagger animations on 7 grids (course catalog, assignments, quizzes, etc.)
+```
+
+### 22B: UX Polish
+
+```
+✅ useUndoableAction hook — generic 5-second undo window with countdown toast
+✅ Undo toast for class deletion — deferred delete, cancellable
+✅ OfflineFormNotice — blocks form submission when offline (3 forms)
+✅ BottomNav badge counts — unread notifications + pending assignments
+✅ Keyboard arrow navigation in sidebar (Up/Down/Home/End)
+✅ HelpButton with 8 route help entries on all main pages
+```
+
+### 22C: Feature Completion
+
+```
+✅ Group Assignments — 3 tables (assignment_groups, assignment_group_members, group_submissions)
+✅ Group Assignments — 5 RPCs (get_student_group_assignment, get_teacher_group_overview,
+   create_assignment_groups, submit_group_assignment, grade_group_submission)
+✅ StudentGroupView + TeacherGroupView components with full submission/grading flow
+✅ Public Profile — privacy flags (is_public, show_badges, show_xp, show_courses) in profiles
+✅ get_public_profile RPC — respects per-field privacy settings
+✅ update_profile_privacy RPC — owner-only via RLS
+✅ Form validation with react-hook-form + valibot on 4 high-traffic forms
+   (CreateCourseForm, CreateAssignmentForm, LoginForm, OnboardingForm)
+```
+
+### 22D: Test Coverage
+
+```
+✅ 26 unit tests: AuthContext (8), useToast (6), useNetworkStatus (5), offlineStorage (7)
+✅ 5 E2E smoke flows: group-assignment, public-profile, form-validation, undo-delete, offline-form
+✅ tsc --noEmit: 0 errors
+✅ eslint: 0 errors
+✅ vite build: PASS
 ```
 
 ---

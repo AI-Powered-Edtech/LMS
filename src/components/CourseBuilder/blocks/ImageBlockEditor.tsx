@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { ImagePlus, Loader2 } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
@@ -190,7 +189,7 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
             e.preventDefault()
             if (!isUploading) inputRef.current?.click()
           }
-        %DCLOSE%}
+        }}
         className={`
           relative flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed cursor-pointer transition-all
           ${isDragOver ? 'border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 bg-slate-50 dark:bg-slate-800/30'}

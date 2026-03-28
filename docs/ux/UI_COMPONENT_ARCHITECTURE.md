@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 # EduSync LMS — UI Component Architecture
 
 > Best-practice structure untuk `src/components/ui/` design system.
@@ -251,7 +250,7 @@ interface EmptyStateProps {
   icon={<BookOpen className="w-12 h-12" />}
   title="Belum ada materi"
   description="Gabung ke kelas untuk mulai belajar"
-  action={%DOPEN% label: "Gabung Kelas", onClick: handleJoin %DCLOSE%}
+  action={{ label: "Gabung Kelas", onClick: handleJoin }}
 />
 ```
 
@@ -406,7 +405,7 @@ Alasan: app ini sudah zero-UI-library, tambah dependency = bundle bloat.
   textTransform="uppercase"
   letterSpacing="wide"
   shadow="md"
-  gradient={%DOPEN% from: 'blue', to: 'purple' %DCLOSE%}
+  gradient={{ from: 'blue', to: 'purple' }}
 />
 
 // ✅ Simple variants

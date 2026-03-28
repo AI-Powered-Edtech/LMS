@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { useMemo } from 'react'
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
@@ -72,33 +71,33 @@ export function StickinessDashboard({ data }: StickinessDashboardProps) {
             <LineChart data={metrics.trendData}>
               <XAxis
                 dataKey="week"
-                tick={%DOPEN% fontSize: 10, fill: isDark ? '#94a3b8' : '#64748b' %DCLOSE%}
-                axisLine={%DOPEN% stroke: isDark ? '#334155' : '#e2e8f0' %DCLOSE%}
-                tickLine={%DOPEN% stroke: isDark ? '#334155' : '#e2e8f0' %DCLOSE%}
+                tick={{ fontSize: 10, fill: isDark ? '#94a3b8' : '#64748b' }}
+                axisLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+                tickLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
               />
               <YAxis
                 domain={[0, 100]}
-                tick={%DOPEN% fontSize: 10, fill: isDark ? '#94a3b8' : '#64748b' %DCLOSE%}
-                axisLine={%DOPEN% stroke: isDark ? '#334155' : '#e2e8f0' %DCLOSE%}
-                tickLine={%DOPEN% stroke: isDark ? '#334155' : '#e2e8f0' %DCLOSE%}
+                tick={{ fontSize: 10, fill: isDark ? '#94a3b8' : '#64748b' }}
+                axisLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+                tickLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
               />
               <Tooltip
                 formatter={(v: unknown) => [`${v}%`, 'Retensi']}
-                contentStyle={%DOPEN%
+                contentStyle={{
                   fontSize: 12,
                   backgroundColor: isDark ? '#1e293b' : '#ffffff',
                   border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
                   borderRadius: '0.5rem',
                   color: isDark ? '#f1f5f9' : '#0f172a',
-                %DCLOSE%}
-                labelStyle={%DOPEN% color: isDark ? '#94a3b8' : '#64748b' %DCLOSE%}
+                }}
+                labelStyle={{ color: isDark ? '#94a3b8' : '#64748b' }}
               />
               <Line
                 type="monotone"
                 dataKey="rate"
                 stroke="#6366f1"
                 strokeWidth={2}
-                dot={%DOPEN% r: 3 %DCLOSE%}
+                dot={{ r: 3 }}
               />
             </LineChart>
           </ResponsiveContainer>

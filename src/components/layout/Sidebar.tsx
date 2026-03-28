@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Check, ChevronDown, LogOut, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -104,7 +103,7 @@ export function Sidebar() {
                     onClick={() => {
                       setActiveClassroomId(classroom.id)
                       setIsClassroomDropdownOpen(false)
-                    %DCLOSE%}
+                    }}
                     role="option"
                     aria-selected={activeClassroomId === classroom.id}
                     className="w-full flex items-center justify-between p-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0"
@@ -151,7 +150,7 @@ export function Sidebar() {
                         onClick={() => {
                           setIsAddingClassroom(false)
                           setNewClassroomName('')
-                        %DCLOSE%}
+                        }}
                         className="flex-1 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold py-2 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600"
                       >
                         Batal
@@ -221,7 +220,7 @@ export function Sidebar() {
             } finally {
               navigate('/login')
             }
-          %DCLOSE%}
+          }}
           className="w-full flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-400 hover:text-red-600 font-semibold py-3 px-4 rounded-xl transition-all duration-200 text-sm group"
         >
           <LogOut className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />

@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import {
   AlertTriangle,
   Award,
@@ -140,8 +139,8 @@ export function AssignmentViewer({
         <AnimatePresence>
           {(isSubmitted || isGraded) && (
             <motion.div
-              initial={%DOPEN% opacity: 0, y: -10 %DCLOSE%}
-              animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
               className={cn(
                 'flex items-center gap-3 p-4 rounded-2xl border shadow-sm',
                 isGraded
@@ -248,7 +247,7 @@ export function AssignmentViewer({
                       <span className="text-xs text-slate-500">Yakin batalkan?</span>
                       <button
                         // TODO [FL-M1]: Call assignmentService.cancelSubmission() API when backend supports it
-                        onClick={() => { setSubmission(null); setShowCancelConfirm(false) %DCLOSE%}
+                        onClick={() => { setSubmission(null); setShowCancelConfirm(false) }}
                         className="text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors"
                       >
                         Ya

@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 // Question Difficulty Chart Component
 // Shows a horizontal bar chart of correct% vs incorrect% per question
 
@@ -73,7 +72,7 @@ const CustomTooltip = ({
         <p className="text-sm text-slate-600 dark:text-slate-300">
           Total jawaban: <span className="font-bold">{data.totalAnswers}</span>
         </p>
-        <p className="text-sm font-bold mt-1" style={%DOPEN% color: data.color %DCLOSE%}>
+        <p className="text-sm font-bold mt-1" style={{ color: data.color }}>
           Tingkat kesulitan: {data.difficulty}
         </p>
       </div>
@@ -165,33 +164,33 @@ export function QuestionDifficultyChart({ questions, isLoading }: QuestionDiffic
           <BarChart
             data={chartData}
             layout="vertical"
-            margin={%DOPEN% top: 5, right: 30, left: 40, bottom: 5 %DCLOSE%}
+            margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
           >
             <XAxis
               type="number"
               domain={[0, 100]}
               tickFormatter={xAxisTickFormatter}
-              tick={%DOPEN% fill: isDark ? '#94a3b8' : '#64748b', fontSize: 12 %DCLOSE%}
-              axisLine={%DOPEN% stroke: isDark ? '#334155' : '#e2e8f0' %DCLOSE%}
-              tickLine={%DOPEN% stroke: isDark ? '#334155' : '#e2e8f0' %DCLOSE%}
+              tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 12 }}
+              axisLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+              tickLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
             />
             <YAxis
               type="category"
               dataKey="question"
               width={40}
-              tick={%DOPEN% fill: isDark ? '#94a3b8' : '#64748b', fontSize: 12 %DCLOSE%}
-              axisLine={%DOPEN% stroke: isDark ? '#334155' : '#e2e8f0' %DCLOSE%}
-              tickLine={%DOPEN% stroke: isDark ? '#334155' : '#e2e8f0' %DCLOSE%}
+              tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 12 }}
+              axisLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+              tickLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
             />
             <Tooltip
               content={<CustomTooltip />}
-              contentStyle={%DOPEN%
+              contentStyle={{
                 backgroundColor: isDark ? '#1e293b' : '#ffffff',
                 border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
                 borderRadius: '0.5rem',
                 color: isDark ? '#f1f5f9' : '#0f172a',
-              %DCLOSE%}
-              labelStyle={%DOPEN% color: isDark ? '#94a3b8' : '#64748b' %DCLOSE%}
+              }}
+              labelStyle={{ color: isDark ? '#94a3b8' : '#64748b' }}
             />
             <ReferenceLine x={70} stroke="#22c55e" strokeDasharray="3 3" />
             <ReferenceLine x={40} stroke="#eab308" strokeDasharray="3 3" />

@@ -1,5 +1,5 @@
 import { Eye, EyeOff } from 'lucide-react'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 
 import { FormField } from '@/src/components/ui/FormField'

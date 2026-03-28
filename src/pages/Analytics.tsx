@@ -12,6 +12,7 @@ import {
   Users,
   WifiOff,
 } from 'lucide-react'
+import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 
 import { AnalyticsCharts } from '@/src/features/analytics/components/AnalyticsCharts'
@@ -19,6 +20,7 @@ import { AnalyticsStudentTable } from '@/src/features/analytics/components/Analy
 import { useAnalyticsPageState } from '@/src/features/analytics/hooks/useAnalyticsPageState'
 import { StruggleConfigPanel } from '@/src/features/struggle'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { staggerContainer, staggerItem } from '@/src/utils/animations'
 import { cn } from '@/src/utils/cn'
 
 export function Analytics() {
@@ -158,8 +160,16 @@ export function Analytics() {
       ) : (
         <>
           {/* Overview Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="show"
+          >
+            <motion.div
+              variants={staggerItem}
+              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"
+            >
               <div>
                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                   Total Terdaftar
@@ -174,8 +184,11 @@ export function Analytics() {
               <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
                 <Users className="w-6 h-6" />
               </div>
-            </div>
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            </motion.div>
+            <motion.div
+              variants={staggerItem}
+              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"
+            >
               <div>
                 <p className="text-sm font-medium text-slate-500">Rata-rata Progress</p>
                 <h3 className="text-2xl font-bold text-slate-900 mt-1">
@@ -188,8 +201,11 @@ export function Analytics() {
               <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
                 <Activity className="w-6 h-6" />
               </div>
-            </div>
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            </motion.div>
+            <motion.div
+              variants={staggerItem}
+              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"
+            >
               <div>
                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                   Rata-rata Nilai Kuis
@@ -204,8 +220,11 @@ export function Analytics() {
               <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
                 <Award className="w-6 h-6" />
               </div>
-            </div>
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            </motion.div>
+            <motion.div
+              variants={staggerItem}
+              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"
+            >
               <div>
                 <p className="text-sm font-medium text-slate-500">Siswa At-Risk</p>
                 <h3 className="text-2xl font-bold text-red-600 mt-1">
@@ -216,8 +235,8 @@ export function Analytics() {
               <div className="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center">
                 <AlertTriangle className="w-6 h-6" />
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           <div className="grid lg:grid-cols-3 gap-8">
             <AnalyticsCharts radarData={radarData} />

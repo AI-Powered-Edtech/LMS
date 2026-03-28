@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 // ⚡ Perf: Deterministic widths instead of Math.random() in render.
 // Math.random() in a style prop produces a different value on every render,
 // causing visual flicker as skeleton bars jump widths on re-render.
@@ -22,7 +21,7 @@ export function SidebarSkeleton() {
             <div className="w-5 h-5 rounded-md animate-pulse bg-slate-200 dark:bg-slate-700" />
             <div
               className="h-4 rounded-lg animate-pulse bg-slate-200 dark:bg-slate-700"
-              style={%DOPEN% width: `${width}%`, animationDelay: `${i * 100}ms` %DCLOSE%}
+              style={{ width: `${width}%`, animationDelay: `${i * 100}ms` }}
             />
           </div>
         ))}

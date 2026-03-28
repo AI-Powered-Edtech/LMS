@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { HeaderSkeleton } from './HeaderSkeleton'
 import { SidebarSkeleton } from './SidebarSkeleton'
 
@@ -27,15 +26,15 @@ export function AppLoading() {
                   >
                     <div
                       className="h-4 w-3/4 rounded-lg animate-pulse bg-slate-200 dark:bg-slate-700"
-                      style={%DOPEN% animationDelay: `${i * 150}ms` %DCLOSE%}
+                      style={{ animationDelay: `${i * 150}ms` }}
                     />
                     <div
                       className="h-3 w-full rounded-lg animate-pulse bg-slate-200 dark:bg-slate-700"
-                      style={%DOPEN% animationDelay: `${i * 150 + 50}ms` %DCLOSE%}
+                      style={{ animationDelay: `${i * 150 + 50}ms` }}
                     />
                     <div
                       className="h-3 w-5/6 rounded-lg animate-pulse bg-slate-200 dark:bg-slate-700"
-                      style={%DOPEN% animationDelay: `${i * 150 + 100}ms` %DCLOSE%}
+                      style={{ animationDelay: `${i * 150 + 100}ms` }}
                     />
                   </div>
                 ))}

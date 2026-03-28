@@ -1,6 +1,6 @@
 # EduSync LMS — Database Reference
 
-PostgreSQL on Supabase. 157 migration files (001–836).
+PostgreSQL on Supabase. 160 migration files (001–836, Phase 22 group assignments + public profile).
 
 ## Key Tables
 
@@ -48,9 +48,12 @@ PostgreSQL on Supabase. 157 migration files (001–836).
 | `quiz_stats`             | Pre-aggregated quiz-level statistics                                                                                                                                            |
 | `question_bank`          | Reusable question repository (per-tenant)                                                                                                                                       |
 | `question_options`       | Options for question bank entries                                                                                                                                               |
-| `assignments`            | Teacher-created assignments                                                                                                                                                     |
-| `assignment_submissions` | Student submissions                                                                                                                                                             |
-| `grades`                 | Grades for submissions                                                                                                                                                          |
+| `assignments`              | Teacher-created assignments                                                                                                                                                   |
+| `assignment_submissions`   | Student submissions                                                                                                                                                           |
+| `grades`                   | Grades for submissions                                                                                                                                                        |
+| `assignment_groups`        | Group assignment containers: `assignment_id`, `name`, `tenant_id`                                                                                                             |
+| `assignment_group_members` | Group membership: `group_id`, `user_id`, `tenant_id`                                                                                                                          |
+| `group_submissions`        | Group-level submissions: `group_id`, `assignment_id`, `submitted_by`, `content`, `grade`, `tenant_id`                                                                         |
 
 ### Analytics
 
@@ -103,6 +106,7 @@ PostgreSQL on Supabase. 157 migration files (001–836).
 | `student_lesson_signals` | `total_time_spent`  | NOT `time_spent_seconds`                                   |
 | `student_lesson_signals` | `last_accessed_at`  | NOT `last_event_at`                                        |
 | `student_lesson_signals` | `latest_quiz_score` | NOT `quiz_avg_score`                                       |
+| `profiles`               | `is_public`         | Added by Phase 22 migration. Also: `show_badges`, `show_xp`, `show_courses` privacy flags |
 
 ## RLS Patterns
 
@@ -158,6 +162,13 @@ All helper functions are `SECURITY DEFINER` with `SET search_path TO 'public'`.
 | `import_content_template(p_template_id, p_target_id, p_order)`                            | Import template with new UUIDs                 | Teacher               |
 | `upsert_scorm_runtime(p_user_id, p_scorm_package_id, p_tenant_id, p_cmi_data, ...)`       | Atomic SCORM state save + lesson_progress sync | Student               |
 | `cleanup_expired_lti_nonces()`                                                            | Remove expired LTI nonces                      | System (service_role) |
+| `get_student_group_assignment(p_assignment_id)`                                           | Group details + members + submission status for student | Student          |
+| `get_teacher_group_overview(p_assignment_id)`                                             | All groups + submission progress + grades for teacher   | Teacher          |
+| `create_assignment_groups(p_assignment_id, p_groups)`                                     | Batch-create groups and assign members                  | Teacher          |
+| `submit_group_assignment(p_group_id, p_assignment_id, p_content)`                         | Submit on behalf of group (any member)                  | Student          |
+| `grade_group_submission(p_submission_id, p_grade, p_feedback)`                            | Grade a group submission                                | Teacher          |
+| `get_public_profile(p_user_id)`                                                           | Returns public profile fields respecting privacy flags  | Authenticated    |
+| `update_profile_privacy(p_is_public, p_show_badges, p_show_xp, p_show_courses)`          | Update per-field privacy settings (owner only)          | Authenticated    |
 
 ## pg_cron Jobs
 

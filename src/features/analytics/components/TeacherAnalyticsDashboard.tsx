@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Activity, Award, Clock, FileText, LayoutDashboard, Loader2, Radio, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
@@ -170,10 +169,10 @@ export function TeacherAnalyticsDashboard({ courseId }: TeacherAnalyticsDashboar
           <AnimatePresence>
             {selectedLessonId && (
               <motion.div
-                initial={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
-                animate={%DOPEN% opacity: 1, height: 'auto' %DCLOSE%}
-                exit={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
-                transition={%DOPEN% duration: 0.25 %DCLOSE%}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.25 }}
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">

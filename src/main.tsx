@@ -3,11 +3,15 @@ import './index.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
+import { validateEnv } from './config/env.schema'
 import App from './App.tsx'
 import { AppProviders } from './app/providers'
 import { useToast } from './hooks/useToast'
 import { initSentry } from './utils/sentry'
 import { reportWebVitals } from './utils/webVitals'
+
+// Validate env vars before anything else — fails fast with helpful message
+validateEnv()
 
 // Initialise Sentry before rendering so errors during boot are captured
 initSentry()

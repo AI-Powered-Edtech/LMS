@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { SubmitAnswer } from '@/src/features/quizzes'
 import { cn } from '@/src/utils/cn'
 
@@ -129,7 +128,7 @@ export function QuestionPalette({
           <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
             <div
               className="h-full bg-emerald-500 dark:bg-emerald-400 rounded-full transition-all duration-500"
-              style={%DOPEN% width: `${(answeredCount / questions.length) * 100}%` %DCLOSE%}
+              style={{ width: `${(answeredCount / questions.length) * 100}%` }}
             />
           </div>
         </div>

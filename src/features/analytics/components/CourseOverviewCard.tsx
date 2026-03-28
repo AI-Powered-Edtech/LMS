@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Activity, BookOpen, CheckCircle, Users } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -82,9 +81,9 @@ export function CourseOverviewCard({ data, isLoading }: CourseOverviewCardProps)
       {stats.map((stat, i) => (
         <motion.div
           key={stat.label}
-          initial={%DOPEN% opacity: 0, y: 12 %DCLOSE%}
-          animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-          transition={%DOPEN% duration: 0.3, delay: i * 0.05 %DCLOSE%}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: i * 0.05 }}
         >
           <Card padding="md">
             <div className="flex items-center justify-between">

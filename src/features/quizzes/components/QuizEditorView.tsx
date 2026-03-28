@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import {
   AlertTriangle,
   ArrowLeft,
@@ -128,7 +127,7 @@ export function QuizEditorView({
             onClick={() => {
               setView('list')
               loadQuizzes()
-            %DCLOSE%}
+            }}
             className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -498,7 +497,7 @@ export function QuizEditorView({
               ],
             }))
             setShowQuestionModal(false)
-          %DCLOSE%}
+          }}
         />
       )}
     </div>

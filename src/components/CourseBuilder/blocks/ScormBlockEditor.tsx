@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import {
   AlertCircle,
   CheckCircle2,
@@ -266,7 +265,7 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
             e.preventDefault()
             if (!isUploading) inputRef.current?.click()
           }
-        %DCLOSE%}
+        }}
         className={[
           'relative flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed cursor-pointer transition-all',
           isDragOver

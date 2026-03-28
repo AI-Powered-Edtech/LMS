@@ -21,13 +21,13 @@ export function QuizEditorToolbar({
 }: QuizEditorToolbarProps) {
   return (
     <>
-      <div className="flex items-start justify-between gap-4 p-6 bg-white rounded-[24px] border border-slate-100 shadow-sm">
+      <div className="flex items-start justify-between gap-4 p-6 bg-white dark:bg-slate-900 rounded-[24px] border border-slate-100 dark:border-slate-700 shadow-sm dark:shadow-slate-900/50">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-[20px] bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 shadow-inner">
             <HelpCircle className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-lg font-black text-slate-800 tracking-tight">Pengaturan Kuis</h3>
+            <h3 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">Pengaturan Kuis</h3>
             <div
               className={cn(
                 'inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1 rounded-full mt-1 shadow-sm',
@@ -49,7 +49,7 @@ export function QuizEditorToolbar({
           <button
             onClick={onSave}
             disabled={isSaving}
-            className="px-4 py-2 text-xs font-black text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all flex items-center gap-2 shadow-sm"
+            className="px-4 py-2 text-xs font-black text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-all flex items-center gap-2 shadow-sm"
           >
             {isSaving && !isPublishing && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             SIMPAN DRAFT
@@ -71,7 +71,7 @@ export function QuizEditorToolbar({
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl flex items-start gap-2">
+        <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-300 text-sm rounded-xl flex items-start gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>

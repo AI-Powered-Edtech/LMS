@@ -2,22 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { gamificationService } from '../api/gamificationService'
 
-// Supabase mock builder
-function _makeQueryMock(resolveValue: { data: unknown; error: unknown }) {
-  const mock = {
-    select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockResolvedValue(resolveValue),
-    then: undefined as unknown,
-  }
-  // Allow direct resolution from the chain
-  Object.defineProperty(mock, 'then', {
-    get: () => Promise.resolve(resolveValue).then.bind(Promise.resolve(resolveValue)),
-  })
-  return mock
-}
-
 const mockFrom = vi.fn()
 vi.mock('@/src/services/supabase/client', () => ({
   supabase: {

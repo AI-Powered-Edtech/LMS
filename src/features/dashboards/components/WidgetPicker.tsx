@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { BarChart2, Map, PieChart, Radio, Target, TrendingUp, Trophy, X } from 'lucide-react'
 
 import type { WidgetType } from '../types'
@@ -79,7 +78,7 @@ export function WidgetPicker({ onSelect, onClose }: WidgetPickerProps) {
               onClick={() => {
                 onSelect(opt.type)
                 onClose()
-              %DCLOSE%}
+              }}
               className="flex flex-col items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all text-center group"
             >
               <div className="text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">

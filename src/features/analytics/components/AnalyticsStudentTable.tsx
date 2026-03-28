@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { AlertTriangle, Clock, Eye, Filter } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import React from 'react'
@@ -118,7 +117,7 @@ export function AnalyticsStudentTable({
                                 'h-full rounded-full',
                                 isKritis ? 'bg-red-500' : 'bg-indigo-500'
                               )}
-                              style={%DOPEN% width: `${student.progress}%` %DCLOSE%}
+                              style={{ width: `${student.progress}%` }}
                             />
                           </div>
                         </div>
@@ -165,9 +164,9 @@ export function AnalyticsStudentTable({
                     <AnimatePresence>
                       {isExpanded && (
                         <motion.tr
-                          initial={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
-                          animate={%DOPEN% opacity: 1, height: 'auto' %DCLOSE%}
-                          exit={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
                           className="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700"
                         >
                           <td colSpan={5} className="px-6 py-4">

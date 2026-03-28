@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { useMemo } from 'react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
@@ -63,14 +62,14 @@ export function SegmentPieChart({ data }: SegmentPieChartProps) {
         </Pie>
         <Tooltip
           formatter={tooltipFormatter}
-          contentStyle={%DOPEN%
+          contentStyle={{
             fontSize: 12,
             backgroundColor: isDark ? '#1e293b' : '#ffffff',
             border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
             borderRadius: '0.5rem',
             color: isDark ? '#f1f5f9' : '#0f172a',
-          %DCLOSE%}
-          labelStyle={%DOPEN% color: isDark ? '#94a3b8' : '#64748b' %DCLOSE%}
+          }}
+          labelStyle={{ color: isDark ? '#94a3b8' : '#64748b' }}
         />
       </PieChart>
     </ResponsiveContainer>

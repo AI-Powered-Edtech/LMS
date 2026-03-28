@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Loader2, Play, Target } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -26,8 +25,8 @@ export function QuizCard({
 
   return (
     <motion.div
-      whileHover={%DOPEN% scale: 1.02 %DCLOSE%}
-      whileTap={%DOPEN% scale: 0.98 %DCLOSE%}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
       className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm dark:shadow-slate-900/20 flex flex-col h-full overflow-hidden"
     >
       <div className="p-5 flex-1 flex flex-col">

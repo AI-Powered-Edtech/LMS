@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
@@ -51,10 +50,10 @@ export function AdminLayout() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
-                initial={%DOPEN% opacity: 0, y: 10 %DCLOSE%}
-                animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-                exit={%DOPEN% opacity: 0, y: -10 %DCLOSE%}
-                transition={%DOPEN% duration: 0.2 %DCLOSE%}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
                 className={`${isHidden ? 'max-w-none' : 'max-w-5xl'} mx-auto w-full flex-1 flex flex-col`}
               >
                 <FeatureErrorBoundary>

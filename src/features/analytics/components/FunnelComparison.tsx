@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { ChevronRight, Plus, Trash2, TrendingDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
@@ -49,9 +48,9 @@ export function FunnelComparison({ courseId }: FunnelComparisonProps) {
       <AnimatePresence>
         {showBuilder && (
           <motion.div
-            initial={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
-            animate={%DOPEN% opacity: 1, height: 'auto' %DCLOSE%}
-            exit={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
           >
             <FunnelBuilder
               courseId={courseId}
@@ -96,7 +95,7 @@ export function FunnelComparison({ courseId }: FunnelComparisonProps) {
                   e.stopPropagation()
                   if (!confirm('Hapus corong ini? Aksi ini tidak bisa dibatalkan.')) return
                   deleteFunnel.mutate(f.funnel_id)
-                %DCLOSE%}
+                }}
                 aria-label="Hapus corong"
                 className="hidden rounded p-1 text-slate-400 hover:text-red-500 group-hover:flex"
               >
@@ -114,9 +113,9 @@ export function FunnelComparison({ courseId }: FunnelComparisonProps) {
       <AnimatePresence>
         {selectedFunnelId && (
           <motion.div
-            initial={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
-            animate={%DOPEN% opacity: 1, height: 'auto' %DCLOSE%}
-            exit={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
           >
             {resultsLoading ? (
               <Skeleton className="h-64 w-full rounded-xl" />

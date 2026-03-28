@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Check, Clock, Plus, Trash2, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
@@ -76,9 +75,9 @@ export function InteractiveVideoEditor({ metadata, onSave, onClose }: Interactiv
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
       <motion.div
-        initial={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
-        animate={%DOPEN% opacity: 1, scale: 1 %DCLOSE%}
-        exit={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
         className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]"
       >
         <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
@@ -102,9 +101,9 @@ export function InteractiveVideoEditor({ metadata, onSave, onClose }: Interactiv
           <AnimatePresence mode="popLayout">
             {events.length === 0 ? (
               <motion.div
-                initial={%DOPEN% opacity: 0 %DCLOSE%}
-                animate={%DOPEN% opacity: 1 %DCLOSE%}
-                exit={%DOPEN% opacity: 0 %DCLOSE%}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 className="text-center py-12 px-4 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50 dark:bg-slate-800/50"
               >
                 <div className="w-16 h-16 bg-white dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
@@ -129,9 +128,9 @@ export function InteractiveVideoEditor({ metadata, onSave, onClose }: Interactiv
                 <motion.div
                   key={idx}
                   layout
-                  initial={%DOPEN% opacity: 0, y: 10 %DCLOSE%}
-                  animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-                  exit={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
                   className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex flex-col md:flex-row gap-4 items-start md:items-center shadow-sm"
                 >
                   <div className="w-full md:w-32 shrink-0">
@@ -147,7 +146,7 @@ export function InteractiveVideoEditor({ metadata, onSave, onClose }: Interactiv
                         if (/^[0-9:]*$/.test(val)) {
                           // Update on blur only
                         }
-                      %DCLOSE%}
+                      }}
                       onBlur={(e) =>
                         handleUpdateEvent(idx, { timeInSeconds: parseTime(e.target.value) })
                       }

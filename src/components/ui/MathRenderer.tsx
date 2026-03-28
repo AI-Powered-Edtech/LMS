@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import DOMPurify from 'dompurify'
 import React, { Suspense, useMemo } from 'react'
 
@@ -67,7 +66,7 @@ const KaTeXCore = React.lazy(() =>
           'aria-hidden',
         ],
       })
-      return <span dangerouslySetInnerHTML={%DOPEN% __html: html %DCLOSE%} />
+      return <span dangerouslySetInnerHTML={{ __html: html }} />
     },
   }))
 )

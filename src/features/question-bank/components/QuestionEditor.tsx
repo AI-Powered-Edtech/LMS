@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { Loader2, Plus, Save, Trash2, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import React, { useEffect, useState } from 'react'
@@ -191,9 +190,9 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
         <motion.div
-          initial={%DOPEN% opacity: 0, scale: 0.95, y: 10 %DCLOSE%}
-          animate={%DOPEN% opacity: 1, scale: 1, y: 0 %DCLOSE%}
-          exit={%DOPEN% opacity: 0, scale: 0.95, y: 10 %DCLOSE%}
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
           className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden"
         >
           {/* Header */}

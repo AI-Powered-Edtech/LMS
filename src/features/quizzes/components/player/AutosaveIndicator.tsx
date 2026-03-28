@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { AlertCircle, Check, Loader2, WifiOff } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
@@ -46,10 +45,10 @@ export function AutosaveIndicator({ status }: AutosaveIndicatorProps) {
       {config && (
         <motion.div
           key={status}
-          initial={%DOPEN% opacity: 0, scale: 0.9, y: -4 %DCLOSE%}
-          animate={%DOPEN% opacity: 1, scale: 1, y: 0 %DCLOSE%}
-          exit={%DOPEN% opacity: 0, scale: 0.9, y: -4 %DCLOSE%}
-          transition={%DOPEN% duration: 0.18, ease: 'easeOut' %DCLOSE%}
+          initial={{ opacity: 0, scale: 0.9, y: -4 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: -4 }}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
           className={cn(
             'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border',
             status === 'saving' && 'border-blue-200 dark:border-blue-700',

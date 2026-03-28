@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
@@ -36,10 +35,10 @@ export function WalkthroughGuide({ guide, onDismiss, onComplete }: Props) {
 
   return (
     <motion.div
-      initial={%DOPEN% opacity: 0, y: 12 %DCLOSE%}
-      animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-      exit={%DOPEN% opacity: 0, y: 12 %DCLOSE%}
-      transition={%DOPEN% duration: 0.25 %DCLOSE%}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 12 }}
+      transition={{ duration: 0.25 }}
       className="rounded-xl border border-indigo-200 bg-white shadow-lg dark:border-indigo-800/60 dark:bg-slate-900"
     >
       {/* Header */}
@@ -77,10 +76,10 @@ export function WalkthroughGuide({ guide, onDismiss, onComplete }: Props) {
       <AnimatePresence mode="wait">
         <motion.div
           key={step}
-          initial={%DOPEN% opacity: 0, x: 10 %DCLOSE%}
-          animate={%DOPEN% opacity: 1, x: 0 %DCLOSE%}
-          exit={%DOPEN% opacity: 0, x: -10 %DCLOSE%}
-          transition={%DOPEN% duration: 0.15 %DCLOSE%}
+          initial={{ opacity: 0, x: 10 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -10 }}
+          transition={{ duration: 0.15 }}
           className="px-5 py-4"
         >
           <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">

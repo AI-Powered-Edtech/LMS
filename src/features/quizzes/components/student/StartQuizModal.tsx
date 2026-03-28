@@ -1,4 +1,3 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
 import { AlertTriangle, Clock, Loader2, Play, X } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -18,16 +17,16 @@ interface StartQuizModalProps {
 export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: StartQuizModalProps) {
   return (
     <motion.div
-      initial={%DOPEN% opacity: 0 %DCLOSE%}
-      animate={%DOPEN% opacity: 1 %DCLOSE%}
-      exit={%DOPEN% opacity: 0 %DCLOSE%}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={onClose}
     >
       <motion.div
-        initial={%DOPEN% scale: 0.95, opacity: 0 %DCLOSE%}
-        animate={%DOPEN% scale: 1, opacity: 1 %DCLOSE%}
-        exit={%DOPEN% scale: 0.95, opacity: 0 %DCLOSE%}
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
         className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl dark:shadow-slate-900/50 max-w-md w-full p-8 relative"
       >
