@@ -197,9 +197,17 @@ export function StudentGradeView({ courseId }: Props) {
 
   // Compute my average
   const myAverage = useMemo(() => {
-    const graded = myEntries.filter((e) => e.score != null)
-    if (graded.length === 0) return 0
-    return graded.reduce((sum, e) => sum + e.percentage, 0) / graded.length
+    // PERFORMANCE: Combine multiple array traversals into a single pass to reduce O(N) operations.
+    let sum = 0
+    let count = 0
+    for (let i = 0; i < myEntries.length; i++) {
+      const e = myEntries[i]
+      if (e.score != null) {
+        sum += e.percentage
+        count++
+      }
+    }
+    return count === 0 ? 0 : sum / count
   }, [myEntries])
 
   // Compute rank by averaging each student's entries
