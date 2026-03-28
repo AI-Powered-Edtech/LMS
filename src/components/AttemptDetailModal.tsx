@@ -243,7 +243,6 @@ export function AttemptDetailModal({
           </div>
           <button
             onClick={onClose}
-            aria-label="Tutup detail percobaan"
             className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 hover:text-slate-600"
           >
             <X className="w-5 h-5" />

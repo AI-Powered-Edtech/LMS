@@ -56,7 +56,11 @@ export function ChangeRoleModal({
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-bold text-slate-900">Ubah Peran</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl">
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 text-xl"
+            aria-label="Tutup modal"
+          >
             ✕
           </button>
         </div>
