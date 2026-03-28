@@ -265,24 +265,29 @@ export function QuizManager() {
       const existingQs = form.questions.filter((q) => q.id)
       const newQs = form.questions.filter((q) => !q.id)
 
-      // Update existing questions sequentially to avoid race conditions
-      // where updateQuizQuestion and replaceQuestionOptions conflict
-      for (const q of existingQs) {
-        await quizService.updateQuizQuestion(
-          q.id!,
-          {
-            text: q.text,
-            question_type: q.question_type,
-            points: q.points,
-            explanation: q.explanation,
-            order: q.order,
-          },
-          tenantId
-        )
-        await quizService.replaceQuestionOptions(
-          q.id!,
-          tenantId,
-          q.options.map((o) => ({ text: o.text, is_correct: o.is_correct }))
+      // Update existing questions in parallel to improve performance
+      // while keeping individual question updates and option replacements sequential
+      // to avoid race conditions
+      if (existingQs.length > 0) {
+        await Promise.all(
+          existingQs.map(async (q) => {
+            await quizService.updateQuizQuestion(
+              q.id!,
+              {
+                text: q.text,
+                question_type: q.question_type,
+                points: q.points,
+                explanation: q.explanation,
+                order: q.order,
+              },
+              tenantId
+            )
+            await quizService.replaceQuestionOptions(
+              q.id!,
+              tenantId,
+              q.options.map((o) => ({ text: o.text, is_correct: o.is_correct }))
+            )
+          })
         )
       }
 
