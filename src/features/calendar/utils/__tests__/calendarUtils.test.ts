@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
+
 import { getCountdown, getEventColor, getPriorityIcon } from '../calendarUtils'
 
 describe('calendarUtils', () => {
@@ -57,7 +58,9 @@ describe('calendarUtils', () => {
     })
 
     it('returns correct color classes for assignment', () => {
-      expect(getEventColor('assignment')).toContain('bg-orange-500 text-orange-700 border-orange-200')
+      expect(getEventColor('assignment')).toContain(
+        'bg-orange-500 text-orange-700 border-orange-200'
+      )
     })
 
     it('returns correct color classes for quiz', () => {
