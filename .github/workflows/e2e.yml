@@ -55,8 +55,8 @@ jobs:
           CI: true
           # Supabase credentials harus dikonfigurasi sebagai GitHub Secrets
           # Tanpa ini, authenticated tests akan skip (bukan fail)
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4
