@@ -68,6 +68,47 @@ export const DEFAULT_GROUP_SETTINGS: GroupSettings = {
 }
 
 // ============================================================
+// Group Tasks & Chat Types
+// ============================================================
+
+export interface GroupTask {
+  id: string
+  group_id: string
+  title: string
+  description: string | null
+  assigned_to: string | null
+  status: 'todo' | 'in_progress' | 'done'
+  due_date: string | null
+  created_by: string
+  tenant_id: string
+  created_at: string
+  profiles?: {
+    first_name: string
+    last_name: string
+  } | null
+}
+
+export interface CreateGroupTaskInput {
+  title: string
+  description?: string
+  assigned_to?: string
+  due_date?: string
+}
+
+export interface GroupMessage {
+  id: string
+  group_id: string
+  user_id: string
+  content: string
+  tenant_id: string
+  created_at: string
+  profiles?: {
+    first_name: string
+    last_name: string
+  } | null
+}
+
+// ============================================================
 // Service
 // ============================================================
 
@@ -271,27 +312,18 @@ export const groupAssignmentService = {
       throw error
     }
   },
-}
 
-// ============================================================
-// Group Tasks
-// ============================================================
-
-export interface GroupTask {
-  id: string
-  title: string
-  assignee_id: string | null
-  assignee_name: string
-  status: 'pending' | 'in_progress' | 'completed'
-  sort_order: number
-  created_at: string
-}
-
-export const groupAssignmentTaskService = {
+  /**
+   * Fetches tasks for a specific group.
+   */
   async getGroupTasks(groupId: string): Promise<GroupTask[]> {
-    const { data, error } = await supabase.rpc('get_group_tasks', {
-      p_group_id: groupId,
-    })
+    const { data, error } = await supabase
+      .from('group_tasks')
+      .select(
+        'id, group_id, title, description, assigned_to, status, due_date, created_by, tenant_id, created_at, profiles!group_tasks_assigned_to_fkey(first_name, last_name)'
+      )
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: true })
 
     if (error) {
       logDevError('groupAssignmentService', 'Error fetching group tasks:', error)
@@ -301,26 +333,44 @@ export const groupAssignmentTaskService = {
     return (data as unknown as GroupTask[]) ?? []
   },
 
-  async createGroupTask(params: { groupId: string; title: string; assignee_id?: string }): Promise<string> {
-    const { data, error } = await supabase.rpc('create_group_task', {
-      p_group_id: params.groupId,
-      p_title: params.title,
-      p_assignee_id: params.assignee_id ?? null,
-    })
+  /**
+   * Creates a new task for a group.
+   */
+  async createGroupTask(groupId: string, taskData: CreateGroupTaskInput): Promise<GroupTask> {
+    const { data: user } = await supabase.auth.getUser()
+    if (!user.user) throw new Error('Not authenticated')
+
+    const { data: newTask, error } = await supabase
+      .from('group_tasks')
+      .insert({
+        group_id: groupId,
+        title: taskData.title,
+        description: taskData.description,
+        assigned_to: taskData.assigned_to,
+        due_date: taskData.due_date,
+        created_by: user.user.id,
+      })
+      .select(
+        'id, group_id, title, description, assigned_to, status, due_date, created_by, tenant_id, created_at, profiles!group_tasks_assigned_to_fkey(first_name, last_name)'
+      )
+      .single()
 
     if (error) {
       logDevError('groupAssignmentService', 'Error creating group task:', error)
       throw error
     }
 
-    return (data as Record<string, string>).task_id
+    return newTask as unknown as GroupTask
   },
 
-  async updateGroupTaskStatus(taskId: string, status: 'pending' | 'in_progress' | 'completed'): Promise<void> {
-    const { error } = await supabase.rpc('update_group_task_status', {
-      p_task_id: taskId,
-      p_new_status: status,
-    })
+  /**
+   * Updates the status of a group task.
+   */
+  async updateGroupTaskStatus(
+    taskId: string,
+    status: 'todo' | 'in_progress' | 'done'
+  ): Promise<void> {
+    const { error } = await supabase.from('group_tasks').update({ status }).eq('id', taskId)
 
     if (error) {
       logDevError('groupAssignmentService', 'Error updating group task status:', error)
@@ -328,11 +378,90 @@ export const groupAssignmentTaskService = {
     }
   },
 
-  async deleteGroupTask(taskId: string): Promise<void> {
-    const { error } = await supabase.rpc('delete_group_task', {
-      p_task_id: taskId,
-    })
+  /**
+   * Fetches messages for a specific group chat.
+   */
+  async getGroupMessages(groupId: string): Promise<GroupMessage[]> {
+    const { data, error } = await supabase
+      .from('group_messages')
+      .select(
+        'id, group_id, user_id, content, tenant_id, created_at, profiles!group_messages_user_id_fkey(first_name, last_name)'
+      )
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: true })
 
+    if (error) {
+      logDevError('groupAssignmentService', 'Error fetching group messages:', error)
+      throw error
+    }
+
+    return (data as unknown as GroupMessage[]) ?? []
+  },
+
+  /**
+   * Sends a new message to a group chat.
+   */
+  async sendGroupMessage(groupId: string, content: string): Promise<GroupMessage> {
+    const { data: user } = await supabase.auth.getUser()
+    if (!user.user) throw new Error('Not authenticated')
+
+    const { data: newMessage, error } = await supabase
+      .from('group_messages')
+      .insert({
+        group_id: groupId,
+        content,
+        user_id: user.user.id,
+      })
+      .select(
+        'id, group_id, user_id, content, tenant_id, created_at, profiles!group_messages_user_id_fkey(first_name, last_name)'
+      )
+      .single()
+
+    if (error) {
+      logDevError('groupAssignmentService', 'Error sending group message:', error)
+      throw error
+    }
+
+    return newMessage as unknown as GroupMessage
+  },
+}
+
+// ============================================================
+// Group Tasks (legacy RPC-based service — kept for compatibility)
+// ============================================================
+
+export const groupAssignmentTaskService = {
+  async getGroupTasks(groupId: string): Promise<GroupTask[]> {
+    return groupAssignmentService.getGroupTasks(groupId)
+  },
+
+  async createGroupTask(params: {
+    groupId: string
+    title: string
+    assignee_id?: string
+  }): Promise<string> {
+    const task = await groupAssignmentService.createGroupTask(params.groupId, {
+      title: params.title,
+      assigned_to: params.assignee_id,
+    })
+    return task.id
+  },
+
+  async updateGroupTaskStatus(
+    taskId: string,
+    status: 'pending' | 'in_progress' | 'completed'
+  ): Promise<void> {
+    // Map legacy status values to new schema values
+    const statusMap: Record<string, 'todo' | 'in_progress' | 'done'> = {
+      pending: 'todo',
+      in_progress: 'in_progress',
+      completed: 'done',
+    }
+    return groupAssignmentService.updateGroupTaskStatus(taskId, statusMap[status] ?? 'todo')
+  },
+
+  async deleteGroupTask(taskId: string): Promise<void> {
+    const { error } = await supabase.from('group_tasks').delete().eq('id', taskId)
     if (error) {
       logDevError('groupAssignmentService', 'Error deleting group task:', error)
       throw error

@@ -7,24 +7,18 @@ import { useToast } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { cn } from '@/src/utils/cn'
 
-import { useStudentGroup, useSubmitGroupAssignment } from '../../hooks/useGroupAssignments'
+import {
+  useCreateGroupTask,
+  useGroupMessages,
+  useGroupTasks,
+  useSendGroupMessage,
+  useStudentGroup,
+  useSubmitGroupAssignment,
+  useUpdateGroupTaskStatus,
+} from '../../hooks/useGroupAssignments'
 import { GroupChatPanel } from './GroupChatPanel'
 import { GroupTasksTab } from './GroupTasksTab'
 import { SubmitGroupModal } from './SubmitGroupModal'
-
-interface Task {
-  id: number
-  title: string
-  assignee: string
-  status: string
-}
-
-interface ChatMessage {
-  id: number
-  sender: string
-  text: string
-  time: string
-}
 
 interface Props {
   assignmentId: string
@@ -33,51 +27,52 @@ interface Props {
 export function StudentGroupView({ assignmentId }: Props) {
   const { user } = useAuth()
   const addToast = useToast((s) => s.addToast)
+
   const [activeTab, setActiveTab] = useState('workspace')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [chat, setChat] = useState<ChatMessage[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [newTaskTitle, setNewTaskTitle] = useState('')
 
   const { data: groupData, isLoading, isError } = useStudentGroup(assignmentId)
+  const groupId = groupData?.group?.id
+
+  const { data: tasks = [] } = useGroupTasks(groupId)
+  const { data: chat = [] } = useGroupMessages(groupId)
+
+  const createGroupTask = useCreateGroupTask(groupId ?? '')
+  const updateTaskStatus = useUpdateGroupTaskStatus(groupId ?? '')
+  const sendGroupMessage = useSendGroupMessage(groupId ?? '')
   const submitMutation = useSubmitGroupAssignment(assignmentId)
 
   const handleSendMessage = () => {
-    if (!newMessage.trim()) return
-    setChat([
-      ...chat,
-      {
-        id: Date.now(),
-        sender: 'Anda',
-        text: newMessage,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      },
-    ])
-    setNewMessage('')
+    if (!newMessage.trim() || !groupId) return
+    sendGroupMessage.mutate(newMessage, {
+      onSuccess: () => setNewMessage(''),
+      onError: () => addToast({ type: 'error', message: 'Gagal mengirim pesan' }),
+    })
   }
 
   const handleAddTask = () => {
-    if (!newTaskTitle.trim()) return
-    setTasks([
-      ...tasks,
-      { id: Date.now(), title: newTaskTitle, assignee: 'Belum ditugaskan', status: 'pending' },
-    ])
-    setNewTaskTitle('')
+    if (!newTaskTitle.trim() || !groupId) return
+    createGroupTask.mutate(
+      { title: newTaskTitle },
+      {
+        onSuccess: () => setNewTaskTitle(''),
+        onError: () => addToast({ type: 'error', message: 'Gagal menambahkan tugas' }),
+      }
+    )
   }
 
-  const toggleTaskStatus = (id: number) => {
-    setTasks(
-      tasks.map((t) => {
-        if (t.id !== id) return t
-        const next =
-          t.status === 'pending'
-            ? 'in_progress'
-            : t.status === 'in_progress'
-              ? 'completed'
-              : 'pending'
-        return { ...t, status: next }
-      })
+  const toggleTaskStatus = (id: string, currentStatus: string) => {
+    if (!groupId) return
+    const nextStatus =
+      currentStatus === 'todo' ? 'in_progress' : currentStatus === 'in_progress' ? 'done' : 'todo'
+
+    updateTaskStatus.mutate(
+      { taskId: id, status: nextStatus as 'todo' | 'in_progress' | 'done' },
+      {
+        onError: () => addToast({ type: 'error', message: 'Gagal mengubah status tugas' }),
+      }
     )
   }
 
@@ -94,7 +89,6 @@ export function StudentGroupView({ assignmentId }: Props) {
 
   const submission = groupData?.submission
   const alreadySubmitted = submission?.status === 'submitted' || submission?.status === 'graded'
-  const myName = user?.user_metadata?.full_name ?? user?.email?.split('@')[0] ?? 'Anda'
   const members = groupData?.members ?? []
 
   if (isLoading) {
@@ -344,7 +338,7 @@ export function StudentGroupView({ assignmentId }: Props) {
 
           <GroupChatPanel
             chat={chat}
-            myName={myName}
+            myUserId={user?.id ?? ''}
             newMessage={newMessage}
             onMessageChange={setNewMessage}
             onSend={handleSendMessage}
