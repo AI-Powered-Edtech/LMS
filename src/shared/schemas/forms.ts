@@ -27,3 +27,13 @@ export const CourseFormSchema = v.object({
 })
 
 export type CourseFormData = v.InferOutput<typeof CourseFormSchema>
+
+export const ProfileFormSchema = v.object({
+  fullName: v.pipe(
+    v.string(),
+    v.nonEmpty('Nama lengkap wajib diisi'),
+    v.maxLength(100, 'Nama lengkap maksimal 100 karakter')
+  ),
+})
+
+export type ProfileFormData = v.InferOutput<typeof ProfileFormSchema>

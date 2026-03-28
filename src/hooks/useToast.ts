@@ -7,6 +7,13 @@ export interface Toast {
   type: 'success' | 'error' | 'warning' | 'info'
   message: string
   description?: string
+  /** Custom dismiss delay in ms. Defaults to 5000. */
+  duration?: number
+  /** Optional action button shown on the toast. */
+  action?: {
+    label: string
+    onClick: () => void
+  }
 }
 
 interface ToastStore {
@@ -60,10 +67,11 @@ export const useToast = create<ToastStore>((set, get) => ({
       return { toasts: [...existing, newToast] }
     })
 
-    // Auto-dismiss after timeout
+    // Auto-dismiss — respect custom duration, fall back to default
+    const delay = toast.duration ?? AUTO_DISMISS_MS
     const timer = setTimeout(() => {
       get().removeToast(id)
-    }, AUTO_DISMISS_MS)
+    }, delay)
 
     timers.set(id, timer)
   },
