@@ -16,8 +16,20 @@ CREATE TABLE IF NOT EXISTS public.api_rate_limits (
     request_count integer DEFAULT 1,
     window_start timestamptz DEFAULT now(),
     created_at timestamptz DEFAULT now(),
+    tenant_id uuid NOT NULL DEFAULT public.get_my_tenant_id(),
     UNIQUE(identifier, endpoint, window_start)
 );
+
+-- Enable RLS
+ALTER TABLE public.api_rate_limits ENABLE ROW LEVEL SECURITY;
+
+-- Create basic isolation policy
+CREATE POLICY "Users can only see their own rate limits or tenant limits"
+    ON public.api_rate_limits
+    FOR SELECT
+    USING (
+        tenant_id = public.get_my_tenant_id()
+    );
 
 -- Index for fast lookups
 CREATE INDEX IF NOT EXISTS idx_api_rate_limits_lookup 
