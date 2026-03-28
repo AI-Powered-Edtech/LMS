@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/src/contexts/AuthContext'
@@ -7,6 +7,7 @@ import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
+import { useUndoableAction } from '@/src/hooks/useUndoableAction'
 import { supabase } from '@/src/services/supabase/client'
 
 export interface EnrolledStudent {
@@ -50,7 +51,6 @@ export function useClassManagementState() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   // Delete
-  const [classToDelete, setClassToDelete] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const selectedClass = classrooms.find((c) => c.id === selectedClassId)
@@ -176,25 +176,46 @@ export function useClassManagementState() {
     }
   }
 
-  const confirmDeleteClass = async () => {
-    if (!classToDelete) return
 
-    setIsDeleting(true)
-    try {
-      await classroomService.deleteClassroom(classToDelete)
-      if (selectedClassId === classToDelete) setSelectedClassId(null)
-      setClassToDelete(null)
-    } catch (err: unknown) {
-      addToast({
-        type: 'error',
-        message:
-          'Gagal menghapus kelas: ' +
-          (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
-      })
-    } finally {
-      setIsDeleting(false)
-    }
-  }
+
+  // Undoable delete — shows a 5-second toast with "Batal" before executing
+  const undoableDeleteState = useRef<{ classId: string; className: string } | null>(null)
+  const { execute: _executeDelete } = useUndoableAction({
+    message: undoableDeleteState.current
+      ? `Kelas "${undoableDeleteState.current.className}" akan dihapus.`
+      : 'Kelas akan dihapus.',
+    delay: 5000,
+    onExecute: async () => {
+      if (!undoableDeleteState.current) return
+      const { classId } = undoableDeleteState.current
+      setIsDeleting(true)
+      try {
+        await classroomService.deleteClassroom(classId)
+        if (selectedClassId === classId) setSelectedClassId(null)
+      } catch (err: unknown) {
+        addToast({
+          type: 'error',
+          message:
+            'Gagal menghapus kelas: ' +
+            (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
+        })
+      } finally {
+        setIsDeleting(false)
+        undoableDeleteState.current = null
+      }
+    },
+    onUndo: () => {
+      undoableDeleteState.current = null
+    },
+  })
+
+  const handleDeleteClass = useCallback(
+    (classId: string, className: string) => {
+      undoableDeleteState.current = { classId, className }
+      _executeDelete()
+    },
+    [_executeDelete]
+  )
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text)
@@ -262,10 +283,6 @@ export function useClassManagementState() {
     // Copy
     copiedId,
 
-    // Delete
-    classToDelete,
-    isDeleting,
-
     // Actions
     navigate,
     setSelectedClassId,
@@ -274,11 +291,11 @@ export function useClassManagementState() {
     setNewClassName,
     setRenamingClassId,
     setRenameValue,
-    setClassToDelete,
     setActiveClassroomId,
     handleCreateClass,
     handleRename,
-    confirmDeleteClass,
+    /** Undoable delete: shows a 5-second "Batal" toast before executing. */
+    handleDeleteClass,
     handleCopy,
     handleRemoveStudent,
   }
