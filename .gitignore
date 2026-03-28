@@ -37,6 +37,9 @@ smart-player-qa-state.md
 supabase/*.bak
 *.bak
 
+# TypeScript build cache
+tsconfig.tsbuildinfo
+
 # Local editor / AI tool directories
 .kilocode/
 .jules/
@@ -50,4 +53,17 @@ get_table_def.js
 testApi.ts
 supabase_migrations_safe_backup/
 creator-*.png
+
+# Developer tool configs
+opencode.json
+notion-report-*.md
+.my-agent/
+
+# AI planning prompts and temporary scorecards
+PHASE*.md
+*_SCORECARD.md
+*_MEGA_PROMPT.md
+*_GAP_ANALYSIS.md
+playwright_output.log
+test-summary*.txt
 

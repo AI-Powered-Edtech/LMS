@@ -1,5 +1,3 @@
-# Palette Journal
-
-## 2026-03-24 - Icon-only buttons are pervasive and completely unlabeled
-**Learning:** Audit found 51 icon-only buttons across the codebase with zero `aria-label` attributes. 13 had `title` (tooltip) but still no `aria-label`, meaning screen readers cannot announce them. The pattern is systemic — every developer creates `<button><Icon /></button>` without labels. The existing reusable UI components (`Input.tsx`, `Select.tsx`, `FormField.tsx`) are well-built for form accessibility, but buttons have no equivalent wrapper enforcing labels.
-**Action:** Consider creating a shared `IconButton` component that requires an `aria-label` prop at the type level, making it impossible to create unlabeled icon buttons. Prioritize Speed Grader and Calendar navigation buttons first since teachers use them most frequently.
+## 2025-03-03 - Accessible Icon-Only Action Buttons
+**Learning:** Icon-only action buttons (like delete or edit actions) that rely on `opacity-0 group-hover:opacity-100` for visual cleanliness become completely invisible and unusable for keyboard navigators, even if they have `aria-label`s.
+**Action:** Always combine `opacity-0 group-hover:opacity-100` with `focus-visible:opacity-100`, `focus-visible:outline-none`, and `focus-visible:ring-2` to ensure the button becomes visible and has a clear focus indicator when a user tabs to it.
