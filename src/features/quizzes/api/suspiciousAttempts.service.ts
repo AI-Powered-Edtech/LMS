@@ -119,8 +119,13 @@ export async function getSuspiciousAttempts(
   const results: SuspiciousAttempt[] = []
 
   for (const [attemptId, { signals: sigs, attempt }] of attemptMap) {
-    const tabSwitches = sigs.filter((s) => s.signal_type === 'TAB_SWITCH').length
-    const blurs = sigs.filter((s) => s.signal_type === 'WINDOW_BLUR').length
+    // PERFORMANCE: Combine multiple array traversals into a single pass to reduce O(N) operations.
+    let tabSwitches = 0
+    let blurs = 0
+    for (const s of sigs) {
+      if (s.signal_type === 'TAB_SWITCH') tabSwitches++
+      else if (s.signal_type === 'WINDOW_BLUR') blurs++
+    }
     const others = sigs.length - tabSwitches - blurs
     const profiles = attempt.profiles as { full_name: string } | null
     const quizzes = attempt.quizzes as { title: string } | null
