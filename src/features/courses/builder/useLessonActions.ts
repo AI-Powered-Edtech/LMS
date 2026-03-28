@@ -11,7 +11,9 @@ export function useLessonActions(
   state: BuilderState,
   dispatch: Dispatch<BuilderAction>,
   tenantId: string | null,
-  setSavingStatus: (status: BuilderState['savingStatus']) => void
+  setSavingStatus: (status: BuilderState['savingStatus']) => void,
+  broadcast?: (action: BuilderAction, userName: string) => void,
+  userName?: string
 ) {
   const addToast = useToast((s) => s.addToast)
 
@@ -21,6 +23,7 @@ export function useLessonActions(
       try {
         const lesson = await builderLessonService.createLesson(moduleId, type, title, tenantId)
         dispatch({ type: 'ADD_LESSON', moduleId, lesson })
+        broadcast?.({ type: 'ADD_LESSON', moduleId, lesson }, userName ?? '')
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Failed to add lesson:', err)
         addToast({
@@ -31,7 +34,7 @@ export function useLessonActions(
         })
       }
     },
-    [tenantId, dispatch, addToast]
+    [tenantId, dispatch, addToast, broadcast, userName]
   )
 
   const updateLesson = useCallback(
@@ -42,11 +45,12 @@ export function useLessonActions(
       try {
         await builderLessonService.updateLesson(lessonId, tenantId, data)
         setSavingStatus('saved')
+        broadcast?.({ type: 'UPDATE_LESSON', lessonId, data }, userName ?? '')
       } catch {
         setSavingStatus('error')
       }
     },
-    [tenantId, dispatch, setSavingStatus]
+    [tenantId, dispatch, setSavingStatus, broadcast, userName]
   )
 
   const deleteLesson = useCallback(
@@ -55,6 +59,7 @@ export function useLessonActions(
       dispatch({ type: 'DELETE_LESSON', lessonId })
       try {
         await builderLessonService.deleteLesson(lessonId, tenantId)
+        broadcast?.({ type: 'DELETE_LESSON', lessonId }, userName ?? '')
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Failed to delete lesson:', err)
         addToast({
@@ -65,32 +70,32 @@ export function useLessonActions(
         })
       }
     },
-    [tenantId, dispatch, addToast]
+    [tenantId, dispatch, addToast, broadcast, userName]
   )
 
   const reorderLessons = useCallback(
     async (lessonIds: string[]) => {
       const previousModules = state.modules
 
-      dispatch({
-        type: 'SET_MODULES',
-        modules: state.modules.map((m) => {
-          const isTargetModule = m.lessons.some((l) => lessonIds.includes(l.id))
-          if (!isTargetModule) return m
+      const updatedModules = state.modules.map((m) => {
+        const isTargetModule = m.lessons.some((l) => lessonIds.includes(l.id))
+        if (!isTargetModule) return m
 
-          const newLessons = lessonIds
-            .map((id) => m.lessons.find((l) => l.id === id))
-            .filter(Boolean)
-            .map((l, idx) => ({ ...l!, orderIndex: idx }))
+        const newLessons = lessonIds
+          .map((id) => m.lessons.find((l) => l.id === id))
+          .filter(Boolean)
+          .map((l, idx) => ({ ...l!, orderIndex: idx }))
 
-          return { ...m, lessons: newLessons as DomainLesson[] }
-        }),
+        return { ...m, lessons: newLessons as DomainLesson[] }
       })
+
+      dispatch({ type: 'SET_MODULES', modules: updatedModules })
 
       const targetMod = state.modules.find((m) => m.lessons.some((l) => lessonIds.includes(l.id)))
       if (targetMod && tenantId) {
         try {
           await builderLessonService.reorderLessons(targetMod.id, lessonIds, tenantId)
+          broadcast?.({ type: 'SET_MODULES', modules: updatedModules }, userName ?? '')
         } catch (error: unknown) {
           if (import.meta.env.DEV) console.error('Failed to reorder lessons', error)
           dispatch({ type: 'SET_MODULES', modules: previousModules })
@@ -103,7 +108,7 @@ export function useLessonActions(
         }
       }
     },
-    [state.modules, tenantId, dispatch, addToast]
+    [state.modules, tenantId, dispatch, addToast, broadcast, userName]
   )
 
   const selectLesson = useCallback(

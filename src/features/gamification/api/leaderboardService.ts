@@ -80,34 +80,6 @@ export const leaderboardService = {
   },
 
   /**
-   * Subscribe to realtime leaderboard updates.
-   * Returns an unsubscribe function for cleanup.
-   * @param classId - The class ID to subscribe to
-   * @param tenantId - The tenant ID for filtering
-   * @param callback - Function to call when updates occur
-   * @returns Unsubscribe function
-   */
-  subscribeToLeaderboard(classId: string, tenantId: string, callback: () => void): () => void {
-    const channel = supabase
-      .channel(`leaderboard-${classId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'leaderboards',
-          filter: `class_id=eq.${classId}&tenant_id=eq.${tenantId}`,
-        },
-        () => callback()
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  },
-
-  /**
    * Fetches the top 20 students for the weekly leaderboard within a tenant.
    * @param classId - The class ID
    * @param tenantId - The tenant ID for isolation

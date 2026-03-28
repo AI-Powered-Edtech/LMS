@@ -10,10 +10,11 @@ import {
   Search,
 } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useToast } from '@/src/components/ui/Toast'
 import { useAuth } from '@/src/contexts/AuthContext'
+import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { supabase } from '@/src/services/supabase/client'
 import { cn } from '@/src/utils/cn'
@@ -102,6 +103,9 @@ export function BillingDashboard() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
 
+  // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
+  const debouncedSearch = useDebounce(searchQuery, 300)
+
   useEffect(() => {
     async function fetchData() {
       if (!tenantId) return
@@ -144,13 +148,20 @@ export function BillingDashboard() {
     fetchData()
   }, [tenantId, addToast])
 
-  const filteredInvoices = invoices.filter((inv) =>
-    inv.id.toLowerCase().includes(searchQuery.toLowerCase())
+  // ⚡ Perf: Memoize filteredInvoices — was recomputed on every render without useMemo
+  const filteredInvoices = useMemo(
+    () => invoices.filter((inv) => inv.id.toLowerCase().includes(debouncedSearch.toLowerCase())),
+    [invoices, debouncedSearch]
   )
 
-  const unpaidTotal = invoices
-    .filter((i) => i.status === 'open')
-    .reduce((sum, inv) => sum + inv.amount_due - inv.amount_paid, 0)
+  // ⚡ Perf: Memoize unpaidTotal — was recomputed on every render without useMemo
+  const unpaidTotal = useMemo(
+    () =>
+      invoices
+        .filter((i) => i.status === 'open')
+        .reduce((sum, inv) => sum + inv.amount_due - inv.amount_paid, 0),
+    [invoices]
+  )
 
   if (loading) {
     return (
@@ -263,6 +274,7 @@ export function BillingDashboard() {
               placeholder="Cari nomor tagihan..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Cari nomor tagihan"
               className="w-full sm:w-64 pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:text-white placeholder-slate-400"
             />
           </div>
@@ -334,6 +346,7 @@ export function BillingDashboard() {
                       <button
                         className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
                         title="Unduh PDF"
+                        aria-label="Unduh PDF"
                       >
                         <Download className="w-4 h-4" />
                       </button>

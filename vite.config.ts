@@ -36,6 +36,37 @@ export default defineConfig(({ mode }) => {
               purpose: 'maskable',
             },
           ],
+          categories: ['education'],
+          screenshots: [
+            {
+              src: '/screenshots/desktop-dashboard.png',
+              sizes: '1280x720',
+              type: 'image/png',
+              form_factor: 'wide',
+              label: 'Dashboard guru EduSync',
+            },
+            {
+              src: '/screenshots/mobile-courses.png',
+              sizes: '750x1334',
+              type: 'image/png',
+              form_factor: 'narrow',
+              label: 'Daftar kursus di perangkat mobile',
+            },
+          ],
+          shortcuts: [
+            {
+              name: 'Dashboard',
+              short_name: 'Dashboard',
+              url: '/#/app/student/dashboard',
+              icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }],
+            },
+            {
+              name: 'Kursus Saya',
+              short_name: 'Kursus',
+              url: '/#/app/student/courses',
+              icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }],
+            },
+          ],
         },
         workbox: {
           navigateFallback: '/offline.html',
@@ -47,6 +78,14 @@ export default defineConfig(({ mode }) => {
                 cacheName: 'supabase-api',
                 networkTimeoutSeconds: 5,
                 expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 },
+              },
+            },
+            {
+              urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/v1\/object\/.*/i,
+              handler: 'StaleWhileRevalidate' as const,
+              options: {
+                cacheName: 'supabase-storage',
+                expiration: { maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60 }, // 7 days
               },
             },
             {

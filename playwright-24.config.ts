@@ -2,7 +2,9 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './e2e/flows24',
-  fullyParallel: true,
+  fullyParallel: false,
+  workers: 1, // Single worker prevents DDOSing Supabase Nano Free Tier
+  retries: 1,
   reporter: 'html',
   timeout: 120000,
   use: {

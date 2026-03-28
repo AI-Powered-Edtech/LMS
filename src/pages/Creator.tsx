@@ -108,6 +108,14 @@ export function Creator() {
     setError(null)
     setLoadingText('Membaca file...')
 
+    // Progress text updates to keep user informed
+    const progressTimer = setTimeout(() => setLoadingText('Menganalisis konten...'), 3000)
+    const progressTimer2 = setTimeout(() => setLoadingText('Membuat soal dengan AI...'), 7000)
+    const progressTimer3 = setTimeout(
+      () => setLoadingText('Hampir selesai, menyusun hasil...'),
+      15000
+    )
+
     try {
       const formData = new FormData()
       formData.append('file', file)
@@ -121,16 +129,26 @@ export function Creator() {
 
       if (supaError) {
         if (import.meta.env.DEV) console.error('Supabase edge function error:', supaError)
-        // Specifically catch a common indication of a 404 from invoke
-        if (
-          supaError.message &&
-          (supaError.message.includes('404') ||
-            supaError.message.includes('not found') ||
-            supaError.message.includes('FetchError'))
-        ) {
-          throw new Error('⚠️ Layanan AI (Backend API) belum tersedia saat ini.')
+        const msg = supaError.message ?? ''
+        // 404 — edge function not deployed
+        if (msg.includes('404') || msg.includes('not found') || msg.includes('FetchError')) {
+          throw new Error('Layanan AI (Backend API) belum tersedia saat ini.')
         }
-        throw new Error(supaError.message || 'Gagal memproses materi dengan AI.')
+        // 429 — rate limit
+        if (msg.includes('429') || msg.toLowerCase().includes('rate limit')) {
+          throw new Error(
+            'Terlalu banyak permintaan. Silakan tunggu beberapa saat sebelum mencoba lagi.'
+          )
+        }
+        // Network / timeout
+        if (
+          msg.includes('Failed to fetch') ||
+          msg.includes('NetworkError') ||
+          msg.includes('timeout')
+        ) {
+          throw new Error('Gagal terhubung ke server. Periksa koneksi internet Anda dan coba lagi.')
+        }
+        throw new Error(msg || 'Gagal memproses materi dengan AI.')
       }
 
       if (data?.error) {
@@ -147,6 +165,9 @@ export function Creator() {
       if (import.meta.env.DEV) console.error(err)
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat memproses materi.')
     } finally {
+      clearTimeout(progressTimer)
+      clearTimeout(progressTimer2)
+      clearTimeout(progressTimer3)
       setIsGenerating(false)
     }
   }
@@ -184,7 +205,7 @@ export function Creator() {
       state: {
         action: result.type === 'quiz' ? 'add-quiz' : 'add-assignment',
         quizData: {
-          title: file?.name.split('.')[0] || 'AI Generated Content',
+          title: file?.name.split('.')[0] || 'Konten Buatan AI',
           type: result.type,
           questions: result.questions,
           summary: result.summary,
@@ -198,13 +219,13 @@ export function Creator() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            AI Course & Quiz Generator
+            Generator Kursus & Kuis AI
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2">
             Gunakan AI untuk membuat materi kursus dan kuis secara otomatis dari dokumen atau video.
           </p>
           <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl text-sm text-blue-700 dark:text-blue-300">
-            <strong>AI Creator:</strong> Otomatisasi pembuatan konten dari materi yang ada.
+            <strong>Kreator AI:</strong> Otomatisasi pembuatan konten dari materi yang ada.
           </div>
         </div>
       </div>
@@ -281,8 +302,8 @@ export function Creator() {
                 <div className="grid grid-cols-3 gap-3">
                   {[
                     { id: 'quiz', label: 'Kuis (PG)' },
-                    { id: 'reading', label: 'Reading' },
-                    { id: 'writing', label: 'Writing' },
+                    { id: 'reading', label: 'Membaca' },
+                    { id: 'writing', label: 'Menulis' },
                   ].map((type) => (
                     <button
                       key={type.id}
@@ -378,7 +399,7 @@ export function Creator() {
                 ) : (
                   <>
                     <Sparkles className="w-5 h-5" />
-                    Generate with AI
+                    Buat dengan AI
                   </>
                 )}
               </button>
@@ -393,7 +414,7 @@ export function Creator() {
           className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 h-auto md:h-[700px]"
         >
           {/* Left: Summary */}
-          <div className="md:col-span-1 bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col min-h-[300px] md:min-h-0">
+          <div className="md:col-span-1 bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col min-h-[300px] md:min-h-0">
             <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-4">
               {result.type === 'reading'
                 ? 'Teks Bacaan'
@@ -440,7 +461,7 @@ export function Creator() {
                   className="flex-1 sm:flex-none px-6 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-200 dark:shadow-blue-900 transition-transform active:scale-95"
                 >
                   <BookOpen className="w-4 h-4" />
-                  Add to Course Module
+                  Tambahkan ke Modul Kursus
                 </button>
               </div>
             </div>
@@ -456,7 +477,10 @@ export function Creator() {
                       <span className="text-blue-500">{i + 1}.</span>
                       {q.text}
                     </h3>
-                    <button className="text-slate-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      className="text-slate-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      aria-label="Edit soal"
+                    >
                       <Edit2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -501,27 +525,35 @@ export function Creator() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-white/80 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4"
           >
-            <div className="w-full max-w-2xl bg-white p-8 rounded-3xl shadow-2xl border border-slate-100">
+            <div className="w-full max-w-2xl bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700">
               <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-blue-600 animate-pulse" />
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-blue-600 dark:text-blue-400 animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">AI sedang bekerja...</h3>
-                  <p className="text-slate-500">{loadingText}</p>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                    AI sedang bekerja...
+                  </h3>
+                  <p className="text-slate-500 dark:text-slate-400">{loadingText}</p>
                 </div>
               </div>
 
               <div className="space-y-6">
                 {/* Skeleton Card */}
                 {[1, 2].map((i) => (
-                  <div key={i} className="border border-slate-100 rounded-2xl p-5 space-y-4">
-                    <div className="h-6 bg-slate-200 rounded-md w-3/4 animate-pulse" />
+                  <div
+                    key={i}
+                    className="border border-slate-100 dark:border-slate-700 rounded-2xl p-5 space-y-4"
+                  >
+                    <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded-md w-3/4 animate-pulse" />
                     <div className="grid grid-cols-2 gap-3">
                       {[1, 2, 3, 4].map((j) => (
-                        <div key={j} className="h-12 bg-slate-100 rounded-xl animate-pulse" />
+                        <div
+                          key={j}
+                          className="h-12 bg-slate-100 dark:bg-slate-700 rounded-xl animate-pulse"
+                        />
                       ))}
                     </div>
                   </div>

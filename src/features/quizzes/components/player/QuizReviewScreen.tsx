@@ -59,6 +59,7 @@ export function QuizReviewScreen({
         <button
           type="button"
           onClick={onBack}
+          aria-label="Kembali"
           className={cn(
             'p-2.5 rounded-xl border-2 transition-all',
             'border-slate-200 dark:border-slate-700',

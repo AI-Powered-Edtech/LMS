@@ -152,7 +152,9 @@ export const gamificationService = {
           is_active: badge.is_active,
         })
         .eq('id', badge.id)
-        .select()
+        .select(
+          'id, tenant_id, name, description, icon_emoji, badge_type, criteria, xp_reward, rarity, is_active, created_at'
+        )
         .single()
       if (error) throw error
       return data
@@ -170,7 +172,9 @@ export const gamificationService = {
           rarity: badge.rarity,
           is_active: badge.is_active,
         })
-        .select()
+        .select(
+          'id, tenant_id, name, description, icon_emoji, badge_type, criteria, xp_reward, rarity, is_active, created_at'
+        )
         .single()
       if (error) throw error
       return data

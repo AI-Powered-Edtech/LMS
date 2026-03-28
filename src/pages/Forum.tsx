@@ -17,6 +17,7 @@ import {
 import { buildForumPosts } from '@/src/features/discussions/utils/forumUtils'
 import { useStudentXPProfile } from '@/src/features/gamification/queries/gamificationQueries'
 import { useSubmitReport } from '@/src/features/moderation/queries/moderationQueries'
+import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 
 export function Forum() {
@@ -39,6 +40,9 @@ export function Forum() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('Semua')
   const [isAnonymous, setIsAnonymous] = useState(false)
+
+  // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
+  const debouncedSearch = useDebounce(searchQuery, 300)
 
   const [reportModal, setReportModal] = useState<{
     isOpen: boolean
@@ -104,17 +108,22 @@ export function Forum() {
   }
 
   const handleMarkBestAnswer = async (postId: string, commentId: string) => {
-    await discussionService.setBestAnswer(postId, commentId)
+    await discussionService.setBestAnswer(postId, commentId, tenantId!)
     queryClient.invalidateQueries({ queryKey: ['forum-posts', tenantId] })
   }
 
-  const filteredPosts = posts.filter((post) => {
-    const matchesSearch =
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.content.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = selectedCategory === 'Semua' || post.category === selectedCategory
-    return matchesSearch && matchesCategory
-  })
+  // ⚡ Perf: Memoize filteredPosts — was recomputed on every render without useMemo
+  const filteredPosts = useMemo(
+    () =>
+      posts.filter((post) => {
+        const matchesSearch =
+          post.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          post.content.toLowerCase().includes(debouncedSearch.toLowerCase())
+        const matchesCategory = selectedCategory === 'Semua' || post.category === selectedCategory
+        return matchesSearch && matchesCategory
+      }),
+    [posts, debouncedSearch, selectedCategory]
+  )
 
   const myAvatar = isAnonymous
     ? 'https://api.dicebear.com/7.x/avataaars/svg?seed=Anon'

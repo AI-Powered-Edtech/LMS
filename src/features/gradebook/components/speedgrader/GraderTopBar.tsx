@@ -25,6 +25,7 @@ export function GraderTopBar({
       <div className="flex items-center gap-4">
         <Link
           to="/directory"
+          aria-label="Kembali ke daftar tugas"
           className="p-2 -ml-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -44,6 +45,7 @@ export function GraderTopBar({
         <select
           value={currentStudentIdx}
           onChange={(e) => onStudentChange(Number(e.target.value))}
+          aria-label="Pilih siswa"
           className="text-sm font-bold text-slate-800 dark:text-white bg-transparent border-none focus:ring-0 cursor-pointer dark:bg-slate-900"
         >
           {students.map((s, idx) => (
@@ -54,15 +56,19 @@ export function GraderTopBar({
         </select>
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={onPrev}
             disabled={currentStudentIdx === 0 || isLoading}
+            aria-label="Siswa sebelumnya"
             className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 rounded-lg transition-colors"
           >
             <ChevronLeft className="w-5 h-5 text-slate-600 dark:text-slate-400" />
           </button>
           <button
+            type="button"
             onClick={onNext}
             disabled={currentStudentIdx === students.length - 1 || isLoading}
+            aria-label="Siswa berikutnya"
             className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 rounded-lg transition-colors"
           >
             <ChevronRight className="w-5 h-5 text-slate-600 dark:text-slate-400" />

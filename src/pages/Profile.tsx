@@ -100,7 +100,10 @@ export function Profile() {
                   className="w-full h-full rounded-full bg-slate-100 dark:bg-slate-600 object-cover"
                 />
               </div>
-              <button className="absolute bottom-0 right-0 w-8 h-8 bg-white dark:bg-slate-700 rounded-full shadow-md border border-slate-200 dark:border-slate-600 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+              <button
+                aria-label="Ubah foto profil"
+                className="absolute bottom-0 right-0 w-8 h-8 bg-white dark:bg-slate-700 rounded-full shadow-md border border-slate-200 dark:border-slate-600 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              >
                 <Edit3 className="w-3.5 h-3.5" />
               </button>
             </div>

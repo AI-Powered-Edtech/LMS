@@ -14,7 +14,7 @@ import {
  * Shows a table of all quizzes across the school with metrics,
  * plus a recent anti-cheat audit log.
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import {
@@ -23,6 +23,7 @@ import {
   getAntiCheatAuditLog,
   getSchoolQuizOverview,
 } from '@/src/features/quizzes/api/adminQuiz.service'
+import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
 
@@ -47,6 +48,9 @@ export function AdminQuizOverview() {
   const [sortKey, setSortKey] = useState<SortKey>('created_at')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [activeTab, setActiveTab] = useState<'quizzes' | 'audit'>('quizzes')
+
+  // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
+  const debouncedSearch = useDebounce(searchQuery, 300)
 
   useEffect(() => {
     if (!tenantId) return
@@ -81,36 +85,52 @@ export function AdminQuizOverview() {
     }
   }
 
-  const filteredQuizzes = quizzes
-    .filter(
-      (q) =>
-        q.quiz_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        q.class_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        q.teacher_name?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .sort((a, b) => {
-      const aVal = a[sortKey]
-      const bVal = b[sortKey]
-      if (aVal == null && bVal == null) return 0
-      if (aVal == null) return 1
-      if (bVal == null) return -1
-      const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0
-      return sortDir === 'asc' ? cmp : -cmp
-    })
-
-  // Summary stats
-  const totalQuizzes = quizzes.length
-  const publishedCount = quizzes.filter((q) => q.status === 'published').length
-  const totalAttempts = quizzes.reduce((sum, q) => sum + q.total_attempts, 0)
-  const avgScore =
-    quizzes.length > 0
-      ? Math.round(
-          quizzes
-            .filter((q) => q.avg_score != null)
-            .reduce((sum, q) => sum + (q.avg_score ?? 0), 0) /
-            Math.max(1, quizzes.filter((q) => q.avg_score != null).length)
+  // ⚡ Perf: Memoize filteredQuizzes — was recomputed (filter + sort) on every render
+  const filteredQuizzes = useMemo(
+    () =>
+      quizzes
+        .filter(
+          (q) =>
+            q.quiz_title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+            q.class_name?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+            q.teacher_name?.toLowerCase().includes(debouncedSearch.toLowerCase())
         )
-      : 0
+        .sort((a, b) => {
+          const aVal = a[sortKey]
+          const bVal = b[sortKey]
+          if (aVal == null && bVal == null) return 0
+          if (aVal == null) return 1
+          if (bVal == null) return -1
+          const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0
+          return sortDir === 'asc' ? cmp : -cmp
+        }),
+    [quizzes, debouncedSearch, sortKey, sortDir]
+  )
+
+  // ⚡ Perf: Memoize summary stats — 4 separate array traversals were recomputed on every render.
+  // Now computed in a single pass with one useMemo.
+  const { totalQuizzes, publishedCount, totalAttempts, avgScore } = useMemo(() => {
+    let published = 0
+    let attempts = 0
+    let scoreSum = 0
+    let scoreCount = 0
+
+    for (const q of quizzes) {
+      if (q.status === 'published') published++
+      attempts += q.total_attempts
+      if (q.avg_score != null) {
+        scoreSum += q.avg_score
+        scoreCount++
+      }
+    }
+
+    return {
+      totalQuizzes: quizzes.length,
+      publishedCount: published,
+      totalAttempts: attempts,
+      avgScore: scoreCount > 0 ? Math.round(scoreSum / scoreCount) : 0,
+    }
+  }, [quizzes])
 
   if (isLoading) {
     return (

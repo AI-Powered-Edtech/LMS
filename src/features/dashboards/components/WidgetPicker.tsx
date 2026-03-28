@@ -65,6 +65,7 @@ export function WidgetPicker({ onSelect, onClose }: WidgetPickerProps) {
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">Pilih Widget</h2>
           <button
             onClick={onClose}
+            aria-label="Tutup pemilih widget"
             className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
             <X className="h-5 w-5" />

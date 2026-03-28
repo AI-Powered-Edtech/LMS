@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useMemo } from 'react'
 
 import type { CalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
 import { DAYS_OF_WEEK, getEventColor } from '@/src/features/calendar/utils/calendarUtils'
@@ -31,11 +32,24 @@ export function MonthView({
   const blanks = Array.from({ length: firstDay }, (_, i) => i)
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1)
 
-  const getEventsForDate = (date: number) =>
-    events.filter(
-      (e) =>
-        e.date.getDate() === date && e.date.getMonth() === month && e.date.getFullYear() === year
-    )
+  // ⚡ Perf: Pre-compute a Map<day, CalendarEvent[]> in a single pass over events.
+  // Before: getEventsForDate() called .filter() on the full array per day cell — O(31 × events).
+  // After: One O(events) pass to build the map, then O(1) lookups per cell.
+  const eventsByDay = useMemo(() => {
+    const map = new Map<number, CalendarEvent[]>()
+    for (const e of events) {
+      if (e.date.getMonth() === month && e.date.getFullYear() === year) {
+        const day = e.date.getDate()
+        const existing = map.get(day)
+        if (existing) {
+          existing.push(e)
+        } else {
+          map.set(day, [e])
+        }
+      }
+    }
+    return map
+  }, [events, month, year])
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
@@ -45,19 +59,24 @@ export function MonthView({
         </h2>
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={onPrevMonth}
+            aria-label="Bulan sebelumnya"
             className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-600 dark:text-slate-400"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
+            type="button"
             onClick={onTodayClick}
             className="px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-600 dark:text-slate-400 font-bold text-sm"
           >
             Hari Ini
           </button>
           <button
+            type="button"
             onClick={onNextMonth}
+            aria-label="Bulan berikutnya"
             className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors text-slate-600 dark:text-slate-400"
           >
             <ChevronRight className="w-5 h-5" />
@@ -84,7 +103,7 @@ export function MonthView({
           />
         ))}
         {days.map((day) => {
-          const dateEvents = getEventsForDate(day)
+          const dateEvents = eventsByDay.get(day) ?? []
           const isSelected =
             selectedDate?.getDate() === day &&
             selectedDate?.getMonth() === month &&

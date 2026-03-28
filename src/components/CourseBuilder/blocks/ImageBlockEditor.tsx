@@ -165,7 +165,11 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
           </div>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && (
+          <p role="alert" className="text-sm text-red-600">
+            {error}
+          </p>
+        )}
       </div>
     )
   }
@@ -178,6 +182,14 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            if (!isUploading) inputRef.current?.click()
+          }
+        }}
         className={`
           relative flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed cursor-pointer transition-all
           ${isDragOver ? 'border-blue-400 bg-blue-50' : 'border-slate-300 hover:border-slate-400 bg-slate-50'}
@@ -190,6 +202,7 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
           accept=".jpg,.jpeg,.png,.webp,.gif"
           onChange={handleFileChange}
           className="hidden"
+          aria-label="Pilih gambar"
         />
 
         {isUploading ? (
@@ -212,12 +225,16 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
             <p className="text-sm text-slate-600 mb-1">
               Seret gambar ke sini atau klik untuk memilih
             </p>
-            <p className="text-xs text-slate-400">JPG, PNG, WebP, GIF (maks. 5MB)</p>
+            <p className="text-xs text-slate-500">JPG, PNG, WebP, GIF (maks. 5MB)</p>
           </>
         )}
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-red-600">
+          {error}
+        </p>
+      )}
     </div>
   )
 }

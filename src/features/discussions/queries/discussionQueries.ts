@@ -1,4 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
+
+import { useAuth } from '@/src/contexts/AuthContext'
+
 import { discussionService } from '../api/discussionService'
 
 export const discussionKeys = {
@@ -12,9 +15,10 @@ export const discussionKeys = {
  * Query hook untuk daftar Diskusi.
  */
 export function useDiscussionList() {
+  const { tenantId } = useAuth()
   return useQuery({
-    queryKey: ['discussions'],
-    queryFn: () => discussionService.fetchDiscussions({}),
-    enabled: true,
+    queryKey: discussionKeys.all(tenantId!),
+    queryFn: () => discussionService.fetchDiscussions({ tenantId: tenantId! }),
+    enabled: !!tenantId,
   })
 }

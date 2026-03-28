@@ -46,6 +46,13 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #cbd5e1;
   }
+  /* Button press micro-interaction — add to clickable elements for tactile feedback */
+  .press-scale {
+    transition: transform 0.1s ease;
+  }
+  .press-scale:active {
+    transform: scale(0.98);
+  }
 }
 
 html, body {

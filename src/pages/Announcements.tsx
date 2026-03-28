@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { Megaphone, Pin, Plus, Search } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import type { Announcement as DBAnnouncement } from '@/src/features/announcements'
@@ -12,6 +12,7 @@ import {
 } from '@/src/features/announcements/components/AnnouncementFeedCard'
 import { AnnouncementSkeleton } from '@/src/features/announcements/components/AnnouncementSkeleton'
 import { CreateAnnouncementModal } from '@/src/features/announcements/components/CreateAnnouncementModal'
+import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
 import { cn } from '@/src/utils/cn'
@@ -42,6 +43,10 @@ export function Announcements() {
   const { addToast } = useToast()
   const [announcements, setAnnouncements] = useState<AnnouncementCardData[]>([])
   const [searchTerm, setSearchTerm] = useState('')
+  // ⚡ Perf: Debounce search term to prevent a Supabase API call on every keystroke.
+  // Previously, each keystroke triggered useAnnouncements() with the raw searchTerm,
+  // causing ~10-15 unnecessary DB round-trips per search.
+  const debouncedSearch = useDebounce(searchTerm, 300)
   const [filter, setFilter] = useState('all')
   const [page, setPage] = useState(0)
   const [hasMore, setHasMore] = useState(true)
@@ -53,7 +58,7 @@ export function Announcements() {
     refetch,
     isLoading,
   } = useAnnouncements({
-    search: searchTerm || undefined,
+    search: debouncedSearch || undefined,
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
   })
@@ -77,7 +82,7 @@ export function Announcements() {
   useEffect(() => {
     setPage(0)
     refetch()
-  }, [searchTerm])
+  }, [debouncedSearch])
   /* eslint-enable react-hooks/exhaustive-deps */
 
   const handleCreateAnnouncement = async (
@@ -135,26 +140,37 @@ export function Announcements() {
     setAnnouncements(announcements.map((a) => (a.id === id ? { ...a, isRead: true } : a)))
   }
 
-  const filteredAnnouncements = announcements
-    .filter((a) => {
-      const matchesSearch =
-        a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        a.content.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesFilter =
-        filter === 'all'
-          ? true
-          : filter === 'unread'
-            ? !a.isRead
-            : filter === 'pinned'
-              ? a.is_pinned
-              : true
-      return matchesSearch && matchesFilter
-    })
-    .sort((a, b) => {
-      if (a.is_pinned && !b.is_pinned) return -1
-      if (!a.is_pinned && b.is_pinned) return 1
-      return 0
-    })
+  // ⚡ Perf: Memoize filtered+sorted announcements — only recomputes when
+  // announcements, debouncedSearch, or filter change. Previously recomputed
+  // on every render (modal toggle, comment expand, etc.).
+  const filteredAnnouncements = useMemo(
+    () =>
+      announcements
+        .filter((a) => {
+          const matchesSearch =
+            a.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+            a.content.toLowerCase().includes(debouncedSearch.toLowerCase())
+          const matchesFilter =
+            filter === 'all'
+              ? true
+              : filter === 'unread'
+                ? !a.isRead
+                : filter === 'pinned'
+                  ? a.is_pinned
+                  : true
+          return matchesSearch && matchesFilter
+        })
+        .sort((a, b) => {
+          if (a.is_pinned && !b.is_pinned) return -1
+          if (!a.is_pinned && b.is_pinned) return 1
+          return 0
+        }),
+    [announcements, debouncedSearch, filter]
+  )
+
+  // ⚡ Perf: Memoize unread count — previously computed via two separate
+  // .filter() calls in JSX (lines 222, 224), iterating the full array twice per render.
+  const unreadCount = useMemo(() => announcements.filter((a) => !a.isRead).length, [announcements])
 
   if (isLoading && announcements.length === 0) {
     return <AnnouncementSkeleton />
@@ -193,6 +209,7 @@ export function Announcements() {
             placeholder="Cari pengumuman..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            aria-label="Cari pengumuman"
             className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-700 dark:text-white dark:border-slate-600 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
           />
         </div>
@@ -218,10 +235,8 @@ export function Announcements() {
             )}
           >
             Belum Dibaca
-            {announcements.filter((a) => !a.isRead).length > 0 && (
-              <span className="bg-white/20 px-1.5 py-0.5 rounded-md text-xs">
-                {announcements.filter((a) => !a.isRead).length}
-              </span>
+            {unreadCount > 0 && (
+              <span className="bg-white/20 px-1.5 py-0.5 rounded-md text-xs">{unreadCount}</span>
             )}
           </button>
           <button

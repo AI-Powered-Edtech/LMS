@@ -5,8 +5,8 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { useBuilder } from '@/src/contexts/BuilderContext'
 import {
   type AssignmentBlockData,
-  courseBuilderService,
-} from '@/src/features/courses/api/courseBuilderService'
+  builderAssignmentService,
+} from '@/src/features/courses/api/builder/assignmentBuilderService'
 import { cn } from '@/src/utils/cn'
 
 export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }) {
@@ -35,7 +35,10 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
     if (!activeLesson) return
     async function load() {
       try {
-        const data = await courseBuilderService.getAssignmentByLesson(activeLesson!.id, tenantId!)
+        const data = await builderAssignmentService.getAssignmentByLesson(
+          activeLesson!.id,
+          tenantId!
+        )
         if (data) {
           setSavedAssignmentId(data.id)
           setAssignmentData({
@@ -67,7 +70,7 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
         ...assignmentData,
         id: savedAssignmentId,
       }
-      const result = await courseBuilderService.saveAssignmentData(
+      const result = await builderAssignmentService.saveAssignmentData(
         activeLesson.id,
         state.courseId ?? '',
         activeLesson.tenantId,
@@ -120,10 +123,13 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <div className="flex items-center gap-3 mr-4 border-r border-slate-100 pr-4">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            <label className="text-xs font-black text-slate-500 uppercase tracking-widest">
               STATUS:
             </label>
             <button
+              role="switch"
+              aria-checked={assignmentData.is_published}
+              aria-label="Publikasi tugas"
               onClick={() =>
                 setAssignmentData({ ...assignmentData, is_published: !assignmentData.is_published })
               }
@@ -150,13 +156,16 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
             ) : (
               <CheckCircle className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
             )}
-            SIMPAN PERUBAHAN
+            <span aria-live="polite">{isSaving ? 'Menyimpan...' : 'SIMPAN PERUBAHAN'}</span>
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl flex items-start gap-2">
+        <div
+          role="alert"
+          className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl flex items-start gap-2"
+        >
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -165,35 +174,47 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
       {/* Assignment Settings */}
       <div className="grid grid-cols-1 gap-6 p-8 bg-slate-50/50 rounded-[32px] border border-slate-200/50">
         <div>
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">
+          <label
+            htmlFor="assignment-title"
+            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+          >
             Judul Tugas
           </label>
           <input
+            id="assignment-title"
             type="text"
             value={assignmentData.title}
             onChange={(e) => setAssignmentData({ ...assignmentData, title: e.target.value })}
-            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-200 shadow-sm"
+            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-400 shadow-sm"
             placeholder="Masukkan judul tugas..."
           />
         </div>
         <div>
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">
+          <label
+            htmlFor="assignment-instructions"
+            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+          >
             Instruksi Tugas
           </label>
           <textarea
+            id="assignment-instructions"
             value={assignmentData.instructions || ''}
             onChange={(e) => setAssignmentData({ ...assignmentData, instructions: e.target.value })}
             rows={6}
-            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-200 shadow-sm leading-relaxed"
+            className="w-full px-5 py-3 bg-white border border-slate-200 rounded-[24px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all resize-none font-medium text-slate-600 placeholder:text-slate-400 shadow-sm leading-relaxed"
             placeholder="Masukkan instruksi lengkap untuk dikerjakan siswa..."
           />
         </div>
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">
+            <label
+              htmlFor="assignment-max-points"
+              className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+            >
               Maks. Poin
             </label>
             <input
+              id="assignment-max-points"
               type="number"
               min="1"
               value={assignmentData.max_points}
@@ -204,10 +225,14 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
             />
           </div>
           <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">
+            <label
+              htmlFor="assignment-max-attempts"
+              className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+            >
               Maks. Percobaan
             </label>
             <input
+              id="assignment-max-attempts"
               type="number"
               min="1"
               value={assignmentData.max_attempts}
@@ -222,11 +247,15 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
           </div>
         </div>
         <div>
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">
+          <label
+            htmlFor="assignment-due-date"
+            className="block text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-1"
+          >
             Tenggat Waktu (Opsional)
           </label>
           <div className="relative group">
             <input
+              id="assignment-due-date"
               type="date"
               value={assignmentData.due_date || ''}
               onChange={(e) =>
@@ -234,7 +263,7 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
               }
               className="w-full px-5 py-3 pl-11 bg-white border border-slate-200 rounded-[18px] focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all font-bold text-slate-700 shadow-sm"
             />
-            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
+            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-500 transition-colors pointer-events-none" />
           </div>
         </div>
       </div>

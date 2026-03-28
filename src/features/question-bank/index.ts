@@ -8,8 +8,8 @@ export { QuestionSearchModal } from './components/QuestionSearchModal'
 
 // Types
 export type {
-  QuestionBankOption,
-  QuestionBankItem,
   CreateQuestionPayload,
+  QuestionBankItem,
+  QuestionBankOption,
   UpdateQuestionPayload,
 } from './api/questionBankService'

@@ -82,6 +82,46 @@ Five additional issues were found and fixed in earlier migrations:
 | `enroll_student` RPC bypassed tenant isolation | Added tenant filter on class lookup and insert |
 | `mark_lesson_complete` RPC bypassed tenant_id  | Added `tenant_id = get_my_tenant_id()`         |
 
+## Content Security Policy (CSP) — Phase 21D
+
+CSP enforcement was upgraded from report-only mode to full enforcement. The CSP header is configured in the deployment layer (Vercel/Netlify) and restricts:
+
+- **script-src**: `'self'` only (no inline scripts, no `eval`)
+- **style-src**: `'self'` plus `'unsafe-inline'` (required by Tailwind's runtime)
+- **connect-src**: `'self'` plus Supabase API endpoints and Sentry DSN
+- **img-src**: `'self'`, `data:`, and Supabase storage bucket domains
+- **frame-src**: `'self'` (SCORM iframes load from same origin via storage)
+- **default-src**: `'none'` (deny by default)
+
+Previously CSP was in `Content-Security-Policy-Report-Only` mode. The upgrade to enforcement blocks XSS and data exfiltration vectors.
+
+## SECURITY DEFINER search_path Fixes — Phase 21D
+
+All `SECURITY DEFINER` functions now include `SET search_path TO 'public'`. Migration `20260325_fix_search_path.sql` patched 19 functions that were missing this setting. Without it, an attacker who can control the session `search_path` could redirect unqualified name resolution to malicious schema objects.
+
+This completes the security posture: every `SECURITY DEFINER` function in the system now has an explicit `search_path`. Previous fixes (migration 836, production readiness audit) covered 8 functions; this migration covers the remaining 19.
+
+See `docs/DATABASE.md` for the full list of patched functions.
+
+## Sentry Sensitive Data Filtering — Phase 21D
+
+Sentry integration includes multi-layer sensitive data scrubbing:
+
+- **`beforeBreadcrumb`**: Strips `Authorization` headers from XHR/fetch breadcrumbs before they leave the client
+- **`beforeSend`**: Recursively scrubs event payloads, request headers, request bodies, query strings, breadcrumb data, and extra context for patterns matching tokens, passwords, secrets, and API keys
+- **Utility**: `scrubSensitiveData()` is a reusable recursive scrubber that redacts values for keys matching `/token|password|secret|key|authorization|cookie|session/i`
+
+This prevents accidental PII or credential leakage through error reporting.
+
+## Token Refresh Monitoring — Phase 21D
+
+The `AuthContext` now monitors Supabase session token refresh cycles:
+
+- Listens for `TOKEN_REFRESHED` and `SIGNED_OUT` auth events
+- Logs refresh timestamps for observability
+- Handles refresh failures gracefully by clearing state and redirecting to login (preventing infinite spinner states)
+- Session expiry is surfaced to the user via a modal prompt before automatic logout
+
 ## Frontend Security Checklist
 
 Before merging any PR:
@@ -91,6 +131,58 @@ Before merging any PR:
 - [ ] All new tables have RLS enabled and `tenant_id` policy
 - [ ] All new RPCs have `auth.uid()` check and `SET search_path TO 'public'`
 - [ ] `useAuth()` used for identity — never hardcoded
+
+## LTI 1.3 Security Model
+
+EduSync acts as an **LTI Tool Provider** allowing external platforms (Canvas, Moodle) to launch into EduSync content.
+
+### Authentication Flow
+
+1. External platform sends OIDC login initiation → `lti-oidc-login` Edge Function
+2. EduSync validates issuer against `lti_platform_registrations`, generates state + nonce (stored in `lti_nonces`)
+3. Redirects to platform's OIDC authorization endpoint
+4. Platform sends back `id_token` (JWT) via form POST → `lti-launch` Edge Function
+5. EduSync validates: state replay protection, JWT signature (against platform JWKS), issuer, audience, nonce, LTI claims
+6. Provisions or finds Supabase user, assigns tenant from platform registration
+7. Generates magic link session token, redirects to `/#/lti/callback`
+
+### Security Measures
+
+| Measure                | Implementation                                                                                |
+| ---------------------- | --------------------------------------------------------------------------------------------- |
+| Replay protection      | `lti_nonces` table with 10-minute TTL, single-use deletion                                    |
+| JWT verification       | RSA signature verified against platform's published JWKS                                      |
+| Tenant isolation       | LTI guest users inherit `tenant_id` from the pre-registered platform configuration            |
+| Role mapping           | LTI role URIs mapped to EduSync roles (instructor → teacher, learner → student)               |
+| RLS on LTI tables      | `lti_nonces` deny-all for anon/authenticated (service-role only); others use tenant isolation |
+| No secrets in frontend | RSA keys (`LTI_RSA_PRIVATE_KEY`, `LTI_RSA_PUBLIC_KEY`) are Edge Function env vars only        |
+
+### SCORM Sandboxing
+
+SCORM content runs inside an `<iframe>` with restricted sandbox attributes:
+
+```html
+<iframe sandbox="allow-scripts allow-same-origin allow-forms allow-popups" />
+```
+
+- `allow-scripts`: Required for SCORM JavaScript API communication
+- `allow-same-origin`: Required for SCORM API bridge to find `window.API` on parent frame
+- `allow-forms`: Some SCORM content uses form submissions
+- `allow-popups`: Some SCORM content opens help windows
+- **NOT allowed**: `allow-top-navigation`, `allow-modals`, `allow-downloads` (blocked by default)
+
+SCORM runtime data (`scorm_runtime_data`) is protected by own-data-only RLS — students can only read/write their own CMI state.
+
+#### SCORM Storage Bucket
+
+The `scorm-packages` storage bucket is **public** (`public: true`). This is intentional — iframes load SCORM content via plain GET requests without Authorization headers, and SCORM packages contain interlinked files (HTML/JS/CSS/images) with relative paths, making signed URLs impractical.
+
+**Mitigations:**
+
+- Storage paths include `{tenant_id}/{package_id}/...` — cross-tenant enumeration requires guessing UUIDs
+- The `scorm_packages` table has tenant-isolated RLS — students can only discover packages belonging to their tenant
+- Write access (upload/update/delete) is restricted to teachers/admins via storage object policies
+- The SCORM content itself is educational material (not sensitive PII)
 
 <!-- Phase 5 Feature Cross-Reference -->
 

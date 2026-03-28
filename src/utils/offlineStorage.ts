@@ -2,12 +2,14 @@
 // Wraps native IndexedDB for offline quiz caching and sync queue
 
 const DB_NAME = 'edusync-offline'
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 const STORES = {
   QUIZ_CACHE: 'quiz-cache',
   QUIZ_ANSWERS: 'quiz-answers',
   SYNC_QUEUE: 'sync-queue',
+  BUILDER_DRAFTS: 'builder-drafts',
+  UPLOAD_QUEUE: 'upload-queue',
 } as const
 
 export interface CachedQuiz {
@@ -78,6 +80,14 @@ export function openDB(): Promise<IDBDatabase> {
 
       if (!db.objectStoreNames.contains(STORES.SYNC_QUEUE)) {
         db.createObjectStore(STORES.SYNC_QUEUE, { keyPath: 'id' })
+      }
+
+      if (!db.objectStoreNames.contains(STORES.BUILDER_DRAFTS)) {
+        db.createObjectStore(STORES.BUILDER_DRAFTS, { keyPath: 'courseId' })
+      }
+
+      if (!db.objectStoreNames.contains(STORES.UPLOAD_QUEUE)) {
+        db.createObjectStore(STORES.UPLOAD_QUEUE, { keyPath: 'id' })
       }
     }
 
@@ -171,4 +181,82 @@ export async function markSynced(id: string): Promise<void> {
   const store = tx.objectStore(STORES.SYNC_QUEUE)
   store.delete(id)
   await wrapTransaction(tx)
+}
+
+// ---------------------------------------------------------------------------
+// Builder drafts
+// ---------------------------------------------------------------------------
+
+export async function saveBuilderDraft(courseId: string, state: unknown): Promise<void> {
+  const db = await openDB()
+  const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readwrite')
+  const store = tx.objectStore(STORES.BUILDER_DRAFTS)
+  store.put({ courseId, state, savedAt: Date.now() })
+  await wrapTransaction(tx)
+}
+
+export async function getBuilderDraft(courseId: string): Promise<unknown | null> {
+  const db = await openDB()
+  const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readonly')
+  const store = tx.objectStore(STORES.BUILDER_DRAFTS)
+  const result = await wrapRequest<
+    { courseId: string; state: unknown; savedAt: number } | undefined
+  >(store.get(courseId))
+  return result?.state ?? null
+}
+
+export async function deleteBuilderDraft(courseId: string): Promise<void> {
+  const db = await openDB()
+  const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readwrite')
+  const store = tx.objectStore(STORES.BUILDER_DRAFTS)
+  store.delete(courseId)
+  await wrapTransaction(tx)
+}
+
+export async function getAllDirtyDrafts(): Promise<unknown[]> {
+  const db = await openDB()
+  const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readonly')
+  const store = tx.objectStore(STORES.BUILDER_DRAFTS)
+  const result = await wrapRequest<{ courseId: string; state: unknown; savedAt: number }[]>(
+    store.getAll()
+  )
+  return result.map((r) => r.state)
+}
+
+// ---------------------------------------------------------------------------
+// Pending count — efficient IndexedDB count() across all queues
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the total number of items waiting to be synced across the
+ * sync-queue and upload-queue stores.  Uses IDBObjectStore.count()
+ * which is O(1) in most IndexedDB implementations, avoiding the need
+ * to deserialise every record.
+ */
+export async function getPendingCount(): Promise<number> {
+  try {
+    const db = await openDB()
+    const tx = db.transaction([STORES.SYNC_QUEUE, STORES.UPLOAD_QUEUE], 'readonly')
+    const [syncCount, uploadCount] = await Promise.all([
+      wrapRequest<number>(tx.objectStore(STORES.SYNC_QUEUE).count()),
+      wrapRequest<number>(tx.objectStore(STORES.UPLOAD_QUEUE).count()),
+    ])
+    return syncCount + uploadCount
+  } catch {
+    // IndexedDB unavailable or transaction failed — treat as zero pending
+    return 0
+  }
+}
+
+// ---------------------------------------------------------------------------
+// IndexedDB availability check
+// ---------------------------------------------------------------------------
+
+/** Returns true if IndexedDB is available in the current environment. */
+export function isIndexedDBAvailable(): boolean {
+  try {
+    return typeof indexedDB !== 'undefined' && indexedDB !== null
+  } catch {
+    return false
+  }
 }

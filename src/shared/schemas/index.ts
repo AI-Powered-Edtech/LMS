@@ -24,7 +24,7 @@ export const CourseRowSchema = v.looseObject({
   id: uuid,
   title: v.string(),
   description: nullableString,
-  status: v.picklist(['draft', 'published', 'archived']),
+  status: v.picklist(['draft', 'in_review', 'approved', 'published', 'archived']),
   tenant_id: uuid,
   published_at: isoTimestamp,
   updated_at: isoTimestamp,

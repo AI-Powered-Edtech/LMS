@@ -134,6 +134,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                 onClick={() => onEdit(question.id)}
                 className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 rounded-lg transition-colors"
                 title="Edit Soal"
+                aria-label="Edit soal"
               >
                 <Edit className="w-4 h-4" />
               </button>
@@ -143,6 +144,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                 onClick={() => onDelete(question.id)}
                 className="p-2 text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 rounded-lg transition-colors mt-auto"
                 title="Hapus Soal"
+                aria-label="Hapus soal"
               >
                 <Trash2 className="w-4 h-4" />
               </button>

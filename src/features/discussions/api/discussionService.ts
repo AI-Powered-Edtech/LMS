@@ -29,11 +29,21 @@ export interface Discussion {
   replies_count?: number
 }
 
+// Explicit columns for discussion queries (no SELECT *)
+const DISCUSSION_COLUMNS = `
+  id, tenant_id, course_id, lesson_id, announcement_id,
+  author_id, parent_id, content, is_pinned, is_edited, is_deleted,
+  created_at, updated_at, title, category, tags, is_anonymous,
+  upvotes, is_best_answer,
+  author:author_id (full_name, avatar_url)
+`
+
 export const discussionService = {
   /**
    * Fetch comments/discussions for a specific context
    */
   async fetchDiscussions(options: {
+    tenantId?: string
     announcementId?: string
     lessonId?: string
     courseId?: string
@@ -41,17 +51,13 @@ export const discussionService = {
   }) {
     let query = supabase
       .from('discussions')
-      .select(
-        `
-                *,
-                author:author_id (
-                    full_name,
-                    avatar_url
-                )
-            `
-      )
+      .select(DISCUSSION_COLUMNS)
       .order('is_pinned', { ascending: false })
       .order('created_at', { ascending: true })
+
+    if (options.tenantId) {
+      query = query.eq('tenant_id', options.tenantId)
+    }
 
     if (options.announcementId) {
       query = query.eq('announcement_id', options.announcementId)
@@ -76,7 +82,7 @@ export const discussionService = {
       throw error
     }
 
-    return data as Discussion[]
+    return data as unknown as Discussion[]
   },
 
   /**
@@ -88,15 +94,7 @@ export const discussionService = {
     const { data, error } = await supabase
       .from('discussions')
       .upsert(discussion)
-      .select(
-        `
-                *,
-                author:author_id (
-                    full_name,
-                    avatar_url
-                )
-            `
-      )
+      .select(DISCUSSION_COLUMNS)
       .single()
 
     if (error) {
@@ -104,13 +102,13 @@ export const discussionService = {
       throw error
     }
 
-    return data as Discussion
+    return data as unknown as Discussion
   },
 
   /**
    * Soft delete a discussion entry (preserves thread integrity)
    */
-  async deleteDiscussion(id: string) {
+  async deleteDiscussion(id: string, tenantId: string) {
     const { error } = await supabase
       .from('discussions')
       .update({
@@ -118,6 +116,7 @@ export const discussionService = {
         content: '[Komentar ini telah dihapus]',
       })
       .eq('id', id)
+      .eq('tenant_id', tenantId)
 
     if (error) {
       if (import.meta.env.DEV) console.error('Error deleting discussion:', error)
@@ -128,8 +127,12 @@ export const discussionService = {
   /**
    * Toggle the pinned status of a discussion
    */
-  async togglePin(id: string, is_pinned: boolean) {
-    const { error } = await supabase.from('discussions').update({ is_pinned }).eq('id', id)
+  async togglePin(id: string, is_pinned: boolean, tenantId: string) {
+    const { error } = await supabase
+      .from('discussions')
+      .update({ is_pinned })
+      .eq('id', id)
+      .eq('tenant_id', tenantId)
 
     if (error) {
       if (import.meta.env.DEV) console.error('Error toggling pin status:', error)
@@ -143,7 +146,7 @@ export const discussionService = {
   async fetchForumPosts(tenantId: string): Promise<Discussion[]> {
     const { data, error } = await supabase
       .from('discussions')
-      .select('*, author:author_id(full_name, avatar_url)')
+      .select(DISCUSSION_COLUMNS)
       .eq('tenant_id', tenantId)
       .is('lesson_id', null)
       .is('course_id', null)
@@ -152,32 +155,7 @@ export const discussionService = {
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    return (data ?? []) as Discussion[]
-  },
-
-  /**
-   * Real-time subscription for discussions in a specific context
-   */
-  subscribe(
-    contextId: string,
-    contextType: 'announcement' | 'lesson' | 'course',
-    callback: (payload: unknown) => void
-  ) {
-    const filterColumn = `${contextType}_id`
-
-    return supabase
-      .channel(`discussions:${contextId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'discussions',
-          filter: `${filterColumn}=eq.${contextId}`,
-        },
-        callback
-      )
-      .subscribe()
+    return (data ?? []) as unknown as Discussion[]
   },
 
   /**
@@ -190,8 +168,16 @@ export const discussionService = {
   /**
    * Mark a comment as the best answer for a post.
    */
-  async setBestAnswer(postId: string, commentId: string): Promise<void> {
-    await supabase.from('discussions').update({ is_best_answer: false }).eq('parent_id', postId)
-    await supabase.from('discussions').update({ is_best_answer: true }).eq('id', commentId)
+  async setBestAnswer(postId: string, commentId: string, tenantId: string): Promise<void> {
+    await supabase
+      .from('discussions')
+      .update({ is_best_answer: false })
+      .eq('parent_id', postId)
+      .eq('tenant_id', tenantId)
+    await supabase
+      .from('discussions')
+      .update({ is_best_answer: true })
+      .eq('id', commentId)
+      .eq('tenant_id', tenantId)
   },
 }

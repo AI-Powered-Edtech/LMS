@@ -190,6 +190,7 @@ export function DashboardBuilder({ initialDashboard, courseId, onSaved }: Dashbo
                   </div>
                   <button
                     onClick={() => handleRemoveWidget(widget.id)}
+                    aria-label="Hapus widget"
                     className="rounded p-1 text-slate-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 transition-colors"
                   >
                     <Trash2 className="h-3.5 w-3.5" />

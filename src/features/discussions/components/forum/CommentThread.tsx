@@ -81,6 +81,7 @@ export function CommentThread({
               <div className="relative">
                 <button
                   onClick={() => setShowReport(!showReport)}
+                  aria-label="Menu komentar"
                   className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                 >
                   <MoreHorizontal className="w-4 h-4" />

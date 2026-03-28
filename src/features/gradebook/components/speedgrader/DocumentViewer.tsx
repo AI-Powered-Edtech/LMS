@@ -92,6 +92,7 @@ function AnnotationPin({
       <div className="relative group">
         <button
           onClick={() => onToggle(annotation.id)}
+          aria-label="Buka komentar anotasi"
           className="absolute -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-yellow-400 text-yellow-900 rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform z-10 border-2 border-white dark:border-slate-800"
         >
           <MessageSquare className="w-4 h-4" />
@@ -105,6 +106,7 @@ function AnnotationPin({
               </span>
               <button
                 onClick={() => onDelete(annotation.id)}
+                aria-label="Hapus anotasi"
                 className="text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
               >
                 <X className="w-4 h-4" />
@@ -161,6 +163,7 @@ export function DocumentViewer({
                 : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
             )}
             title="Pilih (Pointer)"
+            aria-label="Pilih (Pointer)"
           >
             <MousePointer2 className="w-4 h-4" />
           </button>
@@ -173,6 +176,7 @@ export function DocumentViewer({
                 : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
             )}
             title="Tambah Komentar"
+            aria-label="Tambah komentar"
           >
             <MessageSquarePlus className="w-4 h-4" />
           </button>
@@ -181,6 +185,7 @@ export function DocumentViewer({
         <div className="flex items-center gap-2">
           <button
             onClick={() => onZoomChange(Math.max(50, zoom - 10))}
+            aria-label="Perkecil"
             className="p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
           >
             <ZoomOut className="w-4 h-4" />
@@ -190,6 +195,7 @@ export function DocumentViewer({
           </span>
           <button
             onClick={() => onZoomChange(Math.min(200, zoom + 10))}
+            aria-label="Perbesar"
             className="p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
           >
             <ZoomIn className="w-4 h-4" />
@@ -199,6 +205,7 @@ export function DocumentViewer({
             onClick={() => onZoomChange(100)}
             className="p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md"
             title="Fit to Width"
+            aria-label="Sesuaikan lebar"
           >
             <Maximize className="w-4 h-4" />
           </button>

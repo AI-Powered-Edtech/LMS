@@ -62,28 +62,119 @@ Tests are in `src/**/*.test.ts` and `src/**/*.test.tsx` files.
 
 ## E2E Testing
 
+### Quick Start
+
 ```bash
-pnpm run test:e2e                             # Run full Playwright suite
-npx playwright test e2e/flows/               # Run authenticated flows only
-npx playwright test e2e/quiz.spec.ts          # Run a single spec
-npx playwright show-report                   # Open last HTML report
+# Run the comprehensive 24-flow test suite (recommended)
+npx playwright test --config=playwright-24.config.ts
+
+# Run the legacy Playwright suite
+pnpm run test:e2e
+
+# Run a specific flow (e.g., only auth tests)
+npx playwright test --config=playwright-24.config.ts auth.spec.ts
+
+# Run only student-role tests
+npx playwright test --config=playwright-24.config.ts --project=student
+
+# Run only teacher-role tests
+npx playwright test --config=playwright-24.config.ts --project=teacher
+
+# Run only admin-role tests
+npx playwright test --config=playwright-24.config.ts --project=admin
+
+# Open last HTML report
+npx playwright show-report
 ```
 
 ### E2E Structure
 
 ```
 e2e/
+  .auth/                ← Auto-generated auth state (gitignored)
+    student.json
+    teacher.json
+    admin.json
   helpers/
-    auth.ts       ← loginAsStudent / loginAsTeacher / loginAsAdmin / gotoAndWait / dismissToast / skipIfNoAuth
-    index.ts      ← barrel export
-  flows/
+    auth.ts             ← loginAsStudent / loginAsTeacher / loginAsAdmin / gotoAndWait / dismissToast / skipIfNoAuth
+    index.ts            ← barrel export
+  flows/                ← Legacy authenticated flow tests
     student-journey.spec.ts
     teacher-journey.spec.ts
     admin-journey.spec.ts
     quiz-autosave-resume.spec.ts
     class-join-code.spec.ts
-  *.spec.ts       ← unauthenticated + authenticated tests per domain
+  flows24/              ← Comprehensive 24-flow E2E suite (604 tests)
+    global.setup.ts     ← Authenticates student/teacher/admin, saves storage state
+    auth.spec.ts        ← Flows 1-3: Login, Registration, Role Switching (18 tests)
+    student.spec.ts     ← Flows 4,6,8,11,12,14,21,22,24: Student features (37 tests)
+    teacher.spec.ts     ← Flows 5,7,9,10,13,15: Teacher features (37 tests)
+    shared-admin.spec.ts← Flows 16-20,23: Communication, Admin, Settings (65 tests)
+    cross-cutting.spec.ts← CC-1 to CC-4: Dark mode, Mobile, Console, Loading (70 tests)
+    seeder.spec.ts      ← Data seeding for test prerequisites
+  *.spec.ts             ← Unauthenticated + authenticated tests per domain
 ```
+
+### flows24 Configuration (playwright-24.config.ts)
+
+The `flows24/` suite uses a separate Playwright config with pre-authenticated storage states:
+
+- **Setup project**: `global.setup.ts` authenticates all 3 roles via keyboard events (React controlled input workaround) and saves storage state to `e2e/.auth/*.json`.
+- **Role-based projects**: `student`, `teacher`, `admin` — each project uses its own saved auth state so tests don't need to re-login.
+- **Role filtering**: Tests use `test.skip(testInfo.project.name !== 'role')` to run only under the correct role project.
+- **Timeout**: 120s per test (accounts for slow Supabase queries on first load).
+- **Web server**: Auto-starts `npm run dev` if not already running.
+
+### flows24 Coverage Matrix (24 Flows + 4 Cross-Cutting)
+
+| Flow | Feature                                | Tests | Spec File             |
+| ---- | -------------------------------------- | ----- | --------------------- |
+| F1   | Login & Auth Guard                     | 9     | auth.spec.ts          |
+| F2   | Registration & Onboarding              | 3     | auth.spec.ts          |
+| F3   | Role Switching & Tenant Guard          | 6     | auth.spec.ts          |
+| F4   | Course Browsing & Enrollment           | 3     | student.spec.ts       |
+| F5   | Course Builder                         | 6     | teacher.spec.ts       |
+| F6   | Smart Player / Lesson Viewer           | 3     | student.spec.ts       |
+| F7   | Class Management                       | 6     | teacher.spec.ts       |
+| F8   | Quiz Taking                            | 5     | student.spec.ts       |
+| F9   | Quiz Builder                           | 4     | teacher.spec.ts       |
+| F10  | SpeedGrader                            | 2     | teacher.spec.ts       |
+| F11  | Assignments                            | 3     | student.spec.ts       |
+| F12  | Student Dashboard & Progress           | 6     | student.spec.ts       |
+| F13  | Teacher Analytics Dashboard            | 9     | teacher.spec.ts       |
+| F14  | Gamification (XP, Badges, Leaderboard) | 3     | student.spec.ts       |
+| F15  | Gradebook                              | 6     | teacher.spec.ts       |
+| F16  | Forum / Discussions                    | 5     | shared-admin.spec.ts  |
+| F17  | Announcements                          | 7     | shared-admin.spec.ts  |
+| F18  | Notifications                          | 8     | shared-admin.spec.ts  |
+| F19  | Calendar                               | 5     | shared-admin.spec.ts  |
+| F20  | Admin Dashboard                        | 11    | shared-admin.spec.ts  |
+| F21  | Attendance                             | 3     | student.spec.ts       |
+| F22  | Certificates                           | 3     | student.spec.ts       |
+| F23  | Profile & Settings                     | 11    | shared-admin.spec.ts  |
+| F24  | AI Tutor                               | 2     | student.spec.ts       |
+| CC-1 | Dark Mode Full Sweep                   | 18    | cross-cutting.spec.ts |
+| CC-2 | Mobile Responsive (375px)              | 20    | cross-cutting.spec.ts |
+| CC-3 | Console Error Sweep                    | 18    | cross-cutting.spec.ts |
+| CC-4 | Loading & Empty States                 | 14    | cross-cutting.spec.ts |
+
+## Gap Analysis (March 2026)
+
+A detailed gap analysis based on test execution results is available in `docs/GAP_ANALYSIS.md`. Key findings include:
+
+- Need for robust `data-testid` usage globally (tests currently rely on Bahasa Indonesia display text matching).
+- Handling Supabase connection delays under concurrent test load.
+- Properly hiding visually hidden navigation elements (`span.text-[10px]`) from broad `text=/Pattern/` queries to prevent false positives before `h1` headings render.
+
+### Clearing Auth State
+
+If tests fail during setup (e.g., password changed, Supabase down), delete the cached auth state:
+
+```bash
+rm -f e2e/.auth/student.json e2e/.auth/teacher.json e2e/.auth/admin.json
+```
+
+The next run will re-authenticate all roles.
 
 All authenticated tests call `skipIfNoAuth()` in `beforeEach` — they skip gracefully in CI
 when `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` env vars are not set.

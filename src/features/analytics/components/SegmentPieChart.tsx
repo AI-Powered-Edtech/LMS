@@ -1,5 +1,6 @@
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
-import { EngagementSummaryRow, EngagementSegment } from '../types'
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
+
+import { EngagementSegment, EngagementSummaryRow } from '../types'
 
 const SEGMENT_COLORS: Record<EngagementSegment, string> = {
   high: '#10b981',

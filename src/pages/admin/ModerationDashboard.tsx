@@ -9,7 +9,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { ModerationSkeleton } from '@/src/features/moderation/components/ModerationSkeleton'
@@ -17,6 +17,7 @@ import {
   useModerationReports,
   useResolveReport,
 } from '@/src/features/moderation/queries/moderationQueries'
+import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
 
@@ -28,21 +29,29 @@ export function ModerationDashboard() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'resolved'>('pending')
   const [searchQuery, setSearchQuery] = useState('')
 
-  const filteredReports = reports.filter((report) => {
-    const matchesStatus =
-      filterStatus === 'all'
-        ? true
-        : filterStatus === 'pending'
-          ? report.status === 'pending'
-          : report.status !== 'pending'
+  // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
+  const debouncedSearch = useDebounce(searchQuery, 300)
 
-    const matchesSearch =
-      report.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.reporterName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.contentSnippet?.toLowerCase().includes(searchQuery.toLowerCase())
+  // ⚡ Perf: Memoize filteredReports — was recomputed on every render without useMemo
+  const filteredReports = useMemo(
+    () =>
+      reports.filter((report) => {
+        const matchesStatus =
+          filterStatus === 'all'
+            ? true
+            : filterStatus === 'pending'
+              ? report.status === 'pending'
+              : report.status !== 'pending'
 
-    return matchesStatus && matchesSearch
-  })
+        const matchesSearch =
+          report.description.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          report.reporterName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+          report.contentSnippet?.toLowerCase().includes(debouncedSearch.toLowerCase())
+
+        return matchesStatus && matchesSearch
+      }),
+    [reports, filterStatus, debouncedSearch]
+  )
 
   const getStatusColor = (status: string) => {
     switch (status) {

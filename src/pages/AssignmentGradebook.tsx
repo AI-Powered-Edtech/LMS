@@ -74,7 +74,7 @@ export function AssignmentGradebook() {
     setSelectedAssignment(assignment)
     setLoadingSubmissions(true)
     try {
-      const data = await assignmentService.getAssignmentSubmissions(assignment.id)
+      const data = await assignmentService.getAssignmentSubmissions(assignment.id, tenantId!)
       setSubmissions(data || [])
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error fetching submissions:', err)
@@ -94,7 +94,12 @@ export function AssignmentGradebook() {
     if (!gradingSubmission) return
     setIsSubmittingGrade(true)
     try {
-      const result = await assignmentService.gradeSubmission(gradingSubmission.id, score, feedback)
+      const result = await assignmentService.gradeSubmission(
+        gradingSubmission.id,
+        tenantId!,
+        score,
+        feedback
+      )
       // Update local state
       setSubmissions((prev) => prev.map((s) => (s.id === result.id ? result : s)))
       setGradingSubmission(null)

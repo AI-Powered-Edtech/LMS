@@ -7,7 +7,6 @@ import { Role, useAuth } from '@/src/contexts/AuthContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { LevelBadge } from '@/src/features/gamification/components/LevelBadge'
 import { useStudentXPProfile } from '@/src/features/gamification/queries/gamificationQueries'
-import { useNotifications } from '@/src/features/notifications'
 import { NotificationBell as AppNotificationBell } from '@/src/features/notifications'
 import { useStudentProgressData } from '@/src/features/progress/hooks/useStudentProgressQueries'
 import { NotificationBell as StruggleBell } from '@/src/features/struggle'
@@ -27,8 +26,6 @@ export const Header = memo(function Header() {
   const progress = xpNeeded > 0 ? Math.min(((totalXp - xpCurrent) / xpNeeded) * 100, 100) : 100
 
   const { role, profile, signOut } = useAuth()
-  // Warm up realtime subscription for the current user
-  useNotifications()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [isProfileOpen, setIsProfileOpen] = useState(false)

@@ -18,7 +18,7 @@ export async function fetchNotifications(
     .from('notifications')
     .select(
       `
-            *,
+            id, user_id, tenant_id, title, message, type, is_read, created_at, actor_id, link,
             actor:actor_id (
                 full_name,
                 avatar_url
@@ -35,7 +35,7 @@ export async function fetchNotifications(
     throw error
   }
 
-  return data as Notification[]
+  return data as unknown as Notification[]
 }
 
 /**
@@ -93,38 +93,6 @@ export async function sendNotification(
   if (error) {
     if (import.meta.env.DEV) console.error('Error sending notification:', error)
     throw error
-  }
-}
-
-/**
- * Subscribe to real-time notifications
- * Filters by both user_id AND tenant_id for multi-tenant isolation
- */
-export function subscribe(
-  userId: string,
-  tenantId: string,
-  onNewNotification: (notification: Notification) => void
-): { unsubscribe: () => void } {
-  const channel = supabase
-    .channel(`notifications:${userId}:${tenantId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'notifications',
-        filter: `user_id=eq.${userId},tenant_id=eq.${tenantId}`,
-      },
-      (payload) => {
-        onNewNotification(payload.new as Notification)
-      }
-    )
-    .subscribe()
-
-  return {
-    unsubscribe: () => {
-      supabase.removeChannel(channel)
-    },
   }
 }
 

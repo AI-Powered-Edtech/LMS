@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
-import { WifiOff, Wifi, X } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
+import { Wifi, WifiOff, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+
 import { useNetworkStatus } from '@/src/hooks/useNetworkStatus'
 import { scheduleSync } from '@/src/utils/backgroundSync'
+import { cn } from '@/src/utils/cn'
 
 type BannerState = 'offline' | 'syncing' | 'hidden'
 

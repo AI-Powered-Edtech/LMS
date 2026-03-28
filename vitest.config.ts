@@ -17,7 +17,7 @@ export default defineConfig({
     exclude: ['**/node_modules/**', '**/e2e/**', '**/tests/**', '**/.claude/**'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'lcov', 'html'],
+      reporter: ['text', 'lcov', 'html', 'json-summary'],
       reportsDirectory: './coverage',
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
@@ -51,6 +51,24 @@ export default defineConfig({
           branches: 40,
           functions: 50,
           lines: 50,
+        },
+        'src/hooks/**': {
+          statements: 70,
+          branches: 60,
+          functions: 70,
+          lines: 70,
+        },
+        'src/contexts/**': {
+          statements: 60,
+          branches: 50,
+          functions: 60,
+          lines: 60,
+        },
+        'src/features/**/hooks/**': {
+          statements: 60,
+          branches: 50,
+          functions: 60,
+          lines: 60,
         },
       },
     },

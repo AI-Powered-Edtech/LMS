@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
-import { X, Check, Loader2, Users, School } from 'lucide-react'
-import { motion, AnimatePresence } from 'motion/react'
-import { classroomService, Classroom } from '@/src/features/classroom/api/classroomService'
+import { Check, Loader2, School, Users, X } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useEffect, useState } from 'react'
+
 import { useAuth } from '@/src/contexts/AuthContext'
-import { cn } from '@/src/utils/cn'
+import { Classroom, classroomService } from '@/src/features/classroom/api/classroomService'
 import { useToast } from '@/src/hooks/useToast'
+import { cn } from '@/src/utils/cn'
 
 interface AssignCourseModalProps {
   isOpen: boolean
@@ -101,6 +102,7 @@ export function AssignCourseModal({
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors"
+                aria-label="Tutup"
               >
                 <X className="w-5 h-5 text-slate-400" />
               </button>

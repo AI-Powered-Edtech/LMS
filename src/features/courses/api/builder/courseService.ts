@@ -1,9 +1,13 @@
-import { BuilderLesson } from '@/src/features/courses/api/courseBuilderService'
 import { supabase } from '@/src/services/supabase/client'
 import { mapCourse } from '@/src/shared/types/courseMappers'
 import { DomainCourse } from '@/src/shared/types/courseTypes'
 import { mapModule } from '@/src/shared/types/moduleMappers'
 import { DomainModule } from '@/src/shared/types/moduleTypes'
+
+interface BuilderLessonRow {
+  order: number
+  [key: string]: unknown
+}
 
 /**
  * Course Service for Course Builder (refactored)
@@ -47,8 +51,8 @@ export const builderCourseService = {
     const sorted = (modules || []).map((m) => ({
       ...m,
       description: null,
-      lessons: ((m as unknown as { lessons?: BuilderLesson[] }).lessons || []).sort(
-        (a: BuilderLesson, b: BuilderLesson) => a.order - b.order
+      lessons: ((m as unknown as { lessons?: BuilderLessonRow[] }).lessons || []).sort(
+        (a: BuilderLessonRow, b: BuilderLessonRow) => a.order - b.order
       ),
     }))
 
@@ -71,6 +75,24 @@ export const builderCourseService = {
     const { error } = await supabase
       .from('courses')
       .update({ status: 'draft' })
+      .eq('id', courseId)
+      .eq('tenant_id', tenantId)
+    if (error) throw new Error(error.message)
+  },
+
+  async submitForReview(courseId: string, tenantId: string): Promise<void> {
+    const { error } = await supabase
+      .from('courses')
+      .update({ status: 'in_review' })
+      .eq('id', courseId)
+      .eq('tenant_id', tenantId)
+    if (error) throw new Error(error.message)
+  },
+
+  async approveCourse(courseId: string, tenantId: string): Promise<void> {
+    const { error } = await supabase
+      .from('courses')
+      .update({ status: 'approved' })
       .eq('id', courseId)
       .eq('tenant_id', tenantId)
     if (error) throw new Error(error.message)

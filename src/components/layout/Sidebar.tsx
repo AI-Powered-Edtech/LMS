@@ -72,7 +72,8 @@ export function Sidebar() {
             onClick={() => setIsClassroomDropdownOpen(!isClassroomDropdownOpen)}
             aria-expanded={isClassroomDropdownOpen}
             aria-haspopup="listbox"
-            className="w-full flex items-center justify-between bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 hover:bg-slate-100 dark:hover:bg-slate-700/80 transition-colors"
+            aria-label={`Pilih kelas aktif: ${activeClassroom?.name || 'Belum dipilih'}`}
+            className="w-full flex items-center justify-between bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 hover:bg-slate-100 dark:hover:bg-slate-700/80 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500"
           >
             <div className="flex flex-col items-start truncate pr-2">
               <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">

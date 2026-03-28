@@ -1,8 +1,9 @@
+import { Loader2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { X, Loader2 } from 'lucide-react'
-import { classroomService, Classroom } from '@/src/features/classroom/api/classroomService'
-import { quizService, QuizAssignment } from '@/src/features/quizzes'
+
 import { useAuth } from '@/src/contexts/AuthContext'
+import { Classroom, classroomService } from '@/src/features/classroom/api/classroomService'
+import { QuizAssignment, quizService } from '@/src/features/quizzes'
 import { useToast } from '@/src/hooks/useToast'
 import { cn } from '@/src/utils/cn'
 
@@ -114,6 +115,7 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
           <button
             onClick={onClose}
             className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
+            aria-label="Tutup"
           >
             <X className="w-5 h-5" />
           </button>

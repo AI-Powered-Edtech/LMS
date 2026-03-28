@@ -1,6 +1,9 @@
-import { Link as LinkIcon, Play, Video } from 'lucide-react'
+import { Clock, Link as LinkIcon, Play, Video } from 'lucide-react'
+import { useState } from 'react'
 
 import { useBuilder } from '@/src/contexts/BuilderContext'
+import { InteractiveVideoEditor } from '@/src/features/courses/components/InteractiveVideoEditor'
+import type { InteractiveVideoMetadata } from '@/src/features/lessons/types'
 import { parseVideoUrl } from '@/src/utils/videoUtils'
 
 interface VideoBlockEditorProps {
@@ -10,29 +13,46 @@ interface VideoBlockEditorProps {
 export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
   const { state, actions } = useBuilder()
   const block = state.activeLesson?.blocks.find((b) => b.id === blockId)
+  const [showInteractiveEditor, setShowInteractiveEditor] = useState(false)
 
   if (!block) return null
 
   const url = block.url || ''
   const { type: videoType, embedUrl } = parseVideoUrl(url)
 
+  const handleSaveInteractiveMetadata = (newMetadata: InteractiveVideoMetadata) => {
+    actions.updateBlock(blockId, { metadata: newMetadata as Record<string, unknown> })
+    actions.saveBlock(blockId)
+  }
+
   return (
     <div className="space-y-4">
       {/* URL Input */}
-      <div className="relative group">
-        <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
-        <input
-          type="text"
-          placeholder="Tempel tautan YouTube atau video di sini..."
-          value={url}
-          onChange={(e) => {
-            actions.updateBlock(blockId, { url: e.target.value })
-          }}
-          onBlur={() => {
-            actions.saveBlock(blockId)
-          }}
-          className="w-full pl-11 pr-4 py-3 border border-slate-200/60 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all bg-slate-50/50 focus:bg-white placeholder:text-slate-300 shadow-inner"
-        />
+      <div className="flex gap-2">
+        <div className="relative group flex-1">
+          <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-500 transition-colors" />
+          <input
+            type="text"
+            aria-label="URL video YouTube atau Vimeo"
+            placeholder="Tempel tautan YouTube atau video di sini..."
+            value={url}
+            onChange={(e) => {
+              actions.updateBlock(blockId, { url: e.target.value })
+            }}
+            onBlur={() => {
+              actions.saveBlock(blockId)
+            }}
+            className="w-full pl-11 pr-4 py-3 border border-slate-200/60 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-indigo-50 focus:border-indigo-300 outline-none transition-all bg-slate-50/50 focus:bg-white placeholder:text-slate-400 shadow-inner"
+          />
+        </div>
+        <button
+          onClick={() => setShowInteractiveEditor(true)}
+          className="flex-shrink-0 px-4 py-3 border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-2xl text-sm font-bold flex items-center gap-2 transition-colors"
+          title="Edit Interaksi (Kuis Pop-up)"
+        >
+          <Clock className="w-4 h-4" />
+          <span className="hidden sm:inline">Interaksi</span>
+        </button>
       </div>
 
       {/* Video Preview */}
@@ -70,6 +90,14 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
             Belum ada video ditambahkan
           </p>
         </div>
+      )}
+
+      {showInteractiveEditor && (
+        <InteractiveVideoEditor
+          metadata={(block.metadata as InteractiveVideoMetadata) || {}}
+          onSave={handleSaveInteractiveMetadata}
+          onClose={() => setShowInteractiveEditor(false)}
+        />
       )}
     </div>
   )

@@ -1,5 +1,335 @@
 # EduSync LMS — Changelog
 
+## Phase 21: Production Perfection (2026-03-25)
+
+Final polish pass covering UI/UX, logic hardening, code health, security, and documentation.
+
+### Sprint 21A: UI/UX Polish
+
+- **Session expiry modal** — warns users before automatic logout when token expires, preventing data loss
+- **LazyLoadTimeout component** (`src/components/ui/LazyLoadTimeout.tsx`) — shows helpful message when lazy-loaded chunks take too long to load, with retry option
+- **Micro-animations** — added subtle Framer Motion transitions on page and component mounts for a polished feel
+- **RouteAnnouncer** (`src/components/layout/RouteAnnouncer.tsx`) — ARIA live region announces route changes for screen reader users (a11y)
+- **Dark mode audit** — fixed remaining components missing `dark:` Tailwind variants across layout components, Tabs, Onboarding, and feature modules
+
+### Sprint 21B: Logic & Product Hardening
+
+- **Global error handling** — `FeatureErrorBoundary` with retry capability and graceful fallback UI
+- **Token refresh monitoring** — `AuthContext` tracks Supabase session refresh cycles; handles failures by clearing state and redirecting to login (prevents infinite spinner)
+- **i18n cleanup** — eliminated remaining English strings in UI buttons, labels, error messages, and headers
+- **Creator page improvements** — better UX flow for course creation in `src/pages/Creator.tsx`
+- **Offline resilience** — `OfflineIndicator` component, improved service worker registration, offline-aware hooks for course builder
+
+### Sprint 21C: Code Health
+
+- **Route splitting** — monolithic `routes.tsx` split into `src/app/routes/` directory with 7 domain-based files: `studentRoutes.tsx`, `teacherRoutes.tsx`, `adminRoutes.tsx`, `sharedRoutes.tsx`, `legacyRedirects.tsx`, `utils.tsx`, `index.tsx`
+- **10 page refactors** — extracted business logic from large page components into feature-module hooks (`src/features/*/hooks/`) and UI into composable components (`src/features/*/components/`)
+- **4 service file splits** — decomposed oversized service files into focused, single-responsibility modules collocated with feature directories
+- **ESLint rule enforcement** — stricter rules, deep import path restrictions to enforce module boundaries
+- **Coverage thresholds** — configured minimum test coverage gates for CI
+
+### Sprint 21D: Technical Hardening
+
+- **SECURITY DEFINER `search_path` fixes** — migration `20260325_fix_search_path.sql` patches 19 functions missing `SET search_path TO 'public'`, closing search-path injection vectors
+- **CSP enforcement** — upgraded Content-Security-Policy from report-only to enforced mode; restricts script-src, connect-src, frame-src
+- **Bundle size checks** — CI gate to catch chunk size regressions
+- **Deploy pipeline** — documented deployment procedures and rollback steps
+- **Sentry hardening** — `beforeBreadcrumb` strips Authorization headers; `beforeSend` recursively scrubs tokens, passwords, secrets, and API keys from event payloads; `scrubSensitiveData()` reusable utility
+- **DR documentation** — `docs/DISASTER_RECOVERY.md` covering RPO (1h) / RTO (4h), PITR restore, Edge Function rollback, migration repair, incident response checklist, monthly DR drills
+- **PWA install prompt** — `usePWAInstall` hook with deferred prompt and 30-day dismiss cooldown; `InstallPrompt` slide-up banner
+- **Push notifications** — `send-push` Edge Function for notification delivery
+
+### Sprint 21E: Documentation
+
+- Updated `docs/DATABASE.md` — added `20260325_fix_search_path` migration entry, listed 19 patched functions, noted `rate_limits` table is planned but not yet implemented
+- Updated `docs/ARCHITECTURE.md` — added route splitting section, page refactors, service file splits
+- Updated `docs/SECURITY.md` — added CSP enforcement, SECURITY DEFINER fixes, Sentry filtering, token refresh monitoring sections
+- Updated `docs/ENGINEERING_ROADMAP.md` — added Phase 21 as completed with full sprint breakdown
+- Updated `CHANGELOG.md` — comprehensive Phase 21 entry
+
+---
+
+## Sprint 21D: Monitoring, DR, and PWA Install (2026-03-25)
+
+### D7: Sentry Monitoring Enhancement
+
+- Added `beforeBreadcrumb` callback to strip `Authorization` headers from XHR/fetch breadcrumbs
+- Enhanced `beforeSend` to scrub sensitive data (tokens, passwords, secrets, API keys) from event payloads, request headers, request bodies, query strings, breadcrumb data, and extra context
+- Enabled `enableLongTask` and `enableInp` on `browserTracingIntegration` for page-load performance tracking
+- Extracted reusable `scrubSensitiveData()` utility for recursive key-pattern scrubbing
+
+### D9: Disaster Recovery Documentation
+
+- Created `docs/DISASTER_RECOVERY.md` covering: RPO (1 hour) / RTO (4 hours) targets, PITR and `pg_dump` restore procedures, Edge Function rollback, migration rollback with `supabase migration repair`, Vercel frontend rollback, full DR procedure (triage/isolate/restore/validate/post-incident), incident response checklist, and monthly DR drill schedule
+
+### D11: PWA Install Prompt
+
+- Created `src/hooks/usePWAInstall.ts` — listens for `beforeinstallprompt`, stores deferred prompt, tracks 30-day dismiss cooldown in localStorage
+- Created `src/components/ui/InstallPrompt.tsx` — slide-up banner with "Pasang EduSync di perangkat Anda" message, install/dismiss buttons, dark mode support, Framer Motion animation
+- Updated `vite.config.ts` PWA manifest with `screenshots` (desktop + mobile), `categories: ['education']`, and `shortcuts` (Dashboard, Kursus Saya)
+
+## Security & Performance Cleanup (2026-03-25)
+
+### Security: Eliminate all bare `.select()` after mutations
+
+Replaced every remaining bare `.select()` (equivalent to `SELECT *`) after `insert/update/upsert` calls with explicit column lists. This prevents leaking unnecessary data and aligns with the project convention of never using `SELECT *`.
+
+**Files fixed (17 instances across 11 files):**
+
+- `assignmentBuilderService.ts` — update & insert branches
+- `lessonService.ts` — createLesson insert
+- `moduleService.ts` — createModule insert
+- `blockService.ts` — createBlock insert
+- `courseService.ts` — createCourse & updateCourse
+- `quizManager.service.ts` — createQuiz insert & addQuestionToQuiz insert
+- `gamificationService.ts` — saveBadgeDefinition update & insert branches
+- `announcementService.ts` — saveAnnouncement upsert & submitRSVP upsert
+- `onboardingQueries.ts` — useUpdateOnboardingProgress mutation
+- `OnboardingChecklist.tsx` — insert & update calls
+- `ai-tutor` Edge Function — session creation insert
+
+### Security: tenant_id filters & explicit columns (prior commit)
+
+- Fixed 5 HIGH severity issues: `calendarService.ts` (3 queries missing tenant_id), `discussionService.ts` (missing tenant_id), `assignmentService.ts` (double `SELECT *`)
+- Added `DISCUSSION_COLUMNS`, `ASSIGNMENT_COLUMNS`, `SUBMISSION_COLUMNS` constants
+- Added tenant_id on all mutation queries in calendar, discussion, assignment services
+
+### Performance: memoization & debounce improvements
+
+- `TemplateModal.tsx` — debounced search (300ms) + memoized filtered templates list
+- `AdminQuizOverview.tsx` — debounced search (300ms), memoized filter/sort, single-pass summary stats computation (was 4 separate array traversals)
+
+### Course Builder Enhancements (prior commit)
+
+- Undo/redo support via `builderReducer.ts` (UNDO, REDO actions with history stack)
+- `GeneralSettingsTab` in `CourseSettingsModal` with debounced autosave
+- `collaboratorService.ts` extracted from inline Supabase calls
+- Dark mode variants on `BuilderTopBar` (template/preview buttons)
+
+### Dead Code Removal
+
+- Deleted old monolithic `courseBuilderService.ts` (435 lines) — all functions already extracted to `builder/` directory services
+- Updated test file references
+
+## External Integration: LTI 1.3 & SCORM Player (2026-03-24)
+
+### LTI 1.3 Tool Provider
+
+- EduSync can now be launched from external LMS platforms (Canvas, Moodle) via LTI 1.3
+- New Edge Functions:
+  - `lti-oidc-login` — OIDC third-party login initiation (validates issuer, generates state/nonce, redirects to platform auth endpoint)
+  - `lti-launch` — Receives and validates platform `id_token` (JWT signature verification against platform JWKS), provisions Supabase user with `lti-guest` role, generates magic link session
+  - `lti-jwks` — Public JWKS endpoint serving EduSync's RSA public key for platform verification
+- New tables: `lti_platform_registrations`, `lti_nonces` (replay protection, 10-min TTL), `lti_sessions`
+- LTI role mapping: platform instructor/teacher → EduSync teacher, learner → student
+- New frontend route `/#/lti/callback` with `LtiCallback.tsx` — verifies OTP token and redirects to target content
+
+### SCORM 1.2 & 2004 Player
+
+- New `ScormPlayer.tsx` component renders SCORM content in a sandboxed iframe
+- Full SCORM API Bridge (`scormApiBridge.ts`) implementing both SCORM 1.2 (`window.API`) and SCORM 2004 (`window.API_1484_11`)
+  - Supports: `Initialize`, `GetValue`, `SetValue`, `Commit`, `Terminate` (and SCORM 1.2 `LMS*` equivalents)
+  - Captures: `cmi.core.score.raw`, `cmi.core.lesson_status`, `cmi.suspend_data`, `cmi.core.total_time`
+  - Error code handling for both SCORM versions
+- New `scorm-extract` Edge Function — receives SCORM ZIP upload, validates `imsmanifest.xml`, extracts files to `scorm-packages` Storage bucket, creates DB records
+- New tables: `scorm_packages` (linked to lessons), `scorm_runtime_data` (per-user CMI state with own-data-only RLS)
+- New RPC `upsert_scorm_runtime` — atomic SCORM state save + `lesson_progress` sync via existing `update_lesson_progress_monotonic`
+- SCORM status mapping: completed/passed → lesson completed (100%), failed → in_progress, incomplete → in_progress (50%)
+- `lesson_resources.type` CHECK constraint extended with `'scorm'`
+- New `scorm` block type in `blockRegistry.ts` + `BlockRenderer.tsx` dispatch
+- Progress persistence: 2s debounced commits, immediate persist on Terminate, `beforeunload` flush via `sendBeacon`
+
+### Database
+
+- Migration: `20260324200000_lti_scorm_integration.sql`
+- 5 new tables with RLS, tenant isolation, and auto-set triggers
+- 2 new RPCs: `upsert_scorm_runtime`, `cleanup_expired_lti_nonces`
+- New Storage bucket: `scorm-packages`
+
+### Environment Variables Required
+
+- `LTI_RSA_PRIVATE_KEY` / `LTI_RSA_PUBLIC_KEY` — RSA keypair for LTI JWT signing/verification
+- `LTI_LAUNCH_URL` — Callback URL for LTI launch
+- `APP_URL` — Frontend URL for redirect after LTI session creation
+
+## Course Builder Phase 1: Content Versioning & Template Library (2026-03-24)
+
+### Content Versioning
+
+- New `course_versions` table with JSONB snapshot of full course tree (modules → lessons → resources)
+- `save_course_version(p_course_id, p_message)` RPC — creates numbered checkpoint with optional commit message
+- `restore_course_version(p_version_id)` RPC — UPSERT-based rollback preserving original UUIDs (keeps student progress data intact), with orphan cleanup
+- Version History Drawer UI in Course Builder top bar with timeline, checkpoint creation form, and restore confirmation
+
+### Template Library
+
+- New `content_templates` table supporting three levels: course, module, and lesson
+- `save_content_template(p_type, p_title, p_description, p_source_id)` RPC — saves entity as reusable blueprint (no IDs stored)
+- `import_content_template(p_template_id, p_target_id, p_order)` RPC — imports template with new UUIDs
+- Save-as-template buttons on course (top bar), module headers, and lesson items in Builder sidebar
+- Template browser modal with search and grid layout for importing modules/lessons from templates
+- Split buttons on "+ Modul" and "+ Tambah Materi" with "Dari Template" option
+
+### Infrastructure
+
+- RLS policies on both tables using `tenant_id = (SELECT get_my_tenant_id())` pattern
+- Tenant ID auto-fill triggers via `auto_set_tenant_id()`
+- Performance indexes: `course_versions(course_id, version_number)`, `course_versions(tenant_id)`, `content_templates(tenant_id, type)`
+- Migration: `20260324150000_course_builder_phase1.sql`
+
+## Supabase Free Tier (Nano 0.5GB) Survival Optimizations (2026-03-24)
+
+### Phase 1: Kill Background Load
+
+- Downgraded all pg_cron jobs from every 5-15 min → once daily at 2 AM
+- SQL migration: `20260324120000_optimize_cron_jobs_free_tier.sql`
+
+### Phase 2: Kill Realtime WebSocket Connections (target: 0 per user)
+
+- Removed WebSocket `subscribe()` from `notificationService.ts` — last remaining WebSocket consumer
+- Removed WebSocket subscription from `notificationQueries.ts` → polling (60s)
+- Removed WebSocket from `LiveActivityFeed.tsx` → polling (15s)
+- Removed `subscribeToChanges` from `classroomService.ts` + `useClassroomQueries.ts`
+- Removed `subscribeToLeaderboard` from `leaderboardService.ts` → polling (60s)
+- Removed unused `subscribe` from `discussionService.ts`
+- Removed redundant `useNotifications()` warm-up call from `Header.tsx`
+
+### Phase 3: Reduce Query Payload
+
+- `notificationService.ts`: replaced `SELECT *` with explicit columns
+- `legacyGradebookService.ts`: lowered `.limit(5000)` → `.limit(1000)` on submissions + quiz_attempts
+- `calendarService.ts`: added `.limit(200)` + `.order()` on unbounded quizzes query
+- `templateService.ts`: replaced `select('*')` with explicit columns + `.limit(50)`
+
+### Phase 4: Optimize Frontend Caching
+
+- `useNotifications` hook: changed `staleTime` from `STALE.REALTIME` (0ms) → `STALE.DYNAMIC` (30s)
+- Reduced Playwright workers to 1 + `fullyParallel: false` to prevent server overload during testing
+- Added `useDebounce(search, 500)` to `UserManagement.tsx`
+
+## Accessibility: aria-labels Batch 4 (Final) (2026-03-24)
+
+- Added `aria-label` attributes to remaining icon-only buttons across the codebase to ensure screen reader accessibility:
+  - `Creator.tsx` — edit question
+  - `FunnelComparison.tsx` — delete funnel
+  - `ClassManagement.tsx` — remove student from class
+
+## E2E Test Fixes & Gamification Flow (2026-03-24)
+
+- Fixed hidden navigation elements interfering with page-level headings in E2E tests (used `h1`-scoped selectors)
+- Updated `GAP_ANALYSIS.md` to document network/Supabase delays, lack of `data-testid`, and other UI-to-E2E mismatch findings
+- Fixed React controlled input handlers limiting test suite reliability
+
+## E2E Test Suite Rewrite (2026-03-24)
+
+- Rewrote all `e2e/flows24/` specs with expanded coverage across auth, student, teacher, admin, and cross-cutting tests
+- Updated `global.setup.ts` with improved auth state handling
+- Updated `docs/TESTING.md` with new test architecture documentation
+
+## Quiz Deep-Link from Lesson Viewer (2026-03-24)
+
+### Feature
+
+- `Quiz.tsx`: Auto-opens quiz confirmation modal when navigated with `?quizId=` search param
+- `LegacyContentFallback.tsx`: Replaced inline `QuizViewer` embed with a navigation CTA button ("Menuju Halaman Kuis") that redirects students to the standalone quiz page
+- Eliminates the old embedded quiz experience in favor of the full-featured Quiz module
+
+## Accessibility: aria-labels Batch 3 (2026-03-24)
+
+- Added `aria-label` attributes to icon-only buttons in:
+  - `DashboardBuilder.tsx` — widget delete
+  - `WidgetPicker.tsx` — close picker
+  - `DocumentViewer.tsx` — pointer, comment, zoom in/out, fit-to-width
+  - `ClassManagement.tsx` — back, close form, rename confirm/cancel, edit, delete
+  - `UserManagement.tsx` — refresh, user actions, copy invite link, revoke invite
+
+## Housekeeping (2026-03-24)
+
+- Simplified `.gitignore` to ignore entire `.claude/` directory instead of individual subdirectories
+
+## Redesign: Role-Based Onboarding Flow (2026-03-24)
+
+### New Onboarding UX (Duolingo for Schools style)
+
+- **Murid**: Masukkan kode kelas dari guru → langsung terdaftar sebagai siswa di sekolah & kelas tersebut
+- **Guru**: Isi nama + nama sekolah → sekolah baru dibuat, langsung terdaftar sebagai guru
+- **Admin**: Isi nama + nama sekolah → sekolah baru dibuat, langsung terdaftar sebagai admin
+
+### Database Changes (`20260324110000_role_based_onboarding.sql`)
+
+- Updated `create_school_tenant()` to accept `p_role` param (`teacher` or `admin`), generate slug, and update profile name
+- New `onboard_student_join_class()` RPC: looks up class by join_code, adds student to tenant + class + course enrollment in one call
+
+### Frontend Changes
+
+- Complete rewrite of `WorkspaceSelector.tsx`: role-picker → role-specific form, color-coded (emerald/blue/amber)
+
+## Fix: Google OAuth Profile Creation & B2B Onboarding (2026-03-24)
+
+### Bug Fix
+
+- **Root cause**: Google OAuth users got a 406 error because `handle_new_user` trigger failed to create a `profiles` row. The trigger used a hardcoded fallback tenant UUID that didn't exist, causing FK violation. Google also sends `full_name`/`name` metadata, not `first_name`/`last_name`.
+- **Result**: New Google users saw the old "Tidak Ada Akses Ruang Kerja" dead-end because `fetchUserData` silently failed on the 406.
+
+### Database Changes (`20260324100000_fix_handle_new_user_google_oauth.sql`)
+
+- Rewrote `handle_new_user()` trigger: parses Google OAuth metadata (`full_name`, `name`, `avatar_url`, `picture`), allows `NULL` tenant_id for B2B onboarding flow.
+- Created `ensure_profile_exists()` RPC: client-side safety net that auto-creates a profile if the trigger somehow missed it.
+- Backfill query: creates profile rows for any existing `auth.users` missing one.
+
+### Frontend Changes
+
+- `AuthContext.tsx`: `fetchUserData` now detects 406 (missing profile) and calls `ensure_profile_exists()` RPC as fallback, ensuring the onboarding UI always renders correctly.
+
+## Comprehensive E2E Test Suite — 24 Flows + Cross-Cutting (2026-03-24)
+
+Rewrote the entire `e2e/flows24/` Playwright test suite to provide deep, functional E2E coverage for all 24 production features plus 4 cross-cutting quality checks.
+
+### Test Coverage Summary (604 total test cases)
+
+- **Flow 1-3 (Auth & Access):** 18 tests — login form rendering, validation, invalid credentials, auth guard on all role routes, registration tab/form/step-2, role switching (student/teacher/admin cross-access), tenant guard, shared route access.
+- **Flow 4 (Course Browsing):** 3 tests — page load, enrolled courses or empty state, course navigation.
+- **Flow 5 (Course Builder):** 6 tests — teacher courses page, grid/empty state, search, create modal (open/fields/close), course builder page, back navigation.
+- **Flow 6 (Smart Player):** 3 tests — lesson viewer load, idle state, content/discussion/AI tutor tabs.
+- **Flow 7 (Class Management):** 6 tests — page load, class list/empty, create form, search, detail view (join code, students), quick action buttons.
+- **Flow 8 (Quiz Taking):** 5 tests — page load, stat cards, search/filter, tabs (Tersedia/Selesai), quiz cards/empty state.
+- **Flow 9 (Quiz Builder):** 4 tests — quiz manager load, class selector prompt, question bank, quiz gradebook.
+- **Flow 10 (SpeedGrader):** 2 tests — page load, grading interface/empty state.
+- **Flow 11 (Assignments):** 3 tests — page load, list/empty state, detail view interaction.
+- **Flow 12 (Student Dashboard):** 6 tests — dashboard load, XP/achievements, classes section, hub section, grades page, course selector.
+- **Flow 13 (Teacher Analytics):** 9 tests — analytics page, course selector, no-course prompt, overview cards on selection, teacher dashboard overview, class cards, teaching tools, action buttons, course analytics.
+- **Flow 14 (Gamification):** 3 tests — leaderboard, gamification hub, ranking/empty state.
+- **Flow 15 (Gradebook):** 6 tests — page load, course selector, stat cards, toolbar (search/filter/add/export), add column modal, assignment gradebook.
+- **Flow 16 (Forum):** 5 tests — page load, discussion list/empty, search/category filter, create post form, post click interaction.
+- **Flow 17 (Announcements):** 7 tests — page load, subtitle, search, filter buttons, filter interaction, list/empty, teacher create button.
+- **Flow 18 (Notifications):** 8 tests — page load, unread/all-read, filter tabs, tab switching, mark all read, empty state, pagination, settings collapsible.
+- **Flow 19 (Calendar):** 5 tests — page load, heading, view toggle (Bulan/Agenda), add button, month grid/agenda.
+- **Flow 20 (Admin Dashboard):** 11 tests — dashboard load, subtitle, system status, sync button, module config, quick actions, sync history, PDDIKTI integration, user management, admin analytics, moderation.
+- **Flow 21 (Attendance):** 3 tests — page load, summary cards/empty, history section.
+- **Flow 22 (Certificates):** 3 tests — page load, portfolio/empty, search.
+- **Flow 23 (Profile & Settings):** 11 tests — profile load, user info, student stats, teacher welcome, settings load, sidebar tabs, account form, security/password form, appearance themes, language/locale, danger zone logout.
+- **Flow 24 (AI Tutor):** 2 tests — dashboard FAB access, chat interface interaction.
+- **CC-1 (Dark Mode):** 18 tests — full sweep across all student/teacher/admin pages + login.
+- **CC-2 (Mobile 375px):** 20 tests — responsive sweep with overflow detection + bottom nav check.
+- **CC-3 (Console Errors):** 18 tests — error collection with smart ignore list across all pages.
+- **CC-4 (Loading/Empty States):** 14 tests — verifies no stuck spinners, proper empty states render.
+
+### Architecture
+
+- Uses `playwright-24.config.ts` with pre-authenticated storage state per role (student/teacher/admin).
+- `global.setup.ts` authenticates all 3 roles and saves to `e2e/.auth/*.json`.
+- Tests use `test.skip(testInfo.project.name !== 'role')` for role-specific filtering.
+- Resilient selectors: tests use Bahasa Indonesia text patterns with regex fallbacks.
+- Non-destructive: tests observe and verify UI state without mutating production data.
+
+### Files Modified
+
+- `e2e/flows24/auth.spec.ts` — Flows 1-3 (18 tests)
+- `e2e/flows24/student.spec.ts` — Flows 4, 6, 8, 11, 12, 14, 21, 22, 24 (37 tests)
+- `e2e/flows24/teacher.spec.ts` — Flows 5, 7, 9, 10, 13, 15 (37 tests)
+- `e2e/flows24/shared-admin.spec.ts` — Flows 16-20, 23 (65 tests)
+- `e2e/flows24/cross-cutting.spec.ts` — CC-1 to CC-4 (70 tests)
+
 ## Fase F: Production Launch & Puter.com Automation (2026-03-24)
 
 Menyiapkan aplikasi untuk rilis _production_ sesungguhnya dan mengotomatisasikan metode peluncuran ke Puter.com.

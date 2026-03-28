@@ -41,6 +41,22 @@ export default [
       // Import sorting
       'simple-import-sort/imports': 'warn',
       'simple-import-sort/exports': 'warn',
+
+      // File size guard — flag files over 400 lines
+      'max-lines': ['warn', { max: 400, skipBlankLines: true, skipComments: true }],
+
+      // Prevent deep relative imports — use @/ alias instead
+      'no-restricted-imports': [
+        'warn',
+        {
+          patterns: [
+            {
+              group: ['../../../*'],
+              message: 'Max 2 levels of relative imports. Use @/ alias instead.',
+            },
+          ],
+        },
+      ],
     },
   },
   // Vitest globals for test files

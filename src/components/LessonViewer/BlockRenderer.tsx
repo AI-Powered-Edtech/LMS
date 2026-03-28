@@ -1,11 +1,13 @@
+import { ScormPlayer } from '@/src/features/lessons/components/ScormPlayer'
 import type { LessonResource } from '@/src/features/lessons/types'
-import type { Quiz, Assignment } from '@/src/features/lessons/types'
+import type { Assignment, Quiz } from '@/src/features/lessons/types'
+import { QuizViewer } from '@/src/features/quizzes/components/QuizViewer'
+
+import { AssignmentViewer } from './AssignmentViewer'
+import { FileBlockViewer } from './blocks/FileBlockViewer'
+import { ImageBlockViewer } from './blocks/ImageBlockViewer'
 import { MarkdownBlock } from './blocks/MarkdownBlock'
 import { VideoBlock } from './blocks/VideoBlock'
-import { ImageBlockViewer } from './blocks/ImageBlockViewer'
-import { FileBlockViewer } from './blocks/FileBlockViewer'
-import { QuizViewer } from '@/src/features/quizzes/components/QuizViewer'
-import { AssignmentViewer } from './AssignmentViewer'
 
 interface BlockRendererProps {
   block: LessonResource
@@ -46,6 +48,7 @@ export function BlockRenderer({
         <VideoBlock
           blockId={block.id}
           url={block.url || ''}
+          metadata={block.metadata}
           isCompleted={isCompleted}
           savedVideoPosition={savedVideoPosition}
           onProgressUpdate={onProgressUpdate ?? (() => {})}
@@ -105,6 +108,19 @@ export function BlockRenderer({
           onStartViewing={onStartViewing ?? (() => {})}
         />
       )
+
+    case 'scorm': {
+      const scormPackageId = block.metadata?.scorm_package_id as string | undefined
+      if (!scormPackageId)
+        return <div className="px-6 py-4 text-slate-500 text-sm">Paket SCORM tidak ditemukan.</div>
+      return (
+        <ScormPlayer
+          scormPackageId={scormPackageId}
+          lessonId={block.lesson_id}
+          onCompletionMet={onCompletionMet ?? (() => {})}
+        />
+      )
+    }
 
     default:
       if (import.meta.env.DEV) {

@@ -71,11 +71,38 @@ export function useCourseActions(
     setSavingStatus('saving')
     try {
       await builderCourseService.draftCourse(state.courseId, tenantId)
+      dispatch({ type: 'SET_COURSE_STATUS', status: 'draft' })
       setSavingStatus('saved')
     } catch {
       setSavingStatus('error')
     }
-  }, [state.courseId, tenantId, setSavingStatus])
+  }, [state.courseId, tenantId, dispatch, setSavingStatus])
 
-  return { loadCourse, publishCourse, draftCourse }
+  const submitForReview = useCallback(async () => {
+    if (!state.courseId || !tenantId) return
+    setSavingStatus('saving')
+    try {
+      await builderCourseService.submitForReview(state.courseId, tenantId)
+      dispatch({ type: 'SET_COURSE_STATUS', status: 'in_review' })
+      setSavingStatus('saved')
+      addToast({ type: 'success', message: 'Kursus diajukan untuk review' })
+    } catch {
+      setSavingStatus('error')
+    }
+  }, [state.courseId, tenantId, dispatch, setSavingStatus, addToast])
+
+  const approveCourse = useCallback(async () => {
+    if (!state.courseId || !tenantId) return
+    setSavingStatus('saving')
+    try {
+      await builderCourseService.approveCourse(state.courseId, tenantId)
+      dispatch({ type: 'SET_COURSE_STATUS', status: 'approved' })
+      setSavingStatus('saved')
+      addToast({ type: 'success', message: 'Kursus disetujui' })
+    } catch {
+      setSavingStatus('error')
+    }
+  }, [state.courseId, tenantId, dispatch, setSavingStatus, addToast])
+
+  return { loadCourse, publishCourse, draftCourse, submitForReview, approveCourse }
 }

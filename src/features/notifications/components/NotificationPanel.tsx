@@ -10,7 +10,7 @@ import {
   Settings,
   Zap,
 } from 'lucide-react'
-import { memo } from 'react'
+import { memo, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { cn } from '@/src/utils/cn'
@@ -85,28 +85,33 @@ function resolveUrl(notification: Notification): string | null {
 
 // ─── Notification Item ────────────────────────────────────────────────────────
 
+// ⚡ Perf: Changed interface from `onRead: () => void` to `markRead: (id) => void`.
+// Previously the parent passed `onRead={() => markRead(n.id)}` — a new arrow function
+// per notification per render — which defeated the React.memo on NotificationItem.
+// Now the stable `markRead` reference is passed once, and the child calls it with
+// its own notification ID internally.
 interface NotificationItemProps {
   notification: Notification
-  onRead: () => void
+  markRead: (id: string) => void
   onClose: () => void
 }
 
 const NotificationItem = memo(function NotificationItem({
   notification,
-  onRead,
+  markRead,
   onClose,
 }: NotificationItemProps) {
   const navigate = useNavigate()
   const url = resolveUrl(notification)
   const bodyText = notification.message
 
-  function handleClick() {
-    if (!notification.is_read) onRead()
+  const handleClick = useCallback(() => {
+    if (!notification.is_read) markRead(notification.id)
     if (url) {
       onClose()
       navigate(url)
     }
-  }
+  }, [notification.is_read, notification.id, markRead, url, onClose, navigate])
 
   return (
     <div
@@ -215,12 +220,7 @@ export const NotificationPanel = memo(function NotificationPanel({
           </div>
         ) : (
           recent.map((n) => (
-            <NotificationItem
-              key={n.id}
-              notification={n}
-              onRead={() => markRead(n.id)}
-              onClose={onClose}
-            />
+            <NotificationItem key={n.id} notification={n} markRead={markRead} onClose={onClose} />
           ))
         )}
       </div>

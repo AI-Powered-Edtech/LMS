@@ -6,10 +6,11 @@
  * Realtime subscription lifecycle is tied to the hook lifecycle.
  */
 
-import { useEffect } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { useQuery } from '@tanstack/react-query'
+
 import { useAuth } from '@/src/contexts/AuthContext'
+import { createQueryKeys } from '@/src/lib/queryKeys'
+
 import { leaderboardService } from '../api/leaderboardService'
 
 // Create query keys with tenant scoping
@@ -31,26 +32,13 @@ const leaderboardKeys = {
  */
 export function useLeaderboard(classId?: string | null) {
   const { tenantId } = useAuth()
-  const queryClient = useQueryClient()
 
   const query = useQuery({
     queryKey: leaderboardKeys.byClass(tenantId!, classId!),
     queryFn: () => leaderboardService.getLeaderboard(classId!, tenantId!),
     enabled: !!tenantId && !!classId,
+    refetchInterval: 60000, // Poll every 60s instead of holding a WebSocket connection
   })
-
-  // Realtime subscription — lifecycle tied to hook
-  useEffect(() => {
-    if (!tenantId || !classId) return
-
-    const unsubscribe = leaderboardService.subscribeToLeaderboard(classId, tenantId, () => {
-      queryClient.invalidateQueries({
-        queryKey: leaderboardKeys.byClass(tenantId, classId),
-      })
-    })
-
-    return unsubscribe
-  }, [tenantId, classId, queryClient])
 
   return query
 }

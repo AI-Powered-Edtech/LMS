@@ -21,13 +21,14 @@ export const calendarService = {
    * Fetch and aggregate calendar events from multiple sources:
    * assignments, class schedules, and quizzes.
    */
-  async fetchEvents(): Promise<CalendarEvent[]> {
+  async fetchEvents(tenantId: string): Promise<CalendarEvent[]> {
     const events: CalendarEvent[] = []
 
     // 1. Assignment due dates
     const { data: assignments } = await supabase
       .from('assignments')
       .select('id, title, due_date, description')
+      .eq('tenant_id', tenantId)
       .not('due_date', 'is', null)
       .order('due_date')
 
@@ -50,7 +51,8 @@ export const calendarService = {
     // 2. Class schedules (recurring)
     const { data: schedules } = await supabase
       .from('class_schedules')
-      .select('id, day, start_time, end_time, classes(name)')
+      .select('id, day, start_time, end_time, tenant_id, classes(name)')
+      .eq('tenant_id', tenantId)
 
     if (schedules) {
       const dayMap: Record<string, number> = {
@@ -91,7 +93,12 @@ export const calendarService = {
     }
 
     // 3. Quizzes
-    const { data: quizzes } = await supabase.from('quizzes').select('id, title, created_at')
+    const { data: quizzes } = await supabase
+      .from('quizzes')
+      .select('id, title, created_at')
+      .eq('tenant_id', tenantId)
+      .order('created_at', { ascending: false })
+      .limit(200)
 
     if (quizzes) {
       quizzes.forEach((q) => {

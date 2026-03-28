@@ -1,12 +1,16 @@
-import { supabase } from '@/src/services/supabase/client'
+// ==========================================================================
+// Analytics Service — analyticsService.ts
+//
+// Main service object that orchestrates analytics queries and aggregation.
+// Delegates to analyticsQueries.ts and analyticsAggregation.ts.
+// All method signatures are preserved for backward compatibility.
+// ==========================================================================
 
-import {
+import type {
   ActivityMetrics,
   ActivityTimePoint,
-  AnalyticsError,
   CourseAnalytics,
   CourseEngagement,
-  CourseStatsRow,
   EngagementSummaryRow,
   EngagementTrendPoint,
   FunnelDefinition,
@@ -19,310 +23,58 @@ import {
   StudentPathStep,
   StudentPrediction,
   StudentSignal,
-  TeacherAnalyticsData,
   TenantAnalyticsData,
   TenantAnalyticsOverview,
 } from '../types'
-
-/**
- * Parse Supabase RPC error and return user-friendly error
- */
-function parseRpcError(error: unknown): AnalyticsError {
-  const errorMessage = error instanceof Error ? error.message : String(error)
-
-  // Check for specific error patterns
-  if (errorMessage.includes('function not found') || errorMessage.includes('does not exist')) {
-    return new AnalyticsError(
-      'Konfigurasi analitik belum lengkap. Silakan hubungi administrator sistem.',
-      'RPC_NOT_FOUND',
-      error
-    )
-  }
-
-  if (
-    errorMessage.includes('unauthorized') ||
-    errorMessage.includes('must be teacher') ||
-    errorMessage.includes('must be teacher or admin')
-  ) {
-    return new AnalyticsError(
-      'Anda tidak memiliki akses ke analitik kursus ini. Hanya guru dan admin yang dapat melihat.',
-      'PERMISSION_DENIED',
-      error
-    )
-  }
-
-  if (errorMessage.includes('course not found')) {
-    return new AnalyticsError(
-      'Kursus tidak ditemukan atau telah dihapus.',
-      'COURSE_NOT_FOUND',
-      error
-    )
-  }
-
-  if (errorMessage.includes('Tenant mismatch') || errorMessage.includes('tenant')) {
-    return new AnalyticsError(
-      'Akses ditolak. Kursus tidak termasuk dalam organisasi Anda.',
-      'TENANT_MISMATCH',
-      error
-    )
-  }
-
-  // Check for network errors
-  if (
-    errorMessage.includes('fetch') ||
-    errorMessage.includes('network') ||
-    errorMessage.includes('timeout')
-  ) {
-    return new AnalyticsError(
-      'Koneksi internet bermasalah. Silakan coba lagi.',
-      'NETWORK_ERROR',
-      error
-    )
-  }
-
-  return new AnalyticsError(
-    'Terjadi kesalahan saat memuat analitik. Silakan coba lagi.',
-    'UNKNOWN',
-    error
-  )
-}
+import { aggregateActivityMetrics, aggregateTenantOverview } from './analyticsAggregation'
+import {
+  deleteFunnelDefinition,
+  fetchActivityCounts,
+  fetchActivityTimeline,
+  fetchCourseEngagement,
+  fetchTenantCourseStats,
+  getAtRiskStudents,
+  getCourseAnalyticsDashboard,
+  getEngagementSummary,
+  getEngagementTrend,
+  getFunnelResults,
+  getLearningPaths,
+  getLessonAnalyticsDashboard,
+  getPredictionSummary,
+  getRetentionMatrix,
+  getStudentPath,
+  getStudentPrediction,
+  getStudentSignalsDashboard,
+  getTeacherAnalytics,
+  listFunnelDefinitions,
+  refreshAllCourseStats,
+  refreshCourseStats,
+  saveFunnelDefinition,
+} from './analyticsQueries'
 
 export const analyticsService = {
-  /**
-   * Refreshes the pre-aggregated course_stats.
-   * Note: In a production environment this should be called by a scheduled pg_cron job,
-   * but we provide it here for manual refreshes.
-   *
-   * @param courseId - The course ID to refresh stats for
-   * @param tenantId - Tenant ID passed to RPC for defense-in-depth isolation
-   */
-  async refreshCourseStats(courseId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase.rpc('refresh_course_stats', {
-      p_course_id: courseId,
-      p_tenant_id: tenantId,
-    })
+  refreshCourseStats,
+  getTeacherAnalytics,
+  refreshAllCourseStats,
 
-    if (error) {
-      if (import.meta.env.DEV) console.error('Failed to refresh course stats:', error)
-      throw parseRpcError(error)
-    }
-  },
-
-  /**
-   * Fetches the complete analytics dashboard JSON from the RPC.
-   *
-   * @param courseId - The course ID to get analytics for
-   * @param tenantId - Tenant ID passed to RPC for defense-in-depth isolation
-   */
-  async getTeacherAnalytics(
-    courseId: string,
-    tenantId: string
-  ): Promise<TeacherAnalyticsData | null> {
-    const { data, error } = await supabase.rpc('get_teacher_analytics', {
-      p_course_id: courseId,
-      p_tenant_id: tenantId,
-    })
-
-    if (error) {
-      if (import.meta.env.DEV) console.error('Failed to get teacher analytics:', error)
-      throw parseRpcError(error)
-    }
-
-    return data as TeacherAnalyticsData | null
-  },
-
-  /**
-   * Refresh all course stats (admin only)
-   */
-  async refreshAllCourseStats(_tenantId: string): Promise<void> {
-    const { error } = await supabase.rpc('refresh_all_course_stats')
-
-    if (error) {
-      if (import.meta.env.DEV) console.error('Failed to refresh all course stats:', error)
-      throw parseRpcError(error)
-    }
-  },
-
-  /**
-   * Fetches tenant-level analytics overview from course_stats table.
-   * Aggregates data across all courses in the tenant.
-   */
   async getTenantAnalyticsOverview(tenantId: string): Promise<TenantAnalyticsOverview> {
-    const { data, error } = await supabase
-      .from('course_stats')
-      .select(
-        'course_id, tenant_id, total_enrolled, active_students, avg_progress, avg_quiz_score, last_refreshed_at'
-      )
-      .eq('tenant_id', tenantId)
-
-    if (error) {
-      if (import.meta.env.DEV) console.error('Failed to get tenant analytics overview:', error)
-      throw new Error('Gagal memuat ringkasan analitik. Silakan coba lagi.')
-    }
-
-    const stats = (data as CourseStatsRow[]) || []
-
-    if (stats.length === 0) {
-      return {
-        totalEnrolled: 0,
-        activeStudents: 0,
-        totalCourses: 0,
-        coursesRunning: 0,
-        avgProgress: 0,
-        avgQuizScore: 0,
-        lastRefreshedAt: null,
-      }
-    }
-
-    // Aggregate across all courses
-    const totalEnrolled = stats.reduce((sum, s) => sum + (s.total_enrolled || 0), 0)
-    const activeStudents = stats.reduce((sum, s) => sum + (s.active_students || 0), 0)
-    const coursesRunning = stats.filter((s) => (s.active_students || 0) > 0).length
-    const avgProgress =
-      stats.length > 0 ? stats.reduce((sum, s) => sum + (s.avg_progress || 0), 0) / stats.length : 0
-    const avgQuizScore =
-      stats.length > 0
-        ? stats.reduce((sum, s) => sum + (s.avg_quiz_score || 0), 0) / stats.length
-        : 0
-
-    // Get most recent refresh timestamp
-    const lastRefreshedAt =
-      stats.length > 0
-        ? stats.reduce(
-            (latest, s) => {
-              const current = s.last_refreshed_at
-              return !latest || (current && new Date(current) > new Date(latest)) ? current : latest
-            },
-            null as string | null
-          )
-        : null
-
-    return {
-      totalEnrolled,
-      activeStudents,
-      totalCourses: stats.length,
-      coursesRunning,
-      avgProgress: Math.round(avgProgress * 10) / 10,
-      avgQuizScore: Math.round(avgQuizScore * 10) / 10,
-      lastRefreshedAt,
-    }
+    const stats = await fetchTenantCourseStats(tenantId)
+    return aggregateTenantOverview(stats)
   },
 
-  /**
-   * Fetches activity metrics from activity_events table.
-   * Counts events by type for the tenant within a time range.
-   */
   async getActivityMetrics(tenantId: string, days: number = 30): Promise<ActivityMetrics> {
-    const { data, error } = await supabase.rpc('get_tenant_activity_counts', {
-      p_tenant_id: tenantId,
-      p_days: days,
-    })
-
-    if (error) {
-      if (import.meta.env.DEV) console.error('Failed to get activity metrics via RPC:', error)
-      throw new Error('Gagal memuat metrik aktivitas. Silakan coba lagi.')
-    }
-
-    let lessonCompletions = 0
-    let quizAttempts = 0
-    let assignmentSubmissions = 0
-    let totalEvents = 0
-
-    const rows = (data as { event_type: string; count: number }[]) || []
-    rows.forEach((r) => {
-      const c = Number(r.count)
-      totalEvents += c
-      if (r.event_type === 'LESSON_COMPLETED') lessonCompletions += c
-      if (r.event_type === 'QUIZ_ATTEMPT' || r.event_type === 'QUIZ_SUBMITTED') quizAttempts += c
-      if (r.event_type === 'ASSIGNMENT_SUBMITTED') assignmentSubmissions += c
-    })
-
-    return {
-      lessonCompletions,
-      quizAttempts,
-      assignmentSubmissions,
-      totalEvents,
-    }
+    const rows = await fetchActivityCounts(tenantId, days)
+    return aggregateActivityMetrics(rows)
   },
 
-  /**
-   * Fetches course engagement data via a single RPC that joins course_stats + courses.
-   * Replaces the previous two-query pattern.
-   */
-  async getCourseEngagementStats(tenantId: string): Promise<CourseEngagement[]> {
-    const { data, error } = await supabase.rpc('get_course_engagement', {
-      p_tenant_id: tenantId,
-    })
-    if (error) {
-      if (import.meta.env.DEV) console.error('Failed to get course engagement stats:', error)
-      throw new Error('Gagal memuat data engagement kursus. Silakan coba lagi.')
-    }
-    return (data || []).map(
-      (r: {
-        course_id: string
-        course_name: string
-        total_enrolled: number
-        active_students: number
-        avg_progress: number
-        avg_quiz_score: number
-      }) => ({
-        courseId: r.course_id,
-        courseName: r.course_name,
-        enrolled: r.total_enrolled,
-        activeStudents: r.active_students,
-        avgProgress: r.avg_progress,
-        avgQuizScore: r.avg_quiz_score,
-      })
-    )
+  getCourseEngagementStats(tenantId: string): Promise<CourseEngagement[]> {
+    return fetchCourseEngagement(tenantId)
   },
 
-  /**
-   * Fetches activity timeline data for charts.
-   * Aggregation is done server-side via RPC to avoid loading raw event rows.
-   */
-  async getActivityTimeline(tenantId: string, days: number = 14): Promise<ActivityTimePoint[]> {
-    const { data, error } = await supabase.rpc('get_activity_timeline', {
-      p_tenant_id: tenantId,
-      p_days: days,
-    })
-
-    if (error) {
-      if (import.meta.env.DEV) console.error('Failed to get activity timeline:', error)
-      throw new Error('Gagal memuat timeline aktivitas. Silakan coba lagi.')
-    }
-
-    type RpcRow = {
-      event_date: string
-      lesson_completions: number
-      quiz_attempts: number
-      assignment_submissions: number
-    }
-    // Build a map from the RPC result for fast date lookup
-    const dataMap = new Map<string, RpcRow>((data ?? []).map((r: RpcRow) => [r.event_date, r]))
-
-    // Fill all days in range (including those with no events)
-    const result: ActivityTimePoint[] = []
-    const today = new Date()
-    for (let i = days - 1; i >= 0; i--) {
-      const d = new Date(today)
-      d.setDate(d.getDate() - i)
-      const key = d.toISOString().split('T')[0]
-      const row = dataMap.get(key)
-      result.push({
-        date: key,
-        lessonCompletions: Number(row?.lesson_completions ?? 0),
-        quizAttempts: Number(row?.quiz_attempts ?? 0),
-        assignmentSubmissions: Number(row?.assignment_submissions ?? 0),
-      })
-    }
-
-    return result
+  getActivityTimeline(tenantId: string, days: number = 14): Promise<ActivityTimePoint[]> {
+    return fetchActivityTimeline(tenantId, days)
   },
 
-  /**
-   * Fetches all tenant analytics data combined.
-   * This is the main entry point for the admin dashboard.
-   */
   async getTenantAnalytics(tenantId: string): Promise<TenantAnalyticsData> {
     const [overview, activityMetrics, courseEngagement, activityTimeline] = await Promise.all([
       this.getTenantAnalyticsOverview(tenantId),
@@ -340,146 +92,80 @@ export const analyticsService = {
   },
 
   // SP-12.3: Dashboard RPC methods
-
-  async getCourseAnalyticsDashboard(
+  getCourseAnalyticsDashboard(
     courseId: string,
     _tenantId: string
   ): Promise<CourseAnalytics | null> {
-    const { data, error } = await supabase.rpc('get_course_analytics', { p_course_id: courseId })
-    if (error) throw parseRpcError(error)
-    return (data as CourseAnalytics[])?.[0] ?? null
+    return getCourseAnalyticsDashboard(courseId, _tenantId)
   },
 
-  async getLessonAnalyticsDashboard(
-    courseId: string,
-    _tenantId: string
-  ): Promise<LessonAnalytics[]> {
-    const { data, error } = await supabase.rpc('get_lesson_analytics', { p_course_id: courseId })
-    if (error) throw parseRpcError(error)
-    return (data as LessonAnalytics[]) ?? []
+  getLessonAnalyticsDashboard(courseId: string, _tenantId: string): Promise<LessonAnalytics[]> {
+    return getLessonAnalyticsDashboard(courseId, _tenantId)
   },
 
-  async getStudentSignalsDashboard(
+  getStudentSignalsDashboard(
     courseId: string,
     _tenantId: string,
     lessonId?: string
   ): Promise<StudentSignal[]> {
-    const { data, error } = await supabase.rpc('get_student_signals', {
-      p_course_id: courseId,
-      p_lesson_id: lessonId ?? null,
-    })
-    if (error) throw parseRpcError(error)
-    return (data as StudentSignal[]) ?? []
+    return getStudentSignalsDashboard(courseId, _tenantId, lessonId)
   },
 
   // SP-14: Funnel Analysis
-  async saveFunnelDefinition(
+  saveFunnelDefinition(
     name: string,
     steps: string[],
     courseId?: string,
     funnelId?: string
   ): Promise<string> {
-    const { data, error } = await supabase.rpc('save_funnel_definition', {
-      p_name: name,
-      p_steps: steps,
-      p_course_id: courseId ?? null,
-      p_funnel_id: funnelId ?? null,
-    })
-    if (error) throw parseRpcError(error)
-    return data as string
+    return saveFunnelDefinition(name, steps, courseId, funnelId)
   },
 
-  async listFunnelDefinitions(courseId?: string): Promise<FunnelDefinition[]> {
-    const { data, error } = await supabase.rpc('list_funnel_definitions', {
-      p_course_id: courseId ?? null,
-    })
-    if (error) throw parseRpcError(error)
-    return ((data as Array<Record<string, unknown>>) ?? []).map((r) => ({
-      ...r,
-      steps: Array.isArray(r.steps) ? r.steps : JSON.parse(r.steps as string),
-    })) as unknown as FunnelDefinition[]
+  listFunnelDefinitions(courseId?: string): Promise<FunnelDefinition[]> {
+    return listFunnelDefinitions(courseId)
   },
 
-  async deleteFunnelDefinition(funnelId: string): Promise<void> {
-    const { error } = await supabase.rpc('delete_funnel_definition', { p_funnel_id: funnelId })
-    if (error) throw parseRpcError(error)
+  deleteFunnelDefinition(funnelId: string): Promise<void> {
+    return deleteFunnelDefinition(funnelId)
   },
 
-  async getFunnelResults(funnelId: string): Promise<FunnelStepResult[]> {
-    const { data, error } = await supabase.rpc('get_funnel_results', { p_funnel_id: funnelId })
-    if (error) throw parseRpcError(error)
-    return (data as FunnelStepResult[]) ?? []
+  getFunnelResults(funnelId: string): Promise<FunnelStepResult[]> {
+    return getFunnelResults(funnelId)
   },
 
   // SP-15: Retention & Cohort
-  async getRetentionMatrix(courseId: string, weeksBack: number = 8): Promise<RetentionRow[]> {
-    const { data, error } = await supabase.rpc('get_retention_matrix', {
-      p_course_id: courseId,
-      p_weeks_back: weeksBack,
-    })
-    if (error) throw parseRpcError(error)
-    return (data as RetentionRow[]) ?? []
+  getRetentionMatrix(courseId: string, weeksBack: number = 8): Promise<RetentionRow[]> {
+    return getRetentionMatrix(courseId, weeksBack)
   },
 
   // SP-16: Engagement Scoring
-  async getEngagementSummary(courseId: string): Promise<EngagementSummaryRow[]> {
-    const { data, error } = await supabase.rpc('get_engagement_summary', { p_course_id: courseId })
-    if (error) throw parseRpcError(error)
-    return (data as EngagementSummaryRow[]) ?? []
+  getEngagementSummary(courseId: string): Promise<EngagementSummaryRow[]> {
+    return getEngagementSummary(courseId)
   },
 
-  async getEngagementTrend(courseId: string, days: number = 30): Promise<EngagementTrendPoint[]> {
-    const { data, error } = await supabase.rpc('get_engagement_trend', {
-      p_course_id: courseId,
-      p_days: days,
-    })
-    if (error) throw parseRpcError(error)
-    return (data as EngagementTrendPoint[]) ?? []
+  getEngagementTrend(courseId: string, days: number = 30): Promise<EngagementTrendPoint[]> {
+    return getEngagementTrend(courseId, days)
   },
 
   // SP-17: Learning Path Analysis
-  async getLearningPaths(courseId: string, minUsers: number = 1): Promise<LearningPath[]> {
-    const { data, error } = await supabase.rpc('get_learning_paths', {
-      p_course_id: courseId,
-      p_min_users: minUsers,
-    })
-    if (error) throw parseRpcError(error)
-    return (data as LearningPath[]) ?? []
+  getLearningPaths(courseId: string, minUsers: number = 1): Promise<LearningPath[]> {
+    return getLearningPaths(courseId, minUsers)
   },
 
-  async getStudentPath(userId: string, courseId: string): Promise<StudentPathStep[]> {
-    const { data, error } = await supabase.rpc('get_student_path', {
-      p_user_id: userId,
-      p_course_id: courseId,
-    })
-    if (error) throw parseRpcError(error)
-    return (data as StudentPathStep[]) ?? []
+  getStudentPath(userId: string, courseId: string): Promise<StudentPathStep[]> {
+    return getStudentPath(userId, courseId)
   },
 
   // SP-19: Predictive Analytics
-  async getAtRiskStudents(courseId: string, minRisk: number = 0.3): Promise<StudentPrediction[]> {
-    const { data, error } = await supabase.rpc('get_at_risk_students', {
-      p_course_id: courseId,
-      p_min_risk: minRisk,
-    })
-    if (error) throw parseRpcError(error)
-    return (data as StudentPrediction[]) ?? []
+  getAtRiskStudents(courseId: string, minRisk: number = 0.3): Promise<StudentPrediction[]> {
+    return getAtRiskStudents(courseId, minRisk)
   },
 
-  async getStudentPrediction(userId: string, courseId: string): Promise<PredictionDetail | null> {
-    const { data, error } = await supabase.rpc('get_student_prediction', {
-      p_user_id: userId,
-      p_course_id: courseId,
-    })
-    if (error) throw parseRpcError(error)
-    return ((data as PredictionDetail[]) ?? [])[0] ?? null
+  getStudentPrediction(userId: string, courseId: string): Promise<PredictionDetail | null> {
+    return getStudentPrediction(userId, courseId)
   },
 
-  async getPredictionSummary(courseId: string): Promise<PredictionSummary | null> {
-    const { data, error } = await supabase.rpc('get_prediction_summary', {
-      p_course_id: courseId,
-    })
-    if (error) throw parseRpcError(error)
-    return ((data as PredictionSummary[]) ?? [])[0] ?? null
+  getPredictionSummary(courseId: string): Promise<PredictionSummary | null> {
+    return getPredictionSummary(courseId)
   },
 }

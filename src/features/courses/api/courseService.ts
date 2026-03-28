@@ -118,7 +118,11 @@ export const courseService = {
    * but we provide it here explicitly for completeness if the RLS allows it.
    */
   async createCourse(courseData: CourseInsert) {
-    const { data, error } = await supabase.from('courses').insert(courseData).select().single()
+    const { data, error } = await supabase
+      .from('courses')
+      .insert(courseData)
+      .select('id, title, description, status, created_at, updated_at, created_by, tenant_id')
+      .single()
 
     if (error) {
       logDevError('courseService', 'Error creating course:', error)
@@ -137,7 +141,7 @@ export const courseService = {
       .update(updates)
       .eq('id', courseId)
       .eq('tenant_id', tenantId)
-      .select()
+      .select('id, title, description, status, created_at, updated_at, created_by, tenant_id')
       .single()
 
     if (error) {

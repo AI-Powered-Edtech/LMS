@@ -1,5 +1,6 @@
+import { Plus, Save, X } from 'lucide-react'
 import { useState } from 'react'
-import { Plus, X, Save } from 'lucide-react'
+
 import { useSaveFunnel } from '../queries/analyticsQueries'
 
 const ALL_EVENT_TYPES = [

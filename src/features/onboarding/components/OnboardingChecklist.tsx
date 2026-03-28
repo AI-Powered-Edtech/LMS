@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
-import { CheckCircle2, Circle, ChevronDown, ChevronUp, X } from 'lucide-react'
-import { cn } from '@/src/utils/cn'
+import { CheckCircle2, ChevronDown, ChevronUp, Circle, X } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+
 import { useAuth } from '@/src/contexts/AuthContext'
 import { supabase } from '@/src/services/supabase/client'
+import { cn } from '@/src/utils/cn'
+
 import { ONBOARDING_STEPS, OnboardingProgress } from '../types'
 
 // ---------------------------------------------------------------------------
@@ -51,7 +53,7 @@ function OnboardingChecklistInner({ tenantId, userId }: InnerProps) {
           steps_completed: {},
           completed_at: null,
         })
-        .select()
+        .select('id, tenant_id, user_id, steps_completed, completed_at')
         .single()
       if (created) setProgress(created as OnboardingProgress)
     }
@@ -84,7 +86,7 @@ function OnboardingChecklistInner({ tenantId, userId }: InnerProps) {
         completed_at: allComplete ? new Date().toISOString() : null,
       })
       .eq('id', progress.id)
-      .select()
+      .select('id, tenant_id, user_id, steps_completed, completed_at')
       .single()
 
     if (data) setProgress(data as OnboardingProgress)

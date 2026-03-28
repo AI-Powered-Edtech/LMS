@@ -72,8 +72,8 @@ export function Onboarding() {
       bg: 'bg-blue-100',
     },
     {
-      title: 'AI Creator',
-      description: 'Buat materi, kuis, dan RPP secara otomatis dengan bantuan AI Creator kami.',
+      title: 'Kreator AI',
+      description: 'Buat materi, kuis, dan RPP secara otomatis dengan bantuan Kreator AI kami.',
       icon: Target,
       color: 'text-purple-500',
       bg: 'bg-purple-100',

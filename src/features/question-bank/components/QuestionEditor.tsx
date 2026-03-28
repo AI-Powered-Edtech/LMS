@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
-import { X, Plus, Trash2, Save, Loader2 } from 'lucide-react'
+import { Loader2, Plus, Save, Trash2, X } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import React, { useEffect, useState } from 'react'
+
 import {
-  questionBankService,
   CreateQuestionPayload,
+  questionBankService,
   UpdateQuestionPayload,
 } from '@/src/features/question-bank/api/questionBankService'
 import { QuestionType } from '@/src/features/quizzes'
@@ -202,6 +203,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
             <button
               onClick={onClose}
               className="p-2 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg"
+              aria-label="Tutup"
             >
               <X className="w-5 h-5" />
             </button>

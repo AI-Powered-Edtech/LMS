@@ -28,7 +28,9 @@ export const builderLessonService = {
         is_published: false,
         tenant_id: tenantId,
       })
-      .select()
+      .select(
+        'id, module_id, title, type, "order", is_published, duration_minutes, passing_score, tenant_id'
+      )
       .single()
 
     if (error) throw new Error(error.message)

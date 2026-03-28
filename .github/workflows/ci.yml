@@ -110,6 +110,39 @@ jobs:
             echo ":white_check_mark: All chunks within budget." >> $GITHUB_STEP_SUMMARY
           fi
 
+      # Coverage summary
+      - name: Coverage summary
+        if: always()
+        run: |
+          echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f coverage/coverage-summary.json ]; then
+            echo "### Global Coverage" >> $GITHUB_STEP_SUMMARY
+            echo "| Metric | Percentage |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-----------|" >> $GITHUB_STEP_SUMMARY
+            node -e "
+              const s = require('./coverage/coverage-summary.json').total;
+              const fmt = (m) => s[m].pct + '%';
+              console.log('| Statements | ' + fmt('statements') + ' |');
+              console.log('| Branches | ' + fmt('branches') + ' |');
+              console.log('| Functions | ' + fmt('functions') + ' |');
+              console.log('| Lines | ' + fmt('lines') + ' |');
+            " >> $GITHUB_STEP_SUMMARY
+          else
+            echo ":warning: No coverage summary found." >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Scoped Thresholds" >> $GITHUB_STEP_SUMMARY
+          echo "Coverage thresholds are enforced by vitest. The test step will fail if thresholds are not met." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Scope | Stmts | Branches | Fns | Lines |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|----------|-----|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| \`src/utils/**\` | 80% | 70% | 70% | 80% |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`src/features/**/api/**\` | 50% | 40% | 50% | 50% |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`src/hooks/**\` | 70% | 60% | 70% | 70% |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`src/contexts/**\` | 60% | 50% | 60% | 60% |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`src/features/**/hooks/**\` | 60% | 50% | 60% | 60% |" >> $GITHUB_STEP_SUMMARY
+
       # Upload coverage
       - name: Upload coverage
         uses: actions/upload-artifact@v4

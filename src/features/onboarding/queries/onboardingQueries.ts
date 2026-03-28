@@ -1,7 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/src/services/supabase/client'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
 import { createQueryKeys } from '@/src/lib/queryKeys'
-import { STALE, GC } from '@/src/utils/queryConstants'
+import { supabase } from '@/src/services/supabase/client'
+import { GC, STALE } from '@/src/utils/queryConstants'
+
 import type { OnboardingProgress } from '../types'
 
 const base = createQueryKeys('onboarding')
@@ -55,7 +57,7 @@ export function useUpdateOnboardingProgress(tenantId: string, userId: string) {
           completed_at: allDone ? new Date().toISOString() : null,
         })
         .eq('id', progressId)
-        .select()
+        .select('id, tenant_id, user_id, steps_completed, completed_at')
         .single()
       if (error) throw error
       return data as OnboardingProgress
