@@ -1,0 +1,9 @@
+--- package.json
++++ package.json
+@@ -107,7 +107,7 @@
+     "vite-plugin-pwa": "^1.2.0",
+     "vitest": "^4.1.2"
+   },
+-  "packageManager": "pnpm@10.32.1",
++  "packageManager": "pnpm@10.32.1"
+ }

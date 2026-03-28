@@ -20,7 +20,6 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
 
       - name: Run feature scorer
         run: node scripts/score-features.js

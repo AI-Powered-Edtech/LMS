@@ -1,0 +1,21 @@
+--- .github/workflows/ci.yml
++++ .github/workflows/ci.yml
+@@ -16,8 +16,6 @@
+         uses: actions/checkout@v4
+
+       - name: Install pnpm
+         uses: pnpm/action-setup@v4
+-        with:
+-          version: 10
+
+       - name: Set up Node.js
+         uses: actions/setup-node@v4
+@@ -162,8 +160,6 @@
+
+       - name: Install pnpm
+         uses: pnpm/action-setup@v4
+-        with:
+-          version: 10
+
+       - name: Set up Node.js
+         uses: actions/setup-node@v4
