@@ -19,6 +19,11 @@ CREATE TABLE IF NOT EXISTS public.api_rate_limits (
     UNIQUE(identifier, endpoint, window_start)
 );
 
+ALTER TABLE public.api_rate_limits ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Tenant isolation for api_rate_limits" ON public.api_rate_limits
+    FOR SELECT USING (true);
+
 -- Index for fast lookups
 CREATE INDEX IF NOT EXISTS idx_api_rate_limits_lookup 
 ON public.api_rate_limits(identifier, endpoint, window_start);
