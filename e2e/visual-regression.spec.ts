@@ -1,6 +1,7 @@
 import { test, expect, Page } from '@playwright/test'
 import path from 'path'
 import fs from 'fs'
+import { fileURLToPath } from 'url'
 
 /**
  * EduSync Visual Regression E2E Tests
@@ -14,6 +15,7 @@ import fs from 'fs'
  *   admin@edusync.dev   / password123
  */
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const SCREENSHOTS_DIR = path.join(__dirname, 'screenshots')
 
 // Ensure screenshots directory exists before tests run
