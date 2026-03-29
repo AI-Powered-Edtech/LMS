@@ -1,0 +1,37 @@
+--- src/pages/Assignments.tsx
++++ src/pages/Assignments.tsx
+@@ -144,17 +144,14 @@
+   }
+ 
+-  const handleUnsubmit = (id: string) => {
+-    setAssignments(
+-      assignments.map((a) =>
+-        a.id === id
+-          ? {
+-              ...a,
+-              status: 'assigned',
+-              studentSubmissions: (a.studentSubmissions || []).map((s) =>
+-                s.studentName === 'Anda'
+-                  ? { ...s, status: 'assigned', submittedAt: null, uploadedFiles: [] }
+-                  : s
+-              ),
+-            }
+-          : a
+-      )
+-    )
++  const handleUnsubmit = async (id: string) => {
++    try {
++      await assignmentService.unsubmitAssignment(id, user!.id, tenantId!)
++      refetch()
++      addToast({
++        type: 'success',
++        message: 'Tugas berhasil dibatalkan pengirimannya.',
++      })
++    } catch (err: unknown) {
++      addToast({
++        type: 'error',
++        message: 'Gagal membatalkan pengiriman tugas.',
++      })
++    }
+   }
+ 

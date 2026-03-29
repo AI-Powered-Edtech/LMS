@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+const fs = require('fs');
+
+const content = `import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useNetworkStatus } from '@/src/hooks/useNetworkStatus'
 import { deleteBuilderDraft, saveBuilderDraft } from '@/src/utils/offlineStorage'
@@ -96,3 +98,6 @@ export function useBuilderOffline(
 
   return { isOnline, isDirty, lastSavedAt, hasPendingDraft, saveNow, syncToServer }
 }
+`
+
+fs.writeFileSync('src/features/courses/builder/useBuilderOffline.ts', content)

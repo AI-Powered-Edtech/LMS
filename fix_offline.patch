@@ -1,0 +1,27 @@
+--- src/features/courses/builder/useBuilderOffline.ts
++++ src/features/courses/builder/useBuilderOffline.ts
+@@ -10,3 +10,3 @@
+ 
+-export function useBuilderOffline(courseId: string | null, state: BuilderState): OfflineState {
++export function useBuilderOffline(courseId: string | null, state: BuilderState, syncFn?: () => Promise<void>): OfflineState {
+   const { isOnline, wasOffline, resetWasOffline } = useNetworkStatus()
+@@ -58,3 +58,5 @@
+     if (wasOffline && isOnline && hasPendingDraft && courseId) {
+-      // The actual sync to Supabase is handled by the action hooks
+-      // We just clear the dirty state and pending draft
++      if (syncFn) {
++        syncFn().catch(console.error)
++      }
+       deleteBuilderDraft(courseId).then(() => {
+@@ -64,3 +66,3 @@
+       })
+     }
+-  }, [courseId, isOnline, hasPendingDraft, wasOffline, resetWasOffline])
++  }, [courseId, isOnline, hasPendingDraft, wasOffline, resetWasOffline, syncFn])
+ 
+@@ -75,2 +77,5 @@
+     if (!courseId) return
++    if (syncFn) {
++      await syncFn()
++    }
+     await deleteBuilderDraft(courseId)

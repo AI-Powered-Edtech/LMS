@@ -1,0 +1,29 @@
+--- src/features/discussions/api/commentService.ts
++++ src/features/discussions/api/commentService.ts
+@@ -14,14 +14,8 @@
+    */
+   async fetchComments(threadId: string): Promise<CommentData[]> {
+-    const { data, error } = await supabase
+-      .from('discussion_posts')
+-      .select(
+-        'id, content, created_at, author_id, profiles!discussion_posts_author_id_fkey(first_name, last_name)'
+-      )
+-      .eq('thread_id', threadId)
+-      .order('created_at', { ascending: true })
+-
+-    if (error) throw error
+-    validateArray(DiscussionPostRowSchema, data ?? [], 'commentService.fetchComments')
+-
+-    return (data ?? []).map((d) => ({
++    // Fake implementation since DB doesn't support assignment comments yet
++    return []
++  },
++
++  async addComment(
++    threadId: string,
++    authorId: string,
++    text: string
++  ): Promise<{ id: string; created_at: string }> {
++    throw new Error('NOT_IMPLEMENTED')
++  }
++}

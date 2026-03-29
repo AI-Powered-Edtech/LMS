@@ -105,7 +105,7 @@ export function QuizModule() {
           initialAnswers={initialAnswers}
           initialQuestionIndex={initialQuestionIndex}
           isSubmitting={isSubmitting}
-          onSubmit={() => handleSubmitQuiz(initialAnswers)}
+          onSubmit={(answers) => handleSubmitQuiz(answers)}
         />
       </FeatureErrorBoundary>
     )

@@ -165,3 +165,11 @@ export async function getAssignmentResults(assignmentId: string, _tenantId: stri
 
   return data || []
 }
+export async function deleteQuizQuestion(questionId: string, tenantId: string) {
+  const { error } = await supabase
+    .from('quiz_questions')
+    .delete()
+    .eq('id', questionId)
+    .eq('tenant_id', tenantId)
+  if (error) throw error
+}

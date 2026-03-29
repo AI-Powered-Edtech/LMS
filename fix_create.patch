@@ -1,0 +1,87 @@
+--- src/pages/Assignments.tsx
++++ src/pages/Assignments.tsx
+@@ -168,43 +168,18 @@
+ 
+-  const handleCreateAssignment = (data: NewAssignmentData) => {
+-    const assignmentToAdd = {
+-      id: `a${Date.now()}`,
+-      title: data.title,
+-      type: data.type,
+-      description: data.description ?? '',
+-      dueDate: data.due_date,
+-      status: 'assigned' as const,
+-      grade: null,
+-      submittedAt: null,
+-      maxGrade: data.max_score,
+-      rawSubmissions: [],
+-      attachments: [],
+-      studentSubmissions: [
+-        {
+-          id: 1,
+-          studentName: 'Ahmad',
+-          status: 'assigned' as const,
+-          submittedAt: null,
+-          grade: null,
+-          uploadedFiles: [],
+-        },
+-        {
+-          id: 2,
+-          studentName: 'Bunga',
+-          status: 'assigned' as const,
+-          submittedAt: null,
+-          grade: null,
+-          uploadedFiles: [],
+-        },
+-        {
+-          id: 999,
+-          studentName: 'Anda',
+-          status: 'assigned' as const,
+-          submittedAt: null,
+-          grade: null,
+-          uploadedFiles: [],
+-        },
+-      ],
+-      comments: [],
+-    }
+-    setAssignments([assignmentToAdd as unknown as AssignmentUiState, ...assignments])
++  const handleCreateAssignment = async (data: NewAssignmentData) => {
++    try {
++      const newAssignment = await assignmentService.createAssignment({
++        tenant_id: tenantId!,
++        course_id: null,
++        lesson_id: null,
++        title: data.title,
++        instructions: data.description ?? null,
++        max_points: data.max_score,
++        max_attempts: 1,
++        is_published: true,
++        due_date: data.due_date,
++        created_by: user!.id,
++      })
++      
++      // Refetch from server to get correct state
++      refetch()
+ 
+@@ -212,5 +187,5 @@
+     addEvent({
+       title: `Tugas: ${data.title}`,
+       date: dueDateObj,
+-      time: dueDateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
++      time: '23:59',
+       type: 'assignment',
+@@ -224,5 +199,5 @@
+     addGradebookAssignment({
+-      id: assignmentToAdd.id.toString(),
++      id: newAssignment.id,
+       title: data.title,
+       type: 'assignment',
+@@ -237,3 +212,11 @@
+     setIsCreateModalOpen(false)
++    } catch (err: unknown) {
++      if (import.meta.env.DEV) console.error('Create assignment failed:', err)
++      addToast({
++        type: 'error',
++        message: 'Gagal membuat tugas. Silakan coba lagi.'
++      })
++    }
+   }

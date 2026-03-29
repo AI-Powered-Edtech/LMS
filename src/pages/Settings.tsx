@@ -1,5 +1,5 @@
 import { Bell, Globe, Lock, LogOut, Monitor, User } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useTheme, type Theme } from '@/src/contexts/ThemeContext'
@@ -7,6 +7,7 @@ import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
 import { captureError } from '@/src/utils/sentry'
 
+import { profilePreferences } from "@/src/features/profile/api/profilePreferences"
 import { AccountTab, AppearanceTab, SecurityTab, ToggleRow } from './SettingsTabs'
 
 type SettingsTab = 'account' | 'notifications' | 'security' | 'appearance' | 'language'
@@ -32,11 +33,34 @@ export function Settings() {
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('account')
 
-  const [notifEmail, setNotifEmail] = useState(true)
-  const [notifPush, setNotifPush] = useState(true)
-  const [notifAssignment, setNotifAssignment] = useState(true)
-  const [notifGrade, setNotifGrade] = useState(true)
-  const [notifAnnouncement, setNotifAnnouncement] = useState(true)
+  const initPrefs = user ? profilePreferences.getNotificationPreferences(user.id) : null;
+  const [notifEmail, setNotifEmail] = useState(initPrefs?.email ?? true)
+  const [notifPush, setNotifPush] = useState(initPrefs?.push ?? true)
+  const [notifAssignment, setNotifAssignment] = useState(initPrefs?.assignment ?? true)
+  const [notifGrade, setNotifGrade] = useState(initPrefs?.grade ?? true)
+  const [notifAnnouncement, setNotifAnnouncement] = useState(initPrefs?.announcement ?? true)
+
+  useEffect(() => {
+    if (user) {
+      profilePreferences.updateNotificationPreferences(user.id, {
+        email: notifEmail,
+        push: notifPush,
+        assignment: notifAssignment,
+        grade: notifGrade,
+        announcement: notifAnnouncement,
+      })
+    }
+  }, [notifEmail, notifPush, notifAssignment, notifGrade, notifAnnouncement, user])
+
+  const initLocale = user ? profilePreferences.getLocalePreferences(user.id) : null
+  const [language, setLanguage] = useState(initLocale?.language ?? "id")
+  const [timezone, setTimezone] = useState(initLocale?.timezone ?? "Asia/Jakarta")
+
+  useEffect(() => {
+    if (user) {
+      profilePreferences.updateLocalePreferences(user.id, { language, timezone })
+    }
+  }, [language, timezone, user])
 
   // NOTE: Profile editing and password changing are handled inside AccountTab and
   // SecurityTab components respectively — they own their own state. This page-level
@@ -182,7 +206,7 @@ export function Settings() {
                     Bahasa
                   </label>
                   <select
-                    defaultValue="id"
+                    value={language} onChange={(e) => setLanguage(e.target.value)}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white"
                   >
                     <option value="id">Bahasa Indonesia</option>
@@ -193,7 +217,7 @@ export function Settings() {
                     Zona Waktu
                   </label>
                   <select
-                    defaultValue="Asia/Jakarta"
+                    value={timezone} onChange={(e) => setTimezone(e.target.value)}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white"
                   >
                     <option value="Asia/Jakarta">WIB (UTC+7) — Jakarta</option>

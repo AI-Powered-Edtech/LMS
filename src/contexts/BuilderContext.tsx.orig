@@ -22,8 +22,6 @@ import {
 } from '@/src/features/courses/builder'
 import { useBuilderChannel } from '@/src/features/courses/builder/useBuilderChannel'
 import { useBuilderOffline } from '@/src/features/courses/builder/useBuilderOffline'
-import { courseService } from '@/src/features/courses/api/courseService'
-import { useToast } from '@/src/components/ui'
 import type { PresenceData } from '@/src/features/courses/builder/useBuilderPresence'
 import { useMobileBuilder } from '@/src/features/courses/builder/useMobileBuilder'
 import { DomainBlock } from '@/src/shared/types/blockTypes'
@@ -114,23 +112,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   )
 
   // Offline support
-  const addToast = useToast((s) => s.addToast)
-  const offline = useBuilderOffline(state.courseId, state, async () => {
-    if (!state.courseId || !tenantId) return
-    try {
-      await courseService.updateCourse(
-        state.courseId,
-        {
-          title: state.courseTitle,
-          description: state.courseDescription,
-        },
-        tenantId
-      )
-    } catch (e) {
-      console.error(e)
-      addToast({ type: 'error', message: 'Gagal menyinkronkan kursus ke server.' })
-    }
-  })
+  const offline = useBuilderOffline(state.courseId, state)
 
   // Ref to track activeLesson.id without causing callback re-creation
   const activeLessonIdRef = useRef<string | null>(null)

@@ -259,16 +259,6 @@ export function QuizManager() {
       const existingQs = form.questions.filter((q) => q.id)
       const newQs = form.questions.filter((q) => !q.id)
 
-      // Detect and delete removed questions
-      const currentQuizData = await quizService.getQuizWithQuestions(quizId!, tenantId!)
-      const existingDbIds = (currentQuizData?.quiz_questions || []).map((q: any) => q.id)
-      const newDbIds = existingQs.map(q => q.id!)
-      const deletedIds = existingDbIds.filter((id: string) => !newDbIds.includes(id))
-      
-      if (deletedIds.length > 0) {
-        await Promise.all(deletedIds.map((id: string) => quizService.deleteQuizQuestion(id, tenantId!)))
-      }
-
       // Update existing questions sequentially to avoid race conditions
       // where updateQuizQuestion and replaceQuestionOptions conflict
       for (const q of existingQs) {

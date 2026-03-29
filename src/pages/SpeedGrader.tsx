@@ -149,6 +149,7 @@ export function SpeedGrader() {
     const rect = documentRef.current.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * 100
     const y = ((e.clientY - rect.top) / rect.height) * 100
+    if (annotations.length === 0) addToast({ type: 'info', message: 'Fitur penyimpanan anotasi sedang dalam pengembangan.', duration: 5000 })
     setAnnotations((prev) => [...prev, { id: Date.now().toString(), x, y, text: '', isOpen: true }])
   }
 
