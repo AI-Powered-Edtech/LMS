@@ -15,11 +15,12 @@ export const versionService = {
   /**
    * Fetches the version history for a course without the heavy snapshot data
    */
-  async fetchCourseVersions(courseId: string) {
+  async fetchCourseVersions(courseId: string, tenantId: string) {
     const { data, error } = await supabase
       .from('course_versions')
       .select('id, course_id, version_number, commit_message, created_at, created_by, tenant_id')
       .eq('course_id', courseId)
+      .eq('tenant_id', tenantId)
       .order('version_number', { ascending: false })
 
     if (error) {

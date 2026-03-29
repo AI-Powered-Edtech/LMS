@@ -16,11 +16,12 @@ export const templateService = {
   /**
    * Fetches the templates for a specific type
    */
-  async fetchTemplates(type: 'course' | 'module' | 'lesson') {
+  async fetchTemplates(type: 'course' | 'module' | 'lesson', tenantId: string) {
     const { data, error } = await supabase
       .from('content_templates')
       .select('id, type, title, description, content, created_at, created_by, tenant_id')
       .eq('type', type)
+      .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false })
       .limit(50)
 

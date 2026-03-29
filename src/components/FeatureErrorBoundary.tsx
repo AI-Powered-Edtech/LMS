@@ -1,4 +1,4 @@
-import { AlertTriangle, RefreshCcw } from 'lucide-react'
+import { AlertCircle, AlertTriangle, LogIn, RefreshCcw } from 'lucide-react'
 import { Component, ErrorInfo, ReactNode } from 'react'
 
 import { captureError } from '@/src/utils/sentry'
@@ -25,6 +25,27 @@ function isChunkLoadError(error?: Error): boolean {
     msg.includes('Loading chunk') ||
     msg.includes('Loading CSS chunk')
   )
+}
+
+/**
+ * Detect authentication/session-related errors from error message patterns.
+ * Since this is a class component (can't use hooks), we inspect the error object.
+ */
+function isAuthError(error?: Error): boolean {
+  if (!error) return false
+  const msg = error.message.toLowerCase()
+  const authPatterns = [
+    'jwt',
+    'jwt expired',
+    'invalid claim',
+    'auth session missing',
+    'refresh_token_not_found',
+    'invalid refresh token',
+    'session_not_found',
+    'not authenticated',
+    'pgrst301',
+  ]
+  return authPatterns.some((pattern) => msg.includes(pattern))
 }
 
 /**
@@ -88,6 +109,30 @@ export class FeatureErrorBoundary extends Component<Props, State> {
               <RefreshCcw className="w-4 h-4" />
               Perbarui Halaman
             </button>
+          </div>
+        )
+      }
+
+      // Auth/session error — prompt user to re-login
+      if (isAuthError(this.state.error)) {
+        return (
+          <div className="flex flex-col items-center justify-center p-8 text-center min-h-[300px] bg-amber-50 dark:bg-amber-950/20 rounded-2xl border border-amber-100 dark:border-amber-900/30 transition-colors duration-300 h-full w-full">
+            <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center mb-4 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+              <AlertCircle className="w-8 h-8" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">
+              Sesi Anda telah berakhir
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-sm">
+              Silakan masuk kembali untuk melanjutkan menggunakan aplikasi.
+            </p>
+            <a
+              href="/#/login"
+              className="flex items-center gap-2 px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-xl transition-all focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+            >
+              <LogIn className="w-4 h-4" />
+              Masuk Kembali
+            </a>
           </div>
         )
       }

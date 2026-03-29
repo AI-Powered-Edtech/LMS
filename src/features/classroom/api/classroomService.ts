@@ -96,8 +96,8 @@ export const classroomService = {
   /**
    * Update classroom name.
    */
-  async updateClassroom(id: string, name: string): Promise<void> {
-    const { error } = await supabase.from('classes').update({ name }).eq('id', id)
+  async updateClassroom(id: string, name: string, tenantId: string): Promise<void> {
+    const { error } = await supabase.from('classes').update({ name }).eq('id', id).eq('tenant_id', tenantId)
     if (error) throw error
   },
 
@@ -181,12 +181,12 @@ export const classroomService = {
    * Subscribe to realtime classroom changes.
    * Returns cleanup function.
    */
-  subscribeToChanges(onUpdate: () => void): () => void {
+  subscribeToChanges(tenantId: string, onUpdate: () => void): () => void {
     const channel = supabase
       .channel('classrooms-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, onUpdate)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'enrollments' }, onUpdate)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'course_classes' }, onUpdate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'classes', filter: `tenant_id=eq.${tenantId}` }, onUpdate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'enrollments', filter: `tenant_id=eq.${tenantId}` }, onUpdate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'course_classes', filter: `tenant_id=eq.${tenantId}` }, onUpdate)
       .subscribe()
 
     return () => {
@@ -197,8 +197,8 @@ export const classroomService = {
   /**
    * Delete a classroom by ID.
    */
-  async deleteClassroom(classId: string): Promise<void> {
-    const { error } = await supabase.from('classes').delete().eq('id', classId)
+  async deleteClassroom(classId: string, tenantId: string): Promise<void> {
+    const { error } = await supabase.from('classes').delete().eq('id', classId).eq('tenant_id', tenantId)
     if (error) throw error
   },
 
@@ -259,7 +259,7 @@ export const classroomService = {
   /**
    * Remove a student from a class (soft delete).
    */
-  async removeStudent(enrollmentId: string, removedBy: string): Promise<void> {
+  async removeStudent(enrollmentId: string, removedBy: string, tenantId: string): Promise<void> {
     const { error } = await supabase
       .from('enrollments')
       .update({
@@ -268,6 +268,7 @@ export const classroomService = {
         removed_by: removedBy,
       })
       .eq('id', enrollmentId)
+      .eq('tenant_id', tenantId)
 
     if (error) throw error
   },

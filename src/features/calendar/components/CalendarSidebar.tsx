@@ -14,6 +14,7 @@ import { motion } from 'motion/react'
 import type { CalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
 import { getCountdown, getEventColor } from '@/src/features/calendar/utils/calendarUtils'
 import { cn } from '@/src/utils/cn'
+import { translateEventType } from '@/src/utils/statusTranslations'
 
 interface CalendarSidebarProps {
   selectedDate: Date | null
@@ -89,7 +90,7 @@ export function CalendarSidebar({
                         'text-white'
                       )}
                     >
-                      {event.type}
+                      {translateEventType(event.type)}
                     </span>
                     {countdown && !event.completed && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center gap-1">
