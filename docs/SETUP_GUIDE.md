@@ -17,6 +17,8 @@
 
 ## Langkah 1: Clone & Install Dependencies
 
+# <<<<<<< HEAD
+
 ```bash
 git clone <REPO_URL>
 cd LMS
@@ -309,3 +311,5 @@ supabase/
     ├── send-email-digest/
     └── send-push/
 ```
+
+> > > > > > > tundra-boa
