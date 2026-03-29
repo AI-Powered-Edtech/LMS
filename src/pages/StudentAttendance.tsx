@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { AlertCircle, Calendar, CheckCircle, Clock, XCircle } from 'lucide-react'
+import { useMemo } from 'react'
 
 import { EmptyState } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
@@ -59,15 +60,12 @@ export function StudentAttendance() {
     enabled: !!tenantId && !!user,
   })
 
-  if (isLoading) {
-    return <ProgressSkeleton />
-  }
-
   // Find this student's status in each record
   const myName = profile ? `${profile.first_name} ${profile.last_name}`.toLowerCase() : ''
 
-  const myRecords = (
-    records as unknown as Array<
+  // Bolt: Combine mapping and counting into a single pass to improve performance (O(n) instead of O(4n))
+  const { myRecords, totalHadir, totalAlpha, totalSakit } = useMemo(() => {
+    const recordsList = (records || []) as unknown as Array<
       Record<string, unknown> & {
         id: string
         scan_date: string
@@ -79,27 +77,53 @@ export function StudentAttendance() {
         permit_count?: number
       }
     >
-  ).map((r) => {
-    const details: { name: string; status: string }[] = r.details ?? []
-    const entry = details.find((d) => d.name?.toLowerCase().includes(myName.split(' ')[0]))
-    return {
-      id: r.id,
-      date: r.scan_date,
-      className: (Array.isArray(r.classes) ? r.classes[0]?.name : r.classes?.name) ?? 'Kelas',
-      status: entry?.status ?? 'hadir', // default to hadir if in the records
-      present: r.present_count ?? 0,
-      total:
-        (r.present_count ?? 0) +
-        (r.absent_count ?? 0) +
-        (r.sick_count ?? 0) +
-        (r.permit_count ?? 0),
-    }
-  })
 
-  const totalHadir = myRecords.filter((r) => r.status === 'hadir').length
-  const totalAlpha = myRecords.filter((r) => r.status === 'alpha').length
-  const totalSakit = myRecords.filter((r) => r.status === 'sakit').length
+    return recordsList.reduce(
+      (acc, r) => {
+        const details: { name: string; status: string }[] = r.details ?? []
+        const entry = details.find((d) => d.name?.toLowerCase().includes(myName.split(' ')[0]))
+        const status = entry?.status ?? 'hadir' // default to hadir if in the records
+
+        acc.myRecords.push({
+          id: r.id,
+          date: r.scan_date,
+          className: (Array.isArray(r.classes) ? r.classes[0]?.name : r.classes?.name) ?? 'Kelas',
+          status,
+          present: r.present_count ?? 0,
+          total:
+            (r.present_count ?? 0) +
+            (r.absent_count ?? 0) +
+            (r.sick_count ?? 0) +
+            (r.permit_count ?? 0),
+        })
+
+        if (status === 'hadir') acc.totalHadir++
+        else if (status === 'alpha') acc.totalAlpha++
+        else if (status === 'sakit') acc.totalSakit++
+
+        return acc
+      },
+      {
+        myRecords: [] as Array<{
+          id: string
+          date: string
+          className: string
+          status: string
+          present: number
+          total: number
+        }>,
+        totalHadir: 0,
+        totalAlpha: 0,
+        totalSakit: 0,
+      }
+    )
+  }, [records, myName])
+
   const pct = myRecords.length > 0 ? Math.round((totalHadir / myRecords.length) * 100) : 0
+
+  if (isLoading) {
+    return <ProgressSkeleton />
+  }
 
   return (
     <div className="flex-1 bg-slate-50 dark:bg-slate-700/50 p-4 md:p-8 overflow-y-auto">

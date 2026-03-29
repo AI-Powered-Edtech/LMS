@@ -86,9 +86,7 @@ describe('translateAuthError', () => {
   })
 
   it('harus translate "invalid token" error', () => {
-    expect(translateAuthError('Invalid token')).toBe(
-      'Tautan tidak valid atau sudah digunakan.'
-    )
+    expect(translateAuthError('Invalid token')).toBe('Tautan tidak valid atau sudah digunakan.')
   })
 
   it('harus case-insensitive untuk matching pesan', () => {
