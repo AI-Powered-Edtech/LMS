@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Check, ChevronDown, LogOut, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -9,6 +10,7 @@ import { ModuleId, useModuleConfig } from '@/src/hooks/useModuleConfig'
 import { useToast } from '@/src/hooks/useToast'
 import { navigationItems } from '@/src/shared/config/navigation'
 import { cn } from '@/src/utils/cn'
+import { captureError } from '@/src/utils/sentry'
 
 export function Sidebar() {
   const { addToast } = useToast()
@@ -217,6 +219,7 @@ export function Sidebar() {
               await signOut()
             } catch (e) {
               if (import.meta.env.DEV) console.error('[Sidebar] signOut error:', e)
+              captureError(e, { context: 'Sidebar.signOut' })
             } finally {
               navigate('/login')
             }

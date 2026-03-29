@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { CheckCircle, Flag, GraduationCap, MoreHorizontal, ThumbsUp } from 'lucide-react'
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'

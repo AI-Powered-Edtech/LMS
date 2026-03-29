@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import React, { useEffect, useState } from 'react'
 import { Navigate, useLocation, useParams } from 'react-router-dom'
 

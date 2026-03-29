@@ -46,6 +46,38 @@ export default [
       'max-lines': ['warn', { max: 400, skipBlankLines: true, skipComments: true }],
 
       // Prevent deep relative imports — use @/ alias instead
+      // Also enforce service layer: supabase client must only be used inside features/*/api/
+      'no-restricted-imports': [
+        'warn',
+        {
+          paths: [
+            {
+              name: '@/src/services/supabase/client',
+              message:
+                'Import supabase hanya dari service layer (src/features/*/api/). Lihat AGENTS.md.',
+            },
+          ],
+          patterns: [
+            {
+              group: ['../../../*'],
+              message: 'Max 2 levels of relative imports. Use @/ alias instead.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  // Allow supabase client import inside service files, infrastructure, and AuthContext
+  {
+    files: [
+      'src/features/*/api/**',
+      'src/features/*/builder/**',
+      'src/features/*/queries/**',
+      'src/contexts/AuthContext.tsx',
+      'src/services/**',
+      'src/utils/**',
+    ],
+    rules: {
       'no-restricted-imports': [
         'warn',
         {

@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import type { Meta, StoryObj } from '@storybook/react'
 
 import { Skeleton, SkeletonCard } from './Skeleton'

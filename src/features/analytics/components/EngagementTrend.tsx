@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { useMemo } from 'react'
 import {
   Area,
@@ -9,8 +10,9 @@ import {
   YAxis,
 } from 'recharts'
 
-import { EngagementTrendPoint } from '../types'
 import { useTheme } from '@/src/contexts/ThemeContext'
+
+import { EngagementTrendPoint } from '../types'
 
 interface EngagementTrendProps {
   data: EngagementTrendPoint[]
@@ -22,10 +24,6 @@ const tooltipFormatter = (value: unknown) => [`${value}`, 'Skor Rata-rata']
 export function EngagementTrend({ data }: EngagementTrendProps) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
-  if (data.length === 0)
-    return (
-      <p className="py-8 text-center text-sm text-slate-400">Belum ada data tren engagement.</p>
-    )
 
   // ⚡ Perf: memoize Date construction per item — typically 7-30 points
   const formatted = useMemo(
@@ -39,6 +37,11 @@ export function EngagementTrend({ data }: EngagementTrendProps) {
       }),
     [data]
   )
+
+  if (data.length === 0)
+    return (
+      <p className="py-8 text-center text-sm text-slate-400">Belum ada data tren engagement.</p>
+    )
 
   return (
     <ResponsiveContainer width="100%" height={180}>

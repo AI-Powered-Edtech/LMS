@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Award, Clock, Eye, Play, Star, ThumbsUp, Trophy, XCircle } from 'lucide-react'
 import { motion } from 'motion/react'
 import { lazy, Suspense, useEffect, useState } from 'react'

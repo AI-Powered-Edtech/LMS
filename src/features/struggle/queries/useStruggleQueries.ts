@@ -67,7 +67,7 @@ export function useStruggleAlerts(options?: {
     queryKey: struggleKeys.alerts(tenantId!, options),
     queryFn: () => struggleService.getStruggleAlerts(tenantId!, options),
     enabled: !!tenantId,
-    staleTime: STALE.MODERATE,
+    staleTime: STALE.DYNAMIC,
   })
 }
 

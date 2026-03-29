@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 // ⚡ Perf: Deterministic widths instead of Math.random() in render.
 // Math.random() in a style prop produces a different value on every render,
 // causing visual flicker as skeleton bars jump widths on re-render.

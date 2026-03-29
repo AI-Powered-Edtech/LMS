@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Skeleton } from '@/src/components/ui'
 
 export function QuizSkeleton() {

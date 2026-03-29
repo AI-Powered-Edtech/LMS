@@ -5,7 +5,7 @@ import { type Resolver,useForm } from 'react-hook-form'
 
 import { ClassDetailPanel } from '@/src/features/classroom/components/ClassDetailPanel'
 import { ClassListPanel } from '@/src/features/classroom/components/ClassListPanel'
-import { DeleteClassModal } from '@/src/features/classroom/components/DeleteClassModal'
+
 import { useClassManagementState } from '@/src/features/classroom/hooks/useClassManagementState'
 import { type ClassroomFormData,ClassroomFormSchema } from '@/src/shared/schemas/forms'
 
@@ -152,7 +152,7 @@ export function ClassManagement() {
           onSetRenamingClassId={s.setRenamingClassId}
           onSetRenameValue={s.setRenameValue}
           onHandleRename={s.handleRename}
-          onSetClassToDelete={s.setClassToDelete}
+          onDeleteClass={s.handleDeleteClass}
           onHandleCopy={s.handleCopy}
           onSetActiveClassroomId={s.setActiveClassroomId}
           onNavigate={s.navigate}
@@ -160,12 +160,7 @@ export function ClassManagement() {
         />
       </div>
 
-      <DeleteClassModal
-        isOpen={!!s.classToDelete}
-        isDeleting={s.isDeleting}
-        onConfirm={s.confirmDeleteClass}
-        onCancel={() => s.setClassToDelete(null)}
-      />
+
     </div>
   )
 }

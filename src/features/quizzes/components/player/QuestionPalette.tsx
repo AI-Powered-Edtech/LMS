@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { SubmitAnswer } from '@/src/features/quizzes'
 import { cn } from '@/src/utils/cn'
 

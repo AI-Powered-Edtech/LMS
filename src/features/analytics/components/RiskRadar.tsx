@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { useMemo } from 'react'
 import {
   CartesianGrid,
@@ -10,8 +11,9 @@ import {
   YAxis,
 } from 'recharts'
 
-import type { StudentPrediction } from '../types'
 import { useTheme } from '@/src/contexts/ThemeContext'
+
+import type { StudentPrediction } from '../types'
 
 interface Props {
   data: StudentPrediction[]
@@ -49,13 +51,6 @@ const CustomTooltip = ({ active, payload }: TooltipProps) => {
 export function RiskRadar({ data }: Props) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
-  if (data.length === 0) {
-    return (
-      <div className="flex h-48 items-center justify-center text-sm text-slate-400 dark:text-slate-500">
-        Belum ada data prediksi.
-      </div>
-    )
-  }
 
   // ⚡ Perf: memoize scatter point computation — scales with class size (30-200+ students)
   const points = useMemo(
@@ -67,6 +62,14 @@ export function RiskRadar({ data }: Props) {
       })),
     [data]
   )
+
+  if (data.length === 0) {
+    return (
+      <div className="flex h-48 items-center justify-center text-sm text-slate-400 dark:text-slate-500">
+        Belum ada data prediksi.
+      </div>
+    )
+  }
 
   return (
     <ResponsiveContainer width="100%" height={280}>

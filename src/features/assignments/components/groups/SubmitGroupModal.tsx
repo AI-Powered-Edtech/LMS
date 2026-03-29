@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { UploadCloud } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -23,8 +24,8 @@ export function SubmitGroupModal({ isPending, onCancel, onConfirm }: Props) {
           Serahkan Tugas Kelompok?
         </h2>
         <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
-          Tugas akan diserahkan atas nama seluruh anggota kelompok. Pastikan semua anggota
-          telah menyelesaikan bagiannya.
+          Tugas akan diserahkan atas nama seluruh anggota kelompok. Pastikan semua anggota telah
+          menyelesaikan bagiannya.
         </p>
 
         <div className="flex gap-3">

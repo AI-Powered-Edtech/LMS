@@ -12,6 +12,7 @@ import {
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
 import { supabase } from '@/src/services/supabase/client'
+import { captureError } from '@/src/utils/sentry'
 
 export function useLessonViewerState() {
   usePageTitle('Lesson Viewer')
@@ -156,6 +157,11 @@ export function useLessonViewerState() {
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error('Completion failed:', err)
+      captureError(err, {
+        context: 'useLessonViewerState',
+        action: 'completeLesson',
+        lessonId: state.lesson?.id,
+      })
       addToast({ message: 'Gagal menandai selesai. Coba lagi.', type: 'error' })
     }
   }, [state.lesson, state.status, tenantId, user?.id, actions, addToast])

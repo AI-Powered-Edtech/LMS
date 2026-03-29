@@ -1,87 +1,242 @@
 # EduSync LMS — Changelog
 
-## Phase 4 (Sprint 23B-D + Testing): Dark Mode Polish & Test Coverage (2026-03-26)
+## Service Layer Abstraction — Finishing Touches (2026-03-29)
 
-### Sprint 23B: Component Dark Mode Audit
+Closes all remaining direct Supabase calls outside the service layer. Target: **0 rogue imports** in pages/hooks/components (except `AuthContext.tsx`).
 
-- **Course Block Editors** — fixed missing `dark:` variants in `VideoBlockEditor`, `ImageBlockEditor`, `FileBlockEditor`, `TextBlockEditor`
-- **CourseBrowser gradient** — fixed gradient background: `dark:from-slate-900 dark:via-blue-900/10 dark:to-slate-900`
-- **40+ files audited** — courses, lessons, gradebook, assignments, discussions, calendar, shared UI; all confirmed with full dark mode coverage
+### 🏗️ New Service Files
 
-### Sprint 23C: Recharts Dark Mode
+- **`src/features/auth/api/authService.ts`** (new) — Wraps 8 auth RPCs + Edge Function calls: `ensureProfileExists`, `acceptInvitation`, `enrollStudent`, `validateInvitation`, `publicLookupClass`, `checkRateLimit`, `onboardStudentJoinClass`, `createSchoolTenant`.
+- **`src/features/settings/api/settingsService.ts`** (new) — Wraps `profiles.update` (name) and `supabase.auth.updateUser` (password): `updateProfile`, `changePassword`.
+- **`src/features/creator/api/creatorService.ts`** (new) — Wraps `generate-ai-content` Edge Function with full error classification: `generateAIContent`.
+- **`src/features/gamification/api/certificateService.ts`** (new) — Wraps `generate-pdf` Edge Function: `generatePdf`.
 
-- **FunnelChart** — fixed hardcoded `LabelList` fill color → conditional `isDark ? '#94a3b8' : '#64748b'`
-- **10 chart files audited** — AnalyticsCharts, AdminAnalyticsDashboard, QuestionDifficultyChart, SegmentPieChart, RiskRadar, EngagementRadar, StickinessDashboard, EngagementTrend, FinanceDashboard — all confirmed using `isDark` pattern
+### 🔧 Extended Existing Services
 
-### Sprint 23D / Phase 4: Testing & Coverage
+- **`assignmentService.ts`** — Added `getAssignmentsByTenant`, `getAssignmentById`, `getSubmissionText`.
+- **`classroomService.ts`** — Added `getActiveEnrollmentCount`, `getEnrolledStudents`, `removeStudent`. Exported `EnrolledStudent` interface (previously local to `useClassManagementState`).
+- **`lessonService.ts`** — Added `upsertScormRuntime` + `UpsertScormRuntimeParams` interface.
+- **`courseService.ts`** — Added `getTeacherName`.
+- **`administrationService.ts`** — Added `getAuditLogs`, `healthCheck`, `getAppMetrics`. Exported `AuditLog` interface.
 
-- **FinanceDashboard test** — fixed test using `renderWithProviders` → `renderWithAllProviders` (ThemeProvider was missing after Sprint 23C dark mode additions)
-- **8 admin tests** — bulk updated all admin page tests to `renderWithAllProviders` for Recharts dark mode compatibility
-- **9 new test files, 146 new tests** — added targeted unit tests for uncovered utilities and hooks:
-  - `sanitize.test.ts` (12 tests) — `escapeHtml` HTML entity encoding for XSS prevention
-  - `translateAuthError.test.ts` (18 tests) — Supabase auth error → Bahasa Indonesia translation
-  - `statusTranslations.test.ts` (33 tests) — course/assignment/quiz/invitation status translations
-  - `logDevError.test.ts` (12 tests) — dev-only console logging utility
-  - `prefetch.test.ts` (13 tests) — route prefetching with link rel=prefetch
-  - `animations.test.ts` (22 tests) — Framer Motion animation presets
-  - `usePageTitle.test.ts` (12 tests) — document title hook
-  - `useReducedMotion.test.ts` (9 tests) — prefers-reduced-motion media query hook
-  - `useArrowNavigation.test.ts` (15 tests) — keyboard arrow navigation hook
-- **Coverage thresholds calibrated** — `vitest.config.ts` thresholds updated to Phase 4 realistic baselines; Phase 5+ targets documented inline
-- **Final result: 120/120 test files, 717/717 tests pass, 0 coverage threshold errors**
+### 📦 Updated Callers (supabase imports removed)
 
-## Phase 22: Quick Wins, UX Polish, Feature Completion & Test Coverage (2026-03-25)
+- `AssignmentGradebook.tsx` — uses `assignmentService.getAssignmentsByTenant`
+- `SpeedGrader.tsx` — uses `assignmentService.getAssignmentById` + `getSubmissionText`
+- `useClassManagementState.ts` — uses `classroomService.getEnrolledStudents`, `getActiveEnrollmentCount`, `removeStudent`
+- `QuizManager.tsx` — uses `classroomService.getActiveEnrollmentCount`
+- `ScormPlayer.tsx` — uses `lessonService.upsertScormRuntime`
+- `CourseBrowser.tsx` — uses `courseService.getTeacherName`
+- `AuthContext.tsx` — uses `authService.ensureProfileExists`, `acceptInvitation`, `enrollStudent`
+- `useLoginState.ts` — uses `authService.validateInvitation`, `publicLookupClass`, `checkRateLimit`
+- `WorkspaceSelector.tsx` — uses `authService.onboardStudentJoinClass`, `createSchoolTenant`
+- `Settings.tsx` — uses `settingsService.updateProfile`, `changePassword`
+- `AuditDashboard.tsx` — uses `administrationService.getAuditLogs`
+- `SystemHealth.tsx` — uses `administrationService.healthCheck`, `getAppMetrics`
+- `Creator.tsx` — uses `creatorService.generateAIContent`
+- `Certificates.tsx` — uses `certificateService.generatePdf`
 
-### Sprint 22A: Quick Wins
+### 🔒 Enforcement
 
-- **LazyLoadTimeout** — timeout component for lazy-loaded chunks with retry option
-- **FeatureErrorBoundary session detection** — boundary now detects expired sessions and redirects to login instead of showing generic error UI
-- **Token refresh hardening** — improved token refresh failure handling in AuthContext, eager state clear before redirect
-- **ESLint no-floating-promises** — enforced `@typescript-eslint/no-floating-promises` across async event handlers and effect cleanups
-- **Status i18n fixes** — translated remaining English status values (`draft`, `published`, `in_review`, `approved`) to Bahasa Indonesia across course and assignment views
-- **Playwright visual project** — added `visual` project to Playwright config for screenshot regression tests
-- **Stagger animations on 7 grids** — applied Framer Motion stagger to all major grid/list renders (course catalog, assignments, quiz list, class list, members, leaderboard, notifications) for polished load feel
+- **`eslint.config.js`** — Added `no-restricted-imports` path rule for `@/src/services/supabase/client` (warn). Allowed in `src/features/*/api/**` and `src/contexts/AuthContext.tsx` via override config block.
+- **`AGENTS.md`** — Added rule: `supabase.from() di pages/hooks/components → Gunakan service layer di features/*/api/`
 
-### Sprint 22B: UX Polish
+---
 
-- **`useUndoableAction` hook** — generic hook wrapping an action with a 5-second undo window; shows toast with countdown and cancel button
-- **Undo toast for class deletion** — teacher class delete now uses `useUndoableAction`; deletion is deferred by 5 seconds and cancellable
-- **OfflineFormNotice** — reusable banner shown in forms when offline, blocking submission with "Tidak ada koneksi internet" message; added to CreateCourse, CreateAssignment, and CreateClass forms
-- **BottomNav badge counts** — mobile bottom navigation shows unread notification count badge and pending assignment count badge on relevant tabs
-- **Keyboard arrow navigation in sidebar** — course builder sidebar (and admin sidebar) supports Up/Down arrow key navigation between items, with Home/End shortcuts
-- **HelpButton with 8 route help entries** — floating help button appears on all main pages; 8 entries covering dashboard, courses, assignments, quizzes, gradebook, attendance, analytics, and settings
+## SQA Remediation — Wave 4: Final Gap Closure (2026-03-29)
 
-### Sprint 22C: Feature Completion
+Closes all remaining actionable gaps from SQA audit report `notion-report-2026-03-28T18-27-45.md`.
 
-- **Group Assignments** — full implementation:
-  - 3 new tables: `assignment_groups`, `assignment_group_members`, `group_submissions`
-  - 5 new RPCs: `get_student_group_assignment`, `get_teacher_group_overview`, `create_assignment_groups`, `submit_group_assignment`, `grade_group_submission`
-  - `StudentGroupView` — students see group members, submission status, and submit on behalf of group
-  - `TeacherGroupView` — teachers see group composition, submission progress, and grade per group
-- **Public Profile with privacy controls** — new feature module:
-  - Migration adding `is_public`, `show_badges`, `show_xp`, `show_courses` privacy flags to `profiles`
-  - `get_public_profile` RPC — returns public profile data respecting per-field privacy settings
-  - `update_profile_privacy` RPC — updates privacy flags; enforces owner-only access via RLS
-  - Public profile page at `/#/app/profile/:userId` with badges, XP, enrolled courses sections
-- **Form validation with react-hook-form + valibot** — migrated 4 high-traffic forms:
-  - `CreateCourseForm` — title, description, category required; slug auto-generated and unique-checked
-  - `CreateAssignmentForm` — title, due date, points range validation
-  - `LoginForm` — email format, password min-length, real-time field error display
-  - `OnboardingForm` — multi-step validation with per-step schema; blocks advancement on invalid fields
+### ✏️ UX — Autosave & Offline
 
-### Sprint 22D: Test Coverage
+- **`QuizEditorView.tsx`** — Wired `useDraftAutosave` hook: quiz form data (title, instructions, mode, settings) + questions auto-saved to localStorage every 3s when editing. Status badge "Tersimpan otomatis X detik lalu" shown in editor header next to Save button.
+- **`lessonService.ts`** — Migrated `QUEUE_KEY` progress queue from `localStorage` to `sessionStorage`: auto-cleared on tab close, smaller XSS window. Added 50KB size cap with LRU trimming (keeps last 20 items).
+- **`useQuizPageState.ts`** — Calls `cacheQuiz()` from `offlineStorage.ts` after quiz questions load successfully (was defined but never called). 24h TTL. Failure is silent/non-critical.
+- **`QuizCard.tsx`** — Added "Tersimpan offline" badge (WifiOff icon, emerald color) visible when quiz is cached in IndexedDB via `getCachedQuiz()`.
 
-- **26 unit tests** added across:
-  - `AuthContext` — 8 tests covering login, logout, token refresh, session detection, role resolution
-  - `useToast` hook — 6 tests covering queue, auto-dismiss, manual dismiss, stacking limit
-  - `useNetworkStatus` hook — 5 tests covering online/offline transitions and event listener cleanup
-  - `offlineStorage` utility — 7 tests covering IndexedDB read/write, queue flush, TTL eviction
-- **5 E2E smoke test flows** (`e2e/flows/`):
-  - `group-assignment.spec.ts` — teacher creates group assignment, student submits, teacher grades
-  - `public-profile.spec.ts` — user toggles privacy settings, verifies public view reflects changes
-  - `form-validation.spec.ts` — login, create-course, create-assignment forms reject invalid input
-  - `undo-delete.spec.ts` — class deletion shows undo toast; cancel restores class
-  - `offline-form.spec.ts` — offline notice appears in forms when network is blocked
+### ⚡ Reliability — onError & Mutations
+
+- **`quizPlayer.mutations.ts`** — Added `onError` to `useStartQuizAttempt` and `useSubmitQuizAttempt` with `captureError` + user-facing toast. Quiz submission failure now shows "Gagal mengirim jawaban kuis. Jawaban tersimpan lokal."
+- **`useClassroomQueries.ts`** — Added `onError` to `useAddClassroom`, `useUpdateClassroom`, `useJoinClassroom`.
+- **`useCourseVersions.ts`** — Added `onError` to `useSaveVersion` and `useRestoreVersion` (destructive operation now explicitly handles failure).
+- **`useLesson.ts`** — Added silent `onError` with `captureError` to `useLessonMutation` (no user toast — progress update failure should not interrupt lesson flow).
+
+### 📊 Performance — React Query staleTime
+
+- **`quizPlayer.queries.ts`** — Added `staleTime: STALE.DYNAMIC, gcTime: GC.NORMAL` to `useStudentQuizAssignments` and `useUserAttempts`.
+- **`assignmentQueries.ts`** — Added `staleTime: STALE.DYNAMIC, gcTime: GC.NORMAL` to `useAssignmentList`.
+- **`gamificationQueries.ts`** — `useStudentBadges`: `STALE.STATIC` → `STALE.MODERATE`; `useLeaderboardV2`: `STALE.MODERATE` → `STALE.DYNAMIC`.
+- **`useStruggleQueries.ts`** — `useStruggleAlerts`: `STALE.MODERATE` → `STALE.DYNAMIC` for real-time intervention use.
+
+### 🔧 Error Monitoring — captureError
+
+Added `captureError()` to 7 previously-silent production catch blocks:
+
+- `AssignmentGradebook.tsx` — `handleSelectAssignment`
+- `SpeedGrader.tsx` — `loadSubmission`
+- `useAnalyticsPageState.ts` — `loadCourses`
+- `Settings.tsx` — `handleSignOut`
+- `AuditDashboard.tsx` — `fetchAuditLogs`
+- `StudentClassPage.tsx` — `loadClassData`
+- `useClassManagementState.ts` — `fetchStudents`
+
+---
+
+## SQA Remediation — Wave 3: Sprint A/B/C + Infrastructure (2026-03-29)
+
+Final sprint closing all remaining SQA audit gaps.
+
+### 🔴 Sprint A — Security Quick Wins
+
+- **`AITutorPanel.tsx`** — Migrated AI tutor session IDs from `localStorage` to `sessionStorage`: (1) auto-clears on tab close eliminating storage quota leak across 100 lessons, (2) shorter XSS exploitation window. Added 20-session cleanup cap to prevent bloat.
+- **`client.ts`** — Removed `(window as any).supabase = supabase` dev exposure. Developers can use Supabase Dashboard instead of browser console.
+- **`featureFlags.ts`** — Fixed per-user rollout: `hashFlagName(name)` → `hashForRollout(name, userId)` so 50% rollout means 50% of users, not all-or-nothing per flag. Added `userId` parameter to `isFeatureEnabled`. Added clarity comment on tenant isolation approach.
+- **`FeatureErrorBoundary.tsx`** — Added `captureError()` in `componentDidCatch` — production crashes now reported to Sentry with featureName + componentStack.
+- **`AITutorPanel.tsx`, `useLessonViewerState.ts`, `useQuizPageState.ts`, `Header.tsx`, `Sidebar.tsx`, `useLessonActions.ts`** — Added `captureError()` to 7 critical catch blocks: AI tutor errors, lesson completion failures, quiz submission failures, logout errors, course builder select failures.
+
+### 🧪 Sprint B — Testing + UX
+
+- **`e2e/auth.spec.ts`** — Added 3 complete login flow tests: student login success/redirect, invalid credentials error display, rate limit countdown after 5 failed attempts.
+- **`e2e/gradebook/grade-notification.spec.ts`** — 2 E2E tests for student + teacher gradebook page load without JS errors.
+- **`src/hooks/useDraftAutosave.ts`** — Created generic draft autosave hook: debounced localStorage persistence, Indonesian status text ("Tersimpan X detik lalu"), `clearDraft`/`loadDraft` utilities.
+
+### 📊 Sprint C — Code Quality
+
+- **`useLesson.ts`** — Added `staleTime: STALE.MODERATE, gcTime: GC.LONG` to lesson data queries.
+- **`courseQueries.ts`** — Replaced hardcoded `5 * 60 * 1000` with `STALE.MODERATE` constant.
+- **`Unauthorized.tsx`** — WCAG 2.4.3: Auto-focus main heading on mount via `useRef` + `useEffect`. Keyboard users land on "Akses Ditolak" heading after redirect.
+- **`RouteAnnouncer.tsx`** — Added focus reset to `#main-content` on every route change.
+- **`StudentLayout.tsx`, `TeacherLayout.tsx`, `AdminLayout.tsx`** — Added `tabIndex={-1}` + `id="main-content"` to `<main>` elements for skip link + focus management targets.
+
+### 🏗️ Infrastructure
+
+- **`supabase/migrations/20260329000001_rate_limits_table.sql`** — `rate_limits` table: key, action, attempts, window_start. RLS enabled (deny-all, Edge Function service role only). Index on window_start.
+- **`supabase/functions/check-rate-limit/index.ts`** — New Edge Function: server-side rate limiting for login/password-reset. Fails open (allows request on service error). Returns `{ allowed, remaining, retryAfterMs }`.
+- **`useLoginState.ts`** — Server-side rate limit check wired: calls `check-rate-limit` Edge Function before login attempt. Client-side check still runs first (fast path). Fail-open on network error.
+
+---
+
+## SQA Remediation — Wave 2: Full Audit Implementation (2026-03-29)
+
+Continuation of SQA audit remediation. All remaining items from `notion-report-2026-03-28T18-27-45.md` implemented.
+
+### 🔴 CRITICAL Security (Remaining Phase 1 Items)
+
+- **`Profile.tsx`, `Forum.tsx`, `Certificates.tsx`** — Fixed same cross-tenant privilege escalation as RoleGuard: `isTeacher = role === 'teacher'` (global) changed to `isTeacher = activeRole === 'teacher'` (tenant-scoped). Admin in Tenant A switching to Tenant B as student no longer sees teacher UI in these pages.
+
+### 🛡️ Phase 2 — Server-Side Security
+
+- **`supabase/migrations/20260329000000_sqa_rls_audit.sql`** — RLS audit migration: enables `ROW LEVEL SECURITY` on tables that were missing it (`profiles`, `enrollments`, `course_modules`, `quiz_questions`, `quiz_options`). Adds tenant-scoped policies where absent. Idempotent (uses `IF NOT EXISTS` checks). Tables already covered by `enterprise_hardening_rls.sql` are untouched.
+- **`index.html`** — Added `Content-Security-Policy` meta tag: restricts scripts to `'self'`, fonts to Google Fonts, images to Supabase + DiceBear + data URIs, blocks `frame-src` and `object-src`.
+
+### 🔧 Error Handling & Reliability
+
+- **`src/utils/backgroundSync.ts`** — Added per-item attempt tracking (`MAX_ATTEMPTS = 3`), `captureError()` on permanent failure with full context (itemId, type, attemptId, attempts), Indonesian error toast when submission permanently lost, `updateItemAttempts` stub for future offlineStorage enhancement. `SyncResult` extended with `permanent` counter.
+
+### ⚡ Performance & UX
+
+- **`src/features/notifications/hooks/useNotifications.ts`** — Added Supabase Realtime channel (`notifications:{userId}`) with INSERT + UPDATE handlers for instant cache updates. Polling at 60s retained as safety net for Supabase Free Tier rate limits. Handles reconnection automatically via `removeChannel` cleanup.
+
+### ✅ Testing
+
+- **`src/components/guards/__tests__/RoleGuard.test.tsx`** — 6 unit tests: loading state, access granted, access denied, null activeRole, SECURITY regression (global role bypass blocked), multiple allowed roles.
+- **`src/utils/__tests__/sanitize.test.ts`** — 11 unit tests: all 5 HTML special chars, XSS img/script payloads, empty string, plain text, certificate attack vector.
+- **`src/contexts/__tests__/AuthContext.test.tsx`** — 4 unit tests: role hierarchy (admin > teacher > student), tenant isolation (activeRole from active tenant, not global).
+- **`e2e/security/tenant-isolation.spec.ts`** — 5 Playwright E2E tests: student blocked from admin/teacher routes, teacher blocked from admin, admin access works, SECURITY regression for activeRole check.
+- **`e2e/security/xss-certificate.spec.ts`** — 2 Playwright tests: escapeHtml correctly escapes all XSS characters, no script execution on page load.
+
+### 🏗️ Infrastructure
+
+- **`.github/workflows/ci.yml`** — Updated: uses `pnpm typecheck`, coverage run with `--run`, added bundlesize check (conditional on `bundlesize.config.json` existence).
+- **`bundlesize.config.json`** — Created: limits index bundle ≤200kB gzip, vendor ≤500kB gzip, CSS ≤60kB gzip.
+- **`package.json`** — Added `"bundlesize": "bundlesize"` script.
+
+### 🆕 Feature Completion (Phase 6)
+
+- **`src/pages/StruggleDashboard.tsx`** — New instructor dashboard for struggle detection: stats row (total/high-severity/unread alerts), collapsible config panel, alert list with student info + severity badges, mark-as-read (per-item + bulk), unread filter, loading skeleton, empty state, full dark mode, ARIA semantics.
+- **`src/app/routes/teacherRoutes.tsx`**, **`src/app/routes/adminRoutes.tsx`** — Added `/teacher/struggle` and `/admin/struggle` routes pointing to `StruggleDashboard`.
+- **`src/app/lazyPages.ts`** — Added `StruggleDashboard` lazy export.
+- **Question Bank** — Verified `QuestionBankPage` already fully implemented with virtualizer, search, type filter, `QuestionEditor` modal. Routes already registered in teacher/admin routes.
+- **AI Tutor** — Verified already embedded in `LessonViewer.tsx` as 3rd tab (`ai_tutor`), receiving `lessonId`, `lessonTitle`, `courseId` props. `AITutorPanel` is the full 336-line chat UI.
+- **`src/features/onboarding/components/StudentWelcome.tsx`** — First-run welcome modal for students: dismissible (localStorage flag), 3 quick-action cards (Kursus/Tugas/Jadwal), Mulai Belajar CTA, entrance animation.
+- **`src/features/onboarding/components/TeacherWelcome.tsx`** — First-run welcome modal for teachers: 3 quick actions (Buat Kursus/Undang Siswa/Buat Kuis).
+
+---
+
+## SQA Security & UX Remediation — Phase 1–4 (2026-03-29)
+
+Critical security fixes, UX improvements, and accessibility enhancements based on SQA Audit Report. Overall target: 5.8/10 → 8.5/10 production readiness score.
+
+### 🔴 CRITICAL Security Fixes (Production Blockers Resolved)
+
+- **`RoleGuard.tsx`** — Fixed cross-tenant privilege escalation: removed `|| allowedRoles.includes(role)` fallback that allowed admin in Tenant A to access admin routes in Tenant B. Now exclusively checks `activeRole` (tenant-scoped).
+- **`CertificateViewer.tsx`** — Fixed Stored XSS: all user-controlled fields (`profile.first_name`, `profile.last_name`, `cert.course_title`, `activeTenant.name`, `cert.certificate_number`) now escaped via `escapeHtml()` from `sanitize.ts` before `document.write()` interpolation.
+- **`Layout.tsx`** — Fixed layout role selection using `activeRole` instead of global `role` to prevent admin layout shown in wrong tenant context.
+- **`.env`** — Removed `VITE_DEV_PASSWORD=password123` hardcoded credential. Added comment directing to AGENTS.md for test credentials.
+
+### 🔐 Security Improvements
+
+- **`MathRenderer.tsx`** — Added `role="math"` and `aria-label` props for WCAG 1.1.1 compliance (blind students can now access mathematical content via screen readers). DOMPurify sanitization verified as correctly applied before `dangerouslySetInnerHTML`.
+
+### 🔧 Error Handling & Monitoring
+
+- **`AuthContext.tsx`** — Fixed 2 silent failure points:
+  - `processPendingInvite` now shows error toast ("Undangan tidak valid atau sudah kadaluarsa") instead of silently failing
+  - `processPendingJoinCode` now shows success toast on enrollment + error toast with actionable message on failure
+- **`AuthContext.tsx`** — Wired Sentry error tracking: `captureError()` called in all auth catch blocks; `setSentryUser()` called after successful role fetch; `clearSentryUser()` called on signOut.
+- **`Layout.tsx`** — Upgraded from basic `layout/OfflineBanner.tsx` to full-featured `ui/OfflineBanner.tsx` (has syncing state, dismissible, dark mode support, `role="status"` aria-live).
+
+### ♿ Accessibility (WCAG 2.1 AA)
+
+- **`Layout.tsx`** — Added skip link ("Lewati ke konten utama") for keyboard users, targeting `#main-content`. WCAG 2.4.1 (Bypass Blocks) compliance.
+- **`NotificationPanel.tsx`** — Added `aria-live="polite"` region, `role="list"`/`role="listitem"` semantics, `aria-label` with read/unread status on each notification item, `aria-hidden` on decorative icons.
+- **`Tabs.tsx`** — Added keyboard navigation (ArrowLeft/ArrowRight/Home/End keys), `tabIndex` management for roving tabindex pattern, `useReducedMotion` from motion/react to respect `prefers-reduced-motion` OS setting.
+
+### ⚡ UX Improvements
+
+- **`useNotifications.ts`** — Added optimistic updates for `markRead` and `markAllRead` mutations. UI updates instantly on click instead of waiting for server response.
+- **`NotificationPanel.tsx`** — Replaced raw spinning div with `SkeletonCard` components for consistent loading states.
+
+### 📊 Test Coverage
+
+- **`vitest.config.ts`** — Added mandatory thresholds for security-critical paths:
+  - `src/components/guards/**`: 85% statements/branches/functions/lines
+  - `src/utils/sanitize.ts`: 100% coverage required (XSS prevention depends on it)
+
+---
+
+## DX Improvements & Docs Overhaul (2026-03-29)
+
+Developer experience improvements and documentation audit across the entire project.
+
+### New Files
+
+- **`docs/DX.md`** — Comprehensive developer experience guide and complete documentation map; single entry point for all developer navigation
+- **`AGENTS.md`** — AI agent quick-reference configuration file (project identity, critical rules, key file locations, SQL gotchas, test accounts)
+
+### Documentation Fixed (npm→pnpm, outdated content removed)
+
+- **`README.md`** — Fixed project structure section (removed non-existent `config/`, `constants/`, `domain/` paths; added accurate `src/shared/`, `src/services/`, `src/app/routes/`); fixed scripts table (`pnpm lint` now correctly shows `eslint src/`, added `pnpm typecheck`, `pnpm storybook`, `pnpm analyze`); added link to `docs/DX.md`
+- **`CONTRIBUTING.md`** — Fixed all `npm` → `pnpm` commands; added pre-merge checklist items for `pnpm typecheck` + `pnpm lint`; added database migration requirements (RLS, `auto_set_tenant_id()` trigger, `SECURITY DEFINER` RPC pattern)
+- **`docs/DEVELOPER_RUNBOOK.md`** — Complete rewrite: fixed all `npm`/`npx` → `pnpm`; removed outdated archived migration references (836–840); removed `agent-browser` dependency; updated migration workflow; added bundle analysis section
+- **`docs/SETUP_GUIDE.md`** — Fixed Node.js ≥18 → ≥20; fixed `npm install` → `pnpm install`; updated Edge Functions list from 7 to **15 functions** (added `generate-pdf`, `health-check`, `send-email-digest`, `send-push`, `lti-jwks`, `lti-launch`, `lti-oidc-login`, `scorm-extract`); updated supabase folder structure to reflect 15 functions
+- **`docs/TESTING.md`** — Fixed all `npm` → `pnpm`; removed `agent-browser` references; fixed ship criteria to use `pnpm typecheck` + `pnpm lint`; replaced agent-browser manual testing section with Playwright-based approach
+- **`docs/ARCHITECTURE.md`** — Fixed `npm run build` → `pnpm build`; fixed `vendor-dnd` description (`@hello-pangea/dnd`); removed incorrect `vendor-pdf` chunk (replaced by Edge Function); updated chunk count 11→12; fixed incorrect `src/components/RoleRoute.tsx` reference to `src/app/routes/utils.tsx`
+
+### Phase 5 Template Artifact Removed
+
+Removed copy-pasted "Feature Module Cross-Reference" tables (with `<!-- Phase 5 Feature Cross-Reference -->` comments) from:
+
+- `docs/ARCHITECTURE.md`
+- `docs/DEVELOPER_RUNBOOK.md`
+- `docs/TESTING.md`
+- `docs/SETUP_GUIDE.md`
+- `docs/FEATURE_MATRIX.md`
+- `docs/ENGINEERING_ROADMAP.md`
+
+### Minor Fixes
+
+- `docs/ENGINEERING_ROADMAP.md` — Fixed Edge Functions count: 14 → 15
 
 ---
 

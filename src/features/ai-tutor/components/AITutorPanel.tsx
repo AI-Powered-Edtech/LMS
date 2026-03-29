@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 /**
  * AI Tutor Panel Component
  *
@@ -24,6 +25,7 @@ import {
 } from '@/src/features/ai-tutor'
 import { cn } from '@/src/utils/cn'
 import { aiTutorRateLimiter } from '@/src/utils/rateLimiter'
+import { captureError } from '@/src/utils/sentry'
 
 import { AITutorInput } from './AITutorInput'
 import { AITutorTyping } from './AITutorTyping'
@@ -60,7 +62,10 @@ export function AITutorPanel({
   const [difficulty, _setDifficulty] = useState<DifficultyLevel>(initialDifficulty)
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>(SUGGESTED_QUESTIONS)
   const [sessionId, setSessionId] = useState<string | undefined>(() => {
-    return localStorage.getItem(`ai_tutor_session_${lessonId}`) || undefined
+    // SECURITY: Use sessionStorage instead of localStorage:
+    // 1. Auto-cleared when tab closes — no storage quota leak across 100s of lessons
+    // 2. Shorter window for XSS exploitation (cleared when session ends)
+    return sessionStorage.getItem(`ai_tutor_session_${lessonId}`) || undefined
   })
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -128,7 +133,17 @@ export function AITutorPanel({
       const responseData = result.data!
       if (responseData.session_id && responseData.session_id !== sessionId) {
         setSessionId(responseData.session_id)
-        localStorage.setItem(`ai_tutor_session_${lessonId}`, responseData.session_id)
+        // SECURITY: sessionStorage — see comment on useState initializer above
+        sessionStorage.setItem(`ai_tutor_session_${lessonId}`, responseData.session_id)
+
+        // Cleanup: limit stored sessions to prevent storage bloat
+        // Keep only the 20 most recent sessions
+        const SESSION_PREFIX = 'ai_tutor_session_'
+        const sessionKeys = Object.keys(sessionStorage).filter((k) => k.startsWith(SESSION_PREFIX))
+        if (sessionKeys.length > 20) {
+          // Remove oldest entries (first ones added)
+          sessionKeys.slice(0, sessionKeys.length - 20).forEach((k) => sessionStorage.removeItem(k))
+        }
       }
 
       // Add AI response
@@ -144,6 +159,7 @@ export function AITutorPanel({
       setSuggestedQuestions((prev) => prev.filter((q) => q !== question))
     } catch (err) {
       if (import.meta.env.DEV) console.error('[AI Tutor] Unexpected error:', err)
+      captureError(err, { context: 'AITutorPanel.handleSendQuestion', lessonId })
       const errorMessage: AITutorMessage = {
         id: generateMessageId(),
         role: 'assistant',
@@ -163,7 +179,7 @@ export function AITutorPanel({
   }
 
   const handleClearChat = () => {
-    localStorage.removeItem(`ai_tutor_session_${lessonId}`)
+    sessionStorage.removeItem(`ai_tutor_session_${lessonId}`)
     setSessionId(undefined)
     setMessages([])
     setError(null)

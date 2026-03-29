@@ -1,0 +1,12 @@
+{
+  "entry": ["src/main.tsx", "src/App.tsx"],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignore": [
+    "src/**/__tests__/**",
+    "src/**/*.test.{ts,tsx}",
+    "src/**/*.spec.{ts,tsx}",
+    "src/setupTests.ts"
+  ],
+  "ignoreBinaries": ["vite", "tsc", "eslint", "prettier", "vitest", "playwright", "storybook"],
+  "ignoreExportsUsedInFile": true
+}

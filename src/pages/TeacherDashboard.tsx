@@ -20,6 +20,7 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { useAssignments } from '@/src/features/assignments/hooks/useAssignments'
 import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
 import { DashboardSkeleton } from '@/src/features/dashboards/components/DashboardSkeleton'
+import { TeacherWelcome } from '@/src/features/onboarding'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { navigationItems } from '@/src/shared/config/navigation'
 import { staggerContainer, staggerItem } from '@/src/utils/animations'
@@ -338,6 +339,8 @@ export function TeacherDashboard() {
           description="Aktivitas siswa akan muncul di sini saat mereka menyelesaikan tugas dan kuis."
         />
       </Card>
+
+      <TeacherWelcome />
     </div>
   )
 }

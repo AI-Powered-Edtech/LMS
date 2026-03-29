@@ -245,6 +245,67 @@ export const assignmentService = {
   },
 
   /**
+   * Fetches all assignments for a tenant (used by AssignmentGradebook).
+   * Returns a flat list ordered by created_at.
+   */
+  async getAssignmentsByTenant(tenantId: string): Promise<Assignment[]> {
+    const { data, error } = await supabase
+      .from('assignments')
+      .select(ASSIGNMENT_COLUMNS)
+      .eq('tenant_id', tenantId)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      logDevError('assignmentService', 'Error fetching assignments by tenant:', error)
+      throw error
+    }
+
+    return (data || []) as Assignment[]
+  },
+
+  /**
+   * Verify assignment exists and optionally belongs to a tenant (SpeedGrader auth check).
+   */
+  async getAssignmentById(assignmentId: string, tenantId?: string): Promise<Assignment | null> {
+    let query = supabase.from('assignments').select(ASSIGNMENT_COLUMNS).eq('id', assignmentId)
+    if (tenantId) query = query.eq('tenant_id', tenantId)
+
+    const { data, error } = await query.maybeSingle()
+
+    if (error) {
+      logDevError('assignmentService', 'Error fetching assignment by ID:', error)
+      throw error
+    }
+
+    return data as Assignment | null
+  },
+
+  /**
+   * Fetch a single submission's text (SpeedGrader inline view).
+   */
+  async getSubmissionText(
+    assignmentId: string,
+    studentId: string,
+    tenantId?: string
+  ): Promise<string | null> {
+    let query = supabase
+      .from('assignment_submissions')
+      .select('submission_text')
+      .eq('assignment_id', assignmentId)
+      .eq('student_id', studentId)
+    if (tenantId) query = query.eq('tenant_id', tenantId)
+
+    const { data, error } = await query.maybeSingle()
+
+    if (error) {
+      logDevError('assignmentService', 'Error fetching submission text:', error)
+      return null
+    }
+
+    return data?.submission_text ?? null
+  },
+
+  /**
    * Internal method to fetch assignments with submissions.
    * Supports pagination for scalability with large datasets.
    */

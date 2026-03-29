@@ -1,3 +1,5 @@
 export { OnboardingChecklist } from './components/OnboardingChecklist'
+export { StudentWelcome } from './components/StudentWelcome'
+export { TeacherWelcome } from './components/TeacherWelcome'
 export type { OnboardingProgress, OnboardingStep } from './types'
 export { ONBOARDING_STEPS } from './types'

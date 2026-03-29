@@ -3,8 +3,10 @@ import { useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
+import { settingsService } from '@/src/features/settings/api/settingsService'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
+import { captureError } from '@/src/utils/sentry'
 
 import { AccountTab, AppearanceTab, SecurityTab, ToggleRow } from './SettingsTabs'
 
@@ -37,11 +39,55 @@ export function Settings() {
   const [notifGrade, setNotifGrade] = useState(true)
   const [notifAnnouncement, setNotifAnnouncement] = useState(true)
 
-  const handleSignOut = async () => {
+  const handleSaveProfile = useCallback(async () => {
+    if (!fullName.trim()) return
+    setSavingProfile(true)
+    setProfileMessage(null)
+    try {
+      const [firstName, ...rest] = fullName.trim().split(' ')
+      const lastName = rest.join(' ')
+      await settingsService.updateProfile(user!.id, { firstName, lastName })
+      setProfileMessage({ type: 'success', text: 'Profil berhasil diperbarui.' })
+    } catch {
+      setProfileMessage({ type: 'error', text: 'Gagal memperbarui profil. Coba lagi.' })
+    } finally {
+      setSavingProfile(false)
+    }
+  }, [fullName, user])
+
+  const handleChangePassword = useCallback(async () => {
+    setPasswordMessage(null)
+    if (newPassword.length < 6) {
+      setPasswordMessage({ type: 'error', text: 'Kata sandi baru minimal 6 karakter.' })
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage({ type: 'error', text: 'Konfirmasi kata sandi tidak cocok.' })
+      return
+    }
+    setSavingPassword(true)
+    try {
+      await settingsService.changePassword(newPassword)
+      setPasswordMessage({ type: 'success', text: 'Kata sandi berhasil diubah.' })
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch {
+      setPasswordMessage({
+        type: 'error',
+        text: 'Gagal mengubah kata sandi. Pastikan kata sandi lama benar.',
+      })
+    } finally {
+      setSavingPassword(false)
+    }
+  }, [newPassword, confirmPassword])
+
+  const handleSignOut = useCallback(async () => {
     try {
       await signOut()
     } catch (e) {
       if (import.meta.env.DEV) console.error('[Settings] signOut error:', e)
+      captureError(e, { context: 'Settings.handleSignOut' })
     }
   }
 

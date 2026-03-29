@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertTriangle, Clock, Loader2, Play, X } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -48,14 +49,18 @@ export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: St
 
         <div className="space-y-3 mb-6">
           <div className="flex items-center justify-between py-3 px-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
-            <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Jumlah Soal</span>
+            <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              Jumlah Soal
+            </span>
             <span className="font-bold text-slate-800 dark:text-white">
               {pendingQuiz.quiz_questions?.length || 0} soal
             </span>
           </div>
           {(pendingQuiz.time_limit_minutes ?? 0) > 0 && (
             <div className="flex items-center justify-between py-3 px-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
-              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Batas Waktu</span>
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                Batas Waktu
+              </span>
               <span className="font-bold text-slate-800 dark:text-white">
                 {pendingQuiz.time_limit_minutes} menit
               </span>
@@ -63,7 +68,9 @@ export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: St
           )}
           {pendingQuiz.max_attempts && (
             <div className="flex items-center justify-between py-3 px-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
-              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Kesempatan</span>
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                Kesempatan
+              </span>
               <span className="font-bold text-slate-800 dark:text-white">
                 {pendingQuiz.max_attempts}× percobaan
               </span>

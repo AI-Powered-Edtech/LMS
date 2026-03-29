@@ -1,5 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { useToast } from '@/src/hooks/useToast'
+import { captureError } from '@/src/utils/sentry'
+
 import { CourseVersion, versionService } from '../api/versionService'
 
 /**
@@ -26,6 +29,13 @@ export function useSaveVersion() {
       // Invalidate the versions list to fetch the newly created version
       queryClient.invalidateQueries({ queryKey: ['course-versions', courseId] })
     },
+    onError: (err) => {
+      captureError(err, { context: 'useSaveVersion' })
+      useToast.getState().addToast({
+        type: 'error',
+        message: 'Gagal menyimpan versi kursus.',
+      })
+    },
   })
 }
 
@@ -42,6 +52,14 @@ export function useRestoreVersion() {
       queryClient.invalidateQueries({ queryKey: ['courses'] })
       queryClient.invalidateQueries({ queryKey: ['course-modules'] })
       queryClient.invalidateQueries({ queryKey: ['lessons'] })
+    },
+    onError: (err, variables) => {
+      captureError(err, { context: 'useRestoreVersion', versionId: variables })
+      useToast.getState().addToast({
+        type: 'error',
+        message: 'Gagal memulihkan versi kursus.',
+        description: 'Perubahan tidak diterapkan. Coba lagi atau hubungi admin.',
+      })
     },
   })
 }

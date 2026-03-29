@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 // Question Difficulty Chart Component
 // Shows a horizontal bar chart of correct% vs incorrect% per question
 
@@ -14,8 +15,9 @@ import {
   YAxis,
 } from 'recharts'
 
-import type { QuestionStatsWithQuestion } from '../../api/quizAnalytics.service'
 import { useTheme } from '@/src/contexts/ThemeContext'
+
+import type { QuestionStatsWithQuestion } from '../../api/quizAnalytics.service'
 
 interface QuestionDifficultyChartProps {
   questions: QuestionStatsWithQuestion[]

@@ -12,6 +12,15 @@ export interface Classroom {
   student_count?: number
 }
 
+export interface EnrolledStudent {
+  id: string
+  student_id: string
+  full_name: string
+  email: string
+  enrolled_at: string
+  status: string
+}
+
 type UserRole = 'teacher' | 'student' | 'admin'
 
 export const classroomService = {
@@ -190,6 +199,76 @@ export const classroomService = {
    */
   async deleteClassroom(classId: string): Promise<void> {
     const { error } = await supabase.from('classes').delete().eq('id', classId)
+    if (error) throw error
+  },
+
+  /**
+   * Count active enrollments for a class.
+   */
+  async getActiveEnrollmentCount(classId: string, tenantId: string): Promise<number> {
+    const { count, error } = await supabase
+      .from('enrollments')
+      .select('id', { count: 'exact', head: true })
+      .eq('class_id', classId)
+      .eq('tenant_id', tenantId)
+      .eq('status', 'ACTIVE')
+
+    if (error) throw error
+    return count ?? 0
+  },
+
+  /**
+   * Fetch enrolled students with profile info for class management.
+   */
+  async getEnrolledStudents(classId: string, tenantId: string): Promise<EnrolledStudent[]> {
+    const { data, error } = await supabase
+      .from('enrollments')
+      .select(
+        `
+        id,
+        joined_at,
+        student:profiles!enrollments_student_id_fkey(id, full_name, email)
+      `
+      )
+      .eq('class_id', classId)
+      .eq('tenant_id', tenantId)
+      .eq('status', 'ACTIVE')
+    if (error) throw error
+
+    return (data || []).map(
+      (e: {
+        id: string
+        joined_at: string
+        student:
+          | { id: string; full_name: string; email: string }
+          | { id: string; full_name: string; email: string }[]
+      }) => {
+        const student = Array.isArray(e.student) ? e.student[0] : e.student
+        return {
+          id: e.id,
+          student_id: student?.id ?? '',
+          full_name: student?.full_name || 'Unnamed',
+          email: student?.email || '-',
+          enrolled_at: e.joined_at,
+          status: 'ACTIVE' as const,
+        }
+      }
+    )
+  },
+
+  /**
+   * Remove a student from a class (soft delete).
+   */
+  async removeStudent(enrollmentId: string, removedBy: string): Promise<void> {
+    const { error } = await supabase
+      .from('enrollments')
+      .update({
+        status: 'REMOVED',
+        removed_at: new Date().toISOString(),
+        removed_by: removedBy,
+      })
+      .eq('id', enrollmentId)
+
     if (error) throw error
   },
 }

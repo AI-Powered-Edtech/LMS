@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Eye, EyeOff } from 'lucide-react'
 import React, { useState } from 'react'
 import type { UseFormReturn } from 'react-hook-form'

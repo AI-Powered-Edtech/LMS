@@ -1,8 +1,10 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { useMemo } from 'react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
-import { EngagementSegment, EngagementSummaryRow } from '../types'
 import { useTheme } from '@/src/contexts/ThemeContext'
+
+import { EngagementSegment, EngagementSummaryRow } from '../types'
 
 const SEGMENT_COLORS: Record<EngagementSegment, string> = {
   high: '#10b981',
@@ -30,8 +32,6 @@ const tooltipFormatter = (value: unknown): [string, string] => [`${value}`, 'Sis
 export function SegmentPieChart({ data }: SegmentPieChartProps) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
-  if (data.length === 0)
-    return <p className="py-8 text-center text-sm text-slate-400">Belum ada data engagement.</p>
 
   // ⚡ Perf: memoize chart data transform
   const chartData = useMemo(
@@ -43,6 +43,9 @@ export function SegmentPieChart({ data }: SegmentPieChartProps) {
       })),
     [data]
   )
+
+  if (data.length === 0)
+    return <p className="py-8 text-center text-sm text-slate-400">Belum ada data engagement.</p>
 
   return (
     <ResponsiveContainer width="100%" height={220}>

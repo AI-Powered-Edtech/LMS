@@ -19,6 +19,14 @@ export function RouteAnnouncer() {
     return () => clearTimeout(timer)
   }, [location.pathname])
 
+  // Focus main content on route change so keyboard users start from the top
+  useEffect(() => {
+    const mainContent = document.getElementById('main-content')
+    if (mainContent) {
+      mainContent.focus()
+    }
+  }, [location.pathname])
+
   return (
     <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
       {announcement}

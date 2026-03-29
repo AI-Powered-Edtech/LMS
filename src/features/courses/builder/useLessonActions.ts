@@ -4,6 +4,7 @@ import { builderBlockService } from '@/src/features/courses/api/builder/blockSer
 import { builderLessonService } from '@/src/features/courses/api/builder/lessonService'
 import { useToast } from '@/src/hooks/useToast'
 import { DomainLesson } from '@/src/shared/types/lessonTypes'
+import { captureError } from '@/src/utils/sentry'
 
 import type { BuilderAction, BuilderState } from './builderReducer'
 
@@ -120,6 +121,7 @@ export function useLessonActions(
         dispatch({ type: 'LOAD_BLOCKS_SUCCESS', lessonId, blocks })
       } catch (err) {
         if (import.meta.env.DEV) console.error('Failed to load blocks:', err)
+        captureError(err, { context: 'useLessonActions.selectLesson', lessonId })
       }
     },
     [tenantId, dispatch]

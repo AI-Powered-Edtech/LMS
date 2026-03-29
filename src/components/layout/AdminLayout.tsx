@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
@@ -29,9 +30,7 @@ export function AdminLayout() {
   }, [sessionExpired, addToast, navigate])
 
   return (
-    <div
-      className="flex h-[100dvh] overflow-hidden font-sans flex-col transition-colors duration-300 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-    >
+    <div className="flex h-[100dvh] overflow-hidden font-sans flex-col transition-colors duration-300 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       <RouteAnnouncer />
       <a
         href="#main-content"
@@ -45,7 +44,8 @@ export function AdminLayout() {
           {!isHidden && <Header />}
           <main
             id="main-content"
-            className={`flex-1 overflow-y-auto overflow-x-hidden flex flex-col ${isHidden ? 'p-0' : 'p-2 sm:p-4 md:p-8'}`}
+            tabIndex={-1}
+            className={`flex-1 overflow-y-auto overflow-x-hidden flex flex-col outline-none ${isHidden ? 'p-0' : 'p-2 sm:p-4 md:p-8'}`}
           >
             <AnimatePresence mode="wait">
               <motion.div

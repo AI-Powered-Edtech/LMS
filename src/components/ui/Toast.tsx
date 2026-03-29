@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 

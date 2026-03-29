@@ -1,10 +1,11 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { FileText, FileUp, Link as LinkIcon, Paperclip, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { type Resolver,useForm } from 'react-hook-form'
+import { type Resolver, useForm } from 'react-hook-form'
 
 import { OfflineFormNotice } from '@/src/components/ui/OfflineFormNotice'
-import { type AssignmentFormData,AssignmentFormSchema } from '@/src/shared/schemas/forms'
+import { type AssignmentFormData, AssignmentFormSchema } from '@/src/shared/schemas/forms'
 
 export interface NewAssignmentData extends AssignmentFormData {
   class: string
@@ -27,7 +28,7 @@ export function CreateAssignmentModal({ isOpen, onClose, onCreate }: CreateAssig
     reset,
     formState: { errors },
   } = useForm<AssignmentFormData>({
-    resolver: (valibotResolver(AssignmentFormSchema) as unknown) as Resolver<AssignmentFormData>,
+    resolver: valibotResolver(AssignmentFormSchema) as unknown as Resolver<AssignmentFormData>,
     defaultValues: {
       title: '',
       description: '',

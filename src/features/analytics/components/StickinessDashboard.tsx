@@ -1,8 +1,10 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { useMemo } from 'react'
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
-import { RetentionRow } from '../types'
 import { useTheme } from '@/src/contexts/ThemeContext'
+
+import { RetentionRow } from '../types'
 
 interface StickinessDashboardProps {
   data: RetentionRow[]

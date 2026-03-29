@@ -10,8 +10,8 @@ import {
 } from '@/src/components/CourseOverview'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { courseService } from '@/src/features/courses'
+import { lessonService } from '@/src/features/lessons/api/lessonService'
 import { LessonSkeleton } from '@/src/features/lessons/components/LessonSkeleton'
-import { supabase } from '@/src/services/supabase/client'
 import { cn } from '@/src/utils/cn'
 
 // ============================================================
@@ -77,19 +77,14 @@ export function CourseBrowser({
         })
 
         // 2+5. Fetch modules and instructor profile in parallel
-        const [{ data: modulesData }, { data: profileData }] = await Promise.all([
-          supabase
-            .from('course_modules')
-            .select('id, title, order, course_id, lessons(id, duration_minutes)')
-            .eq('tenant_id', tenantId)
-            .eq('course_id', activeCourse.id)
-            .order('order', { ascending: true }),
-          supabase.from('profiles').select('full_name').eq('id', activeCourse.created_by).single(),
+        const [modulesData, teacherName] = await Promise.all([
+          courseService.getCourseModulesWithLessons(activeCourse.id, tenantId),
+          courseService.getTeacherName(activeCourse.created_by),
         ])
 
-        if (profileData?.full_name) setInstructorName(profileData.full_name)
+        if (teacherName) setInstructorName(teacherName)
 
-        if (!modulesData?.length) {
+        if (!modulesData.length) {
           setModules([])
           setLoading(false)
           return
@@ -100,19 +95,7 @@ export function CourseBrowser({
           (m) => (m.lessons || []).map((l) => l.id)
         )
 
-        let completedSet = new Set<string>()
-        if (allLessonIds.length > 0) {
-          const { data: progressData } = await supabase
-            .from('lesson_progress')
-            .select('lesson_id, completed')
-            .eq('user_id', user.id)
-            .in('lesson_id', allLessonIds)
-            .eq('completed', true)
-
-          if (progressData) {
-            completedSet = new Set(progressData.map((p) => p.lesson_id))
-          }
-        }
+        const completedSet = await lessonService.getCompletedLessonIds(user.id, allLessonIds)
 
         // 4. Build module progress data
         let totalL = 0

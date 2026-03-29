@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertTriangle, Loader2, ShieldAlert, TrendingDown, Users } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'

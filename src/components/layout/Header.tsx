@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Activity, Flame, LogOut, Moon, Star, Sun, UserCircle } from 'lucide-react'
 import { memo, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -11,6 +12,7 @@ import { NotificationBell as AppNotificationBell } from '@/src/features/notifica
 import { useStudentProgressData } from '@/src/features/progress/hooks/useStudentProgressQueries'
 import { NotificationBell as StruggleBell } from '@/src/features/struggle'
 import { cn } from '@/src/utils/cn'
+import { captureError } from '@/src/utils/sentry'
 
 export const Header = memo(function Header() {
   const { xp } = useStudentProgressData()
@@ -53,6 +55,7 @@ export const Header = memo(function Header() {
       await signOut()
     } catch (e) {
       if (import.meta.env.DEV) console.error('[Header] signOut error:', e)
+      captureError(e, { context: 'Header.handleLogout' })
     } finally {
       navigate('/login')
     }

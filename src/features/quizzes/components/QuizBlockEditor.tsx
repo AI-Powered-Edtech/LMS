@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { BarChart3, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 
 import { QuestionSearchModal } from '@/src/features/question-bank/components/QuestionSearchModal'
@@ -151,7 +152,9 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
                 disabled={s.isPublished}
                 className="w-4 h-4 rounded accent-blue-600"
               />
-              <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">Tampilkan jawaban benar</span>
+              <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                Tampilkan jawaban benar
+              </span>
             </label>
           </div>
         </div>

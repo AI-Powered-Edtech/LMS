@@ -1,10 +1,11 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { Paperclip, Send, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { type Resolver,useForm } from 'react-hook-form'
+import { type Resolver, useForm } from 'react-hook-form'
 
 import { OfflineFormNotice } from '@/src/components/ui/OfflineFormNotice'
-import { type AnnouncementFormData,AnnouncementFormSchema } from '@/src/shared/schemas/forms'
+import { type AnnouncementFormData, AnnouncementFormSchema } from '@/src/shared/schemas/forms'
 
 interface ExtendedFormData extends AnnouncementFormData {
   target_audience: 'all_students' | 'course_students' | 'course_staff' | 'system'
@@ -47,7 +48,7 @@ export function CreateAnnouncementModal({
     reset,
     formState: { errors },
   } = useForm<ExtendedFormData>({
-    resolver: (valibotResolver(AnnouncementFormSchema) as unknown) as Resolver<ExtendedFormData>,
+    resolver: valibotResolver(AnnouncementFormSchema) as unknown as Resolver<ExtendedFormData>,
     defaultValues: {
       title: '',
       content: '',

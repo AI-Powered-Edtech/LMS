@@ -49,7 +49,7 @@ export function useStudentBadges() {
         10
       ),
     enabled: !!tenantId && !!user,
-    staleTime: STALE.STATIC,
+    staleTime: STALE.MODERATE,
     gcTime: GC.LONG,
   })
 }
@@ -132,7 +132,7 @@ export function useLeaderboardV2(params?: {
         5
       ),
     enabled: !!tenantId,
-    staleTime: STALE.MODERATE,
+    staleTime: STALE.DYNAMIC,
   })
 }
 

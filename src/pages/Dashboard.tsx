@@ -24,6 +24,7 @@ import { useLeaderboard } from '@/src/features/gamification'
 import { BadgeShowcase } from '@/src/features/gamification/components/BadgeShowcase'
 import { BadgeUnlockToast } from '@/src/features/gamification/components/BadgeUnlockToast'
 import { LevelUpToast } from '@/src/features/gamification/components/LevelUpToast'
+import { StudentWelcome } from '@/src/features/onboarding'
 import { useStudentProgressData } from '@/src/features/progress/hooks/useStudentProgressQueries'
 import { RecommendationFeed } from '@/src/features/recommendations'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
@@ -173,6 +174,7 @@ export function Dashboard() {
       <BadgeRewardModal open={showBadgeModal} onClose={() => setShowBadgeModal(false)} />
       <BadgeUnlockToast />
       <LevelUpToast />
+      {role === 'student' && <StudentWelcome />}
     </div>
   )
 }

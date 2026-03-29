@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AnimatePresence, motion } from 'motion/react'
 
 import type { PresenceData } from '@/src/features/courses/builder/useBuilderPresence'

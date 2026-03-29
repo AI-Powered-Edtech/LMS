@@ -48,6 +48,21 @@ export interface SyncResult {
   timestamp?: string
 }
 
+// Audit log entry returned by get_audit_logs RPC
+export interface AuditLog {
+  log_id: string
+  actor_id: string
+  actor_name: string
+  actor_email: string
+  action: string
+  target_type: string
+  target_id: string | null
+  target_name: string
+  details: Record<string, unknown>
+  created_at: string
+  total_count: number
+}
+
 // Map database module slugs to frontend target roles
 function getTargetRolesForModule(slug: string): ('teacher' | 'student')[] {
   const roleMapping: Record<string, ('teacher' | 'student')[]> = {
@@ -420,5 +435,47 @@ export const administrationService = {
         targetRoles: ['teacher', 'student'],
       },
     ]
+  },
+
+  /**
+   * Fetch paginated audit logs via get_audit_logs RPC.
+   */
+  async getAuditLogs(params: {
+    action?: string | null
+    cursor?: string | null
+    limit: number
+  }): Promise<AuditLog[]> {
+    const { data, error } = await supabase.rpc('get_audit_logs', {
+      p_action: params.action ?? null,
+      p_cursor: params.cursor ?? null,
+      p_limit: params.limit,
+    })
+    if (error) throw error
+    return (data ?? []) as AuditLog[]
+  },
+
+  /**
+   * Health check — verifies DB connectivity by querying tenants table.
+   * Returns true if DB is reachable, false otherwise.
+   */
+  async healthCheck(): Promise<boolean> {
+    const { error } = await supabase.from('tenants').select('id').limit(1)
+    return !error
+  },
+
+  /**
+   * Fetch recent app metrics for the system health dashboard.
+   */
+  async getAppMetrics(): Promise<Array<{ metric_name: string; metric_value: number }>> {
+    const { data, error } = await supabase
+      .from('app_metrics')
+      .select('metric_name, metric_value')
+      .order('recorded_at', { ascending: false })
+      .limit(50)
+    if (error) {
+      if (import.meta.env.DEV) console.warn('Could not fetch app_metrics:', error)
+      return []
+    }
+    return data ?? []
   },
 }

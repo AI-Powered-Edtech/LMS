@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertTriangle } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useMemo } from 'react'

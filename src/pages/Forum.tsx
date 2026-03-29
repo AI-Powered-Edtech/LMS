@@ -22,10 +22,11 @@ import { usePageTitle } from '@/src/hooks/usePageTitle'
 
 export function Forum() {
   usePageTitle('Forum')
-  const { role, user, tenantId, profile } = useAuth()
+  const { activeRole, user, tenantId, profile } = useAuth()
   const queryClient = useQueryClient()
   const submitReport = useSubmitReport()
-  const isTeacher = role === 'teacher'
+  // SECURITY FIX: Use activeRole (tenant-scoped) instead of global role
+  const isTeacher = activeRole === 'teacher'
 
   const { data: xpProfile } = useStudentXPProfile(user?.id)
 

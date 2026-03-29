@@ -4,7 +4,9 @@ import { create } from 'zustand'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { Classroom, classroomService } from '@/src/features/classroom/api/classroomService'
+import { useToast } from '@/src/hooks/useToast'
 import { createQueryKeys } from '@/src/lib/queryKeys'
+import { captureError } from '@/src/utils/sentry'
 
 const classroomKeys = createQueryKeys('classrooms')
 
@@ -57,6 +59,13 @@ function useAddClassroom() {
     onSuccess: () => {
       if (tenantId) queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
     },
+    onError: (err) => {
+      captureError(err, { context: 'useAddClassroom' })
+      useToast.getState().addToast({
+        type: 'error',
+        message: 'Gagal membuat kelas.',
+      })
+    },
   })
 }
 
@@ -71,6 +80,13 @@ function useUpdateClassroom() {
     onSuccess: () => {
       if (tenantId) queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
     },
+    onError: (err) => {
+      captureError(err, { context: 'useUpdateClassroom' })
+      useToast.getState().addToast({
+        type: 'error',
+        message: 'Gagal memperbarui kelas.',
+      })
+    },
   })
 }
 
@@ -84,6 +100,13 @@ function useJoinClassroom() {
     },
     onSuccess: () => {
       if (tenantId) queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useJoinClassroom' })
+      useToast.getState().addToast({
+        type: 'error',
+        message: 'Gagal bergabung ke kelas.',
+      })
     },
   })
 }

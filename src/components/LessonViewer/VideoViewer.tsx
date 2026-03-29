@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertTriangle, CheckCircle2, FileText, Lock, Sparkles } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -254,7 +255,7 @@ export function VideoViewer({
               <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base">
                 Tentang Video Ini
               </h3>
-{/* TODO: Wire to discussion panel when ready */}
+              {/* TODO: Wire to discussion panel when ready */}
             </div>
             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
               Pastikan Anda menonton hingga akhir agar sistem mencatat progres Anda secara otomatis.

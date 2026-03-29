@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { memo } from 'react'
 
 import { cn } from '@/src/utils/cn'

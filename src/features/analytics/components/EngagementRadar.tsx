@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { useMemo } from 'react'
 import {
   PolarAngleAxis,
@@ -8,8 +9,9 @@ import {
   Tooltip,
 } from 'recharts'
 
-import { EngagementSummaryRow } from '../types'
 import { useTheme } from '@/src/contexts/ThemeContext'
+
+import { EngagementSummaryRow } from '../types'
 
 interface EngagementRadarProps {
   summary: EngagementSummaryRow[]
@@ -28,7 +30,6 @@ const tooltipFormatter = (value: unknown): [string, string] => [`${value}%`, '% 
 export function EngagementRadar({ summary }: EngagementRadarProps) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
-  if (summary.length === 0) return null
 
   // ⚡ Perf: memoize reduce + map — recalculated only when summary changes
   const radarData = useMemo(() => {
@@ -39,6 +40,8 @@ export function EngagementRadar({ summary }: EngagementRadarProps) {
       avgScore: r.avg_score,
     }))
   }, [summary])
+
+  if (summary.length === 0) return null
 
   return (
     <ResponsiveContainer width="100%" height={220}>

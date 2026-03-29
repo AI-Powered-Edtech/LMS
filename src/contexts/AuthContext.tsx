@@ -10,7 +10,10 @@ import React, {
   useState,
 } from 'react'
 
+import { authService } from '@/src/features/auth/api/authService'
+import { useToast } from '@/src/hooks/useToast'
 import { supabase } from '@/src/services/supabase/client'
+import { captureError, clearSentryUser, setSentryUser } from '@/src/utils/sentry'
 
 export type Role = 'teacher' | 'student' | 'admin'
 
@@ -171,20 +174,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!profileData && profileErr) {
         if (import.meta.env.DEV)
           console.warn('[Auth] Profile missing for user, calling ensure_profile_exists()...')
-        const { data: rpcResult, error: rpcErr } = await supabase.rpc('ensure_profile_exists')
-        if (rpcResult && !rpcErr) {
-          // RPC returns full profile row as JSON — extract the fields we need
-          const p = rpcResult as Record<string, unknown>
-          profileData = {
-            id: p.id as string,
-            email: p.email as string,
-            first_name: (p.first_name as string) || '',
-            last_name: (p.last_name as string) || '',
-            avatar_url: (p.avatar_url as string) || null,
-            tenant_id: (p.tenant_id as string) || null,
+        try {
+          await authService.ensureProfileExists()
+          // Re-fetch profile after creation
+          const { data: retryData } = await supabase
+            .from('profiles')
+            .select('id, email, first_name, last_name, avatar_url, tenant_id')
+            .eq('id', userId)
+            .single()
+          if (retryData) profileData = retryData
+        } catch (rpcErr) {
+          if (import.meta.env.DEV) {
+            console.error('[Auth] ensure_profile_exists() failed:', rpcErr)
           }
-        } else if (import.meta.env.DEV) {
-          console.error('[Auth] ensure_profile_exists() failed:', rpcErr)
         }
       }
 
@@ -225,6 +227,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }) => r.role.toLowerCase() as Role
         )
         setRoles(userRoles)
+        // Set Sentry user context so errors are attributed to the correct user/role
+        setSentryUser(userId, getPrimaryRole(userRoles))
 
         const loadedMemberships: TenantMembership[] = []
         const tenantsMap: Record<string, Tenant> = {}
@@ -301,9 +305,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     localStorage.removeItem('pendingInviteToken')
     try {
-      const { data } = await supabase.rpc('accept_invitation', {
-        p_token: pendingToken,
-      })
+      const data = await authService.acceptInvitation(pendingToken)
       if (data?.success) {
         // Re-fetch user data to pick up the upgraded role
         fetchLock.current = false // Allow re-fetch
@@ -311,6 +313,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (e) {
       if (import.meta.env.DEV) console.error('Failed to accept invitation:', e)
+      captureError(e, { context: 'processPendingInvite' })
+      // UX FIX: Inform user instead of silent failure
+      useToast.getState().addToast({
+        type: 'error',
+        message: 'Undangan tidak valid atau sudah kadaluarsa.',
+        description: 'Hubungi administrator untuk mendapatkan undangan baru.',
+      })
     }
   }
 
@@ -319,9 +328,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!pendingCode) return
     localStorage.removeItem('pendingJoinCode')
     try {
-      await supabase.rpc('enroll_student', { p_join_code: pendingCode })
+      await authService.enrollStudent(pendingCode)
+      // UX FIX: Confirm successful enrollment to user
+      useToast.getState().addToast({
+        type: 'success',
+        message: 'Berhasil bergabung ke kelas!',
+      })
     } catch (e) {
       if (import.meta.env.DEV) console.error('[Auth] Failed to enroll with pending join code:', e)
+      captureError(e, { context: 'processPendingJoinCode' })
+      // UX FIX: Inform user instead of silent failure
+      useToast.getState().addToast({
+        type: 'error',
+        message: 'Kode kelas tidak valid.',
+        description: 'Periksa kembali kode dari guru Anda dan coba lagi.',
+      })
     }
   }
 
@@ -459,6 +480,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const signOut = useCallback(async () => {
+    // Clear Sentry user context so future errors aren't attributed to logged-out user
+    clearSentryUser()
     // Clear localStorage - only store tenant_id hint, not full objects
     localStorage.removeItem('activeTenantId')
     // Clear user+session eagerly so AuthGuard redirects to /login immediately

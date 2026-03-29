@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
+import { authService } from '@/src/features/auth/api/authService'
 import {
   type LoginFormData,
   LoginFormSchema,
@@ -67,7 +67,7 @@ export function useLoginState() {
       if (token) {
         setInviteToken(token)
         setMode('register')
-        supabase.rpc('validate_invitation', { p_token: token }).then(({ data }) => {
+        authService.validateInvitation(token).then((data) => {
           if (data?.valid) {
             setInviteInfo(data as InviteInfo)
             registerForm.setValue('email', data.email)
@@ -89,7 +89,7 @@ export function useLoginState() {
     }
     const timer = setTimeout(async () => {
       setClassLookupLoading(true)
-      const { data } = await supabase.rpc('public_lookup_class', { p_join_code: code })
+      const data = await authService.publicLookupClass(code)
       setClassLookupLoading(false)
       if (data?.found) {
         setClassInfo(data as ClassInfo)
@@ -105,10 +105,19 @@ export function useLoginState() {
   const handleSignIn = async (data: LoginFormData) => {
     setError('')
 
+    // Client-side rate limiting (fast, no network)
     const { allowed, retryAfterMs } = loginRateLimiter.check('login')
     if (!allowed) {
       const seconds = Math.ceil(retryAfterMs / 1000)
       setError(`Terlalu banyak percobaan. Silakan coba lagi dalam ${seconds} detik.`)
+      return
+    }
+
+    // Server-side rate limiting (bypass-proof)
+    const rlData = await authService.checkRateLimit('login', data.email, 10, 60_000)
+    if (!rlData.allowed) {
+      const seconds = Math.ceil((rlData.retryAfterMs ?? 60000) / 1000)
+      setError(`Terlalu banyak percobaan login. Coba lagi dalam ${seconds} detik.`)
       return
     }
 

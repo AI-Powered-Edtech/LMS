@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Flag } from 'lucide-react'
 
 import { SubmitAnswer } from '@/src/features/quizzes'

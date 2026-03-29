@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Edit2, Loader2, Plus, Share2, Star, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'

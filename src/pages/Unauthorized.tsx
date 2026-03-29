@@ -1,4 +1,5 @@
 import { ArrowLeft, Home, ShieldX } from 'lucide-react'
+import React, { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { usePageTitle } from '@/src/hooks/usePageTitle'
@@ -6,6 +7,13 @@ import { usePageTitle } from '@/src/hooks/usePageTitle'
 export function Unauthorized() {
   usePageTitle('Tidak Diizinkan')
   const navigate = useNavigate()
+  const headingRef = useRef<HTMLHeadingElement>(null)
+
+  // WCAG 2.4.3: Move focus to the main content area after redirect
+  // Without this, keyboard focus stays on whatever was focused before the redirect
+  useEffect(() => {
+    headingRef.current?.focus()
+  }, [])
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 transition-colors duration-300">
@@ -14,7 +22,13 @@ export function Unauthorized() {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-500 mb-6">
             <ShieldX size={40} />
           </div>
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-4">Akses Ditolak</h1>
+          <h1
+            ref={headingRef}
+            tabIndex={-1}
+            className="text-4xl font-bold text-slate-900 dark:text-white mb-4 outline-none"
+          >
+            Akses Ditolak
+          </h1>
           <p className="text-slate-500 dark:text-slate-400 text-lg">
             Anda tidak memiliki izin untuk mengakses halaman ini.
           </p>

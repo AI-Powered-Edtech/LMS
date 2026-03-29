@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { BookOpen, CheckCircle, Clock, Sparkles } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -14,8 +15,19 @@ const katexSanitizeSchema = {
   ...defaultSchema,
   tagNames: [
     ...(defaultSchema.tagNames || []),
-    'math', 'semantics', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub',
-    'mfrac', 'msqrt', 'mroot', 'mtext', 'annotation',
+    'math',
+    'semantics',
+    'mrow',
+    'mi',
+    'mo',
+    'mn',
+    'msup',
+    'msub',
+    'mfrac',
+    'msqrt',
+    'mroot',
+    'mtext',
+    'annotation',
   ],
   attributes: {
     ...defaultSchema.attributes,
@@ -167,7 +179,8 @@ export function ArticleViewer({
                       )}
                     >
                       <Clock className="w-3.5 h-3.5" />
-                      Waktu baca: {formatReadingTime(readingTime)} / {formatReadingTime(minReadingTimeSeconds)}
+                      Waktu baca: {formatReadingTime(readingTime)} /{' '}
+                      {formatReadingTime(minReadingTimeSeconds)}
                     </span>
                   </div>
 

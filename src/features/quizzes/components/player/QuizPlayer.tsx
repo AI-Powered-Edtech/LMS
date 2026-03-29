@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 // Quiz Player - Orchestrator component
 // Part of the Quiz Engine Refactor
 
@@ -260,8 +261,12 @@ export function QuizPlayer({
             <div className="flex items-center gap-3 px-5 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl shadow-lg">
               <Eye className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
               <div>
-                <p className="font-bold text-amber-800 dark:text-amber-300 text-sm">Anda meninggalkan tab kuis</p>
-                <p className="text-xs text-amber-600 dark:text-amber-400">Aktivitas ini telah dicatat</p>
+                <p className="font-bold text-amber-800 dark:text-amber-300 text-sm">
+                  Anda meninggalkan tab kuis
+                </p>
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  Aktivitas ini telah dicatat
+                </p>
               </div>
             </div>
           </div>

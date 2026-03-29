@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { useMemo } from 'react'
 import {
   Bar,
@@ -10,8 +11,9 @@ import {
   YAxis,
 } from 'recharts'
 
-import { FunnelStepResult } from '../types'
 import { useTheme } from '@/src/contexts/ThemeContext'
+
+import { FunnelStepResult } from '../types'
 
 const EVENT_LABELS: Record<string, string> = {
   LESSON_STARTED: 'Mulai Pelajaran',
@@ -49,7 +51,6 @@ const labelFormatter = (v: unknown) => `${v}%`
 export function FunnelChart({ data }: FunnelChartProps) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
-  if (data.length === 0) return null
 
   // ⚡ Perf: memoize chart data transform + maxUsers computation
   const { chartData, maxUsers } = useMemo(() => {
@@ -64,6 +65,8 @@ export function FunnelChart({ data }: FunnelChartProps) {
       maxUsers: Math.max(...mapped.map((d) => d.users), 1),
     }
   }, [data])
+
+  if (data.length === 0) return null
 
   return (
     <div className="w-full">

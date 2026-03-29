@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { X } from 'lucide-react'
 import { createContext, useCallback, useContext, useEffect, useId, useRef } from 'react'
 

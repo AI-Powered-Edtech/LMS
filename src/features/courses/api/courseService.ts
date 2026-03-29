@@ -169,6 +169,43 @@ export const courseService = {
   },
 
   /**
+   * Fetch course modules with lesson counts (used by CourseBrowser).
+   */
+  async getCourseModulesWithLessons(courseId: string, tenantId: string) {
+    const { data, error } = await supabase
+      .from('course_modules')
+      .select('id, title, "order", course_id, lessons(id, duration_minutes)')
+      .eq('tenant_id', tenantId)
+      .eq('course_id', courseId)
+      .order('order', { ascending: true })
+
+    if (error) {
+      logDevError('courseService', 'Error fetching course modules:', error)
+      throw error
+    }
+
+    return data ?? []
+  },
+
+  /**
+   * Fetch teacher display name by user ID (used by CourseBrowser).
+   */
+  async getTeacherName(userId: string): Promise<string | null> {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', userId)
+      .single()
+
+    if (error) {
+      logDevWarn('courseService', 'Error fetching teacher name:', error.message)
+      return null
+    }
+
+    return data?.full_name ?? null
+  },
+
+  /**
    * Checks if a user is enrolled in a specific course.
    */
   async checkEnrollment(courseId: string, userId: string, tenantId: string) {

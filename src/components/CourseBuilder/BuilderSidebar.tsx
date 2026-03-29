@@ -1,4 +1,11 @@
-import { DragDropContext, Draggable, Droppable, type DropResult } from '@hello-pangea/dnd'
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
+import {
+  DragDropContext,
+  Draggable,
+  type DragStart,
+  Droppable,
+  type DropResult,
+} from '@hello-pangea/dnd'
 import {
   ChevronDown,
   ChevronRight,
@@ -87,7 +94,42 @@ export function BuilderSidebar() {
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-0.5">
             Struktur Kursus
           </span>
-          <span className="text-sm font-bold text-slate-800">Kurikulum Materi</span>
+          <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+            Kurikulum Materi
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center">
+            <button
+              onClick={handleAddModule}
+              className="flex items-center gap-1 p-2 pr-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95"
+              title="Buat Modul Baru"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="text-xs font-bold">Modul</span>
+            </button>
+            <button
+              onClick={() => {
+                if (state.courseId) {
+                  setTemplateModalConfig({ isOpen: true, type: 'module', targetId: state.courseId })
+                }
+              }}
+              disabled={!state.courseId}
+              className="flex items-center p-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-r-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95 border-l border-indigo-700/30 disabled:opacity-50"
+              title="Import dari Template"
+            >
+              <Import className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          {mobile.isMobile && (
+            <button
+              onClick={mobile.closeSidebar}
+              className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+              aria-label="Tutup navigasi"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
         <button
           onClick={handleAddModule}
@@ -140,6 +182,15 @@ export function BuilderSidebar() {
                         >
                           {/* Module Header */}
                           <div
+                            role="button"
+                            tabIndex={0}
+                            aria-expanded={expandedModules.has(mod.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                toggleModule(mod.id)
+                              }
+                            }}
                             className={cn(
                               'flex items-center gap-2 px-3 py-3 rounded-xl cursor-pointer group',
                               'hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-slate-200/50',
@@ -165,18 +216,37 @@ export function BuilderSidebar() {
                             <span className="text-[10px] text-slate-400 font-medium">
                               {mod.lessons.length}
                             </span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                if (confirm('Delete this module and all its lessons?')) {
-                                  actions.deleteModule(mod.id)
-                                }
-                              }}
-                              className="p-1 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                              aria-label="Hapus modul"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
+                            <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setSaveTemplateConfig({
+                                    isOpen: true,
+                                    type: 'module',
+                                    sourceId: mod.id,
+                                    defaultTitle: mod.title,
+                                  })
+                                }}
+                                className="p-2 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 rounded transition-colors"
+                                aria-label="Simpan sebagai Template"
+                                title="Simpan sebagai Template"
+                              >
+                                <Save className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  if (confirm('Hapus modul ini beserta seluruh materinya?')) {
+                                    actions.deleteModule(mod.id)
+                                  }
+                                }}
+                                className="p-2 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded transition-colors ml-0.5"
+                                aria-label="Hapus modul"
+                                title="Hapus modul"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </div>
 
                           {/* Lessons List */}
@@ -206,8 +276,10 @@ export function BuilderSidebar() {
                                             <div
                                               ref={lesDragProvided.innerRef}
                                               {...lesDragProvided.draggableProps}
-                                              {...lesDragProvided.dragHandleProps}
-                                              onClick={() => actions.selectLesson(lesson.id)}
+                                              onClick={() => {
+                                                actions.selectLesson(lesson.id)
+                                                if (mobile.isMobile) mobile.closeSidebar()
+                                              }}
                                               className={cn(
                                                 'flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer group/lesson transition-all text-xs border border-transparent mb-1',
                                                 state.activeLesson?.id === lesson.id
@@ -271,8 +343,46 @@ export function BuilderSidebar() {
                                                 )}
                                                 aria-label="Hapus pelajaran"
                                               >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                              </button>
+                                                <button
+                                                  onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    setSaveTemplateConfig({
+                                                      isOpen: true,
+                                                      type: 'lesson',
+                                                      sourceId: lesson.id,
+                                                      defaultTitle: lesson.title,
+                                                    })
+                                                  }}
+                                                  className={cn(
+                                                    'p-2 rounded-md transition-colors',
+                                                    state.activeLesson?.id === lesson.id
+                                                      ? 'hover:bg-white/20 text-white/70 hover:text-white'
+                                                      : 'hover:bg-indigo-50 text-slate-500 hover:text-indigo-600'
+                                                  )}
+                                                  aria-label="Simpan sebagai Template"
+                                                  title="Simpan sebagai Template"
+                                                >
+                                                  <Save className="w-3.5 h-3.5" />
+                                                </button>
+                                                <button
+                                                  onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    if (confirm('Hapus materi ini?')) {
+                                                      actions.deleteLesson(lesson.id)
+                                                    }
+                                                  }}
+                                                  className={cn(
+                                                    'p-2 rounded-md transition-colors',
+                                                    state.activeLesson?.id === lesson.id
+                                                      ? 'hover:bg-white/20 text-white/70 hover:text-white'
+                                                      : 'hover:bg-rose-50 text-slate-500 hover:text-rose-600'
+                                                  )}
+                                                  aria-label="Hapus pelajaran"
+                                                  title="Hapus pelajaran"
+                                                >
+                                                  <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                              </div>
                                             </div>
                                           )}
                                         </Draggable>
@@ -281,28 +391,48 @@ export function BuilderSidebar() {
 
                                       {/* Add Lesson Menu */}
                                       {addingLessonTo === mod.id ? (
-                                        <div className="flex gap-2 py-2 px-2 bg-white/40 rounded-xl mt-2 border border-slate-100">
-                                          {[
-                                            { type: 'article', color: 'indigo' },
-                                            { type: 'video', color: 'blue' },
-                                            { type: 'quiz', color: 'rose' },
-                                          ].map((t) => (
-                                            <button
-                                              key={t.type}
-                                              onClick={() => handleAddLesson(mod.id, t.type)}
-                                              className={cn(
-                                                'flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all border border-dashed hover:scale-105 active:scale-95',
-                                                t.type === 'article' &&
-                                                  'text-indigo-600 border-indigo-200 bg-indigo-50/50 hover:bg-indigo-50',
-                                                t.type === 'video' &&
-                                                  'text-blue-600 border-blue-200 bg-blue-50/50 hover:bg-blue-50',
-                                                t.type === 'quiz' &&
-                                                  'text-rose-600 border-rose-200 bg-rose-50/50 hover:bg-rose-50'
-                                              )}
-                                            >
-                                              {t.type.toUpperCase()}
-                                            </button>
-                                          ))}
+                                        <div className="flex flex-col gap-2 py-2 px-2 bg-white/40 rounded-xl mt-2 border border-slate-100">
+                                          <div className="flex gap-2">
+                                            {[
+                                              { type: 'article', color: 'indigo' },
+                                              { type: 'video', color: 'blue' },
+                                              { type: 'quiz', color: 'rose' },
+                                            ].map((t) => (
+                                              <button
+                                                key={t.type}
+                                                onClick={() => handleAddLesson(mod.id, t.type)}
+                                                className={cn(
+                                                  'flex-1 py-2 rounded-lg text-xs font-bold transition-all border border-dashed hover:scale-105 active:scale-95',
+                                                  t.type === 'article' &&
+                                                    'text-indigo-600 border-indigo-200 bg-indigo-50/50 hover:bg-indigo-50',
+                                                  t.type === 'video' &&
+                                                    'text-blue-600 border-blue-200 bg-blue-50/50 hover:bg-blue-50',
+                                                  t.type === 'quiz' &&
+                                                    'text-rose-600 border-rose-200 bg-rose-50/50 hover:bg-rose-50'
+                                                )}
+                                              >
+                                                {{
+                                                  article: 'ARTIKEL',
+                                                  video: 'VIDEO',
+                                                  quiz: 'KUIS',
+                                                }[t.type] || t.type.toUpperCase()}
+                                              </button>
+                                            ))}
+                                          </div>
+                                          <button
+                                            onClick={() => {
+                                              setAddingLessonTo(null)
+                                              setTemplateModalConfig({
+                                                isOpen: true,
+                                                type: 'lesson',
+                                                targetId: mod.id,
+                                              })
+                                            }}
+                                            className="w-full py-2 rounded-lg text-xs font-bold text-emerald-600 border border-dashed border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-1"
+                                          >
+                                            <Import className="w-4 h-4" />
+                                            DARI TEMPLATE
+                                          </button>
                                         </div>
                                       ) : (
                                         <button
@@ -331,5 +461,40 @@ export function BuilderSidebar() {
         )}
       </div>
     </div>
+  )
+
+  return (
+    <>
+      <nav aria-label="Struktur kursus" className="contents">
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:contents">{sidebarContent}</div>
+
+        {/* Mobile Drawer */}
+        <AnimatePresence>
+          {mobile.isMobile && mobile.sidebarOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex lg:hidden"
+            >
+              <div
+                className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                onClick={mobile.closeSidebar}
+              />
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="relative z-10 flex h-full shadow-2xl"
+              >
+                {sidebarContent}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
+    </>
   )
 }

@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
+import { STALE } from '@/src/utils/queryConstants'
 
 import { courseService } from '../api/courseService'
 import { FetchCoursesOptions } from '../types'
@@ -33,7 +34,7 @@ export function useInfiniteCoursesQuery(tenantId: string, search?: string) {
       const loaded = allPages.reduce((acc, p) => acc + p.courses.length, 0)
       return loaded < (lastPage.count ?? 0) ? allPages.length + 1 : undefined
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE.MODERATE,
     enabled: !!tenantId,
   })
 }

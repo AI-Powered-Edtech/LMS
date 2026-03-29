@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import {
   AlertTriangle,
   Award,
@@ -247,7 +248,10 @@ export function AssignmentViewer({
                       <span className="text-xs text-slate-500">Yakin batalkan?</span>
                       <button
                         // TODO [FL-M1]: Call assignmentService.cancelSubmission() API when backend supports it
-                        onClick={() => { setSubmission(null); setShowCancelConfirm(false) }}
+                        onClick={() => {
+                          setSubmission(null)
+                          setShowCancelConfirm(false)
+                        }}
                         className="text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors"
                       >
                         Ya

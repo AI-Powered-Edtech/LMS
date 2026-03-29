@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { cn } from '@/src/utils/cn'
 
 import { AutosaveIndicator, SaveStatus } from './AutosaveIndicator'

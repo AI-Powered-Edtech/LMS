@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Plus, User, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 

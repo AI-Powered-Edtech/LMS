@@ -2,6 +2,7 @@ import { Wifi, WifiOff, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { useNetworkStatus } from '@/src/hooks/useNetworkStatus'
+import { useSyncQueueCount } from '@/src/hooks/useSyncQueueCount'
 import { scheduleSync } from '@/src/utils/backgroundSync'
 import { cn } from '@/src/utils/cn'
 
@@ -9,6 +10,7 @@ type BannerState = 'offline' | 'syncing' | 'hidden'
 
 export function OfflineBanner() {
   const { isOnline, wasOffline, resetWasOffline } = useNetworkStatus()
+  const syncCount = useSyncQueueCount()
   const [dismissed, setDismissed] = useState(false)
   const [bannerState, setBannerState] = useState<BannerState>('hidden')
 
@@ -65,7 +67,9 @@ export function OfflineBanner() {
         <span>
           {isOffline
             ? 'Anda sedang offline \u2014 jawaban tersimpan secara lokal'
-            : 'Koneksi pulih \u2014 menyinkronkan data\u2026'}
+            : syncCount > 0
+              ? `Menyinkronkan ${syncCount} item\u2026`
+              : 'Koneksi pulih \u2014 menyinkronkan data\u2026'}
         </span>
       </div>
 

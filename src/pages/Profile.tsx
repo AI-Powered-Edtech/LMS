@@ -29,7 +29,7 @@ import { cn } from '@/src/utils/cn'
 
 export function Profile() {
   usePageTitle('Profil')
-  const { user, role, profile } = useAuth()
+  const { user, role, activeRole, profile } = useAuth()
 
   useEffect(() => {
     document.title = 'Profil — EduSync'
@@ -37,7 +37,8 @@ export function Profile() {
       document.title = 'EduSync'
     }
   }, [])
-  const isTeacher = role === 'teacher'
+  // SECURITY FIX: Use activeRole (tenant-scoped) instead of global role
+  const isTeacher = activeRole === 'teacher'
 
   // Real data hooks (safe to call unconditionally)
   const { data: xpProfile } = useStudentXPProfile()
@@ -54,8 +55,9 @@ export function Profile() {
     profile?.avatar_url ??
     `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id ?? 'default'}`
 
-  // Role label
-  const roleLabel = role === 'teacher' ? 'Guru' : role === 'admin' ? 'Admin' : 'Siswa'
+  // Use activeRole for display; fall back to global role only if activeRole not yet resolved
+  const displayRole = activeRole ?? role
+  const roleLabel = displayRole === 'teacher' ? 'Guru' : displayRole === 'admin' ? 'Admin' : 'Siswa'
 
   // Student stats from real data
   const totalXP = xpProfile?.total_xp ?? 0

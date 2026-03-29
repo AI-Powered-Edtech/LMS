@@ -14,24 +14,14 @@ import {
 } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 
+import {
+  administrationService,
+  type AuditLog,
+} from '@/src/features/administration/api/administrationService'
 import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
 import { cn } from '@/src/utils/cn'
-
-interface AuditLog {
-  log_id: string
-  actor_id: string
-  actor_name: string
-  actor_email: string
-  action: string
-  target_type: string
-  target_id: string | null
-  target_name: string
-  details: Record<string, unknown>
-  created_at: string
-  total_count: number
-}
+import { captureError } from '@/src/utils/sentry'
 
 const ACTION_CONFIG: Record<
   string,
@@ -100,15 +90,11 @@ export function AuditDashboard() {
     async (newCursor?: string) => {
       setLoading(true)
       try {
-        const { data, error } = await supabase.rpc('get_audit_logs', {
-          p_action: actionFilter || null,
-          p_cursor: newCursor || null,
-          p_limit: PAGE_SIZE,
+        const results = await administrationService.getAuditLogs({
+          action: actionFilter || null,
+          cursor: newCursor || null,
+          limit: PAGE_SIZE,
         })
-
-        if (error) throw error
-
-        const results = (data ?? []) as AuditLog[]
 
         if (newCursor) {
           setLogs((prev) => [...prev, ...results])
@@ -126,6 +112,7 @@ export function AuditDashboard() {
         }
       } catch (err) {
         if (import.meta.env.DEV) console.error('Failed to fetch audit logs:', err)
+        captureError(err, { context: 'AuditDashboard.fetchAuditLogs' })
       } finally {
         setLoading(false)
       }

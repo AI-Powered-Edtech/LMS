@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { ImagePlus, Loader2 } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
@@ -225,7 +226,9 @@ export function ImageBlockEditor({ blockId }: ImageBlockEditorProps) {
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
               Seret gambar ke sini atau klik untuk memilih
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">JPG, PNG, WebP, GIF (maks. 5MB)</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              JPG, PNG, WebP, GIF (maks. 5MB)
+            </p>
           </>
         )}
       </div>

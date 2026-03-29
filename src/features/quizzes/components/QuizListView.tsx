@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import {
   AlertTriangle,
   ArrowLeft,
@@ -125,12 +126,18 @@ export function QuizListView({
       {activeClass && (
         <div className="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800/50 rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider mb-1">Class</p>
-            <h2 className="text-lg font-bold text-indigo-950 dark:text-indigo-100">{activeClass.name}</h2>
+            <p className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider mb-1">
+              Class
+            </p>
+            <h2 className="text-lg font-bold text-indigo-950 dark:text-indigo-100">
+              {activeClass.name}
+            </h2>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 bg-white dark:bg-slate-800 py-3 px-4 rounded-xl border border-indigo-100/50 dark:border-slate-700">
             <div>
-              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5">Siswa</p>
+              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5">
+                Siswa
+              </p>
               <div className="flex items-center gap-1.5">
                 <Users className="w-4 h-4 text-indigo-500" />
                 <p className="text-xl font-black text-slate-800 dark:text-white">{studentCount}</p>
@@ -138,7 +145,9 @@ export function QuizListView({
             </div>
             <div className="h-full w-px bg-slate-100 dark:bg-slate-700 hidden sm:block"></div>
             <div>
-              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5">Kode Gabung</p>
+              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-0.5">
+                Kode Gabung
+              </p>
               <p className="text-xl font-black text-slate-800 dark:text-white tracking-widest">
                 {activeClass.join_code}
               </p>

@@ -25,16 +25,17 @@ import { EmptyState, SkeletonCard } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 import type { Certificate } from '@/src/features/gamification'
 import { useStudentCertificates } from '@/src/features/gamification'
+import { certificateService } from '@/src/features/gamification/api/certificateService'
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
-import { supabase } from '@/src/services/supabase/client'
 
 export function Certificates() {
   const addToast = useToast((s) => s.addToast)
   usePageTitle('Sertifikat')
-  const { role, profile } = useAuth()
-  const isTeacher = role === 'teacher'
+  const { activeRole, profile } = useAuth()
+  // SECURITY FIX: Use activeRole (tenant-scoped) instead of global role
+  const isTeacher = activeRole === 'teacher'
   const navigate = useNavigate()
 
   const { data: certificates = [], isLoading } = useStudentCertificates()
@@ -73,22 +74,13 @@ export function Certificates() {
     setIsDownloading(cert.id)
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-pdf', {
-        body: {
-          type: 'certificate',
-          data: {
-            studentName,
-            courseTitle: cert.course_title,
-            completionDate: formatDate(cert.issued_at),
-            tenantName: 'EduSync Academy',
-            certificateNumber: cert.certificate_number,
-          },
-        },
+      const blob = await certificateService.generatePdf({
+        studentName,
+        courseTitle: cert.course_title,
+        completionDate: formatDate(cert.issued_at),
+        tenantName: 'EduSync Academy',
+        certificateNumber: cert.certificate_number,
       })
-
-      if (error) throw error
-
-      const blob = data instanceof Blob ? data : new Blob([data], { type: 'application/pdf' })
 
       if (format === 'png') {
         // For PNG, open the PDF in a new tab (server only generates PDF)

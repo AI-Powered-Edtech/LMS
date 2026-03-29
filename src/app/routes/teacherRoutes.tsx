@@ -20,6 +20,7 @@ import {
   QuizManager,
   ScanAttendance,
   SpeedGrader,
+  StruggleDashboard,
   StudentProgress,
   TeacherDashboard,
   TeachingHub,
@@ -204,6 +205,14 @@ export function TeacherRoutes() {
         element={
           <S>
             <ModerationDashboard />
+          </S>
+        }
+      />
+      <Route
+        path="struggle"
+        element={
+          <S feature="Deteksi Kesulitan">
+            <StruggleDashboard />
           </S>
         }
       />

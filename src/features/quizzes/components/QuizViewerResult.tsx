@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { CheckCircle, Clock, FileText, XCircle } from 'lucide-react'
 import { motion } from 'motion/react'
 

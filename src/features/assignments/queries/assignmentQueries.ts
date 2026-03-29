@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
+import { GC, STALE } from '@/src/utils/queryConstants'
+
 import { assignmentService } from '../api/assignmentService'
 
 export const assignmentKeys = {
@@ -17,5 +19,7 @@ export function useAssignmentList(tenantId: string) {
     queryKey: assignmentKeys.all(tenantId),
     queryFn: () => assignmentService.getAssignments(tenantId),
     enabled: !!tenantId,
+    staleTime: STALE.DYNAMIC,
+    gcTime: GC.NORMAL,
   })
 }

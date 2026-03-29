@@ -2,22 +2,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { classroomService } from '@/src/features/classroom/api/classroomService'
+import {
+  classroomService,
+  type EnrolledStudent,
+} from '@/src/features/classroom/api/classroomService'
 import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
 import { useUndoableAction } from '@/src/hooks/useUndoableAction'
-import { supabase } from '@/src/services/supabase/client'
-
-export interface EnrolledStudent {
-  id: string
-  student_id: string
-  full_name: string
-  email: string
-  enrolled_at: string
-  status: string
-}
+import { captureError } from '@/src/utils/sentry'
 
 export function useClassManagementState() {
   usePageTitle('Class Management')
@@ -51,8 +45,7 @@ export function useClassManagementState() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   // Delete
-  const [classToDelete, setClassToDelete] = useState<string | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [_isDeleting, setIsDeleting] = useState(false)
 
   const selectedClass = classrooms.find((c) => c.id === selectedClassId)
 
@@ -66,13 +59,7 @@ export function useClassManagementState() {
       const counts: Record<string, number> = {}
       await Promise.all(
         classIds.map(async (id) => {
-          const { count } = await supabase
-            .from('enrollments')
-            .select('id', { count: 'exact', head: true })
-            .eq('class_id', id)
-            .eq('tenant_id', tenantId)
-            .eq('status', 'ACTIVE')
-          counts[id] = count ?? 0
+          counts[id] = await classroomService.getActiveEnrollmentCount(id, tenantId!)
         })
       )
 
@@ -87,43 +74,11 @@ export function useClassManagementState() {
       if (!tenantId) return
       setLoadingStudents(true)
       try {
-        const { data: enrollmentData, error: enrollmentError } = await supabase
-          .from('enrollments')
-          .select(
-            `
-          id,
-          joined_at,
-          student:profiles!enrollments_student_id_fkey(id, full_name, email)
-        `
-          )
-          .eq('class_id', classId)
-          .eq('tenant_id', tenantId)
-          .eq('status', 'ACTIVE')
-        if (enrollmentError) throw enrollmentError
-
-        setStudents(
-          (enrollmentData || []).map(
-            (e: {
-              id: string
-              joined_at: string
-              student:
-                | { id: string; full_name: string; email: string }
-                | { id: string; full_name: string; email: string }[]
-            }) => {
-              const student = Array.isArray(e.student) ? e.student[0] : e.student
-              return {
-                id: e.id,
-                student_id: student?.id ?? '',
-                full_name: student?.full_name || 'Unnamed',
-                email: student?.email || '-',
-                enrolled_at: e.joined_at,
-                status: 'ACTIVE' as const,
-              }
-            }
-          )
-        )
+        const enrolledStudents = await classroomService.getEnrolledStudents(classId, tenantId)
+        setStudents(enrolledStudents)
       } catch (err) {
         if (import.meta.env.DEV) console.error('Failed to fetch students:', err)
+        captureError(err, { context: 'useClassManagementState.fetchStudents' })
         setStudents([])
       } finally {
         setLoadingStudents(false)
@@ -177,25 +132,44 @@ export function useClassManagementState() {
     }
   }
 
-  const confirmDeleteClass = async () => {
-    if (!classToDelete) return
+  // Undoable delete — shows a 5-second toast with "Batal" before executing
+  const undoableDeleteState = useRef<{ classId: string; className: string } | null>(null)
+  const { execute: _executeDelete } = useUndoableAction({
+    message: undoableDeleteState.current
+      ? `Kelas "${undoableDeleteState.current.className}" akan dihapus.`
+      : 'Kelas akan dihapus.',
+    delay: 5000,
+    onExecute: async () => {
+      if (!undoableDeleteState.current) return
+      const { classId } = undoableDeleteState.current
+      setIsDeleting(true)
+      try {
+        await classroomService.deleteClassroom(classId)
+        if (selectedClassId === classId) setSelectedClassId(null)
+      } catch (err: unknown) {
+        addToast({
+          type: 'error',
+          message:
+            'Gagal menghapus kelas: ' +
+            (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
+        })
+      } finally {
+        setIsDeleting(false)
+        undoableDeleteState.current = null
+      }
+    },
+    onUndo: () => {
+      undoableDeleteState.current = null
+    },
+  })
 
-    setIsDeleting(true)
-    try {
-      await classroomService.deleteClassroom(classToDelete)
-      if (selectedClassId === classToDelete) setSelectedClassId(null)
-      setClassToDelete(null)
-    } catch (err: unknown) {
-      addToast({
-        type: 'error',
-        message:
-          'Gagal menghapus kelas: ' +
-          (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
-      })
-    } finally {
-      setIsDeleting(false)
-    }
-  }
+  const handleDeleteClass = useCallback(
+    (classId: string, className: string) => {
+      undoableDeleteState.current = { classId, className }
+      _executeDelete()
+    },
+    [_executeDelete]
+  )
 
   // Undoable delete — shows a 5-second toast with "Batal" before executing
   const undoableDeleteState = useRef<{ classId: string; className: string } | null>(null)
@@ -245,15 +219,8 @@ export function useClassManagementState() {
   const handleRemoveStudent = async (student: EnrolledStudent) => {
     if (!confirm(`Keluarkan ${student.full_name} dari kelas ini?`)) return
     try {
-      const { error } = await supabase
-        .from('enrollments')
-        .update({
-          status: 'REMOVED',
-          removed_at: new Date().toISOString(),
-          removed_by: user?.id,
-        })
-        .eq('id', student.id)
-      if (error) throw error
+      await classroomService.removeStudent(student.id, user!.id)
+
       // Refresh student list
       fetchStudents(selectedClassId!)
       // Update count
@@ -302,10 +269,6 @@ export function useClassManagementState() {
     // Copy
     copiedId,
 
-    // Delete
-    classToDelete,
-    isDeleting,
-
     // Actions
     navigate,
     setSelectedClassId,
@@ -314,11 +277,9 @@ export function useClassManagementState() {
     setNewClassName,
     setRenamingClassId,
     setRenameValue,
-    setClassToDelete,
     setActiveClassroomId,
     handleCreateClass,
     handleRename,
-    confirmDeleteClass,
     /** Undoable delete: shows a 5-second "Batal" toast before executing. */
     handleDeleteClass,
     handleCopy,
