@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 /**
  * HelpButton — tombol mengambang di sudut kanan bawah yang menampilkan
  * panel bantuan kontekstual berdasarkan halaman yang sedang dibuka.

@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import DOMPurify from 'dompurify'
 import React, { Suspense, useMemo } from 'react'
 

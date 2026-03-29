@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { motion, useReducedMotion } from 'motion/react'
 import { useId, useRef } from 'react'
 

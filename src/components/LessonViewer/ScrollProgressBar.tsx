@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { useEffect, useRef, useState } from 'react'
 
 export function ScrollProgressBar() {

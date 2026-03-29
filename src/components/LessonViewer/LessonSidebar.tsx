@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { useVirtualizer } from '@tanstack/react-virtual'
 import {
   ArrowLeft,
