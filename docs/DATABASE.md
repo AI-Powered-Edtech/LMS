@@ -37,23 +37,23 @@ PostgreSQL on Supabase. 160 migration files (001–836, Phase 22 group assignmen
 
 ### Assessment
 
-| Table                      | Purpose                                                                                                                                                                         |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `quizzes`                  | Quiz definitions linked to a lesson/class                                                                                                                                       |
-| `quiz_questions`           | Questions per quiz. Column `text` (not `question_text`)                                                                                                                         |
-| `quiz_options`             | Options per question. Column `text` (not `option_text`)                                                                                                                         |
-| `quiz_attempts`            | Student attempt records. Status: `IN_PROGRESS`, `SUBMITTED`, `GRADED`, `EXPIRED`, `ABANDONED`                                                                                   |
-| `quiz_attempts_v2`         | Partitioned replacement for `quiz_attempts` (PARTITION BY RANGE on `started_at`). Columns include `is_reviewed` (boolean, default false) for teacher review of cheating signals |
-| `quiz_attempt_questions`   | Per-question snapshot for immutability                                                                                                                                          |
-| `quiz_stats`               | Pre-aggregated quiz-level statistics                                                                                                                                            |
-| `question_bank`            | Reusable question repository (per-tenant)                                                                                                                                       |
-| `question_options`         | Options for question bank entries                                                                                                                                               |
-| `assignments`              | Teacher-created assignments                                                                                                                                                     |
-| `assignment_submissions`   | Student submissions                                                                                                                                                             |
-| `grades`                   | Grades for submissions                                                                                                                                                          |
-| `assignment_groups`        | Group assignment containers: `assignment_id`, `name`, `tenant_id`                                                                                                               |
-| `assignment_group_members` | Group membership: `group_id`, `user_id`, `tenant_id`                                                                                                                            |
-| `group_submissions`        | Group-level submissions: `group_id`, `assignment_id`, `submitted_by`, `content`, `grade`, `tenant_id`                                                                           |
+| Table                    | Purpose                                                                                                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `quizzes`                | Quiz definitions linked to a lesson/class                                                                                                                                       |
+| `quiz_questions`         | Questions per quiz. Column `text` (not `question_text`)                                                                                                                         |
+| `quiz_options`           | Options per question. Column `text` (not `option_text`)                                                                                                                         |
+| `quiz_attempts`          | Student attempt records. Status: `IN_PROGRESS`, `SUBMITTED`, `GRADED`, `EXPIRED`, `ABANDONED`                                                                                   |
+| `quiz_attempts_v2`       | Partitioned replacement for `quiz_attempts` (PARTITION BY RANGE on `started_at`). Columns include `is_reviewed` (boolean, default false) for teacher review of cheating signals |
+| `quiz_attempt_questions` | Per-question snapshot for immutability                                                                                                                                          |
+| `quiz_stats`             | Pre-aggregated quiz-level statistics                                                                                                                                            |
+| `question_bank`          | Reusable question repository (per-tenant)                                                                                                                                       |
+| `question_options`       | Options for question bank entries                                                                                                                                               |
+| `assignments`              | Teacher-created assignments                                                                                                                                                   |
+| `assignment_submissions`   | Student submissions                                                                                                                                                           |
+| `grades`                   | Grades for submissions                                                                                                                                                        |
+| `assignment_groups`        | Group assignment containers: `assignment_id`, `name`, `tenant_id`                                                                                                             |
+| `assignment_group_members` | Group membership: `group_id`, `user_id`, `tenant_id`                                                                                                                          |
+| `group_submissions`        | Group-level submissions: `group_id`, `assignment_id`, `submitted_by`, `content`, `grade`, `tenant_id`                                                                         |
 
 ### Analytics
 
@@ -95,24 +95,22 @@ PostgreSQL on Supabase. 160 migration files (001–836, Phase 22 group assignmen
 
 ## Important Column Gotchas
 
-| Table                    | Column              | Note                                                                                      |
-| ------------------------ | ------------------- | ----------------------------------------------------------------------------------------- |
-| `quiz_questions`         | `text`              | NOT `question_text`                                                                       |
-| `quiz_options`           | `text`              | NOT `option_text`                                                                         |
-| `course_modules`         | `"order"`           | Reserved word — must be quoted in SQL                                                     |
-| `lessons`                | `"order"`           | Reserved word — must be quoted in SQL                                                     |
-| `courses`                | `status`            | Use `status = 'published'` — `is_published` does NOT exist                                |
-| `enrollments`            | `user_id`           | NOT `student_id`                                                                          |
-| `student_lesson_signals` | `total_time_spent`  | NOT `time_spent_seconds`                                                                  |
-| `student_lesson_signals` | `last_accessed_at`  | NOT `last_event_at`                                                                       |
-| `student_lesson_signals` | `latest_quiz_score` | NOT `quiz_avg_score`                                                                      |
+| Table                    | Column              | Note                                                       |
+| ------------------------ | ------------------- | ---------------------------------------------------------- |
+| `quiz_questions`         | `text`              | NOT `question_text`                                        |
+| `quiz_options`           | `text`              | NOT `option_text`                                          |
+| `course_modules`         | `"order"`           | Reserved word — must be quoted in SQL                      |
+| `lessons`                | `"order"`           | Reserved word — must be quoted in SQL                      |
+| `courses`                | `status`            | Use `status = 'published'` — `is_published` does NOT exist |
+| `enrollments`            | `user_id`           | NOT `student_id`                                           |
+| `student_lesson_signals` | `total_time_spent`  | NOT `time_spent_seconds`                                   |
+| `student_lesson_signals` | `last_accessed_at`  | NOT `last_event_at`                                        |
+| `student_lesson_signals` | `latest_quiz_score` | NOT `quiz_avg_score`                                       |
 | `profiles`               | `is_public`         | Added by Phase 22 migration. Also: `show_badges`, `show_xp`, `show_courses` privacy flags |
 
 ## RLS Patterns
 
 All tenant-scoped tables use:
-<<<<<<< HEAD
-=======
 
 ```sql
 -- SELECT policy pattern
@@ -138,39 +136,39 @@ All helper functions are `SECURITY DEFINER` with `SET search_path TO 'public'`.
 
 ## Key RPC Functions
 
-| Function                                                                                  | Purpose                                                 | Access                |
-| ----------------------------------------------------------------------------------------- | ------------------------------------------------------- | --------------------- |
-| `v1_start_quiz_attempt(p_quiz_id)`                                                        | Start or resume quiz attempt                            | Student               |
-| `v1_save_partial_answers(p_attempt_id, p_answers)`                                        | Autosave answers                                        | Student               |
-| `batch_save_answers(p_attempt_id, p_answers)`                                             | Batch autosave (single RPC call)                        | Student               |
-| `v1_submit_quiz_attempt(p_attempt_id, p_final_answers)`                                   | Submit and grade                                        | Student               |
-| `v1_get_quiz_results(p_attempt_id)`                                                       | Fetch attempt results                                   | Student               |
-| `get_teacher_analytics(p_course_id, p_limit, p_cursor_student_id)`                        | Paginated analytics JSON                                | Teacher/Admin         |
-| `refresh_course_stats(p_course_id)`                                                       | Recalculate course_stats                                | Teacher/Admin         |
-| `award_quiz_xp(p_user_id, p_lesson_id, p_quiz_id, p_score, p_passing_score, p_tenant_id)` | Award XP after quiz                                     | Student (self only)   |
-| `get_leaderboard_v2(p_tenant_id, p_limit)`                                                | Tenant-scoped leaderboard                               | Authenticated         |
-| `get_lesson_viewer_payload(p_course_id)`                                                  | Full lesson tree for Smart Player                       | Student               |
-| `record_xp_transaction(p_user_id, p_xp_amount, p_source_type, p_source_id)`               | Record XP transaction                                   | System                |
-| `get_student_recommendations(p_user_id, p_limit)`                                         | Next lesson recommendations                             | Student               |
-| `start_quiz_attempt(quiz_id)`                                                             | Legacy quiz attempt (v2 API)                            | Student               |
-| `submit_quiz_attempt(attempt_id, answers, version)`                                       | Legacy submit (v2 API)                                  | Student               |
-| `ensure_profile_exists()`                                                                 | Auto-create profile if missing                          | Authenticated         |
-| `create_school_tenant(p_school_name, p_full_name, p_role)`                                | B2B onboarding: register school                         | Authenticated         |
-| `join_school_via_token(p_token)`                                                          | B2B onboarding: join via invite                         | Authenticated         |
-| `onboard_student_join_class(p_join_code, p_full_name)`                                    | Student onboarding via class code                       | Authenticated         |
-| `save_course_version(p_course_id, p_message)`                                             | Snapshot course tree as version                         | Teacher               |
-| `restore_course_version(p_version_id)`                                                    | Rollback course to a snapshot                           | Teacher               |
-| `save_content_template(p_type, p_title, p_description, p_source_id)`                      | Save entity as reusable template                        | Teacher               |
-| `import_content_template(p_template_id, p_target_id, p_order)`                            | Import template with new UUIDs                          | Teacher               |
-| `upsert_scorm_runtime(p_user_id, p_scorm_package_id, p_tenant_id, p_cmi_data, ...)`       | Atomic SCORM state save + lesson_progress sync          | Student               |
-| `cleanup_expired_lti_nonces()`                                                            | Remove expired LTI nonces                               | System (service_role) |
-| `get_student_group_assignment(p_assignment_id)`                                           | Group details + members + submission status for student | Student               |
-| `get_teacher_group_overview(p_assignment_id)`                                             | All groups + submission progress + grades for teacher   | Teacher               |
-| `create_assignment_groups(p_assignment_id, p_groups)`                                     | Batch-create groups and assign members                  | Teacher               |
-| `submit_group_assignment(p_group_id, p_assignment_id, p_content)`                         | Submit on behalf of group (any member)                  | Student               |
-| `grade_group_submission(p_submission_id, p_grade, p_feedback)`                            | Grade a group submission                                | Teacher               |
-| `get_public_profile(p_user_id)`                                                           | Returns public profile fields respecting privacy flags  | Authenticated         |
-| `update_profile_privacy(p_is_public, p_show_badges, p_show_xp, p_show_courses)`           | Update per-field privacy settings (owner only)          | Authenticated         |
+| Function                                                                                  | Purpose                                        | Access                |
+| ----------------------------------------------------------------------------------------- | ---------------------------------------------- | --------------------- |
+| `v1_start_quiz_attempt(p_quiz_id)`                                                        | Start or resume quiz attempt                   | Student               |
+| `v1_save_partial_answers(p_attempt_id, p_answers)`                                        | Autosave answers                               | Student               |
+| `batch_save_answers(p_attempt_id, p_answers)`                                             | Batch autosave (single RPC call)               | Student               |
+| `v1_submit_quiz_attempt(p_attempt_id, p_final_answers)`                                   | Submit and grade                               | Student               |
+| `v1_get_quiz_results(p_attempt_id)`                                                       | Fetch attempt results                          | Student               |
+| `get_teacher_analytics(p_course_id, p_limit, p_cursor_student_id)`                        | Paginated analytics JSON                       | Teacher/Admin         |
+| `refresh_course_stats(p_course_id)`                                                       | Recalculate course_stats                       | Teacher/Admin         |
+| `award_quiz_xp(p_user_id, p_lesson_id, p_quiz_id, p_score, p_passing_score, p_tenant_id)` | Award XP after quiz                            | Student (self only)   |
+| `get_leaderboard_v2(p_tenant_id, p_limit)`                                                | Tenant-scoped leaderboard                      | Authenticated         |
+| `get_lesson_viewer_payload(p_course_id)`                                                  | Full lesson tree for Smart Player              | Student               |
+| `record_xp_transaction(p_user_id, p_xp_amount, p_source_type, p_source_id)`               | Record XP transaction                          | System                |
+| `get_student_recommendations(p_user_id, p_limit)`                                         | Next lesson recommendations                    | Student               |
+| `start_quiz_attempt(quiz_id)`                                                             | Legacy quiz attempt (v2 API)                   | Student               |
+| `submit_quiz_attempt(attempt_id, answers, version)`                                       | Legacy submit (v2 API)                         | Student               |
+| `ensure_profile_exists()`                                                                 | Auto-create profile if missing                 | Authenticated         |
+| `create_school_tenant(p_school_name, p_full_name, p_role)`                                | B2B onboarding: register school                | Authenticated         |
+| `join_school_via_token(p_token)`                                                          | B2B onboarding: join via invite                | Authenticated         |
+| `onboard_student_join_class(p_join_code, p_full_name)`                                    | Student onboarding via class code              | Authenticated         |
+| `save_course_version(p_course_id, p_message)`                                             | Snapshot course tree as version                | Teacher               |
+| `restore_course_version(p_version_id)`                                                    | Rollback course to a snapshot                  | Teacher               |
+| `save_content_template(p_type, p_title, p_description, p_source_id)`                      | Save entity as reusable template               | Teacher               |
+| `import_content_template(p_template_id, p_target_id, p_order)`                            | Import template with new UUIDs                 | Teacher               |
+| `upsert_scorm_runtime(p_user_id, p_scorm_package_id, p_tenant_id, p_cmi_data, ...)`       | Atomic SCORM state save + lesson_progress sync | Student               |
+| `cleanup_expired_lti_nonces()`                                                            | Remove expired LTI nonces                      | System (service_role) |
+| `get_student_group_assignment(p_assignment_id)`                                           | Group details + members + submission status for student | Student          |
+| `get_teacher_group_overview(p_assignment_id)`                                             | All groups + submission progress + grades for teacher   | Teacher          |
+| `create_assignment_groups(p_assignment_id, p_groups)`                                     | Batch-create groups and assign members                  | Teacher          |
+| `submit_group_assignment(p_group_id, p_assignment_id, p_content)`                         | Submit on behalf of group (any member)                  | Student          |
+| `grade_group_submission(p_submission_id, p_grade, p_feedback)`                            | Grade a group submission                                | Teacher          |
+| `get_public_profile(p_user_id)`                                                           | Returns public profile fields respecting privacy flags  | Authenticated    |
+| `update_profile_privacy(p_is_public, p_show_badges, p_show_xp, p_show_courses)`          | Update per-field privacy settings (owner only)          | Authenticated    |
 
 ## pg_cron Jobs
 
@@ -281,5 +279,3 @@ EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
 | struggle        | Analytics      | Deteksi Kesulitan — Deteksi otomatis siswa yang kesulitan berdasarkan pola belajar, waktu per soal, dan penurunan performa |
 
 Setiap feature module mengikuti arsitektur standar dengan folder: api/, queries/, hooks/, types/, components/, dan **tests**/. Semua feature mendukung dark mode dan skeleton loading screens.
-
-> > > > > > > neon-hemisphere
