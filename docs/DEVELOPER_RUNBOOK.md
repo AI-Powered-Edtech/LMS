@@ -16,6 +16,8 @@
 ## 1. Initial Setup
 
 ### Install dependencies
+<<<<<<< HEAD
+=======
 
 ```bash
 pnpm install
@@ -286,3 +288,4 @@ Current vendor chunks: `vendor-react`, `vendor-supabase`, `vendor-recharts`, `ve
 `vendor-query`, `vendor-motion`, `vendor-dnd`, `vendor-markdown`, `vendor-sentry`, `vendor-date`, `vendor-sanitize`, `vendor-form`.
 
 Bundle size CI gate is configured in `.github/workflows/` — PRs fail if any chunk exceeds the threshold.
+>>>>>>> tundra-boa

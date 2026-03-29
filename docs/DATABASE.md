@@ -111,6 +111,8 @@ PostgreSQL on Supabase. 160 migration files (001–836, Phase 22 group assignmen
 ## RLS Patterns
 
 All tenant-scoped tables use:
+<<<<<<< HEAD
+=======
 
 ```sql
 -- SELECT policy pattern
@@ -279,3 +281,4 @@ EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
 | struggle        | Analytics      | Deteksi Kesulitan — Deteksi otomatis siswa yang kesulitan berdasarkan pola belajar, waktu per soal, dan penurunan performa |
 
 Setiap feature module mengikuti arsitektur standar dengan folder: api/, queries/, hooks/, types/, components/, dan **tests**/. Semua feature mendukung dark mode dan skeleton loading screens.
+>>>>>>> neon-hemisphere

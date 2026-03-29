@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { CloudOff, WifiOff } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
