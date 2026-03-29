@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { escapeHtml } from '../sanitize'
+import { escapeHtml, sanitizeUrl } from '../sanitize'
 
 describe('escapeHtml', () => {
   it('escapes ampersand', () => {
@@ -64,5 +64,48 @@ describe('escapeHtml', () => {
     expect(escaped).toContain('&lt;img')
     expect(escaped).toContain('&quot;')
     expect(escaped).toContain('&gt;')
+  })
+})
+
+describe('sanitizeUrl', () => {
+  it('allows valid http and https URLs', () => {
+    expect(sanitizeUrl('https://example.com')).toBe('https://example.com')
+    expect(sanitizeUrl('http://example.com')).toBe('http://example.com')
+    expect(sanitizeUrl('https://example.com/path?query=1#hash')).toBe(
+      'https://example.com/path?query=1#hash'
+    )
+  })
+
+  it('allows mailto and tel URLs', () => {
+    expect(sanitizeUrl('mailto:test@example.com')).toBe('mailto:test@example.com')
+    expect(sanitizeUrl('tel:+1234567890')).toBe('tel:+1234567890')
+  })
+
+  it('allows relative URLs', () => {
+    expect(sanitizeUrl('/path/to/file.pdf')).toBe('/path/to/file.pdf')
+    expect(sanitizeUrl('path/to/file.pdf')).toBe('path/to/file.pdf')
+    expect(sanitizeUrl('./file.pdf')).toBe('./file.pdf')
+    expect(sanitizeUrl('../file.pdf')).toBe('../file.pdf')
+  })
+
+  it('blocks javascript: URLs', () => {
+    expect(sanitizeUrl('javascript:alert(1)')).toBe('#')
+    expect(sanitizeUrl('javascript:alert("XSS")')).toBe('#')
+    expect(sanitizeUrl('JAVASCRIPT:alert(1)')).toBe('#')
+    expect(sanitizeUrl('javascript:void(0)')).toBe('#')
+  })
+
+  it('blocks data: and vbscript: URLs', () => {
+    expect(sanitizeUrl('data:text/html,<script>alert(1)</script>')).toBe('#')
+    expect(sanitizeUrl('vbscript:msgbox("XSS")')).toBe('#')
+  })
+
+  it('handles null and undefined', () => {
+    expect(sanitizeUrl(null)).toBe('#')
+    expect(sanitizeUrl(undefined)).toBe('#')
+  })
+
+  it('handles empty strings', () => {
+    expect(sanitizeUrl('')).toBe('#')
   })
 })

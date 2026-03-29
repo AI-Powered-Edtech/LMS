@@ -1,5 +1,7 @@
 import { Archive, Download, ExternalLink, File, FileText, Presentation, Sheet } from 'lucide-react'
 
+import { sanitizeUrl } from '@/src/utils/sanitize'
+
 interface FileBlockViewerProps {
   url: string
   title?: string | null
@@ -59,6 +61,7 @@ export function FileBlockViewer({ url, title }: FileBlockViewerProps) {
   const fileName = title || url.split('/').pop() || 'Download File'
   const fileTypeLabel = getFileTypeLabel(url)
   const isPdfFile = isPdf(url)
+  const safeUrl = sanitizeUrl(url)
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
@@ -75,7 +78,7 @@ export function FileBlockViewer({ url, title }: FileBlockViewerProps) {
       <div className="flex gap-2 w-full sm:w-auto">
         {isPdfFile && (
           <a
-            href={url}
+            href={safeUrl}
             target="_blank"
             rel="noreferrer"
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
@@ -85,7 +88,7 @@ export function FileBlockViewer({ url, title }: FileBlockViewerProps) {
           </a>
         )}
         <a
-          href={url}
+          href={safeUrl}
           download={fileName}
           target="_blank"
           rel="noreferrer"
