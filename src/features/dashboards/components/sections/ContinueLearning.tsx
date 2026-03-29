@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { ArrowRight, BookOpen, Play } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
@@ -37,7 +37,7 @@ function CourseProgressBar({ course }: { course: CourseItem }) {
       <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
         <div
           className="h-1.5 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-500"
-          style={%DOPEN% width: `${Math.min(100, pct)}%` %DCLOSE%}
+          style={{ width: `${Math.min(100, pct)}%` }}
         />
       </div>
       <p className="text-xs text-slate-400 dark:text-slate-500 font-medium mt-1">
@@ -71,7 +71,7 @@ export function ContinueLearning({ courses, loading, onJoinClass }: ContinueLear
       ) : courses.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {courses.slice(0, 4).map((course) => (
-            <motion.div key={course.id} whileHover={%DOPEN% y: -4 %DCLOSE%}>
+            <motion.div key={course.id} whileHover={{ y: -4 }}>
               <Card hover onClick={() => navigate(`/app/student/courses/${course.id}`)}>
                 <div className="aspect-video rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 mb-4 flex items-center justify-center overflow-hidden relative group/thumb">
                   <BookOpen className="w-10 h-10 text-white/50" />
@@ -102,7 +102,7 @@ export function ContinueLearning({ courses, loading, onJoinClass }: ContinueLear
             icon={<BookOpen className="w-12 h-12" />}
             title="Belum ada materi"
             description="Gabung ke kelas untuk mulai belajar."
-            action={%DOPEN% label: 'Gabung Kelas', onClick: onJoinClass %DCLOSE%}
+            action={{ label: 'Gabung Kelas', onClick: onJoinClass }}
           />
         </Card>
       )}

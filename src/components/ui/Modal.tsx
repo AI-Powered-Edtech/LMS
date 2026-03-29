@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { X } from 'lucide-react'
 import { createContext, useCallback, useContext, useEffect, useId, useRef } from 'react'
 
@@ -86,7 +86,7 @@ export function Modal({ open, onClose, size = 'md', ariaLabel, children }: Modal
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose()
-      %DCLOSE%}
+      }}
     >
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" aria-hidden="true" />

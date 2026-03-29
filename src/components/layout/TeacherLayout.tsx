@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
@@ -32,9 +32,7 @@ export function TeacherLayout() {
   }, [sessionExpired, addToast, navigate])
 
   return (
-    <div
-      className="flex h-[100dvh] overflow-hidden font-sans flex-col transition-colors duration-300 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-    >
+    <div className="flex h-[100dvh] overflow-hidden font-sans flex-col transition-colors duration-300 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       <RouteAnnouncer />
       <a
         href="#main-content"
@@ -49,15 +47,16 @@ export function TeacherLayout() {
           {!isHidden && <Header />}
           <main
             id="main-content"
-            className={`flex-1 overflow-y-auto overflow-x-hidden flex flex-col ${isHidden ? 'p-0' : 'p-2 sm:p-4 md:p-8 pb-24 md:pb-8'}`}
+            tabIndex={-1}
+            className={`flex-1 overflow-y-auto overflow-x-hidden flex flex-col outline-none ${isHidden ? 'p-0' : 'p-2 sm:p-4 md:p-8 pb-24 md:pb-8'}`}
           >
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
-                initial={%DOPEN% opacity: 0, y: 10 %DCLOSE%}
-                animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-                exit={%DOPEN% opacity: 0, y: -10 %DCLOSE%}
-                transition={%DOPEN% duration: 0.2 %DCLOSE%}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
                 className={`${isHidden ? 'max-w-none' : 'max-w-5xl'} mx-auto w-full flex-1 flex flex-col`}
               >
                 <FeatureErrorBoundary>

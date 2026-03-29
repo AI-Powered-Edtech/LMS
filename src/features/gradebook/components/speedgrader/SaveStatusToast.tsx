@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertCircle, Check, Loader2 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
@@ -15,9 +15,9 @@ export function SaveStatusToast({ status }: SaveStatusToastProps) {
     <AnimatePresence>
       {status !== 'idle' && (
         <motion.div
-          initial={%DOPEN% opacity: 0, y: -20 %DCLOSE%}
-          animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-          exit={%DOPEN% opacity: 0, y: -20 %DCLOSE%}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
           className={cn(
             'absolute top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 rounded-full shadow-md text-sm font-medium',
             status === 'saving'

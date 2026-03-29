@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Calendar, Filter, Flame, TrendingUp, Trophy } from 'lucide-react'
 import { motion } from 'motion/react'
@@ -203,28 +203,28 @@ export function LeaderboardV2() {
               className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-2 md:p-4 max-h-[400px] overflow-y-auto"
             >
               <div
-                style={%DOPEN%
+                style={{
                   height: `${rowVirtualizer.getTotalSize()}px`,
                   width: '100%',
                   position: 'relative',
-                %DCLOSE%}
+                }}
               >
                 {rowVirtualizer.getVirtualItems().map((vRow) => {
                   const entry = listTail[vRow.index]
                   return (
                     <motion.div
                       ref={isCurrentUser(entry) ? currentUserRef : null}
-                      initial={%DOPEN% opacity: 0, x: -20 %DCLOSE%}
-                      animate={%DOPEN% opacity: 1, x: 0 %DCLOSE%}
-                      transition={%DOPEN% delay: vRow.index * 0.03 %DCLOSE%}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: vRow.index * 0.03 }}
                       key={entry.user_id}
-                      style={%DOPEN%
+                      style={{
                         position: 'absolute',
                         top: 0,
                         left: 0,
                         width: '100%',
                         transform: `translateY(${vRow.start}px)`,
-                      %DCLOSE%}
+                      }}
                       className={cn(
                         'flex items-center gap-3 p-3 rounded-xl transition-colors',
                         isCurrentUser(entry)
@@ -335,9 +335,9 @@ function PodiumCard({
 
   return (
     <motion.div
-      initial={%DOPEN% y: 50, opacity: 0 %DCLOSE%}
-      animate={%DOPEN% y: 0, opacity: 1 %DCLOSE%}
-      transition={%DOPEN% delay: rank === 1 ? 0 : rank * 0.15 %DCLOSE%}
+      initial={{ y: 50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ delay: rank === 1 ? 0 : rank * 0.15 }}
       className={cn('flex flex-col items-center', sizes[rank], rank === 1 && 'z-10')}
     >
       {isCurrent && (

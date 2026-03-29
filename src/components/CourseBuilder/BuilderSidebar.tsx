@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import {
   DragDropContext,
   Draggable,
@@ -145,7 +145,7 @@ export function BuilderSidebar() {
                 if (state.courseId) {
                   setTemplateModalConfig({ isOpen: true, type: 'module', targetId: state.courseId })
                 }
-              %DCLOSE%}
+              }}
               disabled={!state.courseId}
               className="flex items-center p-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-r-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95 border-l border-indigo-700/30 disabled:opacity-50"
               title="Import dari Template"
@@ -222,7 +222,7 @@ export function BuilderSidebar() {
                                 e.preventDefault()
                                 toggleModule(mod.id)
                               }
-                            %DCLOSE%}
+                            }}
                             className={cn(
                               'flex items-center gap-2 px-3 py-3 rounded-xl cursor-pointer group outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
                               'hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm transition-all border border-transparent hover:border-slate-200/50 dark:hover:border-slate-700/50',
@@ -259,7 +259,7 @@ export function BuilderSidebar() {
                                     sourceId: mod.id,
                                     defaultTitle: mod.title,
                                   })
-                                %DCLOSE%}
+                                }}
                                 className="p-2 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 rounded transition-colors"
                                 aria-label="Simpan sebagai Template"
                                 title="Simpan sebagai Template"
@@ -272,7 +272,7 @@ export function BuilderSidebar() {
                                   if (confirm('Hapus modul ini beserta seluruh materinya?')) {
                                     actions.deleteModule(mod.id)
                                   }
-                                %DCLOSE%}
+                                }}
                                 className="p-2 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded transition-colors ml-0.5"
                                 aria-label="Hapus modul"
                                 title="Hapus modul"
@@ -286,10 +286,10 @@ export function BuilderSidebar() {
                           <AnimatePresence initial={false}>
                             {expandedModules.has(mod.id) && (
                               <motion.div
-                                initial={%DOPEN% height: 0, opacity: 0 %DCLOSE%}
-                                animate={%DOPEN% height: 'auto', opacity: 1 %DCLOSE%}
-                                exit={%DOPEN% height: 0, opacity: 0 %DCLOSE%}
-                                transition={%DOPEN% duration: 0.15 %DCLOSE%}
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.15 }}
                                 className="overflow-hidden"
                               >
                                 <Droppable droppableId={mod.id} type="LESSON">
@@ -312,7 +312,7 @@ export function BuilderSidebar() {
                                               onClick={() => {
                                                 actions.selectLesson(lesson.id)
                                                 if (mobile.isMobile) mobile.closeSidebar()
-                                              %DCLOSE%}
+                                              }}
                                               className={cn(
                                                 'flex items-center gap-2 px-1 py-1.5 rounded-xl cursor-pointer group/lesson transition-all text-xs border border-transparent mb-1',
                                                 state.activeLesson?.id === lesson.id
@@ -385,7 +385,7 @@ export function BuilderSidebar() {
                                                       sourceId: lesson.id,
                                                       defaultTitle: lesson.title,
                                                     })
-                                                  %DCLOSE%}
+                                                  }}
                                                   className={cn(
                                                     'p-2 rounded-md transition-colors',
                                                     state.activeLesson?.id === lesson.id
@@ -403,7 +403,7 @@ export function BuilderSidebar() {
                                                     if (confirm('Hapus materi ini?')) {
                                                       actions.deleteLesson(lesson.id)
                                                     }
-                                                  %DCLOSE%}
+                                                  }}
                                                   className={cn(
                                                     'p-2 rounded-md transition-colors',
                                                     state.activeLesson?.id === lesson.id
@@ -444,7 +444,7 @@ export function BuilderSidebar() {
                                                     'text-rose-600 border-rose-200 bg-rose-50/50 hover:bg-rose-50'
                                                 )}
                                               >
-                                                {%DOPEN%
+                                                {{
                                                   article: 'ARTIKEL',
                                                   video: 'VIDEO',
                                                   quiz: 'KUIS',
@@ -460,7 +460,7 @@ export function BuilderSidebar() {
                                                 type: 'lesson',
                                                 targetId: mod.id,
                                               })
-                                            %DCLOSE%}
+                                            }}
                                             className="w-full py-2 rounded-lg text-xs font-bold text-emerald-600 border border-dashed border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-1"
                                           >
                                             <Import className="w-4 h-4" />
@@ -524,9 +524,9 @@ export function BuilderSidebar() {
         <AnimatePresence>
           {mobile.isMobile && mobile.sidebarOpen && (
             <motion.div
-              initial={%DOPEN% opacity: 0 %DCLOSE%}
-              animate={%DOPEN% opacity: 1 %DCLOSE%}
-              exit={%DOPEN% opacity: 0 %DCLOSE%}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className="fixed inset-0 z-50 flex lg:hidden"
             >
               <div
@@ -534,10 +534,10 @@ export function BuilderSidebar() {
                 onClick={mobile.closeSidebar}
               />
               <motion.div
-                initial={%DOPEN% x: '-100%' %DCLOSE%}
-                animate={%DOPEN% x: 0 %DCLOSE%}
-                exit={%DOPEN% x: '-100%' %DCLOSE%}
-                transition={%DOPEN% type: 'spring', damping: 25, stiffness: 200 %DCLOSE%}
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                 className="relative z-10 flex h-full shadow-2xl"
               >
                 {sidebarContent}

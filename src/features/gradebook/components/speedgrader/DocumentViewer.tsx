@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import {
   Maximize,
   MessageSquare,
@@ -87,7 +87,7 @@ function AnnotationPin({
   return (
     <div
       className="absolute"
-      style={%DOPEN% left: `${annotation.x}%`, top: `${annotation.y}%` %DCLOSE%}
+      style={{ left: `${annotation.x}%`, top: `${annotation.y}%` }}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="relative group">
@@ -225,13 +225,13 @@ export function DocumentViewer({
               'bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 p-12 relative origin-top transition-transform duration-200',
               activeTool === 'comment' ? 'cursor-crosshair' : 'cursor-default'
             )}
-            style={%DOPEN%
+            style={{
               width: '100%',
               maxWidth: '800px',
               minHeight: '1131px',
               transform: `scale(${zoom / 100})`,
               marginBottom: `${zoom > 100 ? (zoom - 100) * 11 : 0}px`,
-            %DCLOSE%}
+            }}
           >
             <div className="border-b border-slate-200 dark:border-slate-700 pb-6 mb-6">
               <h2 className="text-2xl font-serif font-bold text-slate-900 dark:text-white">

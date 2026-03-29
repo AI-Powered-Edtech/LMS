@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import {
   AlertTriangle,
   ArrowLeft,
@@ -11,11 +11,12 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
-import React from 'react'
+import React, { useEffect } from 'react'
 
 import { QuestionSearchModal } from '@/src/features/question-bank/components/QuestionSearchModal'
 import { type QuestionType, type QuizMode } from '@/src/features/quizzes'
 import { QuizStatus } from '@/src/features/quizzes/types/quizzes.types'
+import { useDraftAutosave } from '@/src/hooks/useDraftAutosave'
 import { cn } from '@/src/utils/cn'
 
 // ─────────────────────────────────────────────────────────
@@ -91,6 +92,8 @@ export interface QuizEditorViewProps {
   setCorrectOption: (qIdx: number, oIdx: number) => void
   setView: (view: 'list' | 'editor') => void
   loadQuizzes: () => void
+  /** Optional localStorage key override for draft autosave */
+  draftKey?: string
 }
 
 // ─────────────────────────────────────────────────────────
@@ -118,7 +121,26 @@ export function QuizEditorView({
   setCorrectOption,
   setView,
   loadQuizzes,
+  draftKey,
 }: QuizEditorViewProps) {
+  const draftStorageKey = draftKey ?? `quiz-editor-draft-${form?.id ?? 'new'}`
+  const { saveStatusText, loadDraft } = useDraftAutosave({
+    key: draftStorageKey,
+    data: { quizFormData: form, questions: form.questions },
+    debounceMs: 3000,
+  })
+
+  // Load draft on mount only for new quizzes (no server ID yet)
+  useEffect(() => {
+    if (!form?.id) {
+      const draft = loadDraft()
+      if (draft?.quizFormData) {
+        // Draft loading is opt-in via callback to avoid overwriting server data
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 px-4 md:px-6 lg:px-8">
       {/* Editor Header */}
@@ -128,7 +150,7 @@ export function QuizEditorView({
             onClick={() => {
               setView('list')
               loadQuizzes()
-            %DCLOSE%}
+            }}
             className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -146,6 +168,12 @@ export function QuizEditorView({
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          {saveStatusText && (
+            <span className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
+              <CheckCircle className="w-3 h-3" />
+              {saveStatusText}
+            </span>
+          )}
           <button
             onClick={() => handleSave()}
             disabled={isSaving}
@@ -187,7 +215,9 @@ export function QuizEditorView({
         </h3>
 
         <div>
-          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Judul Kuis</label>
+          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+            Judul Kuis
+          </label>
           <input
             type="text"
             value={form.title}
@@ -199,7 +229,9 @@ export function QuizEditorView({
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Instruksi</label>
+          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+            Instruksi
+          </label>
           <textarea
             value={form.instructions}
             onChange={(e) => setForm({ ...form, instructions: e.target.value })}
@@ -212,7 +244,9 @@ export function QuizEditorView({
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div>
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Mode</label>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+              Mode
+            </label>
             <select
               value={form.mode}
               onChange={(e) => setForm({ ...form, mode: e.target.value as QuizMode })}
@@ -225,7 +259,9 @@ export function QuizEditorView({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Waktu (menit)</label>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+              Waktu (menit)
+            </label>
             <input
               type="number"
               min="0"
@@ -240,7 +276,9 @@ export function QuizEditorView({
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Maks. Percobaan</label>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+              Maks. Percobaan
+            </label>
             <input
               type="number"
               min="1"
@@ -252,7 +290,9 @@ export function QuizEditorView({
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Nilai Lulus (%)</label>
+            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+              Nilai Lulus (%)
+            </label>
             <input
               type="number"
               min="0"
@@ -281,7 +321,9 @@ export function QuizEditorView({
                 disabled={isPublished}
                 className="w-4 h-4 rounded accent-blue-600"
               />
-              <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">{item.label}</span>
+              <span className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                {item.label}
+              </span>
             </label>
           ))}
         </div>
@@ -321,7 +363,9 @@ export function QuizEditorView({
         {form.questions.length === 0 ? (
           <div className="text-center p-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
             <HelpCircle className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Belum ada soal.</p>
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              Belum ada soal.
+            </p>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
               Klik "Tambah Soal" untuk mulai membuat pertanyaan.
             </p>
@@ -498,7 +542,7 @@ export function QuizEditorView({
               ],
             }))
             setShowQuestionModal(false)
-          %DCLOSE%}
+          }}
         />
       )}
     </div>

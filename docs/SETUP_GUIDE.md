@@ -7,9 +7,9 @@
 
 ## Prasyarat
 
-- **Node.js** ≥ 18 dan **npm** ≥ 9
+- **Node.js** ≥ 20 dan **pnpm** ≥ 9
 - **Supabase CLI** ≥ 1.100 (`npm install -g supabase`)
-- **Git** (clone repo ini)
+- **Git** 2.30+ (clone repo ini)
 - Akun Supabase (gratis cukup untuk development)
 - (Opsional) **GROQ API Key** untuk fitur AI Tutor & AI Grading — dapatkan di https://console.groq.com
 
@@ -20,7 +20,7 @@
 ```bash
 git clone <REPO_URL>
 cd LMS
-npm install
+pnpm install
 ```
 
 ---
@@ -138,6 +138,9 @@ supabase secrets set GROQ_API_KEY=<GROQ_KEY_KAMU> --project-ref <PROJECT_REF>
 
 ```bash
 # Deploy semua sekaligus
+supabase functions deploy --project-ref <PROJECT_REF>
+
+# Atau deploy satu per satu (untuk fitur AI minimal):
 supabase functions deploy ai-tutor --project-ref <PROJECT_REF>
 supabase functions deploy ai-grade-essay --project-ref <PROJECT_REF>
 supabase functions deploy generate-ai-content --project-ref <PROJECT_REF>
@@ -147,17 +150,25 @@ supabase functions deploy process-progress-events --project-ref <PROJECT_REF>
 supabase functions deploy progress-events --project-ref <PROJECT_REF>
 ```
 
-### Daftar Edge Functions
+### Daftar Edge Functions (15 total)
 
-| Function                  | Kegunaan                       | Secret Dibutuhkan |
-| ------------------------- | ------------------------------ | ----------------- |
-| `ai-tutor`                | Chatbot AI untuk siswa         | `GROQ_API_KEY`    |
-| `ai-grade-essay`          | Grading essay otomatis         | `GROQ_API_KEY`    |
-| `generate-ai-content`     | Generate konten AI untuk guru  | `GROQ_API_KEY`    |
-| `grade-quiz-attempt`      | Proses jawaban quiz            | —                 |
-| `load-quiz-data`          | Load data quiz untuk player    | —                 |
-| `process-progress-events` | Background processing progress | —                 |
-| `progress-events`         | Endpoint untuk progress events | —                 |
+| Function                  | Kegunaan                              | Secret Dibutuhkan |
+| ------------------------- | ------------------------------------- | ----------------- |
+| `ai-tutor`                | Chatbot AI untuk siswa                | `GROQ_API_KEY`    |
+| `ai-grade-essay`          | Grading essay otomatis                | `GROQ_API_KEY`    |
+| `generate-ai-content`     | Generate konten AI untuk guru         | `GROQ_API_KEY`    |
+| `generate-pdf`            | Generate PDF sertifikat               | —                 |
+| `grade-quiz-attempt`      | Proses jawaban quiz                   | —                 |
+| `health-check`            | Status kesehatan sistem               | —                 |
+| `load-quiz-data`          | Load data quiz untuk player           | —                 |
+| `process-progress-events` | Background processing progress events | —                 |
+| `progress-events`         | Endpoint enqueue progress events      | —                 |
+| `send-email-digest`       | Kirim email digest notifikasi         | SMTP config       |
+| `send-push`               | Kirim push notification               | —                 |
+| `lti-jwks`                | Public JWKS untuk LTI 1.3             | —                 |
+| `lti-oidc-login`          | LTI OIDC login initiation             | —                 |
+| `lti-launch`              | LTI launch token validation           | —                 |
+| `scorm-extract`           | Ekstrak SCORM ZIP                     | —                 |
 
 ---
 
@@ -187,7 +198,7 @@ VITE_DEV_PASSWORD=password123
 ### 9c. Jalankan dev server
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Buka http://localhost:5173 di browser.
@@ -269,56 +280,32 @@ supabase db reset
 supabase/
 ├── config.toml                 # Konfigurasi Supabase CLI
 ├── migrations/
-│   ├── 000_baseline.sql        # Satu file berisi seluruh schema (squash dari 181 migrasi)
-│   └── _archive/               # 181 migrasi individual (arsip referensi, tidak dijalankan)
+│   ├── 000_baseline.sql        # Satu file berisi seluruh schema (squash dari 162 migrasi)
+│   ├── 001_performance_indexes.sql
+│   ├── ...                     # 001–012: Feature additions post-baseline
+│   ├── 20260322*–20260325*     # Phase 21 improvements
+│   └── _archive/               # 105+ migrasi individual (arsip referensi, tidak dijalankan)
 ├── seed.sql                    # Orchestrator — memanggil 4 sub-file via \i
 ├── seed/
-│   ├── seed_base.sql           # Tenant, academic years, classes
+│   ├── seed_base.sql           # Tenant, academic years, classes, tenant_modules
 │   ├── seed_users.sql          # Auth users + profiles + roles (6 akun)
 │   ├── seed_demo.sql           # Courses, modules, lessons, enrollments
 │   └── seed_gamification.sql   # Badges, XP config, leaderboard
 ├── schema_baseline.sql         # Backup/referensi schema (485KB)
-└── functions/                  # 7 Deno Edge Functions
+└── functions/                  # 15 Deno Edge Functions
     ├── ai-tutor/
     ├── ai-grade-essay/
     ├── generate-ai-content/
+    ├── generate-pdf/
     ├── grade-quiz-attempt/
+    ├── health-check/
     ├── load-quiz-data/
+    ├── lti-jwks/
+    ├── lti-launch/
+    ├── lti-oidc-login/
     ├── process-progress-events/
-    └── progress-events/
+    ├── progress-events/
+    ├── scorm-extract/
+    ├── send-email-digest/
+    └── send-push/
 ```
-
-<!-- Phase 5 Feature Cross-Reference -->
-
-## Feature Module Cross-Reference
-
-EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
-
-| Feature         | Domain         | Deskripsi                                                                                                                  |
-| --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| administration  | Admin          | Administrasi — Manajemen tenant, konfigurasi modul sekolah, sinkronisasi data                                              |
-| ai-tutor        | Learning       | AI Tutor — Asisten belajar berbasis AI yang memberikan penjelasan personal kepada siswa                                    |
-| analytics       | Analytics      | Analitik — Dashboard analitik komprehensif untuk guru dan admin                                                            |
-| announcements   | Communication  | Pengumuman — Sistem pengumuman sekolah                                                                                     |
-| assignments     | Assessment     | Tugas — Manajemen tugas dari pembuatan hingga penilaian                                                                    |
-| calendar        | Academic       | Kalender — Kalender akademik terintegrasi dengan jadwal pelajaran, ujian, deadline tugas, dan kegiatan sekolah             |
-| classroom       | Academic       | Kelas — Manajemen kelas virtual dan fisik                                                                                  |
-| courses         | Academic       | Kursus — Core learning module                                                                                              |
-| dashboards      | Analytics      | Dashboard — Dashboard kustom dengan widget builder                                                                         |
-| discussions     | Communication  | Diskusi — Forum diskusi per kursus                                                                                         |
-| gamification    | Engagement     | Gamifikasi — Sistem gamifikasi lengkap: XP, badge, level, streak counter, dan leaderboard                                  |
-| gradebook       | Assessment     | Buku Nilai — Buku nilai digital untuk guru                                                                                 |
-| guidance        | Admin          | Panduan — Sistem panduan in-app (tooltip, walkthrough, banner, checkpoint)                                                 |
-| lessons         | Learning       | Pelajaran — Konten pelajaran dengan block-based editor                                                                     |
-| moderation      | Admin          | Moderasi — Moderasi konten user-generated (diskusi, komentar)                                                              |
-| notifications   | Communication  | Notifikasi — Sistem notifikasi real-time dengan bell icon dan panel                                                        |
-| onboarding      | Admin          | Onboarding — Wizard onboarding untuk pengguna baru                                                                         |
-| progress        | Learning       | Kemajuan Belajar — Tracking progress belajar siswa secara granular per kursus, modul, dan pelajaran                        |
-| question-bank   | Assessment     | Bank Soal — Repositori soal yang bisa digunakan ulang di berbagai kuis                                                     |
-| quizzes         | Assessment     | Kuis — Sistem kuis komprehensif dengan timer, anti-cheat, autosave, review mode, dan analitik hasil per soal               |
-| recommendations | Learning       | Rekomendasi — Engine rekomendasi konten berdasarkan progress, performa, dan pola belajar siswa                             |
-| reports         | Analytics      | Laporan — Generator laporan akademik, keuangan (SPP), PPDB, dan custom                                                     |
-| storage         | Infrastructure | Penyimpanan — Manajemen file dan media untuk materi pembelajaran                                                           |
-| struggle        | Analytics      | Deteksi Kesulitan — Deteksi otomatis siswa yang kesulitan berdasarkan pola belajar, waktu per soal, dan penurunan performa |
-
-Setiap feature module mengikuti arsitektur standar dengan folder: api/, queries/, hooks/, types/, components/, dan **tests**/. Semua feature mendukung dark mode dan skeleton loading screens.

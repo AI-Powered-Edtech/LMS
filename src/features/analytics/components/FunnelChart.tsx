@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { useMemo } from 'react'
 import {
   Bar,
@@ -11,8 +11,9 @@ import {
   YAxis,
 } from 'recharts'
 
-import { FunnelStepResult } from '../types'
 import { useTheme } from '@/src/contexts/ThemeContext'
+
+import { FunnelStepResult } from '../types'
 
 const EVENT_LABELS: Record<string, string> = {
   LESSON_STARTED: 'Mulai Pelajaran',
@@ -50,7 +51,6 @@ const labelFormatter = (v: unknown) => `${v}%`
 export function FunnelChart({ data }: FunnelChartProps) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
-  if (data.length === 0) return null
 
   // ⚡ Perf: memoize chart data transform + maxUsers computation
   const { chartData, maxUsers } = useMemo(() => {
@@ -66,33 +66,35 @@ export function FunnelChart({ data }: FunnelChartProps) {
     }
   }, [data])
 
+  if (data.length === 0) return null
+
   return (
     <div className="w-full">
       <ResponsiveContainer width="100%" height={300}>
         <BarChart
           data={chartData}
           layout="vertical"
-          margin={%DOPEN% left: 16, right: 48, top: 8, bottom: 8 %DCLOSE%}
+          margin={{ left: 16, right: 48, top: 8, bottom: 8 }}
         >
           <XAxis type="number" domain={[0, maxUsers]} hide />
           <YAxis
             type="category"
             dataKey="name"
             width={120}
-            tick={%DOPEN% fontSize: 12, fill: isDark ? '#94a3b8' : '#64748b' %DCLOSE%}
-            axisLine={%DOPEN% stroke: isDark ? '#334155' : '#e2e8f0' %DCLOSE%}
-            tickLine={%DOPEN% stroke: isDark ? '#334155' : '#e2e8f0' %DCLOSE%}
+            tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#64748b' }}
+            axisLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+            tickLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
           />
           <Tooltip
             formatter={tooltipFormatter}
-            contentStyle={%DOPEN%
+            contentStyle={{
               fontSize: 12,
               backgroundColor: isDark ? '#1e293b' : '#ffffff',
               border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
               borderRadius: '0.5rem',
               color: isDark ? '#f1f5f9' : '#0f172a',
-            %DCLOSE%}
-            labelStyle={%DOPEN% color: isDark ? '#94a3b8' : '#64748b' %DCLOSE%}
+            }}
+            labelStyle={{ color: isDark ? '#94a3b8' : '#64748b' }}
           />
           <Bar dataKey="users" radius={[0, 4, 4, 0]}>
             {chartData.map((_, i) => (
@@ -102,7 +104,7 @@ export function FunnelChart({ data }: FunnelChartProps) {
               dataKey="conversion"
               position="right"
               formatter={labelFormatter}
-              style={%DOPEN% fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' %DCLOSE%}
+              style={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }}
             />
           </Bar>
         </BarChart>

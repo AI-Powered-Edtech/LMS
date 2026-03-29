@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Check, Loader2, School, Users, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
@@ -86,9 +86,9 @@ export function AssignCourseModal({
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <motion.div
-            initial={%DOPEN% opacity: 0, scale: 0.95, y: 20 %DCLOSE%}
-            animate={%DOPEN% opacity: 1, scale: 1, y: 0 %DCLOSE%}
-            exit={%DOPEN% opacity: 0, scale: 0.95, y: 20 %DCLOSE%}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 dark:border-slate-800"
           >
             {/* Header */}

@@ -162,6 +162,10 @@ export const StudentProgress = withErrorBoundary(
   lazy(() => import('../pages/StudentProgress').then((m) => ({ default: m.StudentProgress }))),
   'Progres Siswa'
 )
+export const StruggleDashboard = withErrorBoundary(
+  lazy(() => import('../pages/StruggleDashboard').then((m) => ({ default: m.StruggleDashboard }))),
+  'Deteksi Kesulitan Belajar'
+)
 
 // ============================================================
 // Shared pages (all roles)

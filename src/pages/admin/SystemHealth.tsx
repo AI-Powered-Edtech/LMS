@@ -2,8 +2,8 @@ import { Activity, AlertTriangle, CheckCircle, RefreshCw, XCircle } from 'lucide
 import { useEffect, useState } from 'react'
 
 import { Spinner } from '@/src/components/ui'
+import { administrationService } from '@/src/features/administration/api/administrationService'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
 
 interface HealthCheck {
   status: 'healthy' | 'degraded' | 'down'
@@ -46,10 +46,8 @@ export function SystemHealth() {
     try {
       // Check DB health via a simple query
       const start = performance.now()
-      const { error: dbError } = await supabase.from('tenants').select('id').limit(1)
+      const dbOk = await administrationService.healthCheck()
       const dbLatency = Math.round(performance.now() - start)
-
-      const dbOk = !dbError
 
       setHealth({
         status: dbOk ? 'healthy' : 'degraded',
@@ -62,11 +60,7 @@ export function SystemHealth() {
       })
 
       // Recent metrics
-      const { data: recentMetrics } = await supabase
-        .from('app_metrics')
-        .select('metric_name, metric_value')
-        .order('recorded_at', { ascending: false })
-        .limit(50)
+      const recentMetrics = await administrationService.getAppMetrics()
 
       const summary: MetricSummary[] = []
 

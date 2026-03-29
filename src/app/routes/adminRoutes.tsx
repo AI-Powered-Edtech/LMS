@@ -23,6 +23,7 @@ import {
   QuizManager,
   ScanAttendance,
   SpeedGrader,
+  StruggleDashboard,
   StudentProgress,
   SystemHealth,
   UserManagement,
@@ -239,6 +240,14 @@ export function AdminRoutes() {
         element={
           <S>
             <FeatureFlagsPage />
+          </S>
+        }
+      />
+      <Route
+        path="struggle"
+        element={
+          <S feature="Deteksi Kesulitan">
+            <StruggleDashboard />
           </S>
         }
       />

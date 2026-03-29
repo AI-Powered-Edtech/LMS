@@ -35,8 +35,8 @@ EduSync is a Supabase-centric SaaS LMS. There is no traditional backend server. 
 - `src/app/routes/` — domain-based route splits (see below)
 - `src/app/lazyPages.tsx` — all lazy-loaded page imports with error boundaries
 - `src/app/legacyRedirects.tsx` — backward-compatible URL redirects
-- `src/components/guards/` — all guard components
-- `src/components/RoleRoute.tsx` — simple role-based route wrapper
+- `src/app/routes/utils.tsx` — shared route utilities (RoleRoute, guard wrappers)
+- `src/components/guards/` — all guard components (AuthGuard, TenantGuard, RoleGuard, etc.)
 
 ### Route Splitting (Phase 21C)
 
@@ -160,7 +160,7 @@ Student opens lesson
 ## Build Output
 
 ```bash
-npm run build   # → dist/  (static files for CDN/Vercel/Netlify)
+pnpm build   # → dist/  (static files for CDN/Vercel/Netlify)
 ```
 
 Bundle is split into manual chunks:
@@ -168,14 +168,15 @@ Bundle is split into manual chunks:
 - `vendor-react` — React, React DOM, React Router
 - `vendor-supabase` — Supabase JS client
 - `vendor-recharts` — Charts (analytics routes only)
-- `vendor-pdf` — removed (replaced by `generate-pdf` Edge Function)
 - `vendor-katex` — Math rendering
 - `vendor-query` — React Query
-- `vendor-motion` — Framer Motion animations
-- `vendor-dnd` — Drag-and-drop (dnd-kit)
-- `vendor-markdown` — Markdown rendering
+- `vendor-motion` — Framer Motion (`motion` package) animations
+- `vendor-dnd` — Drag-and-drop (`@hello-pangea/dnd`)
+- `vendor-markdown` — Markdown rendering (react-markdown + remark + rehype)
 - `vendor-sentry` — Sentry error tracking
 - `vendor-date` — date-fns
+- `vendor-sanitize` — DOMPurify XSS sanitizer
+- `vendor-form` — react-hook-form + valibot
 
 ## Performance Patterns
 
@@ -210,11 +211,12 @@ All React Query `staleTime` values use named constants from `src/utils/queryCons
 
 ### Bundle Splitting
 
-`vite.config.ts` defines 11 vendor chunks for optimal caching:
+`vite.config.ts` defines 12 vendor chunks for optimal caching:
 
 ```
-vendor-react, vendor-supabase, vendor-recharts, vendor-pdf, vendor-katex, vendor-query,
-vendor-motion, vendor-dnd, vendor-markdown, vendor-sentry, vendor-date
+vendor-react, vendor-supabase, vendor-recharts, vendor-katex, vendor-query,
+vendor-motion, vendor-dnd, vendor-markdown, vendor-sentry, vendor-date,
+vendor-sanitize, vendor-form
 ```
 
 Each chunk is independently cacheable. Updating one library does not bust other chunks.
@@ -226,39 +228,4 @@ Each chunk is independently cacheable. Updating one library does not bust other 
 - **Dev:** logs to console with rating
 - **Prod:** stores in `sessionStorage['web_vitals']` (last 20 entries); forwards to Sentry if SDK active
 
-Run Lighthouse CI: `npm run perf:lighthouse`
-
-<!-- Phase 5 Feature Cross-Reference -->
-
-## Feature Module Cross-Reference
-
-EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
-
-| Feature         | Domain         | Deskripsi                                                                                                                  |
-| --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| administration  | Admin          | Administrasi — Manajemen tenant, konfigurasi modul sekolah, sinkronisasi data                                              |
-| ai-tutor        | Learning       | AI Tutor — Asisten belajar berbasis AI yang memberikan penjelasan personal kepada siswa                                    |
-| analytics       | Analytics      | Analitik — Dashboard analitik komprehensif untuk guru dan admin                                                            |
-| announcements   | Communication  | Pengumuman — Sistem pengumuman sekolah                                                                                     |
-| assignments     | Assessment     | Tugas — Manajemen tugas dari pembuatan hingga penilaian                                                                    |
-| calendar        | Academic       | Kalender — Kalender akademik terintegrasi dengan jadwal pelajaran, ujian, deadline tugas, dan kegiatan sekolah             |
-| classroom       | Academic       | Kelas — Manajemen kelas virtual dan fisik                                                                                  |
-| courses         | Academic       | Kursus — Core learning module                                                                                              |
-| dashboards      | Analytics      | Dashboard — Dashboard kustom dengan widget builder                                                                         |
-| discussions     | Communication  | Diskusi — Forum diskusi per kursus                                                                                         |
-| gamification    | Engagement     | Gamifikasi — Sistem gamifikasi lengkap: XP, badge, level, streak counter, dan leaderboard                                  |
-| gradebook       | Assessment     | Buku Nilai — Buku nilai digital untuk guru                                                                                 |
-| guidance        | Admin          | Panduan — Sistem panduan in-app (tooltip, walkthrough, banner, checkpoint)                                                 |
-| lessons         | Learning       | Pelajaran — Konten pelajaran dengan block-based editor                                                                     |
-| moderation      | Admin          | Moderasi — Moderasi konten user-generated (diskusi, komentar)                                                              |
-| notifications   | Communication  | Notifikasi — Sistem notifikasi real-time dengan bell icon dan panel                                                        |
-| onboarding      | Admin          | Onboarding — Wizard onboarding untuk pengguna baru                                                                         |
-| progress        | Learning       | Kemajuan Belajar — Tracking progress belajar siswa secara granular per kursus, modul, dan pelajaran                        |
-| question-bank   | Assessment     | Bank Soal — Repositori soal yang bisa digunakan ulang di berbagai kuis                                                     |
-| quizzes         | Assessment     | Kuis — Sistem kuis komprehensif dengan timer, anti-cheat, autosave, review mode, dan analitik hasil per soal               |
-| recommendations | Learning       | Rekomendasi — Engine rekomendasi konten berdasarkan progress, performa, dan pola belajar siswa                             |
-| reports         | Analytics      | Laporan — Generator laporan akademik, keuangan (SPP), PPDB, dan custom                                                     |
-| storage         | Infrastructure | Penyimpanan — Manajemen file dan media untuk materi pembelajaran                                                           |
-| struggle        | Analytics      | Deteksi Kesulitan — Deteksi otomatis siswa yang kesulitan berdasarkan pola belajar, waktu per soal, dan penurunan performa |
-
-Setiap feature module mengikuti arsitektur standar dengan folder: api/, queries/, hooks/, types/, components/, dan **tests**/. Semua feature mendukung dark mode dan skeleton loading screens.
+Run Lighthouse CI: `pnpm perf:lighthouse`

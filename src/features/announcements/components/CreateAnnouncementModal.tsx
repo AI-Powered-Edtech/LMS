@@ -1,11 +1,11 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { Paperclip, Send, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { type Resolver,useForm } from 'react-hook-form'
+import { type Resolver, useForm } from 'react-hook-form'
 
 import { OfflineFormNotice } from '@/src/components/ui/OfflineFormNotice'
-import { type AnnouncementFormData,AnnouncementFormSchema } from '@/src/shared/schemas/forms'
+import { type AnnouncementFormData, AnnouncementFormSchema } from '@/src/shared/schemas/forms'
 
 interface ExtendedFormData extends AnnouncementFormData {
   target_audience: 'all_students' | 'course_students' | 'course_staff' | 'system'
@@ -48,7 +48,7 @@ export function CreateAnnouncementModal({
     reset,
     formState: { errors },
   } = useForm<ExtendedFormData>({
-    resolver: (valibotResolver(AnnouncementFormSchema) as unknown) as Resolver<ExtendedFormData>,
+    resolver: valibotResolver(AnnouncementFormSchema) as unknown as Resolver<ExtendedFormData>,
     defaultValues: {
       title: '',
       content: '',
@@ -81,9 +81,9 @@ export function CreateAnnouncementModal({
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <motion.div
-            initial={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
-            animate={%DOPEN% opacity: 1, scale: 1 %DCLOSE%}
-            exit={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
             className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col"
           >
             <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-700 shrink-0">

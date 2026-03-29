@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertTriangle, Clock, Loader2, Play, X } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -18,16 +18,16 @@ interface StartQuizModalProps {
 export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: StartQuizModalProps) {
   return (
     <motion.div
-      initial={%DOPEN% opacity: 0 %DCLOSE%}
-      animate={%DOPEN% opacity: 1 %DCLOSE%}
-      exit={%DOPEN% opacity: 0 %DCLOSE%}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={onClose}
     >
       <motion.div
-        initial={%DOPEN% scale: 0.95, opacity: 0 %DCLOSE%}
-        animate={%DOPEN% scale: 1, opacity: 1 %DCLOSE%}
-        exit={%DOPEN% scale: 0.95, opacity: 0 %DCLOSE%}
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
         className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl dark:shadow-slate-900/50 max-w-md w-full p-8 relative"
       >
@@ -49,14 +49,18 @@ export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: St
 
         <div className="space-y-3 mb-6">
           <div className="flex items-center justify-between py-3 px-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
-            <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Jumlah Soal</span>
+            <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              Jumlah Soal
+            </span>
             <span className="font-bold text-slate-800 dark:text-white">
               {pendingQuiz.quiz_questions?.length || 0} soal
             </span>
           </div>
           {(pendingQuiz.time_limit_minutes ?? 0) > 0 && (
             <div className="flex items-center justify-between py-3 px-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
-              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Batas Waktu</span>
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                Batas Waktu
+              </span>
               <span className="font-bold text-slate-800 dark:text-white">
                 {pendingQuiz.time_limit_minutes} menit
               </span>
@@ -64,7 +68,9 @@ export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: St
           )}
           {pendingQuiz.max_attempts && (
             <div className="flex items-center justify-between py-3 px-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
-              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Kesempatan</span>
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                Kesempatan
+              </span>
               <span className="font-bold text-slate-800 dark:text-white">
                 {pendingQuiz.max_attempts}× percobaan
               </span>

@@ -1,11 +1,11 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { FileText, FileUp, Link as LinkIcon, Paperclip, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { type Resolver,useForm } from 'react-hook-form'
+import { type Resolver, useForm } from 'react-hook-form'
 
 import { OfflineFormNotice } from '@/src/components/ui/OfflineFormNotice'
-import { type AssignmentFormData,AssignmentFormSchema } from '@/src/shared/schemas/forms'
+import { type AssignmentFormData, AssignmentFormSchema } from '@/src/shared/schemas/forms'
 
 export interface NewAssignmentData extends AssignmentFormData {
   class: string
@@ -28,7 +28,7 @@ export function CreateAssignmentModal({ isOpen, onClose, onCreate }: CreateAssig
     reset,
     formState: { errors },
   } = useForm<AssignmentFormData>({
-    resolver: (valibotResolver(AssignmentFormSchema) as unknown) as Resolver<AssignmentFormData>,
+    resolver: valibotResolver(AssignmentFormSchema) as unknown as Resolver<AssignmentFormData>,
     defaultValues: {
       title: '',
       description: '',
@@ -56,9 +56,9 @@ export function CreateAssignmentModal({ isOpen, onClose, onCreate }: CreateAssig
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <motion.div
-            initial={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
-            animate={%DOPEN% opacity: 1, scale: 1 %DCLOSE%}
-            exit={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
             className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col"
           >
             <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800 shrink-0 bg-white dark:bg-slate-900">

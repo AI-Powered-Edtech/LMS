@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Badge, Card, Skeleton } from '@/src/components/ui'
 import { VirtualTable } from '@/src/components/ui/VirtualTable'
 import { cn } from '@/src/utils/cn'
@@ -37,7 +37,7 @@ const columns = [
         <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
           <div
             className={cn('h-full rounded-full transition-all', pctBgColor(row.avg_completion_pct))}
-            style={%DOPEN% width: `${Math.min(row.avg_completion_pct, 100)}%` %DCLOSE%}
+            style={{ width: `${Math.min(row.avg_completion_pct, 100)}%` }}
           />
         </div>
       </div>

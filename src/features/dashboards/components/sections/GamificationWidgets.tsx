@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Clock, Crown, Star, Target, Trophy, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -84,7 +84,7 @@ export function GamificationWidgets({ xp, dailyGoal, achievements }: Gamificatio
             <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2">
               <div
                 className="bg-yellow-400 h-2 rounded-full transition-all duration-500"
-                style={%DOPEN% width: `${dailyProgress}%` %DCLOSE%}
+                style={{ width: `${dailyProgress}%` }}
               />
             </div>
           </div>
@@ -94,7 +94,7 @@ export function GamificationWidgets({ xp, dailyGoal, achievements }: Gamificatio
             <div key={i} className="flex flex-col items-center gap-2 flex-1">
               <div
                 className="w-full bg-yellow-100 dark:bg-yellow-900/30 rounded-t-sm"
-                style={%DOPEN% height: '25%' %DCLOSE%}
+                style={{ height: '25%' }}
               />
               <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">
                 {day}
@@ -142,7 +142,7 @@ export function GamificationWidgets({ xp, dailyGoal, achievements }: Gamificatio
         <EmptyState
           icon={<Clock className="w-8 h-8" />}
           title="Belum ada riwayat kuis"
-          action={%DOPEN% label: 'Mulai Kuis', onClick: () => navigate('/quiz') %DCLOSE%}
+          action={{ label: 'Mulai Kuis', onClick: () => navigate('/quiz') }}
         />
       </Card>
     </div>

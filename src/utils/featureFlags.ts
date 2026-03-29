@@ -21,6 +21,10 @@ const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 export async function loadFeatureFlags(): Promise<void> {
   if (flagCache && Date.now() < cacheExpiry) return
 
+  // NOTE: We fetch all flags once (global cache) because the `tenant_ids` field
+  // is a per-flag allowlist — not per-tenant rows. Tenant isolation is enforced
+  // in isFeatureEnabled() by checking flag.tenant_ids.includes(tenantId).
+  // RLS on the feature_flags table enforces this server-side.
   const { data } = await supabase
     .from('feature_flags')
     .select('flag_name, enabled, tenant_ids, rollout_percentage')
@@ -38,11 +42,17 @@ export function invalidateFlagCache(): void {
 // Evaluation helpers
 // ---------------------------------------------------------------------------
 
-function hashFlagName(flagName: string): number {
-  return flagName.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+/**
+ * Deterministic per-user hash for gradual rollout.
+ * Uses flagName + userId so the same user gets consistent results,
+ * but different users get different results (true gradual rollout).
+ */
+function hashForRollout(flagName: string, userId: string): number {
+  const input = `${flagName}:${userId}`
+  return input.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
 }
 
-export function isFeatureEnabled(flagName: string, tenantId?: string): boolean {
+export function isFeatureEnabled(flagName: string, tenantId?: string, userId?: string): boolean {
   if (!flagCache) return false
 
   const flag = flagCache.get(flagName)
@@ -54,9 +64,10 @@ export function isFeatureEnabled(flagName: string, tenantId?: string): boolean {
     return flag.tenant_ids.includes(tenantId)
   }
 
-  // Deterministic rollout by flag name hash
+  // Deterministic per-user rollout (not per-flag-name)
   if (flag.rollout_percentage < 100) {
-    return hashFlagName(flagName) % 100 < flag.rollout_percentage
+    const hash = userId ? hashForRollout(flagName, userId) : hashForRollout(flagName, 'anonymous')
+    return hash % 100 < flag.rollout_percentage
   }
 
   return true

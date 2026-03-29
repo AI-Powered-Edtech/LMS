@@ -4,6 +4,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
+import { useToast } from '@/src/hooks/useToast'
+import { captureError } from '@/src/utils/sentry'
 
 import * as quizPlayerService from '../api/quizPlayer.service'
 import type { StartQuizAttemptInput, SubmitAnswer } from '../types/quizzes.types'
@@ -26,6 +28,13 @@ export function useStartQuizAttempt() {
       if (tenantId) {
         queryClient.invalidateQueries({ queryKey: QuizKeys.studentAssignments(tenantId) })
       }
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useStartQuizAttempt' })
+      useToast.getState().addToast({
+        type: 'error',
+        message: 'Gagal memulai kuis. Silakan coba lagi.',
+      })
     },
   })
 }
@@ -52,6 +61,14 @@ export function useSubmitQuizAttempt() {
         queryClient.invalidateQueries({ queryKey: QuizKeys.userAttempts(tenantId) })
         queryClient.invalidateQueries({ queryKey: QuizKeys.studentAssignments(tenantId) })
       }
+    },
+    onError: (err, variables) => {
+      captureError(err, { context: 'useSubmitQuizAttempt', attemptId: variables.attemptId })
+      useToast.getState().addToast({
+        type: 'error',
+        message: 'Gagal mengirim jawaban kuis.',
+        description: 'Jawaban Anda tersimpan lokal. Silakan coba lagi.',
+      })
     },
   })
 }

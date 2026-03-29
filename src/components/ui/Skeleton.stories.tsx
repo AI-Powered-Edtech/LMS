@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import type { Meta, StoryObj } from '@storybook/react'
 
 import { Skeleton, SkeletonCard } from './Skeleton'
@@ -42,7 +42,7 @@ export const FullWidth: Story = {
   },
   decorators: [
     (Story) => (
-      <div style={%DOPEN% width: 400 %DCLOSE%}>
+      <div style={{ width: 400 }}>
         <Story />
       </div>
     ),
@@ -51,7 +51,7 @@ export const FullWidth: Story = {
 
 export const TextLines: Story = {
   render: () => (
-    <div style={%DOPEN% width: 400 %DCLOSE%} className="space-y-2">
+    <div style={{ width: 400 }} className="space-y-2">
       <Skeleton width="100%" height={16} />
       <Skeleton width="100%" height={16} />
       <Skeleton width="60%" height={16} />
@@ -69,7 +69,7 @@ const cardMeta: Meta<typeof SkeletonCard> = {
 
 export const CardDefault: StoryObj<typeof SkeletonCard> = {
   render: () => (
-    <div style={%DOPEN% width: 350 %DCLOSE%}>
+    <div style={{ width: 350 }}>
       <SkeletonCard />
     </div>
   ),
@@ -77,7 +77,7 @@ export const CardDefault: StoryObj<typeof SkeletonCard> = {
 
 export const CardWithMoreLines: StoryObj<typeof SkeletonCard> = {
   render: () => (
-    <div style={%DOPEN% width: 350 %DCLOSE%}>
+    <div style={{ width: 350 }}>
       <SkeletonCard lines={4} />
     </div>
   ),
@@ -85,7 +85,7 @@ export const CardWithMoreLines: StoryObj<typeof SkeletonCard> = {
 
 export const CardGrid: StoryObj<typeof SkeletonCard> = {
   render: () => (
-    <div className="grid grid-cols-2 gap-4" style={%DOPEN% width: 700 %DCLOSE%}>
+    <div className="grid grid-cols-2 gap-4" style={{ width: 700 }}>
       <SkeletonCard />
       <SkeletonCard />
       <SkeletonCard lines={3} />

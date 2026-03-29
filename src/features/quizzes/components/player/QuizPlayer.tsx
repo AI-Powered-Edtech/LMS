@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 // Quiz Player - Orchestrator component
 // Part of the Quiz Engine Refactor
 
@@ -217,7 +217,7 @@ export function QuizPlayer({
         onJump={(index) => {
           setCurrentQuestionIdx(index)
           setShowReview(false)
-        %DCLOSE%}
+        }}
         isSubmitting={isSubmitting}
       />
     )
@@ -260,8 +260,12 @@ export function QuizPlayer({
             <div className="flex items-center gap-3 px-5 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl shadow-lg">
               <Eye className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
               <div>
-                <p className="font-bold text-amber-800 dark:text-amber-300 text-sm">Anda meninggalkan tab kuis</p>
-                <p className="text-xs text-amber-600 dark:text-amber-400">Aktivitas ini telah dicatat</p>
+                <p className="font-bold text-amber-800 dark:text-amber-300 text-sm">
+                  Anda meninggalkan tab kuis
+                </p>
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  Aktivitas ini telah dicatat
+                </p>
               </div>
             </div>
           </div>
@@ -271,9 +275,9 @@ export function QuizPlayer({
         <AnimatePresence>
           {resumeToast.show && (
             <motion.div
-              initial={%DOPEN% opacity: 0, y: -20 %DCLOSE%}
-              animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-              exit={%DOPEN% opacity: 0, y: -20 %DCLOSE%}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
               className="fixed top-4 left-1/2 -translate-x-1/2 z-50"
             >
               <div className="flex items-center gap-3 px-5 py-3 bg-blue-50 border border-blue-200 rounded-2xl shadow-lg">
@@ -348,7 +352,7 @@ export function QuizPlayer({
             <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
               <div
                 className={cn('h-full transition-all duration-300 rounded-full', progressColor)}
-                style={%DOPEN% width: `${((currentQuestionIdx + 1) / totalQuestions) * 100}%` %DCLOSE%}
+                style={{ width: `${((currentQuestionIdx + 1) / totalQuestions) * 100}%` }}
               />
             </div>
 
@@ -356,10 +360,10 @@ export function QuizPlayer({
             <AnimatePresence mode="wait">
               <motion.div
                 key={question.id}
-                initial={%DOPEN% opacity: 0, x: 20 %DCLOSE%}
-                animate={%DOPEN% opacity: 1, x: 0 %DCLOSE%}
-                exit={%DOPEN% opacity: 0, x: -20, pointerEvents: 'none' as unknown as undefined %DCLOSE%}
-                transition={%DOPEN% duration: 0.2 %DCLOSE%}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20, pointerEvents: 'none' as unknown as undefined }}
+                transition={{ duration: 0.2 }}
               >
                 <QuizBody
                   question={question}

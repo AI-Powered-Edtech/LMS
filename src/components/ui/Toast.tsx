@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 
@@ -85,7 +85,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
             onClick={() => {
               toast.action!.onClick()
               handleDismiss()
-            %DCLOSE%}
+            }}
             className="mt-2 text-xs font-bold underline underline-offset-2 opacity-80 hover:opacity-100 transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-current"
           >
             {toast.action.label}

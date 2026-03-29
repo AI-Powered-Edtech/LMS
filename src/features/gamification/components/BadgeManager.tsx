@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Pencil, Plus, Save, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
@@ -146,9 +146,9 @@ export function BadgeManager() {
       <AnimatePresence>
         {editing && (
           <motion.div
-            initial={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
-            animate={%DOPEN% opacity: 1, height: 'auto' %DCLOSE%}
-            exit={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
             <div className="rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20 p-4 space-y-4">

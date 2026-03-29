@@ -8,6 +8,7 @@ import {
   useTeacherAnalytics,
 } from '@/src/features/analytics/queries/analyticsQueries'
 import { Course, courseService } from '@/src/features/courses'
+import { captureError } from '@/src/utils/sentry'
 
 export function useAnalyticsPageState() {
   const addToast = useToast((s) => s.addToast)
@@ -33,6 +34,7 @@ export function useAnalyticsPageState() {
         }
       } catch (err) {
         if (import.meta.env.DEV) console.error('Failed to load courses', err)
+        captureError(err, { context: 'useAnalyticsPageState.loadCourses' })
       }
     }
     loadCourses()

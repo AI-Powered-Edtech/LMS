@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import DOMPurify from 'dompurify'
 import React, { Suspense, useMemo } from 'react'
 
@@ -67,7 +67,7 @@ const KaTeXCore = React.lazy(() =>
           'aria-hidden',
         ],
       })
-      return <span dangerouslySetInnerHTML={%DOPEN% __html: html %DCLOSE%} />
+      return <span dangerouslySetInnerHTML={{ __html: html }} />
     },
   }))
 )
@@ -82,11 +82,23 @@ export interface MathRendererProps {
   expression: string
   displayMode?: boolean
   className?: string
+  /**
+   * Human-readable description of the equation for screen readers.
+   * WCAG 1.1.1 (Non-text Content) — blind students cannot read KaTeX-rendered SVG/HTML.
+   * If not provided, falls back to the raw LaTeX expression as an approximation.
+   * Example: ariaLabel="E equals m c squared" for "E = mc²"
+   */
+  ariaLabel?: string
 }
 
 /* ─── Component ────────────────────────────────────────────── */
 
-export function MathRenderer({ expression, displayMode = false, className }: MathRendererProps) {
+export function MathRenderer({
+  expression,
+  displayMode = false,
+  className,
+  ariaLabel,
+}: MathRendererProps) {
   const hasMath = useMemo(() => MATH_PATTERN.test(expression), [expression])
 
   // Strip delimiters for KaTeX rendering (always computed, used only when hasMath)
@@ -103,17 +115,25 @@ export function MathRenderer({ expression, displayMode = false, className }: Mat
     return <span className={className}>{expression}</span>
   }
 
+  // ACCESSIBILITY (WCAG 1.1.1): Wrap in role="math" with aria-label so screen readers
+  // can announce the mathematical content. The visual rendering (KaTeX HTML/SVG) is
+  // hidden from assistive technology via the KaTeX aria-hidden="true" on inner elements.
   return (
     <Suspense
       fallback={
         <Skeleton
           className="inline-block align-middle"
+          aria-label="Memuat persamaan matematika"
           width={displayMode ? '100%' : 80}
           height={displayMode ? 40 : 20}
         />
       }
     >
-      <span className={className}>
+      <span
+        role="math"
+        aria-label={ariaLabel ?? `Persamaan matematika: ${cleaned}`}
+        className={className}
+      >
         <KaTeXCore expression={cleaned} displayMode={displayMode} />
       </span>
     </Suspense>

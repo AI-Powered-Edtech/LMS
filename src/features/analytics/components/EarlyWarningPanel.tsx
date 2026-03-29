@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertTriangle, Loader2, ShieldAlert, TrendingDown, Users } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'
@@ -119,9 +119,9 @@ export function EarlyWarningPanel({ courseId }: Props) {
       {/* Risk Radar chart */}
       {showRadar && (
         <motion.div
-          initial={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
-          animate={%DOPEN% opacity: 1, height: 'auto' %DCLOSE%}
-          exit={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
           className="mb-4 overflow-hidden"
         >
           <RiskRadar data={students} />

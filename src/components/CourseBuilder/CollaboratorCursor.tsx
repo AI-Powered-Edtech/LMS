@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AnimatePresence, motion } from 'motion/react'
 
 import type { PresenceData } from '@/src/features/courses/builder/useBuilderPresence'
@@ -14,16 +14,16 @@ export function CollaboratorCursor({ locker }: CollaboratorCursorProps) {
   return (
     <AnimatePresence>
       <motion.div
-        initial={%DOPEN% opacity: 0 %DCLOSE%}
-        animate={%DOPEN% opacity: 1 %DCLOSE%}
-        exit={%DOPEN% opacity: 0 %DCLOSE%}
-        transition={%DOPEN% duration: 0.2 %DCLOSE%}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
         className="pointer-events-none absolute inset-0 z-10"
       >
         {/* Top colored border */}
         <div
           className="absolute inset-x-0 top-0 h-1 rounded-t"
-          style={%DOPEN% backgroundColor: locker.color %DCLOSE%}
+          style={{ backgroundColor: locker.color }}
         />
 
         {/* Floating badge at top-right */}
@@ -33,7 +33,7 @@ export function CollaboratorCursor({ locker }: CollaboratorCursorProps) {
             'shadow-sm',
             'bg-white dark:bg-slate-800'
           )}
-          style={%DOPEN% borderColor: locker.color, borderWidth: 1, borderStyle: 'solid' %DCLOSE%}
+          style={{ borderColor: locker.color, borderWidth: 1, borderStyle: 'solid' }}
         >
           {locker.avatarUrl ? (
             <img

@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Trophy } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -95,7 +95,7 @@ export function LegacyContentFallback({
           onClick={() => {
             onCompletionMet()
             navigate(`/app/student/quizzes?quizId=${quiz.id}`)
-          %DCLOSE%}
+          }}
           className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm"
         >
           Menuju Halaman Kuis

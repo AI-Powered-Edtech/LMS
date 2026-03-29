@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Flag } from 'lucide-react'
 
 import { SubmitAnswer } from '@/src/features/quizzes'
@@ -146,7 +146,7 @@ export function QuizBody({
                     question_id: question.question_id,
                     selected_option_ids: newIds,
                   })
-                %DCLOSE%}
+                }}
                 className={cn(
                   'w-full flex items-center space-x-4 p-4 rounded-2xl border-2 text-left transition-all duration-150',
                   isSelected

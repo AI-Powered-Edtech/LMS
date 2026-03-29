@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { ArrowRight, Star, Trophy, X } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useEffect, useRef } from 'react'
@@ -57,15 +57,15 @@ export function ModuleCompletionModal({
 
   return (
     <motion.div
-      initial={reducedMotion ? false : { opacity: 0 %DCLOSE%}
-      animate={%DOPEN% opacity: 1 %DCLOSE%}
-      exit={reducedMotion ? undefined : { opacity: 0 %DCLOSE%}
+      initial={reducedMotion ? false : { opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={reducedMotion ? undefined : { opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70 backdrop-blur-sm"
     >
       <motion.div
-        initial={reducedMotion ? false : { scale: 0.82, opacity: 0, y: 20 %DCLOSE%}
-        animate={%DOPEN% scale: 1, opacity: 1, y: 0 %DCLOSE%}
-        exit={reducedMotion ? undefined : { scale: 0.82, opacity: 0, y: 20 %DCLOSE%}
+        initial={reducedMotion ? false : { scale: 0.82, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={reducedMotion ? undefined : { scale: 0.82, opacity: 0, y: 20 }}
         transition={
           reducedMotion ? { duration: 0 } : { type: 'spring', damping: 18, stiffness: 280 }
         }
@@ -96,7 +96,7 @@ export function ModuleCompletionModal({
         {/* Trophy icon with pulse ring */}
         <div className="relative w-24 h-24 mx-auto mb-5">
           <motion.div
-            animate={reducedMotion ? {} : { scale: [1, 1.12, 1] %DCLOSE%}
+            animate={reducedMotion ? {} : { scale: [1, 1.12, 1] }}
             transition={
               reducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: 'easeInOut' }
             }
@@ -114,7 +114,7 @@ export function ModuleCompletionModal({
           </div>
           {/* Star accents */}
           <motion.div
-            animate={reducedMotion ? {} : { rotate: 360 %DCLOSE%}
+            animate={reducedMotion ? {} : { rotate: 360 }}
             transition={
               reducedMotion ? { duration: 0 } : { duration: 6, repeat: Infinity, ease: 'linear' }
             }
@@ -126,9 +126,9 @@ export function ModuleCompletionModal({
 
         {/* Heading */}
         <motion.h2
-          initial={reducedMotion ? false : { opacity: 0, y: 6 %DCLOSE%}
-          animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-          transition={reducedMotion ? { duration: 0 } : { delay: 0.1 %DCLOSE%}
+          initial={reducedMotion ? false : { opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reducedMotion ? { duration: 0 } : { delay: 0.1 }}
           className="text-2xl font-extrabold tracking-tight mb-1 bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent"
         >
           Modul Selesai!
@@ -136,9 +136,9 @@ export function ModuleCompletionModal({
 
         {/* Subtext */}
         <motion.p
-          initial={reducedMotion ? false : { opacity: 0, y: 6 %DCLOSE%}
-          animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-          transition={reducedMotion ? { duration: 0 } : { delay: 0.15 %DCLOSE%}
+          initial={reducedMotion ? false : { opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reducedMotion ? { duration: 0 } : { delay: 0.15 }}
           className="text-slate-500 dark:text-slate-400 mb-6 leading-relaxed"
         >
           Selamat! Anda telah menyelesaikan
@@ -148,9 +148,9 @@ export function ModuleCompletionModal({
 
         {/* Achievement pill */}
         <motion.div
-          initial={reducedMotion ? false : { opacity: 0, scale: 0.9 %DCLOSE%}
-          animate={%DOPEN% opacity: 1, scale: 1 %DCLOSE%}
-          transition={reducedMotion ? { duration: 0 } : { delay: 0.2 %DCLOSE%}
+          initial={reducedMotion ? false : { opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={reducedMotion ? { duration: 0 } : { delay: 0.2 }}
           className={cn(
             'inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold',
             xpEarned && xpEarned > 0 ? 'mb-3' : 'mb-6',
@@ -166,9 +166,9 @@ export function ModuleCompletionModal({
         {/* XP Earned */}
         {xpEarned && xpEarned > 0 ? (
           <motion.p
-            initial={reducedMotion ? false : { opacity: 0, scale: 0.9 %DCLOSE%}
-            animate={%DOPEN% opacity: 1, scale: 1 %DCLOSE%}
-            transition={reducedMotion ? { duration: 0 } : { delay: 0.25 %DCLOSE%}
+            initial={reducedMotion ? false : { opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={reducedMotion ? { duration: 0 } : { delay: 0.25 }}
             className="text-2xl font-black text-yellow-400 dark:text-amber-400 mb-6 tracking-tight"
           >
             +{xpEarned} XP
@@ -177,9 +177,9 @@ export function ModuleCompletionModal({
 
         {/* CTA buttons */}
         <motion.div
-          initial={reducedMotion ? false : { opacity: 0, y: 6 %DCLOSE%}
-          animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-          transition={reducedMotion ? { duration: 0 } : { delay: 0.25 %DCLOSE%}
+          initial={reducedMotion ? false : { opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={reducedMotion ? { duration: 0 } : { delay: 0.25 }}
           className="flex flex-col gap-3"
         >
           <button

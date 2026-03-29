@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
@@ -47,10 +47,10 @@ function AvatarCircle({ presence }: { presence: PresenceData }) {
 
   return (
     <motion.div
-      initial={%DOPEN% opacity: 0, scale: 0.5 %DCLOSE%}
-      animate={%DOPEN% opacity: 1, scale: 1 %DCLOSE%}
-      exit={%DOPEN% opacity: 0, scale: 0.5 %DCLOSE%}
-      transition={%DOPEN% duration: 0.2 %DCLOSE%}
+      initial={{ opacity: 0, scale: 0.5 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.5 }}
+      transition={{ duration: 0.2 }}
       className="relative -ml-2 first:ml-0"
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
@@ -60,7 +60,7 @@ function AvatarCircle({ presence }: { presence: PresenceData }) {
           'flex h-8 w-8 items-center justify-center rounded-full',
           'ring-2 ring-white dark:ring-slate-900'
         )}
-        style={%DOPEN% borderColor: presence.color, borderWidth: 2, borderStyle: 'solid' %DCLOSE%}
+        style={{ borderColor: presence.color, borderWidth: 2, borderStyle: 'solid' }}
       >
         {presence.avatarUrl ? (
           <img
@@ -85,9 +85,9 @@ function AvatarCircle({ presence }: { presence: PresenceData }) {
       <AnimatePresence>
         {showTooltip && (
           <motion.div
-            initial={%DOPEN% opacity: 0, y: 4 %DCLOSE%}
-            animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-            exit={%DOPEN% opacity: 0, y: 4 %DCLOSE%}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
             className={cn(
               'absolute left-1/2 top-full z-50 mt-1 -translate-x-1/2 whitespace-nowrap',
               'rounded px-2 py-1 text-xs font-medium',

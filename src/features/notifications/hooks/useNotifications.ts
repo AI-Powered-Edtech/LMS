@@ -3,8 +3,10 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
+import { supabase } from '@/src/services/supabase/client'
 import { STALE } from '@/src/utils/queryConstants'
 
 import * as notificationApi from '../api/notificationApi'
@@ -44,19 +46,108 @@ export function useNotifications(): UseNotificationsReturn {
     queryFn: () => notificationApi.fetchNotifications(user!.id, tenantId!),
     enabled: !!tenantId && !!user,
     staleTime: STALE.DYNAMIC,
-    refetchInterval: 60000, // Poll every minute instead of WebSocket
+    // WHY BOTH POLLING + REALTIME:
+    // Supabase free tier rate-limits Realtime connections (max 200 concurrent,
+    // messages may be dropped under load). Polling every 60s is the safety net —
+    // it guarantees eventual consistency even if a Realtime event is missed.
+    // Realtime subscription below gives instant cache updates when events DO arrive,
+    // eliminating the 60s lag for the happy path.
+    refetchInterval: 60000, // Poll every minute as fallback for missed Realtime events
   })
 
+  // ─── Supabase Realtime Subscription ───────────────────────────────────────
+  useEffect(() => {
+    if (!tenantId || !user) return
+
+    // Subscribe to INSERT and UPDATE events on notifications for this user.
+    // Updates query cache immediately so the UI reflects new/changed notifications
+    // without waiting for the 60s polling interval.
+    const channel = supabase
+      .channel(`notifications:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          // Add new notification to the top of the cache immediately
+          queryClient.setQueryData<Notification[]>(queryKey, (old) => {
+            if (!old) return [payload.new as Notification]
+            // Avoid duplicates in case polling already picked it up
+            if (old.some((n) => n.id === (payload.new as Notification).id)) return old
+            return [payload.new as Notification, ...old]
+          })
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          // Sync read-status changes (e.g. marked read on another device) immediately
+          queryClient.setQueryData<Notification[]>(queryKey, (old) =>
+            old?.map((n) =>
+              n.id === (payload.new as Notification).id ? (payload.new as Notification) : n
+            )
+          )
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [tenantId, user, queryClient, queryKey])
+
+  // UX FIX: Optimistic updates give instant feedback before server confirms.
+  // Without this, clicking "mark as read" has a visible delay waiting for refetch.
   const markReadMutation = useMutation({
     mutationFn: (id: string) => notificationApi.markNotificationRead(id),
-    onSuccess: () => {
+    onMutate: async (id) => {
+      // Cancel in-flight refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey })
+      // Snapshot current data for rollback
+      const previous = queryClient.getQueryData<Notification[]>(queryKey)
+      // Optimistically mark the notification as read immediately
+      queryClient.setQueryData<Notification[]>(queryKey, (old) =>
+        old?.map((n) =>
+          n.id === id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
+        )
+      )
+      return { previous }
+    },
+    onError: (_err, _id, ctx) => {
+      // Roll back to previous state if server call fails
+      if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous)
+    },
+    onSettled: () => {
+      // Always sync with server after mutation completes (success or error)
       queryClient.invalidateQueries({ queryKey: notificationKeys.all(tenantId!) })
     },
   })
 
   const markAllReadMutation = useMutation({
     mutationFn: () => notificationApi.markAllNotificationsRead(user!.id, tenantId!),
-    onSuccess: () => {
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey })
+      const previous = queryClient.getQueryData<Notification[]>(queryKey)
+      // Optimistically mark ALL as read
+      queryClient.setQueryData<Notification[]>(queryKey, (old) =>
+        old?.map((n) => ({ ...n, is_read: true, read_at: new Date().toISOString() }))
+      )
+      return { previous }
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: notificationKeys.all(tenantId!) })
     },
   })

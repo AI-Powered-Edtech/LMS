@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Bell } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
@@ -47,10 +47,10 @@ export function NotificationBell() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={%DOPEN% opacity: 0, scale: 0.95, y: -4 %DCLOSE%}
-            animate={%DOPEN% opacity: 1, scale: 1, y: 0 %DCLOSE%}
-            exit={%DOPEN% opacity: 0, scale: 0.95, y: -4 %DCLOSE%}
-            transition={%DOPEN% duration: 0.15 %DCLOSE%}
+            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -4 }}
+            transition={{ duration: 0.15 }}
             className="absolute right-0 top-full mt-2 z-50"
           >
             <NotificationPanel onClose={() => setOpen(false)} />

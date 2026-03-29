@@ -70,6 +70,21 @@ export default defineConfig({
           functions: 60,
           lines: 60,
         },
+        // SECURITY CRITICAL: Auth guards must have high test coverage.
+        // These files protect multi-tenant isolation and cross-tenant privilege escalation.
+        'src/components/guards/**': {
+          statements: 85,
+          branches: 80,
+          functions: 85,
+          lines: 85,
+        },
+        // Sanitization utilities must be thoroughly tested — XSS prevention depends on them.
+        'src/utils/sanitize.ts': {
+          statements: 100,
+          branches: 100,
+          functions: 100,
+          lines: 100,
+        },
       },
     },
   },

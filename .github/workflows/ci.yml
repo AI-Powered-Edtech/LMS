@@ -39,7 +39,7 @@ jobs:
 
       # Type check
       - name: TypeScript
-        run: pnpm exec tsc --noEmit
+        run: pnpm typecheck
 
       # Validate migrations
       - name: Validate migrations
@@ -48,19 +48,21 @@ jobs:
       # Unit tests with coverage
       - name: Unit Tests
         run: pnpm test --run --coverage
+        # pnpm test maps to vitest; --run disables watch mode, --coverage enables coverage
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
-      # Build
+      # Build (catches type errors missed by tsc --noEmit and Vite-specific issues)
       - name: Build
         run: pnpm build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
-      # Bundle size enforcement
+      # Bundle size enforcement — only runs when bundlesize.config.json is present
       - name: Bundle size check
+        if: hashFiles('bundlesize.config.json') != ''
         run: |
           echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

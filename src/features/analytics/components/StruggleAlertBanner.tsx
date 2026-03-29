@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertTriangle } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useMemo } from 'react'
@@ -24,9 +24,9 @@ export function StruggleAlertBanner({ lessonAnalytics }: StruggleAlertBannerProp
 
   return (
     <motion.div
-      initial={%DOPEN% opacity: 0, y: -8 %DCLOSE%}
-      animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-      transition={%DOPEN% duration: 0.3 %DCLOSE%}
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
       className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4
                        dark:border-amber-700/50 dark:bg-amber-900/20"
     >

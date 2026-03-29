@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import {
   ArrowLeft,
   CheckCircle2,
@@ -121,7 +121,9 @@ export function TeacherGroupView({ assignmentId }: Props) {
             Sinkronkan GCR
           </button>
           <button
-            onClick={() => addToast({ type: 'info', message: 'Pembuatan kelompok manual akan tersedia segera.' })}
+            onClick={() =>
+              addToast({ type: 'info', message: 'Pembuatan kelompok manual akan tersedia segera.' })
+            }
             className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl flex items-center gap-2 transition-colors shadow-sm shadow-indigo-200"
           >
             <Plus className="w-5 h-5" />
@@ -212,7 +214,10 @@ export function TeacherGroupView({ assignmentId }: Props) {
                 <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-emerald-500 rounded-full transition-all"
-                    style={%DOPEN% width: groups.length > 0 ? `${(submittedCount / groups.length) * 100}%` : '0%' %DCLOSE%}
+                    style={{
+                      width:
+                        groups.length > 0 ? `${(submittedCount / groups.length) * 100}%` : '0%',
+                    }}
                   />
                 </div>
               </div>
@@ -252,7 +257,9 @@ export function TeacherGroupView({ assignmentId }: Props) {
                         <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100">
                           {group.group_name}
                         </h3>
-                        <span className={cn('px-2.5 py-1 text-xs font-bold rounded-full shrink-0', cls)}>
+                        <span
+                          className={cn('px-2.5 py-1 text-xs font-bold rounded-full shrink-0', cls)}
+                        >
                           {label}
                         </span>
                       </div>
@@ -287,14 +294,19 @@ export function TeacherGroupView({ assignmentId }: Props) {
                       )}
                       <div className="flex gap-2">
                         <button
-                          onClick={() => addToast({ type: 'info', message: 'Fitur pantau segera tersedia.' })}
+                          onClick={() =>
+                            addToast({ type: 'info', message: 'Fitur pantau segera tersedia.' })
+                          }
                           className="flex-1 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
                         >
                           <Eye className="w-4 h-4" /> Pantau
                         </button>
                         <button
                           onClick={() => setGradingGroup(group)}
-                          disabled={group.submission_status === 'not_started' || group.submission_status === 'draft'}
+                          disabled={
+                            group.submission_status === 'not_started' ||
+                            group.submission_status === 'draft'
+                          }
                           className="flex-1 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <PenTool className="w-4 h-4" /> Nilai
@@ -315,7 +327,12 @@ export function TeacherGroupView({ assignmentId }: Props) {
                 Buat kelompok baru atau sinkronisasi dari Google Classroom untuk memulai.
               </p>
               <button
-                onClick={() => addToast({ type: 'info', message: 'Pembuatan kelompok manual akan tersedia segera.' })}
+                onClick={() =>
+                  addToast({
+                    type: 'info',
+                    message: 'Pembuatan kelompok manual akan tersedia segera.',
+                  })
+                }
                 className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-sm"
               >
                 <Plus className="w-5 h-5" />

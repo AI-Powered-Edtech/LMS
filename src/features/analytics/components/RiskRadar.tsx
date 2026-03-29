@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { useMemo } from 'react'
 import {
   CartesianGrid,
@@ -11,8 +11,9 @@ import {
   YAxis,
 } from 'recharts'
 
-import type { StudentPrediction } from '../types'
 import { useTheme } from '@/src/contexts/ThemeContext'
+
+import type { StudentPrediction } from '../types'
 
 interface Props {
   data: StudentPrediction[]
@@ -50,13 +51,6 @@ const CustomTooltip = ({ active, payload }: TooltipProps) => {
 export function RiskRadar({ data }: Props) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
-  if (data.length === 0) {
-    return (
-      <div className="flex h-48 items-center justify-center text-sm text-slate-400 dark:text-slate-500">
-        Belum ada data prediksi.
-      </div>
-    )
-  }
 
   // ⚡ Perf: memoize scatter point computation — scales with class size (30-200+ students)
   const points = useMemo(
@@ -69,45 +63,53 @@ export function RiskRadar({ data }: Props) {
     [data]
   )
 
+  if (data.length === 0) {
+    return (
+      <div className="flex h-48 items-center justify-center text-sm text-slate-400 dark:text-slate-500">
+        Belum ada data prediksi.
+      </div>
+    )
+  }
+
   return (
     <ResponsiveContainer width="100%" height={280}>
-      <ScatterChart margin={%DOPEN% top: 10, right: 20, bottom: 20, left: 0 %DCLOSE%}>
+      <ScatterChart margin={{ top: 10, right: 20, bottom: 20, left: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#e2e8f0'} />
         <XAxis
           type="number"
           dataKey="x"
           name="Progres"
           domain={[0, 100]}
-          label={%DOPEN% value: 'Progress (%)', position: 'insideBottom', offset: -10, fontSize: 11 %DCLOSE%}
-          tick={%DOPEN% fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' %DCLOSE%}
-          axisLine={%DOPEN% stroke: isDark ? '#334155' : '#e2e8f0' %DCLOSE%}
-          tickLine={%DOPEN% stroke: isDark ? '#334155' : '#e2e8f0' %DCLOSE%}
+          label={{ value: 'Progress (%)', position: 'insideBottom', offset: -10, fontSize: 11 }}
+          tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }}
+          axisLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+          tickLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
         />
         <YAxis
           type="number"
           dataKey="y"
           name="Risiko"
           domain={[0, 100]}
-          label={%DOPEN%
+          label={{
             value: 'Risiko Churn (%)',
             angle: -90,
             position: 'insideLeft',
             offset: 10,
             fontSize: 11,
-          %DCLOSE%}
-          tick={%DOPEN% fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' %DCLOSE%}
-          axisLine={%DOPEN% stroke: isDark ? '#334155' : '#e2e8f0' %DCLOSE%}
-          tickLine={%DOPEN% stroke: isDark ? '#334155' : '#e2e8f0' %DCLOSE%}
+          }}
+          tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }}
+          axisLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+          tickLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
         />
         <Tooltip
           content={<CustomTooltip />}
-          contentStyle={%DOPEN%
+          contentStyle={{
             backgroundColor: isDark ? '#1e293b' : '#ffffff',
             border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
             borderRadius: '0.5rem',
             color: isDark ? '#f1f5f9' : '#0f172a',
-          %DCLOSE%}
-          labelStyle={%DOPEN% color: isDark ? '#94a3b8' : '#64748b' %DCLOSE%}
+          }}
+          labelStyle={{ color: isDark ? '#94a3b8' : '#64748b' }}
         />
         <Scatter data={points} fill="#6366f1">
           {points.map((entry, index) => (

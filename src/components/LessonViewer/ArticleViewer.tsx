@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { BookOpen, CheckCircle, Clock, Sparkles } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -15,8 +15,19 @@ const katexSanitizeSchema = {
   ...defaultSchema,
   tagNames: [
     ...(defaultSchema.tagNames || []),
-    'math', 'semantics', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub',
-    'mfrac', 'msqrt', 'mroot', 'mtext', 'annotation',
+    'math',
+    'semantics',
+    'mrow',
+    'mi',
+    'mo',
+    'mn',
+    'msup',
+    'msub',
+    'mfrac',
+    'msqrt',
+    'mroot',
+    'mtext',
+    'annotation',
   ],
   attributes: {
     ...defaultSchema.attributes,
@@ -128,10 +139,10 @@ export function ArticleViewer({
         <AnimatePresence>
           {!isCompleted && (
             <motion.div
-              initial={%DOPEN% opacity: 0, y: -8 %DCLOSE%}
-              animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-              exit={%DOPEN% opacity: 0, y: -8 %DCLOSE%}
-              transition={%DOPEN% duration: 0.25 %DCLOSE%}
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25 }}
               className={cn(
                 'sticky top-0 z-10 mb-8 px-5 py-4 rounded-xl text-sm font-medium shadow-sm',
                 'bg-gradient-to-r from-blue-50 to-indigo-50/50 border border-blue-200/80 text-blue-800',
@@ -168,7 +179,8 @@ export function ArticleViewer({
                       )}
                     >
                       <Clock className="w-3.5 h-3.5" />
-                      Waktu baca: {formatReadingTime(readingTime)} / {formatReadingTime(minReadingTimeSeconds)}
+                      Waktu baca: {formatReadingTime(readingTime)} /{' '}
+                      {formatReadingTime(minReadingTimeSeconds)}
                     </span>
                   </div>
 
@@ -176,9 +188,9 @@ export function ArticleViewer({
                   <div className="mt-3 h-1.5 rounded-full bg-blue-100 dark:bg-blue-900/50 overflow-hidden">
                     <motion.div
                       className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500"
-                      initial={%DOPEN% width: 0 %DCLOSE%}
-                      animate={%DOPEN% width: `${timeProgress}%` %DCLOSE%}
-                      transition={%DOPEN% duration: 0.4, ease: 'easeOut' %DCLOSE%}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${timeProgress}%` }}
+                      transition={{ duration: 0.4, ease: 'easeOut' }}
                     />
                   </div>
 
@@ -221,13 +233,13 @@ export function ArticleViewer({
           <ReactMarkdown
             remarkPlugins={[remarkGfm, remarkMath]}
             rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}
-            components={%DOPEN%
+            components={{
               a: ({ href, children }) => (
                 <a href={href} target="_blank" rel="noopener noreferrer">
                   {children}
                 </a>
               ),
-            %DCLOSE%}
+            }}
           >
             {content.replace(/\\n/g, '\n')}
           </ReactMarkdown>

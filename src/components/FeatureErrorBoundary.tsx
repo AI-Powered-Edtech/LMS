@@ -1,6 +1,8 @@
 import { AlertTriangle, RefreshCcw } from 'lucide-react'
 import { Component, ErrorInfo, ReactNode } from 'react'
 
+import { captureError } from '@/src/utils/sentry'
+
 interface Props {
   children?: ReactNode
   fallback?: ReactNode
@@ -39,6 +41,12 @@ export class FeatureErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Report to Sentry — this was missing, so production crashes were unreported
+    captureError(error, {
+      context: 'FeatureErrorBoundary',
+      featureName: this.props.featureName ?? 'unknown',
+      componentStack: errorInfo.componentStack ?? '',
+    })
     if (import.meta.env.DEV)
       console.error(`Error in ${this.props.featureName || 'halaman'}:`, error, errorInfo)
   }

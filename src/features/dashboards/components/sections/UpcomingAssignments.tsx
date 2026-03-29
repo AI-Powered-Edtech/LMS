@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertTriangle, ArrowRight } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -58,7 +58,7 @@ export function UpcomingAssignments({ assignments, loading }: UpcomingAssignment
                   e.preventDefault()
                   navigate('/assignments')
                 }
-              %DCLOSE%}
+              }}
               aria-label={`Tugas: ${task.title}`}
             >
               <div

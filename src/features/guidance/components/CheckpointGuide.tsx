@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { CheckCircle, HelpCircle } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -13,10 +13,10 @@ interface Props {
 export function CheckpointGuide({ guide, onDismiss, onComplete }: Props) {
   return (
     <motion.div
-      initial={%DOPEN% opacity: 0, scale: 0.97 %DCLOSE%}
-      animate={%DOPEN% opacity: 1, scale: 1 %DCLOSE%}
-      exit={%DOPEN% opacity: 0, scale: 0.97 %DCLOSE%}
-      transition={%DOPEN% duration: 0.2 %DCLOSE%}
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ duration: 0.2 }}
       className="rounded-xl border border-violet-200 bg-violet-50 p-5 dark:border-violet-800/60 dark:bg-violet-900/20"
     >
       <div className="flex items-start gap-3 mb-4">

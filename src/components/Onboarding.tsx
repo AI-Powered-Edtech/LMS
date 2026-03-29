@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { ArrowRight, Sparkles, Target, Trophy, Users, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -106,9 +106,9 @@ export function Onboarding() {
       <AnimatePresence mode="wait">
         <motion.div
           key={step}
-          initial={%DOPEN% opacity: 0, x: 20 %DCLOSE%}
-          animate={%DOPEN% opacity: 1, x: 0 %DCLOSE%}
-          exit={%DOPEN% opacity: 0, x: -20 %DCLOSE%}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
           className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden relative"
           onClick={(e) => e.stopPropagation()}
         >
@@ -166,7 +166,7 @@ export function Onboarding() {
                 } else {
                   handleComplete()
                 }
-              %DCLOSE%}
+              }}
               className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center gap-2 transition-colors"
             >
               {step < steps.length - 1 ? (

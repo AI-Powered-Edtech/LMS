@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { CloudOff, WifiOff } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
@@ -21,9 +21,9 @@ export function OfflineIndicator() {
     <AnimatePresence>
       {showBanner && (
         <motion.div
-          initial={%DOPEN% opacity: 0, y: -50 %DCLOSE%}
-          animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-          exit={%DOPEN% opacity: 0, y: -50 %DCLOSE%}
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -50 }}
           className="fixed top-0 left-0 right-0 z-[100] flex justify-center p-4 pointer-events-none"
         >
           <div className="bg-slate-900 border border-slate-700 text-white px-4 py-2.5 rounded-full shadow-xl flex items-center gap-3 text-sm pointer-events-auto dark:bg-slate-800 dark:border-slate-600">

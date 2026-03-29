@@ -22,8 +22,8 @@ import {
   type AssignmentSubmission,
 } from '@/src/features/assignments/api/assignmentService'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
 import { cn } from '@/src/utils/cn'
+import { captureError } from '@/src/utils/sentry'
 
 export function AssignmentGradebook() {
   usePageTitle('Buku Nilai Tugas')
@@ -48,18 +48,9 @@ export function AssignmentGradebook() {
     async function loadAssignments() {
       setLoading(true)
       try {
-        // In a real app, we'd filter by teacher's courses.
-        // For now, fetch all assignments in the tenant.
-        const { data, error } = await supabase
-          .from('assignments')
-          .select(
-            'id, tenant_id, course_id, lesson_id, title, instructions, max_points, max_attempts, is_published, due_date, created_by, created_at, updated_at'
-          )
-          .eq('tenant_id', tenantId)
-          .order('created_at', { ascending: false })
-
-        if (error) throw error
-        setAssignments(data || [])
+        // Fetch all assignments in the tenant via service layer
+        const data = await assignmentService.getAssignmentsByTenant(tenantId!)
+        setAssignments(data)
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err))
       } finally {
@@ -78,6 +69,7 @@ export function AssignmentGradebook() {
       setSubmissions(data || [])
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error fetching submissions:', err)
+      captureError(err, { context: 'AssignmentGradebook.handleSelectAssignment' })
     } finally {
       setLoadingSubmissions(false)
     }

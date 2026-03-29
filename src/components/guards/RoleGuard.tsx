@@ -10,17 +10,17 @@ interface RoleGuardProps {
 }
 
 export function RoleGuard({ children, allowedRoles }: RoleGuardProps) {
-  const { activeRole, role, loading } = useAuth()
+  const { activeRole, loading } = useAuth()
 
   if (loading) {
     return <AppLoading />
   }
 
-  // Use activeRole (per-tenant role) if available, otherwise fall back to primary role.
-  // Also check primary role so admin users aren't locked out of admin routes
-  // when their tenant-level role is different (e.g., teacher in a specific tenant).
-  const currentRole = activeRole || role
-  const hasAccess = allowedRoles.includes(currentRole) || allowedRoles.includes(role)
+  // SECURITY FIX: Always use activeRole (per-tenant role) — never fall back to the
+  // global `role` field. The global role represents the highest privilege across ALL
+  // tenants, so using it as fallback allows cross-tenant privilege escalation:
+  // an admin in Tenant A could access admin routes in Tenant B where they are a student.
+  const hasAccess = activeRole !== null && allowedRoles.includes(activeRole)
 
   if (!hasAccess) {
     return <Navigate to="/unauthorized" replace />

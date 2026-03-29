@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import {
   BookOpen,
   Code,
@@ -71,8 +71,8 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport }: PostItemProp
 
   return (
     <motion.div
-      initial={%DOPEN% opacity: 0, y: 20 %DCLOSE%}
-      animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
       className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden"
     >
       <div className="p-4 md:p-6 flex gap-4 md:gap-6">
@@ -167,7 +167,7 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport }: PostItemProp
                     onClick={() => {
                       onReport(post.id, 'post', post.content, post.author)
                       setShowMenu(false)
-                    %DCLOSE%}
+                    }}
                     className="w-full text-left px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
                   >
                     <Flag className="w-4 h-4" /> Laporkan Postingan

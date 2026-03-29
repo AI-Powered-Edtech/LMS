@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertTriangle, CheckCircle2, FileText, Lock, Sparkles } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -170,9 +170,9 @@ export function VideoViewer({
                 activeEvent.quizId &&
                 loadedQuizzes[activeEvent.quizId] && (
                   <motion.div
-                    initial={%DOPEN% opacity: 0 %DCLOSE%}
-                    animate={%DOPEN% opacity: 1 %DCLOSE%}
-                    exit={%DOPEN% opacity: 0 %DCLOSE%}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                     className="absolute inset-0 bg-black/95 z-20 flex items-center justify-center rounded-lg overflow-y-auto"
                   >
                     <div className="w-full max-w-4xl p-6 bg-white dark:bg-slate-900 rounded-2xl max-h-full overflow-y-auto">
@@ -190,7 +190,7 @@ export function VideoViewer({
                         passingScore={loadedQuizzes[activeEvent.quizId].passing_score ?? 0}
                         isCompleted={false}
                         onCompletionMet={handleEventComplete}
-                        onStartViewing={() => {%DCLOSE%}
+                        onStartViewing={() => {}}
                       />
                     </div>
                   </motion.div>
@@ -201,9 +201,9 @@ export function VideoViewer({
             <AnimatePresence>
               {isStalled && (
                 <motion.div
-                  initial={%DOPEN% opacity: 0 %DCLOSE%}
-                  animate={%DOPEN% opacity: 1 %DCLOSE%}
-                  exit={%DOPEN% opacity: 0 %DCLOSE%}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center text-white z-20"
                 >
                   <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-4" />
@@ -219,10 +219,10 @@ export function VideoViewer({
             <AnimatePresence>
               {isCompleted && (
                 <motion.div
-                  initial={%DOPEN% opacity: 0, scale: 0.8 %DCLOSE%}
-                  animate={%DOPEN% opacity: 1, scale: 1 %DCLOSE%}
-                  exit={%DOPEN% opacity: 0, scale: 0.8 %DCLOSE%}
-                  transition={%DOPEN% type: 'spring', damping: 18, stiffness: 280 %DCLOSE%}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ type: 'spring', damping: 18, stiffness: 280 }}
                   className="absolute top-3 left-3 z-10 flex items-center gap-1.5 bg-green-500/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
@@ -242,9 +242,9 @@ export function VideoViewer({
 
           {/* Info panel */}
           <motion.div
-            initial={%DOPEN% opacity: 0, y: 8 %DCLOSE%}
-            animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-            transition={%DOPEN% delay: 0.15, duration: 0.3 %DCLOSE%}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.3 }}
             className={cn(
               'mt-6 p-6 rounded-2xl border w-full mb-6 lg:mb-0 shadow-sm',
               'bg-gradient-to-r from-white to-slate-50/50 border-slate-100',
@@ -255,7 +255,7 @@ export function VideoViewer({
               <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base">
                 Tentang Video Ini
               </h3>
-{/* TODO: Wire to discussion panel when ready */}
+              {/* TODO: Wire to discussion panel when ready */}
             </div>
             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
               Pastikan Anda menonton hingga akhir agar sistem mencatat progres Anda secara otomatis.

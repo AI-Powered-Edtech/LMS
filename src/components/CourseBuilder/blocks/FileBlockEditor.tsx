@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Archive, File, FileText, FileUp, Loader2, Presentation, Sheet } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
@@ -204,7 +204,9 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-4 p-4 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-          <div className="p-2 bg-white dark:bg-slate-900 rounded-lg shadow-sm">{getFileIcon(blockUrl)}</div>
+          <div className="p-2 bg-white dark:bg-slate-900 rounded-lg shadow-sm">
+            {getFileIcon(blockUrl)}
+          </div>
           <div className="flex-1 min-w-0">
             <p className="font-medium text-slate-800 dark:text-slate-200 truncate">{fileName}</p>
             <p className="text-sm text-slate-500 dark:text-slate-400">{fileTypeLabel}</p>
@@ -256,7 +258,7 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
             e.preventDefault()
             if (!isUploading) inputRef.current?.click()
           }
-        %DCLOSE%}
+        }}
         className={`
           relative flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed cursor-pointer transition-all
           ${isDragOver ? 'border-orange-400 dark:border-orange-600 bg-orange-50 dark:bg-orange-900/30' : 'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 bg-slate-50 dark:bg-slate-800/30'}
@@ -287,8 +289,12 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
             <div className="p-3 bg-white dark:bg-slate-800 rounded-xl shadow-sm mb-3">
               <FileUp className="w-8 h-8 text-orange-500" />
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Pilih file untuk diunggah</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">PDF, Word, PowerPoint, Excel, ZIP (maks. 20MB)</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+              Pilih file untuk diunggah
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              PDF, Word, PowerPoint, Excel, ZIP (maks. 20MB)
+            </p>
           </>
         )}
       </div>

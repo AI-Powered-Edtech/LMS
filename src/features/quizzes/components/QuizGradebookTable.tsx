@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import {
   CheckCircle2,
   Clock,
@@ -145,7 +145,7 @@ export function QuizGradebookTable({
               onClick={(e) => {
                 e.stopPropagation()
                 onOpenAttemptDetail(attempt)
-              %DCLOSE%}
+              }}
               className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
             >
               <Eye className="w-3.5 h-3.5" />

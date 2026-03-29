@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 
@@ -49,7 +49,7 @@ export function AuthGuard({ children, requireEmailVerification = true }: AuthGua
   // Preserve the current path in state.from so Login can redirect the user
   // back after they sign in.
   if (!session || !user) {
-    return <Navigate to="/login" state={%DOPEN% from: location %DCLOSE%} replace />
+    return <Navigate to="/login" state={{ from: location }} replace />
   }
 
   // ── 3. Email not verified ──────────────────────────────────────────────────
@@ -59,7 +59,7 @@ export function AuthGuard({ children, requireEmailVerification = true }: AuthGua
   // Skip this check when requireEmailVerification is false (used by the
   // /verify-email route itself to prevent an infinite redirect loop).
   if (requireEmailVerification && !emailVerified) {
-    return <Navigate to="/verify-email" state={%DOPEN% from: location %DCLOSE%} replace />
+    return <Navigate to="/verify-email" state={{ from: location }} replace />
   }
 
   // ── 4. Authenticated & verified ───────────────────────────────────────────

@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 /**
  * AI Tutor Panel Component
  *
@@ -25,6 +25,7 @@ import {
 } from '@/src/features/ai-tutor'
 import { cn } from '@/src/utils/cn'
 import { aiTutorRateLimiter } from '@/src/utils/rateLimiter'
+import { captureError } from '@/src/utils/sentry'
 
 import { AITutorInput } from './AITutorInput'
 import { AITutorTyping } from './AITutorTyping'
@@ -61,7 +62,10 @@ export function AITutorPanel({
   const [difficulty, _setDifficulty] = useState<DifficultyLevel>(initialDifficulty)
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>(SUGGESTED_QUESTIONS)
   const [sessionId, setSessionId] = useState<string | undefined>(() => {
-    return localStorage.getItem(`ai_tutor_session_${lessonId}`) || undefined
+    // SECURITY: Use sessionStorage instead of localStorage:
+    // 1. Auto-cleared when tab closes — no storage quota leak across 100s of lessons
+    // 2. Shorter window for XSS exploitation (cleared when session ends)
+    return sessionStorage.getItem(`ai_tutor_session_${lessonId}`) || undefined
   })
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -129,7 +133,17 @@ export function AITutorPanel({
       const responseData = result.data!
       if (responseData.session_id && responseData.session_id !== sessionId) {
         setSessionId(responseData.session_id)
-        localStorage.setItem(`ai_tutor_session_${lessonId}`, responseData.session_id)
+        // SECURITY: sessionStorage — see comment on useState initializer above
+        sessionStorage.setItem(`ai_tutor_session_${lessonId}`, responseData.session_id)
+
+        // Cleanup: limit stored sessions to prevent storage bloat
+        // Keep only the 20 most recent sessions
+        const SESSION_PREFIX = 'ai_tutor_session_'
+        const sessionKeys = Object.keys(sessionStorage).filter((k) => k.startsWith(SESSION_PREFIX))
+        if (sessionKeys.length > 20) {
+          // Remove oldest entries (first ones added)
+          sessionKeys.slice(0, sessionKeys.length - 20).forEach((k) => sessionStorage.removeItem(k))
+        }
       }
 
       // Add AI response
@@ -145,6 +159,7 @@ export function AITutorPanel({
       setSuggestedQuestions((prev) => prev.filter((q) => q !== question))
     } catch (err) {
       if (import.meta.env.DEV) console.error('[AI Tutor] Unexpected error:', err)
+      captureError(err, { context: 'AITutorPanel.handleSendQuestion', lessonId })
       const errorMessage: AITutorMessage = {
         id: generateMessageId(),
         role: 'assistant',
@@ -164,7 +179,7 @@ export function AITutorPanel({
   }
 
   const handleClearChat = () => {
-    localStorage.removeItem(`ai_tutor_session_${lessonId}`)
+    sessionStorage.removeItem(`ai_tutor_session_${lessonId}`)
     setSessionId(undefined)
     setMessages([])
     setError(null)
@@ -239,9 +254,9 @@ export function AITutorPanel({
           {messages.map((message) => (
             <motion.div
               key={message.id}
-              initial={%DOPEN% opacity: 0, y: 10 %DCLOSE%}
-              animate={%DOPEN% opacity: 1, y: 0 %DCLOSE%}
-              exit={%DOPEN% opacity: 0 %DCLOSE%}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
               className={cn(
                 'flex items-start gap-3',
                 message.role === 'user' && 'flex-row-reverse'
@@ -283,7 +298,7 @@ export function AITutorPanel({
                   <ReactMarkdown
                     remarkPlugins={[remarkMath]}
                     rehypePlugins={[rehypeKatex]}
-                    components={%DOPEN%
+                    components={{
                       p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
                       ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
                       ol: ({ children }) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
@@ -292,7 +307,7 @@ export function AITutorPanel({
                           {children}
                         </code>
                       ),
-                    %DCLOSE%}
+                    }}
                   >
                     {message.content}
                   </ReactMarkdown>

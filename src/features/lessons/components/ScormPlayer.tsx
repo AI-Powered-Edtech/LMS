@@ -1,9 +1,9 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertTriangle, Loader2, Package, RefreshCw } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
+import { lessonService } from '@/src/features/lessons/api/lessonService'
 
 import {
   createScormBridge,
@@ -62,21 +62,18 @@ export function ScormPlayer({
       if (!user || !tenantId) return
 
       try {
-        const { error } = await supabase.rpc('upsert_scorm_runtime', {
-          p_user_id: user.id,
-          p_scorm_package_id: scormPackageId,
-          p_tenant_id: tenantId,
-          p_cmi_data: payload.cmiData,
-          p_score_raw: payload.scoreRaw,
-          p_score_max: payload.scoreMax,
-          p_lesson_status: payload.lessonStatus,
-          p_total_time: payload.totalTimeSeconds,
-          p_suspend_data: payload.suspendData,
-        })
-
-        if (error) {
-          console.error('[ScormPlayer] upsert_scorm_runtime error:', error)
+        const params: UpsertScormRuntimeParams = {
+          userId: user.id,
+          scormPackageId,
+          tenantId,
+          cmiData: payload.cmiData,
+          scoreRaw: payload.scoreRaw,
+          scoreMax: payload.scoreMax,
+          lessonStatus: payload.lessonStatus,
+          totalTimeSeconds: payload.totalTimeSeconds,
+          suspendData: payload.suspendData,
         }
+        await lessonService.upsertScormRuntime(params)
       } catch (err) {
         console.error('[ScormPlayer] persistState error:', err)
       }
@@ -147,14 +144,9 @@ export function ScormPlayer({
         setPlayerState('loading')
 
         // 1. Fetch SCORM package info
-        const { data: pkg, error: pkgError } = await supabase
-          .from('scorm_packages')
-          .select('id, tenant_id, lesson_id, title, scorm_version, storage_path, entry_point')
-          .eq('id', scormPackageId)
-          .eq('tenant_id', tenantId)
-          .single()
+        const pkg = await lessonService.getScormPackage(scormPackageId, tenantId!)
 
-        if (pkgError || !pkg) {
+        if (!pkg) {
           if (cancelled) return
           setPlayerState('error')
           setErrorMessage('Paket SCORM tidak ditemukan.')
@@ -165,12 +157,7 @@ export function ScormPlayer({
         setPackageInfo(pkg as ScormPackage)
 
         // 2. Fetch existing runtime data (for resume)
-        const { data: runtime } = await supabase
-          .from('scorm_runtime_data')
-          .select('cmi_data, score_raw, lesson_status, total_time, suspend_data')
-          .eq('user_id', user.id)
-          .eq('scorm_package_id', scormPackageId)
-          .single()
+        const runtime = await lessonService.getScormRuntimeData(user.id, scormPackageId)
 
         if (cancelled) return
 
@@ -381,14 +368,14 @@ export function ScormPlayer({
       {/* SCORM Content iframe */}
       <div
         className="relative w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden"
-        style={%DOPEN% minHeight: '500px' %DCLOSE%}
+        style={{ minHeight: '500px' }}
       >
         <iframe
           ref={iframeRef}
           src={iframeUrl}
           title={packageInfo?.title || 'Konten SCORM'}
           className="w-full border-0"
-          style={%DOPEN% height: '600px', minHeight: '500px' %DCLOSE%}
+          style={{ height: '600px', minHeight: '500px' }}
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
           allow="autoplay; fullscreen"
         />

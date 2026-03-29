@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useRef } from 'react'
 
@@ -52,7 +52,7 @@ export function VirtualTable<T>({
       ref={parentRef}
       data-testid={testId}
       className={`overflow-auto ${className}`}
-      style={%DOPEN% maxHeight %DCLOSE%}
+      style={{ maxHeight }}
     >
       <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
         <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0 z-10">
@@ -60,7 +60,7 @@ export function VirtualTable<T>({
             {columns.map((col) => (
               <th
                 key={col.key}
-                style={%DOPEN% width: col.width %DCLOSE%}
+                style={{ width: col.width }}
                 className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
               >
                 {col.header}
@@ -70,7 +70,7 @@ export function VirtualTable<T>({
         </thead>
         <tbody
           className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800"
-          style={%DOPEN% height: `${virtualizer.getTotalSize()}px`, position: 'relative' %DCLOSE%}
+          style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}
         >
           {virtualizer.getVirtualItems().map((virtualRow) => {
             const row = data[virtualRow.index]
@@ -83,18 +83,18 @@ export function VirtualTable<T>({
                 className={`hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors ${
                   rowClassName ? rowClassName(row, virtualRow.index) : ''
                 } ${onRowClick ? 'cursor-pointer' : ''}`}
-                style={%DOPEN%
+                style={{
                   position: 'absolute',
                   top: 0,
                   left: 0,
                   width: '100%',
                   transform: `translateY(${virtualRow.start}px)`,
-                %DCLOSE%}
+                }}
               >
                 {columns.map((col) => (
                   <td
                     key={col.key}
-                    style={%DOPEN% width: col.width %DCLOSE%}
+                    style={{ width: col.width }}
                     className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300"
                   >
                     {col.render(row, virtualRow.index)}

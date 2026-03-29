@@ -10,6 +10,10 @@
       name="description"
       content="EduSync LMS — Sistem Manajemen Pembelajaran untuk sekolah Indonesia"
     />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://*.supabase.co https://api.dicebear.com https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src 'none'; object-src 'none';"
+    />
     <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg" />
 
     <!-- ⚡ Perf: Preconnect to Supabase API early — saves ~100-200ms on first auth call -->

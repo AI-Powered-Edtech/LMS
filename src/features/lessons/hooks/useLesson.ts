@@ -1,5 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { GC, STALE } from '@/src/utils/queryConstants'
+import { captureError } from '@/src/utils/sentry'
+
 import { lessonService } from '../api/lessonService'
 
 /**
@@ -10,6 +13,8 @@ export function useLessonData(moduleId: string, userId: string, tenantId: string
     queryKey: ['lessons', moduleId, userId, tenantId],
     queryFn: () => lessonService.fetchModuleLessons(moduleId, userId, tenantId),
     enabled: !!moduleId && !!userId && !!tenantId,
+    staleTime: STALE.MODERATE, // 5 min — lesson structure changes rarely
+    gcTime: GC.LONG, // 30 min — keep in cache for navigation
   })
 }
 
@@ -32,5 +37,10 @@ export function useLessonMutation() {
         params.progressPercentage
       ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['lessons'] }),
+    onError: (err) => {
+      captureError(err, { context: 'useLessonMutation.updateProgress' })
+      // Silent — progress update failure should not interrupt student's lesson flow
+      if (import.meta.env.DEV) console.warn('[useLesson] Progress update failed:', err)
+    },
   })
 }

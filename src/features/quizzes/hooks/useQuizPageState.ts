@@ -24,7 +24,9 @@ import {
 } from '@/src/features/quizzes/queries/quizPlayer.queries'
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { useToast } from '@/src/hooks/useToast'
+import { cacheQuiz } from '@/src/utils/offlineStorage'
 import { quizSubmitRateLimiter } from '@/src/utils/rateLimiter'
+import { captureError } from '@/src/utils/sentry'
 
 export function useQuizPageState() {
   const { tenantId } = useAuth()
@@ -203,6 +205,17 @@ export function useQuizPageState() {
         return
       }
 
+      try {
+        await cacheQuiz({
+          quizId: quiz.quiz_id,
+          questions: questions,
+          options: [],
+          cachedAt: Date.now(),
+        })
+      } catch {
+        // IndexedDB caching failure is non-critical — continue
+      }
+
       setInitialAnswers(recoveredAnswers)
       setIsQuizActive(true)
       setShowResults(false)
@@ -254,6 +267,7 @@ export function useQuizPageState() {
       setShowAnswerReview(false)
     } catch (err: unknown) {
       if (import.meta.env.DEV) console.error('Gagal mengirim kuis', err)
+      captureError(err, { context: 'useQuizPageState.handleSubmit', attemptId: currentAttemptId })
       const message = err instanceof Error ? err.message : ''
       if (message.includes('Time limit exceeded')) {
         addToast({

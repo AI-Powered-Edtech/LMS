@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
@@ -61,9 +61,9 @@ export function AddEventModal({ isOpen, onClose, selectedDate, onAddEvent }: Add
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <motion.div
-            initial={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
-            animate={%DOPEN% opacity: 1, scale: 1 %DCLOSE%}
-            exit={%DOPEN% opacity: 0, scale: 0.95 %DCLOSE%}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
             className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl w-full max-w-lg overflow-hidden"
           >
             <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-700">

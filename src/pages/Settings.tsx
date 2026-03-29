@@ -18,9 +18,10 @@ import { OptimizedImage } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 import type { Theme } from '@/src/contexts/ThemeContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
+import { settingsService } from '@/src/features/settings/api/settingsService'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
 import { cn } from '@/src/utils/cn'
+import { captureError } from '@/src/utils/sentry'
 
 type SettingsTab = 'account' | 'notifications' | 'security' | 'appearance' | 'language'
 
@@ -83,15 +84,7 @@ export function Settings() {
     try {
       const [firstName, ...rest] = fullName.trim().split(' ')
       const lastName = rest.join(' ')
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          first_name: firstName,
-          last_name: lastName || '',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user!.id)
-      if (error) throw error
+      await settingsService.updateProfile(user!.id, { firstName, lastName })
       setProfileMessage({ type: 'success', text: 'Profil berhasil diperbarui.' })
     } catch {
       setProfileMessage({ type: 'error', text: 'Gagal memperbarui profil. Coba lagi.' })
@@ -112,8 +105,7 @@ export function Settings() {
     }
     setSavingPassword(true)
     try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword })
-      if (error) throw error
+      await settingsService.changePassword(newPassword)
       setPasswordMessage({ type: 'success', text: 'Kata sandi berhasil diubah.' })
       setCurrentPassword('')
       setNewPassword('')
@@ -133,6 +125,7 @@ export function Settings() {
       await signOut()
     } catch (e) {
       if (import.meta.env.DEV) console.error('[Settings] signOut error:', e)
+      captureError(e, { context: 'Settings.handleSignOut' })
     }
   }, [signOut])
 

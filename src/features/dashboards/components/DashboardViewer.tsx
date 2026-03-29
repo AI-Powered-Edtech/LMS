@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import type { DashboardConfig } from '../types'
 import { WidgetRenderer } from './WidgetRenderer'
 
@@ -26,14 +26,14 @@ export function DashboardViewer({ dashboard, courseId }: DashboardViewerProps) {
           <div
             key={widget.id}
             className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden"
-            style={%DOPEN% minHeight: '200px' %DCLOSE%}
+            style={{ minHeight: '200px' }}
           >
             <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
               <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                 {(widget.config?.label as string) ?? widget.type}
               </span>
             </div>
-            <div className="p-3" style={%DOPEN% height: '200px' %DCLOSE%}>
+            <div className="p-3" style={{ height: '200px' }}>
               <WidgetRenderer widget={widget} courseId={courseId} className="h-full" />
             </div>
           </div>

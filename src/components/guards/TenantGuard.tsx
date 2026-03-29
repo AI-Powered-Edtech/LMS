@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 
@@ -14,7 +14,7 @@ export function TenantGuard({ children }: { children: ReactNode }) {
   }
 
   if (!activeTenant) {
-    return <Navigate to="/workspace-selector" state={%DOPEN% from: location %DCLOSE%} replace />
+    return <Navigate to="/workspace-selector" state={{ from: location }} replace />
   }
 
   return <>{children}</>

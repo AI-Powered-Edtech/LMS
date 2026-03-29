@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { formatDistanceToNow } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { Edit2, MessageSquare, MoreVertical, Pin, Send, Trash2 } from 'lucide-react'
@@ -94,7 +94,7 @@ const CommentItem = memo(function CommentItem({
               onSubmit={(e) => {
                 e.preventDefault()
                 onSubmit(undefined, comment.parent_id)
-              %DCLOSE%}
+              }}
               className="mt-2"
             >
               <textarea
@@ -160,7 +160,7 @@ const CommentItem = memo(function CommentItem({
                           onSetEditingComment(comment.id)
                           onSetEditContent(comment.content)
                           onSetOpenMenuId(null)
-                        %DCLOSE%}
+                        }}
                         className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex flex-center gap-2"
                       >
                         <Edit2 className="w-3.5 h-3.5" /> Ubah
@@ -195,16 +195,16 @@ const CommentItem = memo(function CommentItem({
         <AnimatePresence>
           {replyingTo === comment.id && !isReply && (
             <motion.div
-              initial={%DOPEN% height: 0, opacity: 0 %DCLOSE%}
-              animate={%DOPEN% height: 'auto', opacity: 1 %DCLOSE%}
-              exit={%DOPEN% height: 0, opacity: 0 %DCLOSE%}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
               className="mt-3 overflow-hidden"
             >
               <form
                 onSubmit={(e) => {
                   e.preventDefault()
                   onSubmit(undefined, comment.id)
-                %DCLOSE%}
+                }}
                 className="flex gap-3"
               >
                 <input
@@ -417,7 +417,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
         onSubmit={(e) => {
           e.preventDefault()
           handleSubmit()
-        %DCLOSE%}
+        }}
         className="mt-6 flex gap-3 pt-4 border-t border-slate-100"
       >
         <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full shrink-0 flex items-center justify-center font-bold text-sm">

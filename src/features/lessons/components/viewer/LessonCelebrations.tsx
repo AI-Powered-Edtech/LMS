@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Award } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
@@ -37,10 +37,10 @@ export function LessonCelebrations({
       <AnimatePresence>
         {showXPReward && (
           <motion.div
-            initial={%DOPEN% opacity: 0, y: 20, scale: 0.8 %DCLOSE%}
-            animate={%DOPEN% opacity: 1, y: 0, scale: 1 %DCLOSE%}
-            exit={%DOPEN% opacity: 0, y: -20, scale: 0.8 %DCLOSE%}
-            transition={%DOPEN% type: 'spring', damping: 15, stiffness: 300 %DCLOSE%}
+            initial={{ opacity: 0, y: 20, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.8 }}
+            transition={{ type: 'spring', damping: 15, stiffness: 300 }}
             className="absolute bottom-8 right-8 z-50 pointer-events-none flex items-center gap-2 bg-yellow-400 text-yellow-900 font-extrabold text-lg px-5 py-3 rounded-2xl shadow-xl"
           >
             +10 XP
@@ -52,9 +52,9 @@ export function LessonCelebrations({
       <AnimatePresence>
         {showCelebration && (
           <motion.div
-            initial={%DOPEN% opacity: 0, scale: 0.8 %DCLOSE%}
-            animate={%DOPEN% opacity: 1, scale: 1 %DCLOSE%}
-            exit={%DOPEN% opacity: 0, scale: 0.8 %DCLOSE%}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
             className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 pointer-events-none"
           >
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-2xl text-center max-w-sm pointer-events-auto">
@@ -69,7 +69,7 @@ export function LessonCelebrations({
                   onClick={() => {
                     onSelectLesson(nextLesson.id)
                     onCelebrationDismiss()
-                  %DCLOSE%}
+                  }}
                   className="text-blue-600 dark:text-blue-400 hover:text-blue-700 font-semibold text-lg"
                 >
                   Lanjut ke Pelajaran Berikutnya →

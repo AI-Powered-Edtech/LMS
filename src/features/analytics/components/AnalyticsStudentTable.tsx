@@ -1,4 +1,4 @@
-// SYNC-HINT: {%DOPEN% = {{ and %DCLOSE%} = }}. Sync tool converts automatically.
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertTriangle, Clock, Eye, Filter } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import React from 'react'
@@ -32,7 +32,9 @@ export function AnalyticsStudentTable({
   return (
     <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
       <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Daftar Siswa (Terbaik & Berisiko)</h2>
+        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+          Daftar Siswa (Terbaik & Berisiko)
+        </h2>
         <div className="flex items-center gap-2">
           <Filter className="w-5 h-5 text-slate-400" />
           <select
@@ -118,7 +120,7 @@ export function AnalyticsStudentTable({
                                 'h-full rounded-full',
                                 isKritis ? 'bg-red-500' : 'bg-indigo-500'
                               )}
-                              style={%DOPEN% width: `${student.progress}%` %DCLOSE%}
+                              style={{ width: `${student.progress}%` }}
                             />
                           </div>
                         </div>
@@ -165,9 +167,9 @@ export function AnalyticsStudentTable({
                     <AnimatePresence>
                       {isExpanded && (
                         <motion.tr
-                          initial={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
-                          animate={%DOPEN% opacity: 1, height: 'auto' %DCLOSE%}
-                          exit={%DOPEN% opacity: 0, height: 0 %DCLOSE%}
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
                           className="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700"
                         >
                           <td colSpan={5} className="px-6 py-4">
@@ -203,7 +205,10 @@ export function AnalyticsStudentTable({
               })
             ) : (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
+                <td
+                  colSpan={5}
+                  className="px-6 py-8 text-center text-slate-500 dark:text-slate-400"
+                >
                   Tidak ada siswa yang sesuai dengan filter.
                 </td>
               </tr>
