@@ -4,12 +4,12 @@ LTI (Learning Tools Interoperability) 1.3 memungkinkan platform eksternal (Canva
 
 ## Environment Variables
 
-| Variable              | Required | Deskripsi                                                              |
-| --------------------- | -------- | ---------------------------------------------------------------------- |
-| `LTI_RSA_PRIVATE_KEY` | ✅       | RSA private key (PEM format) untuk JWT signing                         |
-| `LTI_RSA_PUBLIC_KEY`  | ✅       | RSA public key (PEM format) untuk JWKS endpoint                        |
-| `LTI_LAUNCH_URL`      | ✅       | Full URL endpoint LTI launch, e.g. `https://app.edusync.id/lti/launch` |
-| `APP_URL`             | ✅       | Base URL aplikasi EduSync, e.g. `https://app.edusync.id`               |
+| Variable | Required | Deskripsi |
+| --- | --- | --- |
+| `LTI_RSA_PRIVATE_KEY` | ✅ | RSA private key (PEM format) untuk JWT signing |
+| `LTI_RSA_PUBLIC_KEY` | ✅ | RSA public key (PEM format) untuk JWKS endpoint |
+| `LTI_LAUNCH_URL` | ✅ | Full URL endpoint LTI launch, e.g. `https://app.edusync.id/lti/launch` |
+| `APP_URL` | ✅ | Base URL aplikasi EduSync, e.g. `https://app.edusync.id` |
 
 ## Architecture
 
@@ -46,11 +46,11 @@ Simpan konfigurasi platform di `lti_platform_registrations`:
 
 ## Database Tables
 
-| Table                        | Purpose                                   |
-| ---------------------------- | ----------------------------------------- |
-| `lti_platform_registrations` | One row per external platform per tenant  |
-| `lti_nonces`                 | Short-lived OIDC replay protection tokens |
-| `lti_sessions`               | Active LTI guest sessions                 |
+| Table | Purpose |
+| --- | --- |
+| `lti_platform_registrations` | One row per external platform per tenant |
+| `lti_nonces` | Short-lived OIDC replay protection tokens |
+| `lti_sessions` | Active LTI guest sessions |
 
 ## RLS Policies
 
@@ -66,6 +66,6 @@ Simpan konfigurasi platform di `lti_platform_registrations`:
 
 ## Migration Reference
 
-| Migration        | Description                                                   |
-| ---------------- | ------------------------------------------------------------- |
+| Migration | Description |
+| --- | --- |
 | `20260324200000` | LTI 1.3 schema: platform registrations, nonces, sessions, RLS |

@@ -24,41 +24,40 @@ Bridge API SCORM di-expose di **parent `window`** (bukan di dalam iframe):
 
 Terminal states (`passed`, `completed`) **tidak pernah di-override** oleh status berikutnya:
 
-| Current Status      | Incoming Status | Result                                  |
-| ------------------- | --------------- | --------------------------------------- |
-| `passed`            | `failed`        | `passed` — sticky, tidak di-override    |
-| `completed`         | `incomplete`    | `completed` — sticky, tidak di-override |
-| Non-terminal apapun | Apapun          | Di-update normal                        |
+| Current Status | Incoming Status | Result |
+| --- | --- | --- |
+| `passed` | `failed` | `passed` — sticky, tidak di-override |
+| `completed` | `incomplete` | `completed` — sticky, tidak di-override |
+| Non-terminal apapun | Apapun | Di-update normal |
 
 Logika ini diimplementasi di RPC `upsert_scorm_runtime()`.
 
 ## Database Tables
 
-| Table                | Purpose                                                      |
-| -------------------- | ------------------------------------------------------------ |
-| `scorm_packages`     | Registry paket yang di-upload, linked ke lessons             |
+| Table | Purpose |
+| --- | --- |
+| `scorm_packages` | Registry paket yang di-upload, linked ke lessons |
 | `scorm_runtime_data` | Per-user CMI state: scores, status, suspend_data, total_time |
 
 ## Key RPC
 
 `upsert_scorm_runtime(p_user_id, p_scorm_package_id, p_tenant_id, p_cmi_data, ...)`:
-
 - Atomic save CMI state
 - Enforce sticky terminal state logic
 - Sync `lesson_progress` untuk course progress tracking
 
 ## Supported CMI Fields
 
-| Field        | SCORM 1.2                  | SCORM 2004                                     |
-| ------------ | -------------------------- | ---------------------------------------------- |
-| Score        | `cmi.core.score.raw`       | `cmi.score.raw`                                |
-| Status       | `cmi.core.lesson_status`   | `cmi.completion_status` + `cmi.success_status` |
-| Location     | `cmi.core.lesson_location` | `cmi.location`                                 |
-| Suspend data | `cmi.suspend_data`         | `cmi.suspend_data`                             |
-| Total time   | `cmi.core.total_time`      | `cmi.total_time`                               |
+| Field | SCORM 1.2 | SCORM 2004 |
+| --- | --- | --- |
+| Score | `cmi.core.score.raw` | `cmi.score.raw` |
+| Status | `cmi.core.lesson_status` | `cmi.completion_status` + `cmi.success_status` |
+| Location | `cmi.core.lesson_location` | `cmi.location` |
+| Suspend data | `cmi.suspend_data` | `cmi.suspend_data` |
+| Total time | `cmi.core.total_time` | `cmi.total_time` |
 
 ## Migration Reference
 
-| Migration        | Description                                        |
-| ---------------- | -------------------------------------------------- |
+| Migration | Description |
+| --- | --- |
 | `20260324200000` | SCORM schema: packages, runtime data, RLS policies |
