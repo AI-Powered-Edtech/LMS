@@ -14,7 +14,6 @@ import {
 } from 'lucide-react'
 
 import type { EnrolledStudent } from '@/src/features/classroom/api/classroomService'
-import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
 
 interface SelectedClass {
   id: string
@@ -58,7 +57,6 @@ export function ClassDetailPanel({
   onNavigate,
   onRemoveStudent,
 }: ClassDetailPanelProps) {
-  const getPath = useRoleBasedPath()
   if (!selectedClass) {
     return (
       <div className="flex-1 min-w-0">
@@ -208,7 +206,7 @@ export function ClassDetailPanel({
             <button
               onClick={() => {
                 onSetActiveClassroomId(selectedClass.id)
-                onNavigate(getPath('/app/teacher/quiz-manager', '/app/admin/quiz-manager'))
+                onNavigate('/teaching/quiz-manager')
               }}
               className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-bold text-xs rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
             >
@@ -219,7 +217,7 @@ export function ClassDetailPanel({
             <button
               onClick={() => {
                 onSetActiveClassroomId(selectedClass.id)
-                onNavigate(getPath('/assignments', '/app/admin/assignments'))
+                onNavigate('/assignments')
               }}
               className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-bold text-xs rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
             >
@@ -230,7 +228,7 @@ export function ClassDetailPanel({
             <button
               onClick={() => {
                 onSetActiveClassroomId(selectedClass.id)
-                onNavigate(getPath('/app/teacher/analytics', '/app/admin/analytics'))
+                onNavigate('/analytics')
               }}
               className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-bold text-xs rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
             >

@@ -1,0 +1,25 @@
+--- src/features/classroom/components/ClassDetailPanel.tsx
++++ src/features/classroom/components/ClassDetailPanel.tsx
+@@ -16,2 +16,3 @@
+ import type { EnrolledStudent } from '@/src/features/classroom/api/classroomService'
++import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
+ 
+@@ -58,2 +59,3 @@
+ }: ClassDetailPanelProps) {
++  const getPath = useRoleBasedPath()
+   if (!selectedClass) {
+@@ -207,3 +209,3 @@
+                 onSetActiveClassroomId(selectedClass.id)
+-                onNavigate('/teaching/quiz-manager')
++                onNavigate(getPath('/app/teacher/quiz-manager', '/app/admin/quiz-manager'))
+               }}
+@@ -218,3 +220,3 @@
+                 onSetActiveClassroomId(selectedClass.id)
+-                onNavigate('/assignments')
++                onNavigate(getPath('/assignments', '/app/admin/assignments'))
+               }}
+@@ -229,3 +231,3 @@
+                 onSetActiveClassroomId(selectedClass.id)
+-                onNavigate('/analytics')
++                onNavigate(getPath('/app/teacher/analytics', '/app/admin/analytics'))
+               }}

@@ -29,7 +29,7 @@ export function LeaderboardPreview({
           Cuplikan Papan Peringkat
         </h2>
         <Link
-          to="/leaderboard"
+          to="/app/student/leaderboard"
           className="text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
         >
           Lihat Peringkat

@@ -1,0 +1,15 @@
+--- src/features/struggle/components/StruggleAlertPanel.tsx
++++ src/features/struggle/components/StruggleAlertPanel.tsx
+@@ -5,2 +5,3 @@
+ import { useMarkAlertsRead, useStruggleAlerts } from '../hooks/useStruggle'
++import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
+ 
+@@ -10,2 +11,3 @@
+   const navigate = useNavigate()
++  const getPath = useRoleBasedPath()
+   const { data: alerts = [], isLoading } = useStruggleAlerts()
+@@ -30,3 +32,3 @@
+     }
+-    navigate(`/app/teacher/course-analytics?courseId=${courseId}&lessonId=${lessonId}`)
++    navigate(`${getPath('/app/teacher/course-analytics', '/app/admin/course-analytics')}?courseId=${courseId}&lessonId=${lessonId}`)
+     onClose()

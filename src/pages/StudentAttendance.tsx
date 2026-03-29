@@ -82,7 +82,8 @@ export function StudentAttendance() {
       (acc, r) => {
         const details: { name: string; status: string }[] = r.details ?? []
         const entry = details.find((d) => d.name?.toLowerCase().includes(myName.split(' ')[0]))
-        const status = entry?.status ?? 'hadir' // default to hadir if in the records
+        if (!entry) return acc
+        const status = entry.status
 
         acc.myRecords.push({
           id: r.id,

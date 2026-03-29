@@ -1,0 +1,15 @@
+--- src/features/onboarding/components/TeacherWelcome.tsx
++++ src/features/onboarding/components/TeacherWelcome.tsx
+@@ -7,2 +7,3 @@
+ import { useAuth } from '@/src/contexts/AuthContext'
++import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
+ 
+@@ -12,2 +13,3 @@
+   const navigate = useNavigate()
++  const getPath = useRoleBasedPath()
+   const [show, setShow] = useState(false)
+@@ -34,3 +36,3 @@
+       desc: 'Mulai membuat konten pembelajaran untuk siswamu',
+-      path: '/app/teacher/course-builder',
++      path: getPath('/app/teacher/course-builder', '/app/admin/course-builder'),
+       color: 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/40',

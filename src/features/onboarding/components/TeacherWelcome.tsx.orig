@@ -4,14 +4,12 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
 
 const WELCOME_KEY = 'edusync_teacher_welcomed'
 
 export function TeacherWelcome() {
   const { profile } = useAuth()
   const navigate = useNavigate()
-  const getPath = useRoleBasedPath()
   const [show, setShow] = useState(false)
 
   useEffect(() => {
@@ -34,7 +32,7 @@ export function TeacherWelcome() {
       icon: <BookPlus className="w-6 h-6 text-blue-500" />,
       title: 'Buat Kursus Pertama',
       desc: 'Mulai membuat konten pembelajaran untuk siswamu',
-      path: getPath('/app/teacher/course-builder', '/app/admin/course-builder'),
+      path: '/app/teacher/course-builder',
       color: 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/40',
     },
     {

@@ -7,12 +7,10 @@ import {
   Sparkles,
   UploadCloud,
 } from 'lucide-react'
-import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-  const getPath = useRoleBasedPath()
 import { useToast } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 // TODO: AI generation will be routed through backend API (Phase 5)
@@ -223,7 +221,7 @@ export function Creator() {
 
   const handleAddToCourse = () => {
     if (!result) return
-    navigate(getPath('/app/teacher/course-builder', '/app/admin/course-builder'), {
+    navigate('/app/teacher/course-builder', {
       state: {
         action: result.type === 'quiz' ? 'add-quiz' : 'add-assignment',
         quizData: {

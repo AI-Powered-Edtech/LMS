@@ -454,7 +454,7 @@ export const navigationItems: NavItem[] = [
     border: 'border-orange-200',
   },
   {
-    id: 'analytics',
+    id: 'admin-analytics',
     name: 'Analitik',
     path: '/admin/analytics',
     icon: BarChart3,
@@ -540,7 +540,7 @@ export const navigationItems: NavItem[] = [
     border: 'border-blue-200',
   },
   {
-    id: 'settings',
+    id: 'settings-dir',
     name: 'Pengaturan',
     path: '/settings',
     icon: Settings,

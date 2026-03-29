@@ -40,7 +40,7 @@ export const ClassroomFormSchema = v.object({
     v.pipe(v.string(), v.maxLength(500, 'Deskripsi maksimal 500 karakter')),
     ''
   ),
-  subject: v.pipe(v.string(), v.nonEmpty('Mata pelajaran wajib diisi')),
+  subject: v.optional(v.string(), ''),
 })
 
 export type ClassroomFormData = v.InferOutput<typeof ClassroomFormSchema>

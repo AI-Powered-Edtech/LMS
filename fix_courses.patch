@@ -1,0 +1,20 @@
+--- src/pages/Courses.tsx
++++ src/pages/Courses.tsx
+@@ -10,2 +10,3 @@
+ import { useCourseQueries } from '@/src/features/courses/queries/useCourseQueries'
++import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
+ import { usePageTitle } from '@/src/hooks/usePageTitle'
+@@ -34,2 +35,3 @@
+   const navigate = useNavigate()
++  const getPath = useRoleBasedPath()
+   const [isModalOpen, setIsModalOpen] = useState(false)
+@@ -101,3 +103,3 @@
+       setIsModalOpen(false)
+-      navigate(`/app/teacher/course-builder?courseId=${newCourse.id}`)
++      navigate(`${getPath('/app/teacher/course-builder', '/app/admin/course-builder')}?courseId=${newCourse.id}`)
+     } catch (err: unknown) {
+@@ -223,3 +225,3 @@
+                 gradientClass={CARD_GRADIENTS[idx % CARD_GRADIENTS.length]}
+-                onNavigate={() => navigate(`/app/teacher/course-builder?courseId=${course.id}`)}
++                onNavigate={() => navigate(`${getPath('/app/teacher/course-builder', '/app/admin/course-builder')}?courseId=${course.id}`)}
+                 onDelete={() => handleDelete(course.id, course.title)}

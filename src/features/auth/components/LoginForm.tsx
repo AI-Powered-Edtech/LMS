@@ -1,6 +1,7 @@
 // SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Eye, EyeOff } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useState } from "react"
+import { Link } from "react-router-dom"
 import type { UseFormReturn } from 'react-hook-form'
 
 import { FormField } from '@/src/components/ui/FormField'
@@ -76,6 +77,9 @@ export function LoginForm({ loginForm, error, setError, submitting, onSubmit }: 
         >
           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
         </button>
+      </div>
+      <div className="flex justify-end mt-1">
+        <Link to="/forgot-password" className="text-sm text-blue-400 hover:text-blue-300 transition-colors">Lupa Kata Sandi?</Link>
       </div>
       {error && (
         <p
