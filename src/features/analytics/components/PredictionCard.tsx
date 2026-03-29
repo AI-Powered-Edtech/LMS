@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Minus, TrendingDown, TrendingUp } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 

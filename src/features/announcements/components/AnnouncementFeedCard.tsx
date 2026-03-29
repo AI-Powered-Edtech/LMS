@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import {
   Calendar as CalendarIcon,
   CheckCircle2,

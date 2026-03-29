@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Users } from 'lucide-react'
 
 import { Badge, Card, EmptyState, Skeleton } from '@/src/components/ui'
