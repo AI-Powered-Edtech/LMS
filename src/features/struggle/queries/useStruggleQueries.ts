@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { createQueryKeys } from '@/src/shared/lib/queryKeys'
 import { STALE } from '@/src/utils/queryConstants'
+import { captureError } from '@/src/utils/sentry'
 
 import { struggleService } from '../api/struggleService'
 import type { StruggleConfig } from '../types'
@@ -50,6 +51,9 @@ export function useUpdateStruggleConfig() {
         queryKey: struggleKeys.config(tenantId!),
       })
     },
+    onError: (err) => {
+      captureError(err, { context: 'useUpdateStruggleConfig' })
+    },
   })
 }
 
@@ -93,6 +97,9 @@ export function useMarkAlertsRead() {
       queryClient.invalidateQueries({
         queryKey: base.all(tenantId!),
       })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useMarkAlertsRead' })
     },
   })
 }

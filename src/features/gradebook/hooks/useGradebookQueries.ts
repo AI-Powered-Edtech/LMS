@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { createQueryKeys } from '@/src/shared/lib/queryKeys'
+import { captureError } from '@/src/utils/sentry'
 
 import {
   GradebookAssignment,
@@ -65,7 +66,8 @@ function useUpdateGrade() {
 
       return { previous }
     },
-    onError: (_err, _vars, context) => {
+    onError: (err, _vars, context) => {
+      captureError(err, { context: 'useUpdateGrade' })
       if (context?.previous) {
         queryClient.setQueryData(gradebookKeys.all(tenantId!), context.previous)
       }

@@ -8,9 +8,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { createQueryKeys } from '@/src/shared/lib/queryKeys'
 import { cachedQuery, CacheKeys } from '@/src/utils/cache'
 import { GC, STALE } from '@/src/utils/queryConstants'
+import { captureError } from '@/src/utils/sentry'
 
 import { gamificationService } from '../api/gamificationService'
 import type { LeaderboardPeriod, LeaderboardSortBy } from '../types'
@@ -86,6 +87,9 @@ export function useSaveBadgeDefinition() {
       gamificationService.saveBadgeDefinition(badge),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: gamificationKeys.badgeDefinitions(tenantId!) })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useSaveBadgeDefinition' })
     },
   })
 }

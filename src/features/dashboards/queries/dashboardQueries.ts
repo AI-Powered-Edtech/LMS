@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { captureError } from '@/src/utils/sentry'
+
 import { dashboardService } from '../api/dashboardService'
 
 const DASHBOARD_KEYS = {
@@ -19,6 +21,9 @@ export function useSaveDashboard() {
   return useMutation({
     mutationFn: dashboardService.saveDashboard,
     onSuccess: () => qc.invalidateQueries({ queryKey: DASHBOARD_KEYS.all }),
+    onError: (err) => {
+      captureError(err, { context: 'useSaveDashboard' })
+    },
   })
 }
 
@@ -27,5 +32,8 @@ export function useDeleteDashboard() {
   return useMutation({
     mutationFn: dashboardService.deleteDashboard,
     onSuccess: () => qc.invalidateQueries({ queryKey: DASHBOARD_KEYS.all }),
+    onError: (err) => {
+      captureError(err, { context: 'useDeleteDashboard' })
+    },
   })
 }

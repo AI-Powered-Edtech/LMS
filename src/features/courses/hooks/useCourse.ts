@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { captureError } from '@/src/utils/sentry'
+
 import { courseService } from '../api/courseService'
 
 /**
@@ -21,5 +23,8 @@ export function useCourseMutation() {
   return useMutation({
     mutationFn: courseService.createCourse.bind(courseService),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['courses'] }),
+    onError: (err) => {
+      captureError(err, { context: 'useCourseMutation' })
+    },
   })
 }

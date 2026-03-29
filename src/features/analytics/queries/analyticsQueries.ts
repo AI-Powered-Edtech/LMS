@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { createQueryKeys } from '@/src/shared/lib/queryKeys'
 import { STALE } from '@/src/utils/queryConstants'
+import { captureError } from '@/src/utils/sentry'
 
 import { analyticsService } from '../api/analyticsService'
 import { AnalyticsError, TeacherAnalyticsData } from '../types'
@@ -116,6 +117,9 @@ export function useRefreshCourseStats() {
         })
       }
     },
+    onError: (err) => {
+      captureError(err, { context: 'useRefreshCourseStats' })
+    },
   })
 }
 
@@ -200,6 +204,9 @@ export function useSaveFunnel() {
     onSuccess: () => {
       if (tenantId) queryClient.invalidateQueries({ queryKey: base.all(tenantId) })
     },
+    onError: (err) => {
+      captureError(err, { context: 'useSaveFunnel' })
+    },
   })
 }
 
@@ -210,6 +217,9 @@ export function useDeleteFunnel() {
     mutationFn: (funnelId: string) => analyticsService.deleteFunnelDefinition(funnelId),
     onSuccess: () => {
       if (tenantId) queryClient.invalidateQueries({ queryKey: base.all(tenantId) })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useDeleteFunnel' })
     },
   })
 }

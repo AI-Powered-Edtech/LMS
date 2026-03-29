@@ -9,7 +9,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { createQueryKeys } from '@/src/shared/lib/queryKeys'
 
 import { leaderboardService } from '../api/leaderboardService'
 

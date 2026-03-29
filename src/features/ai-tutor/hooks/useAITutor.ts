@@ -1,5 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 
+import { captureError } from '@/src/utils/sentry'
+
 import { askTutor } from '../api/aiTutorService'
 
 /**
@@ -13,5 +15,8 @@ export function useAITutorMutation() {
       tenantId: string
       sessionId?: string
     }) => askTutor(params.lessonId, params.question, params.tenantId, params.sessionId),
+    onError: (err) => {
+      captureError(err, { context: 'useAITutorMutation' })
+    },
   })
 }

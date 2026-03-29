@@ -5,7 +5,7 @@ import { create } from 'zustand'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { Classroom, classroomService } from '@/src/features/classroom/api/classroomService'
 import { useToast } from '@/src/hooks/useToast'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { createQueryKeys } from '@/src/shared/lib/queryKeys'
 import { captureError } from '@/src/utils/sentry'
 
 const classroomKeys = createQueryKeys('classrooms')

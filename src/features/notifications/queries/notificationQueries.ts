@@ -7,8 +7,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { createQueryKeys } from '@/src/shared/lib/queryKeys'
 import { STALE } from '@/src/utils/queryConstants'
+import { captureError } from '@/src/utils/sentry'
 
 import * as notificationService from '../api/notificationService'
 
@@ -64,6 +65,9 @@ export function useMarkAsRead() {
         })
       }
     },
+    onError: (err) => {
+      captureError(err, { context: 'useMarkAsRead' })
+    },
   })
 }
 
@@ -82,6 +86,9 @@ export function useMarkAllAsRead() {
           queryKey: notificationKeys.user(tenantId, user.id),
         })
       }
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useMarkAllAsRead' })
     },
   })
 }
@@ -105,5 +112,8 @@ export function useSendNotification() {
       message: string
       type?: string
     }) => notificationService.sendNotification(userId, title, message, type, tenantId!),
+    onError: (err) => {
+      captureError(err, { context: 'useSendNotification' })
+    },
   })
 }

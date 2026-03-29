@@ -1,7 +1,7 @@
 // Quiz Query Keys — tenant-scoped for multi-tenant cache isolation
 // Uses createQueryKeys factory to enforce tenantId in every key.
 
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { createQueryKeys } from '@/src/shared/lib/queryKeys'
 
 const base = createQueryKeys('quiz')
 

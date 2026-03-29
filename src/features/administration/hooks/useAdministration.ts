@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { captureError } from '@/src/utils/sentry'
+
 import { administrationService } from '../api/administrationService'
 
 /**
@@ -22,5 +24,8 @@ export function useAdministrationMutation() {
     mutationFn: ({ moduleId, isEnabled }: { moduleId: string; isEnabled: boolean }) =>
       administrationService.toggleTenantModule(moduleId, isEnabled),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['administration'] }),
+    onError: (err) => {
+      captureError(err, { context: 'useAdministrationMutation' })
+    },
   })
 }

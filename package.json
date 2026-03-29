@@ -24,6 +24,7 @@
     "test:e2e": "playwright test",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "chromatic": "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --only-changed",
     "prepare": "husky",
     "load:smoke": "k6 run tests/load/smoke.js",
     "load:stress": "k6 run tests/load/stress.js",

@@ -40,6 +40,13 @@ export default defineConfig({
       // Global thresholds disabled — most code is untestable React pages.
       // Strategy: enforce meaningful coverage on pure logic layers (utils, api, hooks, contexts).
       thresholds: {
+        // Global baseline: 380 source files, 44 test files — realistic starting threshold.
+        // Target Phase 6: raise to 70/65/70/70.
+        statements: 60,
+        branches: 55,
+        functions: 60,
+        lines: 60,
+
         // Phase 4 baseline: 82%+ statements/lines, 90%+ branches achieved via new tests.
         // functions at 65% — remaining untested fns are Sentry/Web Vitals/metrics wrappers (excluded or untestable).
         'src/utils/**': {
