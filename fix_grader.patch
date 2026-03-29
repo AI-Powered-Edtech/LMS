@@ -1,9 +1,0 @@
---- src/pages/SpeedGrader.tsx
-+++ src/pages/SpeedGrader.tsx
-@@ -151,2 +151,6 @@
-     const y = ((e.clientY - rect.top) / rect.height) * 100
-+    if (annotations.length === 0) {
-+      addToast({ type: 'info', message: 'Anotasi belum didukung oleh database dan hanya tersimpan sementara.', duration: 5000 })
-+    }
-     setAnnotations((prev) => [...prev, { id: Date.now().toString(), x, y, text: '', isOpen: true }])
-   }

@@ -298,7 +298,9 @@ export function ScormPlayer({
         const sessionStr = localStorage.getItem(
           'sb-' + new URL(supabaseUrl).hostname.split('.')[0] + '-auth-token'
         )
-        const accessToken = sessionStr ? JSON.parse(sessionStr)?.access_token : anonKey
+        const accessToken = (() => {
+    try { return sessionStr ? JSON.parse(sessionStr)?.access_token : anonKey } catch { return anonKey }
+  })()
 
         try {
           const scormApiUrl = `${supabaseUrl}/rest/v1/rpc/upsert_scorm_runtime`
