@@ -10,10 +10,12 @@ import {
   ForgotPassword,
   Forum,
   GroupAssignment,
+  InviteRedeem,
   Login,
   LtiCallback,
   NotFound,
   NotificationsPage,
+  Offline,
   Profile,
   PublicProfile,
   ResetPassword,
@@ -96,6 +98,22 @@ export function PublicRoutes() {
         element={
           <S>
             <LtiCallback />
+          </S>
+        }
+      />
+      <Route
+        path="/invite/:token"
+        element={
+          <S>
+            <InviteRedeem />
+          </S>
+        }
+      />
+      <Route
+        path="/offline"
+        element={
+          <S>
+            <Offline />
           </S>
         }
       />

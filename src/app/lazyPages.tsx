@@ -87,6 +87,14 @@ export const LtiCallback = withErrorBoundary(
   lazy(() => import('../pages/LtiCallback').then((m) => ({ default: m.LtiCallback }))),
   'LTI Callback'
 )
+export const InviteRedeem = withErrorBoundary(
+  lazy(() => import('../pages/InviteRedeem').then((m) => ({ default: m.InviteRedeem }))),
+  'Validasi Undangan'
+)
+export const Offline = withErrorBoundary(
+  lazy(() => import('../pages/Offline').then((m) => ({ default: m.Offline }))),
+  'Offline'
+)
 
 // ============================================================
 // Teacher pages
