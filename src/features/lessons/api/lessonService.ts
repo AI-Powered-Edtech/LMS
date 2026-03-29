@@ -11,6 +11,9 @@ import { Lesson, LessonProgress, ProgressQueueItem, SignedProgressQueue } from '
 // 2. Has a smaller XSS exploitation window than localStorage
 const QUEUE_KEY = 'edusync_progress_queue'
 
+let _cachedRawQueue: string | null = null
+let _cachedQueueData: ProgressQueueItem[] | null = null
+
 async function generateHmacKey(secret: string): Promise<CryptoKey> {
   const enc = new TextEncoder()
   return await globalThis.crypto.subtle.importKey(
@@ -57,7 +60,16 @@ async function getSessionKey(): Promise<string | null> {
 
 async function loadSecureQueue(): Promise<ProgressQueueItem[]> {
   const rawQueue = sessionStorage.getItem(QUEUE_KEY)
-  if (!rawQueue) return []
+  if (!rawQueue) {
+    _cachedRawQueue = null
+    _cachedQueueData = null
+    return []
+  }
+
+  // Use cached data if the underlying sessionStorage data hasn't changed
+  if (rawQueue === _cachedRawQueue && _cachedQueueData) {
+    return structuredClone(_cachedQueueData)
+  }
 
   try {
     const signedQueue: SignedProgressQueue = JSON.parse(rawQueue)
@@ -75,12 +87,19 @@ async function loadSecureQueue(): Promise<ProgressQueueItem[]> {
       throw new Error('Signature verification failed')
     }
 
-    return JSON.parse(signedQueue.payload)
+    const parsedData = JSON.parse(signedQueue.payload)
+
+    // Update cache
+    _cachedRawQueue = rawQueue
+    _cachedQueueData = structuredClone(parsedData)
+
+    return parsedData
   } catch (e) {
     if (import.meta.env.DEV)
-      if (import.meta.env.DEV)
-        console.warn('[Offline Queue] Invalid or unauthorized queue detected, clearing.', e)
+      console.warn('[Offline Queue] Invalid or unauthorized queue detected, clearing.', e)
     sessionStorage.removeItem(QUEUE_KEY)
+    _cachedRawQueue = null
+    _cachedQueueData = null
     return []
   }
 }
@@ -89,8 +108,10 @@ async function saveSecureQueue(queue: ProgressQueueItem[]): Promise<void> {
   const sessionKey = await getSessionKey()
   if (!sessionKey) {
     if (import.meta.env.DEV)
-      if (import.meta.env.DEV)
-        console.warn('[Offline Queue] Cannot save queue without active session')
+      console.warn('[Offline Queue] Cannot save queue without active session')
+    // Clear cache to prevent inconsistencies
+    _cachedRawQueue = null
+    _cachedQueueData = null
     return
   }
 
@@ -104,21 +125,30 @@ async function saveSecureQueue(queue: ProgressQueueItem[]): Promise<void> {
 
   // Size cap: if queue JSON is >50KB, drop the oldest items to prevent storage bloat
   const queueJson = JSON.stringify(signedQueue)
+  let storedRaw: string
   if (queueJson.length > 50 * 1024) {
     try {
       const parsed = JSON.parse(queueJson)
       if (Array.isArray(parsed?.payload)) {
         const trimmed = { ...parsed, payload: parsed.payload.slice(-20) }
-        sessionStorage.setItem(QUEUE_KEY, JSON.stringify(trimmed))
+        storedRaw = JSON.stringify(trimmed)
+        sessionStorage.setItem(QUEUE_KEY, storedRaw)
       } else {
-        sessionStorage.setItem(QUEUE_KEY, queueJson)
+        storedRaw = queueJson
+        sessionStorage.setItem(QUEUE_KEY, storedRaw)
       }
     } catch {
-      sessionStorage.setItem(QUEUE_KEY, queueJson)
+      storedRaw = queueJson
+      sessionStorage.setItem(QUEUE_KEY, storedRaw)
     }
   } else {
-    sessionStorage.setItem(QUEUE_KEY, queueJson)
+    storedRaw = queueJson
+    sessionStorage.setItem(QUEUE_KEY, storedRaw)
   }
+
+  // Update cache immediately to prevent the next loadSecureQueue from re-verifying HMAC
+  _cachedRawQueue = storedRaw
+  _cachedQueueData = structuredClone(queue)
 }
 
 // ============================================================
@@ -425,6 +455,8 @@ export const lessonService = {
         await saveSecureQueue(remainingQueue)
       } else {
         sessionStorage.removeItem(QUEUE_KEY)
+        _cachedRawQueue = null
+        _cachedQueueData = null
       }
     } finally {
       ;(this as unknown as { _isProcessingOfflineQueue?: boolean })._isProcessingOfflineQueue =
