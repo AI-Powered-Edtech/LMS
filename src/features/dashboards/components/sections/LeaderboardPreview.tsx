@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Crown, Trophy } from 'lucide-react'
 import { Link } from 'react-router-dom'
 

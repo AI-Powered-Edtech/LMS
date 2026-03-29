@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { X } from 'lucide-react'
 import { motion } from 'motion/react'
 

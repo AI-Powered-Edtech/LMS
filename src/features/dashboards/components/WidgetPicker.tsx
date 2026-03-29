@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { BarChart2, Map, PieChart, Radio, Target, TrendingUp, Trophy, X } from 'lucide-react'
 
 import type { WidgetType } from '../types'

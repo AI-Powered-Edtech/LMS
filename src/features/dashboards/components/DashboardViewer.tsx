@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import type { DashboardConfig } from '../types'
 import { WidgetRenderer } from './WidgetRenderer'
 

@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Megaphone } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
