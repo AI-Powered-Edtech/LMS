@@ -29,7 +29,7 @@ import type { CreateLtiPlatformParams, LtiPlatformRegistration } from '@/src/fea
 
 export function LtiManagement() {
   usePageTitle('Pengaturan LTI')
-  const { tenantId } = useAuth()
+  useAuth() // ensure auth context is available
   const addToast = useToast((s) => s.addToast)
 
   // ── State ────────────────────────────────────────────────────
