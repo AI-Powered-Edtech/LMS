@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { BarChart3, Loader2 } from 'lucide-react'
 
 import type { QuestionDifficulty } from '@/src/features/quizzes/api/quizAnalyticsService'

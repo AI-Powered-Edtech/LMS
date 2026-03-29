@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Loader2, Play, Target, WifiOff } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useEffect, useState } from 'react'

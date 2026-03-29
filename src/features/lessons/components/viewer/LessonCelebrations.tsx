@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Award } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
