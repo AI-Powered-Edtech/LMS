@@ -16,7 +16,8 @@ import {
 export const groupAssignmentKeys = {
   studentGroup: (assignmentId: string, userId: string) =>
     ['group-assignment', 'student', assignmentId, userId] as const,
-  teacherGroups: (assignmentId: string) => ['group-assignment', 'teacher', assignmentId] as const,
+  teacherGroups: (assignmentId: string) =>
+    ['group-assignment', 'teacher', assignmentId] as const,
 }
 
 // ============================================================
@@ -33,7 +34,7 @@ export function useStudentGroup(assignmentId: string) {
 
   return useQuery<StudentGroupData | null>({
     queryKey: groupAssignmentKeys.studentGroup(assignmentId, userId),
-    queryFn: () => groupAssignmentService.getStudentGroup(assignmentId),
+    queryFn: () => groupAssignmentService.getStudentGroup(userId, assignmentId),
     enabled: !!assignmentId && !!userId,
     staleTime: 30_000,
   })
@@ -64,7 +65,8 @@ export function useCreateGroups(assignmentId: string) {
   const queryClient = useQueryClient()
 
   return useMutation<void, Error, CreateGroupInput[]>({
-    mutationFn: (groups) => groupAssignmentService.createGroups(assignmentId, groups),
+    mutationFn: (groups) =>
+      groupAssignmentService.createGroups(assignmentId, groups),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: groupAssignmentKeys.teacherGroups(assignmentId),
@@ -82,7 +84,11 @@ export function useSubmitGroupAssignment(assignmentId: string) {
   const queryClient = useQueryClient()
   const userId = user?.id ?? ''
 
-  return useMutation<string, Error, { groupId: string; content?: string; fileUrl?: string }>({
+  return useMutation<
+    string,
+    Error,
+    { groupId: string; content?: string; fileUrl?: string }
+  >({
     mutationFn: (params) =>
       groupAssignmentService.submitGroupAssignment({
         ...params,
@@ -103,7 +109,11 @@ export function useSubmitGroupAssignment(assignmentId: string) {
 export function useGradeGroupSubmission(assignmentId: string) {
   const queryClient = useQueryClient()
 
-  return useMutation<void, Error, { submissionId: string; grade: number; feedback?: string }>({
+  return useMutation<
+    void,
+    Error,
+    { submissionId: string; grade: number; feedback?: string }
+  >({
     mutationFn: (params) => groupAssignmentService.gradeGroupSubmission(params),
     onSuccess: () => {
       void queryClient.invalidateQueries({

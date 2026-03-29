@@ -9,12 +9,11 @@ import {
   FileCheck,
   GraduationCap,
   LayoutGrid,
-  Loader2,
   RefreshCw,
   TrendingUp,
   Users,
 } from 'lucide-react'
-import React from 'react'
+import React, { useCallback, useMemo } from 'react'
 import {
   Bar,
   BarChart as RechartsBarChart,
@@ -35,6 +34,7 @@ import { AdministrationSkeleton } from '@/src/features/administration/components
 import { ActivityTimePoint, CourseEngagement } from '@/src/features/analytics'
 import { useTenantAnalytics } from '@/src/features/analytics/queries/analyticsQueries'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { useTheme } from '@/src/contexts/ThemeContext'
 import { cn } from '@/src/utils/cn'
 
 // Color palette for charts
@@ -75,15 +75,6 @@ function MetricCard({ title, value, icon: Icon, trend, color, bgColor }: MetricC
           {typeof value === 'number' ? value.toLocaleString('id-ID') : value}
         </p>
       </div>
-    </div>
-  )
-}
-
-function _LoadingState() {
-  return (
-    <div className="flex flex-col items-center justify-center py-20">
-      <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-      <p className="mt-4 text-slate-500 font-medium">Memuat data analitik...</p>
     </div>
   )
 }
@@ -135,12 +126,18 @@ interface ActivityTimelineChartProps {
   data: ActivityTimePoint[]
 }
 
-function ActivityTimelineChart({ data }: ActivityTimelineChartProps) {
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })
-  }
+// ⚡ Perf: hoisted outside component to prevent new function ref every render
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })
+}
 
+// ⚡ Perf: stable labelFormatter ref for Tooltip
+const tooltipLabelFormatter = (label: unknown) => formatDate(String(label))
+
+function ActivityTimelineChart({ data }: ActivityTimelineChartProps) {
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
       <div className="flex items-center gap-3 mb-6">
@@ -157,17 +154,28 @@ function ActivityTimelineChart({ data }: ActivityTimelineChartProps) {
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-            <XAxis dataKey="date" tickFormatter={formatDate} stroke="#94A3B8" fontSize={12} />
-            <YAxis stroke="#94A3B8" fontSize={12} />
+            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#E2E8F0'} />
+            <XAxis
+              dataKey="date"
+              tickFormatter={formatDate}
+              tick={{ fill: isDark ? '#94a3b8' : '#94A3B8', fontSize: 12 }}
+              axisLine={{ stroke: isDark ? '#334155' : '#E2E8F0' }}
+              tickLine={{ stroke: isDark ? '#334155' : '#E2E8F0' }}
+            />
+            <YAxis
+              tick={{ fill: isDark ? '#94a3b8' : '#94A3B8', fontSize: 12 }}
+              axisLine={{ stroke: isDark ? '#334155' : '#E2E8F0' }}
+              tickLine={{ stroke: isDark ? '#334155' : '#E2E8F0' }}
+            />
             <Tooltip
-              labelFormatter={(label: unknown) => formatDate(String(label))}
+              labelFormatter={tooltipLabelFormatter}
               contentStyle={{
-                backgroundColor: '#fff',
-                border: '1px solid #E2E8F0',
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                backgroundColor: isDark ? '#1e293b' : '#fff',
+                border: `1px solid ${isDark ? '#334155' : '#E2E8F0'}`,
+                borderRadius: '0.5rem',
+                color: isDark ? '#f1f5f9' : '#0f172a',
               }}
+              labelStyle={{ color: isDark ? '#94a3b8' : '#64748b' }}
             />
             <Legend />
             <Line
@@ -209,15 +217,22 @@ interface CourseEngagementChartProps {
 }
 
 function CourseEngagementChart({ data }: CourseEngagementChartProps) {
-  const chartData = data.slice(0, 6).map((course) => ({
-    name:
-      course.courseName.length > 20
-        ? course.courseName.substring(0, 20) + '...'
-        : course.courseName,
-    students: course.enrolled,
-    active: course.activeStudents,
-    progress: course.avgProgress,
-  }))
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+  // ⚡ Perf: memoize slice+map — prevents new array ref on every render
+  const chartData = useMemo(
+    () =>
+      data.slice(0, 6).map((course) => ({
+        name:
+          course.courseName.length > 20
+            ? course.courseName.substring(0, 20) + '...'
+            : course.courseName,
+        students: course.enrolled,
+        active: course.activeStudents,
+        progress: course.avgProgress,
+      })),
+    [data]
+  )
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
@@ -237,16 +252,29 @@ function CourseEngagementChart({ data }: CourseEngagementChartProps) {
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <RechartsBarChart data={chartData} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-            <XAxis type="number" stroke="#94A3B8" fontSize={12} />
-            <YAxis dataKey="name" type="category" width={120} stroke="#94A3B8" fontSize={11} />
+            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#E2E8F0'} />
+            <XAxis
+              type="number"
+              tick={{ fill: isDark ? '#94a3b8' : '#94A3B8', fontSize: 12 }}
+              axisLine={{ stroke: isDark ? '#334155' : '#E2E8F0' }}
+              tickLine={{ stroke: isDark ? '#334155' : '#E2E8F0' }}
+            />
+            <YAxis
+              dataKey="name"
+              type="category"
+              width={120}
+              tick={{ fill: isDark ? '#94a3b8' : '#94A3B8', fontSize: 11 }}
+              axisLine={{ stroke: isDark ? '#334155' : '#E2E8F0' }}
+              tickLine={{ stroke: isDark ? '#334155' : '#E2E8F0' }}
+            />
             <Tooltip
               contentStyle={{
-                backgroundColor: '#fff',
-                border: '1px solid #E2E8F0',
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                backgroundColor: isDark ? '#1e293b' : '#fff',
+                border: `1px solid ${isDark ? '#334155' : '#E2E8F0'}`,
+                borderRadius: '0.5rem',
+                color: isDark ? '#f1f5f9' : '#0f172a',
               }}
+              labelStyle={{ color: isDark ? '#94a3b8' : '#64748b' }}
             />
             <Legend />
             <Bar dataKey="students" name="Terenroll" fill="#3B82F6" radius={[0, 4, 4, 0]} />
@@ -267,15 +295,19 @@ function StudentParticipationChart({
   totalEnrolled,
   activeStudents,
 }: StudentParticipationChartProps) {
-  const inactiveStudents = Math.max(0, totalEnrolled - activeStudents)
-
-  const data = [
-    { name: 'Aktif', value: activeStudents, color: '#10B981' },
-    { name: 'Tidak Aktif', value: inactiveStudents, color: '#94A3B8' },
-  ]
-
-  const participationRate =
-    totalEnrolled > 0 ? Math.round((activeStudents / totalEnrolled) * 100) : 0
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+  // ⚡ Perf: memoize pie data + participation rate
+  const { data, participationRate } = useMemo(() => {
+    const inactiveStudents = Math.max(0, totalEnrolled - activeStudents)
+    return {
+      data: [
+        { name: 'Aktif', value: activeStudents, color: '#10B981' },
+        { name: 'Tidak Aktif', value: inactiveStudents, color: '#94A3B8' },
+      ],
+      participationRate: totalEnrolled > 0 ? Math.round((activeStudents / totalEnrolled) * 100) : 0,
+    }
+  }, [totalEnrolled, activeStudents])
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
@@ -310,11 +342,12 @@ function StudentParticipationChart({
             </Pie>
             <Tooltip
               contentStyle={{
-                backgroundColor: '#fff',
-                border: '1px solid #E2E8F0',
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                backgroundColor: isDark ? '#1e293b' : '#fff',
+                border: `1px solid ${isDark ? '#334155' : '#E2E8F0'}`,
+                borderRadius: '0.5rem',
+                color: isDark ? '#f1f5f9' : '#0f172a',
               }}
+              labelStyle={{ color: isDark ? '#94a3b8' : '#64748b' }}
             />
           </RechartsPieChart>
         </ResponsiveContainer>
@@ -334,10 +367,14 @@ export function AdminAnalyticsDashboard() {
   const { data: analytics, isLoading, error, refetch } = useTenantAnalytics()
   const [isRefreshing, setIsRefreshing] = React.useState(false)
 
-  const handleRefresh = () => {
+  // ⚡ Perf: stabilize refresh handler ref
+  const handleRefresh = useCallback(() => {
     setIsRefreshing(true)
     refetch()
-  }
+  }, [refetch])
+
+  // ⚡ Perf: stable retry ref for ErrorState
+  const handleRetry = useCallback(() => refetch(), [refetch])
 
   // Loading state
   if (isLoading) {
@@ -354,7 +391,7 @@ export function AdminAnalyticsDashboard() {
               ? error.message
               : 'Gagal memuat data analitik. Silakan coba lagi.'
           }
-          onRetry={() => refetch()}
+          onRetry={handleRetry}
         />
       </div>
     )

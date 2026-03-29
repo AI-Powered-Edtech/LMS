@@ -15,9 +15,11 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 //   6. Log observability metrics
 // ==========================================================================
 
-const MAX_EVENTS_PER_REQUEST = 100
-const MAX_PAYLOAD_BYTES = 100 * 1024 // 100KB
-const QUEUE_BACKPRESSURE_LIMIT = 50_000
+// [IN-M1] Allow env-var overrides so limits are tuneable per environment
+// without redeploying. Falls back to sensible defaults.
+const MAX_EVENTS_PER_REQUEST = Number(Deno.env.get('PROGRESS_MAX_EVENTS_PER_REQUEST')) || 100
+const MAX_PAYLOAD_BYTES = Number(Deno.env.get('PROGRESS_MAX_PAYLOAD_BYTES')) || 100 * 1024 // 100KB
+const QUEUE_BACKPRESSURE_LIMIT = Number(Deno.env.get('PROGRESS_QUEUE_BACKPRESSURE_LIMIT')) || 50_000
 
 const REQUIRED_FIELDS = [
   'event_id',
@@ -41,6 +43,10 @@ const VALID_EVENT_TYPES = new Set([
   'quiz_started',
   'quiz_submitted',
 ])
+
+// UUID v4 format validation (IN-H1)
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const MAX_STRING_FIELD_LENGTH = 255
 
 interface TelemetryEvent {
   event_id: string
@@ -81,8 +87,23 @@ function validateEvent(event: unknown): { valid: boolean; error?: string } {
     return { valid: false, error: 'timestamp must be a number (unix ms)' }
   }
 
-  if (typeof e.event_id !== 'string' || e.event_id.length === 0) {
-    return { valid: false, error: 'event_id must be a non-empty string (UUID)' }
+  // Validate UUID format for all ID fields (IN-H1)
+  for (const idField of ['event_id', 'tenant_id', 'user_id', 'lesson_id']) {
+    if (typeof e[idField] !== 'string' || !UUID_RE.test(e[idField] as string)) {
+      return { valid: false, error: `${idField} must be a valid UUID` }
+    }
+  }
+
+  // Validate optional string fields length (SC-H1)
+  for (const optField of ['session_id', 'device_type', 'course_id']) {
+    if (e[optField] !== undefined && (typeof e[optField] !== 'string' || (e[optField] as string).length > MAX_STRING_FIELD_LENGTH)) {
+      return { valid: false, error: `${optField} must be a string <= ${MAX_STRING_FIELD_LENGTH} chars` }
+    }
+  }
+
+  // Validate position is a non-negative number if provided
+  if (e.position !== undefined && (typeof e.position !== 'number' || e.position < 0)) {
+    return { valid: false, error: 'position must be a non-negative number' }
   }
 
   return { valid: true }
@@ -242,23 +263,52 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // --- Fire-and-forget: trigger queue processing ---
+  // --- Trigger queue processing with error tracking (IN-1 fix) ---
+  // Previously fire-and-forget with silent failures. Now tracks trigger status
+  // and logs structured errors for observability/alerting.
+  let processorTriggered = false
   try {
     const processUrl = `${supabaseUrl}/functions/v1/process-progress-events`
-    // Non-blocking call — we don't await the full response
-    fetch(processUrl, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${supabaseKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: '{}',
-    }).catch((err) => {
-      console.warn('[progress-events] Fire-and-forget trigger failed:', err)
+    const triggerResponse = await Promise.race([
+      fetch(processUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: '{}',
+      }),
+      // 2-second timeout — don't block ingestion response for too long
+      new Promise<Response>((_, reject) =>
+        setTimeout(() => reject(new Error('Processor trigger timeout (2s)')), 2000)
+      ),
+    ]).catch((err) => {
+      console.error(
+        JSON.stringify({
+          component: 'progress-events',
+          severity: 'error',
+          error: 'processor_trigger_failed',
+          message: err instanceof Error ? err.message : String(err),
+          tenant_id: tenantId,
+          events_enqueued: validEvents.length,
+        })
+      )
+      return null
     })
+
+    processorTriggered = triggerResponse !== null && (triggerResponse as Response).ok !== false
   } catch (e) {
-    // Silently fail — processing will happen on next ingestion or scheduled trigger
-    console.warn('[progress-events] Could not trigger processor:', e)
+    console.error(
+      JSON.stringify({
+        component: 'progress-events',
+        severity: 'error',
+        error: 'processor_trigger_exception',
+        message: e instanceof Error ? e.message : String(e),
+        tenant_id: tenantId,
+      })
+    )
+    // NOTE: Consider adding a pg_cron fallback to drain orphaned queue messages
+    // if processor triggers fail repeatedly.
   }
 
   const queueLatencyMs = Date.now() - startTime
@@ -271,6 +321,7 @@ Deno.serve(async (req: Request) => {
       events_received: events.length,
       events_enqueued: validEvents.length,
       events_skipped: errors.length,
+      processor_triggered: processorTriggered,
       queue_latency_ms: queueLatencyMs,
     })
   )
@@ -280,6 +331,7 @@ Deno.serve(async (req: Request) => {
       received: events.length,
       enqueued: validEvents.length,
       skipped: errors.length,
+      processor_triggered: processorTriggered,
       errors: errors.length > 0 ? errors : undefined,
     }),
     { status: 200, headers: { 'Content-Type': 'application/json' } }

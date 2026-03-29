@@ -45,6 +45,27 @@ tsconfig.tsbuildinfo
 .jules/
 .agents/
 .vscode/
+.my-agent/
+
+# OpenCode AI local config
+opencode.json
+
+# Notion sync artefacts
+notion-report-*.md
+
+# AI planning / phase files (local only)
+PHASE*.md
+*_SCORECARD.md
+*_MEGA_PROMPT.md
+*_GAP_ANALYSIS.md
+*_DARKMODE_ROADMAP.md
+
+# Test output
+test-summary*.txt
+playwright_output.log
+
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo
 
 # Temporary dev scripts & local backups
 remediation_script.sql

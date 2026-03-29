@@ -1,7 +1,7 @@
 // Bridge component: connects BlockRenderer quiz data → QuizPlayer (new engine)
 // Handles attempt lifecycle (start/resume) and delegates to QuizPlayer
 
-import { AlertTriangle, CheckCircle, Clock, FileText, Loader2, Play, RotateCcw } from 'lucide-react'
+import { AlertTriangle, Loader2, Play, RotateCcw } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
@@ -65,21 +65,19 @@ export function LessonQuizPlayer({
 
     try {
       const result = await startAttempt.mutateAsync({
-        quizId,
+        quiz_id: quizId,
+        tenant_id: tenantId,
       })
 
-      // Load attempt questions; recover saved answers from embedded student_answers fields
-      const attemptQuestions = await quizPlayerService.getAttemptQuestions(result.attempt_id)
+      // Load attempt questions & saved answers for resume
+      const [attemptQuestions, savedAnswers] = await Promise.all([
+        quizPlayerService.getAttemptQuestions(result.id),
+        quizPlayerService.getSavedAnswers(result.id),
+      ])
 
       const initialAnswers: Record<string, SubmitAnswer> = {}
-      for (const q of attemptQuestions) {
-        if (q.selected_option_ids?.length > 0 || q.text_answer) {
-          initialAnswers[q.question_id] = {
-            question_id: q.question_id,
-            selected_option_ids: q.selected_option_ids || [],
-            text_answer: q.text_answer || undefined,
-          }
-        }
+      for (const answer of savedAnswers) {
+        initialAnswers[answer.question_id] = answer
       }
 
       const initialIndex = quizPlayerService.getCurrentQuestionIndex(
@@ -89,7 +87,7 @@ export function LessonQuizPlayer({
 
       setState({
         phase: 'ready',
-        attemptId: result.attempt_id,
+        attemptId: result.id,
         expiresAt: result.expires_at ?? null,
         questions: attemptQuestions,
         initialAnswers,
@@ -153,20 +151,9 @@ export function LessonQuizPlayer({
             )}
           </div>
           <div className="flex items-center justify-center gap-6 text-xs text-slate-500 dark:text-slate-400 font-medium">
-            {timeLimitMinutes && (
-              <span>
-                <Clock className="inline h-4 w-4 mr-1" />
-                {timeLimitMinutes} menit
-              </span>
-            )}
-            <span>
-              <FileText className="inline h-4 w-4 mr-1" />
-              Maks. {maxAttempts}x percobaan
-            </span>
-            <span>
-              <CheckCircle className="inline h-4 w-4 mr-1" />
-              Lulus: {passingScore}%
-            </span>
+            {timeLimitMinutes && <span>⏱ {timeLimitMinutes} menit</span>}
+            <span>📝 Maks. {maxAttempts}x percobaan</span>
+            <span>✅ Lulus: {passingScore}%</span>
           </div>
 
           {state.phase === 'submitted' && (
@@ -237,7 +224,7 @@ export function LessonQuizPlayer({
       <div className="px-6 py-8 max-w-lg mx-auto text-center">
         <div className="p-6 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl space-y-3">
           <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-800/50 rounded-full flex items-center justify-center mx-auto">
-            <CheckCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+            <span className="text-2xl">✅</span>
           </div>
           <p className="font-bold text-emerald-700 dark:text-emerald-300">
             Kuis telah diselesaikan
@@ -253,11 +240,11 @@ export function LessonQuizPlayer({
       <QuizPlayer
         attemptId={state.attemptId}
         expiresAt={state.expiresAt}
-        quiz={{
+        quiz=
           id: quizId,
           title,
           time_limit_minutes: timeLimitMinutes,
-        }}
+        
         attemptQuestions={state.questions}
         initialAnswers={state.initialAnswers}
         initialQuestionIndex={state.initialIndex}

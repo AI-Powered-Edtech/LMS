@@ -118,6 +118,7 @@ export function SharedAuthRoutes() {
     { path: 'announcements', element: <Announcements /> },
     { path: 'assignments', element: <Assignments /> },
     { path: 'group-assignment', element: <GroupAssignment /> },
+    { path: 'group-assignment/:assignmentId', element: <GroupAssignment /> },
     { path: 'directory', element: <Directory /> },
     { path: 'social-hub', element: <SocialHub /> },
     { path: 'notifications', element: <NotificationsPage /> },

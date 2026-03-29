@@ -145,6 +145,7 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
   )
 
   const handleDelete = async () => {
+    if (!confirm('Hapus file ini? File akan dihapus permanen dari penyimpanan.')) return
     const storageObjectId = (block as unknown as { storage_object_id?: string })?.storage_object_id
 
     if (storageObjectId) {
@@ -201,11 +202,11 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
   if (blockUrl) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
-          <div className="p-2 bg-white rounded-lg shadow-sm">{getFileIcon(blockUrl)}</div>
+        <div className="flex items-center gap-4 p-4 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+          <div className="p-2 bg-white dark:bg-slate-900 rounded-lg shadow-sm">{getFileIcon(blockUrl)}</div>
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-slate-800 truncate">{fileName}</p>
-            <p className="text-sm text-slate-500">{fileTypeLabel}</p>
+            <p className="font-medium text-slate-800 dark:text-slate-200 truncate">{fileName}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">{fileTypeLabel}</p>
           </div>
         </div>
 
@@ -215,7 +216,7 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
               type="button"
               onClick={handleReplace}
               disabled={isUploading}
-              className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors disabled:opacity-50"
             >
               Ganti File
             </button>
@@ -223,7 +224,7 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
               type="button"
               onClick={handleDelete}
               disabled={isUploading}
-              className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg transition-colors disabled:opacity-50"
             >
               Hapus
             </button>
@@ -231,7 +232,7 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
         </div>
 
         {error && (
-          <p role="alert" className="text-sm text-red-600">
+          <p role="alert" className="text-sm text-red-600 dark:text-red-400">
             {error}
           </p>
         )}
@@ -257,7 +258,7 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
         }}
         className={`
           relative flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed cursor-pointer transition-all
-          ${isDragOver ? 'border-orange-400 bg-orange-50' : 'border-slate-300 hover:border-slate-400 bg-slate-50'}
+          ${isDragOver ? 'border-orange-400 dark:border-orange-600 bg-orange-50 dark:bg-orange-900/30' : 'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 bg-slate-50 dark:bg-slate-800/30'}
           ${isUploading ? 'pointer-events-none' : ''}
         `}
       >
@@ -272,27 +273,27 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
 
         {isUploading ? (
           <>
-            <Loader2 className="w-8 h-8 text-orange-600 animate-spin mb-2" />
-            <p className="text-sm text-slate-600">Mengunggah...</p>
+            <Loader2 className="w-8 h-8 text-orange-600 dark:text-orange-400 animate-spin mb-2" />
+            <p className="text-sm text-slate-600 dark:text-slate-400">Mengunggah...</p>
             {uploadFileName && (
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 {uploadFileName} ({uploadFileSize ? formatFileSize(uploadFileSize) : ''})
               </p>
             )}
           </>
         ) : (
           <>
-            <div className="p-3 bg-white rounded-xl shadow-sm mb-3">
+            <div className="p-3 bg-white dark:bg-slate-800 rounded-xl shadow-sm mb-3">
               <FileUp className="w-8 h-8 text-orange-500" />
             </div>
-            <p className="text-sm text-slate-600 mb-1">Pilih file untuk diunggah</p>
-            <p className="text-xs text-slate-500">PDF, Word, PowerPoint, Excel, ZIP (maks. 20MB)</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Pilih file untuk diunggah</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">PDF, Word, PowerPoint, Excel, ZIP (maks. 20MB)</p>
           </>
         )}
       </div>
 
       {error && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
           {error}
         </p>
       )}

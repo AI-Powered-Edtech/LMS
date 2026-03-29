@@ -35,7 +35,7 @@ export function AddAssignmentModal({
         <form onSubmit={onSubmit} className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Judul Tugas/Aktivitas
+              Judul Tugas/Aktivitas <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -71,7 +71,7 @@ export function AddAssignmentModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Skor Maksimal
+                Skor Maksimal <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"

@@ -65,10 +65,7 @@ BEGIN
   END IF;
 
   -- Fetch profile row
-  SELECT id, email, first_name, last_name, full_name, avatar_url, phone,
-         is_active, created_at, updated_at, tenant_id, level, is_demo,
-         username, bio, is_profile_public
-  INTO v_profile
+  SELECT * INTO v_profile
   FROM public.profiles
   WHERE id = p_user_id;
 

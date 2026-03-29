@@ -1,16 +1,14 @@
 import { useMemo } from 'react'
 
-import { Role, useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from './useAuth'
 
 export function usePermissions() {
   const { permissions, roles, activeRole } = useAuth()
 
-  const isAdmin = roles.includes('admin')
-  const isTeacher = roles.includes('teacher')
-  const isStudent = roles.includes('student')
+  const [roles])
 
   const hasAnyRole = useMemo(
-    () => (rolesToCheck: Role[]) => {
+    () => (rolesToCheck: string[]) => {
       return rolesToCheck.some((role) => roles.includes(role))
     },
     [roles]

@@ -11,11 +11,12 @@ import {
   Wallet,
   XCircle,
 } from 'lucide-react'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { VirtualTable } from '@/src/components/ui/VirtualTable'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { useTheme } from '@/src/contexts/ThemeContext'
 import { cn } from '@/src/utils/cn'
 
 const formatCurrency = (amount: number) => {
@@ -170,6 +171,8 @@ export function FinanceDashboard() {
   usePageTitle('Dasbor Keuangan')
   const [activeTab, setActiveTab] = useState<'overview' | 'spp' | 'salary'>('overview')
   const [searchQuery, setSearchQuery] = useState('')
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
@@ -282,20 +285,33 @@ export function FinanceDashboard() {
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={revenueData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke={isDark ? '#334155' : '#e2e8f0'}
+                    />
                     <XAxis
                       dataKey="name"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 12, fill: '#64748b' }}
+                      tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#64748b' }}
+                      axisLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+                      tickLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
                       dy={10}
                     />
                     <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 12, fill: '#64748b' }}
+                      tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#64748b' }}
+                      axisLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+                      tickLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
                     />
-                    <Tooltip cursor={{ fill: '#f1f5f9' }} />
+                    <Tooltip
+                      cursor={{ fill: isDark ? '#1e293b' : '#f1f5f9' }}
+                      contentStyle={{
+                        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                        border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                        borderRadius: '0.5rem',
+                        color: isDark ? '#f1f5f9' : '#0f172a',
+                      }}
+                      labelStyle={{ color: isDark ? '#94a3b8' : '#64748b' }}
+                    />
                     <Bar dataKey="spp" name="SPP" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                     <Bar
                       dataKey="building"

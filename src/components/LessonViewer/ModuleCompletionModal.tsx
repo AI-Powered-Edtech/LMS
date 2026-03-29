@@ -21,6 +21,7 @@ export function ModuleCompletionModal({
   xpEarned,
 }: ModuleCompletionModalProps) {
   const firedRef = useRef(false)
+  const continueRef = useRef<HTMLButtonElement>(null)
   const reducedMotion = useReducedMotion()
 
   useEffect(() => {
@@ -42,6 +43,16 @@ export function ModuleCompletionModal({
       })
       .catch(() => {})
   }, [reducedMotion])
+
+  // Keyboard & focus management (A11-H1)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    continueRef.current?.focus()
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
 
   return (
     <motion.div
@@ -171,6 +182,7 @@ export function ModuleCompletionModal({
           className="flex flex-col gap-3"
         >
           <button
+            ref={continueRef}
             onClick={onContinue}
             className={cn(
               'flex items-center justify-center gap-2 w-full px-6 py-3.5 font-semibold rounded-xl transition-all duration-200',

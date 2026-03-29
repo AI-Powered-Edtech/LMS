@@ -1,4 +1,5 @@
 import { AlertTriangle } from 'lucide-react'
+import { useMemo } from 'react'
 
 import type { LearningPath } from '../types'
 
@@ -39,7 +40,8 @@ function findDeadEnds(paths: LearningPath[]): DeadEnd[] {
 }
 
 export function DeadEndDetector({ paths }: Props) {
-  const deadEnds = findDeadEnds(paths)
+  // ⚡ Perf: memoize findDeadEnds — O(paths × steps) with Map + sort, recomputed on every render otherwise
+  const deadEnds = useMemo(() => findDeadEnds(paths), [paths])
 
   if (deadEnds.length === 0) {
     return (

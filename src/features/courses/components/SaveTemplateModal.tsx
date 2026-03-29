@@ -24,6 +24,7 @@ export function SaveTemplateModal({
   const [title, setTitle] = useState(defaultTitle ? `${defaultTitle} (Template)` : '')
   const [description, setDescription] = useState('')
   const [success, setSuccess] = useState(false)
+  const [error, setError] = useState('')
 
   // Reset state when modal closes
   const prevOpenRef = useRef(isOpen)
@@ -32,6 +33,7 @@ export function SaveTemplateModal({
       setTitle('')
       setDescription('')
       setSuccess(false)
+      setError('')
     }
     prevOpenRef.current = isOpen
   }, [isOpen])
@@ -39,6 +41,7 @@ export function SaveTemplateModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim()) return
+    setError('')
 
     try {
       await saveTemplateMutation.mutateAsync({
@@ -54,8 +57,8 @@ export function SaveTemplateModal({
         setTitle('')
         setDescription('')
       }, 1500)
-    } catch (error) {
-      console.error('Failed to save template', error)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal menyimpan template. Silakan coba lagi.')
     }
   }
 
@@ -125,6 +128,15 @@ export function SaveTemplateModal({
                 className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow resize-none"
               />
             </div>
+
+            {error && (
+              <p
+                role="alert"
+                className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3"
+              >
+                {error}
+              </p>
+            )}
 
             <div className="flex justify-end gap-3 pt-4 mt-6 border-t border-slate-100 dark:border-slate-800">
               <button

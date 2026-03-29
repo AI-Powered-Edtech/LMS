@@ -39,7 +39,9 @@ export function GroupChatPanel({ chat, myName, newMessage, onMessageChange, onSe
                 msg.sender === myName ? 'ml-auto items-end' : 'items-start'
               )}
             >
-              <span className="text-[10px] text-slate-500 mb-1 font-medium ml-1">{msg.sender}</span>
+              <span className="text-[10px] text-slate-500 mb-1 font-medium ml-1">
+                {msg.sender}
+              </span>
               <div
                 className={cn(
                   'p-3 rounded-2xl text-sm shadow-sm',

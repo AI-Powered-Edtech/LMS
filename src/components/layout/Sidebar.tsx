@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
+import { useArrowNavigation } from '@/src/hooks/useArrowNavigation'
 import { ModuleId, useModuleConfig } from '@/src/hooks/useModuleConfig'
 import { useToast } from '@/src/hooks/useToast'
 import { navigationItems } from '@/src/shared/config/navigation'
@@ -20,6 +21,7 @@ export function Sidebar() {
   const [isAddingClassroom, setIsAddingClassroom] = useState(false)
   const [isSavingClass, setIsSavingClass] = useState(false)
   const [newClassroomName, setNewClassroomName] = useState('')
+  const { containerRef, handleKeyDown } = useArrowNavigation()
 
   const filteredNavItems = navigationItems.filter((item) => {
     // Only show sidebar items
@@ -171,7 +173,13 @@ export function Sidebar() {
         </div>
       )}
 
-      <nav aria-label="Menu utama" className="flex-1 space-y-2 overflow-y-auto hide-scrollbar">
+      <nav
+        ref={containerRef as React.RefObject<HTMLElement>}
+        aria-label="Menu utama"
+        role="navigation"
+        onKeyDown={handleKeyDown}
+        className="flex-1 space-y-2 overflow-y-auto hide-scrollbar"
+      >
         {filteredNavItems.map((item) => {
           const isActive = location.pathname === item.path
           return (

@@ -4,10 +4,10 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary'
 import { useAuth } from '@/src/contexts/AuthContext'
-import { useTheme } from '@/src/contexts/ThemeContext'
 import { useToast } from '@/src/hooks/useToast'
 
 import { Onboarding } from '../Onboarding'
+import { HelpButton } from '../ui/HelpButton'
 import { BottomNav } from './BottomNav'
 import { Header } from './Header'
 import { RouteAnnouncer } from './RouteAnnouncer'
@@ -19,7 +19,6 @@ export function TeacherLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const isHidden = hiddenNavPaths.includes(location.pathname)
-  const { theme } = useTheme()
   const { sessionExpired } = useAuth()
   const addToast = useToast((s) => s.addToast)
 
@@ -33,7 +32,7 @@ export function TeacherLayout() {
 
   return (
     <div
-      className={`flex h-[100dvh] overflow-hidden font-sans flex-col transition-colors duration-300 ${theme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}
+      className="flex h-[100dvh] overflow-hidden font-sans flex-col transition-colors duration-300 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
     >
       <RouteAnnouncer />
       <a
@@ -69,6 +68,7 @@ export function TeacherLayout() {
           {!isHidden && <BottomNav />}
         </div>
       </div>
+      {!isHidden && <HelpButton />}
     </div>
   )
 }

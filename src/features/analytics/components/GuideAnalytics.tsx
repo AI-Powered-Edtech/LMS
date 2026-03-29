@@ -28,13 +28,6 @@ const SEGMENT_LABELS: Record<string, string> = {
   struggling: 'Kesulitan',
 }
 
-const _TRIGGER_LABELS: Record<string, string> = {
-  on_enter: 'Saat masuk',
-  after_seconds: 'Setelah',
-  on_struggle: 'Saat struggle',
-  on_idle: 'Saat idle',
-}
-
 export function GuideAnalytics({ courseId }: Props) {
   const [showBuilder, setShowBuilder] = useState(false)
   const [editingGuide, setEditingGuide] = useState<LearningGuide | null>(null)

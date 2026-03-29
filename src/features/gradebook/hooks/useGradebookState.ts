@@ -178,11 +178,11 @@ export function useGradebookState() {
 }
 
 export function getGradeColor(score: number | null) {
-  if (score === null || score === 0) return 'text-slate-400'
-  if (score >= 85) return 'text-green-600 font-bold'
-  if (score >= 70) return 'text-blue-600 font-bold'
-  if (score >= 60) return 'text-yellow-600 font-bold'
-  return 'text-red-600 font-bold'
+  if (score === null || score === 0) return 'text-slate-400 dark:text-slate-500'
+  if (score >= 85) return 'text-green-600 dark:text-green-400 font-bold'
+  if (score >= 70) return 'text-blue-600 dark:text-blue-400 font-bold'
+  if (score >= 60) return 'text-yellow-600 dark:text-yellow-400 font-bold'
+  return 'text-red-600 dark:text-red-400 font-bold'
 }
 
 export function getGradeBg(score: number | null) {

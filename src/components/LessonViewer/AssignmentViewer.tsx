@@ -8,7 +8,7 @@ import {
   Send,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import {
@@ -38,22 +38,24 @@ export function AssignmentViewer({
   maxAttempts,
   isPublished,
   dueDate,
-  isCompleted: _isCompleted,
+  isCompleted,
   onCompletionMet,
   onStartViewing,
 }: AssignmentViewerProps) {
   const { user, tenantId, role } = useAuth()
   const [submissionText, setSubmissionText] = useState('')
   const [submission, setSubmission] = useState<AssignmentSubmission | null>(null)
-  const [maxAttempt, setMaxAttempt] = useState(0)
+  const [attemptCount, setAttemptCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const onStartViewingRef = useRef(onStartViewing)
+  onStartViewingRef.current = onStartViewing
 
-  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    onStartViewing()
-    if (!user?.id) return
+    onStartViewingRef.current()
+    if (!user?.id || !tenantId) return
 
     async function loadSubmission() {
       try {
@@ -62,7 +64,7 @@ export function AssignmentViewer({
           const sub = data.assignment_submissions[0]
           setSubmission(sub)
           setSubmissionText(sub.submission_text || '')
-          setMaxAttempt(sub.attempt_number || 1)
+          setAttemptCount(sub.attempt_number || 1)
         }
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Error loading submission:', err)
@@ -71,8 +73,7 @@ export function AssignmentViewer({
       }
     }
     loadSubmission()
-  }, [assignmentId, user?.id])
-  /* eslint-enable react-hooks/exhaustive-deps */
+  }, [assignmentId, user?.id, tenantId])
 
   const handleSubmit = async () => {
     if (!user?.id || !submissionText.trim()) return
@@ -88,11 +89,11 @@ export function AssignmentViewer({
         tenant_id: tenantId!,
         submission_text: submissionText,
         file_url: null,
-        attempt_number: maxAttempt + 1,
+        attempt_number: attemptCount + 1,
       }
       const result = await assignmentService.submitAssignment(submissionData)
       setSubmission(result)
-      setMaxAttempt(result.attempt_number || maxAttempt + 1)
+      setAttemptCount(result.attempt_number || attemptCount + 1)
       onCompletionMet()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Kesalahan tidak diketahui')
@@ -112,8 +113,7 @@ export function AssignmentViewer({
 
   const isSubmitted = submission?.status === 'submitted'
   const isGraded = submission?.status === 'graded'
-  const _isReturned = submission?.status === 'returned'
-  const canEdit = !isSubmitted && !isGraded
+  const canEdit = !isSubmitted && !isGraded && !isCompleted
 
   // Handle unpublished assignments for students
   if (!isPublished && role === 'student') {
@@ -242,16 +242,31 @@ export function AssignmentViewer({
                 </p>
 
                 {isSubmitted ? (
-                  <button
-                    onClick={() => {
-                      if (confirm('Batalkan pengiriman untuk mengedit?')) {
-                        setSubmission(null)
-                      }
-                    }}
-                    className="text-xs font-bold text-slate-500 hover:text-rose-600 transition-colors"
-                  >
-                    Batalkan Pengiriman
-                  </button>
+                  showCancelConfirm ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-500">Yakin batalkan?</span>
+                      <button
+                        // TODO [FL-M1]: Call assignmentService.cancelSubmission() API when backend supports it
+                        onClick={() => { setSubmission(null); setShowCancelConfirm(false) }}
+                        className="text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors"
+                      >
+                        Ya
+                      </button>
+                      <button
+                        onClick={() => setShowCancelConfirm(false)}
+                        className="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors"
+                      >
+                        Batal
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowCancelConfirm(true)}
+                      className="text-xs font-bold text-slate-500 hover:text-rose-600 transition-colors"
+                    >
+                      Batalkan Pengiriman
+                    </button>
+                  )
                 ) : (
                   <button
                     onClick={handleSubmit}

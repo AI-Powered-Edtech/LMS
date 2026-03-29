@@ -9,7 +9,6 @@ import { type Resolver, useForm } from 'react-hook-form'
 
 import { OptimizedImage } from '@/src/components/ui'
 import { OfflineFormNotice } from '@/src/components/ui/OfflineFormNotice'
-import { useAuth } from '@/src/contexts/AuthContext'
 import type { Theme } from '@/src/contexts/ThemeContext'
 import { supabase } from '@/src/services/supabase/client'
 import { type ProfileFormData, ProfileFormSchema } from '@/src/shared/schemas/forms'
@@ -54,15 +53,20 @@ export function ToggleRow({
 
 // ── Account Tab ───────────────────────────────────────────────────────────────
 interface AccountTabProps {
+  userId: string
   avatarUrl: string | null | undefined
   displayEmail: string
   roleLabel: string
   displayName: string
 }
 
-export function AccountTab({ avatarUrl, displayEmail, roleLabel, displayName }: AccountTabProps) {
-  const { user } = useAuth()
-  const userId = user?.id ?? ''
+export function AccountTab({
+  userId,
+  avatarUrl,
+  displayEmail,
+  roleLabel,
+  displayName,
+}: AccountTabProps) {
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileMessage, setProfileMessage] = useState<{
     type: 'success' | 'error'
@@ -74,7 +78,7 @@ export function AccountTab({ avatarUrl, displayEmail, roleLabel, displayName }: 
     handleSubmit,
     formState: { errors: profileErrors },
   } = useForm<ProfileFormData>({
-    resolver: valibotResolver(ProfileFormSchema) as unknown as Resolver<ProfileFormData>,
+    resolver: (valibotResolver(ProfileFormSchema) as unknown) as Resolver<ProfileFormData>,
     defaultValues: { fullName: displayName },
   })
 
@@ -205,7 +209,6 @@ export function AccountTab({ avatarUrl, displayEmail, roleLabel, displayName }: 
 
 // ── Security Tab ──────────────────────────────────────────────────────────────
 export function SecurityTab() {
-  const { user } = useAuth()
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -218,10 +221,6 @@ export function SecurityTab() {
 
   const handleChangePassword = useCallback(async () => {
     setPasswordMessage(null)
-    if (!currentPassword) {
-      setPasswordMessage({ type: 'error', text: 'Masukkan kata sandi saat ini.' })
-      return
-    }
     if (newPassword.length < 6) {
       setPasswordMessage({ type: 'error', text: 'Kata sandi baru minimal 6 karakter.' })
       return
@@ -232,17 +231,6 @@ export function SecurityTab() {
     }
     setSavingPassword(true)
     try {
-      // 1. Verifikasi kata sandi lama dulu
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: user!.email!,
-        password: currentPassword,
-      })
-      if (authError) {
-        setPasswordMessage({ type: 'error', text: 'Kata sandi saat ini tidak sesuai.' })
-        setSavingPassword(false)
-        return
-      }
-      // 2. Baru update password
       const { error } = await supabase.auth.updateUser({ password: newPassword })
       if (error) throw error
       setPasswordMessage({ type: 'success', text: 'Kata sandi berhasil diubah.' })
@@ -252,12 +240,12 @@ export function SecurityTab() {
     } catch {
       setPasswordMessage({
         type: 'error',
-        text: 'Gagal mengubah kata sandi. Coba lagi.',
+        text: 'Gagal mengubah kata sandi. Pastikan kata sandi lama benar.',
       })
     } finally {
       setSavingPassword(false)
     }
-  }, [currentPassword, newPassword, confirmPassword, user])
+  }, [newPassword, confirmPassword])
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
@@ -344,7 +332,13 @@ export function SecurityTab() {
 }
 
 // ── Appearance Tab ────────────────────────────────────────────────────────────
-export function AppearanceTab({ theme, setTheme }: { theme: Theme; setTheme: (t: Theme) => void }) {
+export function AppearanceTab({
+  theme,
+  setTheme,
+}: {
+  theme: Theme
+  setTheme: (t: Theme) => void
+}) {
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
       <div className="p-6 border-b border-slate-100 dark:border-slate-700">
@@ -392,3 +386,4 @@ export function AppearanceTab({ theme, setTheme }: { theme: Theme; setTheme: (t:
     </div>
   )
 }
+

@@ -276,7 +276,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
 
   const loadComments = useCallback(async () => {
     try {
-      const _data = await discussionService.fetchDiscussions({
+      await discussionService.fetchDiscussions({
         tenantId: tenantId!,
         [`${entityType}Id`]: entityId,
         parentId: null, // Fetch top-level comments first

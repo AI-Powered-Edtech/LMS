@@ -1,6 +1,6 @@
+import { Link, type LinkProps } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useRef } from 'react'
-import { Link, type LinkProps } from 'react-router-dom'
 
 interface PrefetchLinkProps extends LinkProps {
   prefetchQuery?: {

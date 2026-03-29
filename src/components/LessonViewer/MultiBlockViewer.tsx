@@ -1,5 +1,5 @@
 import { motion } from 'motion/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useOptionalLearningSession } from '@/src/features/analytics'
 import { BLOCK_REGISTRY, isValidBlockType } from '@/src/features/lessons/blockRegistry'
@@ -46,11 +46,17 @@ export function MultiBlockViewer({
   onStartViewing,
   onResumeAnchorUpdate,
 }: MultiBlockViewerProps) {
-  const blocks = [...(lesson.lesson_resources || [])]
-    .map((b) => ({ ...b, type: b.type?.toLowerCase() ?? b.type }))
-    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+  // Stabilize blocks array to prevent cascading re-renders & IntersectionObserver churn (PF-1)
+  const blocks = useMemo(
+    () =>
+      [...(lesson.lesson_resources || [])]
+        .map((b) => ({ ...b, type: b.type?.toLowerCase() ?? b.type }))
+        .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0)),
+    [lesson.lesson_resources]
+  )
 
   const completedIds = useRef(new Set<string>())
+  const [completedCount, setCompletedCount] = useState(0)
   const hasCalledCompletion = useRef(false)
   const hasStarted = useRef(false)
 
@@ -73,6 +79,7 @@ export function MultiBlockViewer({
 
       if (completedIds.current.has(blockId)) return
       completedIds.current.add(blockId)
+      setCompletedCount(completedIds.current.size)
 
       const total = blocks.length
       const done = completedIds.current.size
@@ -254,7 +261,7 @@ export function MultiBlockViewer({
 
         {/* Position counter */}
         <span className="ml-auto shrink-0 text-xs text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap">
-          {completedIds.current.size} / {total} selesai
+          {completedCount} / {total} selesai
         </span>
       </div>
 

@@ -229,15 +229,15 @@ export function QuizPlayer({
       <div className="flex-1 w-full flex flex-col items-center px-4 md:px-6 lg:px-8">
         <div className="w-full max-w-6xl space-y-6">
           {/* Header skeleton */}
-          <div className="h-16 bg-slate-100 rounded-2xl animate-pulse" />
+          <div className="h-16 bg-slate-100 dark:bg-slate-700 rounded-2xl animate-pulse" />
           {/* Content skeleton */}
           <div className="flex gap-6">
             <div className="hidden lg:block w-64">
-              <div className="h-96 bg-slate-100 rounded-2xl animate-pulse" />
+              <div className="h-96 bg-slate-100 dark:bg-slate-700 rounded-2xl animate-pulse" />
             </div>
             <div className="flex-1 space-y-6">
-              <div className="h-64 bg-slate-100 rounded-2xl animate-pulse" />
-              <div className="h-16 bg-slate-100 rounded-2xl animate-pulse" />
+              <div className="h-64 bg-slate-100 dark:bg-slate-700 rounded-2xl animate-pulse" />
+              <div className="h-16 bg-slate-100 dark:bg-slate-700 rounded-2xl animate-pulse" />
             </div>
           </div>
         </div>
@@ -257,11 +257,11 @@ export function QuizPlayer({
         {/* ── Floating Warnings ─────────────────────────── */}
         {tabWarning && (
           <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
-            <div className="flex items-center gap-3 px-5 py-3 bg-amber-50 border border-amber-200 rounded-2xl shadow-lg">
-              <Eye className="w-5 h-5 text-amber-600 shrink-0" />
+            <div className="flex items-center gap-3 px-5 py-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl shadow-lg">
+              <Eye className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
               <div>
-                <p className="font-bold text-amber-800 text-sm">Anda meninggalkan tab kuis</p>
-                <p className="text-xs text-amber-600">Aktivitas ini telah dicatat</p>
+                <p className="font-bold text-amber-800 dark:text-amber-300 text-sm">Anda meninggalkan tab kuis</p>
+                <p className="text-xs text-amber-600 dark:text-amber-400">Aktivitas ini telah dicatat</p>
               </div>
             </div>
           </div>
@@ -317,7 +317,7 @@ export function QuizPlayer({
           {/* Sidebar — Desktop only */}
           <div className="hidden lg:block w-64 shrink-0">
             <div className="sticky top-6 space-y-6">
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
                 <QuestionPalette
                   questions={attemptQuestions}
                   currentQuestionIdx={currentQuestionIdx}
@@ -345,7 +345,7 @@ export function QuizPlayer({
             </div>
 
             {/* Progress bar */}
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
               <div
                 className={cn('h-full transition-all duration-300 rounded-full', progressColor)}
                 style={{ width: `${((currentQuestionIdx + 1) / totalQuestions) * 100}%` }}

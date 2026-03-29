@@ -2,18 +2,19 @@ import { create } from 'zustand'
 
 /* ─── Types ───────────────────────────────────────────────────── */
 
+export interface ToastAction {
+  label: string
+  onClick: () => void
+}
+
 export interface Toast {
   id: string
   type: 'success' | 'error' | 'warning' | 'info'
   message: string
   description?: string
-  /** Custom dismiss delay in ms. Defaults to 5000. */
+  action?: ToastAction
+  /** Custom auto-dismiss duration in ms. Defaults to 5 000. Set 0 to disable. */
   duration?: number
-  /** Optional action button shown on the toast. */
-  action?: {
-    label: string
-    onClick: () => void
-  }
 }
 
 interface ToastStore {
@@ -67,11 +68,13 @@ export const useToast = create<ToastStore>((set, get) => ({
       return { toasts: [...existing, newToast] }
     })
 
-    // Auto-dismiss — respect custom duration, fall back to default
-    const delay = toast.duration ?? AUTO_DISMISS_MS
+    // Auto-dismiss after timeout (use per-toast duration when provided)
+    const dismissMs = toast.duration !== undefined && toast.duration > 0
+      ? toast.duration
+      : AUTO_DISMISS_MS
     const timer = setTimeout(() => {
       get().removeToast(id)
-    }, delay)
+    }, dismissMs)
 
     timers.set(id, timer)
   },

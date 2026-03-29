@@ -82,7 +82,8 @@ export function useNavBadges(): NavBadges {
       })
 
       if (error) {
-        if (import.meta.env.DEV) console.error('[useNavBadges] unreadNotifications error:', error)
+        if (import.meta.env.DEV)
+          console.error('[useNavBadges] unreadNotifications error:', error)
         return 0
       }
 

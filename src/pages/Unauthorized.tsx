@@ -1,5 +1,4 @@
 import { ArrowLeft, Home, ShieldX } from 'lucide-react'
-import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { usePageTitle } from '@/src/hooks/usePageTitle'

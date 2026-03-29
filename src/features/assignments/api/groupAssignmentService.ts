@@ -55,8 +55,12 @@ export const groupAssignmentService = {
   /**
    * Returns the group, members, and submission for the calling student.
    */
-  async getStudentGroup(assignmentId: string): Promise<StudentGroupData | null> {
+  async getStudentGroup(
+    userId: string,
+    assignmentId: string
+  ): Promise<StudentGroupData | null> {
     const { data, error } = await supabase.rpc('get_student_group_assignment', {
+      p_user_id: userId,
       p_assignment_id: assignmentId,
     })
 
@@ -87,7 +91,10 @@ export const groupAssignmentService = {
   /**
    * Teacher creates groups with assigned members for an assignment.
    */
-  async createGroups(assignmentId: string, groups: CreateGroupInput[]): Promise<void> {
+  async createGroups(
+    assignmentId: string,
+    groups: CreateGroupInput[]
+  ): Promise<void> {
     const { error } = await supabase.rpc('create_assignment_groups', {
       p_assignment_id: assignmentId,
       p_groups: groups,

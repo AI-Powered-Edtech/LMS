@@ -1,9 +1,8 @@
 import { ScormPlayer } from '@/src/features/lessons/components/ScormPlayer'
 import type { LessonResource } from '@/src/features/lessons/types'
 import type { Assignment, Quiz } from '@/src/features/lessons/types'
-import { QuizViewer } from '@/src/features/quizzes/components/QuizViewer'
-
 import { AssignmentViewer } from './AssignmentViewer'
+import { LessonQuizPlayer } from './blocks/LessonQuizPlayer'
 import { FileBlockViewer } from './blocks/FileBlockViewer'
 import { ImageBlockViewer } from './blocks/ImageBlockViewer'
 import { MarkdownBlock } from './blocks/MarkdownBlock'
@@ -23,6 +22,8 @@ interface BlockRendererProps {
   onStartViewing?: () => void
 }
 
+const noop = () => {}
+
 export function BlockRenderer({
   block,
   quiz,
@@ -30,9 +31,9 @@ export function BlockRenderer({
   isCompleted,
   savedVideoPosition,
   onVideoTimeUpdate,
-  onCompletionMet,
-  onProgressUpdate,
-  onStartViewing,
+  onCompletionMet = noop,
+  onProgressUpdate = noop,
+  onStartViewing = noop,
 }: BlockRendererProps) {
   const type = block.type?.toLowerCase()
   switch (type) {
@@ -51,9 +52,9 @@ export function BlockRenderer({
           metadata={block.metadata}
           isCompleted={isCompleted}
           savedVideoPosition={savedVideoPosition}
-          onProgressUpdate={onProgressUpdate ?? (() => {})}
-          onCompletionMet={onCompletionMet ?? (() => {})}
-          onStartViewing={onStartViewing ?? (() => {})}
+          onProgressUpdate={onProgressUpdate}
+          onCompletionMet={onCompletionMet}
+          onStartViewing={onStartViewing}
           onVideoTimeUpdate={onVideoTimeUpdate}
         />
       )
@@ -78,16 +79,16 @@ export function BlockRenderer({
       if (!quiz)
         return <div className="px-6 py-4 text-slate-500 text-sm">Kuis tidak ditemukan.</div>
       return (
-        <QuizViewer
+        <LessonQuizPlayer
           quizId={quiz.id}
           title={quiz.title}
           instructions={quiz.instructions}
-          questions={quiz.quiz_questions}
+          timeLimitMinutes={quiz.time_limit_minutes}
           maxAttempts={quiz.max_attempts}
           passingScore={quiz.passing_score ?? 0}
           isCompleted={isCompleted}
-          onCompletionMet={onCompletionMet ?? (() => {})}
-          onStartViewing={onStartViewing ?? (() => {})}
+          onCompletionMet={onCompletionMet}
+          onStartViewing={onStartViewing}
         />
       )
 
@@ -104,8 +105,8 @@ export function BlockRenderer({
           isPublished={assignment.is_published}
           dueDate={assignment.due_date}
           isCompleted={isCompleted}
-          onCompletionMet={onCompletionMet ?? (() => {})}
-          onStartViewing={onStartViewing ?? (() => {})}
+          onCompletionMet={onCompletionMet}
+          onStartViewing={onStartViewing}
         />
       )
 
@@ -117,7 +118,7 @@ export function BlockRenderer({
         <ScormPlayer
           scormPackageId={scormPackageId}
           lessonId={block.lesson_id}
-          onCompletionMet={onCompletionMet ?? (() => {})}
+          onCompletionMet={onCompletionMet}
         />
       )
     }

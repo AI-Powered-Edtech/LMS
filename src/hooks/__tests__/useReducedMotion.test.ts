@@ -108,13 +108,11 @@ describe('useReducedMotion', () => {
   it('harus update state ketika media query matches berubah', async () => {
     let changeHandler: ((e: MediaQueryListEvent) => void) | null = null
 
-    const addEventListenerMock = vi.fn(
-      (event: string, handler: (e: MediaQueryListEvent) => void) => {
-        if (event === 'change') {
-          changeHandler = handler
-        }
+    const addEventListenerMock = vi.fn((event: string, handler: (e: MediaQueryListEvent) => void) => {
+      if (event === 'change') {
+        changeHandler = handler
       }
-    )
+    })
 
     matchMediaMock.mockReturnValue({
       matches: false,
@@ -131,10 +129,9 @@ describe('useReducedMotion', () => {
 
     expect(result.current).toBe(false)
 
-    // Simulate media query change — capture in const to avoid TS never-narrowing
-    const handler = changeHandler as ((e: MediaQueryListEvent) => void) | null
-    if (handler) {
-      handler({
+    // Simulate media query change
+    if (changeHandler) {
+      changeHandler({
         matches: true,
         media: '(prefers-reduced-motion: reduce)',
       } as unknown as MediaQueryListEvent)
