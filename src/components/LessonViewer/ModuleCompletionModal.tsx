@@ -87,10 +87,8 @@ export function ModuleCompletionModal({
           className={cn(
             'absolute top-4 right-4 p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-colors z-10',
             'hover:bg-slate-100 dark:hover:bg-slate-800',
-            'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500'
+            'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
           )}
-          aria-label="Tutup"
         >
           <X className="w-5 h-5" />
         </button>
