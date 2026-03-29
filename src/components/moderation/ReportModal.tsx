@@ -110,7 +110,8 @@ export function ReportModal({
                   </h3>
                   <button
                     onClick={onClose}
-                    className="p-1 hover:bg-slate-200 rounded-full transition-colors"
+                    className="p-1 hover:bg-slate-200 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    aria-label="Tutup"
                   >
                     <X className="w-5 h-5 text-slate-500" />
                   </button>

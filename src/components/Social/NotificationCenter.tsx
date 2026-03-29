@@ -198,8 +198,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onRea
       {!notification.is_read && (
         <button
           onClick={onRead}
-          className="absolute right-4 top-10 opacity-0 group-hover:opacity-100 p-1 bg-white border border-slate-200 rounded-full shadow-sm hover:bg-blue-50 hover:text-blue-600 text-slate-400 transition-all"
+          className="absolute right-4 top-10 opacity-0 group-hover:opacity-100 p-1 bg-white border border-slate-200 rounded-full shadow-sm hover:bg-blue-50 hover:text-blue-600 text-slate-400 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           title="Tandai sudah dibaca"
+          aria-label="Tandai sudah dibaca"
         >
           <Check className="w-3.5 h-3.5" />
         </button>
