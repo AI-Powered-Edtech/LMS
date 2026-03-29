@@ -3,24 +3,48 @@ import { describe, expect, it } from 'vitest'
 import { escapeHtml, sanitizeUrl } from '../sanitize'
 
 describe('escapeHtml', () => {
-  it('escapes ampersand', () => {
-    expect(escapeHtml('Tom & Jerry')).toBe('Tom &amp; Jerry')
+  it('should return the same string if there are no special characters', () => {
+    expect(escapeHtml('Hello World')).toBe('Hello World')
+    expect(escapeHtml('1234567890')).toBe('1234567890')
+    expect(escapeHtml('abcdefg-_+=')).toBe('abcdefg-_+=')
   })
 
-  it('escapes less-than sign', () => {
-    expect(escapeHtml('<script>')).toBe('&lt;script&gt;')
+  it('should escape ampersands (&)', () => {
+    expect(escapeHtml('Me & You')).toBe('Me &amp; You')
+    expect(escapeHtml('&&&&')).toBe('&amp;&amp;&amp;&amp;')
   })
 
-  it('escapes greater-than sign', () => {
-    expect(escapeHtml('a > b')).toBe('a &gt; b')
+  it('should escape less than (<) and greater than (>)', () => {
+    expect(escapeHtml('5 < 10')).toBe('5 &lt; 10')
+    expect(escapeHtml('10 > 5')).toBe('10 &gt; 5')
+    expect(escapeHtml('<html>')).toBe('&lt;html&gt;')
   })
 
-  it('escapes double quotes', () => {
-    expect(escapeHtml('say "hello"')).toBe('say &quot;hello&quot;')
+  it('should escape double quotes (")', () => {
+    expect(escapeHtml('He said "Hello"')).toBe('He said &quot;Hello&quot;')
+    expect(escapeHtml('""')).toBe('&quot;&quot;')
   })
 
-  it('escapes single quotes', () => {
-    expect(escapeHtml("it's")).toBe('it&#039;s')
+  it("should escape single quotes (')", () => {
+    expect(escapeHtml("It's a beautiful day")).toBe('It&#039;s a beautiful day')
+    expect(escapeHtml("''")).toBe('&#039;&#039;')
+  })
+
+  it('should escape combinations of special characters', () => {
+    expect(escapeHtml('<script>alert("XSS & \'pwned\'")</script>')).toBe(
+      '&lt;script&gt;alert(&quot;XSS &amp; &#039;pwned&#039;&quot;)&lt;/script&gt;'
+    )
+    expect(escapeHtml('a & b < c > d "e" \'f\'')).toBe(
+      'a &amp; b &lt; c &gt; d &quot;e&quot; &#039;f&#039;'
+    )
+  })
+
+  it('should handle empty strings', () => {
+    expect(escapeHtml('')).toBe('')
+  })
+
+  it('should handle strings that only consist of special characters', () => {
+    expect(escapeHtml('&<>"\'')).toBe('&amp;&lt;&gt;&quot;&#039;')
   })
 
   it('blocks XSS img onerror payload', () => {
@@ -38,14 +62,6 @@ describe('escapeHtml', () => {
     const escaped = escapeHtml(payload)
     expect(escaped).not.toContain('<script>')
     expect(escaped).toContain('&lt;script&gt;')
-  })
-
-  it('returns empty string unchanged', () => {
-    expect(escapeHtml('')).toBe('')
-  })
-
-  it('returns plain text unchanged', () => {
-    expect(escapeHtml('Hello World')).toBe('Hello World')
   })
 
   it('handles all special characters together', () => {

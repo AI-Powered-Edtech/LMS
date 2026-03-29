@@ -1,13 +1,12 @@
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { ArrowLeft, Loader2, Plus, X } from 'lucide-react'
 import { useEffect } from 'react'
-import { type Resolver,useForm } from 'react-hook-form'
+import { type Resolver, useForm } from 'react-hook-form'
 
 import { ClassDetailPanel } from '@/src/features/classroom/components/ClassDetailPanel'
 import { ClassListPanel } from '@/src/features/classroom/components/ClassListPanel'
-
 import { useClassManagementState } from '@/src/features/classroom/hooks/useClassManagementState'
-import { type ClassroomFormData,ClassroomFormSchema } from '@/src/shared/schemas/forms'
+import { type ClassroomFormData, ClassroomFormSchema } from '@/src/shared/schemas/forms'
 
 export function ClassManagement() {
   const s = useClassManagementState()
@@ -19,7 +18,7 @@ export function ClassManagement() {
     setFocus,
     formState: { errors },
   } = useForm<ClassroomFormData>({
-    resolver: (valibotResolver(ClassroomFormSchema) as unknown) as Resolver<ClassroomFormData>,
+    resolver: valibotResolver(ClassroomFormSchema) as unknown as Resolver<ClassroomFormData>,
     defaultValues: { name: '', description: '', subject: '' },
   })
 
@@ -159,8 +158,6 @@ export function ClassManagement() {
           onRemoveStudent={s.handleRemoveStudent}
         />
       </div>
-
-
     </div>
   )
 }

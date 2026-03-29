@@ -4,7 +4,7 @@
 // ---------------------------------------------------------------------------
 import 'fake-indexeddb/auto'
 
-import { describe, expect,it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 // Reset the singleton between tests so each test gets a fresh database.
 // offlineStorage.ts uses a module-level `dbPromise` variable; we can

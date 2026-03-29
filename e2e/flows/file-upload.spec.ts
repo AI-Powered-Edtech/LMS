@@ -11,7 +11,6 @@ import { loginAsStudent, loginAsTeacher, gotoAndWait, skipIfNoAuth } from '../he
  */
 
 test.describe('File Upload — Pengiriman Tugas', () => {
-
   test.beforeEach(() => {
     skipIfNoAuth()
   })
@@ -28,9 +27,7 @@ test.describe('File Upload — Pengiriman Tugas', () => {
       page.locator('h1, h2, [data-testid="assignments-list"], [data-testid="empty-state"]').first()
     ).toBeVisible({ timeout: 8000 })
 
-    const fatal = errors.filter(
-      (e) => !e.includes('ResizeObserver') && !e.includes('Non-Error')
-    )
+    const fatal = errors.filter((e) => !e.includes('ResizeObserver') && !e.includes('Non-Error'))
     expect(fatal).toHaveLength(0)
   })
 
@@ -43,9 +40,7 @@ test.describe('File Upload — Pengiriman Tugas', () => {
 
     await page.waitForTimeout(1000)
 
-    const fatal = errors.filter(
-      (e) => !e.includes('ResizeObserver') && !e.includes('Non-Error')
-    )
+    const fatal = errors.filter((e) => !e.includes('ResizeObserver') && !e.includes('Non-Error'))
     expect(fatal).toHaveLength(0)
   })
 
@@ -54,10 +49,12 @@ test.describe('File Upload — Pengiriman Tugas', () => {
     await gotoAndWait(page, '/#/app/student/assignments')
 
     // Cari link atau kartu tugas yang bisa diklik
-    const assignmentItem = page.locator(
-      '[data-testid="assignment-item"], [data-testid="assignment-card"], ' +
-      'a[href*="assignment"], button:has-text("Kerjakan"), button:has-text("Lihat Tugas")'
-    ).first()
+    const assignmentItem = page
+      .locator(
+        '[data-testid="assignment-item"], [data-testid="assignment-card"], ' +
+          'a[href*="assignment"], button:has-text("Kerjakan"), button:has-text("Lihat Tugas")'
+      )
+      .first()
 
     const hasAssignment = await assignmentItem.isVisible({ timeout: 5000 }).catch(() => false)
 
@@ -79,10 +76,12 @@ test.describe('File Upload — Pengiriman Tugas', () => {
     await loginAsStudent(page)
     await gotoAndWait(page, '/#/app/student/assignments')
 
-    const assignmentItem = page.locator(
-      '[data-testid="assignment-item"], [data-testid="assignment-card"], ' +
-      'a[href*="assignment"], button:has-text("Kerjakan")'
-    ).first()
+    const assignmentItem = page
+      .locator(
+        '[data-testid="assignment-item"], [data-testid="assignment-card"], ' +
+          'a[href*="assignment"], button:has-text("Kerjakan")'
+      )
+      .first()
 
     const hasAssignment = await assignmentItem.isVisible({ timeout: 5000 }).catch(() => false)
     if (!hasAssignment) {
@@ -96,8 +95,8 @@ test.describe('File Upload — Pengiriman Tugas', () => {
     // Cek apakah ada input file atau area upload
     const uploadArea = page.locator(
       'input[type="file"], [data-testid="file-upload"], ' +
-      '[data-testid="upload-area"], label:has(input[type="file"]), ' +
-      'button:has-text("Unggah"), button:has-text("Upload")'
+        '[data-testid="upload-area"], label:has(input[type="file"]), ' +
+        'button:has-text("Unggah"), button:has-text("Upload")'
     )
 
     const hasUpload = await uploadArea.isVisible({ timeout: 5000 }).catch(() => false)
@@ -120,9 +119,7 @@ test.describe('File Upload — Pengiriman Tugas', () => {
       page.locator('h1, h2, [data-testid="assignments-list"], [data-testid="empty-state"]').first()
     ).toBeVisible({ timeout: 8000 })
 
-    const fatal = errors.filter(
-      (e) => !e.includes('ResizeObserver') && !e.includes('Non-Error')
-    )
+    const fatal = errors.filter((e) => !e.includes('ResizeObserver') && !e.includes('Non-Error'))
     expect(fatal).toHaveLength(0)
   })
 })

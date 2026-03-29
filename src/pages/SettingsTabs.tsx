@@ -78,7 +78,7 @@ export function AccountTab({
     handleSubmit,
     formState: { errors: profileErrors },
   } = useForm<ProfileFormData>({
-    resolver: (valibotResolver(ProfileFormSchema) as unknown) as Resolver<ProfileFormData>,
+    resolver: valibotResolver(ProfileFormSchema) as unknown as Resolver<ProfileFormData>,
     defaultValues: { fullName: displayName },
   })
 
@@ -332,13 +332,7 @@ export function SecurityTab() {
 }
 
 // ── Appearance Tab ────────────────────────────────────────────────────────────
-export function AppearanceTab({
-  theme,
-  setTheme,
-}: {
-  theme: Theme
-  setTheme: (t: Theme) => void
-}) {
+export function AppearanceTab({ theme, setTheme }: { theme: Theme; setTheme: (t: Theme) => void }) {
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
       <div className="p-6 border-b border-slate-100 dark:border-slate-700">
@@ -386,4 +380,3 @@ export function AppearanceTab({
     </div>
   )
 }
-

@@ -15,8 +15,8 @@ import { useState } from 'react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { VirtualTable } from '@/src/components/ui/VirtualTable'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useTheme } from '@/src/contexts/ThemeContext'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
 
 const formatCurrency = (amount: number) => {

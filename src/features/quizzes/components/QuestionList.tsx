@@ -39,7 +39,9 @@ export function QuestionList({
       <div className="flex items-center justify-between">
         <h4 className="font-bold text-slate-800 dark:text-white text-sm">
           Daftar Pertanyaan
-          <span className="ml-2 text-xs font-normal text-slate-400 dark:text-slate-500">({questions.length} soal)</span>
+          <span className="ml-2 text-xs font-normal text-slate-400 dark:text-slate-500">
+            ({questions.length} soal)
+          </span>
         </h4>
         {!isPublished && (
           <div className="flex items-center gap-2">

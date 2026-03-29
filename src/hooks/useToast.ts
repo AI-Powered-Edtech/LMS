@@ -69,9 +69,8 @@ export const useToast = create<ToastStore>((set, get) => ({
     })
 
     // Auto-dismiss after timeout (use per-toast duration when provided)
-    const dismissMs = toast.duration !== undefined && toast.duration > 0
-      ? toast.duration
-      : AUTO_DISMISS_MS
+    const dismissMs =
+      toast.duration !== undefined && toast.duration > 0 ? toast.duration : AUTO_DISMISS_MS
     const timer = setTimeout(() => {
       get().removeToast(id)
     }, dismissMs)

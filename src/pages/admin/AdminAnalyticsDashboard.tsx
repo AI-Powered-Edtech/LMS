@@ -30,11 +30,11 @@ import {
   YAxis,
 } from 'recharts'
 
+import { useTheme } from '@/src/contexts/ThemeContext'
 import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import { ActivityTimePoint, CourseEngagement } from '@/src/features/analytics'
 import { useTenantAnalytics } from '@/src/features/analytics/queries/analyticsQueries'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useTheme } from '@/src/contexts/ThemeContext'
 import { cn } from '@/src/utils/cn'
 
 // Color palette for charts

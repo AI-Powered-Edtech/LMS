@@ -11,7 +11,6 @@ import { loginAsTeacher, gotoAndWait, skipIfNoAuth } from '../helpers'
  */
 
 test.describe('CSV Export — Gradebook & Laporan', () => {
-
   test.beforeEach(() => {
     skipIfNoAuth()
   })
@@ -27,9 +26,7 @@ test.describe('CSV Export — Gradebook & Laporan', () => {
       page.locator('h1, h2, table, [data-testid="gradebook"], [data-testid="empty-state"]').first()
     ).toBeVisible({ timeout: 8000 })
 
-    const fatal = errors.filter(
-      (e) => !e.includes('ResizeObserver') && !e.includes('Non-Error')
-    )
+    const fatal = errors.filter((e) => !e.includes('ResizeObserver') && !e.includes('Non-Error'))
     expect(fatal).toHaveLength(0)
   })
 
@@ -38,11 +35,13 @@ test.describe('CSV Export — Gradebook & Laporan', () => {
     await gotoAndWait(page, '/#/app/teacher/gradebook')
 
     // Cari tombol ekspor dalam berbagai label
-    const exportBtn = page.locator(
-      'button:has-text("Ekspor"), button:has-text("Export"), ' +
-      'button:has-text("CSV"), button:has-text("Unduh"), ' +
-      '[data-testid="export-btn"], [data-testid="export-csv"]'
-    ).first()
+    const exportBtn = page
+      .locator(
+        'button:has-text("Ekspor"), button:has-text("Export"), ' +
+          'button:has-text("CSV"), button:has-text("Unduh"), ' +
+          '[data-testid="export-btn"], [data-testid="export-csv"]'
+      )
+      .first()
 
     const hasExport = await exportBtn.isVisible({ timeout: 5000 }).catch(() => false)
     // Soft: jika data tidak ada mungkin tombol tersembunyi — halaman tidak boleh crash
@@ -60,11 +59,13 @@ test.describe('CSV Export — Gradebook & Laporan', () => {
     await loginAsTeacher(page)
     await gotoAndWait(page, '/#/app/teacher/gradebook')
 
-    const exportBtn = page.locator(
-      'button:has-text("Ekspor"), button:has-text("Export"), ' +
-      'button:has-text("CSV"), button:has-text("Unduh"), ' +
-      '[data-testid="export-btn"], [data-testid="export-csv"]'
-    ).first()
+    const exportBtn = page
+      .locator(
+        'button:has-text("Ekspor"), button:has-text("Export"), ' +
+          'button:has-text("CSV"), button:has-text("Unduh"), ' +
+          '[data-testid="export-btn"], [data-testid="export-csv"]'
+      )
+      .first()
 
     const hasExport = await exportBtn.isVisible({ timeout: 5000 }).catch(() => false)
     if (!hasExport) {
@@ -84,9 +85,7 @@ test.describe('CSV Export — Gradebook & Laporan', () => {
       expect(download.suggestedFilename()).toMatch(/\.(csv|xlsx|txt)$/i)
     }
 
-    const fatal = errors.filter(
-      (e) => !e.includes('ResizeObserver') && !e.includes('Non-Error')
-    )
+    const fatal = errors.filter((e) => !e.includes('ResizeObserver') && !e.includes('Non-Error'))
     expect(fatal).toHaveLength(0)
   })
 
@@ -101,9 +100,7 @@ test.describe('CSV Export — Gradebook & Laporan', () => {
     const isNotBlank = await page.evaluate(() => (document.body.textContent ?? '').length > 100)
     expect(isNotBlank).toBeTruthy()
 
-    const fatal = errors.filter(
-      (e) => !e.includes('ResizeObserver') && !e.includes('Non-Error')
-    )
+    const fatal = errors.filter((e) => !e.includes('ResizeObserver') && !e.includes('Non-Error'))
     expect(fatal).toHaveLength(0)
   })
 
@@ -118,9 +115,7 @@ test.describe('CSV Export — Gradebook & Laporan', () => {
     await expect(page.locator('body')).toBeVisible({ timeout: 8000 })
     await expect(page).not.toHaveURL(/.*login/)
 
-    const fatal = errors.filter(
-      (e) => !e.includes('ResizeObserver') && !e.includes('Non-Error')
-    )
+    const fatal = errors.filter((e) => !e.includes('ResizeObserver') && !e.includes('Non-Error'))
     expect(fatal).toHaveLength(0)
   })
 })

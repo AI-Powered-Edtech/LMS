@@ -31,9 +31,9 @@ export function useArrowNavigation(): UseArrowNavigationReturn {
     const container = containerRef.current
     if (!container) return
 
-    const items = Array.from(
-      container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
-    ).filter((el) => !el.closest('[inert]'))
+    const items = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+      (el) => !el.closest('[inert]')
+    )
 
     if (items.length === 0) return
 

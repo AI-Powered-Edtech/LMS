@@ -111,7 +111,9 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl dark:shadow-slate-900/50 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700">
-          <h2 className="text-lg font-bold text-slate-800 dark:text-white">Tugaskan Kuis ke Kelas</h2>
+          <h2 className="text-lg font-bold text-slate-800 dark:text-white">
+            Tugaskan Kuis ke Kelas
+          </h2>
           <button
             onClick={onClose}
             className="p-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -155,7 +157,9 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <div className="font-bold text-slate-800 dark:text-white">{classroom.name}</div>
+                        <div className="font-bold text-slate-800 dark:text-white">
+                          {classroom.name}
+                        </div>
                         {assignments[classroom.id]?.existingAssignmentId && (
                           <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-600 text-slate-500 dark:text-slate-300 text-[10px] font-bold uppercase tracking-wider">
                             Existing

@@ -108,11 +108,13 @@ describe('useReducedMotion', () => {
   it('harus update state ketika media query matches berubah', async () => {
     let changeHandler: ((e: MediaQueryListEvent) => void) | null = null
 
-    const addEventListenerMock = vi.fn((event: string, handler: (e: MediaQueryListEvent) => void) => {
-      if (event === 'change') {
-        changeHandler = handler
+    const addEventListenerMock = vi.fn(
+      (event: string, handler: (e: MediaQueryListEvent) => void) => {
+        if (event === 'change') {
+          changeHandler = handler
+        }
       }
-    })
+    )
 
     matchMediaMock.mockReturnValue({
       matches: false,

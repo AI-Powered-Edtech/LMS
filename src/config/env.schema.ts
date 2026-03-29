@@ -1,5 +1,5 @@
-import { object, string, optional, parse, pipe, url, minLength } from 'valibot'
 import type { InferOutput } from 'valibot'
+import { minLength, object, optional, parse, pipe, string, url } from 'valibot'
 
 /**
  * Environment variable schema for EduSync LMS.

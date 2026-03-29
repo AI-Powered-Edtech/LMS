@@ -1,10 +1,11 @@
 import { ScormPlayer } from '@/src/features/lessons/components/ScormPlayer'
 import type { LessonResource } from '@/src/features/lessons/types'
 import type { Assignment, Quiz } from '@/src/features/lessons/types'
+
 import { AssignmentViewer } from './AssignmentViewer'
-import { LessonQuizPlayer } from './blocks/LessonQuizPlayer'
 import { FileBlockViewer } from './blocks/FileBlockViewer'
 import { ImageBlockViewer } from './blocks/ImageBlockViewer'
+import { LessonQuizPlayer } from './blocks/LessonQuizPlayer'
 import { MarkdownBlock } from './blocks/MarkdownBlock'
 import { VideoBlock } from './blocks/VideoBlock'
 

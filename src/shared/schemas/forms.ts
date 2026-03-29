@@ -72,14 +72,8 @@ export const AnnouncementFormSchema = v.object({
     v.minLength(3, 'Judul minimal 3 karakter'),
     v.maxLength(200, 'Judul maksimal 200 karakter')
   ),
-  content: v.pipe(
-    v.string(),
-    v.minLength(10, 'Isi pengumuman minimal 10 karakter')
-  ),
-  priority: v.optional(
-    v.picklist(['low', 'normal', 'high'], 'Prioritas tidak valid'),
-    'normal'
-  ),
+  content: v.pipe(v.string(), v.minLength(10, 'Isi pengumuman minimal 10 karakter')),
+  priority: v.optional(v.picklist(['low', 'normal', 'high'], 'Prioritas tidak valid'), 'normal'),
 })
 
 export type AnnouncementFormData = v.InferOutput<typeof AnnouncementFormSchema>

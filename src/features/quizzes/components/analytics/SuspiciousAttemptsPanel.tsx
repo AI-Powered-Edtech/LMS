@@ -101,7 +101,9 @@ export function SuspiciousAttemptsPanel({
       <div className={className}>
         <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-6 text-center">
           <Shield className="w-10 h-10 text-green-400 mx-auto mb-3" />
-          <p className="text-green-700 dark:text-green-300 font-medium">Tidak ada aktivitas mencurigakan</p>
+          <p className="text-green-700 dark:text-green-300 font-medium">
+            Tidak ada aktivitas mencurigakan
+          </p>
           <p className="text-sm text-green-600 dark:text-green-400 mt-1">
             Semua percobaan kuis ini berjalan tanpa deteksi kecurangan.
           </p>
@@ -170,7 +172,9 @@ export function SuspiciousAttemptsPanel({
                 <div className="flex items-center gap-2">
                   <Icon className={cn('w-4 h-4 shrink-0', config.color)} />
                   <div>
-                    <p className="font-bold text-slate-800 dark:text-white text-sm">{attempt.student_name}</p>
+                    <p className="font-bold text-slate-800 dark:text-white text-sm">
+                      {attempt.student_name}
+                    </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
                       Skor: {attempt.score ?? '-'}% · Status: {attempt.status}
                     </p>

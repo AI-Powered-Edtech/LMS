@@ -245,7 +245,9 @@ export function CourseBrowser({
             <div className="flex-1">
               {completedLessons === totalLessons ? (
                 <>
-                  <p className="font-bold text-emerald-800 dark:text-emerald-300 text-sm">Sertifikat tersedia!</p>
+                  <p className="font-bold text-emerald-800 dark:text-emerald-300 text-sm">
+                    Sertifikat tersedia!
+                  </p>
                   <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">
                     Lihat dan unduh sertifikat kamu di halaman{' '}
                     <Link to="/profile" className="font-bold underline">
@@ -266,8 +268,12 @@ export function CourseBrowser({
             </div>
             {/* B8: XP Breakdown Preview */}
             <div className="shrink-0 text-right">
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">Estimasi XP</p>
-              <p className="text-sm font-bold text-yellow-600 dark:text-yellow-500">~{totalLessons * 10} XP</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                Estimasi XP
+              </p>
+              <p className="text-sm font-bold text-yellow-600 dark:text-yellow-500">
+                ~{totalLessons * 10} XP
+              </p>
             </div>
           </div>
         )}
@@ -280,7 +286,9 @@ export function CourseBrowser({
           />
         ) : (
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 shadow-md shadow-slate-200/40 dark:shadow-none p-8 text-center">
-            <p className="text-slate-400 dark:text-slate-500 text-sm">Belum ada modul dalam kursus ini.</p>
+            <p className="text-slate-400 dark:text-slate-500 text-sm">
+              Belum ada modul dalam kursus ini.
+            </p>
           </div>
         )}
       </div>

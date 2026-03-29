@@ -1,14 +1,4 @@
-import {
-  Award,
-  BookOpen,
-  ChevronLeft,
-  Eye,
-  EyeOff,
-  Flame,
-  Star,
-  User,
-  Zap,
-} from 'lucide-react'
+import { Award, BookOpen, ChevronLeft, Eye, EyeOff, Flame, Star, User, Zap } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { useAuth } from '@/src/contexts/AuthContext'
@@ -35,10 +25,7 @@ function ProfileSkeleton() {
           </div>
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="h-20 bg-slate-100 dark:bg-slate-700 rounded-2xl"
-              />
+              <div key={i} className="h-20 bg-slate-100 dark:bg-slate-700 rounded-2xl" />
             ))}
           </div>
         </div>
@@ -93,9 +80,7 @@ export function PublicProfile() {
   const { data: profile, isLoading: isLoadingProfile } = usePublicProfileById(targetUserId)
 
   const isOwn = !!user && user.id === targetUserId
-  const { mutate: setPrivacy, isPending: isToggling } = useUpdateProfilePrivacy(
-    targetUserId ?? ''
-  )
+  const { mutate: setPrivacy, isPending: isToggling } = useUpdateProfilePrivacy(targetUserId ?? '')
 
   const isLoading = isResolvingId || isLoadingProfile
 
@@ -130,8 +115,7 @@ export function PublicProfile() {
   const { stats, badges } = profile
   const displayName = profile.full_name || profile.username || 'Pengguna'
   const avatarSrc =
-    profile.avatar_url ??
-    `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.id}`
+    profile.avatar_url ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.id}`
 
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-6 pb-24 md:pb-8">

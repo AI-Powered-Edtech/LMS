@@ -74,11 +74,18 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
               key={question.question_id}
               className={cn(
                 'bg-white dark:bg-slate-800 rounded-3xl border-2 shadow-sm overflow-hidden',
-                isCorrect ? 'border-green-200 dark:border-green-800' : 'border-red-200 dark:border-red-800'
+                isCorrect
+                  ? 'border-green-200 dark:border-green-800'
+                  : 'border-red-200 dark:border-red-800'
               )}
             >
               {/* Question Header */}
-              <div className={cn('p-4 md:p-6 border-b', isCorrect ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20')}>
+              <div
+                className={cn(
+                  'p-4 md:p-6 border-b',
+                  isCorrect ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'
+                )}
+              >
                 <div className="flex items-start gap-4">
                   {/* Status Icon */}
                   <div
@@ -102,7 +109,9 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                       <span
                         className={cn(
                           'px-2 py-0.5 rounded-lg text-xs font-bold',
-                          isCorrect ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                          isCorrect
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                            : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
                         )}
                       >
                         {isCorrect ? 'Benar' : 'Salah'}
@@ -114,7 +123,9 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                       )}
                     </div>
 
-                    <h3 className="text-lg font-medium text-slate-900 dark:text-white">{question.text}</h3>
+                    <h3 className="text-lg font-medium text-slate-900 dark:text-white">
+                      {question.text}
+                    </h3>
 
                     <div className="mt-2 flex items-center gap-2">
                       <span
@@ -150,7 +161,9 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                   <div className="space-y-3">
                     {/* Student's Answer */}
                     <div>
-                      <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Jawaban Anda:</p>
+                      <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                        Jawaban Anda:
+                      </p>
                       <div className="space-y-2">
                         {question.quiz_options?.map((option) => {
                           const isSelected = studentOptionIds.includes(option.id)
@@ -182,13 +195,17 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                               <span
                                 className={cn(
                                   'font-medium',
-                                  isSelected ? 'text-slate-900 dark:text-white' : 'text-green-700 dark:text-green-300'
+                                  isSelected
+                                    ? 'text-slate-900 dark:text-white'
+                                    : 'text-green-700 dark:text-green-300'
                                 )}
                               >
                                 {option.text}
                               </span>
                               {isSelected && !isOptionCorrectAnswer && (
-                                <span className="text-xs text-red-600 dark:text-red-400 ml-auto">Jawaban Anda</span>
+                                <span className="text-xs text-red-600 dark:text-red-400 ml-auto">
+                                  Jawaban Anda
+                                </span>
                               )}
                               {!isSelected && isOptionCorrectAnswer && (
                                 <span className="text-xs text-green-600 dark:text-green-400 ml-auto">
@@ -213,7 +230,10 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                           {question.question_snapshot?.options
                             ?.filter((opt) => opt.is_correct)
                             ?.map((opt) => (
-                              <p key={opt.id} className="text-sm text-green-700 dark:text-green-300">
+                              <p
+                                key={opt.id}
+                                className="text-sm text-green-700 dark:text-green-300"
+                              >
                                 {opt.text}
                               </p>
                             ))}
@@ -225,11 +245,15 @@ export function QuizAnswerReview({ questions, showCorrectAnswers, onBack }: Quiz
                 {/* For SHORT_ANSWER and ESSAY */}
                 {['SHORT_ANSWER', 'ESSAY'].includes(qType) && (
                   <div>
-                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Jawaban Anda:</p>
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                      Jawaban Anda:
+                    </p>
                     <div
                       className={cn(
                         'p-4 rounded-xl border-2',
-                        isCorrect ? 'border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-900/20' : 'border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20'
+                        isCorrect
+                          ? 'border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-900/20'
+                          : 'border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20'
                       )}
                     >
                       <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-wrap">

@@ -11,7 +11,6 @@ import { loginAsStudent, loginAsTeacher, gotoAndWait, skipIfNoAuth } from '../he
  */
 
 test.describe('Forum Diskusi — Akses & Stabilitas', () => {
-
   test.beforeEach(() => {
     skipIfNoAuth()
   })
@@ -23,11 +22,7 @@ test.describe('Forum Diskusi — Akses & Stabilitas', () => {
     await loginAsStudent(page)
 
     // Coba beberapa rute diskusi yang mungkin ada
-    const routes = [
-      '/#/app/student/discussion',
-      '/#/app/discussion',
-      '/#/app/forum',
-    ]
+    const routes = ['/#/app/student/discussion', '/#/app/discussion', '/#/app/forum']
 
     let loaded = false
     for (const route of routes) {
@@ -44,9 +39,7 @@ test.describe('Forum Diskusi — Akses & Stabilitas', () => {
     // Minimal satu rute harus dapat diakses atau halaman tidak crash
     await expect(page.locator('body')).toBeVisible()
 
-    const fatal = errors.filter(
-      (e) => !e.includes('ResizeObserver') && !e.includes('Non-Error')
-    )
+    const fatal = errors.filter((e) => !e.includes('ResizeObserver') && !e.includes('Non-Error'))
     expect(fatal).toHaveLength(0)
   })
 
@@ -58,10 +51,12 @@ test.describe('Forum Diskusi — Akses & Stabilitas', () => {
     await gotoAndWait(page, '/#/app/student/dashboard')
 
     // Cari link diskusi dari navigasi
-    const discussionLink = page.locator(
-      'a[href*="discussion"], a[href*="forum"], ' +
-      'nav a:has-text("Diskusi"), nav a:has-text("Forum")'
-    ).first()
+    const discussionLink = page
+      .locator(
+        'a[href*="discussion"], a[href*="forum"], ' +
+          'nav a:has-text("Diskusi"), nav a:has-text("Forum")'
+      )
+      .first()
 
     const hasLink = await discussionLink.isVisible({ timeout: 3000 }).catch(() => false)
     if (hasLink) {
@@ -75,9 +70,7 @@ test.describe('Forum Diskusi — Akses & Stabilitas', () => {
     await expect(page.locator('body')).toBeVisible()
     await expect(page).not.toHaveURL(/.*login/)
 
-    const fatal = errors.filter(
-      (e) => !e.includes('ResizeObserver') && !e.includes('Non-Error')
-    )
+    const fatal = errors.filter((e) => !e.includes('ResizeObserver') && !e.includes('Non-Error'))
     expect(fatal).toHaveLength(0)
   })
 
@@ -86,10 +79,12 @@ test.describe('Forum Diskusi — Akses & Stabilitas', () => {
     await gotoAndWait(page, '/#/app/student/courses')
 
     // Cari kursus yang tersedia untuk masuk ke diskusi kelas
-    const courseItem = page.locator(
-      '[data-testid="course-card"], [data-testid="course-item"], ' +
-      'a[href*="course"], button:has-text("Masuk"), button:has-text("Buka")'
-    ).first()
+    const courseItem = page
+      .locator(
+        '[data-testid="course-card"], [data-testid="course-item"], ' +
+          'a[href*="course"], button:has-text("Masuk"), button:has-text("Buka")'
+      )
+      .first()
 
     const hasCourse = await courseItem.isVisible({ timeout: 5000 }).catch(() => false)
     if (!hasCourse) {
@@ -101,10 +96,12 @@ test.describe('Forum Diskusi — Akses & Stabilitas', () => {
     await page.waitForLoadState('networkidle')
 
     // Cari tab atau link diskusi di dalam kelas
-    const discussionTab = page.locator(
-      '[data-testid="discussion-tab"], button:has-text("Diskusi"), ' +
-      'a:has-text("Diskusi"), tab:has-text("Diskusi")'
-    ).first()
+    const discussionTab = page
+      .locator(
+        '[data-testid="discussion-tab"], button:has-text("Diskusi"), ' +
+          'a:has-text("Diskusi"), tab:has-text("Diskusi")'
+      )
+      .first()
 
     const hasTab = await discussionTab.isVisible({ timeout: 5000 }).catch(() => false)
     if (hasTab) {
@@ -125,10 +122,12 @@ test.describe('Forum Diskusi — Akses & Stabilitas', () => {
     await gotoAndWait(page, '/#/app/teacher/classes')
 
     // Cari kelas yang tersedia
-    const classItem = page.locator(
-      '[data-testid="class-card"], [data-testid="class-item"], ' +
-      'a[href*="class"], button:has-text("Buka"), button:has-text("Kelola")'
-    ).first()
+    const classItem = page
+      .locator(
+        '[data-testid="class-card"], [data-testid="class-item"], ' +
+          'a[href*="class"], button:has-text("Buka"), button:has-text("Kelola")'
+      )
+      .first()
 
     const hasClass = await classItem.isVisible({ timeout: 5000 }).catch(() => false)
     if (!hasClass) {
@@ -140,9 +139,9 @@ test.describe('Forum Diskusi — Akses & Stabilitas', () => {
     await page.waitForLoadState('networkidle')
 
     // Cari tab diskusi
-    const discussionTab = page.locator(
-      '[data-testid="discussion-tab"], button:has-text("Diskusi"), a:has-text("Diskusi")'
-    ).first()
+    const discussionTab = page
+      .locator('[data-testid="discussion-tab"], button:has-text("Diskusi"), a:has-text("Diskusi")')
+      .first()
 
     const hasTab = await discussionTab.isVisible({ timeout: 5000 }).catch(() => false)
     if (hasTab) {
@@ -153,9 +152,7 @@ test.describe('Forum Diskusi — Akses & Stabilitas', () => {
     await expect(page.locator('body')).toBeVisible()
     await expect(page).not.toHaveURL(/.*login/)
 
-    const fatal = errors.filter(
-      (e) => !e.includes('ResizeObserver') && !e.includes('Non-Error')
-    )
+    const fatal = errors.filter((e) => !e.includes('ResizeObserver') && !e.includes('Non-Error'))
     expect(fatal).toHaveLength(0)
   })
 
@@ -165,10 +162,12 @@ test.describe('Forum Diskusi — Akses & Stabilitas', () => {
     // Navigasi langsung ke rute forum jika ada
     await gotoAndWait(page, '/#/app/discussion')
 
-    const createBtn = page.locator(
-      'button:has-text("Buat Diskusi"), button:has-text("Posting Baru"), ' +
-      'button:has-text("Tulis"), [data-testid="create-post-btn"]'
-    ).first()
+    const createBtn = page
+      .locator(
+        'button:has-text("Buat Diskusi"), button:has-text("Posting Baru"), ' +
+          'button:has-text("Tulis"), [data-testid="create-post-btn"]'
+      )
+      .first()
 
     // Soft: tombol boleh tidak ada (jika tidak ada kelas aktif) — pastikan tidak crash
     await createBtn.isVisible({ timeout: 3000 }).catch(() => false)

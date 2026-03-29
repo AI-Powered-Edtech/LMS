@@ -104,7 +104,8 @@ export function AITutorInput({
       {/* Context hint */}
       {lessonTitle && !question && (
         <div className="mb-3 text-xs text-slate-400 dark:text-slate-500">
-          Bertanya tentang: <span className="text-slate-600 dark:text-slate-400 font-medium">{lessonTitle}</span>
+          Bertanya tentang:{' '}
+          <span className="text-slate-600 dark:text-slate-400 font-medium">{lessonTitle}</span>
         </div>
       )}
 

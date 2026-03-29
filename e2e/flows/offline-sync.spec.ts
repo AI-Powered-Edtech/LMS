@@ -11,7 +11,6 @@ import { loginAsStudent, gotoAndWait, skipIfNoAuth } from '../helpers'
  */
 
 test.describe('Offline Sync — Indikator & Stabilitas', () => {
-
   test.beforeEach(() => {
     skipIfNoAuth()
   })
@@ -34,9 +33,7 @@ test.describe('Offline Sync — Indikator & Stabilitas', () => {
     // Pulihkan koneksi
     await context.setOffline(false)
 
-    const fatal = errors.filter(
-      (e) => !e.includes('ResizeObserver') && !e.includes('Non-Error')
-    )
+    const fatal = errors.filter((e) => !e.includes('ResizeObserver') && !e.includes('Non-Error'))
     expect(fatal).toHaveLength(0)
   })
 
@@ -51,8 +48,8 @@ test.describe('Offline Sync — Indikator & Stabilitas', () => {
     // Cek indikator offline jika ada — atau verifikasi tidak ada crash
     const offlineIndicator = page.locator(
       '[data-testid="offline-indicator"], .offline-indicator, ' +
-      '[aria-label*="offline"], [aria-label*="Offline"], ' +
-      'text=/Offline|Tidak ada koneksi|Koneksi terputus/i'
+        '[aria-label*="offline"], [aria-label*="Offline"], ' +
+        'text=/Offline|Tidak ada koneksi|Koneksi terputus/i'
     )
 
     const hasIndicator = await offlineIndicator.isVisible({ timeout: 3000 }).catch(() => false)
@@ -84,7 +81,8 @@ test.describe('Offline Sync — Indikator & Stabilitas', () => {
     await page.waitForTimeout(500)
 
     const fatal = errors.filter(
-      (e) => !e.includes('ResizeObserver') && !e.includes('Non-Error') && !e.includes('Failed to fetch')
+      (e) =>
+        !e.includes('ResizeObserver') && !e.includes('Non-Error') && !e.includes('Failed to fetch')
     )
     expect(fatal).toHaveLength(0)
   })

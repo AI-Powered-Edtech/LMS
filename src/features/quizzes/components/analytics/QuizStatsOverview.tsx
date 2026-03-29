@@ -31,7 +31,10 @@ export function QuizStatsOverview({ stats, isLoading }: QuizStatsOverviewProps) 
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 animate-pulse">
+          <div
+            key={i}
+            className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 animate-pulse"
+          >
             <div className="h-10 w-10 bg-slate-200 dark:bg-slate-700 rounded-xl mb-3" />
             <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-16 mb-2" />
             <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-20" />
@@ -44,7 +47,9 @@ export function QuizStatsOverview({ stats, isLoading }: QuizStatsOverviewProps) 
   if (!stats) {
     return (
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-8 text-center">
-        <p className="text-slate-500 dark:text-slate-400">Belum ada data statistik untuk kuis ini.</p>
+        <p className="text-slate-500 dark:text-slate-400">
+          Belum ada data statistik untuk kuis ini.
+        </p>
         <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
           Statistik akan muncul setelah siswa mengerjakan kuis.
         </p>

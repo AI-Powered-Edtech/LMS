@@ -156,7 +156,7 @@ serve(async (req) => {
 
         await sql.begin(async (tx) => {
           // Batch upsert — single query instead of N individual inserts (PF-H3)
-          const rows = [...aggregated.values()].map(e => ({
+          const rows = [...aggregated.values()].map((e) => ({
             tenant_id: e.tenant_id,
             user_id: e.user_id,
             lesson_id: e.lesson_id,

@@ -122,7 +122,9 @@ export function BottomNav() {
               <item.icon
                 className={cn(
                   'w-6 h-6 transition-transform group-active:scale-95',
-                  isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'
+                  isActive
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-slate-400 dark:text-slate-500'
                 )}
               />
               <BadgeDot count={badgeCount} />

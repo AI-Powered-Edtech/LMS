@@ -96,8 +96,14 @@ function validateEvent(event: unknown): { valid: boolean; error?: string } {
 
   // Validate optional string fields length (SC-H1)
   for (const optField of ['session_id', 'device_type', 'course_id']) {
-    if (e[optField] !== undefined && (typeof e[optField] !== 'string' || (e[optField] as string).length > MAX_STRING_FIELD_LENGTH)) {
-      return { valid: false, error: `${optField} must be a string <= ${MAX_STRING_FIELD_LENGTH} chars` }
+    if (
+      e[optField] !== undefined &&
+      (typeof e[optField] !== 'string' || (e[optField] as string).length > MAX_STRING_FIELD_LENGTH)
+    ) {
+      return {
+        valid: false,
+        error: `${optField} must be a string <= ${MAX_STRING_FIELD_LENGTH} chars`,
+      }
     }
   }
 

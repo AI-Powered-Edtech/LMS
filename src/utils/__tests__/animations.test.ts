@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest'
 import type { Variants } from 'motion/react'
+import { describe, expect, it } from 'vitest'
 
-import { staggerContainer, staggerItem, fadeIn } from '../animations'
+import { fadeIn, staggerContainer, staggerItem } from '../animations'
 
 describe('animations', () => {
   describe('staggerContainer', () => {
@@ -100,8 +100,7 @@ describe('animations', () => {
 
     it('harus faster daripada staggerItem (0.2 vs 0.3)', () => {
       const staggerShowTransition = staggerItem.show as Record<string, unknown>
-      const staggerDuration = (staggerShowTransition.transition as Record<string, number>)
-        .duration
+      const staggerDuration = (staggerShowTransition.transition as Record<string, number>).duration
       const fadeShowTransition = fadeIn.show as Record<string, unknown>
       const fadeDuration = (fadeShowTransition.transition as Record<string, number>).duration
       expect(fadeDuration).toBeLessThan(staggerDuration)

@@ -97,7 +97,9 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
 
       {assignments.length === 0 ? (
         <div className="text-center p-6 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800">
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Belum di-assign ke kelas manapun.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+            Belum di-assign ke kelas manapun.
+          </p>
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
             Klik tombol di atas untuk menyebarkan kuis ini.
           </p>

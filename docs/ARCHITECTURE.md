@@ -295,4 +295,4 @@ WCAG 2.2 AA compliance across the builder:
 - **Offline persistence** — `useBuilderOffline` auto-saves builder state to IndexedDB (`builder-drafts` store) on every change; restores on mount if newer than server
 - **Upload queue** — `offlineUploadQueue.ts` queues file uploads when offline; flushes on reconnect via `useNetworkStatus`
 - **IndexedDB schema** — `offlineStorage.ts` manages DB v2 with 4 stores: `courses`, `progress`, `builder-drafts`, `upload-queue`
->>>>>>> neon-hemisphere
+  > > > > > > > neon-hemisphere

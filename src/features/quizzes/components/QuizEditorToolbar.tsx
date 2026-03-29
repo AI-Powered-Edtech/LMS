@@ -27,7 +27,9 @@ export function QuizEditorToolbar({
             <HelpCircle className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">Pengaturan Kuis</h3>
+            <h3 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">
+              Pengaturan Kuis
+            </h3>
             <div
               className={cn(
                 'inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] px-3 py-1 rounded-full mt-1 shadow-sm',
