@@ -30,6 +30,8 @@ When running automated QA via `agent-browser` CLI, standard click simulations so
 
 ## Running the App for Testing
 
+# <<<<<<< HEAD
+
 ```bash
 pnpm install
 pnpm dev
@@ -236,11 +238,13 @@ All URLs for manual testing use hash routing:
 
 ## Known Post-Ship Limitations
 
-| ID          | Description                                                              |
-| ----------- | ------------------------------------------------------------------------ |
-| BUG-C3-006  | QuizPlayer: `isOnline` hardcoded to `true` — offline warning never shows |
-| BUG-C3-008  | HubView: no empty-state when 0 items match role                          |
-| NEW-QA4-002 | Gradebook: uses local mock data, no Supabase persistence                 |
-| FG-PRE-001  | No self-serve school registration wizard                                 |
-| BUG-C2-002  | Student course discovery is join-code only (by design)                   |
-| BUG-PRE-006 | Workspace selector "No Workspace Access" text in English                 |
+| ID             | Description                                                                                                                 |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| ~~BUG-C3-006~~ | ~~QuizPlayer: `isOnline` hardcoded to `true`~~ — **RESOLVED** (Sprint 23E): uses `useNetworkStatus()` hook, dark mode added |
+| BUG-C3-008     | HubView: no empty-state when 0 items match role                                                                             |
+| NEW-QA4-002    | Gradebook: uses local mock data, no Supabase persistence                                                                    |
+| FG-PRE-001     | No self-serve school registration wizard                                                                                    |
+| BUG-C2-002     | Student course discovery is join-code only (by design)                                                                      |
+| BUG-PRE-006    | Workspace selector "No Workspace Access" text in English                                                                    |
+
+> > > > > > > tundra-boa
