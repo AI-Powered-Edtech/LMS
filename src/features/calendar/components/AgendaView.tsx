@@ -10,6 +10,7 @@ import {
 } from '@/src/features/calendar/utils/calendarUtils'
 import { cn } from '@/src/utils/cn'
 import { downloadICal } from '@/src/utils/icalExport'
+import { translateEventType } from '@/src/utils/statusTranslations'
 
 interface AgendaViewProps {
   events: CalendarEvent[]
@@ -76,7 +77,7 @@ export function AgendaView({ events, today, onToggleCompletion }: AgendaViewProp
                           'text-white'
                         )}
                       >
-                        {event.type}
+                        {translateEventType(event.type)}
                       </span>
                       {countdown && !event.completed && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center gap-1">

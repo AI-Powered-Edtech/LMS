@@ -17,6 +17,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
 import { useBuilder } from '@/src/contexts/BuilderContext'
+import { translateLessonType } from '@/src/utils/statusTranslations'
 import { cn } from '@/src/utils/cn'
 
 export function BuilderSidebar() {
@@ -329,7 +330,7 @@ export function BuilderSidebar() {
                                                         : 'text-slate-400'
                                                     )}
                                                   >
-                                                    {lesson.type}
+                                                    {translateLessonType(lesson.type)}
                                                   </span>
                                                   {!lesson.isPublished && (
                                                     <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-amber-400/90 text-amber-900 shadow-sm shadow-amber-200">

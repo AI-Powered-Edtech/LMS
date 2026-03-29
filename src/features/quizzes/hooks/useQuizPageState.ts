@@ -208,9 +208,14 @@ export function useQuizPageState() {
       try {
         await cacheQuiz({
           quizId: quiz.quiz_id,
-          questions: questions,
+          questions: questions.map((q) => ({
+            ...q,
+            type: q.question_type === 'MCQ' ? 'multiple_choice' : q.question_type === 'TRUE_FALSE' ? 'true_false' : 'essay',
+            order: q.order_index || 0,
+          })),
           options: [],
           cachedAt: Date.now(),
+          version: 1,
         })
       } catch {
         // IndexedDB caching failure is non-critical — continue

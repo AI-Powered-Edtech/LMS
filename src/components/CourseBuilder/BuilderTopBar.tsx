@@ -16,13 +16,19 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { AssignCourseModal } from '@/src/components/Classroom/AssignCourseModal'
+import { AssignCourseModal } from "@/src/components/Classroom/AssignCourseModal"
+import { PresenceAvatars } from "./PresenceAvatars"
 import { useBuilder } from '@/src/contexts/BuilderContext'
+import { translateCourseStatus } from '@/src/utils/statusTranslations'
 import { cn } from '@/src/utils/cn'
 export function BuilderTopBar() {
-  const { state, actions } = useBuilder()
+  const { state, actions, mobile, presence, offline } = useBuilder()
   const navigate = useNavigate()
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [, setIsSettingsOpen] = useState(false)
+  const [, setIsVersionHistoryOpen] = useState(false)
+  const [, setIsSaveTemplateOpen] = useState(false)
 
   const statusConfig = {
     idle: { icon: null, text: '', color: '' },
@@ -73,11 +79,7 @@ export function BuilderTopBar() {
                   : 'bg-amber-400 text-amber-900 shadow-amber-100'
               )}
             >
-              {state.courseStatus === 'published'
-                ? 'Dipublikasi'
-                : state.courseStatus === 'archived'
-                  ? 'Arsip'
-                  : 'Draf'}
+              {translateCourseStatus(state.courseStatus)}
             </div>
           </div>
           {state.courseDescription && (

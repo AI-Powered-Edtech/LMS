@@ -144,46 +144,7 @@ export function useClassManagementState() {
       const { classId } = undoableDeleteState.current
       setIsDeleting(true)
       try {
-        await classroomService.deleteClassroom(classId)
-        if (selectedClassId === classId) setSelectedClassId(null)
-      } catch (err: unknown) {
-        addToast({
-          type: 'error',
-          message:
-            'Gagal menghapus kelas: ' +
-            (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
-        })
-      } finally {
-        setIsDeleting(false)
-        undoableDeleteState.current = null
-      }
-    },
-    onUndo: () => {
-      undoableDeleteState.current = null
-    },
-  })
-
-  const handleDeleteClass = useCallback(
-    (classId: string, className: string) => {
-      undoableDeleteState.current = { classId, className }
-      _executeDelete()
-    },
-    [_executeDelete]
-  )
-
-  // Undoable delete — shows a 5-second toast with "Batal" before executing
-  const undoableDeleteState = useRef<{ classId: string; className: string } | null>(null)
-  const { execute: _executeDelete } = useUndoableAction({
-    message: undoableDeleteState.current
-      ? `Kelas "${undoableDeleteState.current.className}" akan dihapus.`
-      : 'Kelas akan dihapus.',
-    delay: 5000,
-    onExecute: async () => {
-      if (!undoableDeleteState.current) return
-      const { classId } = undoableDeleteState.current
-      setIsDeleting(true)
-      try {
-        await classroomService.deleteClassroom(classId)
+        await classroomService.deleteClassroom(classId, tenantId!)
         if (selectedClassId === classId) setSelectedClassId(null)
       } catch (err: unknown) {
         addToast({
@@ -219,7 +180,7 @@ export function useClassManagementState() {
   const handleRemoveStudent = async (student: EnrolledStudent) => {
     if (!confirm(`Keluarkan ${student.full_name} dari kelas ini?`)) return
     try {
-      await classroomService.removeStudent(student.id, user!.id)
+      await classroomService.removeStudent(student.id, user!.id, tenantId!)
 
       // Refresh student list
       fetchStudents(selectedClassId!)

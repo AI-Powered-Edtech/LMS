@@ -146,7 +146,7 @@ describe('backgroundSync', () => {
         },
       ])
 
-      const mockEq = vi.fn().mockImplementation((col, val) => {
+      const mockEq = vi.fn().mockImplementation((_col, val) => {
         if (val === 'attempt-success') return Promise.resolve({ error: null })
         if (val === 'attempt-fail') return Promise.resolve({ error: new Error('Failed') })
         return Promise.resolve({ error: new Error('Unknown') })

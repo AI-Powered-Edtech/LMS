@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react'
 import { cn } from '@/src/utils/cn'
 
 import { getSuspiciousAttempts, type SuspiciousAttempt } from '../../api/suspiciousAttempts.service'
+import { translateQuizAttemptStatus } from '@/src/utils/statusTranslations'
 
 interface SuspiciousAttemptsPanelProps {
   quizId: string
@@ -176,7 +177,8 @@ export function SuspiciousAttemptsPanel({
                       {attempt.student_name}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Skor: {attempt.score ?? '-'}% · Status: {attempt.status}
+                      Skor: {attempt.score ?? '-'}% · Status:{' '}
+                      {translateQuizAttemptStatus(attempt.status)}
                     </p>
                   </div>
                 </div>

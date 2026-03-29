@@ -75,7 +75,7 @@ function useUpdateClassroom() {
 
   return useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      await classroomService.updateClassroom(id, name)
+      await classroomService.updateClassroom(id, name, tenantId!)
     },
     onSuccess: () => {
       if (tenantId) queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })

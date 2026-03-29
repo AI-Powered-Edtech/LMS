@@ -113,7 +113,7 @@ export class FeatureErrorBoundary extends Component<Props, State> {
         )
       }
 
-      // Auth/session error — prompt user to re-login
+      // 3. Auth/session error — prompt user to re-login
       if (isAuthError(this.state.error)) {
         return (
           <div className="flex flex-col items-center justify-center p-8 text-center min-h-[300px] bg-amber-50 dark:bg-amber-950/20 rounded-2xl border border-amber-100 dark:border-amber-900/30 transition-colors duration-300 h-full w-full">

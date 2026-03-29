@@ -1,12 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { useAuth } from "@/src/contexts/AuthContext"
+
 import { ContentTemplate, templateService } from '../api/templateService'
 
 export function useTemplates(type: 'course' | 'module' | 'lesson') {
+  const { tenantId } = useAuth()
   return useQuery<ContentTemplate[]>({
     queryKey: ['content-templates', type],
-    queryFn: () => templateService.fetchTemplates(type),
-    enabled: !!type,
+    queryFn: () => templateService.fetchTemplates(type, tenantId!),
+    enabled: !!type && !!tenantId,
   })
 }
 

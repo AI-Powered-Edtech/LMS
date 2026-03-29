@@ -2,7 +2,7 @@ import { Bell, Globe, Lock, LogOut, Monitor, User } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { useTheme } from '@/src/contexts/ThemeContext'
+import { useTheme, type Theme } from '@/src/contexts/ThemeContext'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
 import { captureError } from '@/src/utils/sentry'

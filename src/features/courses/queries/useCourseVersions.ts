@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { useAuth } from '@/src/contexts/AuthContext'
 import { useToast } from '@/src/hooks/useToast'
 import { captureError } from '@/src/utils/sentry'
 
@@ -9,10 +10,11 @@ import { CourseVersion, versionService } from '../api/versionService'
  * Hook to fetch course version history
  */
 export function useCourseVersions(courseId: string) {
+  const { tenantId } = useAuth()
   return useQuery<CourseVersion[]>({
     queryKey: ['course-versions', courseId],
-    queryFn: () => versionService.fetchCourseVersions(courseId),
-    enabled: !!courseId,
+    queryFn: () => versionService.fetchCourseVersions(courseId, tenantId!),
+    enabled: !!courseId && !!tenantId,
   })
 }
 

@@ -231,6 +231,14 @@ export function SecurityTab() {
     }
     setSavingPassword(true)
     try {
+      const { data: user } = await supabase.auth.getUser()
+      const email = user.user?.email
+      if (email) {
+        const { error: verifyError } = await supabase.auth.signInWithPassword({ email, password: currentPassword })
+        if (verifyError) {
+          throw new Error('Kata sandi lama tidak valid.')
+        }
+      }
       const { error } = await supabase.auth.updateUser({ password: newPassword })
       if (error) throw error
       setPasswordMessage({ type: 'success', text: 'Kata sandi berhasil diubah.' })

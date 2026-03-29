@@ -13,7 +13,7 @@ import {
   X,
 } from 'lucide-react'
 
-import type { EnrolledStudent } from '@/src/features/classroom/hooks/useClassManagementState'
+import type { EnrolledStudent } from '@/src/features/classroom/api/classroomService'
 
 interface SelectedClass {
   id: string

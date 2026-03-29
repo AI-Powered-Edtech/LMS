@@ -23,7 +23,7 @@ export function useModerationReports() {
 
   return useQuery({
     queryKey: moderationKeys.reports(tenantId!),
-    queryFn: () => moderationService.fetchReports(),
+    queryFn: () => moderationService.fetchReports(tenantId!),
     enabled: !!tenantId,
   })
 }
@@ -81,7 +81,7 @@ export function useResolveReport() {
 
   return useMutation({
     mutationFn: ({ reportId, status }: ResolveReportInput) =>
-      moderationService.resolveReport(reportId, status),
+      moderationService.resolveReport(reportId, status, tenantId!),
     onSuccess: () => {
       if (!tenantId) return
       queryClient.invalidateQueries({ queryKey: moderationKeys.reports(tenantId) })

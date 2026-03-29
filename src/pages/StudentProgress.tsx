@@ -3,6 +3,8 @@ import { motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
+import { useAuth } from "@/src/contexts/AuthContext"
+
 import { OptimizedImage } from '@/src/components/ui'
 import { progressService, StudentProgressData } from '@/src/features/progress/api/progressService'
 import { ProgressSkeleton } from '@/src/features/progress/components/ProgressSkeleton'
@@ -13,6 +15,7 @@ import { cn } from '@/src/utils/cn'
 export function StudentProgress() {
   usePageTitle('Progres Siswa')
   const { studentId } = useParams()
+  const { tenantId } = useAuth()
   const [data, setData] = useState<StudentProgressData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -28,7 +31,7 @@ export function StudentProgress() {
       setLoading(true)
       try {
         // High performance consolidation: 6 queries -> 1 RPC call
-        const progressData = await progressService.getStudentProgressBundle(studentId)
+        const progressData = await progressService.getStudentProgressBundle(studentId, tenantId!)
         setData(progressData)
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Failed to load student progress', err)

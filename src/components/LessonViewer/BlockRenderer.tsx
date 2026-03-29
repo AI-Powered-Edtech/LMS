@@ -84,8 +84,8 @@ export function BlockRenderer({
           quizId={quiz.id}
           title={quiz.title}
           instructions={quiz.instructions}
-          timeLimitMinutes={quiz.time_limit_minutes}
-          maxAttempts={quiz.max_attempts}
+          timeLimitMinutes={quiz.time_limit_minutes ?? undefined}
+          maxAttempts={quiz.max_attempts ?? undefined}
           passingScore={quiz.passing_score ?? 0}
           isCompleted={isCompleted}
           onCompletionMet={onCompletionMet}

@@ -1,5 +1,19 @@
 # EduSync LMS — Changelog
 
+## Security Audit Fixes (2026-03-29)
+
+### 🔒 Security
+
+- **`CertificateViewer.tsx`** — Fixed Stored XSS: all user-controlled values (`profile.first_name`, `profile.last_name`, `course_title`, `certificate_number`, `tenant.name`) now escaped via `escapeHtml()` before interpolation into `document.write()`. Added `w.opener = null` to sever window.opener reference.
+- **`src/utils/sanitize.ts`** (new) — Shared `escapeHtml()` and `sanitizeUrl()` utilities for safe HTML/URL handling outside React's JSX escaping.
+- **`ScormPlayer.tsx`** — Added URL whitelist validation to block non-`https://` SCORM content sources.
+- **`eslint.config.js`** — Added `eslint-plugin-jsx-a11y` with 8 error + 5 warn WCAG 2.1 AA rules.
+- **Invite token exposure fix** — Invite tokens no longer exposed in URL query params.
+
+### ✨ New Pages
+
+- **`src/pages/Offline.tsx`** (new) — Dedicated offline fallback page for PWA, served by service worker when network unavailable.
+
 ## Service Layer Abstraction — Finishing Touches (2026-03-29)
 
 Closes all remaining direct Supabase calls outside the service layer. Target: **0 rogue imports** in pages/hooks/components (except `AuthContext.tsx`).
@@ -1381,14 +1395,14 @@ Full QA sprint with 7 cycles (Pre + QA-1..4 + Dev-1..3):
 
 ### Known Limitations (Post-Ship Backlog)
 
-| ID          | Description                                                  |
-| ----------- | ------------------------------------------------------------ |
-| BUG-C3-006  | QuizPlayer: `isOnline` hardcoded — offline warning dead code |
-| BUG-C3-008  | HubView: no empty-state for zero items                       |
-| NEW-QA4-002 | Gradebook: local mock data, no Supabase persistence yet      |
-| FG-PRE-001  | No self-serve school registration wizard                     |
-| BUG-C2-002  | Student course discovery is join-code only (by design)       |
-| BUG-PRE-006 | Workspace selector text partially in English                 |
+| ID             | Description                                                                                                           |
+| -------------- | --------------------------------------------------------------------------------------------------------------------- |
+| ~~BUG-C3-006~~ | ~~QuizPlayer: `isOnline` hardcoded~~ — **RESOLVED** (Sprint 23E): uses `useNetworkStatus()`, dark mode variants added |
+| BUG-C3-008     | HubView: no empty-state for zero items                                                                                |
+| NEW-QA4-002    | Gradebook: local mock data, no Supabase persistence yet                                                               |
+| FG-PRE-001     | No self-serve school registration wizard                                                                              |
+| BUG-C2-002     | Student course discovery is join-code only (by design)                                                                |
+| BUG-PRE-006    | Workspace selector text partially in English                                                                          |
 
 ---
 

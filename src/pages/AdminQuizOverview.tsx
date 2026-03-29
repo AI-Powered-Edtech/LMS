@@ -31,9 +31,11 @@ type SortKey = 'quiz_title' | 'total_attempts' | 'avg_score' | 'pass_rate' | 'cr
 type SortDir = 'asc' | 'desc'
 
 const statusBadge: Record<string, { label: string; color: string; bg: string }> = {
-  draft: { label: 'Draft', color: 'text-slate-600', bg: 'bg-slate-100' },
+  draft: { label: 'Draf', color: 'text-slate-600', bg: 'bg-slate-100' },
   published: { label: 'Diterbitkan', color: 'text-green-700', bg: 'bg-green-100' },
-  archived: { label: 'Archived', color: 'text-amber-700', bg: 'bg-amber-100' },
+  in_review: { label: 'Dalam Tinjauan', color: 'text-blue-700', bg: 'bg-blue-100' },
+  approved: { label: 'Disetujui', color: 'text-indigo-700', bg: 'bg-indigo-100' },
+  archived: { label: 'Diarsipkan', color: 'text-amber-700', bg: 'bg-amber-100' },
 }
 
 export function AdminQuizOverview() {

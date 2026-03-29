@@ -80,19 +80,19 @@ describe('calendarUtils', () => {
     it('returns a high priority icon', () => {
       const icon = getPriorityIcon('high')
       expect(icon).not.toBeNull()
-      expect((icon as React.ReactElement)?.props.className).toContain('text-red-500')
+      expect((icon as any)?.props.className).toContain('text-red-500')
     })
 
     it('returns a medium priority icon', () => {
       const icon = getPriorityIcon('medium')
       expect(icon).not.toBeNull()
-      expect((icon as React.ReactElement)?.props.className).toContain('text-orange-500')
+      expect((icon as any)?.props.className).toContain('text-orange-500')
     })
 
     it('returns a low priority icon', () => {
       const icon = getPriorityIcon('low')
       expect(icon).not.toBeNull()
-      expect((icon as React.ReactElement)?.props.className).toContain('text-blue-500')
+      expect((icon as any)?.props.className).toContain('text-blue-500')
     })
 
     it('returns null for unknown priority', () => {

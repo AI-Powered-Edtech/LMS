@@ -28,7 +28,7 @@ export function useProgressList(studentId: string) {
 
   return useQuery({
     queryKey: progressKeys.all(tenantId ?? '', studentId),
-    queryFn: () => progressService.getStudentProgress(studentId),
+    queryFn: () => progressService.getStudentProgress(studentId, tenantId!),
     enabled: !!studentId && !!tenantId,
   })
 }

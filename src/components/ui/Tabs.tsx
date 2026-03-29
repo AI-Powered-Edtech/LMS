@@ -81,7 +81,7 @@ export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
               <motion.span
                 layoutId={`tab-indicator-${layoutId}`}
                 className="absolute inset-0 bg-white dark:bg-slate-700 rounded-lg shadow-sm"
-                transition={tabTransition}
+                transition={tabTransition as any}
               />
             )}
             <span className="relative z-[1] flex items-center gap-2">

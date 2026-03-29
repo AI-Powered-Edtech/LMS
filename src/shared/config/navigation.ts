@@ -20,6 +20,7 @@ import {
   PlayCircle,
   ScanFace,
   Settings,
+  Shield,
   Sparkles,
   Trophy,
   UserCircle,
@@ -511,6 +512,18 @@ export const navigationItems: NavItem[] = [
     color: 'text-teal-600',
     bg: 'bg-teal-100',
     border: 'border-teal-200',
+  },
+  {
+    id: 'lti-management',
+    name: 'Integrasi LTI',
+    path: '/admin/lti',
+    icon: Shield,
+    roles: ['admin'],
+    location: 'admin-hub',
+    description: 'Kelola platform LTI 1.3 (Canvas, Moodle).',
+    color: 'text-indigo-600',
+    bg: 'bg-indigo-100',
+    border: 'border-indigo-200',
   },
 
   // Directory Only Items (Misc)

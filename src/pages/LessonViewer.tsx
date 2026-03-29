@@ -3,12 +3,12 @@ import { AnimatePresence, motion } from 'motion/react'
 
 import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary'
 import {
-  AITutorPanel,
   LessonSidebar,
   MultiBlockViewer,
   ProgressReporter,
   ScrollProgressBar,
 } from '@/src/components/LessonViewer'
+import { AITutorPanel } from '@/src/features/ai-tutor/components/AITutorPanel'
 import { DiscussionBoard } from '@/src/components/Social/DiscussionBoard'
 import { LearningSessionProvider } from '@/src/features/analytics'
 import { GuideRenderer } from '@/src/features/guidance'
