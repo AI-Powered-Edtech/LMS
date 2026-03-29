@@ -50,3 +50,50 @@ export function translateInvitationStatus(status: string): string {
   }
   return map[status.toLowerCase()] ?? status
 }
+
+export function translateQuizAttemptStatus(status: string): string {
+  const map: Record<string, string> = {
+    completed: 'Selesai',
+    in_progress: 'Berlangsung',
+    submitted: 'Dikumpulkan',
+    graded: 'Dinilai',
+    timed_out: 'Waktu Habis',
+  }
+  return map[status.toLowerCase()] ?? status
+}
+
+export function translateLessonType(type: string): string {
+  const map: Record<string, string> = {
+    article: 'Artikel',
+    video: 'Video',
+    quiz: 'Kuis',
+    scorm: 'SCORM',
+    assignment: 'Tugas',
+  }
+  return map[type.toLowerCase()] ?? type
+}
+
+export function translateContentType(type: string): string {
+  const map: Record<string, string> = {
+    post: 'Postingan',
+    comment: 'Komentar',
+    assignment: 'Tugas',
+    user: 'Pengguna',
+  }
+  return map[type.toLowerCase()] ?? type
+}
+
+export function translateEventType(type: string): string {
+  const map: Record<string, string> = {
+    class: 'Kelas',
+    exam: 'Ujian',
+    assignment: 'Tugas',
+    meeting: 'Rapat',
+    holiday: 'Libur',
+    event: 'Acara',
+    deadline: 'Tenggat',
+    quiz: 'Kuis',
+    lesson: 'Pelajaran',
+  }
+  return map[type.toLowerCase()] ?? type
+}

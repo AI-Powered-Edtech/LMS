@@ -43,13 +43,13 @@ const getStatusLabel = (status: string) => {
     case 'open':
       return 'Menunggu'
     case 'draft':
-      return 'Draft'
+      return 'Draf'
     case 'uncollectible':
       return 'Gagal'
     case 'void':
       return 'Batal'
     default:
-      return status
+      return status.charAt(0).toUpperCase() + status.slice(1)
   }
 }
 

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { courseService } from '@/src/features/courses/api/courseService'
+import { translateCourseStatus } from '@/src/utils/statusTranslations'
 
 interface Course {
   id: string
@@ -100,7 +101,7 @@ export function StudentCoursesList() {
                       Pengajar: {course.profiles?.full_name || 'Teacher Dev'}
                     </div>
                     <span className="text-xs font-bold px-2 py-1 rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 uppercase">
-                      {course.status}
+                      {translateCourseStatus(course.status)}
                     </span>
                   </div>
                 </div>
