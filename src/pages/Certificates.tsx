@@ -390,8 +390,9 @@ export function Certificates() {
                     <div className="relative">
                       <button
                         onClick={() => setShowShareMenu(showShareMenu === cert.id ? null : cert.id)}
-                        className="p-2.5 text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-transparent hover:border-blue-100"
+                        className="p-2.5 text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-transparent hover:border-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                         title="Bagikan"
+                        aria-label="Bagikan sertifikat"
                       >
                         <Share2 className="w-5 h-5" />
                       </button>
@@ -433,8 +434,9 @@ export function Certificates() {
                       <button
                         onClick={() => handleDownload(cert, 'png')}
                         disabled={isDownloading === cert.id}
-                        className="p-2.5 text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-transparent hover:border-blue-100"
+                        className="p-2.5 text-slate-500 dark:text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors border border-transparent hover:border-blue-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                         title="Unduh PNG"
+                        aria-label="Unduh sertifikat format PNG"
                       >
                         <ImageIcon className="w-5 h-5" />
                       </button>
