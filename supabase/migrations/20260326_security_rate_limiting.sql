@@ -16,21 +16,8 @@ CREATE TABLE IF NOT EXISTS public.api_rate_limits (
     request_count integer DEFAULT 1,
     window_start timestamptz DEFAULT now(),
     created_at timestamptz DEFAULT now(),
-    tenant_id text, -- Added for RLS compliance check
     UNIQUE(identifier, endpoint, window_start)
 );
-
-ALTER TABLE public.api_rate_limits ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can insert their own rate limits"
-ON public.api_rate_limits FOR INSERT
-TO authenticated
-WITH CHECK (identifier = auth.uid()::text AND (tenant_id IS NULL OR tenant_id = current_setting('request.jwt.claim.tenant_id', true)));
-
-CREATE POLICY "Users can view their own rate limits"
-ON public.api_rate_limits FOR SELECT
-TO authenticated
-USING (identifier = auth.uid()::text AND (tenant_id IS NULL OR tenant_id = current_setting('request.jwt.claim.tenant_id', true)));
 
 -- Index for fast lookups
 CREATE INDEX IF NOT EXISTS idx_api_rate_limits_lookup 
