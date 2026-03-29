@@ -36,10 +36,11 @@ export interface StudentProgressData {
   }[]
 }
 export const progressService = {
-  async getStudentProgressBundle(studentId: string): Promise<StudentProgressData> {
+  async getStudentProgressBundle(studentId: string, tenantId?: string): Promise<StudentProgressData> {
     try {
       const { data, error } = await supabase.rpc('get_student_progress_bundle', {
         p_student_id: studentId,
+        ...(tenantId ? { p_tenant_id: tenantId } : {}),
       })
 
       if (error) throw error

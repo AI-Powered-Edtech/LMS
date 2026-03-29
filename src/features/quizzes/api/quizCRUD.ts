@@ -282,6 +282,7 @@ export async function setQuizStatus(
     .from('quiz_assignments')
     .select('id, available_from, due_at')
     .eq('quiz_id', quizId)
+    .eq('tenant_id', tenantId)
 
   if (assignmentError) throw assignmentError
 
@@ -295,6 +296,7 @@ export async function setQuizStatus(
           status: deriveAssignmentStatus(status, assignment.available_from, assignment.due_at),
         })
         .eq('id', assignment.id)
+        .eq('tenant_id', tenantId)
     )
   )
 }

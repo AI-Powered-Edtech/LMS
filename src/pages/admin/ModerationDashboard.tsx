@@ -20,6 +20,7 @@ import {
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
+import { translateContentType } from '@/src/utils/statusTranslations'
 
 export function ModerationDashboard() {
   usePageTitle('Dasbor Moderasi')
@@ -201,7 +202,7 @@ export function ModerationDashboard() {
                     <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
                       <div className="flex items-center gap-2 mb-2 text-blue-800 font-bold text-sm">
                         <MessageSquare className="w-4 h-4" />
-                        Konten yang Dilaporkan ({report.contentType})
+                        Konten yang Dilaporkan ({translateContentType(report.contentType)})
                       </div>
                       <p className="text-slate-800 dark:text-slate-200 text-sm line-clamp-3 mb-2">
                         {report.contentSnippet || 'Konten tidak tersedia'}

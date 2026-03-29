@@ -24,6 +24,7 @@ import { useGradebook } from '@/src/features/gradebook/hooks/useGradebookQueries
 import { useSendNotification } from '@/src/features/notifications'
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { translateLessonType } from '@/src/utils/statusTranslations'
 
 export function Assignments() {
   const addToast = useToast((s) => s.addToast)
@@ -329,7 +330,7 @@ export function Assignments() {
                               {att.name}
                             </p>
                             <p className="text-xs text-slate-500 dark:text-slate-400 uppercase">
-                              {att.type}
+                              {translateLessonType(att.type)}
                             </p>
                           </div>
                         </a>

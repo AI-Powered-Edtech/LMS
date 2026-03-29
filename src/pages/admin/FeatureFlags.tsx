@@ -2,6 +2,7 @@ import { AlertCircle, Flag, RefreshCw, Save, ToggleLeft, ToggleRight } from 'luc
 import { useCallback, useEffect, useState } from 'react'
 
 import { EmptyState } from '@/src/components/ui'
+import { useAuth } from '@/src/contexts/AuthContext'
 import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { supabase } from '@/src/services/supabase/client'
@@ -22,6 +23,7 @@ interface FlagDraft extends FeatureFlag {
 
 export default function FeatureFlagsPage() {
   usePageTitle('Pengaturan Fitur')
+  const { tenantId, role } = useAuth()
   const [flags, setFlags] = useState<FlagDraft[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -29,11 +31,13 @@ export default function FeatureFlagsPage() {
   const [saveSuccess, setSaveSuccess] = useState(false)
 
   const fetchFlags = useCallback(async () => {
+    if (!tenantId) return
     setLoading(true)
     setError(null)
     const { data, error: fetchErr } = await supabase
       .from('feature_flags')
       .select('flag_name, enabled, tenant_ids, rollout_percentage')
+      .eq('tenant_id', tenantId)
       .order('flag_name')
 
     if (fetchErr) {
@@ -47,6 +51,15 @@ export default function FeatureFlagsPage() {
   useEffect(() => {
     fetchFlags()
   }, [fetchFlags])
+
+  // SECURITY: RBAC check — only admin can access this page
+  if (role !== 'admin') {
+    return (
+      <div className="p-6 max-w-5xl mx-auto text-center">
+        <p className="text-red-600 font-bold">Akses ditolak. Hanya admin yang dapat mengakses halaman ini.</p>
+      </div>
+    )
+  }
 
   const toggleEnabled = (flagName: string) => {
     setFlags((prev) =>
@@ -81,6 +94,7 @@ export default function FeatureFlagsPage() {
             rollout_percentage: flag.rollout_percentage,
           })
           .eq('flag_name', flag.flag_name)
+          .eq('tenant_id', tenantId)
 
         if (updateErr) throw updateErr
       }
