@@ -123,7 +123,8 @@ export function useUserManagementState() {
   }
 
   const copyInviteLink = (token: string) => {
-    const link = `${window.location.origin}/#/login?invite=${token}`
+    // Gunakan path parameter, bukan query param — mencegah token bocor via browser history & Referer header
+    const link = `${window.location.origin}/#/invite/${token}`
     navigator.clipboard.writeText(link)
   }
 

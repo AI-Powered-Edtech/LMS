@@ -37,6 +37,20 @@ interface ScormPackage {
 
 type PlayerState = 'loading' | 'ready' | 'error'
 
+// ── URL Whitelist Validation ───────────────────────────────────
+// Prevents SSRF if supabaseUrl config is tampered with
+const ALLOWED_DOMAINS = ['supabase.co', 'supabase.in']
+
+const validateScormUrl = (url: string): boolean => {
+  try {
+    const parsedUrl = new URL(url)
+    const hostname = parsedUrl.hostname
+    return ALLOWED_DOMAINS.some((domain) => hostname.endsWith(domain))
+  } catch {
+    return false
+  }
+}
+
 export function ScormPlayer({
   scormPackageId,
   lessonId: _lessonId,
@@ -287,7 +301,15 @@ export function ScormPlayer({
         const accessToken = sessionStr ? JSON.parse(sessionStr)?.access_token : anonKey
 
         try {
-          fetch(`${supabaseUrl}/rest/v1/rpc/upsert_scorm_runtime`, {
+          const scormApiUrl = `${supabaseUrl}/rest/v1/rpc/upsert_scorm_runtime`
+
+          // Validate URL before fetch — prevent SSRF
+          if (!validateScormUrl(scormApiUrl)) {
+            console.error('[ScormPlayer] Blocked: Invalid API URL')
+            return
+          }
+
+          fetch(scormApiUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -297,8 +319,9 @@ export function ScormPlayer({
             body,
             keepalive: true, // Survives page unload
           })
-        } catch {
-          // Best-effort — if this fails, the debounced commit already saved recent state
+        } catch (error) {
+          // Best-effort — already logged above
+          console.warn('[ScormPlayer] Failed to sync SCORM runtime:', error)
         }
       }
     }
