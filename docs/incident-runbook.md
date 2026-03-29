@@ -138,3 +138,112 @@ This runbook defines how to detect, respond to, and resolve incidents on the Edu
 All P1 and P2 incidents require a post-incident writeup within 24 hours of resolution.
 
 ### Writeup Template
+
+```
+## Incident Report: [YYYY-MM-DD] [Short title]
+
+**Severity:** P1 / P2
+**Duration:** [start time] → [end time] ([X] hours)
+**Impact:** [Number of users affected, features impacted]
+**Detected by:** [Sentry alert / user report / monitoring]
+
+### Timeline
+- HH:MM — [Event]
+- HH:MM — [Action taken]
+- HH:MM — [Resolution]
+
+### Root Cause (5-Whys)
+1. Why did users get errors? → [answer]
+2. Why did [answer] happen? → [answer]
+3. Why did [answer] happen? → [answer]
+4. Why did [answer] happen? → [answer]
+5. Why did [answer] happen? → [root cause]
+
+### Action Items
+| Action                        | Owner | Due date   |
+|-------------------------------|-------|------------|
+| [Preventive measure]          | [Name]| YYYY-MM-DD |
+
+### What went well
+- [Item]
+
+### What to improve
+- [Item]
+```
+
+Store writeups in `docs/incidents/YYYY-MM-DD-[slug].md`.
+
+---
+
+## 5. Communication Templates
+
+### Initial Status Update (post within 15 min of P1 declaration)
+
+```
+[INCIDENT] We are currently investigating an issue affecting EduSync.
+Affected: [feature/all users]
+Status: Investigating
+Next update: [time, max 30 min]
+```
+
+### Resolved Communication
+
+```
+[RESOLVED] The incident affecting [feature] has been resolved.
+Duration: [X hours]
+Impact: [brief description]
+Root cause: [one sentence]
+We will publish a full post-incident report within 24 hours.
+```
+
+### Scheduled Maintenance (24h advance notice)
+
+```
+[MAINTENANCE] EduSync will undergo scheduled maintenance on [date] from [time] to [time].
+Expected impact: [brief]
+What to expect: [brief]
+```
+
+---
+
+## 6. Escalation Path
+
+1. On-call engineer → investigate and mitigate
+2. If unresolved in 30 min (P1) or 2h (P2) → escalate to engineering lead
+3. If platform issue (Supabase/Vercel down) → escalate to Supabase support: https://supabase.com/dashboard/support/new
+4. If data loss suspected → escalate to engineering lead + product lead immediately
+
+<!-- Phase 5 Feature Cross-Reference -->
+
+## Feature Module Cross-Reference
+
+EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
+
+| Feature         | Domain         | Deskripsi                                                                                                                  |
+| --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| administration  | Admin          | Administrasi — Manajemen tenant, konfigurasi modul sekolah, sinkronisasi data                                              |
+| ai-tutor        | Learning       | AI Tutor — Asisten belajar berbasis AI yang memberikan penjelasan personal kepada siswa                                    |
+| analytics       | Analytics      | Analitik — Dashboard analitik komprehensif untuk guru dan admin                                                            |
+| announcements   | Communication  | Pengumuman — Sistem pengumuman sekolah                                                                                     |
+| assignments     | Assessment     | Tugas — Manajemen tugas dari pembuatan hingga penilaian                                                                    |
+| calendar        | Academic       | Kalender — Kalender akademik terintegrasi dengan jadwal pelajaran, ujian, deadline tugas, dan kegiatan sekolah             |
+| classroom       | Academic       | Kelas — Manajemen kelas virtual dan fisik                                                                                  |
+| courses         | Academic       | Kursus — Core learning module                                                                                              |
+| dashboards      | Analytics      | Dashboard — Dashboard kustom dengan widget builder                                                                         |
+| discussions     | Communication  | Diskusi — Forum diskusi per kursus                                                                                         |
+| gamification    | Engagement     | Gamifikasi — Sistem gamifikasi lengkap: XP, badge, level, streak counter, dan leaderboard                                  |
+| gradebook       | Assessment     | Buku Nilai — Buku nilai digital untuk guru                                                                                 |
+| guidance        | Admin          | Panduan — Sistem panduan in-app (tooltip, walkthrough, banner, checkpoint)                                                 |
+| lessons         | Learning       | Pelajaran — Konten pelajaran dengan block-based editor                                                                     |
+| moderation      | Admin          | Moderasi — Moderasi konten user-generated (diskusi, komentar)                                                              |
+| notifications   | Communication  | Notifikasi — Sistem notifikasi real-time dengan bell icon dan panel                                                        |
+| onboarding      | Admin          | Onboarding — Wizard onboarding untuk pengguna baru                                                                         |
+| progress        | Learning       | Kemajuan Belajar — Tracking progress belajar siswa secara granular per kursus, modul, dan pelajaran                        |
+| question-bank   | Assessment     | Bank Soal — Repositori soal yang bisa digunakan ulang di berbagai kuis                                                     |
+| quizzes         | Assessment     | Kuis — Sistem kuis komprehensif dengan timer, anti-cheat, autosave, review mode, dan analitik hasil per soal               |
+| recommendations | Learning       | Rekomendasi — Engine rekomendasi konten berdasarkan progress, performa, dan pola belajar siswa                             |
+| reports         | Analytics      | Laporan — Generator laporan akademik, keuangan (SPP), PPDB, dan custom                                                     |
+| storage         | Infrastructure | Penyimpanan — Manajemen file dan media untuk materi pembelajaran                                                           |
+| struggle        | Analytics      | Deteksi Kesulitan — Deteksi otomatis siswa yang kesulitan berdasarkan pola belajar, waktu per soal, dan penurunan performa |
+
+Setiap feature module mengikuti arsitektur standar dengan folder: api/, queries/, hooks/, types/, components/, dan **tests**/. Semua feature mendukung dark mode dan skeleton loading screens.
