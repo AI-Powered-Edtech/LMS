@@ -4,39 +4,12 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
-import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
+import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 
 import { cn } from '@/src/utils/cn'
-
-// XSS protection: sanitize user-generated markdown while preserving KaTeX math (SC-1)
-const katexSanitizeSchema = {
-  ...defaultSchema,
-  tagNames: [
-    ...(defaultSchema.tagNames || []),
-    'math',
-    'semantics',
-    'mrow',
-    'mi',
-    'mo',
-    'mn',
-    'msup',
-    'msub',
-    'mfrac',
-    'msqrt',
-    'mroot',
-    'mtext',
-    'annotation',
-  ],
-  attributes: {
-    ...defaultSchema.attributes,
-    div: [...(defaultSchema.attributes?.div || []), 'className', 'style'],
-    span: [...(defaultSchema.attributes?.span || []), 'className', 'style', 'aria-hidden'],
-    math: ['xmlns', 'display'],
-    annotation: ['encoding'],
-  },
-}
+import { katexSanitizeSchema } from '@/src/utils/sanitizeMarkdown'
 
 interface ArticleViewerProps {
   content: string

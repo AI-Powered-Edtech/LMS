@@ -15,6 +15,7 @@ import { motion } from 'motion/react'
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
+import rehypeSanitize from 'rehype-sanitize'
 import remarkMath from 'remark-math'
 
 import { OptimizedImage } from '@/src/components/ui'
@@ -22,6 +23,7 @@ import { discussionService } from '@/src/features/discussions/api/discussionServ
 import type { ForumPost } from '@/src/features/discussions/types/forum'
 import type { ForumComment } from '@/src/features/discussions/types/forum'
 import { cn } from '@/src/utils/cn'
+import { katexSanitizeSchema } from '@/src/utils/sanitizeMarkdown'
 
 import { CommentThread } from './CommentThread'
 import { ForumBadge, resolveBadgeType } from './ForumBadge'
@@ -205,7 +207,10 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport }: PostItemProp
           )}
 
           <div className="prose prose-slate dark:prose-invert max-w-none mb-4 prose-pre:bg-slate-800 prose-pre:text-slate-50 prose-pre:rounded-xl">
-            <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+            <ReactMarkdown
+              remarkPlugins={[remarkMath]}
+              rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}
+            >
               {post.content}
             </ReactMarkdown>
           </div>

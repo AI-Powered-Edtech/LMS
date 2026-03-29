@@ -11,9 +11,11 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
+import rehypeSanitize from 'rehype-sanitize'
 import remarkMath from 'remark-math'
 
 import { useAuth } from '@/src/contexts/AuthContext'
+import { katexSanitizeSchema } from '@/src/utils/sanitizeMarkdown'
 import {
   type AITutorError,
   type AITutorMessage,
@@ -297,7 +299,7 @@ export function AITutorPanel({
                 >
                   <ReactMarkdown
                     remarkPlugins={[remarkMath]}
-                    rehypePlugins={[rehypeKatex]}
+                    rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}
                     components={{
                       p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
                       ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
