@@ -108,6 +108,7 @@ describe('useReducedMotion', () => {
   it('harus update state ketika media query matches berubah', async () => {
     let changeHandler: ((e: MediaQueryListEvent) => void) | null = null
 
+<<<<<<< HEAD
     const addEventListenerMock = vi.fn(
       (event: string, handler: (e: MediaQueryListEvent) => void) => {
         if (event === 'change') {
@@ -115,6 +116,13 @@ describe('useReducedMotion', () => {
         }
       }
     )
+=======
+    const addEventListenerMock = vi.fn((event: string, handler: (e: MediaQueryListEvent) => void) => {
+      if (event === 'change') {
+        changeHandler = handler
+      }
+    })
+>>>>>>> neon-hemisphere
 
     matchMediaMock.mockReturnValue({
       matches: false,
@@ -131,9 +139,16 @@ describe('useReducedMotion', () => {
 
     expect(result.current).toBe(false)
 
+<<<<<<< HEAD
+    // Simulate media query change — capture in const to avoid TS never-narrowing
+    const handler = changeHandler as ((e: MediaQueryListEvent) => void) | null
+    if (handler) {
+      handler({
+=======
     // Simulate media query change
     if (changeHandler) {
       changeHandler({
+>>>>>>> neon-hemisphere
         matches: true,
         media: '(prefers-reduced-motion: reduce)',
       } as unknown as MediaQueryListEvent)
