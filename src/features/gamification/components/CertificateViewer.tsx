@@ -3,6 +3,7 @@ import { Award, Calendar, Download } from 'lucide-react'
 import { EmptyState, SkeletonCard } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { cn } from '@/src/utils/cn'
+import { escapeHtml } from '@/src/utils/sanitize'
 
 import { useStudentCertificates } from '../queries/gamificationQueries'
 import type { Certificate } from '../types'
@@ -13,9 +14,19 @@ function CertificateCard({ cert }: { cert: Certificate }) {
   const handlePrint = () => {
     const w = window.open('', '_blank')
     if (!w) return
+
+    // SECURITY: Escape all user-controlled data to prevent DOM-based XSS
+    // Data such as profile names, tenant names, and course titles might contain malicious HTML/JS.
+    // By using escapeHtml, we ensure any HTML tags or special characters are rendered as text rather than executed.
+    const safeTenantName = escapeHtml(activeTenant?.name ?? 'EduSync')
+    const safeFirstName = escapeHtml(profile?.first_name ?? '')
+    const safeLastName = escapeHtml(profile?.last_name ?? '')
+    const safeCourseTitle = escapeHtml(cert.course_title)
+    const safeCertNumber = escapeHtml(cert.certificate_number)
+
     w.document.write(`
             <!DOCTYPE html>
-            <html><head><title>Sertifikat - ${cert.certificate_number}</title>
+            <html><head><title>Sertifikat - ${safeCertNumber}</title>
             <style>
                 @page { size: landscape; margin: 0; }
                 body { margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: Georgia, serif; background: #fff; }
@@ -30,14 +41,14 @@ function CertificateCard({ cert }: { cert: Certificate }) {
             </style></head><body>
             <div class="cert">
                 <h1>SERTIFIKAT</h1>
-                <p class="school">${activeTenant?.name ?? 'EduSync'}</p>
+                <p class="school">${safeTenantName}</p>
                 <p class="label">Diberikan kepada</p>
-                <p class="name">${profile?.first_name ?? ''} ${profile?.last_name ?? ''}</p>
+                <p class="name">${safeFirstName} ${safeLastName}</p>
                 <p class="label">Atas penyelesaian kursus</p>
-                <p class="course">${cert.course_title}</p>
+                <p class="course">${safeCourseTitle}</p>
                 <p class="meta">
                     ${new Date(cert.issued_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    &nbsp;·&nbsp; ${cert.certificate_number}
+                    &nbsp;·&nbsp; ${safeCertNumber}
                 </p>
             </div>
             </body></html>
