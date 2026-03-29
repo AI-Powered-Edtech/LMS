@@ -8,7 +8,7 @@ import type { Course } from '@/src/features/courses/types'
 import { GradebookSkeleton } from '@/src/features/gradebook/components/GradebookSkeleton'
 import { StudentGradeView } from '@/src/features/gradebook/components/StudentGradeView'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { gradebookService } from "@/src/features/gradebook/api/gradebookService"
 import { cn } from '@/src/utils/cn'
 
 interface Assignment {
@@ -61,17 +61,7 @@ export function Grades() {
   const { data: submissionsData = [], isLoading } = useQuery({
     queryKey: ['student-grades', user?.id, tenantId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('assignment_submissions')
-        .select(
-          `id, score, status, submitted_at, assignments!inner(id, title, max_points, classes(name))`
-        )
-        .eq('student_id', user!.id)
-        .eq('tenant_id', tenantId!)
-        .order('submitted_at', { ascending: false })
-        .limit(200)
-      if (error) throw error
-      return data ?? []
+      return await gradebookService.getStudentGrades(user!.id, tenantId!)
     },
     enabled: !!user && !!tenantId,
   })

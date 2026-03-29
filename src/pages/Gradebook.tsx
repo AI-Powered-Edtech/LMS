@@ -2,6 +2,7 @@ import { ArrowLeft, BookOpen, ChevronDown, Download, Filter, Plus } from 'lucide
 import { Link } from 'react-router-dom'
 
 import { EmptyState } from '@/src/components/ui'
+import { useToast } from '@/src/hooks/useToast'
 import type { Course } from '@/src/features/courses/types'
 import { AddAssignmentModal } from '@/src/features/gradebook/components/AddAssignmentModal'
 import { GradebookMainTable } from '@/src/features/gradebook/components/GradebookMainTable'
@@ -12,6 +13,7 @@ import { cn } from '@/src/utils/cn'
 
 export function Gradebook() {
   const s = useGradebookState()
+  const addToast = useToast((s: any) => s.addToast);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -105,6 +107,7 @@ export function Gradebook() {
           </button>
           <button
             type="button"
+            onClick={() => addToast({ type: "info", message: "Fitur Ekspor CSV segera hadir." })}
             aria-label="Ekspor CSV"
             className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-sm sm:text-base shadow-sm transition-all"
           >

@@ -1,0 +1,18 @@
+--- src/pages/admin/BillingDashboard.tsx
++++ src/pages/admin/BillingDashboard.tsx
+@@ -10,2 +10,3 @@
+ import { useAuth } from '@/src/contexts/AuthContext'
++import { useToast } from '@/src/components/ui'
+ 
+@@ -16,2 +17,3 @@
+ export function BillingDashboard() {
++  const addToast = useToast(s => s.addToast)
+   const { tenantId } = useAuth()
+@@ -188,2 +190,3 @@
+           <button 
++            onClick={() => addToast({ type: 'info', message: 'Fitur Metode Pembayaran segera hadir.' })}
+             className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm"
+@@ -346,2 +349,3 @@
+                         <button
++                          onClick={() => addToast({ type: 'info', message: 'Fitur Unduh PDF segera hadir.' })}
+                           className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"

@@ -1,0 +1,6 @@
+--- src/pages/Profile.tsx
++++ src/pages/Profile.tsx
+@@ -107,2 +107,3 @@
+               <button
++                onClick={() => addToast({ type: 'info', message: 'Fitur ubah foto profil segera hadir.' })}
+                 aria-label="Ubah foto profil"

@@ -1,9 +1,0 @@
---- src/pages/StudentAttendance.tsx
-+++ src/pages/StudentAttendance.tsx
-@@ -83,4 +83,4 @@
-         const details: { name: string; status: string }[] = r.details ?? []
-         const entry = details.find((d) => d.name?.toLowerCase().includes(myName.split(' ')[0]))
--        const status = entry?.status ?? 'hadir' // default to hadir if in the records
-+        if (!entry) return acc // Skip if student not found in this record
-+        const status = entry.status
- 

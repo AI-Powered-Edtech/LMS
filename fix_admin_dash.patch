@@ -1,0 +1,44 @@
+--- src/pages/admin/AdministrationDashboard.tsx
++++ src/pages/admin/AdministrationDashboard.tsx
+@@ -10,2 +10,4 @@
+ import { Link } from 'react-router-dom'
++import { useNavigate } from 'react-router-dom'
++import { useToast } from '@/src/components/ui'
+ 
+@@ -14,2 +16,4 @@
+ export function AdministrationDashboard() {
++  const navigate = useNavigate()
++  const addToast = useToast(s => s.addToast)
+   return (
+@@ -411,3 +415,6 @@
+           <div className="space-y-3">
+-            <button className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3">
++            <button 
++              onClick={() => navigate('/app/admin/settings')}
++              className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3"
++            >
+               <Settings className="w-5 h-5 text-slate-500" />
+@@ -417,3 +424,6 @@
+             </button>
+-            <button className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3">
++            <button 
++              onClick={() => navigate('/app/admin/user-management')}
++              className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3"
++            >
+               <Users className="w-5 h-5 text-slate-500" />
+@@ -423,3 +433,6 @@
+             </button>
+-            <button className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3">
++            <button 
++              onClick={() => navigate('/app/admin/audit-log')}
++              className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3"
++            >
+               <FileText className="w-5 h-5 text-slate-500" />
+@@ -429,3 +442,6 @@
+             </button>
+-            <button className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3">
++            <button 
++              onClick={() => addToast({ type: 'info', message: 'Fitur Cadangan Basis Data segera hadir.' })}
++              className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3"
++            >
+               <Database className="w-5 h-5 text-slate-500" />

@@ -17,6 +17,8 @@ import {
   Users,
 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useToast } from '@/src/hooks/useToast'
 
 import {
   administrationService,
@@ -68,6 +70,8 @@ const defaultSyncStatus: SyncHistoryItem[] = [
 ]
 
 export function AdministrationDashboard() {
+  const navigate = useNavigate()
+  const addToast = useToast((s) => s.addToast)
   usePageTitle('Dasbor Administrasi')
   // State for modules
   const [modules, setModules] = useState<TenantModuleConfig[]>([])
@@ -409,25 +413,39 @@ export function AdministrationDashboard() {
         <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">Aksi Cepat</h3>
           <div className="space-y-3">
-            <button className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3">
+            <button
+              onClick={() => navigate('/app/admin/settings')}
+              className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3"
+            >
               <Settings className="w-5 h-5 text-slate-500" />
               <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">
                 Konfigurasi Sekolah
               </span>
             </button>
-            <button className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3">
+            <button
+              onClick={() => navigate('/app/admin/user-management')}
+              className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3"
+            >
               <Users className="w-5 h-5 text-slate-500" />
               <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">
                 Manajemen Akun Staf
               </span>
             </button>
-            <button className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3">
+            <button
+              onClick={() => navigate('/app/admin/audit-log')}
+              className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3"
+            >
               <FileText className="w-5 h-5 text-slate-500" />
               <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">
                 Laporan Log Audit
               </span>
             </button>
-            <button className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3">
+            <button
+              onClick={() =>
+                addToast({ type: 'info', message: 'Fitur Cadangan Basis Data segera hadir.' })
+              }
+              className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3"
+            >
               <Database className="w-5 h-5 text-slate-500" />
               <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">
                 Cadangan Basis Data

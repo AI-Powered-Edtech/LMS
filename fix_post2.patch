@@ -1,0 +1,9 @@
+--- src/features/discussions/components/forum/PostItem.tsx
++++ src/features/discussions/components/forum/PostItem.tsx
+@@ -218,2 +218,6 @@
+           <button
++            onClick={() => {
++              navigator.clipboard.writeText(`${window.location.origin}/#/forum/${post.id}`)
++              addToast({ type: 'success', message: 'Tautan disalin ke papan klip.' })
++            }}
+             className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"

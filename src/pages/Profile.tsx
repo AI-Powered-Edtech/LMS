@@ -13,7 +13,7 @@ import {
 import { motion } from 'motion/react'
 import { useEffect } from 'react'
 
-import { OptimizedImage } from '@/src/components/ui'
+import { OptimizedImage, useToast } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { BadgeShowcase } from '@/src/features/gamification/components/BadgeShowcase'
 import { CertificateViewer } from '@/src/features/gamification/components/CertificateViewer'
@@ -32,6 +32,7 @@ import { cn } from '@/src/utils/cn'
 export function Profile() {
   usePageTitle('Profil')
   const { user, role, activeRole, profile } = useAuth()
+  const addToast = useToast((s) => s.addToast)
 
   useEffect(() => {
     document.title = 'Profil — EduSync'
@@ -105,6 +106,9 @@ export function Profile() {
                 />
               </div>
               <button
+                onClick={() =>
+                  addToast({ type: 'info', message: 'Fitur ubah foto profil segera hadir' })
+                }
                 aria-label="Ubah foto profil"
                 className="absolute bottom-0 right-0 w-8 h-8 bg-white dark:bg-slate-700 rounded-full shadow-md border border-slate-200 dark:border-slate-600 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
               >

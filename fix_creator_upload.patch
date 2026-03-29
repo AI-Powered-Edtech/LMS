@@ -1,0 +1,22 @@
+--- src/pages/Creator.tsx
++++ src/pages/Creator.tsx
+@@ -5,3 +5,3 @@
+ import { Bot, FileText, LayoutTemplate, Upload, X, Zap } from 'lucide-react'
+-import { useState } from 'react'
++import { useState, useRef } from 'react'
+ import { useNavigate } from 'react-router-dom'
+@@ -21,2 +21,3 @@
+   const [isGenerating, setIsGenerating] = useState(false)
++  const fileInputRef = useRef<HTMLInputElement | null>(null)
+ 
+@@ -303,3 +304,9 @@
+                   </p>
+-                  <button className="mt-6 px-6 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 shadow-sm">
++                  <input
++                    type="file"
++                    className="hidden"
++                    ref={fileInputRef}
++                    onChange={(e) => e.target.files && handleFileSelect(e.target.files[0])}
++                  />
++                  <button onClick={() => fileInputRef.current?.click()} className="mt-6 px-6 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 shadow-sm">
+                     Pilih File

@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
   const getPath = useRoleBasedPath()
@@ -100,6 +100,7 @@ export function Creator() {
   const [difficulty, setDifficulty] = useState('C3')
   const [dueDateStr, setDueDateStr] = useState(defaultDueDate)
   const [isGenerating, setIsGenerating] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [loadingText, setLoadingText] = useState('Mengekstrak teks...')
   const [result, setResult] = useState<{
     type?: string
@@ -301,7 +302,8 @@ export function Creator() {
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
                     Mendukung .pdf, .docx, .mp4 (Maks 10MB)
                   </p>
-                  <button className="mt-6 px-6 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 shadow-sm">
+                  <input type="file" className="hidden" ref={fileInputRef} onChange={(e) => { if (e.target.files && e.target.files.length > 0) { const f = e.target.files[0]; if (f) { setFile(f);  } } }} />
+                  <button onClick={() => fileInputRef.current?.click()} className="mt-6 px-6 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 shadow-sm">
                     Pilih File
                   </button>
                 </>
@@ -500,6 +502,12 @@ export function Creator() {
                       {q.text}
                     </h3>
                     <button
+                      onClick={() => {
+                        const newText = prompt("Edit soal:", q.text);
+                        if (newText && newText !== q.text) {
+                          setResult((prev: any) => prev ? { ...prev, questions: prev.questions.map((question: any, idx: number) => idx === i ? { ...question, text: newText } : question) } : null);
+                        }
+                      }}
                       className="text-slate-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"
                       aria-label="Edit soal"
                     >
