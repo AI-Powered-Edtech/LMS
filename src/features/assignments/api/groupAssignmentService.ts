@@ -314,15 +314,16 @@ export const groupAssignmentService = {
   },
 
   /**
-   * Fetches tasks for a specific group.
+   * Fetches tasks for a specific group with tenant isolation.
    */
-  async getGroupTasks(groupId: string): Promise<GroupTask[]> {
+  async getGroupTasks(groupId: string, tenantId: string): Promise<GroupTask[]> {
     const { data, error } = await supabase
       .from('group_tasks')
       .select(
         'id, group_id, title, description, assigned_to, status, due_date, created_by, tenant_id, created_at, profiles!group_tasks_assigned_to_fkey(first_name, last_name)'
       )
       .eq('group_id', groupId)
+      .eq('tenant_id', tenantId)
       .order('created_at', { ascending: true })
 
     if (error) {
@@ -334,21 +335,24 @@ export const groupAssignmentService = {
   },
 
   /**
-   * Creates a new task for a group.
+   * Creates a new task for a group with tenant isolation.
    */
-  async createGroupTask(groupId: string, taskData: CreateGroupTaskInput): Promise<GroupTask> {
-    const { data: user } = await supabase.auth.getUser()
-    if (!user.user) throw new Error('Not authenticated')
-
+  async createGroupTask(
+    groupId: string,
+    taskData: CreateGroupTaskInput,
+    userId: string,
+    tenantId: string
+  ): Promise<GroupTask> {
     const { data: newTask, error } = await supabase
       .from('group_tasks')
       .insert({
         group_id: groupId,
+        tenant_id: tenantId,
         title: taskData.title,
         description: taskData.description,
         assigned_to: taskData.assigned_to,
         due_date: taskData.due_date,
-        created_by: user.user.id,
+        created_by: userId,
       })
       .select(
         'id, group_id, title, description, assigned_to, status, due_date, created_by, tenant_id, created_at, profiles!group_tasks_assigned_to_fkey(first_name, last_name)'
@@ -364,13 +368,18 @@ export const groupAssignmentService = {
   },
 
   /**
-   * Updates the status of a group task.
+   * Updates the status of a group task with tenant isolation.
    */
   async updateGroupTaskStatus(
     taskId: string,
-    status: 'todo' | 'in_progress' | 'done'
+    status: 'todo' | 'in_progress' | 'done',
+    tenantId: string
   ): Promise<void> {
-    const { error } = await supabase.from('group_tasks').update({ status }).eq('id', taskId)
+    const { error } = await supabase
+      .from('group_tasks')
+      .update({ status })
+      .eq('id', taskId)
+      .eq('tenant_id', tenantId)
 
     if (error) {
       logDevError('groupAssignmentService', 'Error updating group task status:', error)
@@ -379,15 +388,16 @@ export const groupAssignmentService = {
   },
 
   /**
-   * Fetches messages for a specific group chat.
+   * Fetches messages for a specific group chat with tenant isolation.
    */
-  async getGroupMessages(groupId: string): Promise<GroupMessage[]> {
+  async getGroupMessages(groupId: string, tenantId: string): Promise<GroupMessage[]> {
     const { data, error } = await supabase
       .from('group_messages')
       .select(
         'id, group_id, user_id, content, tenant_id, created_at, profiles!group_messages_user_id_fkey(first_name, last_name)'
       )
       .eq('group_id', groupId)
+      .eq('tenant_id', tenantId)
       .order('created_at', { ascending: true })
 
     if (error) {
@@ -399,18 +409,21 @@ export const groupAssignmentService = {
   },
 
   /**
-   * Sends a new message to a group chat.
+   * Sends a new message to a group chat with tenant isolation.
    */
-  async sendGroupMessage(groupId: string, content: string): Promise<GroupMessage> {
-    const { data: user } = await supabase.auth.getUser()
-    if (!user.user) throw new Error('Not authenticated')
-
+  async sendGroupMessage(
+    groupId: string,
+    content: string,
+    userId: string,
+    tenantId: string
+  ): Promise<GroupMessage> {
     const { data: newMessage, error } = await supabase
       .from('group_messages')
       .insert({
         group_id: groupId,
+        tenant_id: tenantId,
         content,
-        user_id: user.user.id,
+        user_id: userId,
       })
       .select(
         'id, group_id, user_id, content, tenant_id, created_at, profiles!group_messages_user_id_fkey(first_name, last_name)'
@@ -424,6 +437,33 @@ export const groupAssignmentService = {
 
     return newMessage as unknown as GroupMessage
   },
+
+  /**
+   * Subscribes to realtime group messages inserts.
+   */
+  subscribeToGroupMessages(groupId: string, onInsert: (message: GroupMessage) => void) {
+    const channel = supabase
+      .channel(`group_messages:${groupId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'group_messages',
+          filter: `group_id=eq.${groupId}`,
+        },
+        (payload) => {
+          onInsert(payload.new as GroupMessage)
+        }
+      )
+      .subscribe()
+
+    return {
+      unsubscribe: () => {
+        void supabase.removeChannel(channel)
+      },
+    }
+  },
 }
 
 // ============================================================
@@ -431,25 +471,28 @@ export const groupAssignmentService = {
 // ============================================================
 
 export const groupAssignmentTaskService = {
-  async getGroupTasks(groupId: string): Promise<GroupTask[]> {
-    return groupAssignmentService.getGroupTasks(groupId)
+  async getGroupTasks(groupId: string, tenantId: string): Promise<GroupTask[]> {
+    return groupAssignmentService.getGroupTasks(groupId, tenantId)
   },
 
-  async createGroupTask(params: {
-    groupId: string
-    title: string
-    assignee_id?: string
-  }): Promise<string> {
-    const task = await groupAssignmentService.createGroupTask(params.groupId, {
-      title: params.title,
-      assigned_to: params.assignee_id,
-    })
+  async createGroupTask(
+    params: { groupId: string; title: string; assignee_id?: string },
+    userId: string,
+    tenantId: string
+  ): Promise<string> {
+    const task = await groupAssignmentService.createGroupTask(
+      params.groupId,
+      { title: params.title, assigned_to: params.assignee_id },
+      userId,
+      tenantId
+    )
     return task.id
   },
 
   async updateGroupTaskStatus(
     taskId: string,
-    status: 'pending' | 'in_progress' | 'completed'
+    status: 'pending' | 'in_progress' | 'completed',
+    tenantId: string
   ): Promise<void> {
     // Map legacy status values to new schema values
     const statusMap: Record<string, 'todo' | 'in_progress' | 'done'> = {
@@ -457,7 +500,11 @@ export const groupAssignmentTaskService = {
       in_progress: 'in_progress',
       completed: 'done',
     }
-    return groupAssignmentService.updateGroupTaskStatus(taskId, statusMap[status] ?? 'todo')
+    return groupAssignmentService.updateGroupTaskStatus(
+      taskId,
+      statusMap[status] ?? 'todo',
+      tenantId
+    )
   },
 
   async deleteGroupTask(taskId: string): Promise<void> {

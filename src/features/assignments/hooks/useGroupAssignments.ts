@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
 
 import {
   CreateGroupInput,
@@ -85,18 +84,22 @@ export function useCreateGroups(assignmentId: string) {
 // ============================================================
 
 export function useGroupTasks(groupId: string | undefined) {
+  const { tenantId } = useAuth()
+
   return useQuery<GroupTask[]>({
     queryKey: groupAssignmentKeys.groupTasks(groupId!),
-    queryFn: () => groupAssignmentService.getGroupTasks(groupId!),
-    enabled: !!groupId,
+    queryFn: () => groupAssignmentService.getGroupTasks(groupId!, tenantId!),
+    enabled: !!groupId && !!tenantId,
   })
 }
 
 export function useCreateGroupTask(groupId: string) {
+  const { user, tenantId } = useAuth()
   const queryClient = useQueryClient()
 
   return useMutation<GroupTask, Error, CreateGroupTaskInput>({
-    mutationFn: (data) => groupAssignmentService.createGroupTask(groupId, data),
+    mutationFn: (data) =>
+      groupAssignmentService.createGroupTask(groupId, data, user?.id ?? '', tenantId!),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: groupAssignmentKeys.groupTasks(groupId),
@@ -106,11 +109,12 @@ export function useCreateGroupTask(groupId: string) {
 }
 
 export function useUpdateGroupTaskStatus(groupId: string) {
+  const { tenantId } = useAuth()
   const queryClient = useQueryClient()
 
   return useMutation<void, Error, { taskId: string; status: 'todo' | 'in_progress' | 'done' }>({
     mutationFn: ({ taskId, status }) =>
-      groupAssignmentService.updateGroupTaskStatus(taskId, status),
+      groupAssignmentService.updateGroupTaskStatus(taskId, status, tenantId!),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: groupAssignmentKeys.groupTasks(groupId),
@@ -120,47 +124,34 @@ export function useUpdateGroupTaskStatus(groupId: string) {
 }
 
 export function useGroupMessages(groupId: string | undefined) {
+  const { tenantId } = useAuth()
   const queryClient = useQueryClient()
 
   const query = useQuery<GroupMessage[]>({
     queryKey: groupAssignmentKeys.groupMessages(groupId!),
-    queryFn: () => groupAssignmentService.getGroupMessages(groupId!),
-    enabled: !!groupId,
+    queryFn: () => groupAssignmentService.getGroupMessages(groupId!, tenantId!),
+    enabled: !!groupId && !!tenantId,
   })
 
   useEffect(() => {
     if (!groupId) return
 
-    const channel = supabase
-      .channel(`group_messages:${groupId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'group_messages',
-          filter: `group_id=eq.${groupId}`,
-        },
-        (payload) => {
-          queryClient.setQueryData<GroupMessage[]>(
-            groupAssignmentKeys.groupMessages(groupId),
-            (old) => {
-              if (!old) return [payload.new as GroupMessage]
-
-              // We refetch here to ensure we get joined profile data if the insert didn't have it
-              // Or alternatively invalidate
-              void queryClient.invalidateQueries({
-                queryKey: groupAssignmentKeys.groupMessages(groupId),
-              })
-              return old
-            }
-          )
+    const subscription = groupAssignmentService.subscribeToGroupMessages(groupId, (newMessage) => {
+      queryClient.setQueryData<GroupMessage[]>(
+        groupAssignmentKeys.groupMessages(groupId),
+        (old) => {
+          if (!old) return [newMessage]
+          // Invalidate to fetch relationships (profiles) properly
+          void queryClient.invalidateQueries({
+            queryKey: groupAssignmentKeys.groupMessages(groupId),
+          })
+          return old
         }
       )
-      .subscribe()
+    })
 
     return () => {
-      void supabase.removeChannel(channel)
+      subscription.unsubscribe()
     }
   }, [groupId, queryClient])
 
@@ -168,9 +159,11 @@ export function useGroupMessages(groupId: string | undefined) {
 }
 
 export function useSendGroupMessage(groupId: string) {
+  const { user, tenantId } = useAuth()
+
   return useMutation<GroupMessage, Error, string>({
-    mutationFn: (content) => groupAssignmentService.sendGroupMessage(groupId, content),
-    // we don't need to invalidate since realtime subscription handles updates
+    mutationFn: (content) =>
+      groupAssignmentService.sendGroupMessage(groupId, content, user?.id ?? '', tenantId!),
   })
 }
 

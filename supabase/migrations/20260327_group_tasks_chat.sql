@@ -39,7 +39,8 @@ ALTER TABLE group_messages ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for group_tasks
 CREATE POLICY "tenant_isolation_group_tasks" ON group_tasks
-  USING (tenant_id = get_my_tenant_id());
+  USING (tenant_id = (SELECT get_my_tenant_id()))
+  WITH CHECK (tenant_id = (SELECT get_my_tenant_id()));
 
 CREATE POLICY "group_members_can_access_tasks" ON group_tasks
   FOR ALL
@@ -51,9 +52,22 @@ CREATE POLICY "group_members_can_access_tasks" ON group_tasks
     )
   );
 
+CREATE POLICY "group_members_can_update_task_status" ON group_tasks
+  FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM assignment_group_members agm
+      WHERE agm.group_id = group_tasks.group_id
+        AND agm.user_id = auth.uid()
+    )
+    AND tenant_id = (SELECT get_my_tenant_id())
+  )
+  WITH CHECK (tenant_id = (SELECT get_my_tenant_id()));
+
 -- RLS Policies for group_messages
 CREATE POLICY "tenant_isolation_group_messages" ON group_messages
-  USING (tenant_id = get_my_tenant_id());
+  USING (tenant_id = (SELECT get_my_tenant_id()))
+  WITH CHECK (tenant_id = (SELECT get_my_tenant_id()));
 
 CREATE POLICY "group_members_can_access_messages" ON group_messages
   FOR ALL
