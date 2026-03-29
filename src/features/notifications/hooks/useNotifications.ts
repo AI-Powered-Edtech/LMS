@@ -8,6 +8,7 @@ import { useEffect } from 'react'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { supabase } from '@/src/services/supabase/client'
 import { STALE } from '@/src/utils/queryConstants'
+import { captureError } from '@/src/utils/sentry'
 
 import * as notificationApi from '../api/notificationApi'
 import type { Notification, NotificationPreferences } from '../types'
@@ -123,7 +124,8 @@ export function useNotifications(): UseNotificationsReturn {
       )
       return { previous }
     },
-    onError: (_err, _id, ctx) => {
+    onError: (err, _id, ctx) => {
+      captureError(err, { context: 'useNotifications.markRead' })
       // Roll back to previous state if server call fails
       if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous)
     },
@@ -144,7 +146,8 @@ export function useNotifications(): UseNotificationsReturn {
       )
       return { previous }
     },
-    onError: (_err, _vars, ctx) => {
+    onError: (err, _vars, ctx) => {
+      captureError(err, { context: 'useNotifications.markAllRead' })
       if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous)
     },
     onSettled: () => {
@@ -195,6 +198,9 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
       queryClient.invalidateQueries({
         queryKey: notificationKeys.preferences(tenantId!, user!.id),
       })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useNotificationPreferences.save' })
     },
   })
 

@@ -1,9 +1,8 @@
 import { Bell, Globe, Lock, LogOut, Monitor, User } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
-import { settingsService } from '@/src/features/settings/api/settingsService'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
 import { captureError } from '@/src/utils/sentry'
@@ -39,48 +38,9 @@ export function Settings() {
   const [notifGrade, setNotifGrade] = useState(true)
   const [notifAnnouncement, setNotifAnnouncement] = useState(true)
 
-  const handleSaveProfile = useCallback(async () => {
-    if (!fullName.trim()) return
-    setSavingProfile(true)
-    setProfileMessage(null)
-    try {
-      const [firstName, ...rest] = fullName.trim().split(' ')
-      const lastName = rest.join(' ')
-      await settingsService.updateProfile(user!.id, { firstName, lastName })
-      setProfileMessage({ type: 'success', text: 'Profil berhasil diperbarui.' })
-    } catch {
-      setProfileMessage({ type: 'error', text: 'Gagal memperbarui profil. Coba lagi.' })
-    } finally {
-      setSavingProfile(false)
-    }
-  }, [fullName, user])
-
-  const handleChangePassword = useCallback(async () => {
-    setPasswordMessage(null)
-    if (newPassword.length < 6) {
-      setPasswordMessage({ type: 'error', text: 'Kata sandi baru minimal 6 karakter.' })
-      return
-    }
-    if (newPassword !== confirmPassword) {
-      setPasswordMessage({ type: 'error', text: 'Konfirmasi kata sandi tidak cocok.' })
-      return
-    }
-    setSavingPassword(true)
-    try {
-      await settingsService.changePassword(newPassword)
-      setPasswordMessage({ type: 'success', text: 'Kata sandi berhasil diubah.' })
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmPassword('')
-    } catch {
-      setPasswordMessage({
-        type: 'error',
-        text: 'Gagal mengubah kata sandi. Pastikan kata sandi lama benar.',
-      })
-    } finally {
-      setSavingPassword(false)
-    }
-  }, [newPassword, confirmPassword])
+  // NOTE: Profile editing and password changing are handled inside AccountTab and
+  // SecurityTab components respectively — they own their own state. This page-level
+  // component only handles sign-out and notification preference toggles.
 
   const handleSignOut = useCallback(async () => {
     try {
@@ -89,7 +49,7 @@ export function Settings() {
       if (import.meta.env.DEV) console.error('[Settings] signOut error:', e)
       captureError(e, { context: 'Settings.handleSignOut' })
     }
-  }
+  }, [signOut])
 
   const displayName =
     profile?.first_name && profile?.last_name
@@ -209,27 +169,46 @@ export function Settings() {
           {activeTab === 'language' && (
             <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
               <div className="p-6 border-b border-slate-100 dark:border-slate-700">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Bahasa & Wilayah</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Pengaturan bahasa dan format regional.</p>
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                  Bahasa & Wilayah
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                  Pengaturan bahasa dan format regional.
+                </p>
               </div>
               <div className="p-6 space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Bahasa</label>
-                  <select defaultValue="id" className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white">
+                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                    Bahasa
+                  </label>
+                  <select
+                    defaultValue="id"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white"
+                  >
                     <option value="id">Bahasa Indonesia</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Zona Waktu</label>
-                  <select defaultValue="Asia/Jakarta" className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white">
+                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                    Zona Waktu
+                  </label>
+                  <select
+                    defaultValue="Asia/Jakarta"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white"
+                  >
                     <option value="Asia/Jakarta">WIB (UTC+7) — Jakarta</option>
                     <option value="Asia/Makassar">WITA (UTC+8) — Makassar</option>
                     <option value="Asia/Jayapura">WIT (UTC+9) — Jayapura</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Format Tanggal</label>
-                  <select defaultValue="dd/mm/yyyy" className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white">
+                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                    Format Tanggal
+                  </label>
+                  <select
+                    defaultValue="dd/mm/yyyy"
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white"
+                  >
                     <option value="dd/mm/yyyy">DD/MM/YYYY (31/12/2026)</option>
                     <option value="yyyy-mm-dd">YYYY-MM-DD (2026-12-31)</option>
                   </select>

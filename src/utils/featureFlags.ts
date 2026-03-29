@@ -1,6 +1,7 @@
 // EduSync LMS — Feature Flags
 // Tenant-aware, rollout-percentage feature flag system backed by Supabase
 
+import { useAuth } from '@/src/contexts/AuthContext'
 import { supabase } from '@/src/services/supabase/client'
 
 export interface FeatureFlag {
@@ -77,10 +78,22 @@ export function isFeatureEnabled(flagName: string, tenantId?: string, userId?: s
 // React hook (synchronous, uses cached value)
 // ---------------------------------------------------------------------------
 
+/**
+ * Returns whether a feature flag is enabled for the currently active tenant.
+ *
+ * FIX: The previous version only checked `flag.enabled` (global) and ignored
+ * `tenant_ids` and `rollout_percentage`. This meant tenant-specific overrides
+ * were never applied when consuming the flag via React — defeating the per-tenant
+ * feature flag system entirely.
+ *
+ * The hook now reads the active tenant and user from AuthContext so it evaluates
+ * the same logic as the standalone `isFeatureEnabled()` helper, including:
+ *  - Tenant allowlist (flag.tenant_ids)
+ *  - Per-user gradual rollout (flag.rollout_percentage)
+ */
 export function useFeatureFlag(flagName: string): boolean {
-  if (!flagCache) return false
-  const flag = flagCache.get(flagName)
-  return flag?.enabled ?? false
+  const { tenantId, user } = useAuth()
+  return isFeatureEnabled(flagName, tenantId ?? undefined, user?.id)
 }
 
 // ---------------------------------------------------------------------------

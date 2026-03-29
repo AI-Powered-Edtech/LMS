@@ -6,7 +6,8 @@ import {
   ModuleStatus,
   studentProgressService,
 } from '@/src/features/progress/api/studentProgressService'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { createQueryKeys } from '@/src/shared/lib/queryKeys'
+import { captureError } from '@/src/utils/sentry'
 
 type Achievement = AchievementData & { icon: 'crown' | 'zap' | 'target' | 'star' }
 
@@ -125,7 +126,8 @@ export function useAddXP() {
         return { previousXp }
       }
     },
-    onError: (_err, _amount, context) => {
+    onError: (err, _amount, context) => {
+      captureError(err, { context: 'useAddXP' })
       // Rollback on error
       if (userId && tenantId && context?.previousXp !== undefined) {
         queryClient.setQueryData(progressKeys.xp(userId, tenantId), context.previousXp)

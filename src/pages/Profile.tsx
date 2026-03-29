@@ -23,6 +23,8 @@ import {
   useStudentCertificates,
   useStudentXPProfile,
 } from '@/src/features/gamification/queries/gamificationQueries'
+import { PasswordChangeForm } from '@/src/features/profile/components/PasswordChangeForm'
+import { ProfileForm } from '@/src/features/profile/components/ProfileForm'
 import { useStudentProgressData } from '@/src/features/progress/hooks/useStudentProgressQueries'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
@@ -75,7 +77,7 @@ export function Profile() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Left Column: Identity Card */}
+        {/* Left Column: Identity Card + Edit Forms */}
         <div className="w-full lg:w-1/3 space-y-6 shrink-0">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -143,6 +145,17 @@ export function Profile() {
                 <span className="truncate">{displayEmail}</span>
               </div>
             </div>
+          </motion.div>
+
+          {/* Edit profile and change password forms */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="space-y-4"
+          >
+            <ProfileForm />
+            <PasswordChangeForm />
           </motion.div>
         </div>
 

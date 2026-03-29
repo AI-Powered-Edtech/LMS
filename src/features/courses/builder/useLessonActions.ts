@@ -57,11 +57,17 @@ export function useLessonActions(
   const deleteLesson = useCallback(
     async (lessonId: string) => {
       if (!tenantId) return
+
+      // Save current modules for rollback
+      const previousModules = state.modules
+
       dispatch({ type: 'DELETE_LESSON', lessonId })
       try {
         await builderLessonService.deleteLesson(lessonId, tenantId)
         broadcast?.({ type: 'DELETE_LESSON', lessonId }, userName ?? '')
       } catch (err: unknown) {
+        // Rollback: restore modules to pre-delete state
+        dispatch({ type: 'SET_MODULES', modules: previousModules })
         if (import.meta.env.DEV) console.error('Failed to delete lesson:', err)
         addToast({
           type: 'error',
@@ -71,7 +77,7 @@ export function useLessonActions(
         })
       }
     },
-    [tenantId, dispatch, addToast, broadcast, userName]
+    [state.modules, tenantId, dispatch, addToast, broadcast, userName]
   )
 
   const reorderLessons = useCallback(
