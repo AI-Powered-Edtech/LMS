@@ -95,8 +95,9 @@ async function loadSecureQueue(): Promise<ProgressQueueItem[]> {
 
     return parsedData
   } catch (e) {
-    if (import.meta.env.DEV)
+    if (import.meta.env.DEV) {
       console.warn('[Offline Queue] Invalid or unauthorized queue detected, clearing.', e)
+    }
     sessionStorage.removeItem(QUEUE_KEY)
     _cachedRawQueue = null
     _cachedQueueData = null
@@ -107,8 +108,9 @@ async function loadSecureQueue(): Promise<ProgressQueueItem[]> {
 async function saveSecureQueue(queue: ProgressQueueItem[]): Promise<void> {
   const sessionKey = await getSessionKey()
   if (!sessionKey) {
-    if (import.meta.env.DEV)
+    if (import.meta.env.DEV) {
       console.warn('[Offline Queue] Cannot save queue without active session')
+    }
     // Clear cache to prevent inconsistencies
     _cachedRawQueue = null
     _cachedQueueData = null
@@ -377,9 +379,9 @@ export const lessonService = {
         resumeAnchor
       )
     } catch {
-      if (import.meta.env.DEV)
-        if (import.meta.env.DEV)
-          console.warn('[Offline Queue] Network error, queuing progress for lesson', lessonId)
+      if (import.meta.env.DEV) {
+        console.warn('[Offline Queue] Network error, queuing progress for lesson', lessonId)
+      }
 
       let queue: ProgressQueueItem[] = await loadSecureQueue()
 
@@ -444,9 +446,9 @@ export const lessonService = {
             item.resumeAnchor
           )
         } catch {
-          if (import.meta.env.DEV)
-            if (import.meta.env.DEV)
-              console.warn('[Offline Queue] Failed to sync item, re-queuing', item.lessonId)
+          if (import.meta.env.DEV) {
+            console.warn('[Offline Queue] Failed to sync item, re-queuing', item.lessonId)
+          }
           remainingQueue.push(item)
         }
       }
