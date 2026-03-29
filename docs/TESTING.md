@@ -30,8 +30,6 @@ When running automated QA via `agent-browser` CLI, standard click simulations so
 
 ## Running the App for Testing
 
-# <<<<<<< HEAD
-
 ```bash
 pnpm install
 pnpm dev
@@ -246,5 +244,3 @@ All URLs for manual testing use hash routing:
 | FG-PRE-001  | No self-serve school registration wizard                                 |
 | BUG-C2-002  | Student course discovery is join-code only (by design)                   |
 | BUG-PRE-006 | Workspace selector "No Workspace Access" text in English                 |
-
-> > > > > > > tundra-boa
