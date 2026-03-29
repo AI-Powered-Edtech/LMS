@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { ArrowRight } from 'lucide-react'
 import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'

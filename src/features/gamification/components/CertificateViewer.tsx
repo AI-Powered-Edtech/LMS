@@ -3,6 +3,7 @@ import { Award, Calendar, Download } from 'lucide-react'
 import { EmptyState, SkeletonCard } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { cn } from '@/src/utils/cn'
+import { escapeHtml } from '@/src/utils/sanitize'
 
 import { useStudentCertificates } from '../queries/gamificationQueries'
 import type { Certificate } from '../types'
@@ -13,9 +14,25 @@ function CertificateCard({ cert }: { cert: Certificate }) {
   const handlePrint = () => {
     const w = window.open('', '_blank')
     if (!w) return
+
+    // SECURITY: All user-controlled values interpolated into document.write() MUST be
+    // escaped via escapeHtml() to prevent Stored XSS. Profile name and course title are
+    // stored in the database and can contain attacker-controlled content.
+    const safeCertNumber = escapeHtml(cert.certificate_number)
+    const safeTenantName = escapeHtml(activeTenant?.name ?? 'EduSync')
+    const safeFirstName = escapeHtml(profile?.first_name ?? '')
+    const safeLastName = escapeHtml(profile?.last_name ?? '')
+    const safeCourseTitle = escapeHtml(cert.course_title)
+    // issued_at is a server-generated timestamp — not user-controlled, no escape needed
+    const issuedDate = new Date(cert.issued_at).toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+
     w.document.write(`
             <!DOCTYPE html>
-            <html><head><title>Sertifikat - ${cert.certificate_number}</title>
+            <html><head><title>Sertifikat - ${safeCertNumber}</title>
             <style>
                 @page { size: landscape; margin: 0; }
                 body { margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: Georgia, serif; background: #fff; }
@@ -30,19 +47,22 @@ function CertificateCard({ cert }: { cert: Certificate }) {
             </style></head><body>
             <div class="cert">
                 <h1>SERTIFIKAT</h1>
-                <p class="school">${activeTenant?.name ?? 'EduSync'}</p>
+                <p class="school">${safeTenantName}</p>
                 <p class="label">Diberikan kepada</p>
-                <p class="name">${profile?.first_name ?? ''} ${profile?.last_name ?? ''}</p>
+                <p class="name">${safeFirstName} ${safeLastName}</p>
                 <p class="label">Atas penyelesaian kursus</p>
-                <p class="course">${cert.course_title}</p>
+                <p class="course">${safeCourseTitle}</p>
                 <p class="meta">
-                    ${new Date(cert.issued_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    &nbsp;·&nbsp; ${cert.certificate_number}
+                    ${issuedDate}
+                    &nbsp;·&nbsp; ${safeCertNumber}
                 </p>
             </div>
             </body></html>
         `)
     w.document.close()
+    // SECURITY: Sever the window.opener reference so the print window cannot
+    // access or manipulate the parent window's DOM / localStorage via JavaScript.
+    w.opener = null
     setTimeout(() => {
       w.print()
     }, 300)
@@ -88,9 +108,22 @@ function CertificateCard({ cert }: { cert: Certificate }) {
 }
 
 export function CertificateViewer({ userId }: { userId?: string }) {
-  const { data: certs, isLoading } = useStudentCertificates(userId)
+  const { data: certs, isLoading, error, refetch } = useStudentCertificates(userId)
 
   if (isLoading) return <SkeletonCard lines={2} />
+
+  // Error state: surface API failures instead of silently showing empty state.
+  // Previously query errors were swallowed — users saw a blank list with no feedback.
+  if (error) {
+    return (
+      <EmptyState
+        icon={<Award className="h-10 w-10" />}
+        title="Gagal memuat sertifikat"
+        description="Terjadi kesalahan saat mengambil data. Silakan coba lagi."
+        action={{ label: 'Coba Lagi', onClick: () => refetch() }}
+      />
+    )
+  }
 
   if (!certs || certs.length === 0) {
     return (

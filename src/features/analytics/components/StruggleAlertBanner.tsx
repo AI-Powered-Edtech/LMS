@@ -1,5 +1,7 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertTriangle } from 'lucide-react'
 import { motion } from 'motion/react'
+import { useMemo } from 'react'
 
 import type { LessonAnalytics } from '../types'
 
@@ -8,12 +10,17 @@ interface StruggleAlertBannerProps {
 }
 
 export function StruggleAlertBanner({ lessonAnalytics }: StruggleAlertBannerProps) {
-  const lessonsWithStruggle = lessonAnalytics.filter((l) => l.struggling_students > 0)
+  // ⚡ Perf: memoize filter/reduce chain — prevents recalculation on every parent re-render
+  const { lessonsWithStruggle, totalStruggling, totalHighRisk } = useMemo(() => {
+    const filtered = lessonAnalytics.filter((l) => l.struggling_students > 0)
+    return {
+      lessonsWithStruggle: filtered,
+      totalStruggling: filtered.reduce((sum, l) => sum + l.struggling_students, 0),
+      totalHighRisk: filtered.reduce((sum, l) => sum + l.high_risk_students, 0),
+    }
+  }, [lessonAnalytics])
 
   if (lessonsWithStruggle.length === 0) return null
-
-  const totalStruggling = lessonsWithStruggle.reduce((sum, l) => sum + l.struggling_students, 0)
-  const totalHighRisk = lessonsWithStruggle.reduce((sum, l) => sum + l.high_risk_students, 0)
 
   return (
     <motion.div

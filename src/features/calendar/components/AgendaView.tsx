@@ -1,4 +1,4 @@
-import { Bell, CheckCircle2, Circle, Clock, MapPin, Paperclip, Video } from 'lucide-react'
+import { Bell, CheckCircle2, Circle, Clock, Download, MapPin, Paperclip, Video } from 'lucide-react'
 import { motion } from 'motion/react'
 
 import type { CalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
@@ -9,6 +9,7 @@ import {
   getPriorityIcon,
 } from '@/src/features/calendar/utils/calendarUtils'
 import { cn } from '@/src/utils/cn'
+import { downloadICal } from '@/src/utils/icalExport'
 
 interface AgendaViewProps {
   events: CalendarEvent[]
@@ -23,9 +24,20 @@ export function AgendaView({ events, today, onToggleCompletion }: AgendaViewProp
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
-      <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6">
-        Agenda Mendatang
-      </h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Agenda Mendatang</h2>
+        {upcomingEvents.length > 0 && (
+          <button
+            type="button"
+            onClick={() => downloadICal(upcomingEvents)}
+            title="Ekspor semua agenda mendatang ke file kalender"
+            className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-xl transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Ekspor ke Kalender (.ics)
+          </button>
+        )}
+      </div>
       <div className="space-y-4">
         {upcomingEvents.map((event, index) => {
           const countdown = getCountdown(event.date, today)

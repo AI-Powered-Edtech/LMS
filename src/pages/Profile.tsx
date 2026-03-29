@@ -23,13 +23,15 @@ import {
   useStudentCertificates,
   useStudentXPProfile,
 } from '@/src/features/gamification/queries/gamificationQueries'
+import { PasswordChangeForm } from '@/src/features/profile/components/PasswordChangeForm'
+import { ProfileForm } from '@/src/features/profile/components/ProfileForm'
 import { useStudentProgressData } from '@/src/features/progress/hooks/useStudentProgressQueries'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
 
 export function Profile() {
   usePageTitle('Profil')
-  const { user, role, profile } = useAuth()
+  const { user, role, activeRole, profile } = useAuth()
 
   useEffect(() => {
     document.title = 'Profil — EduSync'
@@ -37,7 +39,8 @@ export function Profile() {
       document.title = 'EduSync'
     }
   }, [])
-  const isTeacher = role === 'teacher'
+  // SECURITY FIX: Use activeRole (tenant-scoped) instead of global role
+  const isTeacher = activeRole === 'teacher'
 
   // Real data hooks (safe to call unconditionally)
   const { data: xpProfile } = useStudentXPProfile()
@@ -54,8 +57,9 @@ export function Profile() {
     profile?.avatar_url ??
     `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id ?? 'default'}`
 
-  // Role label
-  const roleLabel = role === 'teacher' ? 'Guru' : role === 'admin' ? 'Admin' : 'Siswa'
+  // Use activeRole for display; fall back to global role only if activeRole not yet resolved
+  const displayRole = activeRole ?? role
+  const roleLabel = displayRole === 'teacher' ? 'Guru' : displayRole === 'admin' ? 'Admin' : 'Siswa'
 
   // Student stats from real data
   const totalXP = xpProfile?.total_xp ?? 0
@@ -73,7 +77,7 @@ export function Profile() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Left Column: Identity Card */}
+        {/* Left Column: Identity Card + Edit Forms */}
         <div className="w-full lg:w-1/3 space-y-6 shrink-0">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -141,6 +145,17 @@ export function Profile() {
                 <span className="truncate">{displayEmail}</span>
               </div>
             </div>
+          </motion.div>
+
+          {/* Edit profile and change password forms */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="space-y-4"
+          >
+            <ProfileForm />
+            <PasswordChangeForm />
           </motion.div>
         </div>
 

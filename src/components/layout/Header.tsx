@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Activity, Flame, LogOut, Moon, Star, Sun, UserCircle } from 'lucide-react'
 import { memo, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -11,6 +12,7 @@ import { NotificationBell as AppNotificationBell } from '@/src/features/notifica
 import { useStudentProgressData } from '@/src/features/progress/hooks/useStudentProgressQueries'
 import { NotificationBell as StruggleBell } from '@/src/features/struggle'
 import { cn } from '@/src/utils/cn'
+import { captureError } from '@/src/utils/sentry'
 
 export const Header = memo(function Header() {
   const { xp } = useStudentProgressData()
@@ -26,7 +28,7 @@ export const Header = memo(function Header() {
   const progress = xpNeeded > 0 ? Math.min(((totalXp - xpCurrent) / xpNeeded) * 100, 100) : 100
 
   const { role, profile, signOut } = useAuth()
-  const { theme, toggleTheme } = useTheme()
+  const { resolvedTheme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
@@ -37,8 +39,15 @@ export const Header = memo(function Header() {
         setIsProfileOpen(false)
       }
     }
+    function handleEscapeKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') setIsProfileOpen(false)
+    }
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleEscapeKey)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscapeKey)
+    }
   }, [])
 
   const handleLogout = async () => {
@@ -46,6 +55,7 @@ export const Header = memo(function Header() {
       await signOut()
     } catch (e) {
       if (import.meta.env.DEV) console.error('[Header] signOut error:', e)
+      captureError(e, { context: 'Header.handleLogout' })
     } finally {
       navigate('/login')
     }
@@ -120,9 +130,9 @@ export const Header = memo(function Header() {
           onClick={toggleTheme}
           type="button"
           aria-label="Ubah mode gelap"
-          className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
-          {theme === 'dark' ? (
+          {resolvedTheme === 'dark' ? (
             <Sun className="w-5 h-5 text-amber-400" />
           ) : (
             <Moon className="w-5 h-5 text-slate-500" />
@@ -154,7 +164,10 @@ export const Header = memo(function Header() {
           </button>
 
           {isProfileOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 overflow-hidden z-50">
+            <div
+              role="menu"
+              className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 overflow-hidden z-50"
+            >
               <div className="p-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
                 <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
                   {profile?.first_name} {profile?.last_name}
@@ -164,11 +177,12 @@ export const Header = memo(function Header() {
               <div className="p-2 space-y-1">
                 <button
                   type="button"
+                  role="menuitem"
                   onClick={() => {
                     navigate('/profile')
                     setIsProfileOpen(false)
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-left"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
                   <UserCircle className="w-4 h-4" />
                   Profil Saya
@@ -176,8 +190,9 @@ export const Header = memo(function Header() {
                 <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
                 <button
                   type="button"
+                  role="menuitem"
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-left"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
                   <LogOut className="w-4 h-4" />
                   Keluar

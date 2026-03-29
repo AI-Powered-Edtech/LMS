@@ -15,6 +15,7 @@ import {
   StudentSubmissionPanel,
   TeacherSubmissionsPanel,
 } from '@/src/features/assignments/components/page'
+import type { NewAssignmentData } from '@/src/features/assignments/components/page/CreateAssignmentModal'
 import { useAssignments } from '@/src/features/assignments/hooks/useAssignments'
 import type { AssignmentUiState } from '@/src/features/assignments/types'
 import { useAddCalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
@@ -65,14 +66,7 @@ export function Assignments() {
   const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({})
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
   const [isUploading, setIsUploading] = useState(false)
-  const [newAssignment, setNewAssignment] = useState({
-    title: '',
-    description: '',
-    dueDate: '',
-    maxGrade: 100,
-    class: 'Semua Kelas Aktif',
-    type: 'individual' as 'individual' | 'group',
-  })
+  // newAssignment state is now managed inside CreateAssignmentModal via react-hook-form
 
   const activeAssignment = assignments.find((a) => a.id === selectedAssignment)
   const activeSelectedFile = activeAssignment ? selectedFiles[activeAssignment.id] : null
@@ -171,21 +165,17 @@ export function Assignments() {
     setNewComment('')
   }
 
-  const handleCreateAssignment = () => {
-    if (!newAssignment.title || !newAssignment.dueDate) {
-      addToast({ type: 'error', message: 'Mohon lengkapi Judul dan Tenggat Waktu.' })
-      return
-    }
+  const handleCreateAssignment = (data: NewAssignmentData) => {
     const assignmentToAdd = {
       id: `a${Date.now()}`,
-      title: newAssignment.title,
-      type: newAssignment.type,
-      description: newAssignment.description,
-      dueDate: newAssignment.dueDate,
+      title: data.title,
+      type: data.type,
+      description: data.description ?? '',
+      dueDate: data.due_date,
       status: 'assigned' as const,
       grade: null,
       submittedAt: null,
-      maxGrade: newAssignment.maxGrade,
+      maxGrade: data.max_score,
       rawSubmissions: [],
       attachments: [],
       studentSubmissions: [
@@ -218,40 +208,32 @@ export function Assignments() {
     }
     setAssignments([assignmentToAdd as unknown as AssignmentUiState, ...assignments])
 
-    const dueDateObj = new Date(newAssignment.dueDate)
+    const dueDateObj = new Date(data.due_date)
     addEvent({
-      title: `Tugas: ${newAssignment.title}`,
+      title: `Tugas: ${data.title}`,
       date: dueDateObj,
       time: dueDateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
       type: 'assignment',
       location: 'Online',
-      description: newAssignment.description,
+      description: data.description ?? '',
       priority: 'medium',
       completed: false,
       duration: 0,
     })
     addGradebookAssignment({
       id: assignmentToAdd.id.toString(),
-      title: newAssignment.title,
+      title: data.title,
       type: 'assignment',
-      maxScore: newAssignment.maxGrade,
+      maxScore: data.max_score,
       date: dueDateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
     })
     sendNotification.mutate({
       userId: user!.id,
       type: 'assignment',
       title: 'Tugas Baru Dibuat',
-      message: `${newAssignment.title} telah ditugaskan, ditambahkan ke kalender, dan buku nilai.`,
+      message: `${data.title} telah ditugaskan, ditambahkan ke kalender, dan buku nilai.`,
     })
     setIsCreateModalOpen(false)
-    setNewAssignment({
-      title: '',
-      description: '',
-      dueDate: '',
-      maxGrade: 100,
-      class: 'Semua Kelas Aktif',
-      type: 'individual',
-    })
   }
 
   return (
@@ -437,9 +419,7 @@ export function Assignments() {
       {role === 'teacher' && (
         <CreateAssignmentModal
           isOpen={isCreateModalOpen}
-          assignment={newAssignment}
           onClose={() => setIsCreateModalOpen(false)}
-          onChange={setNewAssignment}
           onCreate={handleCreateAssignment}
         />
       )}

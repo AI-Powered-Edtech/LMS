@@ -4,7 +4,6 @@ import { administrationService } from '../api/administrationService'
 
 const mockOrder = vi.fn()
 const mockSelect = vi.fn(() => ({ order: mockOrder }))
-const _mockFrom = vi.fn(() => ({ select: mockSelect }))
 
 const mockUpdate = vi.fn(() => ({ eq: mockUpdateEq }))
 const mockUpdateEq = vi.fn()

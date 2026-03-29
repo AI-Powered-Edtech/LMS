@@ -10,7 +10,10 @@ import React, {
   useState,
 } from 'react'
 
+import { authService } from '@/src/features/auth/api/authService'
+import { useToast } from '@/src/hooks/useToast'
 import { supabase } from '@/src/services/supabase/client'
+import { addBreadcrumb, captureError, clearSentryUser, setSentryUser } from '@/src/utils/sentry'
 
 export type Role = 'teacher' | 'student' | 'admin'
 
@@ -138,8 +141,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Security: Store only tenant_id in localStorage, not the full tenant object.
       // This is treated as a hint only - must be validated against server memberships.
       localStorage.setItem('activeTenantId', id)
-      if (rawTenants[id]) {
-        setActiveTenantState(rawTenants[id])
+      const tenant = rawTenants[id]
+      if (tenant) {
+        // SECURITY FIX: Reject switching to an inactive tenant.
+        // A deactivated tenant should not be accessible even if the user has a membership.
+        if (!tenant.is_active) {
+          if (import.meta.env.DEV)
+            console.warn(`[Auth] Attempted to switch to inactive tenant ${id} — blocked`)
+          // Remove the stale hint so next page load doesn't re-attempt the switch
+          localStorage.removeItem('activeTenantId')
+          return
+        }
+        addBreadcrumb('Tenant switched', 'auth', { tenantId: id, tenantName: tenant.name })
+        setActiveTenantState(tenant)
         setTenantId(id)
       } else {
         if (import.meta.env.DEV)
@@ -171,20 +185,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!profileData && profileErr) {
         if (import.meta.env.DEV)
           console.warn('[Auth] Profile missing for user, calling ensure_profile_exists()...')
-        const { data: rpcResult, error: rpcErr } = await supabase.rpc('ensure_profile_exists')
-        if (rpcResult && !rpcErr) {
-          // RPC returns full profile row as JSON — extract the fields we need
-          const p = rpcResult as Record<string, unknown>
-          profileData = {
-            id: p.id as string,
-            email: p.email as string,
-            first_name: (p.first_name as string) || '',
-            last_name: (p.last_name as string) || '',
-            avatar_url: (p.avatar_url as string) || null,
-            tenant_id: (p.tenant_id as string) || null,
+        try {
+          await authService.ensureProfileExists()
+          // Re-fetch profile after creation
+          const { data: retryData } = await supabase
+            .from('profiles')
+            .select('id, email, first_name, last_name, avatar_url, tenant_id')
+            .eq('id', userId)
+            .single()
+          if (retryData) profileData = retryData
+        } catch (rpcErr) {
+          if (import.meta.env.DEV) {
+            console.error('[Auth] ensure_profile_exists() failed:', rpcErr)
           }
-        } else if (import.meta.env.DEV) {
-          console.error('[Auth] ensure_profile_exists() failed:', rpcErr)
         }
       }
 
@@ -193,7 +206,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTenantId(profileData.tenant_id)
       }
 
-      // Fetch roles and tenants
+      // Fetch roles and tenants — paginated to prevent blocking on users with many memberships.
+      // Most users have 1–3 tenants; platform admins / consultants may have 50+.
+      // We load the first 20 immediately so the UI can render, then lazily load the rest.
+      const PAGE_SIZE = 20
       const { data: rolesData, error: rolesErr } = await supabase
         .from('user_roles')
         .select(
@@ -209,6 +225,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         `
         )
         .eq('user_id', userId)
+        .range(0, PAGE_SIZE - 1)
 
       if (rolesErr) {
         console.error('Failed to fetch user roles:', rolesErr)
@@ -225,6 +242,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }) => r.role.toLowerCase() as Role
         )
         setRoles(userRoles)
+        // Set Sentry user context so errors are attributed to the correct user/role
+        setSentryUser(userId, getPrimaryRole(userRoles))
 
         const loadedMemberships: TenantMembership[] = []
         const tenantsMap: Record<string, Tenant> = {}
@@ -257,6 +276,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setMemberships(loadedMemberships)
         setRawTenants(tenantsMap)
+
+        // If there might be more memberships (user hit the PAGE_SIZE limit), load
+        // the remaining pages in the background without blocking the UI.
+        if (rolesData.length === PAGE_SIZE) {
+          ;(async () => {
+            let offset = PAGE_SIZE
+            let hasMore = true
+            const extraMemberships: TenantMembership[] = []
+            const extraTenantsMap: Record<string, Tenant> = {}
+
+            while (hasMore) {
+              const { data: more } = await supabase
+                .from('user_roles')
+                .select(`role, tenant_id, tenants ( id, name, slug, is_active )`)
+                .eq('user_id', userId)
+                .range(offset, offset + PAGE_SIZE - 1)
+
+              if (!more || more.length === 0) {
+                hasMore = false
+                break
+              }
+
+              more.forEach((r: (typeof rolesData)[number]) => {
+                if (r.tenants) {
+                  const t = Array.isArray(r.tenants) ? r.tenants[0] : r.tenants
+                  extraMemberships.push({
+                    tenant_id: r.tenant_id,
+                    tenant_name: t.name,
+                    tenant_logo: null,
+                    role: r.role.toLowerCase() as Role,
+                  })
+                  extraTenantsMap[t.id] = {
+                    id: t.id,
+                    name: t.name,
+                    slug: t.slug,
+                    is_active: t.is_active,
+                  }
+                }
+              })
+
+              offset += PAGE_SIZE
+              if (more.length < PAGE_SIZE) hasMore = false
+            }
+
+            if (extraMemberships.length > 0) {
+              setMemberships((prev) => [...prev, ...extraMemberships])
+              setRawTenants((prev) => ({ ...prev, ...extraTenantsMap }))
+            }
+          })()
+        }
 
         // Security: Read tenant_id hint from localStorage and validate against memberships
         const cachedTenantId = localStorage.getItem('activeTenantId')
@@ -299,18 +368,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const pendingToken = localStorage.getItem('pendingInviteToken')
     if (!pendingToken) return
 
+    // Remove the token optimistically to prevent double-processing on concurrent auth events.
+    // If the RPC fails with a transient error (network, not a business logic rejection),
+    // we restore it for one silent retry on the next login.
     localStorage.removeItem('pendingInviteToken')
+
     try {
-      const { data } = await supabase.rpc('accept_invitation', {
-        p_token: pendingToken,
-      })
+      const data = await authService.acceptInvitation(pendingToken)
       if (data?.success) {
+        addBreadcrumb('Invitation accepted', 'auth')
         // Re-fetch user data to pick up the upgraded role
         fetchLock.current = false // Allow re-fetch
         await fetchUserData(userId)
       }
     } catch (e) {
       if (import.meta.env.DEV) console.error('Failed to accept invitation:', e)
+      captureError(e, { context: 'processPendingInvite' })
+
+      const errorMsg = (e instanceof Error ? e.message : String(e)).toLowerCase()
+      // Permanent failures (invalid/expired/used tokens) — give up immediately.
+      // Transient failures (network errors, timeouts) — store back for one auto-retry.
+      const isPermanentFailure =
+        errorMsg.includes('invalid') ||
+        errorMsg.includes('expired') ||
+        errorMsg.includes('already used') ||
+        errorMsg.includes('not found')
+
+      const retryCount = parseInt(localStorage.getItem('pendingInviteRetryCount') ?? '0')
+      if (!isPermanentFailure && retryCount < 1) {
+        // Restore token for silent retry on next auth event
+        localStorage.setItem('pendingInviteToken', pendingToken)
+        localStorage.setItem('pendingInviteRetryCount', '1')
+        if (import.meta.env.DEV)
+          console.warn('[Auth] Transient invite error — will retry on next login')
+        return
+      }
+      localStorage.removeItem('pendingInviteRetryCount')
+
+      useToast.getState().addToast({
+        type: 'error',
+        message: 'Undangan tidak valid atau sudah kadaluarsa.',
+        description: 'Hubungi administrator untuk mendapatkan undangan baru.',
+      })
     }
   }
 
@@ -319,21 +418,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!pendingCode) return
     localStorage.removeItem('pendingJoinCode')
     try {
-      await supabase.rpc('enroll_student', { p_join_code: pendingCode })
+      await authService.enrollStudent(pendingCode)
+      // UX FIX: Confirm successful enrollment to user
+      useToast.getState().addToast({
+        type: 'success',
+        message: 'Berhasil bergabung ke kelas!',
+      })
     } catch (e) {
       if (import.meta.env.DEV) console.error('[Auth] Failed to enroll with pending join code:', e)
+      captureError(e, { context: 'processPendingJoinCode' })
+      // UX FIX: Inform user instead of silent failure
+      useToast.getState().addToast({
+        type: 'error',
+        message: 'Kode kelas tidak valid.',
+        description: 'Periksa kembali kode dari guru Anda dan coba lagi.',
+      })
     }
   }
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
+    // Wrap fetchUserData with a 12-second timeout. Without this, a Supabase network
+    // hang would leave the user on the loading screen indefinitely with no way out.
+    const FETCH_TIMEOUT_MS = 12_000
+    const withTimeout = (promise: Promise<void>): Promise<void> =>
+      Promise.race([
+        promise,
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error('[Auth] fetchUserData timed out after 12s')),
+            FETCH_TIMEOUT_MS
+          )
+        ),
+      ])
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s)
       setUser(s?.user ?? null)
       if (s?.user) {
         wasAuthenticatedRef.current = true
-        fetchUserData(s.user.id)
+        addBreadcrumb('Session restored — fetching user data', 'auth', { userId: s.user.id })
+        withTimeout(fetchUserData(s.user.id))
           .then(() => processPendingInvite(s!.user.id))
           .then(() => processPendingJoinCode())
           .finally(() => {
@@ -353,19 +479,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(s?.user ?? null)
       if (s?.user) {
         wasAuthenticatedRef.current = true
+        addBreadcrumb(`Auth state changed: ${_event}`, 'auth', { userId: s.user.id })
         // FIX: Set loadingMemberships=true BEFORE fetch starts.
         // Without this, there is a brief window where loading=false AND
         // memberships=[] — causing WorkspaceSelector to flash
         // "No Workspace Access" before data arrives.
         setLoadingMemberships(true)
-        fetchUserData(s.user.id)
+        withTimeout(fetchUserData(s.user.id))
           .then(() => processPendingInvite(s!.user.id))
           .then(() => processPendingJoinCode())
           .then(() => {
             setLoading(false)
           })
-          .catch(() => {
+          .catch((err) => {
+            // Defence-in-depth: fetchUserData has its own finally that resets
+            // loadingMemberships, but if processPendingInvite or processPendingJoinCode
+            // throws after fetchUserData completes, we ensure the UI is never left
+            // in a perpetual loading state.
+            if (import.meta.env.DEV) console.error('[Auth] Auth chain failed:', err)
+            captureError(err, { context: 'authStateChange.fetchChain', event: _event })
             setLoading(false)
+            setLoadingMemberships(false)
           })
       } else {
         // Detect session expiry: user was authenticated but session became null
@@ -412,7 +546,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase.auth.refreshSession()
         if (error) {
           console.error('[Auth] Proactive token refresh failed:', error)
-          // If refresh fails and we had an active session, mark as expired and sign out
+          captureError(error, { context: 'proactiveTokenRefresh' })
+          addBreadcrumb('Proactive token refresh failed — signing out', 'auth', {
+            error: error.message,
+          })
+          // Notify user BEFORE signing out so they understand why they are logged out
+          useToast.getState().addToast({
+            type: 'error',
+            message: 'Sesi Anda telah berakhir',
+            description: 'Silakan masuk kembali untuk melanjutkan.',
+          })
           setSessionExpired(true)
           await signOut()
         }
@@ -459,8 +602,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   const signOut = useCallback(async () => {
-    // Clear localStorage - only store tenant_id hint, not full objects
-    localStorage.removeItem('activeTenantId')
+    addBreadcrumb('User signing out', 'auth')
+    // Clear Sentry user context so future errors aren't attributed to logged-out user
+    clearSentryUser()
+
+    // SECURITY FIX: Clear ALL auth-related localStorage keys on sign-out.
+    // Previously only 'activeTenantId' was removed. 'pendingInviteToken' and
+    // 'pendingJoinCode' were left behind, allowing the next user on the same
+    // browser to inherit a pending invite and be auto-added to a different tenant.
+    // All 'ai_tutor_session_*' keys are also cleared to prevent session ID leakage.
+    const AUTH_KEYS = [
+      'activeTenantId',
+      'pendingInviteToken',
+      'pendingJoinCode',
+      'pendingInviteRetryCount',
+    ]
+    AUTH_KEYS.forEach((key) => localStorage.removeItem(key))
+    // Remove all dynamically-named AI tutor session keys
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith('ai_tutor_session_'))
+      .forEach((k) => localStorage.removeItem(k))
+
     // Clear user+session eagerly so AuthGuard redirects to /login immediately
     setUser(null)
     setSession(null)

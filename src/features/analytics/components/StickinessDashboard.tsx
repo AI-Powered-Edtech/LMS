@@ -1,5 +1,8 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { useMemo } from 'react'
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+
+import { useTheme } from '@/src/contexts/ThemeContext'
 
 import { RetentionRow } from '../types'
 
@@ -8,6 +11,8 @@ interface StickinessDashboardProps {
 }
 
 export function StickinessDashboard({ data }: StickinessDashboardProps) {
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
   const metrics = useMemo(() => {
     const cohortWeeks = [...new Set(data.map((r) => r.cohort_week))]
 
@@ -66,11 +71,28 @@ export function StickinessDashboard({ data }: StickinessDashboardProps) {
           <p className="mb-2 text-xs font-medium text-slate-500">Tren Retensi Minggu 1</p>
           <ResponsiveContainer width="100%" height={120}>
             <LineChart data={metrics.trendData}>
-              <XAxis dataKey="week" tick={{ fontSize: 10 }} />
-              <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
+              <XAxis
+                dataKey="week"
+                tick={{ fontSize: 10, fill: isDark ? '#94a3b8' : '#64748b' }}
+                axisLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+                tickLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+              />
+              <YAxis
+                domain={[0, 100]}
+                tick={{ fontSize: 10, fill: isDark ? '#94a3b8' : '#64748b' }}
+                axisLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+                tickLine={{ stroke: isDark ? '#334155' : '#e2e8f0' }}
+              />
               <Tooltip
                 formatter={(v: unknown) => [`${v}%`, 'Retensi']}
-                contentStyle={{ fontSize: 12 }}
+                contentStyle={{
+                  fontSize: 12,
+                  backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                  border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                  borderRadius: '0.5rem',
+                  color: isDark ? '#f1f5f9' : '#0f172a',
+                }}
+                labelStyle={{ color: isDark ? '#94a3b8' : '#64748b' }}
               />
               <Line
                 type="monotone"

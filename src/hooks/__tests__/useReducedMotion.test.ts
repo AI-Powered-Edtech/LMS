@@ -131,10 +131,9 @@ describe('useReducedMotion', () => {
 
     expect(result.current).toBe(false)
 
-    // Simulate media query change — capture in const to avoid TS never-narrowing
-    const handler = changeHandler as ((e: MediaQueryListEvent) => void) | null
-    if (handler) {
-      handler({
+    // Simulate media query change
+    if (changeHandler) {
+      changeHandler({
         matches: true,
         media: '(prefers-reduced-motion: reduce)',
       } as unknown as MediaQueryListEvent)

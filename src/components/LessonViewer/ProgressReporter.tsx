@@ -26,33 +26,28 @@ export function ProgressReporter({
   const lastSent = useRef({ percentage: 0, position: 0 })
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+  // Store latest prop values in refs for stable callbacks (FL-1 fix)
+  // This eliminates interval churn caused by sendUpdate dependency changes
+  const latestRef = useRef({ status, progressPercentage, lastPosition })
+  latestRef.current = { status, progressPercentage, lastPosition }
+
   const sendUpdate = useCallback(async () => {
+    const { status: s, progressPercentage: pct, lastPosition: pos } = latestRef.current
+
     // Only send if there's meaningful change
-    if (
-      progressPercentage <= lastSent.current.percentage &&
-      (lastPosition ?? 0) <= lastSent.current.position
-    ) {
+    if (pct <= lastSent.current.percentage && (pos ?? 0) <= lastSent.current.position) {
       return
     }
 
     try {
-      await lessonService.queueProgressUpdate(
-        lessonId,
-        tenantId,
-        status,
-        progressPercentage,
-        lastPosition
-      )
-      lastSent.current = {
-        percentage: progressPercentage,
-        position: lastPosition ?? 0,
-      }
+      await lessonService.queueProgressUpdate(lessonId, tenantId, s, pct, pos)
+      lastSent.current = { percentage: pct, position: pos ?? 0 }
     } catch (err) {
       if (import.meta.env.DEV) console.error('[ProgressReporter] Failed to sync:', err)
     }
-  }, [lessonId, tenantId, status, progressPercentage, lastPosition])
+  }, [lessonId, tenantId]) // Stable deps only — no interval churn
 
-  // Throttled 5-second interval
+  // Throttled 5-second interval — stable, won't recreate on progress changes
   useEffect(() => {
     if (!enabled) return
 
@@ -70,18 +65,9 @@ export function ProgressReporter({
     }
 
     const handleBeforeUnload = () => {
-      // Flush immediate progress to queue if it hasn't been sent yet
-      if (
-        progressPercentage > lastSent.current.percentage ||
-        (lastPosition ?? 0) > lastSent.current.position
-      ) {
-        lessonService.queueProgressUpdate(
-          lessonId,
-          tenantId,
-          status,
-          progressPercentage,
-          lastPosition
-        )
+      const { status: s, progressPercentage: pct, lastPosition: pos } = latestRef.current
+      if (pct > lastSent.current.percentage || (pos ?? 0) > lastSent.current.position) {
+        lessonService.queueProgressUpdate(lessonId, tenantId, s, pct, pos)
       }
     }
 
@@ -92,16 +78,16 @@ export function ProgressReporter({
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('beforeunload', handleBeforeUnload)
     }
-  }, [tenantId, lessonId, status, progressPercentage, lastPosition])
+  }, [tenantId, lessonId])
 
   // Flush on unmount or lesson change
   useEffect(() => {
     return () => {
-      if (progressPercentage > lastSent.current.percentage) {
+      if (latestRef.current.progressPercentage > lastSent.current.percentage) {
         sendUpdate()
       }
     }
-  }, [lessonId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [lessonId, sendUpdate])
 
   // This is an invisible reporting component
   return null

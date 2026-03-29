@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 
@@ -79,6 +80,17 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold">{toast.message}</p>
         {toast.description && <p className="mt-1 text-sm opacity-80">{toast.description}</p>}
+        {toast.action && (
+          <button
+            onClick={() => {
+              toast.action!.onClick()
+              handleDismiss()
+            }}
+            className="mt-2 text-xs font-bold underline underline-offset-2 opacity-80 hover:opacity-100 transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-current"
+          >
+            {toast.action.label}
+          </button>
+        )}
       </div>
       <button
         onClick={handleDismiss}

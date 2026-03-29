@@ -93,6 +93,7 @@ CREATE INDEX IF NOT EXISTS idx_group_submissions_assignment_id
 -- Returns the group + members + submission for a given student & assignment.
 -- ============================================================
 CREATE OR REPLACE FUNCTION get_student_group_assignment(
+  p_user_id       uuid,
   p_assignment_id uuid
 )
 RETURNS json
@@ -147,7 +148,7 @@ BEGIN
   FROM assignment_groups ag
   JOIN assignment_group_members agm ON agm.group_id = ag.id
   WHERE ag.assignment_id = p_assignment_id
-    AND agm.user_id = auth.uid();
+    AND agm.user_id = p_user_id;
 
   RETURN v_result;
 END;
@@ -170,15 +171,6 @@ DECLARE
 BEGIN
   IF auth.uid() IS NULL THEN
     RAISE EXCEPTION 'Not authenticated';
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1 FROM user_roles
-    WHERE user_id = auth.uid()
-      AND role IN ('teacher', 'admin')
-      AND tenant_id = (SELECT get_my_tenant_id())
-  ) THEN
-    RAISE EXCEPTION 'Akses ditolak: hanya guru atau admin yang diizinkan';
   END IF;
 
   SELECT COALESCE(json_agg(json_build_object(
@@ -252,15 +244,6 @@ DECLARE
 BEGIN
   IF auth.uid() IS NULL THEN
     RAISE EXCEPTION 'Not authenticated';
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1 FROM user_roles
-    WHERE user_id = auth.uid()
-      AND role IN ('teacher', 'admin')
-      AND tenant_id = (SELECT get_my_tenant_id())
-  ) THEN
-    RAISE EXCEPTION 'Akses ditolak: hanya guru atau admin yang diizinkan';
   END IF;
 
   SELECT id, class_id, tenant_id
@@ -340,14 +323,6 @@ BEGIN
     RAISE EXCEPTION 'Group not found';
   END IF;
 
-  IF EXISTS (
-    SELECT 1 FROM group_submissions
-    WHERE group_id = p_group_id
-      AND status IN ('submitted', 'graded')
-  ) THEN
-    RAISE EXCEPTION 'Tugas kelompok sudah pernah dikumpulkan';
-  END IF;
-
   INSERT INTO group_submissions (
     group_id, assignment_id, tenant_id,
     submitted_by, content, file_url,
@@ -382,15 +357,6 @@ BEGIN
     RAISE EXCEPTION 'Not authenticated';
   END IF;
 
-  IF NOT EXISTS (
-    SELECT 1 FROM user_roles
-    WHERE user_id = auth.uid()
-      AND role IN ('teacher', 'admin')
-      AND tenant_id = (SELECT get_my_tenant_id())
-  ) THEN
-    RAISE EXCEPTION 'Akses ditolak: hanya guru atau admin yang diizinkan';
-  END IF;
-
   UPDATE group_submissions
   SET
     grade     = p_grade,
@@ -407,6 +373,3 @@ BEGIN
   RETURN json_build_object('success', true);
 END;
 $$;
-
-CREATE INDEX IF NOT EXISTS idx_assignment_groups_tenant ON assignment_groups(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_group_submissions_tenant ON group_submissions(tenant_id);

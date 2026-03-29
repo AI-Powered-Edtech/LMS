@@ -6,6 +6,9 @@ import { Lesson, LessonProgress, ProgressQueueItem, SignedProgressQueue } from '
 // Security Helpers
 // ============================================================
 
+// SECURITY: Using sessionStorage (not localStorage) so the signed queue:
+// 1. Is cleared when the browser tab closes (no accumulation across sessions)
+// 2. Has a smaller XSS exploitation window than localStorage
 const QUEUE_KEY = 'edusync_progress_queue'
 
 async function generateHmacKey(secret: string): Promise<CryptoKey> {
@@ -53,7 +56,7 @@ async function getSessionKey(): Promise<string | null> {
 }
 
 async function loadSecureQueue(): Promise<ProgressQueueItem[]> {
-  const rawQueue = localStorage.getItem(QUEUE_KEY)
+  const rawQueue = sessionStorage.getItem(QUEUE_KEY)
   if (!rawQueue) return []
 
   try {
@@ -77,7 +80,7 @@ async function loadSecureQueue(): Promise<ProgressQueueItem[]> {
     if (import.meta.env.DEV)
       if (import.meta.env.DEV)
         console.warn('[Offline Queue] Invalid or unauthorized queue detected, clearing.', e)
-    localStorage.removeItem(QUEUE_KEY)
+    sessionStorage.removeItem(QUEUE_KEY)
     return []
   }
 }
@@ -98,12 +101,41 @@ async function saveSecureQueue(queue: ProgressQueueItem[]): Promise<void> {
     signature,
     createdAt: Date.now(),
   }
-  localStorage.setItem(QUEUE_KEY, JSON.stringify(signedQueue))
+
+  // Size cap: if queue JSON is >50KB, drop the oldest items to prevent storage bloat
+  const queueJson = JSON.stringify(signedQueue)
+  if (queueJson.length > 50 * 1024) {
+    try {
+      const parsed = JSON.parse(queueJson)
+      if (Array.isArray(parsed?.payload)) {
+        const trimmed = { ...parsed, payload: parsed.payload.slice(-20) }
+        sessionStorage.setItem(QUEUE_KEY, JSON.stringify(trimmed))
+      } else {
+        sessionStorage.setItem(QUEUE_KEY, queueJson)
+      }
+    } catch {
+      sessionStorage.setItem(QUEUE_KEY, queueJson)
+    }
+  } else {
+    sessionStorage.setItem(QUEUE_KEY, queueJson)
+  }
 }
 
 // ============================================================
 // Service
 // ============================================================
+
+export interface UpsertScormRuntimeParams {
+  userId: string
+  scormPackageId: string
+  tenantId: string
+  cmiData: Record<string, string>
+  scoreRaw?: number | null
+  scoreMax?: number | null
+  lessonStatus?: string | null
+  totalTimeSeconds?: number | null
+  suspendData?: string | null
+}
 
 export const lessonService = {
   /**
@@ -392,7 +424,7 @@ export const lessonService = {
       if (remainingQueue.length > 0) {
         await saveSecureQueue(remainingQueue)
       } else {
-        localStorage.removeItem(QUEUE_KEY)
+        sessionStorage.removeItem(QUEUE_KEY)
       }
     } finally {
       ;(this as unknown as { _isProcessingOfflineQueue?: boolean })._isProcessingOfflineQueue =
@@ -432,5 +464,106 @@ export const lessonService = {
     }
 
     return data as LessonProgress | null
+  },
+
+  /**
+   * Fetch SCORM package info by ID and tenant.
+   */
+  async getScormPackage(
+    packageId: string,
+    tenantId: string
+  ): Promise<{
+    id: string
+    tenant_id: string
+    lesson_id: string | null
+    title: string
+    scorm_version: '1.2' | '2004'
+    storage_path: string
+    entry_point: string
+  } | null> {
+    const { data, error } = await supabase
+      .from('scorm_packages')
+      .select('id, tenant_id, lesson_id, title, scorm_version, storage_path, entry_point')
+      .eq('id', packageId)
+      .eq('tenant_id', tenantId)
+      .single()
+
+    if (error) return null
+
+    return data as {
+      id: string
+      tenant_id: string
+      lesson_id: string | null
+      title: string
+      scorm_version: '1.2' | '2004'
+      storage_path: string
+      entry_point: string
+    }
+  },
+
+  /**
+   * Fetch existing SCORM runtime data for resume (user + package).
+   */
+  async getScormRuntimeData(
+    userId: string,
+    scormPackageId: string
+  ): Promise<{
+    cmi_data: Record<string, string> | null
+    score_raw: number | null
+    lesson_status: string | null
+    total_time: number | null
+    suspend_data: string | null
+  } | null> {
+    const { data } = await supabase
+      .from('scorm_runtime_data')
+      .select('cmi_data, score_raw, lesson_status, total_time, suspend_data')
+      .eq('user_id', userId)
+      .eq('scorm_package_id', scormPackageId)
+      .single()
+
+    return data ?? null
+  },
+
+  /**
+   * Fetch completed lesson IDs for a user (bulk lookup for CourseBrowser).
+   */
+  async getCompletedLessonIds(userId: string, lessonIds: string[]): Promise<Set<string>> {
+    if (lessonIds.length === 0) return new Set()
+
+    const { data, error } = await supabase
+      .from('lesson_progress')
+      .select('lesson_id, completed')
+      .eq('user_id', userId)
+      .in('lesson_id', lessonIds)
+      .eq('completed', true)
+
+    if (error) {
+      if (import.meta.env.DEV) console.error('Error fetching completed lessons:', error)
+      return new Set()
+    }
+
+    return new Set((data || []).map((p) => p.lesson_id))
+  },
+
+  /**
+   * Persist SCORM runtime state via upsert_scorm_runtime RPC.
+   * Used by ScormPlayer to save CMI data on commit and terminate.
+   */
+  async upsertScormRuntime(params: UpsertScormRuntimeParams): Promise<void> {
+    const { error } = await supabase.rpc('upsert_scorm_runtime', {
+      p_user_id: params.userId,
+      p_scorm_package_id: params.scormPackageId,
+      p_tenant_id: params.tenantId,
+      p_cmi_data: params.cmiData,
+      p_score_raw: params.scoreRaw ?? null,
+      p_score_max: params.scoreMax ?? null,
+      p_lesson_status: params.lessonStatus ?? null,
+      p_total_time: params.totalTimeSeconds ?? null,
+      p_suspend_data: params.suspendData ?? null,
+    })
+    if (error) {
+      console.error('[lessonService] upsert_scorm_runtime error:', error)
+      throw error
+    }
   },
 }

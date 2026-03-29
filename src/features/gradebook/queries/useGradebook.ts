@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { STALE } from '@/src/utils/queryConstants'
+import { captureError } from '@/src/utils/sentry'
 
 import {
   fetchGradebookEntries,
@@ -74,6 +75,9 @@ export function useUpdateGradebookEntry() {
         queryKey: gradebookKeys.entries(variables.courseId),
       })
     },
+    onError: (err) => {
+      captureError(err, { context: 'useUpdateGradebookEntry' })
+    },
   })
 }
 
@@ -89,6 +93,9 @@ export function useSyncGradebook() {
     onSuccess: (_data, courseId) => {
       queryClient.invalidateQueries({ queryKey: gradebookKeys.entries(courseId) })
     },
+    onError: (err) => {
+      captureError(err, { context: 'useSyncGradebook' })
+    },
   })
 }
 
@@ -102,6 +109,9 @@ export function useUpsertGradebookSettings() {
     mutationFn: (settings: Omit<GradebookSettings, 'id'>) => upsertGradebookSettings(settings),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: gradebookKeys.settings(data.course_id) })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useUpsertGradebookSettings' })
     },
   })
 }

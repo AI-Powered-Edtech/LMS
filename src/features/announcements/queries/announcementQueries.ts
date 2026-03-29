@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
+import { captureError } from '@/src/utils/sentry'
 
 import { announcementService } from '../api/announcementService'
 import { Announcement } from '../types'
@@ -34,6 +35,9 @@ export function useSaveAnnouncement() {
         queryClient.invalidateQueries({ queryKey: announcementKeys.all(tenantId) })
       }
     },
+    onError: (err) => {
+      captureError(err, { context: 'useSaveAnnouncement' })
+    },
   })
 }
 
@@ -53,6 +57,9 @@ export function useSubmitRSVP() {
       if (tenantId) {
         queryClient.invalidateQueries({ queryKey: announcementKeys.all(tenantId) })
       }
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useSubmitRSVP' })
     },
   })
 }

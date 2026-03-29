@@ -33,7 +33,7 @@ interface ClassDetailPanelProps {
   onSetRenamingClassId: (id: string | null) => void
   onSetRenameValue: (value: string) => void
   onHandleRename: (classId: string) => void
-  onSetClassToDelete: (id: string) => void
+  onDeleteClass: (classId: string, className: string) => void
   onHandleCopy: (text: string, id: string) => void
   onSetActiveClassroomId: (id: string) => void
   onNavigate: (path: string) => void
@@ -51,7 +51,7 @@ export function ClassDetailPanel({
   onSetRenamingClassId,
   onSetRenameValue,
   onHandleRename,
-  onSetClassToDelete,
+  onDeleteClass,
   onHandleCopy,
   onSetActiveClassroomId,
   onNavigate,
@@ -135,7 +135,7 @@ export function ClassDetailPanel({
               </p>
             </div>
             <button
-              onClick={() => onSetClassToDelete(selectedClass.id)}
+              onClick={() => onDeleteClass(selectedClass.id, selectedClass.name)}
               className="p-2 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors"
               title="Hapus kelas"
               aria-label="Hapus kelas"

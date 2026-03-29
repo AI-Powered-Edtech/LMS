@@ -1,4 +1,8 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
+import { useMemo } from 'react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
+
+import { useTheme } from '@/src/contexts/ThemeContext'
 
 import { EngagementSegment, EngagementSummaryRow } from '../types'
 
@@ -20,15 +24,28 @@ interface SegmentPieChartProps {
   data: EngagementSummaryRow[]
 }
 
+// ⚡ Perf: stable formatter/label refs — avoids Recharts detecting prop change every render
+const pieLabel = ({ name, percent }: { name?: string; percent?: number }) =>
+  `${name ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`
+const tooltipFormatter = (value: unknown): [string, string] => [`${value}`, 'Siswa']
+
 export function SegmentPieChart({ data }: SegmentPieChartProps) {
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+
+  // ⚡ Perf: memoize chart data transform
+  const chartData = useMemo(
+    () =>
+      data.map((row) => ({
+        name: SEGMENT_LABELS[row.segment],
+        value: row.student_count,
+        segment: row.segment,
+      })),
+    [data]
+  )
+
   if (data.length === 0)
     return <p className="py-8 text-center text-sm text-slate-400">Belum ada data engagement.</p>
-
-  const chartData = data.map((row) => ({
-    name: SEGMENT_LABELS[row.segment],
-    value: row.student_count,
-    segment: row.segment,
-  }))
 
   return (
     <ResponsiveContainer width="100%" height={220}>
@@ -39,16 +56,24 @@ export function SegmentPieChart({ data }: SegmentPieChartProps) {
           cy="50%"
           outerRadius={80}
           dataKey="value"
-          label={({ name, percent }: { name?: string; percent?: number }) =>
-            `${name ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`
-          }
+          label={pieLabel}
           labelLine={false}
         >
           {chartData.map((entry, i) => (
             <Cell key={i} fill={SEGMENT_COLORS[entry.segment]} />
           ))}
         </Pie>
-        <Tooltip formatter={(value) => [value, 'Siswa']} contentStyle={{ fontSize: 12 }} />
+        <Tooltip
+          formatter={tooltipFormatter}
+          contentStyle={{
+            fontSize: 12,
+            backgroundColor: isDark ? '#1e293b' : '#ffffff',
+            border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+            borderRadius: '0.5rem',
+            color: isDark ? '#f1f5f9' : '#0f172a',
+          }}
+          labelStyle={{ color: isDark ? '#94a3b8' : '#64748b' }}
+        />
       </PieChart>
     </ResponsiveContainer>
   )

@@ -129,15 +129,20 @@ Copy `.env.example` to `.env` and fill in the values. Do **not** commit `.env` t
 
 ## Available Scripts
 
-| Script          | Command           | Description                          |
-| --------------- | ----------------- | ------------------------------------ |
-| `pnpm dev`      | `vite --host`     | Start dev server with network access |
-| `pnpm build`    | `vite build`      | Production build to `dist/`          |
-| `pnpm preview`  | `vite preview`    | Preview production build locally     |
-| `pnpm clean`    | `rm -rf dist`     | Remove build artifacts               |
-| `pnpm lint`     | `tsc --noEmit`    | TypeScript type checking (no emit)   |
-| `pnpm test`     | `vitest`          | Run unit tests with Vitest           |
-| `pnpm test:e2e` | `playwright test` | Run end-to-end tests with Playwright |
+| Script                 | Command                                     | Description                          |
+| ---------------------- | ------------------------------------------- | ------------------------------------ |
+| `pnpm dev`             | `vite --host`                               | Start dev server with network access |
+| `pnpm build`           | `vite build`                                | Production build to `dist/`          |
+| `pnpm preview`         | `vite preview`                              | Preview production build locally     |
+| `pnpm typecheck`       | `tsc --noEmit`                              | TypeScript type checking (no emit)   |
+| `pnpm lint`            | `eslint src/`                               | ESLint code quality check            |
+| `pnpm format`          | `prettier --write 'src/**/*.{ts,tsx}'`      | Auto-format source files             |
+| `pnpm test`            | `vitest`                                    | Run unit tests with Vitest           |
+| `pnpm test:e2e`        | `playwright test`                           | Run E2E tests with Playwright        |
+| `pnpm storybook`       | `storybook dev -p 6006`                     | Component development with Storybook |
+| `pnpm analyze`         | `ANALYZE=true vite build`                   | Bundle size analysis                 |
+| `pnpm check:circular`  | `madge --circular --extensions ts,tsx src/` | Detect circular imports              |
+| `pnpm perf:lighthouse` | Lighthouse CI autorun                       | Performance audit                    |
 
 ---
 
@@ -145,55 +150,68 @@ Copy `.env.example` to `.env` and fill in the values. Do **not** commit `.env` t
 
 ```
 src/
-├── app/                    # App entry point, routes.tsx
+├── app/                    # Route tree and app providers
+│   ├── routes.tsx          # Route orchestrator (imports domain route files)
+│   ├── routes/             # Domain route splits (student, teacher, admin, shared)
+│   ├── lazyPages.tsx       # All lazy-loaded page imports with error boundaries
+│   ├── providers.tsx       # App-level React providers
+│   └── queryClient.ts      # React Query client configuration
+│
 ├── App.tsx                 # Root component
-├── main.tsx                # Vite entry
+├── main.tsx                # Vite entry point
 │
 ├── components/             # Shared UI components
-│   ├── guards/             # AuthGuard, TenantGuard, RoleGuard, RoleResolver,
-│   │                       # CourseEnrollmentGuard
-│   ├── layout/             # Header, Sidebar, Layout, AppLoading
-│   ├── LessonViewer/       # Smart Player components
-│   ├── CourseBuilder/       # Course builder UI
-│   ├── CourseOverview/      # Course overview UI
-│   ├── ui/                 # Reusable primitives (buttons, modals, etc.)
-│   ├── common/             # Shared domain components
-│   ├── admin/              # Admin panel components
+│   ├── guards/             # AuthGuard, TenantGuard, RoleGuard, CourseEnrollmentGuard
+│   ├── layout/             # Header, Sidebar, Layout, AdminLayout, StudentLayout, TeacherLayout
+│   ├── LessonViewer/       # Smart Player (ArticleViewer, VideoViewer, MultiBlockViewer)
+│   ├── CourseBuilder/      # Course builder UI + block editors
+│   ├── CourseOverview/     # Course overview (header, module list, progress summary)
+│   ├── skeletons/          # Loading skeleton components
+│   ├── ui/                 # Reusable primitives (Button, Modal, Input, Toast, etc.)
+│   ├── admin/              # Admin panel components (ChangeRoleModal, InviteUserModal)
 │   └── moderation/         # Content moderation UI
 │
-├── config/                 # navigation.ts, feature flags
-├── constants/              # App-wide constants
-├── contexts/               # React contexts (Auth, Builder, Theme, Toast)
-├── domain/                 # Domain types and logic
-├── hooks/                  # Shared React hooks
-├── lib/                    # Supabase client (supabase.ts)
-├── pages/                  # Page components (thin, lazy-loaded via routes.tsx)
-├── services/               # Shared service utilities
+├── contexts/               # React contexts (Auth, Builder, Theme)
+├── hooks/                  # Shared React hooks (useDebounce, useNetworkStatus, etc.)
+├── lib/                    # Shared library utilities (queryKeys.ts)
+├── pages/                  # Page components (thin wrappers, lazy-loaded via routes.tsx)
+│   ├── admin/              # Admin-only pages (UserManagement, SystemHealth, etc.)
+│   └── __tests__/          # Page-level tests
+├── services/               # Service utilities
+│   └── supabase/           # Supabase client (client.ts)
+├── shared/                 # Shared cross-feature utilities
+│   ├── config/             # Navigation config, dev seeds, feature flag helpers
+│   ├── lib/                # queryKeys.ts, validate.ts
+│   ├── schemas/            # Shared Valibot form schemas
+│   └── types/              # Shared TypeScript types (course, lesson, block)
 ├── utils/                  # General utility functions
+│   └── queryConstants.ts   # Stale time constants (STALE.STATIC/MODERATE/DYNAMIC/REALTIME)
 │
-└── features/               # 24 feature modules (see below)
-    ├── administration/     # Tenant administration
-    ├── ai-tutor/           # AI Tutor context, chat, prompt engineering
-    ├── analytics/          # Teacher analytics dashboard, charts
-    ├── announcements/      # Class announcements
-    ├── assignments/        # Assignment submission and grading
+└── features/               # 24 feature modules
+    ├── administration/     # Tenant administration & module config
+    ├── ai-tutor/           # AI chat assistant (Groq llama-3.1-70b)
+    ├── analytics/          # Teacher analytics dashboard & charts
+    ├── announcements/      # School announcements
+    ├── assignments/        # Assignment submission & AI grading
     ├── calendar/           # Academic calendar
-    ├── classroom/          # Class management, enrollments
-    ├── courses/            # Course catalog and builder logic
-    ├── dashboards/         # Role-specific dashboard data
-    ├── discussions/        # Class discussions / forums
-    ├── gamification/       # XP, badges, leaderboard, streaks
-    ├── guidance/           # In-app walkthroughs, onboarding tooltips
-    ├── lessons/            # Lesson viewer, Smart Player, progress tracking
-    ├── moderation/         # Content moderation queries
-    ├── notifications/      # In-app notification system
+    ├── classroom/          # Class management & enrollments
+    ├── courses/            # Course catalog, builder logic & collaborators
+    ├── dashboards/         # Custom dashboard with widget builder
+    ├── discussions/        # Class discussion forums
+    ├── gamification/       # XP, badges, leaderboard v2, streaks
+    ├── gradebook/          # Digital gradebook & SpeedGrader
+    ├── guidance/           # In-app walkthroughs, tooltips, banners
+    ├── lessons/            # Lesson viewer, Smart Player, SCORM player
+    ├── moderation/         # Content moderation
+    ├── notifications/      # In-app + push notification system
+    ├── onboarding/         # New user onboarding wizard
     ├── progress/           # Student progress tracking
-    ├── question-bank/      # Shared question bank management
-    ├── quizzes/            # Quiz player, grading, Zustand store
-    ├── recommendations/    # Smart next-lesson recommendations
-    ├── reports/            # Academic reports and exports
-    ├── storage/            # File storage abstraction
-    └── struggle/           # Struggle detection and teacher alerts
+    ├── question-bank/      # Reusable question bank
+    ├── quizzes/            # Quiz player, grading, anti-cheat, Zustand store
+    ├── recommendations/    # Content recommendation engine
+    ├── reports/            # Academic & financial reports
+    ├── storage/            # File & media management
+    └── struggle/           # Automatic struggle detection & teacher alerts
 ```
 
 Each feature module follows a consistent internal structure:
@@ -245,22 +263,24 @@ Key constraints:
 
 ## Documentation
 
-| Document                                                       | Description                           |
-| -------------------------------------------------------------- | ------------------------------------- |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)                   | System architecture overview          |
-| [docs/DATABASE.md](docs/DATABASE.md)                           | Database schema and RPC reference     |
-| [docs/DATABASE_ARCHITECTURE.md](docs/DATABASE_ARCHITECTURE.md) | Detailed database architecture        |
-| [docs/AUTH.md](docs/AUTH.md)                                   | Authentication flow and setup         |
-| [docs/SECURITY.md](docs/SECURITY.md)                           | Security model and threat mitigations |
-| [docs/RLS_POLICIES.md](docs/RLS_POLICIES.md)                   | Row-Level Security policy catalog     |
-| [docs/TENANT_ARCHITECTURE.md](docs/TENANT_ARCHITECTURE.md)     | Multi-tenant architecture details     |
-| [docs/ANALYTICS.md](docs/ANALYTICS.md)                         | Teacher analytics system              |
-| [docs/GAMIFICATION.md](docs/GAMIFICATION.md)                   | XP, badges, leaderboard               |
-| [docs/TESTING.md](docs/TESTING.md)                             | Testing guide and test accounts       |
-| [docs/ENGINEERING_ROADMAP.md](docs/ENGINEERING_ROADMAP.md)     | Engineering phase roadmap             |
-| [docs/DEVELOPER_RUNBOOK.md](docs/DEVELOPER_RUNBOOK.md)         | Developer runbook and recipes         |
-| [CONTRIBUTING.md](CONTRIBUTING.md)                             | Contribution guidelines               |
-| [CHANGELOG.md](CHANGELOG.md)                                   | Version history                       |
+> **Start at [docs/DX.md](docs/DX.md)** for the full developer experience guide and complete documentation map.
+
+| Document                                                   | Description                               |
+| ---------------------------------------------------------- | ----------------------------------------- |
+| [docs/DX.md](docs/DX.md)                                   | **DX guide & complete documentation map** |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)               | System architecture, routing, state       |
+| [docs/DATABASE.md](docs/DATABASE.md)                       | Database schema and RPC reference         |
+| [docs/AUTH.md](docs/AUTH.md)                               | Authentication flow and setup             |
+| [docs/SECURITY.md](docs/SECURITY.md)                       | Security model and threat mitigations     |
+| [docs/RLS_POLICIES.md](docs/RLS_POLICIES.md)               | Row-Level Security policy catalog         |
+| [docs/TENANT_ARCHITECTURE.md](docs/TENANT_ARCHITECTURE.md) | Multi-tenant architecture details         |
+| [docs/ANALYTICS.md](docs/ANALYTICS.md)                     | Teacher analytics system                  |
+| [docs/GAMIFICATION.md](docs/GAMIFICATION.md)               | XP, badges, leaderboard                   |
+| [docs/TESTING.md](docs/TESTING.md)                         | Testing guide and test accounts           |
+| [docs/ENGINEERING_ROADMAP.md](docs/ENGINEERING_ROADMAP.md) | Engineering phase roadmap                 |
+| [docs/DEVELOPER_RUNBOOK.md](docs/DEVELOPER_RUNBOOK.md)     | Developer runbook and recipes             |
+| [CONTRIBUTING.md](CONTRIBUTING.md)                         | Contribution guidelines                   |
+| [CHANGELOG.md](CHANGELOG.md)                               | Version history                           |
 
 ---
 

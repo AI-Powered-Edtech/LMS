@@ -1,4 +1,4 @@
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { createQueryKeys } from '@/src/shared/lib/queryKeys'
 
 const base = createQueryKeys('courses')
 

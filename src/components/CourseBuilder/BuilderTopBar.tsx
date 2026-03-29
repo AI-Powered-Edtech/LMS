@@ -1,4 +1,18 @@
-import { AlertCircle, ArrowLeft, CheckCircle, Eye, Loader2, Save, Users } from 'lucide-react'
+import {
+  AlertCircle,
+  ArrowLeft,
+  BookCopy,
+  CheckCircle,
+  Eye,
+  History,
+  Loader2,
+  MoreVertical,
+  Save,
+  Settings,
+  Users,
+  WifiOff,
+} from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -75,20 +89,167 @@ export function BuilderTopBar() {
       </div>
 
       {/* Right: Status + Actions */}
-      <div className="flex items-center gap-4">
-        {/* Save Status */}
-        {state.savingStatus !== 'idle' && (
-          <div
-            className={cn(
-              'flex items-center gap-2 px-4 py-2 bg-white/50 rounded-xl border border-slate-100/50 shadow-sm text-xs font-bold uppercase tracking-widest',
-              status.color
-            )}
+      <div className="flex items-center gap-2 md:gap-4">
+        {/* Presence Avatars */}
+        {!mobile.isMobile && <PresenceAvatars others={presence.othersArray} />}
+
+        {/* Offline / Save Status */}
+        <div aria-live="polite" aria-atomic="true">
+          {!offline.isOnline ? (
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-amber-200/50 dark:border-amber-800/50">
+              <WifiOff className="w-3.5 h-3.5" />
+              Offline
+            </div>
+          ) : (
+            state.savingStatus !== 'idle' && (
+              <div
+                className={cn(
+                  'hidden md:flex items-center gap-2 px-4 py-2 bg-white/50 dark:bg-slate-800/50 rounded-xl border border-slate-100/50 dark:border-slate-700/50 shadow-sm text-xs font-bold uppercase tracking-widest',
+                  status.color
+                )}
+              >
+                {status.icon}
+                <span className={state.savingStatus === 'saving' ? 'animate-pulse' : ''}>
+                  {status.text}
+                </span>
+              </div>
+            )
+          )}
+        </div>
+
+        <div className="hidden md:block h-8 w-[1px] bg-slate-200/50 dark:bg-slate-700/50 mx-1" />
+
+        {mobile.isMobile ? (
+          <>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+              aria-label="Menu opsi"
+            >
+              <MoreVertical className="w-5 h-5" />
+            </button>
+            <AnimatePresence>
+              {isMobileMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="absolute top-16 right-4 w-48 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 flex flex-col z-50"
+                >
+                  <button
+                    onClick={() => {
+                      setIsSettingsOpen(true)
+                      setIsMobileMenuOpen(false)
+                    }}
+                    className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3"
+                  >
+                    <Settings className="w-4 h-4 text-slate-500" /> Pengaturan
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsVersionHistoryOpen(true)
+                      setIsMobileMenuOpen(false)
+                    }}
+                    className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3"
+                  >
+                    <History className="w-4 h-4 text-slate-500" /> Riwayat Versi
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsSaveTemplateOpen(true)
+                      setIsMobileMenuOpen(false)
+                    }}
+                    className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3"
+                  >
+                    <BookCopy className="w-4 h-4 text-slate-500" /> Jadikan Template
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsAssignModalOpen(true)
+                      setIsMobileMenuOpen(false)
+                    }}
+                    className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3"
+                  >
+                    <Users className="w-4 h-4 text-slate-500" /> Bagikan
+                  </button>
+                  <div className="h-px bg-slate-100 dark:bg-slate-700 my-1" />
+                  <button
+                    onClick={() => {
+                      navigate('/app/teacher/courses')
+                    }}
+                    className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3 text-rose-500"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Keluar
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
+        ) : (
+          <>
+            {/* Version History Button */}
+            <button
+              onClick={() => setIsVersionHistoryOpen(true)}
+              disabled={!state.courseId}
+              className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Riwayat Versi"
+              aria-label="Riwayat versi"
+            >
+              <History className="w-4 h-4" />
+              <span className="hidden lg:inline">Riwayat Versi</span>
+            </button>
+
+            {/* Save as Template Button */}
+            <button
+              onClick={() => setIsSaveTemplateOpen(true)}
+              disabled={!state.courseId}
+              className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Simpan sebagai Template Kursus"
+              aria-label="Simpan sebagai template"
+            >
+              <BookCopy className="w-4 h-4" />
+              <span className="hidden lg:inline">Jadikan Template</span>
+            </button>
+
+            {/* Preview Button */}
+            <button
+              onClick={() => {
+                window.open(`/#/app/student/courses/${state.courseId}?preview=true`, '_blank')
+              }}
+              disabled={!state.courseId}
+              className="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Pratinjau kursus"
+            >
+              <Eye className="w-4 h-4" />
+              Pratinjau
+            </button>
+
+            {/* Course Settings Button */}
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              disabled={!state.courseId}
+              className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Pengaturan Kursus"
+              aria-label="Pengaturan kursus"
+            >
+              <Settings className="w-4 h-4" />
+              <span className="hidden lg:inline">Pengaturan</span>
+            </button>
+          </>
+        )}
+
+        {/* Primary Action Buttons (Always visible or adapted) */}
+        {!mobile.isMobile && state.courseStatus === 'draft' && (
+          <button
+            onClick={() => actions.submitForReview()}
+            className="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-100 dark:shadow-blue-900/30 hover:shadow-blue-200 dark:hover:shadow-blue-900/50 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 group"
+            aria-label="Ajukan review"
           >
             {status.icon}
             <span className={state.savingStatus === 'saving' ? 'animate-pulse' : ''}>
               {status.text}
             </span>
-          </div>
+          </button>
         )}
 
         <div className="h-8 w-[1px] bg-slate-200/50 mx-1" />

@@ -20,8 +20,10 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { useAssignments } from '@/src/features/assignments/hooks/useAssignments'
 import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
 import { DashboardSkeleton } from '@/src/features/dashboards/components/DashboardSkeleton'
+import { TeacherWelcome } from '@/src/features/onboarding'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { navigationItems } from '@/src/shared/config/navigation'
+import { staggerContainer, staggerItem } from '@/src/utils/animations'
 import { cn } from '@/src/utils/cn'
 
 export function TeacherDashboard() {
@@ -116,55 +118,61 @@ export function TeacherDashboard() {
             <AlertCircle className="w-5 h-5 text-orange-500" />
             Perlu Perhatian Anda
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="show"
+          >
             {alerts.map((alert) => (
-              <Card
-                key={alert.id}
-                hover
-                padding="md"
-                className={cn(
-                  alert.urgent
-                    ? 'bg-orange-50 border-orange-200 dark:bg-orange-900/10 dark:border-orange-800'
-                    : 'bg-blue-50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-800'
-                )}
-                onClick={() =>
-                  alert.type === 'grading' ? navigate('/grader') : navigate('/analytics')
-                }
-              >
-                <div className="flex items-start gap-4">
-                  <div
-                    className={cn(
-                      'w-10 h-10 rounded-full flex items-center justify-center shrink-0',
-                      alert.urgent ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'
-                    )}
-                  >
-                    <FileText className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1">
-                    <p
+              <motion.div key={alert.id} variants={staggerItem}>
+                <Card
+                  hover
+                  padding="md"
+                  className={cn(
+                    alert.urgent
+                      ? 'bg-orange-50 border-orange-200 dark:bg-orange-900/10 dark:border-orange-800'
+                      : 'bg-blue-50 border-blue-200 dark:bg-blue-900/10 dark:border-blue-800'
+                  )}
+                  onClick={() =>
+                    alert.type === 'grading' ? navigate('/grader') : navigate('/analytics')
+                  }
+                >
+                  <div className="flex items-start gap-4">
+                    <div
                       className={cn(
-                        'font-bold text-sm',
-                        alert.urgent ? 'text-orange-900' : 'text-blue-900'
+                        'w-10 h-10 rounded-full flex items-center justify-center shrink-0',
+                        alert.urgent ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'
                       )}
                     >
-                      {alert.message}
-                    </p>
-                    <p
-                      className={cn(
-                        'text-xs mt-1 font-medium',
-                        alert.urgent ? 'text-orange-700' : 'text-blue-700'
-                      )}
-                    >
-                      Klik untuk mulai mengoreksi
-                    </p>
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p
+                        className={cn(
+                          'font-bold text-sm',
+                          alert.urgent ? 'text-orange-900' : 'text-blue-900'
+                        )}
+                      >
+                        {alert.message}
+                      </p>
+                      <p
+                        className={cn(
+                          'text-xs mt-1 font-medium',
+                          alert.urgent ? 'text-orange-700' : 'text-blue-700'
+                        )}
+                      >
+                        Klik untuk mulai mengoreksi
+                      </p>
+                    </div>
+                    <ChevronRight
+                      className={cn('w-5 h-5', alert.urgent ? 'text-orange-400' : 'text-blue-400')}
+                    />
                   </div>
-                  <ChevronRight
-                    className={cn('w-5 h-5', alert.urgent ? 'text-orange-400' : 'text-blue-400')}
-                  />
-                </div>
-              </Card>
+                </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       )}
 
@@ -184,14 +192,14 @@ export function TeacherDashboard() {
             ))}
           </div>
         ) : classrooms.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {classrooms.map((classroom, idx) => (
-              <motion.div
-                key={classroom.id}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.07, duration: 0.3 }}
-              >
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="show"
+          >
+            {classrooms.map((classroom) => (
+              <motion.div key={classroom.id} variants={staggerItem}>
                 <Card padding="none" hover className="overflow-hidden flex flex-col">
                   <div className="p-6 border-b border-slate-100 dark:border-slate-700">
                     <div className="flex justify-between items-start mb-4">
@@ -252,7 +260,7 @@ export function TeacherDashboard() {
                 </Card>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : (
           <Card>
             <EmptyState
@@ -276,18 +284,21 @@ export function TeacherDashboard() {
             Lihat Semua <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+        >
           {navigationItems
             .filter((item) => item.location === 'teaching-hub' && item.roles.includes('teacher'))
             .slice(0, 4)
-            .map((tool, idx) => {
+            .map((tool) => {
               const IconComponent = tool.icon
               return (
                 <motion.button
                   key={tool.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: idx * 0.05 }}
+                  variants={staggerItem}
                   onClick={() => navigate(tool.path)}
                   className="flex items-center gap-4 p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-blue-300 hover:shadow-md transition-all group"
                 >
@@ -313,7 +324,7 @@ export function TeacherDashboard() {
                 </motion.button>
               )
             })}
-        </div>
+        </motion.div>
       </div>
 
       {/* Recent Activity — placeholder until API available */}
@@ -328,6 +339,8 @@ export function TeacherDashboard() {
           description="Aktivitas siswa akan muncul di sini saat mereka menyelesaikan tugas dan kuis."
         />
       </Card>
+
+      <TeacherWelcome />
     </div>
   )
 }

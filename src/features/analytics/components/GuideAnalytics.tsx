@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { BookOpen, Loader2, Plus, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'
@@ -26,13 +27,6 @@ const SEGMENT_LABELS: Record<string, string> = {
   medium: 'Sedang',
   high: 'Tinggi',
   struggling: 'Kesulitan',
-}
-
-const _TRIGGER_LABELS: Record<string, string> = {
-  on_enter: 'Saat masuk',
-  after_seconds: 'Setelah',
-  on_struggle: 'Saat struggle',
-  on_idle: 'Saat idle',
 }
 
 export function GuideAnalytics({ courseId }: Props) {

@@ -4,6 +4,7 @@ import { builderBlockService } from '@/src/features/courses/api/builder/blockSer
 import { builderLessonService } from '@/src/features/courses/api/builder/lessonService'
 import { useToast } from '@/src/hooks/useToast'
 import { DomainLesson } from '@/src/shared/types/lessonTypes'
+import { captureError } from '@/src/utils/sentry'
 
 import type { BuilderAction, BuilderState } from './builderReducer'
 
@@ -56,11 +57,17 @@ export function useLessonActions(
   const deleteLesson = useCallback(
     async (lessonId: string) => {
       if (!tenantId) return
+
+      // Save current modules for rollback
+      const previousModules = state.modules
+
       dispatch({ type: 'DELETE_LESSON', lessonId })
       try {
         await builderLessonService.deleteLesson(lessonId, tenantId)
         broadcast?.({ type: 'DELETE_LESSON', lessonId }, userName ?? '')
       } catch (err: unknown) {
+        // Rollback: restore modules to pre-delete state
+        dispatch({ type: 'SET_MODULES', modules: previousModules })
         if (import.meta.env.DEV) console.error('Failed to delete lesson:', err)
         addToast({
           type: 'error',
@@ -70,7 +77,7 @@ export function useLessonActions(
         })
       }
     },
-    [tenantId, dispatch, addToast, broadcast, userName]
+    [state.modules, tenantId, dispatch, addToast, broadcast, userName]
   )
 
   const reorderLessons = useCallback(
@@ -120,6 +127,7 @@ export function useLessonActions(
         dispatch({ type: 'LOAD_BLOCKS_SUCCESS', lessonId, blocks })
       } catch (err) {
         if (import.meta.env.DEV) console.error('Failed to load blocks:', err)
+        captureError(err, { context: 'useLessonActions.selectLesson', lessonId })
       }
     },
     [tenantId, dispatch]

@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { formatDistanceToNow } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { Edit2, MessageSquare, MoreVertical, Pin, Send, Trash2 } from 'lucide-react'
@@ -276,7 +277,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
 
   const loadComments = useCallback(async () => {
     try {
-      const _data = await discussionService.fetchDiscussions({
+      await discussionService.fetchDiscussions({
         tenantId: tenantId!,
         [`${entityType}Id`]: entityId,
         parentId: null, // Fetch top-level comments first

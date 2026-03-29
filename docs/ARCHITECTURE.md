@@ -87,6 +87,8 @@ EduSync is multi-tenant. Each tenant represents a school organization. See [TENA
 - `has_role(app_role)` SQL function checks role within the caller's tenant
 
 **Frontend role access:**
+<<<<<<< HEAD
+=======
 
 ```tsx
 const { role, activeRole } = useAuth() // 'admin' | 'teacher' | 'student'
@@ -94,14 +96,14 @@ const { role, activeRole } = useAuth() // 'admin' | 'teacher' | 'student'
 
 ## State Management
 
-| Concern                                     | Mechanism                                                                                                                        |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Auth user, profile, role, session, tenantId | `AuthContext` (`src/contexts/AuthContext.tsx`)                                                                                   |
-| Course builder UI state                     | `BuilderContext` (`src/contexts/BuilderContext.tsx`) — thin provider composing domain hooks from `src/features/courses/builder/` |
-| Theme (light/dark/system)                   | `ThemeContext` (`src/contexts/ThemeContext.tsx`)                                                                                 |
-| Toast notifications                         | `ToastContext` (`src/contexts/ToastContext.tsx`)                                                                                 |
-| Server data (courses, quizzes, etc.)        | React Query hooks in `src/features/*/queries/`                                                                                   |
-| Quiz player in-progress state               | Zustand store in `src/features/quizzes/store/`                                                                                   |
+| Concern                                     | Mechanism                                                                                                                                                                   |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth user, profile, role, session, tenantId | `AuthContext` (`src/contexts/AuthContext.tsx`)                                                                                                                              |
+| Course builder UI state                     | `BuilderContext` (`src/contexts/BuilderContext.tsx`) — composes domain hooks, realtime presence, mobile state, and offline persistence from `src/features/courses/builder/` |
+| Theme (light/dark/system)                   | `ThemeContext` (`src/contexts/ThemeContext.tsx`)                                                                                                                            |
+| Toast notifications                         | `ToastContext` (`src/contexts/ToastContext.tsx`)                                                                                                                            |
+| Server data (courses, quizzes, etc.)        | React Query hooks in `src/features/*/queries/`                                                                                                                              |
+| Quiz player in-progress state               | Zustand store in `src/features/quizzes/store/`                                                                                                                              |
 
 ## Feature Module Structure
 
@@ -262,3 +264,35 @@ EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
 | struggle        | Analytics      | Deteksi Kesulitan — Deteksi otomatis siswa yang kesulitan berdasarkan pola belajar, waktu per soal, dan penurunan performa |
 
 Setiap feature module mengikuti arsitektur standar dengan folder: api/, queries/, hooks/, types/, components/, dan **tests**/. Semua feature mendukung dark mode dan skeleton loading screens.
+
+## Course Builder Architecture (Phase 22)
+
+The Course Builder is the most complex feature module, spanning multiple concerns:
+
+### Real-Time Collaboration (Fase 2)
+
+Uses Supabase Realtime (not Yjs/CRDT) with two channel features:
+
+- **Broadcast** (`useBuilderChannel`) — structural changes (add/update/delete modules, lessons, blocks) are broadcast to all editors on `builder:{courseId}` channel. Received changes dispatch `REMOTE_*` actions that bypass undo/redo history.
+- **Presence** (`useBuilderPresence`) — tracks active collaborators with block-level locking. When a user focuses a block, they "lock" it; other users see a `CollaboratorCursor` overlay with the editor's name.
+
+### Accessibility (Fase 3)
+
+WCAG 2.2 AA compliance across the builder:
+
+- Semantic landmarks: `<header>`, `<nav>`, `<main>` in page shell (`CourseBuilder.tsx`)
+- Skip-to-content link targeting `#builder-main`
+- Focus trap in modals (custom ~30 line implementation, no dependency)
+- ARIA labels on all inputs, `role="switch"` on toggles, `role="alert"` on status messages
+- Keyboard-accessible file drop zones (Enter/Space)
+- Non-drag reorder alternative: Move Up/Down buttons on blocks
+- Color contrast: minimum `text-slate-600 dark:text-slate-300` for secondary text
+
+### Mobile & Offline (Fase 4)
+
+- **Responsive** — `useMobileBuilder` detects viewport via `matchMedia` at `lg` breakpoint; sidebar becomes a slide-in drawer on mobile with backdrop blur
+- **Touch targets** — minimum 44px tap areas, haptic feedback stubs via `navigator.vibrate`
+- **Offline persistence** — `useBuilderOffline` auto-saves builder state to IndexedDB (`builder-drafts` store) on every change; restores on mount if newer than server
+- **Upload queue** — `offlineUploadQueue.ts` queues file uploads when offline; flushes on reconnect via `useNetworkStatus`
+- **IndexedDB schema** — `offlineStorage.ts` manages DB v2 with 4 stores: `courses`, `progress`, `builder-drafts`, `upload-queue`
+  > > > > > > > neon-hemisphere

@@ -9,6 +9,7 @@ import { Course, courseService } from '@/src/features/courses'
 import { useInfiniteCoursesQuery } from '@/src/features/courses/queries/courseQueries'
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { useToast } from '@/src/hooks/useToast'
+import { staggerContainer, staggerItem } from '@/src/utils/animations'
 import { cn } from '@/src/utils/cn'
 
 // Gradient palette rotated per card index
@@ -208,16 +209,18 @@ export const Courses: React.FC = () => {
           )}
         </motion.div>
       ) : (
-        <div
+        <motion.div
           data-testid="course-grid"
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
         >
           <AnimatePresence>
             {filteredCourses.map((course, idx) => (
               <CourseCard
                 key={course.id}
                 course={course}
-                idx={idx}
                 gradientClass={CARD_GRADIENTS[idx % CARD_GRADIENTS.length]}
                 onNavigate={() => navigate(`/app/teacher/course-builder?courseId=${course.id}`)}
                 onAssign={() =>
@@ -244,7 +247,7 @@ export const Courses: React.FC = () => {
               Semua {filteredCourses.length} kursus ditampilkan
             </p>
           )}
-        </div>
+        </motion.div>
       )}
 
       {/* Create Course Modal */}
@@ -335,13 +338,12 @@ export const Courses: React.FC = () => {
 
 interface CourseCardProps {
   course: Course
-  idx: number
   gradientClass: string
   onNavigate: () => void
   onAssign: () => void
 }
 
-function CourseCard({ course, idx, gradientClass, onNavigate, onAssign }: CourseCardProps) {
+function CourseCard({ course, gradientClass, onNavigate, onAssign }: CourseCardProps) {
   const moduleCount =
     (course as Course & { modules?: unknown[]; module_count?: number }).modules?.length ??
     (course as Course & { module_count?: number }).module_count ??
@@ -349,10 +351,8 @@ function CourseCard({ course, idx, gradientClass, onNavigate, onAssign }: Course
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
+      variants={staggerItem}
       exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ delay: idx * 0.07, duration: 0.35 }}
       className={cn(
         'group cursor-pointer bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700/60',
         'overflow-hidden shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 dark:hover:shadow-indigo-900/20',

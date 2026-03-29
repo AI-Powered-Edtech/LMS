@@ -11,9 +11,19 @@ import {
 import { Link, useLocation } from 'react-router-dom'
 
 import { useAuth } from '@/src/contexts/AuthContext'
+import { useNavBadges } from '@/src/hooks/useNavBadges'
 import { cn } from '@/src/utils/cn'
 
-const navItems = [
+// Badge count yang ditampilkan per path
+type BadgeKey = 'assignments' | 'announcements' | null
+
+const navItems: Array<{
+  name: string
+  path: string
+  icon: React.ComponentType<{ className?: string }>
+  roles: string[]
+  badgeKey?: BadgeKey
+}> = [
   // Teacher Primary
   { name: 'Dasbor', path: '/app/teacher/dashboard', icon: GraduationCap, roles: ['teacher'] },
 
@@ -25,23 +35,61 @@ const navItems = [
   { name: 'Dasbor', path: '/app/admin/dashboard', icon: Building2, roles: ['admin'] },
 
   // Shared Primary
-  { name: 'Tugas', path: '/assignments', icon: FolderKanban, roles: ['teacher', 'student'] },
+  {
+    name: 'Tugas',
+    path: '/assignments',
+    icon: FolderKanban,
+    roles: ['teacher', 'student'],
+    badgeKey: 'assignments',
+  },
   { name: 'Jadwal', path: '/calendar', icon: CalendarIcon, roles: ['teacher', 'student', 'admin'] },
   {
     name: 'Pengumuman',
     path: '/announcements',
     icon: Megaphone,
     roles: ['teacher', 'student', 'admin'],
+    badgeKey: 'announcements',
   },
   { name: 'Menu', path: '/directory', icon: LayoutGrid, roles: ['teacher', 'student', 'admin'] },
 ]
 
+// ─── Badge dot component ─────────────────────────────────────────────────────
+
+function BadgeDot({ count }: { count: number }) {
+  if (count <= 0) return null
+
+  return (
+    <span
+      aria-label={`${count} item belum dibaca`}
+      className={cn(
+        'absolute top-0 right-1/4 -translate-y-0.5 translate-x-1/2',
+        'inline-flex items-center justify-center',
+        'min-w-[16px] h-4 px-1 rounded-full',
+        'bg-red-500 text-white text-[9px] font-bold leading-none',
+        'ring-1 ring-white dark:ring-slate-900',
+        'pointer-events-none select-none'
+      )}
+    >
+      {count > 99 ? '99+' : count}
+    </span>
+  )
+}
+
+// ─── BottomNav ────────────────────────────────────────────────────────────────
+
 export function BottomNav() {
   const location = useLocation()
   const { role } = useAuth()
+  const { pendingAssignments, unreadNotifications } = useNavBadges()
 
   // Filter items based on role
   const filteredNavItems = navItems.filter((item) => item.roles.includes(role))
+
+  function getBadgeCount(badgeKey: BadgeKey): number {
+    if (badgeKey === 'assignments') return pendingAssignments
+    if (badgeKey === 'announcements') return unreadNotifications
+    return 0
+  }
 
   return (
     <nav
@@ -51,6 +99,8 @@ export function BottomNav() {
       {filteredNavItems.map((item) => {
         const isActive =
           location.pathname === item.path || location.pathname.startsWith(item.path + '/')
+
+        const badgeCount = getBadgeCount(item.badgeKey ?? null)
 
         return (
           <Link
@@ -67,12 +117,18 @@ export function BottomNav() {
             {isActive && (
               <span className="absolute -bottom-3 w-12 h-1 bg-blue-600 dark:bg-blue-400 rounded-t-full" />
             )}
-            <item.icon
-              className={cn(
-                'w-6 h-6 transition-transform group-active:scale-95',
-                isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'
-              )}
-            />
+            {/* Icon wrapper — relative so badge is positioned within */}
+            <span className="relative inline-flex">
+              <item.icon
+                className={cn(
+                  'w-6 h-6 transition-transform group-active:scale-95',
+                  isActive
+                    ? 'text-blue-600 dark:text-blue-400'
+                    : 'text-slate-400 dark:text-slate-500'
+                )}
+              />
+              <BadgeDot count={badgeCount} />
+            </span>
             <span className="text-[10px] font-medium truncate max-w-[64px]">{item.name}</span>
           </Link>
         )

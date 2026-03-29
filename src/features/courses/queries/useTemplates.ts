@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { captureError } from '@/src/utils/sentry'
+
 import { ContentTemplate, templateService } from '../api/templateService'
 
 export function useTemplates(type: 'course' | 'module' | 'lesson') {
@@ -28,6 +30,9 @@ export function useSaveTemplate() {
     onSuccess: (_, { type }) => {
       queryClient.invalidateQueries({ queryKey: ['content-templates', type] })
     },
+    onError: (err) => {
+      captureError(err, { context: 'useSaveTemplate' })
+    },
   })
 }
 
@@ -48,6 +53,9 @@ export function useImportTemplate() {
       queryClient.invalidateQueries({ queryKey: ['courses'] })
       queryClient.invalidateQueries({ queryKey: ['course-modules'] })
       queryClient.invalidateQueries({ queryKey: ['lessons'] })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useImportTemplate' })
     },
   })
 }

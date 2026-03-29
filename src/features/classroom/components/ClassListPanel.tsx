@@ -61,8 +61,8 @@ export function ClassListPanel({
               className={cn(
                 'w-full text-left p-4 rounded-2xl border transition-all',
                 selectedClassId === cls.id
-                  ? 'bg-indigo-50 border-indigo-300 shadow-sm'
-                  : 'bg-white border-slate-200 hover:border-indigo-200 hover:bg-slate-50'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-300 dark:border-indigo-700 shadow-sm'
+                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-700 hover:bg-slate-50 dark:hover:bg-slate-700'
               )}
             >
               <div className="flex items-center justify-between gap-2">

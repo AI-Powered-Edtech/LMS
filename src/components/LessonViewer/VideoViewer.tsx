@@ -1,4 +1,5 @@
-import { AlertTriangle, CheckCircle2, FileText, Lock, MessageSquare, Sparkles } from 'lucide-react'
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
+import { AlertTriangle, CheckCircle2, FileText, Lock, Sparkles } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
@@ -11,17 +12,9 @@ interface Transcript {
   text: string
 }
 
-interface InVideoQuiz {
-  time: number
-  question: string
-  options: string[]
-  correctAnswer: number
-}
-
 interface VideoViewerProps {
   videoUrl: string
   transcripts?: Transcript[]
-  inVideoQuizzes?: InVideoQuiz[]
   metadata?: Record<string, unknown>
   savedPosition: number
   isCompleted: boolean
@@ -43,6 +36,9 @@ export function VideoViewer({
   const videoRef = useRef<HTMLVideoElement>(null)
   const [currentTime, setCurrentTime] = useState(0)
   const [maxWatchedTime, setMaxWatchedTime] = useState(savedPosition)
+  const maxWatchedRef = useRef(savedPosition)
+  const isCompletedRef = useRef(isCompleted)
+  isCompletedRef.current = isCompleted
   const [isStalled, setIsStalled] = useState(false)
   const hasCalledCompletion = useRef(false)
 
@@ -54,6 +50,7 @@ export function VideoViewer({
   useEffect(() => {
     if (videoRef.current && savedPosition > 0) {
       videoRef.current.currentTime = savedPosition
+      maxWatchedRef.current = savedPosition
       setMaxWatchedTime(savedPosition)
     }
   }, [savedPosition])
@@ -67,26 +64,27 @@ export function VideoViewer({
     // Interactive event check (pauses video if triggered)
     if (checkForEvent(time)) return
 
-    if (time > maxWatchedTime) {
+    if (time > maxWatchedRef.current) {
+      maxWatchedRef.current = time
       setMaxWatchedTime(time)
     }
 
     if (duration > 0) {
-      const percentage = Math.round((Math.max(time, maxWatchedTime) / duration) * 100)
+      const percentage = Math.round((Math.max(time, maxWatchedRef.current) / duration) * 100)
       onProgressUpdate(percentage, Math.floor(time))
 
-      if (percentage >= 95 && !isCompleted && !hasCalledCompletion.current) {
+      if (percentage >= 95 && !isCompletedRef.current && !hasCalledCompletion.current) {
         hasCalledCompletion.current = true
         onCompletionMet()
       }
     }
-  }, [maxWatchedTime, isCompleted, onProgressUpdate, onCompletionMet, checkForEvent])
+  }, [onProgressUpdate, onCompletionMet, checkForEvent])
 
   const handleSeeking = useCallback(() => {
-    if (videoRef.current && videoRef.current.currentTime > maxWatchedTime + 1) {
-      videoRef.current.currentTime = maxWatchedTime
+    if (videoRef.current && videoRef.current.currentTime > maxWatchedRef.current + 1) {
+      videoRef.current.currentTime = maxWatchedRef.current
     }
-  }, [maxWatchedTime])
+  }, [])
 
   const handlePlay = useCallback(() => {
     onStartViewing()
@@ -153,6 +151,7 @@ export function VideoViewer({
               ref={videoRef}
               src={videoUrl}
               controls={!activeEvent}
+              aria-label="Video pelajaran"
               onTimeUpdate={handleTimeUpdate}
               onSeeking={handleSeeking}
               onPlay={handlePlay}
@@ -256,10 +255,7 @@ export function VideoViewer({
               <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base">
                 Tentang Video Ini
               </h3>
-              <button className="hidden sm:flex items-center gap-2 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">
-                <MessageSquare className="w-4 h-4" />
-                Tanyakan di Ruang Diskusi
-              </button>
+              {/* TODO: Wire to discussion panel when ready */}
             </div>
             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
               Pastikan Anda menonton hingga akhir agar sistem mencatat progres Anda secara otomatis.

@@ -6,7 +6,8 @@ import {
   moderationService,
   ReportReason,
 } from '@/src/features/moderation/api/moderationService'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { createQueryKeys } from '@/src/shared/lib/queryKeys'
+import { captureError } from '@/src/utils/sentry'
 
 const base = createQueryKeys('moderation')
 const moderationKeys = {
@@ -56,6 +57,9 @@ export function useSubmitReport() {
       if (!tenantId) return
       queryClient.invalidateQueries({ queryKey: moderationKeys.reports(tenantId) })
     },
+    onError: (err) => {
+      captureError(err, { context: 'useSubmitReport' })
+    },
   })
 }
 
@@ -81,6 +85,9 @@ export function useResolveReport() {
     onSuccess: () => {
       if (!tenantId) return
       queryClient.invalidateQueries({ queryKey: moderationKeys.reports(tenantId) })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useResolveReport' })
     },
   })
 }

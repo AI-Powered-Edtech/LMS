@@ -5,6 +5,7 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { useTheme } from '@/src/contexts/ThemeContext'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
+import { captureError } from '@/src/utils/sentry'
 
 import { AccountTab, AppearanceTab, SecurityTab, ToggleRow } from './SettingsTabs'
 
@@ -31,26 +32,29 @@ export function Settings() {
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('account')
 
-  // Notification preferences state
   const [notifEmail, setNotifEmail] = useState(true)
   const [notifPush, setNotifPush] = useState(true)
   const [notifAssignment, setNotifAssignment] = useState(true)
   const [notifGrade, setNotifGrade] = useState(true)
   const [notifAnnouncement, setNotifAnnouncement] = useState(true)
 
-  const displayName =
-    profile?.first_name && profile?.last_name
-      ? `${profile.first_name} ${profile.last_name}`
-      : (user?.user_metadata?.full_name ?? '')
-  const displayEmail = user?.email ?? ''
+  // NOTE: Profile editing and password changing are handled inside AccountTab and
+  // SecurityTab components respectively — they own their own state. This page-level
+  // component only handles sign-out and notification preference toggles.
 
   const handleSignOut = useCallback(async () => {
     try {
       await signOut()
     } catch (e) {
       if (import.meta.env.DEV) console.error('[Settings] signOut error:', e)
+      captureError(e, { context: 'Settings.handleSignOut' })
     }
   }, [signOut])
+
+  const displayName =
+    profile?.first_name && profile?.last_name
+      ? `${profile.first_name} ${profile.last_name}`
+      : (user?.user_metadata?.full_name ?? '')
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
@@ -64,7 +68,7 @@ export function Settings() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Sidebar */}
+        {/* Sidebar nav */}
         <div className="space-y-2">
           {TABS.map((tab) => (
             <button
@@ -89,19 +93,18 @@ export function Settings() {
           ))}
         </div>
 
-        {/* Main Content */}
+        {/* Content */}
         <div className="md:col-span-2 space-y-6">
-          {/* ─── Account Tab ─── */}
           {activeTab === 'account' && (
             <AccountTab
+              userId={user?.id ?? ''}
               avatarUrl={profile?.avatar_url}
-              displayEmail={displayEmail}
+              displayEmail={user?.email ?? ''}
               roleLabel={ROLE_LABELS[role] ?? role}
               displayName={displayName}
             />
           )}
 
-          {/* ─── Notifications Tab ─── */}
           {activeTab === 'notifications' && (
             <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
               <div className="p-6 border-b border-slate-100 dark:border-slate-700">
@@ -157,13 +160,12 @@ export function Settings() {
             </div>
           )}
 
-          {/* ─── Security Tab ─── */}
           {activeTab === 'security' && <SecurityTab />}
 
-          {/* ─── Appearance Tab ─── */}
-          {activeTab === 'appearance' && <AppearanceTab theme={theme} setTheme={setTheme} />}
+          {activeTab === 'appearance' && (
+            <AppearanceTab theme={theme as Theme} setTheme={setTheme} />
+          )}
 
-          {/* ─── Language Tab ─── */}
           {activeTab === 'language' && (
             <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
               <div className="p-6 border-b border-slate-100 dark:border-slate-700">
@@ -215,7 +217,7 @@ export function Settings() {
             </div>
           )}
 
-          {/* ─── Danger Zone (always visible) ─── */}
+          {/* Danger Zone — always visible */}
           <div className="bg-white dark:bg-slate-800 rounded-3xl border border-red-200 dark:border-red-900/50 shadow-sm overflow-hidden">
             <div className="p-6">
               <h2 className="text-lg font-bold text-red-600 dark:text-red-400 mb-2">
@@ -224,16 +226,14 @@ export function Settings() {
               <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                 Tindakan di bawah ini tidak dapat dibatalkan.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className="flex-1 px-4 py-2.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Keluar Akun
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="px-4 py-2.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-bold rounded-xl transition-colors flex items-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Keluar Akun
+              </button>
             </div>
           </div>
         </div>

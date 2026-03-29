@@ -57,6 +57,7 @@ serve(async (req) => {
   let totalAggregationMs = 0
   let totalDbWriteMs = 0
   let iterations = 0
+  let totalPoisonMessages = 0
 
   try {
     if (!databaseUrl) {
@@ -116,25 +117,34 @@ serve(async (req) => {
         const aggregated = new Map<string, any>()
         const msgIds: number[] = []
 
+        // Poison message resilience (IN-H3) — skip malformed events instead of crashing
         for (const row of messages) {
           msgIds.push(row.msg_id)
-          const event = row.message
-          const key = `${event.user_id}_${event.lesson_id}`
-          const existing = aggregated.get(key)
+          try {
+            const event = row.message
+            if (!event?.user_id || !event?.lesson_id || !event?.tenant_id) {
+              totalPoisonMessages++
+              continue
+            }
+            const key = `${event.user_id}_${event.lesson_id}`
+            const existing = aggregated.get(key)
 
-          if (!existing) {
-            aggregated.set(key, {
-              ...event,
-              position: event.position ?? 0,
-              is_completed: event.event_type === 'lesson_completed',
-            })
-          } else {
-            if ((event.position ?? 0) > existing.position) {
-              existing.position = event.position
+            if (!existing) {
+              aggregated.set(key, {
+                ...event,
+                position: event.position ?? 0,
+                is_completed: event.event_type === 'lesson_completed',
+              })
+            } else {
+              if ((event.position ?? 0) > existing.position) {
+                existing.position = event.position
+              }
+              if (event.event_type === 'lesson_completed') {
+                existing.is_completed = true
+              }
             }
-            if (event.event_type === 'lesson_completed') {
-              existing.is_completed = true
-            }
+          } catch {
+            totalPoisonMessages++
           }
         }
 
@@ -145,17 +155,31 @@ serve(async (req) => {
         const writeStart = Date.now()
 
         await sql.begin(async (tx) => {
-          for (const event of aggregated.values()) {
+          // Batch upsert — single query instead of N individual inserts (PF-H3)
+          const rows = [...aggregated.values()].map((e) => ({
+            tenant_id: e.tenant_id,
+            user_id: e.user_id,
+            lesson_id: e.lesson_id,
+            position: e.position,
+            is_completed: e.is_completed,
+          }))
+
+          if (rows.length > 0) {
             await tx`
               INSERT INTO lesson_progress (
                 tenant_id, user_id, lesson_id,
                 last_position_seconds, progress_percent,
                 is_completed, updated_at
-              ) VALUES (
-                ${event.tenant_id}, ${event.user_id}, ${event.lesson_id},
-                ${event.position}, 0,
-                ${event.is_completed}, NOW()
               )
+              SELECT
+                (r->>'tenant_id')::uuid,
+                (r->>'user_id')::uuid,
+                (r->>'lesson_id')::uuid,
+                COALESCE((r->>'position')::int, 0),
+                0,
+                COALESCE((r->>'is_completed')::bool, false),
+                NOW()
+              FROM jsonb_array_elements(${JSON.stringify(rows)}::jsonb) AS r
               ON CONFLICT (user_id, lesson_id)
               DO UPDATE SET
                 last_position_seconds = GREATEST(lesson_progress.last_position_seconds, EXCLUDED.last_position_seconds),
@@ -176,6 +200,7 @@ serve(async (req) => {
         JSON.stringify({
           component: 'process-progress-events',
           events_processed: totalProcessed,
+          poison_messages: totalPoisonMessages,
           iterations,
           aggregation_time_ms: totalAggregationMs,
           db_write_latency_ms: totalDbWriteMs,

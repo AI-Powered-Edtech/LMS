@@ -3,6 +3,8 @@
 
 import { useQuery } from '@tanstack/react-query'
 
+import { GC, STALE } from '@/src/utils/queryConstants'
+
 import * as quizPlayerService from '../api/quizPlayer.service'
 import { QuizKeys } from './queryKeys'
 
@@ -18,6 +20,8 @@ export function useStudentQuizAssignments(tenantId: string | undefined) {
     queryKey: QuizKeys.studentAssignments(tenantId ?? ''),
     queryFn: () => quizPlayerService.getStudentQuizAssignments(tenantId!),
     enabled: !!tenantId,
+    staleTime: STALE.DYNAMIC,
+    gcTime: GC.NORMAL,
   })
 }
 
@@ -29,5 +33,7 @@ export function useUserAttempts(tenantId: string | undefined) {
     queryKey: QuizKeys.userAttempts(tenantId ?? ''),
     queryFn: () => quizPlayerService.getUserAttempts(tenantId!),
     enabled: !!tenantId,
+    staleTime: STALE.DYNAMIC,
+    gcTime: GC.NORMAL,
   })
 }

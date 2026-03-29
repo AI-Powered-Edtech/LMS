@@ -1,8 +1,10 @@
-import { Loader2, Play, Target } from 'lucide-react'
+import { Loader2, Play, Target, WifiOff } from 'lucide-react'
 import { motion } from 'motion/react'
+import { useEffect, useState } from 'react'
 
 import type { StudentQuizAssignment } from '@/src/features/quizzes'
 import { cn } from '@/src/utils/cn'
+import { getCachedQuiz } from '@/src/utils/offlineStorage'
 
 export function QuizCard({
   quiz,
@@ -17,6 +19,18 @@ export function QuizCard({
   onStart: () => void
   isStarting?: boolean
 }) {
+  const [isCached, setIsCached] = useState(false)
+
+  useEffect(() => {
+    getCachedQuiz(quiz.quiz_id)
+      .then((cached) => {
+        setIsCached(!!cached)
+      })
+      .catch(() => {
+        // IndexedDB unavailable — no badge
+      })
+  }, [quiz.quiz_id])
+
   const timeLimitMin = quiz.time_limit_minutes ?? 0
   const maxAttempts = quiz.max_attempts ?? 0
   const isAvailable = attemptsCount < maxAttempts || !maxAttempts
@@ -71,6 +85,12 @@ export function QuizCard({
             {quiz.quiz_questions?.length || 0} Soal{' '}
             {timeLimitMin > 0 ? `• ${timeLimitMin} Menit` : ''}
           </span>
+          {isCached && (
+            <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+              <WifiOff className="w-3 h-3" aria-hidden="true" />
+              Tersimpan offline
+            </span>
+          )}
         </div>
 
         {availableUntil && (

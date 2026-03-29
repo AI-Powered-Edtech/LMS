@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { ChevronRight, Plus, Trash2, TrendingDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
@@ -93,6 +94,7 @@ export function FunnelComparison({ courseId }: FunnelComparisonProps) {
               <button
                 onClick={(e) => {
                   e.stopPropagation()
+                  if (!confirm('Hapus corong ini? Aksi ini tidak bisa dibatalkan.')) return
                   deleteFunnel.mutate(f.funnel_id)
                 }}
                 aria-label="Hapus corong"

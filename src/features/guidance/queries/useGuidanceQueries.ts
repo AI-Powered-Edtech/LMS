@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { createQueryKeys } from '@/src/shared/lib/queryKeys'
 import { GC, STALE } from '@/src/utils/queryConstants'
+import { captureError } from '@/src/utils/sentry'
 
 import { guidanceService } from '../api/guidanceService'
 import { DEFAULT_GUIDES } from '../data/defaultGuides'
@@ -68,6 +69,9 @@ export function useUpsertGuide() {
         queryClient.invalidateQueries({ queryKey: base.all(tenantId) })
       }
     },
+    onError: (err) => {
+      captureError(err, { context: 'useUpsertGuide' })
+    },
   })
 }
 
@@ -81,6 +85,9 @@ export function useDeleteGuide() {
         queryClient.invalidateQueries({ queryKey: base.all(tenantId) })
       }
     },
+    onError: (err) => {
+      captureError(err, { context: 'useDeleteGuide' })
+    },
   })
 }
 
@@ -92,6 +99,9 @@ export function useRecordInteraction() {
       // Skip default guides (fake IDs like "default-0") — they have no DB row
       if (!UUID_RE.test(guideId)) return Promise.resolve()
       return guidanceService.recordInteraction(guideId, action)
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useRecordInteraction' })
     },
   })
 }

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
+import { captureError } from '@/src/utils/sentry'
 
 import {
   CreateGroupInput,
@@ -33,7 +34,7 @@ export function useStudentGroup(assignmentId: string) {
 
   return useQuery<StudentGroupData | null>({
     queryKey: groupAssignmentKeys.studentGroup(assignmentId, userId),
-    queryFn: () => groupAssignmentService.getStudentGroup(assignmentId),
+    queryFn: () => groupAssignmentService.getStudentGroup(userId, assignmentId),
     enabled: !!assignmentId && !!userId,
     staleTime: 30_000,
   })
@@ -70,6 +71,9 @@ export function useCreateGroups(assignmentId: string) {
         queryKey: groupAssignmentKeys.teacherGroups(assignmentId),
       })
     },
+    onError: (err) => {
+      captureError(err, { context: 'useCreateGroups' })
+    },
   })
 }
 
@@ -93,6 +97,9 @@ export function useSubmitGroupAssignment(assignmentId: string) {
         queryKey: groupAssignmentKeys.studentGroup(assignmentId, userId),
       })
     },
+    onError: (err) => {
+      captureError(err, { context: 'useSubmitGroupAssignment' })
+    },
   })
 }
 
@@ -109,6 +116,9 @@ export function useGradeGroupSubmission(assignmentId: string) {
       void queryClient.invalidateQueries({
         queryKey: groupAssignmentKeys.teacherGroups(assignmentId),
       })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useGradeGroupSubmission' })
     },
   })
 }

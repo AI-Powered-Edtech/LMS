@@ -30,9 +30,11 @@ When running automated QA via `agent-browser` CLI, standard click simulations so
 
 ## Running the App for Testing
 
+# <<<<<<< HEAD
+
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 # App runs at http://localhost:5173
 ```
 
@@ -41,21 +43,27 @@ All URLs use hash routing. Navigate to `http://localhost:5173/#/login` to start.
 ## TypeScript Check
 
 ```bash
-npm run lint        # alias for: npx tsc --noEmit
+pnpm typecheck      # tsc --noEmit
 ```
 
 Must pass with 0 errors before shipping.
 
+## Lint Check
+
+```bash
+pnpm lint           # eslint src/
+```
+
 ## Production Build Check
 
 ```bash
-npm run build       # must complete without errors
+pnpm build          # must complete without errors
 ```
 
 ## Unit Tests
 
 ```bash
-npm run test        # Vitest
+pnpm test           # Vitest
 ```
 
 Tests are in `src/**/*.test.ts` and `src/**/*.test.tsx` files.
@@ -123,7 +131,7 @@ The `flows24/` suite uses a separate Playwright config with pre-authenticated st
 - **Role-based projects**: `student`, `teacher`, `admin` — each project uses its own saved auth state so tests don't need to re-login.
 - **Role filtering**: Tests use `test.skip(testInfo.project.name !== 'role')` to run only under the correct role project.
 - **Timeout**: 120s per test (accounts for slow Supabase queries on first load).
-- **Web server**: Auto-starts `npm run dev` if not already running.
+- **Web server**: Auto-starts `pnpm dev` if not already running.
 
 ### flows24 Coverage Matrix (24 Flows + 4 Cross-Cutting)
 
@@ -179,13 +187,7 @@ The next run will re-authenticate all roles.
 All authenticated tests call `skipIfNoAuth()` in `beforeEach` — they skip gracefully in CI
 when `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` env vars are not set.
 
-### Manual E2E via agent-browser
-
-The `agent-browser` CLI (Vercel Labs) can be used for headless browser testing:
-
-```bash
-npm i -g agent-browser && agent-browser install
-```
+### Manual Testing URLs
 
 All URLs for manual testing use hash routing:
 
@@ -194,13 +196,14 @@ All URLs for manual testing use hash routing:
 | Login             | `http://localhost:5173/#/login`                   |
 | Student dashboard | `http://localhost:5173/#/app/student`             |
 | Teacher dashboard | `http://localhost:5173/#/app/teacher`             |
+| Admin dashboard   | `http://localhost:5173/#/app/admin`               |
 | Analytics         | `http://localhost:5173/#/analytics`               |
 | Course builder    | `http://localhost:5173/#/teaching/course-builder` |
 | Quiz manager      | `http://localhost:5173/#/teaching/quiz-manager`   |
 | Leaderboard       | `http://localhost:5173/#/leaderboard`             |
 | Gradebook         | `http://localhost:5173/#/gradebook`               |
 
-**Important:** The login form cannot be filled programmatically (React controlled inputs). Agent-browser must use keyboard events or `page.fill()` with the correct selectors.
+**Note:** The login form uses React controlled inputs. Playwright tests use keyboard events (`page.fill()`) with the correct selectors. See `e2e/helpers/auth.ts` for helper utilities.
 
 ## Key Test IDs (Shared Dev DB)
 
@@ -225,8 +228,9 @@ All URLs for manual testing use hash routing:
 - Teacher: course builder, publish, analytics functional
 - Student: lesson viewer, quiz player, gamification functional
 - Multi-tenant: data isolated between schools (RLS verified)
-- 0 TypeScript errors (`npm run lint` clean)
-- Build passes (`npm run build` clean)
+- 0 TypeScript errors (`pnpm typecheck` clean)
+- 0 ESLint errors (`pnpm lint` clean)
+- Build passes (`pnpm build` clean)
 - No console errors on happy paths
 - All user-visible text in Bahasa Indonesia
 - Dark mode works on all pages
@@ -243,37 +247,4 @@ All URLs for manual testing use hash routing:
 | BUG-C2-002  | Student course discovery is join-code only (by design)                   |
 | BUG-PRE-006 | Workspace selector "No Workspace Access" text in English                 |
 
-<!-- Phase 5 Feature Cross-Reference -->
-
-## Feature Module Cross-Reference
-
-EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
-
-| Feature         | Domain         | Deskripsi                                                                                                                  |
-| --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| administration  | Admin          | Administrasi — Manajemen tenant, konfigurasi modul sekolah, sinkronisasi data                                              |
-| ai-tutor        | Learning       | AI Tutor — Asisten belajar berbasis AI yang memberikan penjelasan personal kepada siswa                                    |
-| analytics       | Analytics      | Analitik — Dashboard analitik komprehensif untuk guru dan admin                                                            |
-| announcements   | Communication  | Pengumuman — Sistem pengumuman sekolah                                                                                     |
-| assignments     | Assessment     | Tugas — Manajemen tugas dari pembuatan hingga penilaian                                                                    |
-| calendar        | Academic       | Kalender — Kalender akademik terintegrasi dengan jadwal pelajaran, ujian, deadline tugas, dan kegiatan sekolah             |
-| classroom       | Academic       | Kelas — Manajemen kelas virtual dan fisik                                                                                  |
-| courses         | Academic       | Kursus — Core learning module                                                                                              |
-| dashboards      | Analytics      | Dashboard — Dashboard kustom dengan widget builder                                                                         |
-| discussions     | Communication  | Diskusi — Forum diskusi per kursus                                                                                         |
-| gamification    | Engagement     | Gamifikasi — Sistem gamifikasi lengkap: XP, badge, level, streak counter, dan leaderboard                                  |
-| gradebook       | Assessment     | Buku Nilai — Buku nilai digital untuk guru                                                                                 |
-| guidance        | Admin          | Panduan — Sistem panduan in-app (tooltip, walkthrough, banner, checkpoint)                                                 |
-| lessons         | Learning       | Pelajaran — Konten pelajaran dengan block-based editor                                                                     |
-| moderation      | Admin          | Moderasi — Moderasi konten user-generated (diskusi, komentar)                                                              |
-| notifications   | Communication  | Notifikasi — Sistem notifikasi real-time dengan bell icon dan panel                                                        |
-| onboarding      | Admin          | Onboarding — Wizard onboarding untuk pengguna baru                                                                         |
-| progress        | Learning       | Kemajuan Belajar — Tracking progress belajar siswa secara granular per kursus, modul, dan pelajaran                        |
-| question-bank   | Assessment     | Bank Soal — Repositori soal yang bisa digunakan ulang di berbagai kuis                                                     |
-| quizzes         | Assessment     | Kuis — Sistem kuis komprehensif dengan timer, anti-cheat, autosave, review mode, dan analitik hasil per soal               |
-| recommendations | Learning       | Rekomendasi — Engine rekomendasi konten berdasarkan progress, performa, dan pola belajar siswa                             |
-| reports         | Analytics      | Laporan — Generator laporan akademik, keuangan (SPP), PPDB, dan custom                                                     |
-| storage         | Infrastructure | Penyimpanan — Manajemen file dan media untuk materi pembelajaran                                                           |
-| struggle        | Analytics      | Deteksi Kesulitan — Deteksi otomatis siswa yang kesulitan berdasarkan pola belajar, waktu per soal, dan penurunan performa |
-
-Setiap feature module mengikuti arsitektur standar dengan folder: api/, queries/, hooks/, types/, components/, dan **tests**/. Semua feature mendukung dark mode dan skeleton loading screens.
+> > > > > > > tundra-boa

@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { fn } from '@storybook/test'
 import { BookOpen, FileText, Search, Users } from 'lucide-react'
 
 import { EmptyState } from './EmptyState'
@@ -41,7 +40,7 @@ export const WithAction: Story = {
     description: 'Belum ada tugas yang diberikan untuk kelas ini.',
     action: {
       label: 'Buat Tugas Baru',
-      onClick: fn(),
+      onClick: () => {},
     },
   },
 }
@@ -53,7 +52,7 @@ export const NoStudents: Story = {
     description: 'Kelas ini belum memiliki siswa terdaftar.',
     action: {
       label: 'Undang Siswa',
-      onClick: fn(),
+      onClick: () => {},
     },
   },
 }

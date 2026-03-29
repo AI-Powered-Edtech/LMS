@@ -50,8 +50,8 @@ export function initSentry(): void {
         enableInp: true,
       }),
       Sentry.replayIntegration({
-        maskAllText: false,
-        blockAllMedia: false,
+        maskAllText: true, // Mask all text fields to prevent PII capture
+        blockAllMedia: true, // Block media elements from being recorded
       }),
     ],
 

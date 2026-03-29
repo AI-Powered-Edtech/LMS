@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, Search, Shield, Trash2, User } from 'lucide-react'
 import { useState } from 'react'
@@ -137,7 +138,10 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
                     </span>
                   </div>
                   <button
-                    onClick={() => removeCollabMut.mutate(c.id)}
+                    onClick={() => {
+                      if (!confirm('Hapus kolaborator ini dari kursus?')) return
+                      removeCollabMut.mutate(c.id)
+                    }}
                     className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                     aria-label="Hapus kolaborator"
                   >

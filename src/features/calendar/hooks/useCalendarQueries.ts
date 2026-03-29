@@ -3,7 +3,7 @@ import { create } from 'zustand'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { CalendarEvent, calendarService } from '@/src/features/calendar/api/calendarService'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { createQueryKeys } from '@/src/shared/lib/queryKeys'
 import { STALE } from '@/src/utils/queryConstants'
 
 // Zustand store for calendar events (client-side state since no server persistence)

@@ -12,8 +12,8 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useToast } from '@/src/components/ui'
+import { authService } from '@/src/features/auth/api/authService'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
 
 import { useAuth } from '../contexts/AuthContext'
 
@@ -52,14 +52,11 @@ export function WorkspaceSelector() {
 
     setIsSubmitting(true)
     try {
-      const { data, error } = await supabase.rpc('onboard_student_join_class', {
-        p_join_code: joinCode.trim(),
-        p_full_name: fullName.trim(),
+      const result = await authService.onboardStudentJoinClass({
+        joinCode: joinCode.trim(),
+        fullName: fullName.trim(),
       })
 
-      if (error) throw error
-
-      const result = data as { class_name?: string; school_name?: string } | null
       addToast({
         type: 'success',
         message: `Berhasil bergabung di kelas ${result?.class_name || ''} — ${result?.school_name || 'sekolah Anda'}!`,
@@ -88,13 +85,11 @@ export function WorkspaceSelector() {
 
     setIsSubmitting(true)
     try {
-      const { error } = await supabase.rpc('create_school_tenant', {
-        p_school_name: schoolName.trim(),
-        p_full_name: fullName.trim(),
-        p_role: 'teacher',
+      await authService.createSchoolTenant({
+        schoolName: schoolName.trim(),
+        fullName: fullName.trim(),
+        role: 'teacher',
       })
-
-      if (error) throw error
 
       addToast({
         type: 'success',
@@ -121,13 +116,11 @@ export function WorkspaceSelector() {
 
     setIsSubmitting(true)
     try {
-      const { error } = await supabase.rpc('create_school_tenant', {
-        p_school_name: schoolName.trim(),
-        p_full_name: fullName.trim(),
-        p_role: 'admin',
+      await authService.createSchoolTenant({
+        schoolName: schoolName.trim(),
+        fullName: fullName.trim(),
+        role: 'admin',
       })
-
-      if (error) throw error
 
       addToast({
         type: 'success',

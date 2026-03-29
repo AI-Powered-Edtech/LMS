@@ -3,6 +3,50 @@ import Papa from 'papaparse'
 import { useState } from 'react'
 
 import { cn } from '@/src/utils/cn'
+import { escapeHtml } from '@/src/utils/sanitize'
+
+function exportAsPrintablePDF(data: Record<string, unknown>[], filename: string) {
+  if (data.length === 0) return
+
+  const columns = Object.keys(data[0])
+  const rows = data.map((row) => columns.map((col) => escapeHtml(String(row[col] ?? ''))))
+
+  const w = window.open('', '_blank', 'width=900,height=700')
+  if (!w) return
+
+  w.document.write(`<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline';">
+  <title>${escapeHtml(filename)}</title>
+  <style>
+    @page { margin: 1cm; }
+    body { font-family: system-ui, sans-serif; font-size: 12px; color: #111; }
+    h1 { font-size: 16px; margin-bottom: 12px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #f1f5f9; text-align: left; padding: 6px 8px; border: 1px solid #cbd5e1; font-weight: 600; }
+    td { padding: 5px 8px; border: 1px solid #e2e8f0; }
+    tr:nth-child(even) td { background: #f8fafc; }
+    @media print { button { display: none; } }
+  </style>
+</head>
+<body>
+  <h1>${escapeHtml(filename)}</h1>
+  <table>
+    <thead><tr>${columns.map((c) => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map((r) => `<tr>${r.map((cell) => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table>
+  <br>
+  <button onclick="window.print();window.close()">Cetak / Simpan PDF</button>
+</body>
+</html>`)
+  w.document.close()
+  w.focus()
+  setTimeout(() => {
+    w.print()
+  }, 300)
+}
 
 interface ExportButtonProps {
   data: Record<string, unknown>[]
@@ -36,7 +80,7 @@ export function ExportButton({
         link.click()
         URL.revokeObjectURL(url)
       } else if (format === 'pdf') {
-        window.print()
+        exportAsPrintablePDF(data, filename)
       }
     } finally {
       setIsExporting(false)

@@ -2,7 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { CommentData, commentService } from '@/src/features/discussions/api/commentService'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { createQueryKeys } from '@/src/shared/lib/queryKeys'
+import { captureError } from '@/src/utils/sentry'
 
 type Comment = CommentData
 
@@ -35,6 +36,9 @@ function useAddComment() {
           author_id: user!.id,
         },
       ])
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useAddComment' })
     },
   })
 }

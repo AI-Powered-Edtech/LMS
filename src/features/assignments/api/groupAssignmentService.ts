@@ -55,8 +55,9 @@ export const groupAssignmentService = {
   /**
    * Returns the group, members, and submission for the calling student.
    */
-  async getStudentGroup(assignmentId: string): Promise<StudentGroupData | null> {
+  async getStudentGroup(userId: string, assignmentId: string): Promise<StudentGroupData | null> {
     const { data, error } = await supabase.rpc('get_student_group_assignment', {
+      p_user_id: userId,
       p_assignment_id: assignmentId,
     })
 

@@ -78,7 +78,7 @@ export function AITutorInput({
     <div
       ref={inputContainerRef}
       className={cn(
-        'bg-white border-t border-slate-100 p-4',
+        'bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 p-4',
         disabled && 'opacity-50 pointer-events-none'
       )}
     >
@@ -103,8 +103,9 @@ export function AITutorInput({
 
       {/* Context hint */}
       {lessonTitle && !question && (
-        <div className="mb-3 text-xs text-slate-400">
-          Bertanya tentang: <span className="text-slate-600 font-medium">{lessonTitle}</span>
+        <div className="mb-3 text-xs text-slate-400 dark:text-slate-500">
+          Bertanya tentang:{' '}
+          <span className="text-slate-600 dark:text-slate-400 font-medium">{lessonTitle}</span>
         </div>
       )}
 
@@ -120,12 +121,12 @@ export function AITutorInput({
             disabled={disabled || isLoading}
             rows={1}
             className={cn(
-              'w-full px-4 py-3 pr-12 rounded-2xl border-2 bg-slate-50 resize-none',
-              'placeholder:text-slate-400 text-slate-700',
+              'w-full px-4 py-3 pr-12 rounded-2xl border-2 bg-slate-50 dark:bg-slate-800 resize-none',
+              'placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-700 dark:text-slate-200',
               'focus:outline-none focus:ring-0',
               validationError
-                ? 'border-red-300 focus:border-red-400'
-                : 'border-slate-200 focus:border-blue-400',
+                ? 'border-red-300 dark:border-red-600 focus:border-red-400 dark:focus:border-red-500'
+                : 'border-slate-200 dark:border-slate-700 focus:border-blue-400 dark:focus:border-blue-500',
               (disabled || isLoading) && 'cursor-not-allowed'
             )}
           />
@@ -147,7 +148,7 @@ export function AITutorInput({
       </div>
 
       {/* Helper text */}
-      <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
+      <div className="mt-2 flex items-center justify-between text-xs text-slate-400 dark:text-slate-500">
         <span>Tekan Enter untuk mengirim, Shift+Enter untuk baris baru</span>
         <span>{question.length}/2000</span>
       </div>

@@ -2,13 +2,13 @@ import { HelpCircle } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
+import { classroomService } from '@/src/features/classroom/api/classroomService'
 import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
 import { type QuestionType, type QuizMode, quizService } from '@/src/features/quizzes'
 import { QuizEditorView } from '@/src/features/quizzes/components/QuizEditorView'
 import { QuizListView } from '@/src/features/quizzes/components/QuizListView'
 import { QuizStatus } from '@/src/features/quizzes/types/quizzes.types'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
 
 // ─────────────────────────────────────────────────────────
 // Types
@@ -87,15 +87,9 @@ export function QuizManager() {
 
   useEffect(() => {
     if (activeClassroomId && tenantId) {
-      supabase
-        .from('enrollments')
-        .select('*', { count: 'exact', head: true })
-        .eq('class_id', activeClassroomId)
-        .eq('tenant_id', tenantId)
-        .eq('status', 'ACTIVE')
-        .then(({ count }) => {
-          setStudentCount(count || 0)
-        })
+      classroomService.getActiveEnrollmentCount(activeClassroomId, tenantId).then((count) => {
+        setStudentCount(count)
+      })
     }
   }, [activeClassroomId, tenantId])
 

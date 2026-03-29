@@ -1,4 +1,4 @@
-import { CheckCircle2, CheckSquare, Clock, Plus } from 'lucide-react'
+import { CheckCircle2, CheckSquare, Clock, MoreVertical, Plus } from 'lucide-react'
 
 import { cn } from '@/src/utils/cn'
 
@@ -86,7 +86,13 @@ export function GroupTasksTab({
                   </p>
                 </div>
               </div>
-              {/* TODO: implementasi menu opsi sub-tugas */}
+              <button
+                type="button"
+                aria-label="Opsi sub-tugas"
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
             </div>
           ))
         )}

@@ -1,3 +1,4 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import {
   AlertTriangle,
   Award,
@@ -94,11 +95,11 @@ export function LessonTopBar({
           </div>
           {moduleLessons.length > 0 && currentLessonIndex >= 0 && (
             <div className="flex items-center gap-3 mb-3">
-              <span className="text-sm text-slate-500">
+              <span className="text-sm text-slate-500 dark:text-slate-400">
                 Pelajaran {currentLessonIndex + 1} / {moduleLessons.length}
               </span>
               <div
-                className="flex-1 max-w-[200px] h-1.5 bg-slate-200 rounded-full overflow-hidden"
+                className="flex-1 max-w-[200px] h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"
                 role="progressbar"
                 aria-valuenow={completedLessonCount}
                 aria-valuemin={0}
@@ -136,7 +137,7 @@ export function LessonTopBar({
 
           {status === 'completed' ? (
             <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-green-200 bg-green-50 text-green-600 font-bold text-sm shadow-sm transition-all hover:bg-green-100">
+              <div className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 font-bold text-sm shadow-sm transition-all hover:bg-green-100 dark:hover:bg-green-900/50">
                 <CheckCircle className="w-4 h-4" />
                 Selesai
               </div>
@@ -148,7 +149,7 @@ export function LessonTopBar({
                   className="rounded-full px-6 py-2.5 text-sm font-bold shadow-sm"
                 />
               ) : isLastLesson ? (
-                <div className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-600 font-bold text-sm shadow-sm">
+                <div className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-bold text-sm shadow-sm">
                   <Award className="w-4 h-4" />
                   Modul Selesai!
                 </div>
@@ -163,8 +164,8 @@ export function LessonTopBar({
               className={cn(
                 'flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm shadow-sm border transition-all',
                 progressPercentage >= 95 || lesson.type !== 'video'
-                  ? 'border-green-600 text-green-600 hover:bg-green-50'
-                  : 'border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed hidden'
+                  ? 'border-green-600 text-green-600 dark:border-green-500 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20'
+                  : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed hidden'
               )}
             >
               <CheckCircle className="w-5 h-5" />
@@ -186,7 +187,7 @@ export function LessonTopBar({
             'px-4 py-3 text-sm font-bold flex items-center gap-2 transition-all border-b-2',
             activeTab === 'content'
               ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-slate-400 hover:text-slate-600'
+              : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
           )}
         >
           <Info className="w-4 h-4" />
@@ -202,7 +203,7 @@ export function LessonTopBar({
             'px-4 py-3 text-sm font-bold flex items-center gap-2 transition-all border-b-2',
             activeTab === 'discussion'
               ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-slate-400 hover:text-slate-600'
+              : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
           )}
         >
           <MessageSquare className="w-4 h-4" />
@@ -218,7 +219,7 @@ export function LessonTopBar({
             'px-4 py-3 text-sm font-bold flex items-center gap-2 transition-all border-b-2',
             activeTab === 'ai_tutor'
               ? 'border-violet-600 text-violet-600'
-              : 'border-transparent text-slate-400 hover:text-slate-600'
+              : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
           )}
         >
           <Sparkles className="w-4 h-4" />

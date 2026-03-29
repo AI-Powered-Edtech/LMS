@@ -1,12 +1,42 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { BookOpen, CheckCircle, Clock, Sparkles } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 
 import { cn } from '@/src/utils/cn'
+
+// XSS protection: sanitize user-generated markdown while preserving KaTeX math (SC-1)
+const katexSanitizeSchema = {
+  ...defaultSchema,
+  tagNames: [
+    ...(defaultSchema.tagNames || []),
+    'math',
+    'semantics',
+    'mrow',
+    'mi',
+    'mo',
+    'mn',
+    'msup',
+    'msub',
+    'mfrac',
+    'msqrt',
+    'mroot',
+    'mtext',
+    'annotation',
+  ],
+  attributes: {
+    ...defaultSchema.attributes,
+    div: [...(defaultSchema.attributes?.div || []), 'className', 'style'],
+    span: [...(defaultSchema.attributes?.span || []), 'className', 'style', 'aria-hidden'],
+    math: ['xmlns', 'display'],
+    annotation: ['encoding'],
+  },
+}
 
 interface ArticleViewerProps {
   content: string
@@ -15,6 +45,13 @@ interface ArticleViewerProps {
   onProgressUpdate: (percentage: number) => void
   onCompletionMet: () => void
   onStartViewing: () => void
+}
+
+function formatReadingTime(seconds: number): string {
+  if (seconds < 60) return seconds + 'dtk'
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return s > 0 ? m + 'm ' + s + 'dtk' : m + 'm'
 }
 
 export function ArticleViewer({
@@ -142,7 +179,8 @@ export function ArticleViewer({
                       )}
                     >
                       <Clock className="w-3.5 h-3.5" />
-                      Waktu baca: {readingTime}dtk / {minReadingTimeSeconds}dtk
+                      Waktu baca: {formatReadingTime(readingTime)} /{' '}
+                      {formatReadingTime(minReadingTimeSeconds)}
                     </span>
                   </div>
 
@@ -194,7 +232,7 @@ export function ArticleViewer({
         >
           <ReactMarkdown
             remarkPlugins={[remarkGfm, remarkMath]}
-            rehypePlugins={[rehypeKatex]}
+            rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}
             components={{
               a: ({ href, children }) => (
                 <a href={href} target="_blank" rel="noopener noreferrer">

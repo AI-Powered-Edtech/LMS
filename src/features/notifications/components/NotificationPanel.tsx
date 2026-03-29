@@ -13,6 +13,7 @@ import {
 import { memo, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+import { SkeletonCard } from '@/src/components/ui'
 import { cn } from '@/src/utils/cn'
 
 import { useNotifications } from '../hooks/useNotifications'
@@ -113,28 +114,39 @@ const NotificationItem = memo(function NotificationItem({
     }
   }, [notification.is_read, notification.id, markRead, url, onClose, navigate])
 
+  const readStatus = notification.is_read ? 'sudah dibaca' : 'belum dibaca'
+  const ariaLabel = `${notification.title}, ${readStatus}${url ? ', klik untuk buka' : ''}`
+
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={handleClick}
-      onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+      role="listitem"
       className={cn(
-        'flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors',
-        'hover:bg-slate-50 dark:hover:bg-slate-800/60',
+        'flex items-start gap-3 px-4 py-3 transition-colors',
         !notification.is_read && 'bg-blue-50/40 dark:bg-blue-900/10'
       )}
     >
       {/* Unread dot */}
-      <div className="mt-1 flex-shrink-0 w-2">
+      <div className="mt-1 flex-shrink-0 w-2" aria-hidden="true">
         {!notification.is_read && <span className="block w-2 h-2 rounded-full bg-blue-500" />}
       </div>
 
       {/* Icon */}
-      <div className="mt-0.5">{getTypeIcon(notification.type)}</div>
+      <div className="mt-0.5" aria-hidden="true">
+        {getTypeIcon(notification.type)}
+      </div>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0">
+      {/* Content — wrapped in a button so it's a single focusable interactive element */}
+      <button
+        type="button"
+        aria-label={ariaLabel}
+        onClick={handleClick}
+        onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+        className={cn(
+          'flex-1 min-w-0 text-left cursor-pointer',
+          'hover:bg-transparent focus-visible:outline-none focus-visible:ring-2',
+          'focus-visible:ring-blue-500 focus-visible:ring-offset-1 rounded'
+        )}
+      >
         <p
           className={cn(
             'text-sm leading-snug truncate',
@@ -153,7 +165,7 @@ const NotificationItem = memo(function NotificationItem({
         <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
           {relativeTime(notification.created_at)}
         </p>
-      </div>
+      </button>
     </div>
   )
 })
@@ -172,12 +184,25 @@ export const NotificationPanel = memo(function NotificationPanel({
   const recent = notifications.slice(0, 10)
 
   return (
-    <div className="w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+    // ACCESSIBILITY: aria-live="polite" announces new notifications to screen readers.
+    // aria-label gives the region a meaningful name for assistive technology.
+    <div
+      aria-label="Panel notifikasi"
+      aria-live="polite"
+      aria-atomic="false"
+      className="w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden"
+    >
       {/* Header */}
       <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white dark:bg-slate-900 z-10">
         <div>
-          <h3 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Notifikasi</h3>
-          <p className="text-[10px] text-slate-500 dark:text-slate-400">
+          <h3
+            className="font-bold text-slate-900 dark:text-slate-100 text-sm"
+            id="notification-panel-title"
+          >
+            Notifikasi
+          </h3>
+          {/* aria-live="off" prevents double-announcing — outer div already handles it */}
+          <p className="text-[10px] text-slate-500 dark:text-slate-400" aria-live="off">
             {unreadCount > 0 ? `${unreadCount} belum dibaca` : 'Semua sudah dibaca'}
           </p>
         </div>
@@ -186,6 +211,7 @@ export const NotificationPanel = memo(function NotificationPanel({
             <button
               type="button"
               onClick={markAllRead}
+              aria-label={`Tandai semua ${unreadCount} notifikasi sebagai sudah dibaca`}
               className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
             >
               Tandai semua sudah dibaca
@@ -197,20 +223,30 @@ export const NotificationPanel = memo(function NotificationPanel({
             aria-label="Pengaturan notifikasi"
             className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors rounded"
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-4 h-4" aria-hidden="true" />
           </Link>
         </div>
       </div>
 
-      {/* Body */}
-      <div className="max-h-[420px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+      {/* Body — role="list" pairs with role="listitem" on each NotificationItem */}
+      <div
+        role="list"
+        aria-labelledby="notification-panel-title"
+        className="max-h-[420px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800"
+      >
         {isLoading && recent.length === 0 ? (
-          <div className="p-8 flex justify-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+          // UX FIX: Use Skeleton instead of raw spinner for layout-consistent loading
+          <div className="space-y-2 p-3" aria-label="Memuat notifikasi">
+            <SkeletonCard lines={2} />
+            <SkeletonCard lines={2} />
+            <SkeletonCard lines={2} />
           </div>
         ) : recent.length === 0 ? (
-          <div className="p-12 text-center">
-            <Inbox className="w-10 h-10 text-slate-200 dark:text-slate-700 mx-auto mb-3" />
+          <div className="p-12 text-center" role="status">
+            <Inbox
+              className="w-10 h-10 text-slate-200 dark:text-slate-700 mx-auto mb-3"
+              aria-hidden="true"
+            />
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
               Tidak ada notifikasi baru
             </p>

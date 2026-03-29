@@ -155,7 +155,6 @@ Buka `http://localhost:5173` → klik tombol **Quick Login** sesuai role → mas
 Mock auth adalah pola di mana kita **membuat user/session palsu di frontend** tanpa melalui Supabase Auth yang sebenarnya. Contoh yang **DILARANG**:
 
 ```typescript
-// ❌ DILARANG KERAS — Jangan pernah buat kode seperti ini
 const mockUser = {
   id: 'd0000000-0000-0000-0000-000000000000',
   email: 'demo@edusync.dev',

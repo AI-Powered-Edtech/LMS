@@ -15,10 +15,66 @@ import { useToast } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 // TODO: AI generation will be routed through backend API (Phase 5)
 import { useAddCalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
+import { creatorService } from '@/src/features/creator/api/creatorService'
 import { useSendNotification } from '@/src/features/notifications'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
 import { cn } from '@/src/utils/cn'
+
+// Maps loadingText values to a step index (0-based)
+const LOADING_STEPS = [
+  { label: 'Membaca file', icon: '📄' },
+  { label: 'Menganalisis konten', icon: '🔍' },
+  { label: 'Membuat soal dengan AI', icon: '🤖' },
+  { label: 'Menyusun hasil', icon: '✅' },
+] as const
+
+function getActiveStep(loadingText: string): number {
+  if (loadingText.includes('Membaca')) return 0
+  if (loadingText.includes('Menganalisis')) return 1
+  if (loadingText.includes('Membuat soal')) return 2
+  if (loadingText.includes('Menyusun') || loadingText.includes('Hampir')) return 3
+  return 0
+}
+
+function ProgressSteps({ loadingText }: { loadingText: string }) {
+  const activeStep = getActiveStep(loadingText)
+  return (
+    <ol className="space-y-3 mt-6">
+      {LOADING_STEPS.map((step, i) => {
+        const isDone = i < activeStep
+        const isActive = i === activeStep
+        return (
+          <li
+            key={step.label}
+            className={cn(
+              'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors',
+              isDone &&
+                'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300',
+              isActive &&
+                'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 ring-1 ring-blue-200 dark:ring-blue-800',
+              !isDone &&
+                !isActive &&
+                'bg-slate-50 dark:bg-slate-700/50 text-slate-400 dark:text-slate-500'
+            )}
+          >
+            <span className="text-base leading-none w-5 text-center shrink-0">{step.icon}</span>
+            <span className="flex-1">
+              Langkah {i + 1}: {step.label}
+            </span>
+            {isDone && (
+              <span className="text-emerald-500 dark:text-emerald-400 font-bold text-base leading-none">
+                ✓
+              </span>
+            )}
+            {isActive && (
+              <span className="w-4 h-4 rounded-full border-2 border-blue-400 border-t-transparent animate-spin shrink-0" />
+            )}
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
 
 export function Creator() {
   const addToast = useToast((s) => s.addToast)
@@ -123,44 +179,8 @@ export function Creator() {
       formData.append('questionCount', questionCount.toString())
       formData.append('difficulty', difficulty)
 
-      const { data, error: supaError } = await supabase.functions.invoke('generate-ai-content', {
-        body: formData,
-      })
-
-      if (supaError) {
-        if (import.meta.env.DEV) console.error('Supabase edge function error:', supaError)
-        const msg = supaError.message ?? ''
-        // 404 — edge function not deployed
-        if (msg.includes('404') || msg.includes('not found') || msg.includes('FetchError')) {
-          throw new Error('Layanan AI (Backend API) belum tersedia saat ini.')
-        }
-        // 429 — rate limit
-        if (msg.includes('429') || msg.toLowerCase().includes('rate limit')) {
-          throw new Error(
-            'Terlalu banyak permintaan. Silakan tunggu beberapa saat sebelum mencoba lagi.'
-          )
-        }
-        // Network / timeout
-        if (
-          msg.includes('Failed to fetch') ||
-          msg.includes('NetworkError') ||
-          msg.includes('timeout')
-        ) {
-          throw new Error('Gagal terhubung ke server. Periksa koneksi internet Anda dan coba lagi.')
-        }
-        throw new Error(msg || 'Gagal memproses materi dengan AI.')
-      }
-
-      if (data?.error) {
-        throw new Error(data.error)
-      }
-
-      // Check if response contains expected data structure
-      if (data && data.questions && Array.isArray(data.questions)) {
-        setResult(data)
-      } else {
-        throw new Error('Respons API tidak valid.')
-      }
+      const data = await creatorService.generateAIContent(formData)
+      setResult(data)
     } catch (err: unknown) {
       if (import.meta.env.DEV) console.error(err)
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat memproses materi.')
@@ -528,37 +548,20 @@ export function Creator() {
             className="fixed inset-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <div className="w-full max-w-2xl bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center shrink-0">
                   <Sparkles className="w-6 h-6 text-blue-600 dark:text-blue-400 animate-pulse" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
                     AI sedang bekerja...
                   </h3>
-                  <p className="text-slate-500 dark:text-slate-400">{loadingText}</p>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm">
+                    Mohon tunggu sebentar
+                  </p>
                 </div>
               </div>
-
-              <div className="space-y-6">
-                {/* Skeleton Card */}
-                {[1, 2].map((i) => (
-                  <div
-                    key={i}
-                    className="border border-slate-100 dark:border-slate-700 rounded-2xl p-5 space-y-4"
-                  >
-                    <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded-md w-3/4 animate-pulse" />
-                    <div className="grid grid-cols-2 gap-3">
-                      {[1, 2, 3, 4].map((j) => (
-                        <div
-                          key={j}
-                          className="h-12 bg-slate-100 dark:bg-slate-700 rounded-xl animate-pulse"
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ProgressSteps loadingText={loadingText} />
             </div>
           </motion.div>
         )}

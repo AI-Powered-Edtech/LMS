@@ -101,17 +101,7 @@ export function useUndoableAction({
         capturedToastId = null
         toastIdRef.current = null
       }
-      try {
-        await onExecute()
-      } catch (err) {
-        addToast({
-          type: 'error',
-          message: 'Gagal',
-          description:
-            err instanceof Error ? err.message : 'Terjadi kesalahan saat menjalankan aksi',
-          duration: 5000,
-        })
-      }
+      await onExecute()
     }, delay)
   }, [message, delay, onExecute, onUndo, addToast, removeToast])
 

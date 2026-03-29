@@ -10,8 +10,8 @@ import {
 } from '@/src/components/CourseOverview'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { courseService } from '@/src/features/courses'
+import { lessonService } from '@/src/features/lessons/api/lessonService'
 import { LessonSkeleton } from '@/src/features/lessons/components/LessonSkeleton'
-import { supabase } from '@/src/services/supabase/client'
 import { cn } from '@/src/utils/cn'
 
 // ============================================================
@@ -77,19 +77,14 @@ export function CourseBrowser({
         })
 
         // 2+5. Fetch modules and instructor profile in parallel
-        const [{ data: modulesData }, { data: profileData }] = await Promise.all([
-          supabase
-            .from('course_modules')
-            .select('id, title, order, course_id, lessons(id, duration_minutes)')
-            .eq('tenant_id', tenantId)
-            .eq('course_id', activeCourse.id)
-            .order('order', { ascending: true }),
-          supabase.from('profiles').select('full_name').eq('id', activeCourse.created_by).single(),
+        const [modulesData, teacherName] = await Promise.all([
+          courseService.getCourseModulesWithLessons(activeCourse.id, tenantId),
+          courseService.getTeacherName(activeCourse.created_by),
         ])
 
-        if (profileData?.full_name) setInstructorName(profileData.full_name)
+        if (teacherName) setInstructorName(teacherName)
 
-        if (!modulesData?.length) {
+        if (!modulesData.length) {
           setModules([])
           setLoading(false)
           return
@@ -100,19 +95,7 @@ export function CourseBrowser({
           (m) => (m.lessons || []).map((l) => l.id)
         )
 
-        let completedSet = new Set<string>()
-        if (allLessonIds.length > 0) {
-          const { data: progressData } = await supabase
-            .from('lesson_progress')
-            .select('lesson_id, completed')
-            .eq('user_id', user.id)
-            .in('lesson_id', allLessonIds)
-            .eq('completed', true)
-
-          if (progressData) {
-            completedSet = new Set(progressData.map((p) => p.lesson_id))
-          }
-        }
+        const completedSet = await lessonService.getCompletedLessonIds(user.id, allLessonIds)
 
         // 4. Build module progress data
         let totalL = 0
@@ -193,9 +176,9 @@ export function CourseBrowser({
       <div className="flex items-center justify-center h-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
         <div className="text-center p-8 max-w-sm">
           <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-3xl flex items-center justify-center mx-auto mb-5">
-            <AlertTriangle className="w-10 h-10 text-red-400" />
+            <AlertTriangle className="w-10 h-10 text-red-400 dark:text-red-500" />
           </div>
-          <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200 mb-2">
+          <h2 className="text-xl font-bold text-slate-700 dark:text-slate-100 mb-2">
             Gagal Memuat Materi
           </h2>
           <p className="text-slate-400 dark:text-slate-500 text-sm mb-5">{fetchError}</p>
@@ -217,7 +200,7 @@ export function CourseBrowser({
           <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-5">
             <BookOpen className="w-10 h-10 text-slate-300 dark:text-slate-600" />
           </div>
-          <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200 mb-2">
+          <h2 className="text-xl font-bold text-slate-700 dark:text-slate-100 mb-2">
             Belum Ada Materi
           </h2>
           <p className="text-slate-400 dark:text-slate-500">
@@ -229,7 +212,7 @@ export function CourseBrowser({
   }
 
   return (
-    <div className="h-full overflow-auto bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
+    <div className="h-full overflow-auto bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 dark:from-slate-900 dark:via-blue-900/10 dark:to-slate-900">
       <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 space-y-6">
         <CourseHeader
           course={course}
@@ -252,8 +235,8 @@ export function CourseBrowser({
             className={cn(
               'flex items-center gap-4 p-4 rounded-2xl border',
               completedLessons === totalLessons
-                ? 'bg-emerald-50 border-emerald-200'
-                : 'bg-indigo-50 border-indigo-100'
+                ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
+                : 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-100 dark:border-indigo-800'
             )}
           >
             <span className="text-3xl shrink-0">
@@ -262,8 +245,10 @@ export function CourseBrowser({
             <div className="flex-1">
               {completedLessons === totalLessons ? (
                 <>
-                  <p className="font-bold text-emerald-800 text-sm">Sertifikat tersedia!</p>
-                  <p className="text-xs text-emerald-600 mt-0.5">
+                  <p className="font-bold text-emerald-800 dark:text-emerald-300 text-sm">
+                    Sertifikat tersedia!
+                  </p>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">
                     Lihat dan unduh sertifikat kamu di halaman{' '}
                     <Link to="/profile" className="font-bold underline">
                       Profil
@@ -272,10 +257,10 @@ export function CourseBrowser({
                 </>
               ) : (
                 <>
-                  <p className="font-bold text-indigo-800 text-sm">
+                  <p className="font-bold text-indigo-800 dark:text-indigo-300 text-sm">
                     Selesaikan course ini untuk mendapat Sertifikat!
                   </p>
-                  <p className="text-xs text-indigo-600 mt-0.5">
+                  <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-0.5">
                     {totalLessons - completedLessons} pelajaran lagi menuju sertifikatmu
                   </p>
                 </>
@@ -283,8 +268,12 @@ export function CourseBrowser({
             </div>
             {/* B8: XP Breakdown Preview */}
             <div className="shrink-0 text-right">
-              <p className="text-[10px] text-slate-400 font-medium">Estimasi XP</p>
-              <p className="text-sm font-bold text-yellow-600">~{totalLessons * 10} XP</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                Estimasi XP
+              </p>
+              <p className="text-sm font-bold text-yellow-600 dark:text-yellow-500">
+                ~{totalLessons * 10} XP
+              </p>
             </div>
           </div>
         )}
@@ -296,8 +285,10 @@ export function CourseBrowser({
             nextIncompleteModuleId={nextIncompleteModuleId}
           />
         ) : (
-          <div className="bg-white rounded-2xl border border-slate-200/70 shadow-md shadow-slate-200/40 p-8 text-center">
-            <p className="text-slate-400 text-sm">Belum ada modul dalam kursus ini.</p>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 shadow-md shadow-slate-200/40 dark:shadow-none p-8 text-center">
+            <p className="text-slate-400 dark:text-slate-500 text-sm">
+              Belum ada modul dalam kursus ini.
+            </p>
           </div>
         )}
       </div>

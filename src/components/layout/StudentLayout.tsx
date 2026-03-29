@@ -1,13 +1,14 @@
+// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary'
 import { useAuth } from '@/src/contexts/AuthContext'
-import { useTheme } from '@/src/contexts/ThemeContext'
 import { useToast } from '@/src/hooks/useToast'
 
 import { Onboarding } from '../Onboarding'
+import { HelpButton } from '../ui/HelpButton'
 import { BottomNav } from './BottomNav'
 import { Header } from './Header'
 import { RouteAnnouncer } from './RouteAnnouncer'
@@ -19,7 +20,6 @@ export function StudentLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const isHidden = hiddenNavPaths.includes(location.pathname)
-  const { theme } = useTheme()
   const { sessionExpired } = useAuth()
   const addToast = useToast((s) => s.addToast)
 
@@ -32,9 +32,7 @@ export function StudentLayout() {
   }, [sessionExpired, addToast, navigate])
 
   return (
-    <div
-      className={`flex h-[100dvh] overflow-hidden font-sans flex-col transition-colors duration-300 ${theme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}
-    >
+    <div className="flex h-[100dvh] overflow-hidden font-sans flex-col transition-colors duration-300 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       <RouteAnnouncer />
       <a
         href="#main-content"
@@ -50,7 +48,8 @@ export function StudentLayout() {
           {!isHidden && <Header />}
           <main
             id="main-content"
-            className={`flex-1 overflow-y-auto overflow-x-hidden flex flex-col ${isHidden ? 'p-0' : 'p-2 sm:p-4 md:p-8 pb-24 md:pb-8'}`}
+            tabIndex={-1}
+            className={`flex-1 overflow-y-auto overflow-x-hidden flex flex-col outline-none ${isHidden ? 'p-0' : 'p-2 sm:p-4 md:p-8 pb-24 md:pb-8'}`}
           >
             <AnimatePresence mode="wait">
               <motion.div
@@ -70,6 +69,7 @@ export function StudentLayout() {
           {!isHidden && <BottomNav />}
         </div>
       </div>
+      {!isHidden && <HelpButton />}
     </div>
   )
 }

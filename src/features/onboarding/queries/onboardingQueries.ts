@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { createQueryKeys } from '@/src/lib/queryKeys'
 import { supabase } from '@/src/services/supabase/client'
+import { createQueryKeys } from '@/src/shared/lib/queryKeys'
 import { GC, STALE } from '@/src/utils/queryConstants'
+import { captureError } from '@/src/utils/sentry'
 
 import type { OnboardingProgress } from '../types'
 
@@ -66,6 +67,9 @@ export function useUpdateOnboardingProgress(tenantId: string, userId: string) {
       queryClient.invalidateQueries({
         queryKey: onboardingKeys.progress(tenantId, userId),
       })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useUpdateOnboardingProgress' })
     },
   })
 }

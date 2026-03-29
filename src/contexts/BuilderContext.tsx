@@ -136,13 +136,18 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   // beforeunload protection
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
-      if (state.savingStatus === 'saving') {
+      // FIX: Previously only guarded during active save ('saving').
+      // If a user made changes that hadn't triggered an auto-save yet
+      // (e.g., fast typist or block just added), navigating away silently
+      // discarded those changes. Now we also check offline.isDirty which
+      // tracks any pending unsaved mutations via the BUILDER_DRAFTS IndexedDB store.
+      if (state.savingStatus === 'saving' || offline.isDirty) {
         e.preventDefault()
       }
     }
     window.addEventListener('beforeunload', handler)
     return () => window.removeEventListener('beforeunload', handler)
-  }, [state.savingStatus])
+  }, [state.savingStatus, offline.isDirty])
 
   // Flush all pending saves on unmount
   useEffect(() => {

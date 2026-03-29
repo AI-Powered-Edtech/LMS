@@ -4,6 +4,7 @@ import {
   type PublicProfileData,
   publicProfileService,
 } from '@/src/features/profile/api/publicProfileService'
+import { captureError } from '@/src/utils/sentry'
 
 // ── Query key factory ──────────────────────────────────────────────────────────
 const profileKeys = {
@@ -39,6 +40,9 @@ export function useUpdateProfilePrivacy(userId: string) {
     mutationFn: (isPublic: boolean) => publicProfileService.updatePrivacy(isPublic),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: profileKeys.byId(userId) })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useUpdateProfilePrivacy' })
     },
   })
 }
