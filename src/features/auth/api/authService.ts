@@ -1,4 +1,5 @@
 import { supabase } from '@/src/services/supabase/client'
+import { captureError } from '@/src/utils/sentry'
 
 export interface InvitationInfo {
   email: string
@@ -98,12 +99,18 @@ export const authService = {
     windowMs: number
   ): Promise<RateLimitResult> {
     try {
-      const { data } = await supabase.functions.invoke('check-rate-limit', {
+      const { data, error } = await supabase.functions.invoke('check-rate-limit', {
         body: { action, key, maxAttempts, windowMs },
       })
+      if (error) throw error
       return (data as RateLimitResult) ?? { allowed: true }
-    } catch {
-      // Fail open — server check unavailable, rely on client-side check
+    } catch (err) {
+      // Fail-open: if Edge Function is unavailable (cold start, network error),
+      // we allow the request to prevent blocking legitimate users during outages.
+      // This is intentional — server-side rate limiting is defense-in-depth,
+      // not the primary security layer. Monitor via Sentry for repeated failures.
+      if (import.meta.env.DEV) console.warn('[Auth] Rate limit check failed:', err)
+      captureError(err, { context: 'checkRateLimit', action, level: 'warning' })
       return { allowed: true }
     }
   },

@@ -1,10 +1,4 @@
-import {
-  DragDropContext,
-  Draggable,
-  type DragStart,
-  Droppable,
-  type DropResult,
-} from '@hello-pangea/dnd'
+import { DragDropContext, Draggable, Droppable, type DropResult } from '@hello-pangea/dnd'
 import {
   ChevronDown,
   ChevronRight,
@@ -12,9 +6,12 @@ import {
   FolderOpen,
   GripVertical,
   HelpCircle,
+  Import,
   Plus,
+  Save,
   Trash2,
   Video,
+  X,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
@@ -26,6 +23,20 @@ export function BuilderSidebar() {
   const { state, actions } = useBuilder()
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const [addingLessonTo, setAddingLessonTo] = useState<string | null>(null)
+  const [_templateModalConfig, setTemplateModalConfig] = useState<any>({
+    isOpen: false,
+    type: '',
+    targetId: '',
+    sourceId: '',
+    defaultTitle: '',
+  })
+  const [_saveTemplateConfig, setSaveTemplateConfig] = useState<any>({
+    isOpen: false,
+    type: '',
+    sourceId: '',
+    defaultTitle: '',
+  })
+  const mobile = { isMobile: false, sidebarOpen: false, closeSidebar: () => {} }
 
   const toggleModule = (id: string) => {
     setExpandedModules((prev) => {
@@ -85,7 +96,7 @@ export function BuilderSidebar() {
     setExpandedModules((prev) => new Set(prev).add(moduleId))
   }
 
-  return (
+  const sidebarContent = (
     <div className="w-[340px] bg-slate-50/30 border-r border-slate-200/60 flex flex-col h-full shrink-0 relative z-10 backdrop-blur-xl">
       {/* Header */}
       <div className="px-6 py-5 border-b border-slate-200/50 flex items-center justify-between bg-white/50">
@@ -342,46 +353,47 @@ export function BuilderSidebar() {
                                                 )}
                                                 aria-label="Hapus pelajaran"
                                               >
-                                                <button
-                                                  onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    setSaveTemplateConfig({
-                                                      isOpen: true,
-                                                      type: 'lesson',
-                                                      sourceId: lesson.id,
-                                                      defaultTitle: lesson.title,
-                                                    })
-                                                  }}
-                                                  className={cn(
-                                                    'p-2 rounded-md transition-colors',
-                                                    state.activeLesson?.id === lesson.id
-                                                      ? 'hover:bg-white/20 text-white/70 hover:text-white'
-                                                      : 'hover:bg-indigo-50 text-slate-500 hover:text-indigo-600'
-                                                  )}
-                                                  aria-label="Simpan sebagai Template"
-                                                  title="Simpan sebagai Template"
-                                                >
-                                                  <Save className="w-3.5 h-3.5" />
-                                                </button>
-                                                <button
-                                                  onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    if (confirm('Hapus materi ini?')) {
-                                                      actions.deleteLesson(lesson.id)
-                                                    }
-                                                  }}
-                                                  className={cn(
-                                                    'p-2 rounded-md transition-colors',
-                                                    state.activeLesson?.id === lesson.id
-                                                      ? 'hover:bg-white/20 text-white/70 hover:text-white'
-                                                      : 'hover:bg-rose-50 text-slate-500 hover:text-rose-600'
-                                                  )}
-                                                  aria-label="Hapus pelajaran"
-                                                  title="Hapus pelajaran"
-                                                >
-                                                  <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
-                                              </div>
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                              </button>
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation()
+                                                  setSaveTemplateConfig({
+                                                    isOpen: true,
+                                                    type: 'lesson',
+                                                    sourceId: lesson.id,
+                                                    defaultTitle: lesson.title,
+                                                  })
+                                                }}
+                                                className={cn(
+                                                  'p-2 rounded-md transition-colors',
+                                                  state.activeLesson?.id === lesson.id
+                                                    ? 'hover:bg-white/20 text-white/70 hover:text-white'
+                                                    : 'hover:bg-indigo-50 text-slate-500 hover:text-indigo-600'
+                                                )}
+                                                aria-label="Simpan sebagai Template"
+                                                title="Simpan sebagai Template"
+                                              >
+                                                <Save className="w-3.5 h-3.5" />
+                                              </button>
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation()
+                                                  if (confirm('Hapus materi ini?')) {
+                                                    actions.deleteLesson(lesson.id)
+                                                  }
+                                                }}
+                                                className={cn(
+                                                  'p-2 rounded-md transition-colors',
+                                                  state.activeLesson?.id === lesson.id
+                                                    ? 'hover:bg-white/20 text-white/70 hover:text-white'
+                                                    : 'hover:bg-rose-50 text-slate-500 hover:text-rose-600'
+                                                )}
+                                                aria-label="Hapus pelajaran"
+                                                title="Hapus pelajaran"
+                                              >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                              </button>
                                             </div>
                                           )}
                                         </Draggable>

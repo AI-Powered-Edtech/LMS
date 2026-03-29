@@ -60,6 +60,9 @@ function CertificateCard({ cert }: { cert: Certificate }) {
             </body></html>
         `)
     w.document.close()
+    // SECURITY: Sever the window.opener reference so the print window cannot
+    // access or manipulate the parent window's DOM / localStorage via JavaScript.
+    w.opener = null
     setTimeout(() => {
       w.print()
     }, 300)
@@ -105,9 +108,22 @@ function CertificateCard({ cert }: { cert: Certificate }) {
 }
 
 export function CertificateViewer({ userId }: { userId?: string }) {
-  const { data: certs, isLoading } = useStudentCertificates(userId)
+  const { data: certs, isLoading, error, refetch } = useStudentCertificates(userId)
 
   if (isLoading) return <SkeletonCard lines={2} />
+
+  // Error state: surface API failures instead of silently showing empty state.
+  // Previously query errors were swallowed — users saw a blank list with no feedback.
+  if (error) {
+    return (
+      <EmptyState
+        icon={<Award className="h-10 w-10" />}
+        title="Gagal memuat sertifikat"
+        description="Terjadi kesalahan saat mengambil data. Silakan coba lagi."
+        action={{ label: 'Coba Lagi', onClick: () => refetch() }}
+      />
+    )
+  }
 
   if (!certs || certs.length === 0) {
     return (

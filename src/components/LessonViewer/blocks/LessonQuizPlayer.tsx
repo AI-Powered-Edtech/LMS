@@ -65,19 +65,22 @@ export function LessonQuizPlayer({
 
     try {
       const result = await startAttempt.mutateAsync({
-        quiz_id: quizId,
-        tenant_id: tenantId,
+        quizId,
       })
 
-      // Load attempt questions & saved answers for resume
-      const [attemptQuestions, savedAnswers] = await Promise.all([
-        quizPlayerService.getAttemptQuestions(result.id),
-        quizPlayerService.getSavedAnswers(result.id),
-      ])
+      // Load attempt questions (answers are embedded in QuizAttemptQuestion)
+      const attemptQuestions = await quizPlayerService.getAttemptQuestions(result.attempt_id)
 
+      // Extract saved answers from attempt questions for resume
       const initialAnswers: Record<string, SubmitAnswer> = {}
-      for (const answer of savedAnswers) {
-        initialAnswers[answer.question_id] = answer
+      for (const q of attemptQuestions) {
+        if (q.selected_option_ids.length > 0 || q.text_answer) {
+          initialAnswers[q.question_id] = {
+            question_id: q.question_id,
+            selected_option_ids: q.selected_option_ids,
+            text_answer: q.text_answer ?? undefined,
+          }
+        }
       }
 
       const initialIndex = quizPlayerService.getCurrentQuestionIndex(
@@ -87,7 +90,7 @@ export function LessonQuizPlayer({
 
       setState({
         phase: 'ready',
-        attemptId: result.id,
+        attemptId: result.attempt_id,
         expiresAt: result.expires_at ?? null,
         questions: attemptQuestions,
         initialAnswers,
@@ -240,11 +243,11 @@ export function LessonQuizPlayer({
       <QuizPlayer
         attemptId={state.attemptId}
         expiresAt={state.expiresAt}
-        quiz=
+        quiz={{
           id: quizId,
           title,
           time_limit_minutes: timeLimitMinutes,
-        
+        }}
         attemptQuestions={state.questions}
         initialAnswers={state.initialAnswers}
         initialQuestionIndex={state.initialIndex}

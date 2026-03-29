@@ -1,6 +1,8 @@
 // EduSync LMS — Offline Storage (IndexedDB)
 // Wraps native IndexedDB for offline quiz caching and sync queue
 
+import { decryptData, encryptData } from './cryptoStorage'
+
 const DB_NAME = 'edusync-offline'
 const DB_VERSION = 2
 
@@ -12,11 +14,27 @@ const STORES = {
   UPLOAD_QUEUE: 'upload-queue',
 } as const
 
+export interface CachedQuizQuestion {
+  id: string
+  text: string
+  type: 'multiple_choice' | 'true_false' | 'essay'
+  order: number
+}
+
+export interface CachedQuizOption {
+  id: string
+  questionId: string
+  text: string
+  order: number
+}
+
 export interface CachedQuiz {
   quizId: string
-  questions: unknown[]
-  options: unknown[]
+  questions: CachedQuizQuestion[]
+  options: CachedQuizOption[]
   cachedAt: number
+  /** Schema version — increment when structure changes to detect stale caches */
+  version: number
 }
 
 export interface CachedAnswer {
@@ -259,4 +277,61 @@ export function isIndexedDBAvailable(): boolean {
   } catch {
     return false
   }
+}
+
+// ---------------------------------------------------------------------------
+// Encrypted quiz answers — data sensitif dienkripsi sebelum disimpan
+// ---------------------------------------------------------------------------
+
+/**
+ * Menyimpan jawaban kuis ke IndexedDB dengan payload yang dienkripsi menggunakan AES-GCM.
+ * Field `selectedOption` dan data jawaban dienkripsi sebelum disimpan.
+ *
+ * @param answer - Objek jawaban kuis yang akan disimpan
+ * @param userId - ID pengguna untuk derivasi kunci enkripsi
+ */
+export async function cacheAnswerEncrypted(answer: CachedAnswer, userId: string): Promise<void> {
+  const encryptedPayload = await encryptData(answer, userId)
+  const db = await openDB()
+  const tx = db.transaction(STORES.QUIZ_ANSWERS, 'readwrite')
+  const store = tx.objectStore(STORES.QUIZ_ANSWERS)
+  // Simpan record dengan payload terenkripsi; id dan quizId tetap plaintext untuk indexing
+  store.put({
+    id: answer.id,
+    quizId: answer.quizId,
+    payload: encryptedPayload,
+    encrypted: true,
+  })
+  await wrapTransaction(tx)
+}
+
+/**
+ * Mengambil semua jawaban kuis dari IndexedDB dan mendekripsi payload.
+ * Hanya memproses record yang memiliki flag `encrypted: true`.
+ *
+ * @param quizId - ID kuis yang jawabannya ingin diambil
+ * @param userId - ID pengguna untuk derivasi kunci dekripsi
+ * @returns Array jawaban kuis yang sudah didekripsi
+ */
+export async function getAnswersEncrypted(quizId: string, userId: string): Promise<CachedAnswer[]> {
+  const db = await openDB()
+  const tx = db.transaction(STORES.QUIZ_ANSWERS, 'readonly')
+  const store = tx.objectStore(STORES.QUIZ_ANSWERS)
+  const index = store.index('quizId')
+  const records = await wrapRequest<
+    Array<{ id: string; quizId: string; payload: string; encrypted: boolean }>
+  >(index.getAll(quizId))
+
+  const results: CachedAnswer[] = []
+  for (const record of records) {
+    if (record.encrypted && record.payload) {
+      try {
+        const answer = await decryptData<CachedAnswer>(record.payload, userId)
+        results.push(answer)
+      } catch {
+        // Abaikan record yang gagal didekripsi (kunci berbeda atau data korup)
+      }
+    }
+  }
+  return results
 }

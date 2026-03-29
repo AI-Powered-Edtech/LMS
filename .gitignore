@@ -53,6 +53,9 @@ opencode.json
 # Notion sync artefacts
 notion-report-*.md
 
+# Session logs (AI assistant)
+session-*.md
+
 # AI planning / phase files (local only)
 PHASE*.md
 *_SCORECARD.md
@@ -63,9 +66,6 @@ PHASE*.md
 # Test output
 test-summary*.txt
 playwright_output.log
-
-# TypeScript incremental build cache
-tsconfig.tsbuildinfo
 
 # Temporary dev scripts & local backups
 remediation_script.sql

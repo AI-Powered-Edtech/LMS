@@ -16,13 +16,13 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
+import { AITutorPanel } from '@/src/features/ai-tutor/components/AITutorPanel'
 import type { Lesson, LessonProgress } from '@/src/features/lessons'
 import { cn } from '@/src/utils/cn'
 
 import { MultiBlockViewer } from './MultiBlockViewer'
 import { ProgressReporter } from './ProgressReporter'
 import { ScrollProgressBar } from './ScrollProgressBar'
-import { AITutorPanel } from '@/src/features/ai-tutor/components/AITutorPanel'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -159,10 +159,10 @@ export function SmartPlayer({
         <AnimatePresence>
           {isTutorOpen && (
             <motion.aside
-              initial= x: '100%', opacity: 0 
-              animate= x: 0, opacity: 1 
-              exit= x: '100%', opacity: 0 
-              transition= type: 'spring', damping: 24, stiffness: 260 
+              initial={{ x: '100%', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '100%', opacity: 0 }}
+              transition={{ type: 'spring', damping: 24, stiffness: 260 }}
               className={cn(
                 'fixed right-0 top-0 bottom-0 w-[380px] z-40 border-l shadow-xl',
                 'bg-white dark:bg-slate-900',
@@ -198,12 +198,12 @@ export function SmartPlayer({
       <AnimatePresence>
         {!isTutorOpen && (
           <motion.button
-            initial= scale: 0, opacity: 0 
-            animate= scale: 1, opacity: 1 
-            exit= scale: 0, opacity: 0 
-            whileHover= scale: 1.08 
-            whileTap= scale: 0.95 
-            transition= type: 'spring', damping: 18, stiffness: 300 
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: 'spring', damping: 18, stiffness: 300 }}
             onClick={toggleTutor}
             aria-label="Buka AI Tutor"
             className={cn(

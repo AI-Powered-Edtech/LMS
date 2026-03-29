@@ -6,12 +6,9 @@ import {
   Eye,
   History,
   Loader2,
-  Menu,
   MoreVertical,
   Save,
-  Send,
   Settings,
-  ThumbsUp,
   Users,
   WifiOff,
 } from 'lucide-react'
@@ -252,7 +249,7 @@ export function BuilderTopBar() {
             <span className={state.savingStatus === 'saving' ? 'animate-pulse' : ''}>
               {status.text}
             </span>
-          </div>
+          </button>
         )}
 
         <div className="h-8 w-[1px] bg-slate-200/50 mx-1" />
