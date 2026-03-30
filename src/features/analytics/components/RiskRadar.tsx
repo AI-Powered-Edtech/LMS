@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { useMemo } from 'react'
 import {
   CartesianGrid,

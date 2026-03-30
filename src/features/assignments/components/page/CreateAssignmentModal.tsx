@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { FileText, FileUp, Link as LinkIcon, Paperclip, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
