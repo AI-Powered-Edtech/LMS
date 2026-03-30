@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
@@ -6,6 +5,8 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useToast } from '@/src/hooks/useToast'
+
+import { OnboardingChecklist } from '@/src/features/onboarding'
 
 import { HelpButton } from '../ui/HelpButton'
 import { Header } from './Header'
@@ -65,6 +66,7 @@ export function AdminLayout() {
         </div>
       </div>
       {!isHidden && <HelpButton />}
+      <OnboardingChecklist />
     </div>
   )
 }
