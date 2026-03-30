@@ -471,7 +471,7 @@ export function AdministrationDashboard() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left text-sm" aria-label="Riwayat sinkronisasi data">
               <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 font-medium border-b border-slate-200 dark:border-slate-700">
                 <tr>
                   <th className="px-6 py-4">Jenis Data</th>

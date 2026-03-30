@@ -198,8 +198,10 @@ export function AdminQuizOverview() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-200 mb-4">
+      <div className="flex gap-2 border-b border-slate-200 mb-4" role="tablist">
         <button
+          role="tab"
+          aria-selected={activeTab === 'quizzes'}
           onClick={() => setActiveTab('quizzes')}
           className={cn(
             'px-4 py-2 font-bold text-sm border-b-2 transition-colors',
@@ -211,6 +213,8 @@ export function AdminQuizOverview() {
           Daftar Kuis
         </button>
         <button
+          role="tab"
+          aria-selected={activeTab === 'audit'}
           onClick={() => setActiveTab('audit')}
           className={cn(
             'px-4 py-2 font-bold text-sm border-b-2 transition-colors flex items-center gap-1.5',

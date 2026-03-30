@@ -264,7 +264,7 @@ export function ModerationDashboard() {
       ) : (
         <div className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left text-sm" aria-label="Daftar laporan moderasi">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
                   <th className="px-4 py-3 font-semibold text-slate-600 dark:text-slate-300 whitespace-nowrap">

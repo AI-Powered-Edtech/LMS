@@ -200,7 +200,7 @@ export function StudentGroupView({ assignmentId }: Props) {
         {/* Left: Tabs + Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Tab bar */}
-          <div className="flex gap-2 bg-white dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-x-auto hide-scrollbar">
+          <div className="flex gap-2 bg-white dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-x-auto hide-scrollbar" role="tablist">
             {[
               { id: 'workspace', icon: FileText, label: 'Ruang Kerja' },
               { id: 'tasks', icon: CheckSquare, label: 'Pembagian Tugas' },
@@ -208,6 +208,8 @@ export function StudentGroupView({ assignmentId }: Props) {
             ].map((tab) => (
               <button
                 key={tab.id}
+                role="tab"
+                aria-selected={activeTab === tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
                   'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap',

@@ -81,7 +81,7 @@ export function GradebookMainTable({
 
       {/* Table Container */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[800px]">
+        <table className="w-full text-left border-collapse min-w-[800px]" aria-label="Tabel nilai siswa">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
               <th className="p-4 font-bold text-slate-700 dark:text-slate-400 text-sm sticky left-0 bg-slate-50 dark:bg-slate-900 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] w-64">

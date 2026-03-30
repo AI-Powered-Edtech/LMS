@@ -255,11 +255,17 @@ export const Courses: React.FC = () => {
       {/* Create Course Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-md">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-md"
+            onKeyDown={(e) => e.key === 'Escape' && setIsModalOpen(false)}
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Buat Materi Baru"
               className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-[min(28rem,calc(100vw-2rem))] p-6 md:p-8 shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden relative"
             >
               <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 to-purple-600" />

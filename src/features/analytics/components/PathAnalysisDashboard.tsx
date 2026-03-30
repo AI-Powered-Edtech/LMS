@@ -52,10 +52,12 @@ export function PathAnalysisDashboard({ courseId }: Props) {
       </div>
 
       {/* Tabs */}
-      <div className="mb-4 flex gap-1 border-b border-slate-200 dark:border-slate-700">
+      <div className="mb-4 flex gap-1 border-b border-slate-200 dark:border-slate-700" role="tablist">
         {TABS.map((tab) => (
           <button
             key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
               'px-4 py-2 text-sm font-medium transition-colors',

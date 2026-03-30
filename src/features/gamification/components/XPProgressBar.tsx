@@ -51,7 +51,14 @@ export function XPProgressBar({ compact }: XPProgressBarProps) {
         >
           Lv {level}
         </span>
-        <div className="relative w-20 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div
+          role="progressbar"
+          aria-valuenow={progressPct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`XP Level ${level}`}
+          className="relative w-20 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"
+        >
           <motion.div
             className="h-full rounded-full bg-gradient-to-r from-yellow-400 to-orange-400"
             initial={reducedMotion ? false : { width: 0 }}
@@ -83,7 +90,14 @@ export function XPProgressBar({ compact }: XPProgressBarProps) {
       </div>
 
       {/* Progress bar with gradient fill */}
-      <div className="relative w-full h-4 bg-slate-100 dark:bg-slate-800/80 rounded-full overflow-hidden shadow-inner">
+      <div
+        role="progressbar"
+        aria-valuenow={progressPct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`XP Level ${level}: ${xpInLevel} / ${xpNeeded}`}
+        className="relative w-full h-4 bg-slate-100 dark:bg-slate-800/80 rounded-full overflow-hidden shadow-inner"
+      >
         <motion.div
           className="h-full rounded-full bg-gradient-to-r from-yellow-400 via-orange-400 to-orange-500 shadow-sm"
           initial={reducedMotion ? false : { width: 0 }}

@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import {
   AlertTriangle,
   ArrowLeft,
@@ -181,8 +180,10 @@ export function QuizListView({
       )}
 
       {/* Tabs */}
-      <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+      <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl" role="tablist">
         <button
+          role="tab"
+          aria-selected={activeTab === 'class'}
           onClick={() => setActiveTab('class')}
           className={cn(
             'flex-1 py-2.5 px-4 rounded-lg text-sm font-bold transition-all',
@@ -194,6 +195,8 @@ export function QuizListView({
           Kuis Kelas Ini
         </button>
         <button
+          role="tab"
+          aria-selected={activeTab === 'library'}
           onClick={() => setActiveTab('library')}
           className={cn(
             'flex-1 py-2.5 px-4 rounded-lg text-sm font-bold transition-all',

@@ -155,7 +155,14 @@ export function StudentProgress() {
                   </h3>
                   <span className="text-sm font-bold text-blue-600">{cp.percentage}%</span>
                 </div>
-                <div className="w-full bg-slate-200 rounded-full h-2.5 mb-2 overflow-hidden">
+                <div
+                  role="progressbar"
+                  aria-valuenow={cp.percentage}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`Progres ${cp.courses?.title || 'Kursus'}: ${cp.percentage}%`}
+                  className="w-full bg-slate-200 rounded-full h-2.5 mb-2 overflow-hidden"
+                >
                   <div
                     className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
                     style={{ width: `${Math.min(cp.percentage, 100)}%` }}

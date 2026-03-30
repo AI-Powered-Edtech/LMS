@@ -352,7 +352,14 @@ export function QuizPlayer({
             </div>
 
             {/* Progress bar */}
-            <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+            <div
+              role="progressbar"
+              aria-valuenow={currentQuestionIdx + 1}
+              aria-valuemin={1}
+              aria-valuemax={totalQuestions}
+              aria-label={`Soal ${currentQuestionIdx + 1} dari ${totalQuestions}`}
+              className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden"
+            >
               <div
                 className={cn('h-full transition-all duration-300 rounded-full', progressColor)}
                 style={{ width: `${((currentQuestionIdx + 1) / totalQuestions) * 100}%` }}

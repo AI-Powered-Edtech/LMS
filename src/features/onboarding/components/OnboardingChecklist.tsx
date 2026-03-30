@@ -135,7 +135,14 @@ function OnboardingChecklistInner({ tenantId, userId }: InnerProps) {
           </span>
           <span className="text-xs font-bold text-blue-600 dark:text-blue-400">{pct}%</span>
         </div>
-        <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div
+          role="progressbar"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Onboarding: ${doneSoFar} dari ${ONBOARDING_STEPS.length} selesai`}
+          className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"
+        >
           <div
             className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-500"
             style={{ width: `${pct}%` }}

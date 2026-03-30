@@ -98,10 +98,12 @@ export function TeacherAnalyticsDashboard({ courseId }: TeacherAnalyticsDashboar
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+      <div className="flex gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 p-1" role="tablist">
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
               'flex items-center gap-2 flex-1 justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-all',

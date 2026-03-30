@@ -65,7 +65,7 @@ export function InvitationsTable({
 }: InvitationsTableProps) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full text-sm" aria-label="Daftar undangan">
         <thead className="bg-slate-50/80 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
           <tr>
             <th className="px-6 py-3 text-left">Email</th>

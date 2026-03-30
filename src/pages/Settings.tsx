@@ -93,17 +93,18 @@ export function Settings() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Sidebar nav */}
-        <div className="space-y-2">
+        <div className="space-y-2" role="tablist" aria-orientation="vertical">
           {TABS.map((tab) => (
             <button
               type="button"
               key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
                 setActiveTab(tab.id)
               }}
-              aria-pressed={activeTab === tab.id}
               className={cn(
                 'w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-colors',
                 activeTab === tab.id

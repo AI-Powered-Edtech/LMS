@@ -115,7 +115,14 @@ export const Header = memo(function Header() {
                 <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
                 {totalXp} XP
               </div>
-              <div className="hidden sm:block w-32 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div
+                role="progressbar"
+                aria-valuenow={progress}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`XP progres: ${progress}%`}
+                className="hidden sm:block w-32 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"
+              >
                 <div
                   className="h-full bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${progress}%` }}

@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { AlertTriangle, Clock, Loader2, Play, X } from 'lucide-react'
 import { motion } from 'motion/react'
 
@@ -23,16 +22,21 @@ export function StartQuizModal({ pendingQuiz, isStarting, onClose, onStart }: St
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={onClose}
+      onKeyDown={(e) => e.key === 'Escape' && onClose()}
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={pendingQuiz.isResume ? 'Lanjutkan Kuis' : 'Mulai Kuis'}
         className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl dark:shadow-slate-900/50 max-w-md w-full p-8 relative"
       >
         <button
           onClick={onClose}
+          aria-label="Tutup"
           className="absolute top-4 right-4 p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500 transition-colors"
         >
           <X className="w-5 h-5" />

@@ -48,11 +48,17 @@ export function GradeGroupModal({ group, assignmentId, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+    >
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Beri Nilai: ${group.group_name}`}
         className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl w-full max-w-md p-6"
       >
         <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">

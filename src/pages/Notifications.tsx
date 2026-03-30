@@ -222,11 +222,13 @@ export function Notifications() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none" role="tablist">
         {FILTER_TABS.map((tab) => (
           <button
             key={tab}
             type="button"
+            role="tab"
+            aria-selected={activeTab === tab}
             onClick={() => {
               setActiveTab(tab)
               setPage(0)

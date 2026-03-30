@@ -54,7 +54,14 @@ export function LeaderboardPreview({
             <Crown className="w-10 h-10 text-yellow-500" />
           </div>
           <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-1">{xp} XP</h3>
-          <div className="w-full max-w-xs bg-slate-100 dark:bg-slate-700 rounded-full h-2 mb-2 mt-4">
+          <div
+            role="progressbar"
+            aria-valuenow={xp % 100}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`XP progres: ${xp % 100}%`}
+            className="w-full max-w-xs bg-slate-100 dark:bg-slate-700 rounded-full h-2 mb-2 mt-4"
+          >
             <div
               className="bg-yellow-400 h-2 rounded-full transition-all duration-500"
               style={{ width: `${xp % 100}%` }}

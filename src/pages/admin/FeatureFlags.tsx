@@ -189,7 +189,7 @@ export default function FeatureFlagsPage() {
         />
       ) : (
         <div className="rounded-2xl border border-slate-200 dark:border-slate-700/60 overflow-hidden">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm" aria-label="Daftar fitur flags">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-800/60 text-left">
                 <th className="px-5 py-3 font-semibold text-slate-600 dark:text-slate-300">

@@ -1,5 +1,5 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 interface Column<T> {
   key: string
@@ -16,6 +16,7 @@ interface VirtualTableProps<T> {
   getRowKey: (row: T, index: number) => string
   emptyState?: React.ReactNode
   className?: string
+  caption?: string
   'data-testid'?: string
   onRowClick?: (row: T, index: number) => void
   rowClassName?: (row: T, index: number) => string
@@ -29,11 +30,13 @@ export function VirtualTable<T>({
   getRowKey,
   emptyState,
   className = '',
+  caption,
   'data-testid': testId,
   onRowClick,
   rowClassName,
 }: VirtualTableProps<T>) {
   const parentRef = useRef<HTMLDivElement>(null)
+  const [focusedIndex, setFocusedIndex] = useState(-1)
 
   const virtualizer = useVirtualizer({
     count: data.length,
@@ -41,6 +44,44 @@ export function VirtualTable<T>({
     estimateSize: () => rowHeight,
     overscan: 5,
   })
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!onRowClick || data.length === 0) return
+
+      let nextIndex = focusedIndex
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault()
+          nextIndex = Math.min(focusedIndex + 1, data.length - 1)
+          break
+        case 'ArrowUp':
+          e.preventDefault()
+          nextIndex = Math.max(focusedIndex - 1, 0)
+          break
+        case 'Home':
+          e.preventDefault()
+          nextIndex = 0
+          break
+        case 'End':
+          e.preventDefault()
+          nextIndex = data.length - 1
+          break
+        case 'Enter':
+        case ' ':
+          e.preventDefault()
+          if (focusedIndex >= 0 && focusedIndex < data.length) {
+            onRowClick(data[focusedIndex], focusedIndex)
+          }
+          return
+        default:
+          return
+      }
+      setFocusedIndex(nextIndex)
+      virtualizer.scrollToIndex(nextIndex)
+    },
+    [focusedIndex, data, onRowClick, virtualizer]
+  )
 
   if (data.length === 0 && emptyState) {
     return <>{emptyState}</>
@@ -52,13 +93,19 @@ export function VirtualTable<T>({
       data-testid={testId}
       className={`overflow-auto ${className}`}
       style={{ maxHeight }}
+      tabIndex={onRowClick ? 0 : undefined}
+      role={onRowClick ? 'grid' : undefined}
+      aria-label={caption}
+      onKeyDown={onRowClick ? handleKeyDown : undefined}
     >
       <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+        {caption && <caption className="sr-only">{caption}</caption>}
         <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0 z-10">
           <tr>
             {columns.map((col) => (
               <th
                 key={col.key}
+                scope="col"
                 style={{ width: col.width }}
                 className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
               >
@@ -73,15 +120,20 @@ export function VirtualTable<T>({
         >
           {virtualizer.getVirtualItems().map((virtualRow) => {
             const row = data[virtualRow.index]
+            const isFocused = focusedIndex === virtualRow.index
             return (
               <tr
                 key={getRowKey(row, virtualRow.index)}
                 data-index={virtualRow.index}
                 ref={virtualizer.measureElement}
                 onClick={onRowClick ? () => onRowClick(row, virtualRow.index) : undefined}
+                tabIndex={onRowClick ? -1 : undefined}
+                aria-selected={onRowClick ? isFocused : undefined}
                 className={`hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors ${
                   rowClassName ? rowClassName(row, virtualRow.index) : ''
-                } ${onRowClick ? 'cursor-pointer' : ''}`}
+                } ${onRowClick ? 'cursor-pointer' : ''} ${
+                  isFocused ? 'ring-2 ring-inset ring-blue-500' : ''
+                }`}
                 style={{
                   position: 'absolute',
                   top: 0,
