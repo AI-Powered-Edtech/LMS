@@ -33,6 +33,7 @@ export function MarkdownBlock({ content, className }: MarkdownBlockProps) {
           a: ({ href, children }) => (
             <a href={href} target="_blank" rel="noopener noreferrer">
               {children}
+              <span className="sr-only">(buka di tab baru)</span>
             </a>
           ),
         }}

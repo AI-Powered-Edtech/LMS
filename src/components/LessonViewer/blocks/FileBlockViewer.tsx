@@ -85,6 +85,7 @@ export function FileBlockViewer({ url, title }: FileBlockViewerProps) {
           >
             <ExternalLink className="w-4 h-4" />
             Buka
+            <span className="sr-only">(buka di tab baru)</span>
           </a>
         )}
         <a
