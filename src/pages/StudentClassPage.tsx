@@ -76,7 +76,7 @@ export function StudentClassPage() {
               {currentClass.name}
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2 font-medium">
-              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-md text-xs">
+              <span className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-md text-xs">
                 {currentClass.teacher_name || 'Guru'}
               </span>
             </p>
@@ -109,7 +109,7 @@ export function StudentClassPage() {
                     onClick={() => navigate(`/courses/${course.id}`)}
                     className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group flex items-start gap-4"
                   >
-                    <div className="w-16 h-16 rounded-xl bg-indigo-100 text-indigo-500 flex items-center justify-center shrink-0">
+                    <div className="w-16 h-16 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-500 dark:text-indigo-400 flex items-center justify-center shrink-0">
                       <Play className="w-8 h-8 ml-1" />
                     </div>
                     <div className="flex-1 min-w-0">

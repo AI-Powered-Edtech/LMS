@@ -20,7 +20,7 @@ export function OfflineBanner() {
   if (!isOffline) return null
 
   return (
-    <div className="bg-red-500 text-white px-4 py-2 text-sm font-medium flex items-center justify-center gap-2 z-[100] relative shadow-md">
+    <div className="bg-red-500 dark:bg-red-900 text-white dark:text-red-100 px-4 py-2 text-sm font-medium flex items-center justify-center gap-2 z-[100] relative shadow-md">
       <WifiOff className="w-4 h-4" />
       <span>Anda sedang offline. Beberapa fitur mungkin tidak tersedia.</span>
     </div>

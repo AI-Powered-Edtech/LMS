@@ -74,7 +74,7 @@ export const LessonSidebar = memo(function LessonSidebar({
   const sidebarContent = (
     <>
       {/* Header */}
-      <div className="p-5 bg-gradient-to-r from-white to-blue-50/30 border-b border-slate-100 z-10 shrink-0">
+      <div className="p-5 bg-gradient-to-r from-white dark:from-slate-800 to-blue-50/30 dark:to-slate-800/50 border-b border-slate-100 dark:border-slate-700 z-10 shrink-0">
         {onBack && (
           <button
             onClick={onBack}
@@ -136,7 +136,7 @@ export const LessonSidebar = memo(function LessonSidebar({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="absolute top-2 left-4 right-4 z-30 bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3 rounded-lg shadow-lg"
+              className="absolute top-2 left-4 right-4 z-30 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm px-4 py-3 rounded-lg shadow-lg"
             >
               {toastMessage}
             </motion.div>
@@ -251,8 +251,8 @@ export const LessonSidebar = memo(function LessonSidebar({
                             className={cn(
                               'text-[10px] font-bold px-2 py-0.5 rounded-md',
                               isActive
-                                ? 'bg-orange-100 text-orange-600'
-                                : 'bg-slate-100 text-slate-500'
+                                ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
+                                : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
                             )}
                           >
                             Min. Skor: {lesson.passing_score}

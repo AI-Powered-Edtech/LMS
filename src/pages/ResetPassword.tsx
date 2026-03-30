@@ -1,6 +1,6 @@
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { Eye, EyeOff } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import * as v from 'valibot'
@@ -86,18 +86,18 @@ export function ResetPassword() {
 
   if (!sessionReady) {
     return (
-      <div style={styles.container}>
-        <div style={styles.card}>
-          <div style={styles.logo}>
-            <span style={styles.logoIcon}>⏳</span>
-            <h1 style={styles.title}>Memverifikasi...</h1>
-            <p style={styles.subtitle}>Menunggu verifikasi link reset password.</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-10 w-full max-w-[420px] shadow-2xl border border-slate-200 dark:border-slate-700/50">
+          <div className="text-center mb-8">
+            <span className="text-5xl inline-block mb-4">⏳</span>
+            <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold mt-2 mb-1">Memverifikasi...</h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed m-0">Menunggu verifikasi link reset password.</p>
           </div>
-          <div style={styles.hint}>
-            <p style={styles.hintText}>
+          <div className="text-center mb-6">
+            <p className="text-slate-500 dark:text-slate-400 text-sm m-0">
               Jika halaman ini tidak berubah, link mungkin sudah kedaluwarsa.
             </p>
-            <Link to="/forgot-password" style={styles.backLink}>
+            <Link to="/forgot-password" className="text-blue-600 dark:text-blue-400 text-sm font-bold no-underline block text-center mt-4 hover:text-blue-700 dark:hover:text-blue-300">
               Minta link baru →
             </Link>
           </div>
@@ -107,14 +107,14 @@ export function ResetPassword() {
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <div style={styles.logo}>
-          <span style={styles.logoIcon}>{success ? '✅' : '🔑'}</span>
-          <h1 style={styles.title}>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-10 w-full max-w-[420px] shadow-2xl border border-slate-200 dark:border-slate-700/50">
+        <div className="text-center mb-8">
+          <span className="text-5xl inline-block mb-4">{success ? '✅' : '🔑'}</span>
+          <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold mt-2 mb-1">
             {success ? 'Password Berhasil Diubah' : 'Buat Password Baru'}
           </h1>
-          <p style={styles.subtitle}>
+          <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed m-0">
             {success
               ? 'Anda akan dialihkan ke dashboard...'
               : 'Masukkan password baru untuk akun Anda'}
@@ -122,21 +122,21 @@ export function ResetPassword() {
         </div>
 
         {success ? (
-          <div style={styles.successBox}>
-            <p style={styles.successText}>
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 p-6 rounded-xl border border-emerald-200 dark:border-emerald-800/50 text-center">
+            <p className="text-emerald-700 dark:text-emerald-400 font-bold mb-2">
               Password telah diperbarui. Mengarahkan ke dashboard dalam 3 detik...
             </p>
-            <Link to="/" style={styles.backLink}>
+            <Link to="/" className="text-blue-600 dark:text-blue-400 text-sm font-bold no-underline block text-center mt-4 hover:text-blue-700 dark:hover:text-blue-300">
               Ke Dashboard →
             </Link>
           </div>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
             <div style={{ position: 'relative' }}>
               <FormField control={control} name="password" label="Kata Sandi Baru">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  style={{ ...styles.input, paddingRight: '2.5rem' }}
+                  className="p-3 pr-10 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
                   {...register('password')}
                   placeholder="Minimal 6 karakter"
                   autoFocus
@@ -164,7 +164,7 @@ export function ResetPassword() {
               <FormField control={control} name="confirmPassword" label="Konfirmasi Kata Sandi">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  style={{ ...styles.input, paddingRight: '2.5rem' }}
+                  className="p-3 pr-10 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
                   {...register('confirmPassword')}
                   placeholder="Ulangi password baru"
                 />
@@ -187,9 +187,9 @@ export function ResetPassword() {
               </button>
             </div>
 
-            {error && <div style={styles.error}>{error}</div>}
+            {error && <div className="text-red-500 text-xs font-bold mt-1">{error}</div>}
 
-            <button type="submit" style={styles.submitBtn} disabled={isSubmitting}>
+            <button type="submit" className="mt-2 p-3 bg-blue-600 text-white font-bold rounded-lg border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors w-full" disabled={isSubmitting}>
               {isSubmitting ? 'Menyimpan...' : 'Simpan Password Baru'}
             </button>
           </form>
@@ -199,104 +199,4 @@ export function ResetPassword() {
   )
 }
 
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
-    padding: '1rem',
-  },
-  card: {
-    background: '#1e293b',
-    borderRadius: '1rem',
-    padding: '2.5rem',
-    width: '100%',
-    maxWidth: '420px',
-    boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
-    border: '1px solid rgba(255,255,255,0.1)',
-  },
-  logo: {
-    textAlign: 'center' as const,
-    marginBottom: '2rem',
-  },
-  logoIcon: { fontSize: '3rem' },
-  title: {
-    color: '#f1f5f9',
-    fontSize: '1.5rem',
-    fontWeight: 700,
-    margin: '0.5rem 0 0.25rem',
-  },
-  subtitle: {
-    color: '#94a3b8',
-    fontSize: '0.875rem',
-    margin: 0,
-    lineHeight: 1.5,
-  },
-  form: { display: 'flex', flexDirection: 'column' as const, gap: '1rem' },
-  field: { display: 'flex', flexDirection: 'column' as const, gap: '0.25rem' },
-  label: { color: '#cbd5e1', fontSize: '0.8rem', fontWeight: 500 },
-  input: {
-    padding: '0.75rem',
-    borderRadius: '0.5rem',
-    border: '1px solid rgba(255,255,255,0.15)',
-    background: '#0f172a',
-    color: '#f1f5f9',
-    fontSize: '0.9rem',
-    outline: 'none',
-  },
-  error: {
-    background: 'rgba(239,68,68,0.15)',
-    color: '#fca5a5',
-    padding: '0.75rem',
-    borderRadius: '0.5rem',
-    fontSize: '0.8rem',
-    border: '1px solid rgba(239,68,68,0.3)',
-  },
-  submitBtn: {
-    padding: '0.875rem',
-    borderRadius: '0.5rem',
-    border: 'none',
-    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-    color: '#fff',
-    fontWeight: 600,
-    fontSize: '1rem',
-    cursor: 'pointer',
-    marginTop: '0.5rem',
-  },
-  successBox: {
-    textAlign: 'center' as const,
-    padding: '1.5rem',
-    background: 'rgba(34,197,94,0.1)',
-    border: '1px solid rgba(34,197,94,0.25)',
-    borderRadius: '0.75rem',
-  },
-  successText: {
-    color: '#86efac',
-    fontSize: '0.9rem',
-    lineHeight: 1.6,
-    margin: '0 0 1rem',
-  },
-  hint: {
-    textAlign: 'center' as const,
-    padding: '1rem',
-    background: 'rgba(234,179,8,0.1)',
-    border: '1px solid rgba(234,179,8,0.25)',
-    borderRadius: '0.5rem',
-  },
-  hintText: {
-    color: '#fde68a',
-    fontSize: '0.8rem',
-    margin: '0 0 0.75rem',
-    lineHeight: 1.5,
-  },
-  backLink: {
-    display: 'block',
-    textAlign: 'center' as const,
-    color: '#94a3b8',
-    fontSize: '0.85rem',
-    textDecoration: 'none',
-    marginTop: '1rem',
-  },
-}
+

@@ -1,5 +1,5 @@
 import { valibotResolver } from '@hookform/resolvers/valibot'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import * as v from 'valibot'
@@ -57,12 +57,12 @@ export function ForgotPassword() {
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <div style={styles.logo}>
-          <span style={styles.logoIcon}>🔐</span>
-          <h1 style={styles.title}>Atur Ulang Kata Sandi</h1>
-          <p style={styles.subtitle}>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-10 w-full max-w-[420px] shadow-2xl border border-slate-200 dark:border-slate-700/50">
+        <div className="text-center mb-8">
+          <span className="text-5xl inline-block mb-4">🔐</span>
+          <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold mt-2 mb-1">Atur Ulang Kata Sandi</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed m-0">
             {submitted
               ? 'Cek email kamu untuk link reset password'
               : 'Masukkan email untuk menerima link reset password'}
@@ -70,36 +70,36 @@ export function ForgotPassword() {
         </div>
 
         {submitted ? (
-          <div style={styles.successBox}>
-            <p style={styles.successIcon}>✉️</p>
-            <p style={styles.successText}>
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 p-6 rounded-xl border border-emerald-200 dark:border-emerald-800/50 text-center">
+            <p className="text-4xl mb-4">✉️</p>
+            <p className="text-emerald-700 dark:text-emerald-400 font-bold mb-2">
               Email reset password telah dikirim ke <strong>{getValues('email')}</strong>. Silakan
               cek inbox atau folder spam.
             </p>
-            <p style={styles.successHint}>Link akan kedaluwarsa dalam 1 jam.</p>
-            <Link to="/login" style={styles.backLink}>
+            <p className="text-emerald-600/80 dark:text-emerald-500/80 text-xs">Link akan kedaluwarsa dalam 1 jam.</p>
+            <Link to="/login" className="text-blue-600 dark:text-blue-400 text-sm font-bold no-underline block text-center mt-4 hover:text-blue-700 dark:hover:text-blue-300">
               ← Kembali ke Login
             </Link>
           </div>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} style={styles.form}>
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
             <FormField control={control} name="email" label="Email">
               <input
                 type="email"
-                style={styles.input}
+                className="p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
                 {...register('email')}
                 placeholder="you@example.com"
                 autoFocus
               />
             </FormField>
 
-            {error && <div style={styles.error}>{error}</div>}
+            {error && <div className="text-red-500 text-xs font-bold mt-1">{error}</div>}
 
-            <button type="submit" style={styles.submitBtn} disabled={isSubmitting}>
+            <button type="submit" className="mt-2 p-3 bg-blue-600 text-white font-bold rounded-lg border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors w-full" disabled={isSubmitting}>
               {isSubmitting ? 'Mengirim...' : 'Kirim Link Reset'}
             </button>
 
-            <Link to="/login" style={styles.backLink}>
+            <Link to="/login" className="text-blue-600 dark:text-blue-400 text-sm font-bold no-underline block text-center mt-4 hover:text-blue-700 dark:hover:text-blue-300">
               ← Kembali ke Login
             </Link>
           </form>
@@ -109,97 +109,4 @@ export function ForgotPassword() {
   )
 }
 
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
-    padding: '1rem',
-  },
-  card: {
-    background: '#1e293b',
-    borderRadius: '1rem',
-    padding: '2.5rem',
-    width: '100%',
-    maxWidth: '420px',
-    boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
-    border: '1px solid rgba(255,255,255,0.1)',
-  },
-  logo: {
-    textAlign: 'center' as const,
-    marginBottom: '2rem',
-  },
-  logoIcon: { fontSize: '3rem' },
-  title: {
-    color: '#f1f5f9',
-    fontSize: '1.5rem',
-    fontWeight: 700,
-    margin: '0.5rem 0 0.25rem',
-  },
-  subtitle: {
-    color: '#94a3b8',
-    fontSize: '0.875rem',
-    margin: 0,
-    lineHeight: 1.5,
-  },
-  form: { display: 'flex', flexDirection: 'column' as const, gap: '1rem' },
-  field: { display: 'flex', flexDirection: 'column' as const, gap: '0.25rem' },
-  label: { color: '#cbd5e1', fontSize: '0.8rem', fontWeight: 500 },
-  input: {
-    padding: '0.75rem',
-    borderRadius: '0.5rem',
-    border: '1px solid rgba(255,255,255,0.15)',
-    background: '#0f172a',
-    color: '#f1f5f9',
-    fontSize: '0.9rem',
-    outline: 'none',
-  },
-  error: {
-    background: 'rgba(239,68,68,0.15)',
-    color: '#fca5a5',
-    padding: '0.75rem',
-    borderRadius: '0.5rem',
-    fontSize: '0.8rem',
-    border: '1px solid rgba(239,68,68,0.3)',
-  },
-  submitBtn: {
-    padding: '0.875rem',
-    borderRadius: '0.5rem',
-    border: 'none',
-    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-    color: '#fff',
-    fontWeight: 600,
-    fontSize: '1rem',
-    cursor: 'pointer',
-    marginTop: '0.5rem',
-  },
-  successBox: {
-    textAlign: 'center' as const,
-    padding: '1.5rem',
-    background: 'rgba(34,197,94,0.1)',
-    border: '1px solid rgba(34,197,94,0.25)',
-    borderRadius: '0.75rem',
-  },
-  successIcon: { fontSize: '2.5rem', margin: '0 0 0.75rem' },
-  successText: {
-    color: '#86efac',
-    fontSize: '0.9rem',
-    lineHeight: 1.6,
-    margin: '0 0 0.5rem',
-  },
-  successHint: {
-    color: '#64748b',
-    fontSize: '0.75rem',
-    margin: '0 0 1rem',
-  },
-  backLink: {
-    display: 'block',
-    textAlign: 'center' as const,
-    color: '#94a3b8',
-    fontSize: '0.85rem',
-    textDecoration: 'none',
-    marginTop: '1rem',
-  },
-}
+

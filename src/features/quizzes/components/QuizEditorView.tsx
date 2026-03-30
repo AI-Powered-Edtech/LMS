@@ -189,7 +189,7 @@ export function QuizEditorView({
             className={cn(
               'px-4 py-2 text-sm font-bold rounded-xl transition-colors flex items-center gap-1.5',
               isPublished
-                ? 'text-amber-700 bg-amber-50 hover:bg-amber-100'
+                ? 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 dark:hover:bg-amber-900/50'
                 : 'text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm'
             )}
           >
@@ -199,7 +199,7 @@ export function QuizEditorView({
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl flex items-start gap-2">
+        <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm rounded-xl flex items-start gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
           <button onClick={() => setError(null)} className="ml-auto">
@@ -344,7 +344,7 @@ export function QuizEditorView({
                 <button
                   type="button"
                   onClick={() => setShowQuestionModal(true)}
-                  className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold rounded-lg text-xs flex items-center gap-1 transition-colors"
+                  className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 font-bold rounded-lg text-xs flex items-center gap-1 transition-colors"
                 >
                   <Search className="w-3.5 h-3.5" /> Bank Soal
                 </button>
@@ -352,7 +352,7 @@ export function QuizEditorView({
               <button
                 type="button"
                 onClick={addQuestion}
-                className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold rounded-lg text-xs flex items-center gap-1 transition-colors"
+                className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-bold rounded-lg text-xs flex items-center gap-1 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" /> Tambah Soal
               </button>
@@ -379,7 +379,7 @@ export function QuizEditorView({
               >
                 {/* Question header */}
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs font-bold flex items-center justify-center shrink-0">
+                  <span className="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs font-bold flex items-center justify-center shrink-0">
                     {qIdx + 1}
                   </span>
                   <select
@@ -463,8 +463,8 @@ export function QuizEditorView({
                           className={cn(
                             'flex-1 px-3 py-1.5 text-sm border rounded-lg outline-none focus:border-blue-400 transition-colors',
                             opt.is_correct
-                              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                              : 'bg-white border-slate-200',
+                              ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-400'
+                              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700',
                             (isPublished || q.question_type === 'TRUE_FALSE') &&
                               'opacity-60 cursor-not-allowed'
                           )}

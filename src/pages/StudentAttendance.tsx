@@ -11,30 +11,30 @@ import { supabase } from '@/src/services/supabase/client'
 const STATUS_CONFIG = {
   hadir: {
     label: 'Hadir',
-    color: 'text-green-600',
-    bg: 'bg-green-50',
-    border: 'border-green-100',
+    color: 'text-green-600 dark:text-green-400',
+    bg: 'bg-green-50 dark:bg-green-900/20',
+    border: 'border-green-100 dark:border-green-800',
     icon: CheckCircle,
   },
   sakit: {
     label: 'Sakit',
-    color: 'text-yellow-600',
-    bg: 'bg-yellow-50',
-    border: 'border-yellow-100',
+    color: 'text-yellow-600 dark:text-yellow-400',
+    bg: 'bg-yellow-50 dark:bg-yellow-900/20',
+    border: 'border-yellow-100 dark:border-yellow-800',
     icon: AlertCircle,
   },
   izin: {
     label: 'Izin',
-    color: 'text-blue-600',
-    bg: 'bg-blue-50',
-    border: 'border-blue-100',
+    color: 'text-blue-600 dark:text-blue-400',
+    bg: 'bg-blue-50 dark:bg-blue-900/20',
+    border: 'border-blue-100 dark:border-blue-800',
     icon: Clock,
   },
   alpha: {
     label: 'Alpha',
-    color: 'text-red-600',
-    bg: 'bg-red-50',
-    border: 'border-red-100',
+    color: 'text-red-600 dark:text-red-400',
+    bg: 'bg-red-50 dark:bg-red-900/20',
+    border: 'border-red-100 dark:border-red-800',
     icon: XCircle,
   },
 }
@@ -195,7 +195,7 @@ export function StudentAttendance() {
           {isLoading ? (
             <div className="p-8 space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-12 bg-slate-100 rounded-xl animate-pulse" />
+                <div key={i} className="h-12 bg-slate-100 dark:bg-slate-700 rounded-xl animate-pulse" />
               ))}
             </div>
           ) : myRecords.length === 0 ? (
