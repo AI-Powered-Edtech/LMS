@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { BarChart3, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 
 import { QuestionSearchModal } from '@/src/features/question-bank/components/QuestionSearchModal'

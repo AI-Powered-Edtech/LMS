@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 // Question Difficulty Chart Component
 // Shows a horizontal bar chart of correct% vs incorrect% per question
 

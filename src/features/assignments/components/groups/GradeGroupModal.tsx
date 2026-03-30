@@ -31,12 +31,14 @@ export function GradeGroupModal({ group, assignmentId, onClose }: Props) {
       return
     }
 
+    if (!group.submission_id) {
+      addToast({ type: 'error', message: 'ID pengumpulan tidak ditemukan untuk kelompok ini.' })
+      return
+    }
+
     try {
-      // grade_group_submission RPC accepts submission_id.
-      // The teacher overview RPC returns group_id; a future RPC iteration
-      // can include the submission_id directly in the payload.
       await gradeMutation.mutateAsync({
-        submissionId: group.submission_id ?? group.group_id,
+        submissionId: group.submission_id,
         grade: numGrade,
         feedback: feedback || undefined,
       })

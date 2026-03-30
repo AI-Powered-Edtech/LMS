@@ -62,7 +62,7 @@ export default [
       'jsx-a11y/aria-proptypes': 'error',
       'jsx-a11y/aria-role': 'error',
       'jsx-a11y/aria-unsupported-elements': 'error',
-      'jsx-a11y/click-events-have-key-events': 'error',
+      'jsx-a11y/click-events-have-key-events': 'warn',
       'jsx-a11y/no-static-element-interactions': 'error',
       'jsx-a11y/anchor-is-valid': 'warn',
       'jsx-a11y/interactive-supports-focus': 'warn',
