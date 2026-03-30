@@ -1,5 +1,5 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { Calendar, Filter, Flame, TrendingUp, Trophy } from 'lucide-react'
+import { AlertTriangle, Calendar, Filter, Flame, TrendingUp, Trophy } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
@@ -44,7 +44,7 @@ export function LeaderboardV2() {
   const [sortBy, setSortBy] = useState<LeaderboardSortBy>('xp')
   const currentUserRef = useRef<HTMLDivElement>(null)
 
-  const { data: entries, isLoading } = useLeaderboardV2({ sortBy, period })
+  const { data: entries, isLoading, isError } = useLeaderboardV2({ sortBy, period })
 
   // Client-side re-sort for instant UI response when user switches sort tabs
   // No new API call needed — uses cached data from useLeaderboardV2
@@ -100,6 +100,20 @@ export function LeaderboardV2() {
             </div>
           ))}
         </div>
+      </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <AlertTriangle className="w-12 h-12 text-red-400 mb-4" />
+        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-1">
+          Gagal Memuat Peringkat
+        </h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Terjadi kesalahan saat memuat papan peringkat. Silakan coba lagi nanti.
+        </p>
       </div>
     )
   }
@@ -382,7 +396,7 @@ function PodiumCard({
       <div className="flex items-center gap-1 mt-0.5">
         <LevelBadge level={entry.level} size="sm" />
         <span className="text-xs font-bold text-yellow-600">
-          {entry.value} {sortBy === 'streak' ? '🔥' : 'XP'}
+          {entry.value} {sortBy === 'streak' ? '' : 'XP'}
         </span>
       </div>
       <div className={cn('w-full rounded-t-2xl border-t-4 mt-2', heights[rank], podiumGradient)} />
