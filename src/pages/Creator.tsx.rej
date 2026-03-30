@@ -1,7 +1,0 @@
---- Creator.tsx
-+++ Creator.tsx
-@@ -5,3 +5,3 @@
- import { Bot, FileText, LayoutTemplate, Upload, X, Zap } from 'lucide-react'
--import { useState } from 'react'
-+import { useState, useRef } from 'react'
- import { useNavigate } from 'react-router-dom'

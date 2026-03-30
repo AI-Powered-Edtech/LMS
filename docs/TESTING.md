@@ -30,8 +30,6 @@ When running automated QA via `agent-browser` CLI, standard click simulations so
 
 ## Running the App for Testing
 
-# <<<<<<< HEAD
-
 ```bash
 pnpm install
 pnpm dev

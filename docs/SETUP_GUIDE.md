@@ -17,8 +17,6 @@
 
 ## Langkah 1: Clone & Install Dependencies
 
-# <<<<<<< HEAD
-
 ```bash
 git clone <REPO_URL>
 cd LMS

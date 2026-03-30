@@ -67,7 +67,12 @@ export const groupAssignmentService = {
       throw error
     }
 
-    return (data as StudentGroupData) ?? null
+    if (!data || typeof data !== 'object') return null
+
+    const d = data as Record<string, unknown>
+    if (!d.group || !Array.isArray(d.members)) return null
+
+    return data as StudentGroupData
   },
 
   /**
@@ -83,7 +88,9 @@ export const groupAssignmentService = {
       throw error
     }
 
-    return (data as TeacherGroupEntry[]) ?? []
+    if (!data || !Array.isArray(data)) return []
+
+    return data as TeacherGroupEntry[]
   },
 
   /**
@@ -122,7 +129,15 @@ export const groupAssignmentService = {
       throw error
     }
 
-    const result = data as { success: boolean; submission_id: string }
+    if (!data || typeof data !== 'object') {
+      throw new Error('Respons RPC tidak valid.')
+    }
+
+    const result = data as Record<string, unknown>
+    if (typeof result.submission_id !== 'string') {
+      throw new Error('submission_id tidak ditemukan dalam respons.')
+    }
+
     return result.submission_id
   },
 

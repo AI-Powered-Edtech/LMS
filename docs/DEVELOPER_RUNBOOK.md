@@ -17,8 +17,6 @@
 
 ### Install dependencies
 
-# <<<<<<< HEAD
-
 ```bash
 pnpm install
 ```
