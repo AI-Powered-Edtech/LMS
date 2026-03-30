@@ -17,6 +17,7 @@ export default [
         ecmaVersion: 'latest',
         sourceType: 'module',
         ecmaFeatures: { jsx: true },
+        project: './tsconfig.json',
       },
     },
     plugins: {
@@ -35,6 +36,8 @@ export default [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+
+      '@typescript-eslint/no-floating-promises': 'warn',
 
       '@typescript-eslint/ban-ts-comment': ['warn', {
         'ts-expect-error': 'allow-with-description',

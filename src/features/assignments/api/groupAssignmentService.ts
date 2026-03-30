@@ -39,6 +39,7 @@ export interface TeacherGroupEntry {
   member_count: number
   members: GroupMember[]
   submission_status: 'not_started' | 'draft' | 'submitted' | 'graded'
+  submission_id: string | null
   grade: number | null
 }
 

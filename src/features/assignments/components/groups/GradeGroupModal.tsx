@@ -36,7 +36,7 @@ export function GradeGroupModal({ group, assignmentId, onClose }: Props) {
       // The teacher overview RPC returns group_id; a future RPC iteration
       // can include the submission_id directly in the payload.
       await gradeMutation.mutateAsync({
-        submissionId: (group as any).submission_id || group.group_id,
+        submissionId: group.submission_id ?? group.group_id,
         grade: numGrade,
         feedback: feedback || undefined,
       })
