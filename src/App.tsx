@@ -1,6 +1,6 @@
 /**
  * @licens
- * SPDX-License-Idesn: Apache-2.0
+ * SPDX-License-Ide: Apache-2.0a
  */
 
 import { MotionConfig } from 'motion/react'
