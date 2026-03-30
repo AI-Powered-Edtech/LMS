@@ -600,4 +600,86 @@ export const lessonService = {
       throw error
     }
   },
+
+  /**
+   * Fetch the title of a course module by ID.
+   */
+  async getModuleTitle(moduleId: string, tenantId: string): Promise<string | null> {
+    const { data, error } = await supabase
+      .from('course_modules')
+      .select('title')
+      .eq('id', moduleId)
+      .eq('tenant_id', tenantId)
+      .maybeSingle()
+
+    if (error) {
+      if (import.meta.env.DEV) console.error('Failed to load module title:', error)
+      return null
+    }
+    return data?.title ?? null
+  },
+
+  /**
+   * Fire-and-forget SCORM runtime upsert using fetch with keepalive.
+   * Used by ScormPlayer's beforeunload handler to persist state during page unload.
+   * Uses raw fetch instead of supabase-js because keepalive is needed for page unload.
+   */
+  sendBeaconUpsert(params: UpsertScormRuntimeParams): void {
+    const body = JSON.stringify({
+      p_user_id: params.userId,
+      p_scorm_package_id: params.scormPackageId,
+      p_tenant_id: params.tenantId,
+      p_cmi_data: params.cmiData,
+      p_score_raw: params.scoreRaw ?? null,
+      p_score_max: params.scoreMax ?? null,
+      p_lesson_status: params.lessonStatus ?? null,
+      p_total_time: params.totalTimeSeconds ?? null,
+      p_suspend_data: params.suspendData ?? null,
+    })
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
+    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+
+    // Retrieve the current session token for auth header
+    const sessionStr = localStorage.getItem(
+      'sb-' + new URL(supabaseUrl).hostname.split('.')[0] + '-auth-token'
+    )
+    const accessToken = (() => {
+      try {
+        return sessionStr ? JSON.parse(sessionStr)?.access_token : anonKey
+      } catch {
+        return anonKey
+      }
+    })()
+
+    const scormApiUrl = `${supabaseUrl}/rest/v1/rpc/upsert_scorm_runtime`
+
+    // Validate URL before fetch — prevent SSRF
+    const ALLOWED_DOMAINS = ['supabase.co', 'supabase.in']
+    try {
+      const parsedUrl = new URL(scormApiUrl)
+      if (!ALLOWED_DOMAINS.some((domain) => parsedUrl.hostname.endsWith(domain))) {
+        console.error('[lessonService] Blocked: Invalid API URL')
+        return
+      }
+    } catch {
+      console.error('[lessonService] Blocked: Invalid API URL')
+      return
+    }
+
+    try {
+      fetch(scormApiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: anonKey,
+          Authorization: `Bearer ${accessToken || anonKey}`,
+        },
+        body,
+        keepalive: true,
+      })
+    } catch (error) {
+      console.warn('[lessonService] Failed to sync SCORM runtime:', error)
+    }
+  },
 }

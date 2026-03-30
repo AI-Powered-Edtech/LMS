@@ -11,7 +11,6 @@ import {
 } from '@/src/features/lessons'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
-import { supabase } from '@/src/services/supabase/client'
 import { captureError } from '@/src/utils/sentry'
 
 export function useLessonViewerState() {
@@ -254,18 +253,13 @@ export function useLessonViewerState() {
     setSidebarLoading(true)
     moduleCompleteShownRef.current = null
 
-    supabase
-      .from('course_modules')
-      .select('title')
-      .eq('id', moduleId)
-      .eq('tenant_id', tenantId)
-      .maybeSingle()
-      .then(({ data: moduleData, error }) => {
-        if (error) {
-          if (import.meta.env.DEV) console.error('Failed to load module title:', error)
-          return
-        }
-        if (!cancelled && moduleData?.title) setModuleTitle(moduleData.title)
+    lessonService
+      .getModuleTitle(moduleId, tenantId)
+      .then((title) => {
+        if (!cancelled && title) setModuleTitle(title)
+      })
+      .catch((err) => {
+        if (import.meta.env.DEV) console.error('Failed to load module title:', err)
       })
 
     lessonService

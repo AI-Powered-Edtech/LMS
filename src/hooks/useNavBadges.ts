@@ -12,6 +12,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
+import { assignmentService } from '@/src/features/assignments/api/assignmentService'
 import { supabase } from '@/src/services/supabase/client'
 
 const BADGE_STALE = 2 * 60 * 1000 // 2 menit
@@ -46,29 +47,7 @@ export function useNavBadges(): NavBadges {
   // atau masih DRAFT.
   const { data: pendingAssignments = 0 } = useQuery({
     queryKey: navBadgeKeys.pendingAssignments(user?.id ?? '', tenantId ?? ''),
-    queryFn: async () => {
-      // Cari assignment yang published dan belum punya submission SUBMITTED
-      const { count, error } = await supabase
-        .from('assignments')
-        .select(
-          `id,
-           assignment_submissions!left(id, status)`,
-          { count: 'exact', head: false }
-        )
-        .eq('tenant_id', tenantId!)
-        .eq('is_published', true)
-        .or(
-          `assignment_submissions.student_id.is.null,assignment_submissions.status.neq.SUBMITTED`,
-          { foreignTable: 'assignment_submissions' }
-        )
-
-      if (error) {
-        if (import.meta.env.DEV) console.error('[useNavBadges] pendingAssignments error:', error)
-        return 0
-      }
-
-      return count ?? 0
-    },
+    queryFn: () => assignmentService.getPendingAssignmentCount(tenantId!),
     enabled: enabled && isStudent,
     staleTime: BADGE_STALE,
   })

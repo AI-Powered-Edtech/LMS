@@ -3,20 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
-
-interface LiveEvent {
-  id: string
-  user_id: string
-  event_type: string
-  lesson_id?: string
-  course_id?: string
-  created_at: string
-  metadata?: Record<string, unknown>
-  // joined from profiles
-  student_name?: string
-  lesson_title?: string
-}
+import { analyticsService, type LiveEvent } from '@/src/features/analytics/api/analyticsService'
 
 const EVENT_LABELS: Record<string, string> = {
   LESSON_STARTED: 'mulai pelajaran',
@@ -55,19 +42,14 @@ export function LiveActivityFeed({
 
     let isMounted = true
 
-    const fetchLatestEvents = async () => {
+    const fetchEvents = async () => {
       if (isPaused) return
       try {
-        const { data } = await supabase
-          .from('learning_events')
-          .select('id, user_id, event_type, lesson_id, course_id, created_at, metadata')
-          .eq('tenant_id', activeTenant)
-          .order('created_at', { ascending: false })
-          .limit(10)
+        const data = await analyticsService.fetchLatestEvents(String(activeTenant), 10)
 
         if (isMounted && data) {
           setEvents((prev) => {
-            const newEvents = data.filter((d) => !prev.some((p) => p.id === d.id))
+            const newEvents = data.filter((d: LiveEvent) => !prev.some((p) => p.id === d.id))
             const merged = [...newEvents, ...prev]
             // sort by created_at desc so latest is first
             merged.sort(
@@ -84,10 +66,10 @@ export function LiveActivityFeed({
     }
 
     // Initial fetch
-    fetchLatestEvents()
+    fetchEvents()
 
     // Poll every 15 seconds instead of keeping a WebSocket open
-    const pollInterval = setInterval(fetchLatestEvents, 15000)
+    const pollInterval = setInterval(fetchEvents, 15000)
 
     return () => {
       isMounted = false

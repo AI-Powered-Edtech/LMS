@@ -37,20 +37,6 @@ interface ScormPackage {
 
 type PlayerState = 'loading' | 'ready' | 'error'
 
-// ── URL Whitelist Validation ───────────────────────────────────
-// Prevents SSRF if supabaseUrl config is tampered with
-const ALLOWED_DOMAINS = ['supabase.co', 'supabase.in']
-
-const validateScormUrl = (url: string): boolean => {
-  try {
-    const parsedUrl = new URL(url)
-    const hostname = parsedUrl.hostname
-    return ALLOWED_DOMAINS.some((domain) => hostname.endsWith(domain))
-  } catch {
-    return false
-  }
-}
-
 export function ScormPlayer({
   scormPackageId,
   lessonId: _lessonId,
@@ -272,59 +258,25 @@ export function ScormPlayer({
   }, [scormPackageId, user?.id, tenantId, retryKey])
 
   // ── Beforeunload: flush state ────────────────────────────────
-  // Uses fetch with keepalive:true instead of sendBeacon because
-  // sendBeacon cannot send Authorization headers required by Supabase RPC.
-  // keepalive ensures the request completes even after page unload.
+  // Uses lessonService.sendBeaconUpsert() which internally uses fetch with
+  // keepalive:true instead of sendBeacon because sendBeacon cannot send
+  // Authorization headers required by Supabase RPC.
 
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (bridgeRef.current?.isInitialized() && !bridgeRef.current.isTerminated()) {
         const payload = bridgeRef.current.getPayload()
-        const body = JSON.stringify({
-          p_user_id: user?.id,
-          p_scorm_package_id: scormPackageId,
-          p_tenant_id: tenantId,
-          p_cmi_data: payload.cmiData,
-          p_score_raw: payload.scoreRaw,
-          p_score_max: payload.scoreMax,
-          p_lesson_status: payload.lessonStatus,
-          p_total_time: payload.totalTimeSeconds,
-          p_suspend_data: payload.suspendData,
+        lessonService.sendBeaconUpsert({
+          userId: user?.id ?? '',
+          scormPackageId,
+          tenantId: tenantId ?? '',
+          cmiData: payload.cmiData,
+          scoreRaw: payload.scoreRaw,
+          scoreMax: payload.scoreMax,
+          lessonStatus: payload.lessonStatus,
+          totalTimeSeconds: payload.totalTimeSeconds,
+          suspendData: payload.suspendData,
         })
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
-
-        // Retrieve the current session token for auth header
-        const sessionStr = localStorage.getItem(
-          'sb-' + new URL(supabaseUrl).hostname.split('.')[0] + '-auth-token'
-        )
-        const accessToken = (() => {
-    try { return sessionStr ? JSON.parse(sessionStr)?.access_token : anonKey } catch { return anonKey }
-  })()
-
-        try {
-          const scormApiUrl = `${supabaseUrl}/rest/v1/rpc/upsert_scorm_runtime`
-
-          // Validate URL before fetch — prevent SSRF
-          if (!validateScormUrl(scormApiUrl)) {
-            console.error('[ScormPlayer] Blocked: Invalid API URL')
-            return
-          }
-
-          fetch(scormApiUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              apikey: anonKey,
-              Authorization: `Bearer ${accessToken || anonKey}`,
-            },
-            body,
-            keepalive: true, // Survives page unload
-          })
-        } catch (error) {
-          // Best-effort — already logged above
-          console.warn('[ScormPlayer] Failed to sync SCORM runtime:', error)
-        }
       }
     }
 

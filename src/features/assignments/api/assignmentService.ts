@@ -390,4 +390,31 @@ export const assignmentService = {
       .getPublicUrl(uploadData?.path || '')
     return publicData?.publicUrl || uploadData?.path || ''
   },
+
+  /**
+   * Get count of pending (published, not yet submitted) assignments for a student.
+   * Used by useNavBadges for the bottom nav badge.
+   */
+  async getPendingAssignmentCount(tenantId: string): Promise<number> {
+    const { count, error } = await supabase
+      .from('assignments')
+      .select(
+        `id,
+         assignment_submissions!left(id, status)`,
+        { count: 'exact', head: false }
+      )
+      .eq('tenant_id', tenantId)
+      .eq('is_published', true)
+      .or(
+        `assignment_submissions.student_id.is.null,assignment_submissions.status.neq.SUBMITTED`,
+        { foreignTable: 'assignment_submissions' }
+      )
+
+    if (error) {
+      if (import.meta.env.DEV) console.error('[assignmentService] getPendingAssignmentCount error:', error)
+      return 0
+    }
+
+    return count ?? 0
+  },
 }

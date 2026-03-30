@@ -99,7 +99,7 @@ export const courseService = {
   async getCourseById(courseId: string, tenantId: string) {
     const { data, error } = await supabase
       .from('courses')
-      .select('id, title, description, status, created_at, updated_at, created_by, tenant_id')
+      .select('id, title, description, status, subject, level, created_at, updated_at, created_by, tenant_id')
       .eq('id', courseId)
       .eq('tenant_id', tenantId)
       .single()

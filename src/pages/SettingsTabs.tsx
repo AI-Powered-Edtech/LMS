@@ -10,6 +10,7 @@ import { type Resolver, useForm } from 'react-hook-form'
 import { OptimizedImage } from '@/src/components/ui'
 import { OfflineFormNotice } from '@/src/components/ui/OfflineFormNotice'
 import type { Theme } from '@/src/contexts/ThemeContext'
+import { publicProfileService } from '@/src/features/profile/api/publicProfileService'
 import { supabase } from '@/src/services/supabase/client'
 import { type ProfileFormData, ProfileFormSchema } from '@/src/shared/schemas/forms'
 import { cn } from '@/src/utils/cn'
@@ -86,17 +87,7 @@ export function AccountTab({
     setSavingProfile(true)
     setProfileMessage(null)
     try {
-      const [firstName, ...rest] = data.fullName.trim().split(' ')
-      const lastName = rest.join(' ')
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          first_name: firstName,
-          last_name: lastName || '',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId)
-      if (error) throw error
+      await publicProfileService.updateProfileName(userId, data.fullName)
       setProfileMessage({ type: 'success', text: 'Profil berhasil diperbarui.' })
     } catch {
       setProfileMessage({ type: 'error', text: 'Gagal memperbarui profil. Coba lagi.' })

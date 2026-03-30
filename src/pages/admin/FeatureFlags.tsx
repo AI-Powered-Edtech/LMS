@@ -4,10 +4,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { EmptyState } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
+import { featureFlagService } from '@/src/features/administration/api/featureFlagService'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
 import { cn } from '@/src/utils/cn'
-import { FeatureFlag, invalidateFlagCache } from '@/src/utils/featureFlags'
+import { FeatureFlag } from '@/src/utils/featureFlags'
 
 // ---------------------------------------------------------------------------
 // Local draft state extends FeatureFlag with a dirty flag
@@ -34,19 +34,14 @@ export default function FeatureFlagsPage() {
     if (!tenantId) return
     setLoading(true)
     setError(null)
-    const { data, error: fetchErr } = await supabase
-      .from('feature_flags')
-      .select('flag_name, enabled, tenant_ids, rollout_percentage')
-      .eq('tenant_id', tenantId)
-      .order('flag_name')
-
-    if (fetchErr) {
+    try {
+      const data = await featureFlagService.fetchFlags(tenantId)
+      setFlags(data.map((f: FeatureFlag) => ({ ...f, dirty: false })))
+    } catch {
       setError('Gagal memuat fitur flags. Coba muat ulang halaman.')
-    } else {
-      setFlags((data ?? []).map((f: FeatureFlag) => ({ ...f, dirty: false })))
     }
     setLoading(false)
-  }, [])
+  }, [tenantId])
 
   useEffect(() => {
     fetchFlags()
@@ -86,20 +81,15 @@ export default function FeatureFlagsPage() {
     setSaveSuccess(false)
 
     try {
-      for (const flag of dirty) {
-        const { error: updateErr } = await supabase
-          .from('feature_flags')
-          .update({
-            enabled: flag.enabled,
-            rollout_percentage: flag.rollout_percentage,
-          })
-          .eq('flag_name', flag.flag_name)
-          .eq('tenant_id', tenantId)
+      await featureFlagService.saveFlags(
+        tenantId!,
+        dirty.map((f) => ({
+          flag_name: f.flag_name,
+          enabled: f.enabled,
+          rollout_percentage: f.rollout_percentage,
+        }))
+      )
 
-        if (updateErr) throw updateErr
-      }
-
-      invalidateFlagCache()
       setFlags((prev) => prev.map((f) => ({ ...f, dirty: false })))
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 3000)

@@ -32,6 +32,7 @@ import {
   fetchActivityCounts,
   fetchActivityTimeline,
   fetchCourseEngagement,
+  fetchLatestEvents,
   fetchTenantCourseStats,
   getAtRiskStudents,
   getCourseAnalyticsDashboard,
@@ -51,6 +52,8 @@ import {
   refreshCourseStats,
   saveFunnelDefinition,
 } from './analyticsQueries'
+
+export type { LiveEvent } from './analyticsQueries'
 
 export const analyticsService = {
   refreshCourseStats,
@@ -167,5 +170,10 @@ export const analyticsService = {
 
   getPredictionSummary(courseId: string): Promise<PredictionSummary | null> {
     return getPredictionSummary(courseId)
+  },
+
+  // Live Activity Feed
+  fetchLatestEvents(tenantId: string, limit = 10) {
+    return fetchLatestEvents(tenantId, limit)
   },
 }

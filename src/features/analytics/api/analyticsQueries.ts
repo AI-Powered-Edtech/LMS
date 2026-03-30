@@ -356,3 +356,36 @@ export async function getPredictionSummary(courseId: string): Promise<Prediction
   if (error) throw parseRpcError(error)
   return ((data as PredictionSummary[]) ?? [])[0] ?? null
 }
+
+// ── Live Activity Feed ───────────────────────────────────────────────────
+
+export interface LiveEvent {
+  id: string
+  user_id: string
+  event_type: string
+  lesson_id?: string
+  course_id?: string
+  created_at: string
+  metadata?: Record<string, unknown>
+  student_name?: string
+  lesson_title?: string
+}
+
+/**
+ * Fetch the latest learning events for a tenant (used by LiveActivityFeed).
+ */
+export async function fetchLatestEvents(tenantId: string, limit = 10): Promise<LiveEvent[]> {
+  const { data, error } = await supabase
+    .from('learning_events')
+    .select('id, user_id, event_type, lesson_id, course_id, created_at, metadata')
+    .eq('tenant_id', tenantId)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    console.error('Failed to fetch live events', error)
+    throw error
+  }
+
+  return (data ?? []) as LiveEvent[]
+}

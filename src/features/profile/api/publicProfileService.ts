@@ -72,4 +72,22 @@ export const publicProfileService = {
       .eq('id', userId)
     if (error) throw error
   },
+
+  /**
+   * Update user's display name (first_name + last_name) from a full name string.
+   * Used by Settings > Account tab.
+   */
+  async updateProfileName(userId: string, fullName: string): Promise<void> {
+    const [firstName, ...rest] = fullName.trim().split(' ')
+    const lastName = rest.join(' ')
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        first_name: firstName,
+        last_name: lastName || '',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', userId)
+    if (error) throw error
+  },
 }

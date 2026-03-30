@@ -2,6 +2,9 @@ export interface Course {
   id: string
   title: string
   description: string | null
+  status?: string
+  subject?: string | null
+  level?: string | null
   tenant_id: string
   created_by: string
   created_at?: string

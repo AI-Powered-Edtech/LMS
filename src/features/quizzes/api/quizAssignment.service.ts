@@ -133,3 +133,74 @@ export async function removeQuizAssignment(assignmentId: string, tenantId: strin
 
   if (error) throw error
 }
+
+/**
+ * Fetch quiz assignments for a specific class (used by Quiz Gradebook).
+ * Returns assignment ID, quiz_id, max_attempts, and joined quiz title/passing_score.
+ */
+export async function getClassQuizAssignments(
+  classId: string,
+  tenantId: string
+): Promise<
+  Array<{
+    id: string
+    quiz_id: string
+    title: string
+    passing_score: number
+    max_attempts: number | null
+  }>
+> {
+  const { data, error } = await supabase
+    .from('quiz_assignments')
+    .select(
+      `
+      id,
+      quiz_id,
+      max_attempts,
+      quizzes!inner (
+        id,
+        title,
+        passing_score,
+        max_attempts,
+        status
+      )
+    `
+    )
+    .eq('class_id', classId)
+    .eq('tenant_id', tenantId)
+    .eq('quizzes.status', 'published')
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+
+  return (data || []).map((assignment) => {
+    const quiz = Array.isArray(assignment.quizzes)
+      ? assignment.quizzes[0]
+      : assignment.quizzes
+    return {
+      id: assignment.id,
+      quiz_id: assignment.quiz_id,
+      title: quiz?.title || 'Kuis',
+      passing_score: quiz?.passing_score || 70,
+      max_attempts: assignment.max_attempts ?? quiz?.max_attempts ?? null,
+    }
+  })
+}
+
+/**
+ * Fetch teacher's classes for a tenant (used by Quiz Gradebook class selector).
+ */
+export async function getTeacherClasses(
+  teacherId: string,
+  tenantId: string
+): Promise<Array<{ id: string; name: string }>> {
+  const { data, error } = await supabase
+    .from('classes')
+    .select('id, name')
+    .eq('teacher_id', teacherId)
+    .eq('tenant_id', tenantId)
+    .order('name', { ascending: true })
+
+  if (error) throw error
+  return (data ?? []) as Array<{ id: string; name: string }>
+}

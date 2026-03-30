@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
+import { courseService } from '@/src/features/courses/api/courseService'
 
 import { CourseCollaborators } from './CourseCollaborators'
 
@@ -45,27 +45,21 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
 
     async function fetchCourse() {
       setLoading(true)
-      const { data: course, error: fetchErr } = await supabase
-        .from('courses')
-        .select('title, description, subject, level')
-        .eq('id', courseId)
-        .eq('tenant_id', tenantId)
-        .single()
+      try {
+        const course = await courseService.getCourseById(courseId, tenantId!)
 
-      if (cancelled) return
+        if (cancelled) return
 
-      if (fetchErr) {
+        setData({
+          title: course.title || '',
+          description: course.description || '',
+          subject: course.subject || '',
+          level: course.level || '',
+        })
+      } catch {
+        if (cancelled) return
         setError('Gagal memuat data kursus.')
-        setLoading(false)
-        return
       }
-
-      setData({
-        title: course.title || '',
-        description: course.description || '',
-        subject: course.subject || '',
-        level: course.level || '',
-      })
       setLoading(false)
     }
 
@@ -97,24 +91,24 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
         setSaved(false)
         setError(null)
 
-        const { error: updateErr } = await supabase
-          .from('courses')
-          .update({
-            title: updatedData.title,
-            description: updatedData.description || null,
-            subject: updatedData.subject || null,
-            level: updatedData.level || null,
-          })
-          .eq('id', courseId)
-          .eq('tenant_id', tenantId)
+        try {
+          await courseService.updateCourse(
+            courseId,
+            {
+              title: updatedData.title,
+              description: updatedData.description || null,
+              subject: updatedData.subject || null,
+              level: updatedData.level || null,
+            },
+            tenantId
+          )
 
-        setSaving(false)
-
-        if (updateErr) {
-          setError('Gagal menyimpan perubahan.')
-        } else {
+          setSaving(false)
           setSaved(true)
           savedTimerRef.current = setTimeout(() => setSaved(false), 3000)
+        } catch {
+          setSaving(false)
+          setError('Gagal menyimpan perubahan.')
         }
       }, 800)
     },

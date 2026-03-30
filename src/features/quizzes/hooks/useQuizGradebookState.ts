@@ -7,7 +7,6 @@ import {
   quizAnalyticsService,
 } from '@/src/features/quizzes/api/quizAnalyticsService'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
 
 export interface AssignmentOption {
   id: string
@@ -42,27 +41,22 @@ export function useQuizGradebookState() {
   const [questionDifficulty, setQuestionDifficulty] = useState<QuestionDifficulty[]>([])
   const [isDifficultyLoading, setIsDifficultyLoading] = useState(false)
 
-  const { activeTenant } = useAuth()
+  const { activeTenant, user } = useAuth()
 
   useEffect(() => {
     async function loadClasses() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
       if (!user || !activeTenant) return
 
-      const { data, error } = await supabase
-        .from('classes')
-        .select('id, name')
-        .eq('teacher_id', user.id)
-        .eq('tenant_id', activeTenant.id)
-        .order('name', { ascending: true })
-
-      if (!error && data) setClasses(data)
+      try {
+        const data = await quizService.getTeacherClasses(user.id, activeTenant.id)
+        setClasses(data)
+      } catch {
+        if (import.meta.env.DEV) console.error('[useQuizGradebookState] Failed to load classes')
+      }
     }
 
     loadClasses()
-  }, [activeTenant])
+  }, [activeTenant, user])
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
@@ -75,42 +69,10 @@ export function useQuizGradebookState() {
     async function loadAssignments() {
       setIsAssignmentLoading(true)
       try {
-        const { data, error } = await supabase
-          .from('quiz_assignments')
-          .select(
-            `
-                        id,
-                        quiz_id,
-                        max_attempts,
-                        quizzes!inner (
-                            id,
-                            title,
-                            passing_score,
-                            max_attempts,
-                            status
-                        )
-                    `
-          )
-          .eq('class_id', selectedClass)
-          .eq('tenant_id', activeTenant!.id)
-          .eq('quizzes.status', 'published')
-          .order('created_at', { ascending: false })
-
-        if (error) throw error
-
-        const mappedAssignments = (data || []).map((assignment) => {
-          const quiz = Array.isArray(assignment.quizzes)
-            ? assignment.quizzes[0]
-            : assignment.quizzes
-          return {
-            id: assignment.id,
-            quiz_id: assignment.quiz_id,
-            title: quiz?.title || 'Kuis',
-            passing_score: quiz?.passing_score || 70,
-            max_attempts: assignment.max_attempts ?? quiz?.max_attempts ?? null,
-          }
-        })
-
+        const mappedAssignments = await quizService.getClassQuizAssignments(
+          selectedClass,
+          activeTenant!.id
+        )
         setAssignments(mappedAssignments)
         setSelectedAssignment('')
       } catch (err: unknown) {
