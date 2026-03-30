@@ -1,4 +1,4 @@
-import { Pencil, Plus, Save, X } from 'lucide-react'
+import { AlertTriangle, Pencil, Plus, Save, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
@@ -77,7 +77,7 @@ const emptyForm: BadgeFormState = {
 export function BadgeManager() {
   const { tenantId } = useAuth()
   const { addToast } = useToast()
-  const { data: badges, isLoading } = useBadgeDefinitions()
+  const { data: badges, isLoading, isError } = useBadgeDefinitions()
   const saveMutation = useSaveBadgeDefinition()
   const [editing, setEditing] = useState<BadgeFormState | null>(null)
 
@@ -123,6 +123,20 @@ export function BadgeManager() {
   }
 
   if (isLoading) return <SkeletonCard lines={3} />
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <AlertTriangle className="w-10 h-10 text-red-400 mb-3" />
+        <h3 className="text-base font-bold text-slate-800 dark:text-slate-200 mb-1">
+          Gagal Memuat Badge
+        </h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Terjadi kesalahan saat memuat daftar badge. Silakan coba lagi nanti.
+        </p>
+      </div>
+    )
+  }
 
   const tenantBadges = (badges ?? []).filter((b: BadgeDefinitionRow) => b.tenant_id === tenantId)
   const systemBadges = (badges ?? []).filter((b: BadgeDefinitionRow) => b.tenant_id === null)

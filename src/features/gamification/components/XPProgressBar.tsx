@@ -13,9 +13,23 @@ interface XPProgressBarProps {
 }
 
 export function XPProgressBar({ compact }: XPProgressBarProps) {
-  const { data: profile } = useStudentXPProfile()
+  const { data: profile, isError } = useStudentXPProfile()
 
   const reducedMotion = useReducedMotion()
+
+  // On error, render gracefully with zeroed-out state rather than crashing
+  if (isError) {
+    return compact ? (
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-white shadow-sm bg-slate-400">
+          Lv —
+        </span>
+        <div className="relative w-20 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden" />
+        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">— XP</span>
+      </div>
+    ) : null
+  }
+
   const totalXP = profile?.total_xp ?? 0
   const level = profile?.level ?? 1
 
