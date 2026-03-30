@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 /* ─── Dark Mode: class-based (html.dark) ─────────────────────
-   Tailwind v4 defaults to @media (prefers-color-scheme: dark).
+   Tailwind v4 defaults toj @media (prefers-color-scheme: dark).
    This overrides it so `dark:` variants respond to the .dark
    class added/removed by ThemeContext on <html>.              */
 @variant dark (&:where(.dark, .dark *));
