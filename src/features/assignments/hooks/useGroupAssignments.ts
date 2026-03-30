@@ -1,12 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { captureError } from '@/src/utils/sentry'
 
 import {
   CreateGroupInput,
-  EligibleStudent,
-  GroupSettings,
   groupAssignmentService,
   StudentGroupData,
   TeacherGroupEntry,
@@ -19,10 +16,8 @@ import {
 export const groupAssignmentKeys = {
   studentGroup: (assignmentId: string, userId: string) =>
     ['group-assignment', 'student', assignmentId, userId] as const,
-  teacherGroups: (assignmentId: string) => ['group-assignment', 'teacher', assignmentId] as const,
-  eligibleStudents: (assignmentId: string) =>
-    ['group-assignment', 'eligible', assignmentId] as const,
-  groupSettings: (assignmentId: string) => ['group-assignment', 'settings', assignmentId] as const,
+  teacherGroups: (assignmentId: string) =>
+    ['group-assignment', 'teacher', assignmentId] as const,
 }
 
 // ============================================================
@@ -70,14 +65,12 @@ export function useCreateGroups(assignmentId: string) {
   const queryClient = useQueryClient()
 
   return useMutation<void, Error, CreateGroupInput[]>({
-    mutationFn: (groups) => groupAssignmentService.createGroups(assignmentId, groups),
+    mutationFn: (groups) =>
+      groupAssignmentService.createGroups(assignmentId, groups),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: groupAssignmentKeys.teacherGroups(assignmentId),
       })
-    },
-    onError: (err) => {
-      captureError(err, { context: 'useCreateGroups' })
     },
   })
 }
@@ -91,7 +84,11 @@ export function useSubmitGroupAssignment(assignmentId: string) {
   const queryClient = useQueryClient()
   const userId = user?.id ?? ''
 
-  return useMutation<string, Error, { groupId: string; content?: string; fileUrl?: string }>({
+  return useMutation<
+    string,
+    Error,
+    { groupId: string; content?: string; fileUrl?: string }
+  >({
     mutationFn: (params) =>
       groupAssignmentService.submitGroupAssignment({
         ...params,
@@ -101,9 +98,6 @@ export function useSubmitGroupAssignment(assignmentId: string) {
       void queryClient.invalidateQueries({
         queryKey: groupAssignmentKeys.studentGroup(assignmentId, userId),
       })
-    },
-    onError: (err) => {
-      captureError(err, { context: 'useSubmitGroupAssignment' })
     },
   })
 }
@@ -115,32 +109,16 @@ export function useSubmitGroupAssignment(assignmentId: string) {
 export function useGradeGroupSubmission(assignmentId: string) {
   const queryClient = useQueryClient()
 
-  return useMutation<void, Error, { submissionId: string; grade: number; feedback?: string }>({
+  return useMutation<
+    void,
+    Error,
+    { submissionId: string; grade: number; feedback?: string }
+  >({
     mutationFn: (params) => groupAssignmentService.gradeGroupSubmission(params),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: groupAssignmentKeys.teacherGroups(assignmentId),
       })
     },
-    onError: (err) => {
-      captureError(err, { context: 'useGradeGroupSubmission' })
-    },
-  })
-}
-
-// ============================================================
-// Eligible students hook (for group creation)
-// ============================================================
-
-/**
- * Returns enrolled students for the assignment's class,
- * with a flag indicating if they are already in a group.
- */
-export function useEligibleStudents(assignmentId: string, enabled = false) {
-  return useQuery<EligibleStudent[]>({
-    queryKey: groupAssignmentKeys.eligibleStudents(assignmentId),
-    queryFn: () => groupAssignmentService.getEligibleStudents(assignmentId),
-    enabled: !!assignmentId && enabled,
-    staleTime: 30_000,
   })
 }

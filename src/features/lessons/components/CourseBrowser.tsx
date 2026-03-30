@@ -40,6 +40,7 @@ export function CourseBrowser({
 }) {
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
+  const [modulesLoading, setModulesLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
   const [course, setCourse] = useState<CourseData | null>(null)
@@ -53,30 +54,34 @@ export function CourseBrowser({
   useEffect(() => {
     if (!user?.id) return
     setLoading(true)
+    setModulesLoading(true)
     setFetchError(null)
+    setCourse(null)
+    setModules([])
+
+    interface ModuleRow {
+      id: string
+      title: string
+      order: number
+      lessons: Array<{ id: string; title: string; type: string; order: number; duration_minutes?: number }>
+    }
+
     ;(async () => {
       try {
-        // 1. Fetch course
+        // Phase 1: fetch course → show header immediately
         const { courses: coursesData } = await courseService.fetchCourses({
           tenantId,
           limit: 100,
           ids: courseId ? [courseId] : undefined,
         })
 
-        if (!coursesData?.length) {
-          setLoading(false)
-          return
-        }
+        if (!coursesData?.length) { setLoading(false); setModulesLoading(false); return }
 
         const activeCourse = coursesData[0]
-        setCourse({
-          id: activeCourse.id,
-          title: activeCourse.title,
-          description: activeCourse.description,
-          created_by: activeCourse.created_by,
-        })
+        setCourse({ id: activeCourse.id, title: activeCourse.title, description: activeCourse.description, created_by: activeCourse.created_by })
+        setLoading(false) // ← unblock render: course header shows now
 
-        // 2+5. Fetch modules and instructor profile in parallel
+        // Phase 2: fetch modules + instructor in parallel
         const [modulesData, teacherName] = await Promise.all([
           courseService.getCourseModulesWithLessons(activeCourse.id, tenantId),
           courseService.getTeacherName(activeCourse.created_by),
@@ -84,76 +89,44 @@ export function CourseBrowser({
 
         if (teacherName) setInstructorName(teacherName)
 
-        if (!modulesData.length) {
-          setModules([])
-          setLoading(false)
-          return
-        }
+        if (!modulesData.length) { setModulesLoading(false); return }
 
-        // 3. Fetch lesson progress (needs lesson IDs from modules)
+        // Phase 3: show modules without progress first, then fetch progress
         const allLessonIds = (modulesData as Array<{ lessons?: Array<{ id: string }> }>).flatMap(
           (m) => (m.lessons || []).map((l) => l.id)
         )
 
-        const completedSet = await lessonService.getCompletedLessonIds(user.id, allLessonIds)
-
-        // 4. Build module progress data
-        let totalL = 0
-        let completedL = 0
-        let totalDur = 0
-        let foundNextIncomplete = false
-
-        interface ModuleRow {
-          id: string
-          title: string
-          order: number
-          lessons: Array<{
-            id: string
-            title: string
-            type: string
-            order: number
-            duration_minutes?: number
-          }>
-        }
-        const modulesWithProgress: ModuleWithProgress[] = (
-          modulesData as unknown as ModuleRow[]
-        ).map((m) => {
+        // Show modules immediately (without progress marks)
+        let totalL = 0, totalDur = 0
+        const modulesNoProgress: ModuleWithProgress[] = (modulesData as unknown as ModuleRow[]).map((m) => {
           const lessons = m.lessons || []
-          const lessonCount = lessons.length
-          const completedCount = lessons.filter((l) => completedSet.has(l.id)).length
-          const duration = lessons.reduce(
-            (sum: number, l: { duration_minutes?: number }) => sum + (l.duration_minutes || 5),
-            0
-          )
-
-          totalL += lessonCount
-          completedL += completedCount
-          totalDur += duration
-
-          if (!foundNextIncomplete && completedCount < lessonCount) {
-            setNextIncompleteModuleId(m.id)
-            foundNextIncomplete = true
-          }
-
-          return {
-            id: m.id,
-            title: m.title,
-            order: m.order,
-            lessonCount,
-            completedLessons: completedCount,
-            durationMinutes: duration,
-          }
+          const duration = lessons.reduce((s, l) => s + (l.duration_minutes || 5), 0)
+          totalL += lessons.length; totalDur += duration
+          return { id: m.id, title: m.title, order: m.order, lessonCount: lessons.length, completedLessons: 0, durationMinutes: duration }
         })
-
-        setModules(modulesWithProgress)
+        setModules(modulesNoProgress)
         setTotalLessons(totalL)
-        setCompletedLessons(completedL)
         setTotalDuration(totalDur)
+        setModulesLoading(false) // ← modules visible now
+
+        // Phase 4: fetch progress and update modules
+        const completedSet = await lessonService.getCompletedLessonIds(user.id, allLessonIds)
+        let completedL = 0, foundNextIncomplete = false
+        const modulesWithProgress: ModuleWithProgress[] = (modulesData as unknown as ModuleRow[]).map((m) => {
+          const lessons = m.lessons || []
+          const completedCount = lessons.filter((l) => completedSet.has(l.id)).length
+          const duration = lessons.reduce((s, l) => s + (l.duration_minutes || 5), 0)
+          completedL += completedCount
+          if (!foundNextIncomplete && completedCount < lessons.length) { setNextIncompleteModuleId(m.id); foundNextIncomplete = true }
+          return { id: m.id, title: m.title, order: m.order, lessonCount: lessons.length, completedLessons: completedCount, durationMinutes: duration }
+        })
+        setModules(modulesWithProgress)
+        setCompletedLessons(completedL)
       } catch (err) {
         if (import.meta.env.DEV) console.error('[CourseBrowser] fetch failed:', err)
         setFetchError('Gagal memuat materi. Periksa koneksi internet kamu dan coba lagi.')
-      } finally {
         setLoading(false)
+        setModulesLoading(false)
       }
     })()
   }, [tenantId, courseId, user?.id, retryCount])
