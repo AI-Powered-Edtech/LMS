@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Archive, File, FileText, FileUp, Loader2, Presentation, Sheet } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 

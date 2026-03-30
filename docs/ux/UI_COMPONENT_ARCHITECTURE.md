@@ -399,7 +399,6 @@ Alasan: app ini sudah zero-UI-library, tambah dependency = bundle bloat.
 ### 4.2 Jangan bikin component terlalu configurable
 
 ```tsx
-// ❌ Over-engineered
 <Button
   borderWidth={2}
   textTransform="uppercase"
@@ -415,7 +414,6 @@ Alasan: app ini sudah zero-UI-library, tambah dependency = bundle bloat.
 ### 4.3 Jangan duplikasi Tailwind classes
 
 ```tsx
-// ❌ Inconsistent
 <div className="rounded-xl">  // Card A
 <div className="rounded-2xl"> // Card B
 <div className="rounded-lg">  // Card C
@@ -429,7 +427,6 @@ Alasan: app ini sudah zero-UI-library, tambah dependency = bundle bloat.
 ### 4.4 Jangan import dari file langsung
 
 ```ts
-// ❌ Direct import
 import { Button } from '@/src/components/ui/Button';
 
 // ✅ Barrel import

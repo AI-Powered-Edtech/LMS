@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { useEffect, useState } from 'react'
 
 import { MarkdownBlock } from '@/src/components/LessonViewer/blocks/MarkdownBlock'

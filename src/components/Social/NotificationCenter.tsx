@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { formatDistanceToNow } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { Bell, Check, ExternalLink, Inbox } from 'lucide-react'

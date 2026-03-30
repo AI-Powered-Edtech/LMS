@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { Clock, Link as LinkIcon, Play, Video } from 'lucide-react'
 import { useState } from 'react'
 

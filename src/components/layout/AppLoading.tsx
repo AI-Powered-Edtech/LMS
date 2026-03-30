@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 import { HeaderSkeleton } from './HeaderSkeleton'
 import { SidebarSkeleton } from './SidebarSkeleton'
 
