@@ -1,10 +1,12 @@
 import { useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
+import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 
 import { cn } from '@/src/utils/cn'
+import { katexSanitizeSchema } from '@/src/utils/sanitizeMarkdown'
 
 interface MarkdownBlockProps {
   content: string
@@ -28,7 +30,7 @@ export function MarkdownBlock({ content, className }: MarkdownBlockProps) {
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex]}
+        rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}
         components={{
           a: ({ href, children }) => (
             <a href={href} target="_blank" rel="noopener noreferrer">
