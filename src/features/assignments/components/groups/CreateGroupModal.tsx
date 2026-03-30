@@ -6,7 +6,8 @@ import { useToast } from '@/src/components/ui'
 import { cn } from '@/src/utils/cn'
 
 import { CreateGroupInput } from '../../api/groupAssignmentService'
-import { useCreateGroups, useEligibleStudents } from '../../hooks/useGroupAssignments'
+import { useEligibleStudents } from '../../hooks/useEligibleStudents'
+import { useCreateGroups } from '../../hooks/useGroupAssignments'
 
 interface Props {
   assignmentId: string
@@ -64,7 +65,8 @@ export function CreateGroupModal({ assignmentId, onClose }: Props) {
 
   const getStudentName = useCallback(
     (userId: string) => {
-      return students.find((s) => s.user_id === userId)?.full_name ?? 'Tanpa Nama'
+      const s = students.find((st) => st.user_id === userId)
+      return s ? `${s.first_name} ${s.last_name}`.trim() : 'Tanpa Nama'
     },
     [students]
   )
@@ -234,7 +236,7 @@ export function CreateGroupModal({ assignmentId, onClose }: Props) {
                         </option>
                         {availableStudents.map((s) => (
                           <option key={s.user_id} value={s.user_id}>
-                            {s.full_name}
+                            {`${s.first_name} ${s.last_name}`}
                           </option>
                         ))}
                       </select>

@@ -48,11 +48,81 @@ export interface CreateGroupInput {
   member_ids: string[]
 }
 
+export interface EligibleStudent {
+  user_id: string
+  full_name: string
+  avatar_url: string | null
+  already_assigned: boolean
+}
+
+export interface GroupSettings {
+  method: 'random' | 'gcr_sync' | 'manual' | 'student_choice'
+  doc_collaboration: 'single_doc' | 'shared_folder'
+  peer_review_required: boolean
+}
+
+export const DEFAULT_GROUP_SETTINGS: GroupSettings = {
+  method: 'manual',
+  doc_collaboration: 'single_doc',
+  peer_review_required: true,
+}
+
 // ============================================================
 // Service
 // ============================================================
 
 export const groupAssignmentService = {
+  /**
+   * Returns students enrolled in the assignment's class, marking those
+   * already assigned to a group for this assignment.
+   */
+  async getEligibleStudents(assignmentId: string): Promise<EligibleStudent[]> {
+    // 1. Get class_id from the assignment
+    const { data: assignment, error: asgErr } = await supabase
+      .from('assignments')
+      .select('class_id')
+      .eq('id', assignmentId)
+      .single()
+
+    if (asgErr || !assignment?.class_id) {
+      logDevError('groupAssignmentService', 'Error fetching assignment class_id:', asgErr)
+      return []
+    }
+
+    // 2. Get enrolled students for the class
+    const { data: enrolled, error: enrollErr } = await supabase
+      .from('enrollments')
+      .select('user_id:student_id, profiles!enrollments_student_id_fkey(full_name, avatar_url)')
+      .eq('class_id', assignment.class_id)
+      .eq('status', 'ACTIVE')
+
+    if (enrollErr) {
+      logDevError('groupAssignmentService', 'Error fetching enrolled students:', enrollErr)
+      throw enrollErr
+    }
+
+    if (!enrolled || enrolled.length === 0) return []
+
+    // 3. Get already-assigned member user_ids for this assignment
+    const { data: existingMembers } = await supabase
+      .from('assignment_group_members')
+      .select('user_id, assignment_groups!inner(assignment_id)')
+      .eq('assignment_groups.assignment_id', assignmentId)
+
+    const assignedSet = new Set((existingMembers ?? []).map((m) => m.user_id))
+
+    // 4. Map and return
+    return (enrolled as Array<Record<string, unknown>>).map((row) => {
+      const profile = row.profiles as { full_name: string; avatar_url: string | null } | null
+      return {
+        user_id: row.user_id as string,
+        full_name: profile?.full_name ?? 'Tanpa Nama',
+        avatar_url: profile?.avatar_url ?? null,
+        already_assigned: assignedSet.has(row.user_id as string),
+      }
+    })
+  },
+
   /**
    * Returns the group, members, and submission for the calling student.
    */
@@ -157,6 +227,114 @@ export const groupAssignmentService = {
 
     if (error) {
       logDevError('groupAssignmentService', 'Error grading group submission:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Returns group settings for an assignment.
+   */
+  async getGroupSettings(assignmentId: string): Promise<GroupSettings> {
+    const { data, error } = await supabase.rpc('get_group_settings', {
+      p_assignment_id: assignmentId,
+    })
+
+    if (error) {
+      logDevError('groupAssignmentService', 'Error fetching group settings:', error)
+      throw error
+    }
+
+    const raw = (data ?? {}) as Record<string, unknown>
+    return {
+      method: (raw.method as GroupSettings['method']) ?? DEFAULT_GROUP_SETTINGS.method,
+      doc_collaboration:
+        (raw.doc_collaboration as GroupSettings['doc_collaboration']) ??
+        DEFAULT_GROUP_SETTINGS.doc_collaboration,
+      peer_review_required:
+        typeof raw.peer_review_required === 'boolean'
+          ? raw.peer_review_required
+          : DEFAULT_GROUP_SETTINGS.peer_review_required,
+    }
+  },
+
+  /**
+   * Updates group settings for an assignment (teacher only).
+   */
+  async updateGroupSettings(assignmentId: string, settings: GroupSettings): Promise<void> {
+    const { error } = await supabase.rpc('update_group_settings', {
+      p_assignment_id: assignmentId,
+      p_settings: settings,
+    })
+
+    if (error) {
+      logDevError('groupAssignmentService', 'Error updating group settings:', error)
+      throw error
+    }
+  },
+}
+
+// ============================================================
+// Group Tasks
+// ============================================================
+
+export interface GroupTask {
+  id: string
+  title: string
+  assignee_id: string | null
+  assignee_name: string
+  status: 'pending' | 'in_progress' | 'completed'
+  sort_order: number
+  created_at: string
+}
+
+export const groupAssignmentTaskService = {
+  async getGroupTasks(groupId: string): Promise<GroupTask[]> {
+    const { data, error } = await supabase.rpc('get_group_tasks', {
+      p_group_id: groupId,
+    })
+
+    if (error) {
+      logDevError('groupAssignmentService', 'Error fetching group tasks:', error)
+      throw error
+    }
+
+    return (data as unknown as GroupTask[]) ?? []
+  },
+
+  async createGroupTask(params: { groupId: string; title: string; assignee_id?: string }): Promise<string> {
+    const { data, error } = await supabase.rpc('create_group_task', {
+      p_group_id: params.groupId,
+      p_title: params.title,
+      p_assignee_id: params.assignee_id ?? null,
+    })
+
+    if (error) {
+      logDevError('groupAssignmentService', 'Error creating group task:', error)
+      throw error
+    }
+
+    return (data as Record<string, string>).task_id
+  },
+
+  async updateGroupTaskStatus(taskId: string, status: 'pending' | 'in_progress' | 'completed'): Promise<void> {
+    const { error } = await supabase.rpc('update_group_task_status', {
+      p_task_id: taskId,
+      p_new_status: status,
+    })
+
+    if (error) {
+      logDevError('groupAssignmentService', 'Error updating group task status:', error)
+      throw error
+    }
+  },
+
+  async deleteGroupTask(taskId: string): Promise<void> {
+    const { error } = await supabase.rpc('delete_group_task', {
+      p_task_id: taskId,
+    })
+
+    if (error) {
+      logDevError('groupAssignmentService', 'Error deleting group task:', error)
       throw error
     }
   },
