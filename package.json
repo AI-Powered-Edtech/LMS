@@ -48,7 +48,7 @@
     "date-fns": "^4.1.0",
     "dompurify": "^3.3.3",
     "katex": "^0.16.44",
-    "lucide-react": "^0.546.0",
+    "lucide-react": "^1.7.0",
     "motion": "^12.23.24",
     "papaparse": "^5.5.3",
     "react": "^19.0.0",
