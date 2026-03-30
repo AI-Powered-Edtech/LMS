@@ -5,6 +5,8 @@ import { captureError } from '@/src/utils/sentry'
 
 import {
   CreateGroupInput,
+  EligibleStudent,
+  GroupSettings,
   groupAssignmentService,
   StudentGroupData,
   TeacherGroupEntry,
@@ -18,6 +20,9 @@ export const groupAssignmentKeys = {
   studentGroup: (assignmentId: string, userId: string) =>
     ['group-assignment', 'student', assignmentId, userId] as const,
   teacherGroups: (assignmentId: string) => ['group-assignment', 'teacher', assignmentId] as const,
+  eligibleStudents: (assignmentId: string) =>
+    ['group-assignment', 'eligible', assignmentId] as const,
+  groupSettings: (assignmentId: string) => ['group-assignment', 'settings', assignmentId] as const,
 }
 
 // ============================================================
@@ -120,5 +125,22 @@ export function useGradeGroupSubmission(assignmentId: string) {
     onError: (err) => {
       captureError(err, { context: 'useGradeGroupSubmission' })
     },
+  })
+}
+
+// ============================================================
+// Eligible students hook (for group creation)
+// ============================================================
+
+/**
+ * Returns enrolled students for the assignment's class,
+ * with a flag indicating if they are already in a group.
+ */
+export function useEligibleStudents(assignmentId: string, enabled = false) {
+  return useQuery<EligibleStudent[]>({
+    queryKey: groupAssignmentKeys.eligibleStudents(assignmentId),
+    queryFn: () => groupAssignmentService.getEligibleStudents(assignmentId),
+    enabled: !!assignmentId && enabled,
+    staleTime: 30_000,
   })
 }
