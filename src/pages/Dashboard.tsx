@@ -1,5 +1,5 @@
 import { Trophy } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { HubView } from '@/src/components/HubView'
