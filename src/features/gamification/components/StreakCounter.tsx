@@ -1,4 +1,4 @@
-import { Flame, Snowflake } from 'lucide-react'
+import { Flame } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useMemo } from 'react'
 
@@ -7,16 +7,12 @@ import { calculateStreak } from '@/src/utils/clientCompute'
 import { cn } from '@/src/utils/cn'
 
 import { useStudentXPProfile } from '../queries/gamificationQueries'
-import type { StreakFreezeState } from '../types'
-import { DEFAULT_STREAK_FREEZE } from '../types'
 
 interface StreakCounterProps {
   compact?: boolean
-  freezeState?: StreakFreezeState
-  onActivateFreeze?: () => void
 }
 
-export function StreakCounter({ compact, freezeState, onActivateFreeze }: StreakCounterProps) {
+export function StreakCounter({ compact }: StreakCounterProps) {
   const { data: profile, isError } = useStudentXPProfile()
 
   const reducedMotion = useReducedMotion()
@@ -44,9 +40,6 @@ export function StreakCounter({ compact, freezeState, onActivateFreeze }: Streak
   const longest = profile?.streak_longest ?? 0
   const isActive = streak > 0
 
-  // Sesi 2: Streak Freeze state
-  const freeze = freezeState ?? DEFAULT_STREAK_FREEZE
-
   if (compact) {
     return (
       <div className="flex items-center gap-1.5">
@@ -66,13 +59,6 @@ export function StreakCounter({ compact, freezeState, onActivateFreeze }: Streak
         >
           {streak}
         </span>
-        {/* Sesi 2: Freeze indicator (compact) */}
-        {freeze.freezesAvailable > 0 && (
-          <span className="flex items-center gap-0.5 text-[10px] font-bold text-cyan-500">
-            <Snowflake className="h-3 w-3" />
-            {freeze.freezesAvailable}
-          </span>
-        )}
       </div>
     )
   }
@@ -125,30 +111,6 @@ export function StreakCounter({ compact, freezeState, onActivateFreeze }: Streak
           <p className="text-[10px] text-slate-400 dark:text-slate-500">
             Terpanjang: {longest} hari
           </p>
-        )}
-      </div>
-
-      {/* Sesi 2: Streak Freeze indicator */}
-      <div className="ml-auto flex items-center gap-2">
-        {freeze.freezeUsedToday ? (
-          <span className="flex items-center gap-1 rounded-full bg-cyan-100 dark:bg-cyan-900/30 px-2 py-1 text-[10px] font-bold text-cyan-600 dark:text-cyan-400">
-            <Snowflake className="h-3 w-3" />
-            Freeze Aktif
-          </span>
-        ) : freeze.freezesAvailable > 0 ? (
-          <button
-            onClick={onActivateFreeze}
-            className="flex items-center gap-1 rounded-full border border-cyan-200 dark:border-cyan-800 bg-cyan-50 dark:bg-cyan-900/20 px-2 py-1 text-[10px] font-bold text-cyan-600 dark:text-cyan-400 hover:bg-cyan-100 dark:hover:bg-cyan-900/40 transition-colors"
-            title={`${freeze.freezesAvailable} freeze tersisa minggu ini`}
-          >
-            <Snowflake className="h-3 w-3" />
-            {freeze.freezesAvailable} Freeze
-          </button>
-        ) : (
-          <span className="flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500">
-            <Snowflake className="h-3 w-3" />
-            Habis
-          </span>
         )}
       </div>
     </div>

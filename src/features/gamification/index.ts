@@ -6,12 +6,8 @@
  */
 
 // Types
-export type { Certificate, LeaderboardEntry, XPEventType } from './types'
-export { XP_AMOUNTS, XP_DAILY_CAPS } from './types'
+export type { Certificate, LeaderboardEntry } from './types'
 
 // Query Hooks
 export { useStudentCertificates } from './queries/gamificationQueries'
 export { useLeaderboard } from './queries/leaderboardQueries'
-
-// Sesi 1: XP Award Hook
-export { useAwardXP } from './hooks/useGamification'

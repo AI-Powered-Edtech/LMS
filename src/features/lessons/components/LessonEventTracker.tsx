@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 
 import { useLearningSession } from '@/src/features/analytics'
-import { useAwardXP } from '@/src/features/gamification'
 
 // ============================================================
 // LessonEventTracker — emits LESSON_STARTED / LESSON_COMPLETED
@@ -20,7 +19,6 @@ export function LessonEventTracker({
   sessionStartRef: React.RefObject<number>
 }) {
   const { trackEvent } = useLearningSession()
-  const { awardXP } = useAwardXP()
   const hasFiredStarted = useRef(false)
   const hasFiredCompleted = useRef(false)
 
@@ -51,9 +49,6 @@ export function LessonEventTracker({
         time_spent: Math.round((Date.now() - (sessionStartRef.current ?? Date.now())) / 1000),
         blocks_viewed: completedBlockCount,
       })
-
-      // Sesi 1: Award XP when lesson is completed
-      awardXP('lesson_complete')
     }
   }, [lessonStatus, completedBlockCount, sessionStartRef, trackEvent])
 

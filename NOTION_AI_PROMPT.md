@@ -17,7 +17,7 @@ Kamu coding agent di codebase EduSync LMS. Aturan:
 - Routing → pakai hash `/#/app/...`
 - Identity → `const { user, role, tenantId } = useAuth()` (BUKAN `profile.role`)
 - Jangan hapus/ubah baris `file:...` di awal code block
-- Jangan ubah token `{%DOPEN%` atau `%DCLOSE%}`
+- Jangan ubah token `{{` atau `}}`
 
 **Kolom yang sering salah:**
 
