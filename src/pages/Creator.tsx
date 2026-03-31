@@ -7,12 +7,10 @@ import {
   Sparkles,
   UploadCloud,
 } from 'lucide-react'
-import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useState, useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-  const getPath = useRoleBasedPath()
 import { useToast } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 // TODO: AI generation will be routed through backend API (Phase 5)
@@ -20,6 +18,7 @@ import { useAddCalendarEvent } from '@/src/features/calendar/hooks/useCalendarQu
 import { creatorService } from '@/src/features/creator/api/creatorService'
 import { useSendNotification } from '@/src/features/notifications'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
 import { cn } from '@/src/utils/cn'
 
 // Maps loadingText values to a step index (0-based)
@@ -85,6 +84,7 @@ export function Creator() {
   const { addEvent } = useAddCalendarEvent()
   const sendNotification = useSendNotification()
   const navigate = useNavigate()
+  const getPath = useRoleBasedPath()
 
   // Default due date: 3 days from now at 23:59
   const defaultDueDate = (() => {
@@ -263,6 +263,7 @@ export function Creator() {
             </h2>
 
             <div
+              role="presentation"
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
@@ -302,8 +303,23 @@ export function Creator() {
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
                     Mendukung .pdf, .docx, .mp4 (Maks 10MB)
                   </p>
-                  <input type="file" className="hidden" ref={fileInputRef} onChange={(e) => { if (e.target.files && e.target.files.length > 0) { const f = e.target.files[0]; if (f) { setFile(f);  } } }} />
-                  <button onClick={() => fileInputRef.current?.click()} className="mt-6 px-6 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 shadow-sm">
+                  <input
+                    type="file"
+                    className="hidden"
+                    ref={fileInputRef}
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        const f = e.target.files[0]
+                        if (f) {
+                          setFile(f)
+                        }
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="mt-6 px-6 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 shadow-sm"
+                  >
                     Pilih File
                   </button>
                 </>
@@ -503,9 +519,18 @@ export function Creator() {
                     </h3>
                     <button
                       onClick={() => {
-                        const newText = prompt("Edit soal:", q.text);
+                        const newText = prompt('Edit soal:', q.text)
                         if (newText && newText !== q.text) {
-                          setResult((prev: any) => prev ? { ...prev, questions: prev.questions.map((question: any, idx: number) => idx === i ? { ...question, text: newText } : question) } : null);
+                          setResult((prev: any) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  questions: prev.questions.map((question: any, idx: number) =>
+                                    idx === i ? { ...question, text: newText } : question
+                                  ),
+                                }
+                              : null
+                          )
                         }
                       }}
                       className="text-slate-400 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"

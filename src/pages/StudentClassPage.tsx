@@ -106,7 +106,12 @@ export function StudentClassPage() {
                 {courses.map((course) => (
                   <div
                     key={course.id}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => navigate(`/courses/${course.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') navigate(`/courses/${course.id}`)
+                    }}
                     className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group flex items-start gap-4"
                   >
                     <div className="w-16 h-16 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-500 dark:text-indigo-400 flex items-center justify-center shrink-0">

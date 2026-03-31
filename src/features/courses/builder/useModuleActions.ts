@@ -2,6 +2,7 @@ import { type Dispatch, useCallback } from 'react'
 
 import { builderModuleService } from '@/src/features/courses/api/builder/moduleService'
 import { useToast } from '@/src/hooks/useToast'
+import { DomainModule } from '@/src/shared/types/moduleTypes'
 
 import type { BuilderAction, BuilderState } from './builderReducer'
 
@@ -38,17 +39,28 @@ export function useModuleActions(
   const updateModule = useCallback(
     async (moduleId: string, data: { title?: string; description?: string }) => {
       if (!tenantId) return
+      const prevModule = state.modules.find((m) => m.id === moduleId)
+
       dispatch({ type: 'UPDATE_MODULE', moduleId, data })
       setSavingStatus('saving')
       try {
         await builderModuleService.updateModule(moduleId, tenantId, data)
         setSavingStatus('saved')
         broadcast?.({ type: 'UPDATE_MODULE', moduleId, data }, userName ?? '')
-      } catch {
+      } catch (err: unknown) {
+        if (prevModule) {
+          dispatch({ type: 'UPDATE_MODULE', moduleId, data: { title: prevModule.title } })
+        }
         setSavingStatus('error')
+        addToast({
+          type: 'error',
+          message:
+            'Gagal menyimpan modul: ' +
+            (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
+        })
       }
     },
-    [tenantId, dispatch, setSavingStatus, broadcast, userName]
+    [state.modules, tenantId, dispatch, setSavingStatus, broadcast, userName, addToast]
   )
 
   const deleteModule = useCallback(
@@ -77,10 +89,13 @@ export function useModuleActions(
 
       const previousModules = state.modules
 
-      const reordered = moduleIds.map((id, idx) => {
-        const mod = state.modules.find((m) => m.id === id)!
-        return { ...mod, orderIndex: idx }
-      })
+      const reordered = moduleIds
+        .map((id, idx) => {
+          const mod = state.modules.find((m) => m.id === id)
+          if (!mod) return null
+          return { ...mod, orderIndex: idx }
+        })
+        .filter(Boolean) as DomainModule[]
       dispatch({ type: 'SET_MODULES', modules: reordered })
 
       try {

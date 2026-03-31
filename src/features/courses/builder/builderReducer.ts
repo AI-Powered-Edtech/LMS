@@ -76,6 +76,7 @@ export type BuilderAction =
   | { type: 'DELETE_LESSON'; lessonId: string }
   | { type: 'LOAD_BLOCKS_START' }
   | { type: 'LOAD_BLOCKS_SUCCESS'; lessonId: string; blocks: DomainBlock[] }
+  | { type: 'LOAD_BLOCKS_ERROR'; error: string }
   | { type: 'SET_ACTIVE_BLOCK'; blockId: string | null }
   | { type: 'ADD_BLOCK'; block: DomainBlock }
   | { type: 'UPDATE_BLOCK'; blockId: string; data: Partial<DomainBlock> }
@@ -104,8 +105,8 @@ export type BuilderAction =
 
 function takeSnapshot(state: BuilderState): UndoSnapshot {
   return {
-    modules: state.modules,
-    activeLesson: state.activeLesson,
+    modules: structuredClone(state.modules),
+    activeLesson: state.activeLesson ? structuredClone(state.activeLesson) : null,
   }
 }
 
@@ -206,6 +207,8 @@ function coreReducer(state: BuilderState, action: BuilderAction): BuilderState {
       }
     case 'LOAD_BLOCKS_START':
       return { ...state, loadingBlocks: true }
+    case 'LOAD_BLOCKS_ERROR':
+      return { ...state, loadingBlocks: false, error: action.error }
     case 'LOAD_BLOCKS_SUCCESS':
       return {
         ...state,

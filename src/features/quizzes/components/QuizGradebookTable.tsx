@@ -50,8 +50,13 @@ export function QuizGradebookTable({
         header: 'Siswa',
         render: (attempt: AssignmentResultRow) => (
           <div
+            role="button"
+            tabIndex={0}
             className="flex items-center gap-3 cursor-pointer"
             onClick={() => onOpenAttemptDetail(attempt)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') onOpenAttemptDetail(attempt)
+            }}
           >
             <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden shrink-0">
               <OptimizedImage

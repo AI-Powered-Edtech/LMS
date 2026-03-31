@@ -23,28 +23,46 @@ export function useBuilderOffline(
   const [isDirty, setIsDirty] = useState(false)
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
   const [hasPendingDraft, setHasPendingDraft] = useState(false)
-  const prevStateRef = useRef<string>('')
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Lightweight change-detection refs — avoids expensive JSON.stringify on large state trees
+  const stateVersionRef = useRef(0)
+  const prevTitleRef = useRef('')
+  const prevDescriptionRef = useRef('')
+  const prevModulesLengthRef = useRef(0)
+  const prevActiveBlocksRef = useRef(0)
+  // Track the last state version that was scheduled for save so we can detect new changes
+  const lastSavedVersionRef = useRef(-1)
 
   // Auto-save to IndexedDB every 5 seconds if state changed
   useEffect(() => {
     if (!courseId) return
 
-    const stateHash = JSON.stringify({
-      modules: state.modules,
-      activeLesson: state.activeLesson,
-      courseTitle: state.courseTitle,
-      courseDescription: state.courseDescription,
-    })
+    // Detect meaningful changes without serialising the full state tree
+    const hasChanged =
+      state.courseTitle !== prevTitleRef.current ||
+      state.courseDescription !== prevDescriptionRef.current ||
+      state.modules.length !== prevModulesLengthRef.current ||
+      (state.activeLesson?.blocks.length ?? 0) !== prevActiveBlocksRef.current
 
-    if (stateHash === prevStateRef.current) return
-    prevStateRef.current = stateHash
+    if (!hasChanged) return
+
+    // Bump version counter and update tracking refs
+    stateVersionRef.current += 1
+    prevTitleRef.current = state.courseTitle
+    prevDescriptionRef.current = state.courseDescription ?? ''
+    prevModulesLengthRef.current = state.modules.length
+    prevActiveBlocksRef.current = state.activeLesson?.blocks.length ?? 0
 
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
 
+    const capturedVersion = stateVersionRef.current
     saveTimerRef.current = setTimeout(async () => {
+      // Skip if a newer change has already superseded this scheduled save
+      if (capturedVersion <= lastSavedVersionRef.current) return
       try {
         await saveBuilderDraft(courseId, state)
+        lastSavedVersionRef.current = capturedVersion
         setLastSavedAt(new Date())
         setIsDirty(!isOnline)
         setHasPendingDraft(!isOnline)

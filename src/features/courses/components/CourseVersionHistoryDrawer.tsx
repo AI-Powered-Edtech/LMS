@@ -47,6 +47,7 @@ export function CourseVersionHistoryDrawer({
     <>
       {/* Backdrop */}
       <div
+        role="presentation"
         className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 transition-opacity"
         onClick={onClose}
       />

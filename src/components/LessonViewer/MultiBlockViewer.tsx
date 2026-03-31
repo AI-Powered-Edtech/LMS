@@ -55,8 +55,9 @@ export function MultiBlockViewer({
     [lesson.lesson_resources]
   )
 
-  const completedIds = useRef(new Set<string>())
-  const [completedCount, setCompletedCount] = useState(0)
+  // H-12: Use state-based Set so breadcrumb re-renders on completion
+  const [completedSet, setCompletedSet] = useState<Set<string>>(new Set())
+  const completedCount = completedSet.size
   const hasCalledCompletion = useRef(false)
   const hasStarted = useRef(false)
 
@@ -77,19 +78,24 @@ export function MultiBlockViewer({
         onStartViewing()
       }
 
-      if (completedIds.current.has(blockId)) return
-      completedIds.current.add(blockId)
-      setCompletedCount(completedIds.current.size)
+      // Use functional update to avoid stale closures
+      setCompletedSet((prev) => {
+        if (prev.has(blockId)) return prev
+        const next = new Set(prev)
+        next.add(blockId)
 
-      const total = blocks.length
-      const done = completedIds.current.size
-      const pct = total > 0 ? Math.min(Math.round((done / total) * 100), 100) : 100
-      onProgressUpdate(pct)
+        const total = blocks.length
+        const done = next.size
+        const pct = total > 0 ? Math.min(Math.round((done / total) * 100), 100) : 100
+        onProgressUpdate(pct)
 
-      if (done >= total && !hasCalledCompletion.current) {
-        hasCalledCompletion.current = true
-        onCompletionMet()
-      }
+        if (done >= total && !hasCalledCompletion.current) {
+          hasCalledCompletion.current = true
+          onCompletionMet()
+        }
+
+        return next
+      })
     },
     [blocks.length, onProgressUpdate, onCompletionMet, onStartViewing]
   )
@@ -235,7 +241,8 @@ export function MultiBlockViewer({
           if (!isValidBlockType(block.type)) return null
           const def = BLOCK_REGISTRY[block.type]
           const Icon = def.icon
-          const done = completedIds.current.has(block.id)
+          // H-12: Read from state-based completedSet so badge re-renders on completion
+          const done = completedSet.has(block.id)
           return (
             <div key={block.id} className="flex items-center gap-1 shrink-0">
               <a
@@ -338,9 +345,11 @@ export function MultiBlockViewer({
                           }
                           const blockTotal = blocks.length
                           if (blockTotal === 0) return
-                          const basePct = (completedIds.current.size / blockTotal) * 100
+                          // H-12: Use completedSet.size (state) instead of completedIds.current.size (ref)
+                          // C-5: Cap at 100 instead of 99 so active block updates can reach 100%
+                          const basePct = (completedSet.size / blockTotal) * 100
                           const blockPct = (pct / 100) * (1 / blockTotal) * 100
-                          onProgressUpdate(Math.min(Math.round(basePct + blockPct), 99))
+                          onProgressUpdate(Math.min(Math.round(basePct + blockPct), 100))
                         }
                       : undefined
                   }

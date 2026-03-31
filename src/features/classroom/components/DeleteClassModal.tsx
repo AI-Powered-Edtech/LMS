@@ -16,8 +16,17 @@ export function DeleteClassModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onKeyDown={(e) => e.key === 'Escape' && onCancel()}>
-      <div role="dialog" aria-modal="true" aria-label="Hapus Kelas" className="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700">
+    <div
+      role="presentation"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      onKeyDown={(e) => e.key === 'Escape' && onCancel()}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Hapus Kelas"
+        className="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 dark:border-slate-700"
+      >
         <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">Hapus Kelas</h3>
         <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
           Apakah Anda yakin ingin menghapus kelas ini? Semua data enrollment akan hilang. Aksi ini

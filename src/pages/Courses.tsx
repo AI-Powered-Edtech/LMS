@@ -22,6 +22,12 @@ const CARD_GRADIENTS = [
   'from-violet-500 via-purple-600 to-indigo-600',
 ]
 
+// M-10: Deterministic gradient based on course.id to prevent flicker on search filter
+function getCourseGradient(courseId: string, gradients: string[]): string {
+  const hash = courseId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  return gradients[hash % gradients.length]
+}
+
 export const Courses: React.FC = () => {
   const navigate = useNavigate()
   const getPath = useRoleBasedPath()
@@ -55,6 +61,15 @@ export const Courses: React.FC = () => {
     courseTitle: '',
   })
 
+  // M-2: Escape key handler via useEffect so document receives the event
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isModalOpen) setIsModalOpen(false)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isModalOpen])
+
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } =
     useInfiniteCoursesQuery(activeTenant?.id ?? '', debouncedSearch)
 
@@ -63,19 +78,24 @@ export const Courses: React.FC = () => {
   // Sentinel for IntersectionObserver — triggers loading the next page
   const sentinelRef = useRef<HTMLDivElement>(null)
 
+  // M-18: Stable ref for the load-more callback — prevents observer recreation on dep changes
+  const loadMoreRef = useRef<() => void>(() => {})
+  loadMoreRef.current = () => {
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage()
+  }
+
   useEffect(() => {
-    if (!sentinelRef.current || !hasNextPage) return
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isFetchingNextPage) {
-          fetchNextPage()
-        }
+        if (entries[0]?.isIntersecting) loadMoreRef.current()
       },
-      { rootMargin: '200px' }
+      { rootMargin: '200px', threshold: 0.1 }
     )
-    observer.observe(sentinelRef.current)
+    observer.observe(sentinel)
     return () => observer.disconnect()
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+  }, []) // stable — uses ref internally
 
   // Server-side search covers title. Client-side filter covers description
   // (the service only does ilike on title, so we locally filter description as well)
@@ -147,8 +167,9 @@ export const Courses: React.FC = () => {
       {!isLoading && !isError && courses.length > 0 && (
         <div className="relative mb-8">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
+          {/* L-4: type="search" for proper semantics and browser UX (clear button, etc.) */}
           <input
-            type="text"
+            type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Cari materi..."
@@ -217,11 +238,12 @@ export const Courses: React.FC = () => {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           <AnimatePresence>
-            {filteredCourses.map((course, idx) => (
+            {filteredCourses.map((course) => (
               <CourseCard
                 key={course.id}
                 course={course}
-                gradientClass={CARD_GRADIENTS[idx % CARD_GRADIENTS.length]}
+                // M-10: deterministic gradient by course.id — no flicker on search filter
+                gradientClass={getCourseGradient(course.id, CARD_GRADIENTS)}
                 onNavigate={() =>
                   navigate(
                     `${getPath('/app/teacher/course-builder', '/app/admin/course-builder')}?courseId=${course.id}`
@@ -257,10 +279,13 @@ export const Courses: React.FC = () => {
       {/* Create Course Modal */}
       <AnimatePresence>
         {isModalOpen && (
+          // M-3: Click outside the modal panel closes it
           <div
             role="presentation"
             className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-md"
-            onKeyDown={(e) => e.key === 'Escape' && setIsModalOpen(false)}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsModalOpen(false)
+            }}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -282,9 +307,11 @@ export const Courses: React.FC = () => {
                   <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">
                     Judul Materi <span className="text-red-500">*</span>
                   </label>
+                  {/* M-4: maxLength prevents over-long titles from hitting DB constraint */}
                   <input
                     type="text"
                     required
+                    maxLength={255}
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-base"
@@ -355,15 +382,14 @@ interface CourseCardProps {
 }
 
 function CourseCard({ course, gradientClass, onNavigate, onAssign }: CourseCardProps) {
-  const moduleCount =
-    (course as Course & { modules?: unknown[]; module_count?: number }).modules?.length ??
-    (course as Course & { module_count?: number }).module_count ??
-    null
+  const moduleCount = course.modules?.length ?? course.module_count ?? null
 
   return (
     <div
       role="button"
       tabIndex={0}
+      // L-1: ARIA label for screen readers
+      aria-label={`Buka kursus ${course.title}`}
       className={cn(
         'group cursor-pointer bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700/60',
         'overflow-hidden shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 dark:hover:shadow-indigo-900/20',
@@ -399,8 +425,11 @@ function CourseCard({ course, gradientClass, onNavigate, onAssign }: CourseCardP
       {/* Body */}
       <div className="p-5">
         <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2 mb-4 leading-relaxed min-h-[2.5rem]">
-          {course.description ||
-            'Susun kurikulum terbaik untuk siswa Anda dengan modul yang terorganisir.'}
+          {course.description || (
+            <span className="italic text-slate-400 dark:text-slate-500 text-xs">
+              Tidak ada deskripsi
+            </span>
+          )}
         </p>
 
         {/* Assigned classes tags */}
@@ -421,20 +450,25 @@ function CourseCard({ course, gradientClass, onNavigate, onAssign }: CourseCardP
         <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700/60">
           <div className="flex items-center text-gray-400 dark:text-gray-500 text-xs font-medium gap-1.5">
             <Clock className="w-3.5 h-3.5" />
+            {/* M-1: Guard against null updated_at to avoid "Invalid Date" */}
             <span>
-              {new Date(course.updated_at || '').toLocaleDateString('id-ID', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })}
+              {course.updated_at
+                ? new Date(course.updated_at).toLocaleDateString('id-ID', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                  })
+                : '-'}
             </span>
           </div>
           <div className="flex items-center gap-2">
+            {/* L-2: aria-label for assistive technology */}
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 onAssign()
               }}
+              aria-label="Tugaskan ke Kelas"
               className="p-2 bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
               title="Tugaskan ke Kelas"
             >

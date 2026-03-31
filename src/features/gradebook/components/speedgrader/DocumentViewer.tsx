@@ -85,6 +85,7 @@ function AnnotationPin({
 }) {
   return (
     <div
+      role="presentation"
       className="absolute"
       style={{ left: `${annotation.x}%`, top: `${annotation.y}%` }}
       onClick={(e) => e.stopPropagation()}
@@ -219,6 +220,7 @@ export function DocumentViewer({
         ) : (
           <div
             ref={documentRef}
+            role="presentation"
             onClick={onDocumentClick}
             className={cn(
               'bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 p-12 relative origin-top transition-transform duration-200',

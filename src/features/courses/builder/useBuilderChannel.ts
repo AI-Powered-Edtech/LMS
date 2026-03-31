@@ -21,41 +21,82 @@ export function useBuilderChannel(
 ) {
   const channelRef = useRef<RealtimeChannel | null>(null)
   const [channelStatus, setChannelStatus] = useState<ChannelStatus>('disconnected')
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const reconnectAttemptRef = useRef(0)
+  // Track whether the effect is still mounted to avoid operating on a torn-down channel
+  const mountedRef = useRef(false)
 
   // Subscribe to channel when courseId is available
   useEffect(() => {
     if (!courseId || !userId) return
 
-    const channel = supabase.channel(`builder:${courseId}`, {
-      config: { broadcast: { self: false } },
-    })
+    mountedRef.current = true
+    reconnectAttemptRef.current = 0
 
-    channel
-      .on('broadcast', { event: 'builder_action' }, (payload) => {
-        const data = payload.payload as BroadcastPayload
-        if (data.userId === userId) return // ignore own broadcasts
+    const subscribe = () => {
+      // Remove any stale channel before creating a new one
+      if (channelRef.current) {
+        channelRef.current.unsubscribe()
+        channelRef.current = null
+      }
 
-        // Map to REMOTE_* action types
-        const remoteAction = mapToRemoteAction(data.action)
-        if (remoteAction) {
-          dispatch(remoteAction)
-        }
-      })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          setChannelStatus('connected')
-        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-          setChannelStatus('disconnected')
-        } else {
-          setChannelStatus('connecting')
-        }
+      const channel = supabase.channel(`builder:${courseId}`, {
+        config: { broadcast: { self: false } },
       })
 
-    channelRef.current = channel
+      channel
+        .on('broadcast', { event: 'builder_action' }, (payload) => {
+          const data = payload.payload as BroadcastPayload
+          if (data.userId === userId) return // ignore own broadcasts
+
+          // Map to REMOTE_* action types
+          const remoteAction = mapToRemoteAction(data.action)
+          if (remoteAction) {
+            dispatch(remoteAction)
+          }
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            setChannelStatus('connected')
+            // Successful connection — reset backoff counter and notify caller
+            reconnectAttemptRef.current = 0
+            if (onReconnect) onReconnect()
+          } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+            setChannelStatus('disconnected')
+            // Schedule a reconnection attempt with exponential backoff
+            if (mountedRef.current) {
+              scheduleReconnect()
+            }
+          } else {
+            setChannelStatus('connecting')
+          }
+        })
+
+      channelRef.current = channel
+    }
+
+    const scheduleReconnect = () => {
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
+      const delay = Math.min(1000 * Math.pow(2, reconnectAttemptRef.current), 30000) // max 30 s
+      reconnectTimerRef.current = setTimeout(() => {
+        if (!mountedRef.current) return
+        reconnectAttemptRef.current += 1
+        subscribe()
+      }, delay)
+    }
+
+    subscribe()
 
     return () => {
-      channel.unsubscribe()
-      channelRef.current = null
+      mountedRef.current = false
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current)
+        reconnectTimerRef.current = null
+      }
+      if (channelRef.current) {
+        channelRef.current.unsubscribe()
+        channelRef.current = null
+      }
       setChannelStatus('disconnected')
     }
   }, [courseId, userId, dispatch, onReconnect])

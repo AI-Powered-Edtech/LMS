@@ -116,6 +116,14 @@ export function TemplateModal({ isOpen, onClose, type, targetId, order }: Templa
               {filteredTemplates.map((template) => (
                 <div
                   key={template.id}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      setSelectedId(template.id)
+                    }
+                  }}
                   onClick={() => setSelectedId(template.id)}
                   className={`
                     relative p-4 rounded-xl border transition-all cursor-pointer text-left

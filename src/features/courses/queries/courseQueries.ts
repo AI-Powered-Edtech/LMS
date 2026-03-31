@@ -36,5 +36,7 @@ export function useInfiniteCoursesQuery(tenantId: string, search?: string) {
     },
     staleTime: STALE.MODERATE,
     enabled: !!tenantId,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * Math.pow(2, attempt), 5000),
   })
 }

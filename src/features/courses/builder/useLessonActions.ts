@@ -41,17 +41,30 @@ export function useLessonActions(
   const updateLesson = useCallback(
     async (lessonId: string, data: Partial<DomainLesson>) => {
       if (!tenantId) return
+      // Find previous lesson data for rollback
+      const prevLesson = state.modules.flatMap((m) => m.lessons).find((l) => l.id === lessonId)
+
       dispatch({ type: 'UPDATE_LESSON', lessonId, data })
       setSavingStatus('saving')
       try {
         await builderLessonService.updateLesson(lessonId, tenantId, data)
         setSavingStatus('saved')
         broadcast?.({ type: 'UPDATE_LESSON', lessonId, data }, userName ?? '')
-      } catch {
+      } catch (err: unknown) {
+        // Rollback to previous state
+        if (prevLesson) {
+          dispatch({ type: 'UPDATE_LESSON', lessonId, data: prevLesson })
+        }
         setSavingStatus('error')
+        addToast({
+          type: 'error',
+          message:
+            'Gagal menyimpan perubahan: ' +
+            (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
+        })
       }
     },
-    [tenantId, dispatch, setSavingStatus, broadcast, userName]
+    [state.modules, tenantId, dispatch, setSavingStatus, broadcast, userName, addToast]
   )
 
   const deleteLesson = useCallback(
@@ -128,9 +141,14 @@ export function useLessonActions(
       } catch (err) {
         if (import.meta.env.DEV) console.error('Failed to load blocks:', err)
         captureError(err, { context: 'useLessonActions.selectLesson', lessonId })
+        dispatch({
+          type: 'LOAD_BLOCKS_ERROR',
+          error: err instanceof Error ? err.message : 'Gagal memuat konten pelajaran',
+        })
+        addToast({ type: 'error', message: 'Gagal memuat konten pelajaran. Coba lagi.' })
       }
     },
-    [tenantId, dispatch]
+    [tenantId, dispatch, addToast]
   )
 
   const closeLesson = useCallback(() => {

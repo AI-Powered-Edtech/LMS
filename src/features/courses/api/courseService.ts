@@ -30,7 +30,6 @@ export const courseService = {
         { count: 'exact' }
       )
       .eq('tenant_id', tenantId)
-      .limit(100)
 
     if (ids && ids.length > 0) {
       query = query.in('id', ids)
@@ -64,7 +63,6 @@ export const courseService = {
         })
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
-        .limit(100)
 
       if (ids && ids.length > 0) {
         fallbackQuery = fallbackQuery.in('id', ids)
@@ -99,7 +97,9 @@ export const courseService = {
   async getCourseById(courseId: string, tenantId: string) {
     const { data, error } = await supabase
       .from('courses')
-      .select('id, title, description, status, subject, level, created_at, updated_at, created_by, tenant_id')
+      .select(
+        'id, title, description, status, subject, level, created_at, updated_at, created_by, tenant_id'
+      )
       .eq('id', courseId)
       .eq('tenant_id', tenantId)
       .single()
@@ -189,8 +189,36 @@ export const courseService = {
 
   /**
    * Fetch teacher display name by user ID (used by CourseBrowser).
+   * Verifies the user belongs to the same tenant before returning the name
+   * to prevent cross-tenant data leakage (C-1 tenant isolation fix).
+   *
+   * @param userId - The user ID whose name to fetch
+   * @param tenantId - The tenant context; user must be a member of this tenant
    */
-  async getTeacherName(userId: string): Promise<string | null> {
+  async getTeacherName(userId: string, tenantId: string): Promise<string | null> {
+    // Step 1: verify the user is a member of the requested tenant
+    const { data: membership, error: membershipError } = await supabase
+      .from('tenant_memberships')
+      .select('user_id')
+      .eq('user_id', userId)
+      .eq('tenant_id', tenantId)
+      .maybeSingle()
+
+    if (membershipError) {
+      logDevWarn(
+        'courseService',
+        'Error verifying tenant membership for teacher:',
+        membershipError.message
+      )
+      return null
+    }
+
+    if (!membership) {
+      logDevWarn('courseService', 'Teacher does not belong to tenant, skipping name fetch.')
+      return null
+    }
+
+    // Step 2: fetch the profile now that membership is confirmed
     const { data, error } = await supabase
       .from('profiles')
       .select('full_name')

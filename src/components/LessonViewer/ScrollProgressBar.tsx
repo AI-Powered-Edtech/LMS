@@ -1,31 +1,45 @@
 import { useEffect, useRef, useState } from 'react'
 
-export function ScrollProgressBar() {
+interface ScrollProgressBarProps {
+  scrollContainerId?: string // ID of the scroll container to track
+}
+
+export function ScrollProgressBar({ scrollContainerId }: ScrollProgressBarProps) {
   const [progress, setProgress] = useState(0)
   const rafRef = useRef(0)
 
   useEffect(() => {
+    const container = scrollContainerId ? document.getElementById(scrollContainerId) : null
+
+    const getProgress = () => {
+      if (container) {
+        const scrollTop = container.scrollTop
+        const scrollHeight = container.scrollHeight - container.clientHeight
+        return scrollHeight > 0 ? Math.min((scrollTop / scrollHeight) * 100, 100) : 0
+      }
+      // Fallback to window
+      const scrollTop = window.scrollY
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight
+      return docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0
+    }
+
     function handleScroll() {
       cancelAnimationFrame(rafRef.current)
       rafRef.current = requestAnimationFrame(() => {
-        const scrollTop = window.scrollY
-        const docHeight = document.documentElement.scrollHeight - window.innerHeight
-        if (docHeight <= 0) {
-          setProgress(0)
-          return
-        }
-        setProgress(Math.min((scrollTop / docHeight) * 100, 100))
+        setProgress(getProgress())
       })
     }
 
-    window.addEventListener('scroll', handleScroll, { passive: true })
+    const target: Window | HTMLElement = container || window
+    target.addEventListener('scroll', handleScroll, { passive: true })
+    // Set initial value
     handleScroll()
 
     return () => {
-      window.removeEventListener('scroll', handleScroll)
+      target.removeEventListener('scroll', handleScroll)
       cancelAnimationFrame(rafRef.current)
     }
-  }, [])
+  }, [scrollContainerId])
 
   return (
     <div className="sticky top-0 z-30 w-full h-[3px] bg-slate-100/80 dark:bg-slate-800/80">

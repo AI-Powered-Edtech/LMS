@@ -19,6 +19,14 @@ export function MarkdownBlock({ content, className }: MarkdownBlockProps) {
     import('katex/dist/katex.min.css')
   }, [])
 
+  if (!content?.trim()) {
+    return (
+      <div className="px-6 py-8 text-center text-sm text-slate-400 dark:text-slate-500 italic">
+        Konten belum tersedia.
+      </div>
+    )
+  }
+
   return (
     <div
       className={cn(
