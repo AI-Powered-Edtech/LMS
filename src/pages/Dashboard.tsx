@@ -73,22 +73,40 @@ export function Dashboard() {
     }
   }, [location, role])
 
-  // Derived data
-  const userName = impersonatedStudent
-    ? impersonatedStudent.name
-    : role === 'teacher'
-      ? profile?.first_name || 'Bapak/Ibu Guru'
-      : profile?.first_name || 'Siswa'
-  const activeCourses = Array.isArray(courses)
-    ? courses
-    : ((courses as unknown as { courses?: unknown[] })?.courses ?? [])
-  const announcementList: Announcement[] = Array.isArray(announcements) ? announcements : []
-  const leaderboardList: LeaderboardEntry[] = Array.isArray(leaderboard) ? leaderboard : []
-
-  const hubItems = navigationItems.filter(
-    (item) => item.location === 'learning-hub' && item.roles.includes(role)
+  // ⚡ Perf: Memoize derived data — previously recomputed on every render
+  const userName = useMemo(
+    () =>
+      impersonatedStudent
+        ? impersonatedStudent.name
+        : role === 'teacher'
+          ? profile?.first_name || 'Bapak/Ibu Guru'
+          : profile?.first_name || 'Siswa',
+    [impersonatedStudent, role, profile?.first_name]
   )
-  const openJoinModal = () => setShowJoinModal(true)
+  const activeCourses = useMemo(
+    () =>
+      Array.isArray(courses)
+        ? courses
+        : ((courses as unknown as { courses?: unknown[] })?.courses ?? []),
+    [courses]
+  )
+  const announcementList: Announcement[] = useMemo(
+    () => (Array.isArray(announcements) ? announcements : []),
+    [announcements]
+  )
+  const leaderboardList: LeaderboardEntry[] = useMemo(
+    () => (Array.isArray(leaderboard) ? leaderboard : []),
+    [leaderboard]
+  )
+  const hubItems = useMemo(
+    () =>
+      navigationItems.filter(
+        (item) => item.location === 'learning-hub' && item.roles.includes(role)
+      ),
+    [role]
+  )
+  // ⚡ Perf: Stable callback reference — inline arrow was creating new fn on every render
+  const openJoinModal = useCallback(() => setShowJoinModal(true), [])
 
   return (
     <div
