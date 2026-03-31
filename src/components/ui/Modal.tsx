@@ -82,6 +82,7 @@ export function Modal({ open, onClose, size = 'md', ariaLabel, children }: Modal
   return (
     <div
       ref={overlayRef}
+      role="presentation"
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose()

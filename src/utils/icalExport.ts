@@ -60,11 +60,11 @@ function toICalDate(date: Date, time?: string, addMinutes = 0): string {
   let d = new Date(date)
 
   if (time) {
-    // Parse "HH:mm" dan set jam/menit ke objek date
+    // Parse "HH:mm" dan set jam/menit ke objek date sebagai UTC
     const parts = time.split(':')
     const hours = parseInt(parts[0] ?? '0', 10)
     const minutes = parseInt(parts[1] ?? '0', 10)
-    d.setHours(hours, minutes, 0, 0)
+    d.setUTCHours(hours, minutes, 0, 0)
   }
 
   if (addMinutes > 0) {

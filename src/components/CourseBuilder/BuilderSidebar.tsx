@@ -17,8 +17,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
 import { useBuilder } from '@/src/contexts/BuilderContext'
-import { translateLessonType } from '@/src/utils/statusTranslations'
 import { cn } from '@/src/utils/cn'
+import { translateLessonType } from '@/src/utils/statusTranslations'
 
 export function BuilderSidebar() {
   const { state, actions } = useBuilder()
@@ -287,9 +287,17 @@ export function BuilderSidebar() {
                                             <div
                                               ref={lesDragProvided.innerRef}
                                               {...lesDragProvided.draggableProps}
+                                              role="button"
+                                              tabIndex={0}
                                               onClick={() => {
                                                 actions.selectLesson(lesson.id)
                                                 if (mobile.isMobile) mobile.closeSidebar()
+                                              }}
+                                              onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                  actions.selectLesson(lesson.id)
+                                                  if (mobile.isMobile) mobile.closeSidebar()
+                                                }
                                               }}
                                               className={cn(
                                                 'flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer group/lesson transition-all text-xs border border-transparent mb-1',
@@ -491,6 +499,7 @@ export function BuilderSidebar() {
               className="fixed inset-0 z-50 flex lg:hidden"
             >
               <div
+                role="presentation"
                 className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
                 onClick={mobile.closeSidebar}
               />

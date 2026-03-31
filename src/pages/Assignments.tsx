@@ -146,7 +146,7 @@ export function Assignments() {
       await assignmentService.unsubmitAssignment(id, user!.id, tenantId!)
       refetch()
       addToast({ type: 'success', message: 'Tugas dibatalkan.' })
-    } catch (err: unknown) {
+    } catch {
       addToast({ type: 'error', message: 'Gagal.' })
     }
   }
@@ -399,6 +399,7 @@ export function Assignments() {
       <AnimatePresence>
         {previewFile && (
           <div
+            role="presentation"
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
             onKeyDown={(e) => e.key === 'Escape' && setPreviewFile(null)}
           >

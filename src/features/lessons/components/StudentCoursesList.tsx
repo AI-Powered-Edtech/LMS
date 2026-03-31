@@ -74,7 +74,13 @@ export function StudentCoursesList() {
             {courses.map((course) => (
               <div
                 key={course.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => navigate(`/app/student/courses/${course.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ')
+                    navigate(`/app/student/courses/${course.id}`)
+                }}
                 className="group flex flex-col bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all cursor-pointer"
               >
                 <div className="p-6 flex-1 flex flex-col">

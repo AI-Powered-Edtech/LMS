@@ -17,6 +17,15 @@ export function StreakCounter({ compact }: StreakCounterProps) {
 
   const reducedMotion = useReducedMotion()
 
+  // Optimistic streak: if server streak is 0 but user has XP activity today,
+  // the 30-min cron may not have run yet — compute locally from recent_xp timestamps
+  // Must be called before any early return to respect Rules of Hooks
+  const optimisticStreak = useMemo(() => {
+    if (!profile?.recent_xp || profile.streak_current > 0) return profile?.streak_current ?? 0
+    const completions = profile.recent_xp.map((t) => ({ completed_at: t.created_at }))
+    return calculateStreak(completions).current
+  }, [profile])
+
   // On error, render gracefully with zeroed-out state rather than crashing
   if (isError) {
     return compact ? (
@@ -26,14 +35,6 @@ export function StreakCounter({ compact }: StreakCounterProps) {
       </div>
     ) : null
   }
-
-  // Optimistic streak: if server streak is 0 but user has XP activity today,
-  // the 30-min cron may not have run yet — compute locally from recent_xp timestamps
-  const optimisticStreak = useMemo(() => {
-    if (!profile?.recent_xp || profile.streak_current > 0) return profile?.streak_current ?? 0
-    const completions = profile.recent_xp.map((t) => ({ completed_at: t.created_at }))
-    return calculateStreak(completions).current
-  }, [profile])
 
   const streak = optimisticStreak
   const longest = profile?.streak_longest ?? 0

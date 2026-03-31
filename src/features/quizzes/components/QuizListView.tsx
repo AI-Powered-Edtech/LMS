@@ -259,8 +259,13 @@ export function QuizListView({
           {quizzes.map((quiz) => (
             <div
               key={quiz.id}
+              role="button"
+              tabIndex={0}
               className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group cursor-pointer"
               onClick={() => openEditQuiz(quiz.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') openEditQuiz(quiz.id)
+              }}
             >
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex-1 min-w-0">
@@ -359,7 +364,7 @@ export function QuizListView({
                   </button>
 
                   {expandedQuizId === quiz.id && (
-                    <div className="mt-4" onClick={(e) => e.stopPropagation()}>
+                    <div role="presentation" className="mt-4" onClick={(e) => e.stopPropagation()}>
                       <QuizAssignmentStatus
                         quizId={quiz.id}
                         onAssignClick={() => setAssignModalQuizId(quiz.id)}
