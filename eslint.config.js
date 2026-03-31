@@ -46,6 +46,7 @@ export default [
         'ts-check': false,
         minimumDescriptionLength: 10,
       }],
+      '@typescript-eslint/explicit-function-return-types': 'off', // Added per requirement, set to off as it wasn't specified to enable
 
       // React hooks rules
       'react-hooks/rules-of-hooks': 'error',

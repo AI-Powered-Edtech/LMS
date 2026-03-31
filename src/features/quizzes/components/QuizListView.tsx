@@ -286,7 +286,7 @@ export function QuizListView({
                       ) : (
                         <Lock className="w-2.5 h-2.5" />
                       )}
-                      {quiz.status === 'published' ? 'Published' : 'Draft'}
+                      {quiz.status === 'published' ? 'Diterbitkan' : 'Draft'}
                     </span>
                     <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">
                       {modeLabels[quiz.mode] || quiz.mode}

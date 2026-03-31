@@ -522,11 +522,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
   /* eslint-enable react-hooks/exhaustive-deps */
 
-  // B6: Proactive JWT refresh — check every 60s, refresh if expiring within 5 min
+  // B6: Proactive JWT refresh — check every 4 mins, refresh if expiring within 5 min
   useEffect(() => {
     if (!session) return
 
-    const INTERVAL_MS = 60_000
+    const INTERVAL_MS = 4 * 60 * 1000 // 4 minutes
     const REFRESH_THRESHOLD_S = 5 * 60 // 5 minutes in seconds
 
     const checkAndRefresh = async () => {
