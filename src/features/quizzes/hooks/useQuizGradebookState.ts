@@ -185,16 +185,26 @@ export function useQuizGradebookState() {
   )
 
   const { avgScore, passCount, failCount } = useMemo(() => {
-    const scoredAttempts = filteredAttempts.filter((attempt) => attempt.score !== null)
+    // ⚡ Perf: consolidate multiple array traversals into a single pass to reduce O(N) operations.
+    let totalScore = 0
+    let scoredCount = 0
+    let passCount = 0
+    let failCount = 0
+
+    for (let i = 0; i < filteredAttempts.length; i++) {
+      const attempt = filteredAttempts[i]
+      if (attempt.score !== null) {
+        totalScore += attempt.score
+        scoredCount++
+      }
+      if (attempt.passed === true) passCount++
+      else if (attempt.passed === false) failCount++
+    }
+
     return {
-      avgScore: scoredAttempts.length
-        ? Math.round(
-            scoredAttempts.reduce((sum, attempt) => sum + (attempt.score ?? 0), 0) /
-              scoredAttempts.length
-          )
-        : 0,
-      passCount: filteredAttempts.filter((attempt) => attempt.passed).length,
-      failCount: filteredAttempts.filter((attempt) => attempt.passed === false).length,
+      avgScore: scoredCount ? Math.round(totalScore / scoredCount) : 0,
+      passCount,
+      failCount,
     }
   }, [filteredAttempts])
 
