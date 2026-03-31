@@ -1,4 +1,3 @@
-// SYNC-HINT: {{ = {{ and }} = }}. Sync tool converts automatically.
 // Quiz Player - Orchestrator component
 // Part of the Quiz Engine Refactor
 
