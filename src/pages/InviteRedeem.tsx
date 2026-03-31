@@ -1,10 +1,10 @@
+import { CheckCircle, Loader2, Mail,XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { CheckCircle, XCircle, Loader2, Mail } from 'lucide-react'
+import { useNavigate,useParams } from 'react-router-dom'
 
+import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { supabase } from '@/src/services/supabase/client'
 import { captureError } from '@/src/utils/sentry'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
 
 export function InviteRedeem() {
   usePageTitle('Validasi Undangan')

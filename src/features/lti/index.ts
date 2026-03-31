@@ -1,14 +1,14 @@
 export { ltiService } from './api/ltiService'
 export {
-  useLtiPlatforms,
-  useLtiPlatform,
   useCreateLtiPlatform,
-  useUpdateLtiPlatform,
   useDeleteLtiPlatform,
+  useLtiPlatform,
+  useLtiPlatforms,
   useToggleLtiPlatform,
+  useUpdateLtiPlatform,
 } from './queries/ltiQueries'
 export type {
-  LtiPlatformRegistration,
   CreateLtiPlatformParams,
+  LtiPlatformRegistration,
   UpdateLtiPlatformParams,
 } from './types'
