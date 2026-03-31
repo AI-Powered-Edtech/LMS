@@ -8,7 +8,7 @@ import type { Course } from '@/src/features/courses/types'
 import { GradebookSkeleton } from '@/src/features/gradebook/components/GradebookSkeleton'
 import { StudentGradeView } from '@/src/features/gradebook/components/StudentGradeView'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { gradebookService } from "@/src/features/gradebook/api/gradebookService"
+import { gradebookService } from '@/src/features/gradebook/api/gradebookService'
 import { cn } from '@/src/utils/cn'
 
 interface Assignment {
@@ -172,7 +172,9 @@ export function Grades() {
           <div className="bg-white dark:bg-slate-800 p-5 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-center">
             <p className="text-sm font-bold text-slate-500 mb-1">Nilai Saat Ini</p>
             <div className="flex items-end gap-2">
-              <span className="text-4xl font-black text-slate-800 dark:text-slate-200">{currentGrade.toFixed(1)}</span>
+              <span className="text-4xl font-black text-slate-800 dark:text-slate-200">
+                {currentGrade.toFixed(1)}
+              </span>
               <span className="text-slate-400 font-medium mb-1">/ 100</span>
             </div>
           </div>

@@ -80,7 +80,7 @@ export const NotificationCenter: React.FC = () => {
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllAsRead}
-                  className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                  className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-sm focus-visible:ring-offset-1 focus-visible:ring-offset-white"
                 >
                   Tandai semua dibaca
                 </button>
@@ -117,7 +117,7 @@ export const NotificationCenter: React.FC = () => {
 
             {/* Footer */}
             <div className="px-4 py-2 border-t border-slate-100 bg-slate-50 text-center">
-              <button className="text-xs text-slate-500 font-medium hover:text-slate-700">
+              <button className="text-xs text-slate-500 font-medium hover:text-slate-700 outline-none focus-visible:ring-2 focus-visible:ring-slate-500 rounded-sm focus-visible:ring-offset-1 focus-visible:ring-offset-slate-50 px-1 py-0.5">
                 Lihat Semua Aktivitas
               </button>
             </div>
@@ -197,8 +197,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onRea
       {!notification.is_read && (
         <button
           onClick={onRead}
-          className="absolute right-4 top-10 opacity-0 group-hover:opacity-100 p-1 bg-white border border-slate-200 rounded-full shadow-sm hover:bg-blue-50 hover:text-blue-600 text-slate-400 transition-all"
+          className="absolute right-4 top-10 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 p-1 bg-white border border-slate-200 rounded-full shadow-sm hover:bg-blue-50 hover:text-blue-600 text-slate-400 transition-all outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           title="Tandai sudah dibaca"
+          aria-label="Tandai sudah dibaca"
         >
           <Check className="w-3.5 h-3.5" />
         </button>

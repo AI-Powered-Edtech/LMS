@@ -16,8 +16,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { AssignCourseModal } from "@/src/components/Classroom/AssignCourseModal"
-import { PresenceAvatars } from "./PresenceAvatars"
+import { AssignCourseModal } from '@/src/components/Classroom/AssignCourseModal'
+import { PresenceAvatars } from './PresenceAvatars'
 import { useBuilder } from '@/src/contexts/BuilderContext'
 import { translateCourseStatus } from '@/src/utils/statusTranslations'
 import { cn } from '@/src/utils/cn'
