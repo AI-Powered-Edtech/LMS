@@ -92,3 +92,6 @@ test_break.sh
 
 # Accidental test artifacts
 path/
+
+# notion-sync command sentinel files
+__command__*
