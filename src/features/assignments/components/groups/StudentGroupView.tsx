@@ -71,7 +71,11 @@ export function StudentGroupView({ assignmentId }: Props) {
       tasks.map((t) => {
         if (t.id !== id) return t
         const next =
-          t.status === 'pending' ? 'in_progress' : t.status === 'in_progress' ? 'completed' : 'pending'
+          t.status === 'pending'
+            ? 'in_progress'
+            : t.status === 'in_progress'
+              ? 'completed'
+              : 'pending'
         return { ...t, status: next }
       })
     )
