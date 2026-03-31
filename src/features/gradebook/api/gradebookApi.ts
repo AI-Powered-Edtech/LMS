@@ -250,6 +250,17 @@ export function exportGradebookCSV(entries: GradebookEntry[], columns: Gradebook
   // Susun baris CSV
   const rows: Record<string, string | number>[] = []
 
+  // PERFORMANCE: Pre-compute column header string keys outside the inner loop to
+  // avoid allocating new template literal strings repeatedly for every student.
+  const colHeaders = columns.map((col) => ({
+    id: col.id,
+    title: col.title,
+    maxScore: col.max_score,
+    maxScoreLabel: `${col.title} (Maks)`,
+    pctLabel: `${col.title} (%)`,
+    letterLabel: `${col.title} (Huruf)`,
+  }))
+
   for (const [, student] of studentMap) {
     const row: Record<string, string | number> = {
       Nama: student.name,
@@ -259,20 +270,20 @@ export function exportGradebookCSV(entries: GradebookEntry[], columns: Gradebook
     let totalPct = 0
     let gradedCount = 0
 
-    for (const col of columns) {
+    for (const col of colHeaders) {
       const entry = student.grades[col.id] ?? null
       if (entry && entry.score !== null) {
         row[col.title] = entry.score
-        row[`${col.title} (Maks)`] = col.max_score
-        row[`${col.title} (%)`] = Number(entry.percentage.toFixed(1))
-        row[`${col.title} (Huruf)`] = entry.grade_letter ?? '-'
+        row[col.maxScoreLabel] = col.maxScore
+        row[col.pctLabel] = Number(entry.percentage.toFixed(1))
+        row[col.letterLabel] = entry.grade_letter ?? '-'
         totalPct += entry.percentage
         gradedCount++
       } else {
         row[col.title] = '-'
-        row[`${col.title} (Maks)`] = col.max_score
-        row[`${col.title} (%)`] = '-'
-        row[`${col.title} (Huruf)`] = '-'
+        row[col.maxScoreLabel] = col.maxScore
+        row[col.pctLabel] = '-'
+        row[col.letterLabel] = '-'
       }
     }
 
