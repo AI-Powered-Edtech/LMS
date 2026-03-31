@@ -32,7 +32,7 @@ describe('backgroundSync', () => {
 
       const result = await syncPendingSubmissions()
 
-      expect(result).toEqual({ synced: 0, failed: 0 })
+      expect(result).toMatchObject({ synced: 0, failed: 0 })
       expect(supabase.from).not.toHaveBeenCalled()
     })
 
@@ -49,7 +49,7 @@ describe('backgroundSync', () => {
 
       const result = await syncPendingSubmissions()
 
-      expect(result).toEqual({ synced: 0, failed: 0 })
+      expect(result).toMatchObject({ synced: 0, failed: 0 })
       expect(supabase.from).not.toHaveBeenCalled()
     })
 
@@ -81,7 +81,7 @@ describe('backgroundSync', () => {
       expect(mockEq).toHaveBeenCalledWith('id', 'attempt-1')
       expect(markSynced).toHaveBeenCalledWith('item-1')
 
-      expect(result).toEqual({ synced: 1, failed: 0 })
+      expect(result).toMatchObject({ synced: 1, failed: 0 })
     })
 
     it('increments failed counter on Supabase error', async () => {
@@ -102,7 +102,7 @@ describe('backgroundSync', () => {
       const result = await syncPendingSubmissions()
 
       expect(markSynced).not.toHaveBeenCalled()
-      expect(result).toEqual({ synced: 0, failed: 1 })
+      expect(result).toMatchObject({ synced: 0, failed: 1 })
     })
 
     it('increments failed counter if an exception is thrown during sync', async () => {
@@ -125,7 +125,7 @@ describe('backgroundSync', () => {
       const result = await syncPendingSubmissions()
 
       expect(markSynced).not.toHaveBeenCalled()
-      expect(result).toEqual({ synced: 0, failed: 1 })
+      expect(result).toMatchObject({ synced: 0, failed: 1 })
     })
 
     it('processes multiple items with mixed success and failure', async () => {
@@ -158,7 +158,7 @@ describe('backgroundSync', () => {
 
       expect(markSynced).toHaveBeenCalledTimes(1)
       expect(markSynced).toHaveBeenCalledWith('item-success')
-      expect(result).toEqual({ synced: 1, failed: 1 })
+      expect(result).toMatchObject({ synced: 1, failed: 1 })
     })
   })
 

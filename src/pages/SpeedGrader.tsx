@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { useAuth } from '@/src/contexts/AuthContext'
@@ -9,6 +9,7 @@ import type {
   ActiveTool,
   Annotation,
   SaveStatus,
+  SpeedGraderStudent,
 } from '@/src/features/gradebook/components/speedgrader'
 import {
   DEFAULT_RUBRIC,
@@ -23,28 +24,21 @@ import { useToast } from '@/src/hooks/useToast'
 import { captureError } from '@/src/utils/sentry'
 
 export function SpeedGrader() {
-  usePageTitle('Speed Grader')
-  const { students: contextStudents, grades, updateGrade } = useGradebook()
+  usePageTitle('Penilaian Cepat')
+  const { students, grades, updateGrade } = useGradebook()
   const { addComment } = useComments()
   const { tenantId } = useAuth()
   const addToast = useToast((s) => s.addToast)
   const [searchParams] = useSearchParams()
-  const assignmentId = searchParams.get('assignmentId') || 'a2'
-
-  const students = contextStudents.map((s) => ({
-    ...s,
-    gradeEntry: grades[s.id]?.[assignmentId] ?? { score: null, status: 'ungraded' },
-  }))
+  const assignmentId = searchParams.get('assignmentId')
 
   const studentIdParam = searchParams.get('studentId')
-  const initialStudentIdx = studentIdParam
-    ? Math.max(
-        0,
-        students.findIndex((s) => s.id.toString() === studentIdParam)
-      )
-    : 0
 
-  const [currentStudentIdx, setCurrentStudentIdx] = useState(initialStudentIdx)
+  const [currentStudentIdx, setCurrentStudentIdx] = useState(() => {
+    if (!studentIdParam || !assignmentId) return 0
+    const idx = students.findIndex((s) => s.id.toString() === studentIdParam)
+    return Math.max(0, idx)
+  })
   const [scores, setScores] = useState<Record<string, number>>({})
   const [feedback, setFeedback] = useState('')
   const [submissionText, setSubmissionText] = useState('')
@@ -60,60 +54,93 @@ export function SpeedGrader() {
   const totalScore = Object.values(scores).reduce((a, b) => a + b, 0)
 
   // Load submission data when switching students
-  const loadStudentData = async () => {
-    setIsLoading(true)
-    setSaveStatus('idle')
+  /* eslint-disable react-hooks/exhaustive-deps */
+  useEffect(() => {
+    if (!assignmentId || !currentStudent) return
 
-    try {
-      const assignment = await assignmentService.getAssignmentById(
-        assignmentId,
-        tenantId ?? undefined
-      )
-      if (!assignment) {
-        if (import.meta.env.DEV) console.error('Assignment not found or access denied')
+    const loadStudentData = async () => {
+      setIsLoading(true)
+      setSaveStatus('idle')
+
+      try {
+        const assignment = await assignmentService.getAssignmentById(
+          assignmentId,
+          tenantId ?? undefined
+        )
+        if (!assignment) {
+          if (import.meta.env.DEV) console.error('Assignment not found or access denied')
+          setIsLoading(false)
+          return
+        }
+      } catch (authError) {
+        if (import.meta.env.DEV) console.error('Authorization check failed:', authError)
         setIsLoading(false)
         return
       }
-    } catch (authError) {
-      if (import.meta.env.DEV) console.error('Authorization check failed:', authError)
-      setIsLoading(false)
-      return
+
+      try {
+        const submissionText = await assignmentService.getSubmissionText(
+          assignmentId,
+          currentStudent.id,
+          tenantId ?? undefined
+        )
+
+        setSubmissionText(submissionText || '')
+        const existingGrade = grades[currentStudent.id]?.[assignmentId]
+        setScores({})
+        setFeedback(existingGrade?.feedback || '')
+        setAnnotations([])
+        setZoom(100)
+        setActiveTool('pointer')
+      } catch (err) {
+        if (import.meta.env.DEV) console.warn('Error loading submission:', err)
+        captureError(err, { context: 'SpeedGrader.loadSubmission' })
+        setSubmissionText('')
+      } finally {
+        setIsLoading(false)
+      }
     }
 
-    try {
-      const submissionText = await assignmentService.getSubmissionText(
-        assignmentId,
-        currentStudent.id,
-        tenantId ?? undefined
-      )
-
-      setSubmissionText(submissionText || '')
-      const existingGrade = grades[currentStudent.id]?.[assignmentId]
-      setScores({})
-      setFeedback(existingGrade?.feedback || '')
-      setAnnotations([])
-      setZoom(100)
-      setActiveTool('pointer')
-    } catch (err) {
-      if (import.meta.env.DEV) console.warn('Error loading submission:', err)
-      captureError(err, { context: 'SpeedGrader.loadSubmission' })
-      setSubmissionText('')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  /* eslint-disable react-hooks/exhaustive-deps */
-  useEffect(() => {
     loadStudentData()
   }, [currentStudentIdx])
   /* eslint-enable react-hooks/exhaustive-deps */
 
-  const saveCurrentStudent = (status: 'graded' | 'needs_revision' | 'ungraded' = 'graded') => {
-    updateGrade(currentStudent.id, assignmentId, totalScore, status, feedback)
-    if (feedback.trim()) addComment(assignmentId, feedback)
-    setSaveStatus('saved')
-    setTimeout(() => setSaveStatus('idle'), 2000)
+  const saveCurrentStudent = useCallback(
+    async (status: 'graded' | 'needs_revision' | 'ungraded' = 'graded') => {
+      if (!currentStudent || !assignmentId) return
+      setSaveStatus('saving')
+      try {
+        updateGrade(currentStudent.id, assignmentId, totalScore, status, feedback)
+        if (feedback.trim()) await addComment(assignmentId, feedback)
+        setSaveStatus('saved')
+        setTimeout(() => setSaveStatus('idle'), 2000)
+      } catch (error) {
+        setSaveStatus('error')
+        console.error('Save failed:', error)
+      }
+    },
+    [currentStudent, assignmentId, totalScore, feedback, updateGrade, addComment]
+  )
+
+  if (!assignmentId) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center max-w-sm">
+          <h2 className="text-xl font-bold text-slate-700 dark:text-slate-200 mb-2">
+            Tugas Tidak Ditemukan
+          </h2>
+          <p className="text-slate-500 text-sm">Parameter assignmentId tidak ditemukan di URL.</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!currentStudent) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-slate-500">Tidak ada data siswa.</p>
+      </div>
+    )
   }
 
   const handleNext = () => {
@@ -131,17 +158,20 @@ export function SpeedGrader() {
     setCurrentStudentIdx(idx)
   }
 
-  const handleSaveAndNext = (status: 'graded' | 'needs_revision' = 'graded') => {
+  const handleSaveAndNext = async (status: 'graded' | 'needs_revision' = 'graded') => {
     setSaveStatus('saving')
-    updateGrade(currentStudent.id, assignmentId, totalScore, status, feedback)
-    if (feedback.trim()) addComment(assignmentId, feedback)
-    setTimeout(() => {
+    try {
+      updateGrade(currentStudent.id, assignmentId, totalScore, status, feedback)
+      if (feedback.trim()) await addComment(assignmentId, feedback)
       setSaveStatus('saved')
       setTimeout(() => {
         setSaveStatus('idle')
-        handleNext()
+        if (currentStudentIdx < students.length - 1) setCurrentStudentIdx((s) => s + 1)
       }, 500)
-    }, 500)
+    } catch (err) {
+      setSaveStatus('error')
+      console.error('handleSaveAndNext failed:', err)
+    }
   }
 
   const handleDocumentClick = (e: React.MouseEvent) => {
@@ -149,7 +179,12 @@ export function SpeedGrader() {
     const rect = documentRef.current.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * 100
     const y = ((e.clientY - rect.top) / rect.height) * 100
-    if (annotations.length === 0) addToast({ type: 'info', message: 'Fitur penyimpanan anotasi sedang dalam pengembangan.', duration: 5000 })
+    if (annotations.length === 0)
+      addToast({
+        type: 'info',
+        message: 'Fitur penyimpanan anotasi sedang dalam pengembangan.',
+        duration: 5000,
+      })
     setAnnotations((prev) => [...prev, { id: Date.now().toString(), x, y, text: '', isOpen: true }])
   }
 
@@ -205,12 +240,22 @@ export function SpeedGrader() {
     }
   }
 
+  // Map GradebookStudent to SpeedGraderStudent for GraderTopBar
+  const speedGraderStudents: SpeedGraderStudent[] = students.map((s) => ({
+    id: s.id,
+    name: s.name,
+    gradeEntry: {
+      score: grades[s.id]?.[assignmentId]?.score ?? null,
+      status: grades[s.id]?.[assignmentId]?.status ?? 'ungraded',
+    },
+  }))
+
   return (
     <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-950 relative">
       <SaveStatusToast status={saveStatus} />
 
       <GraderTopBar
-        students={students}
+        students={speedGraderStudents}
         currentStudentIdx={currentStudentIdx}
         isLoading={isLoading}
         onStudentChange={handleStudentChange}
@@ -242,7 +287,7 @@ export function SpeedGrader() {
         />
 
         <RubricPanel
-          currentStudent={currentStudent}
+          currentStudent={speedGraderStudents[currentStudentIdx]}
           rubric={DEFAULT_RUBRIC}
           scores={scores}
           feedback={feedback}

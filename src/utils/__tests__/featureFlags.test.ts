@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+// Mock AuthContext before importing featureFlags
+vi.mock('@/src/contexts/AuthContext', () => ({
+  useAuth: () => ({ tenantId: null, user: null }),
+}))
+
 // Mock Supabase before importing featureFlags
 vi.mock('@/src/services/supabase/client', () => {
   const mockSelect = vi.fn()

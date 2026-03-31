@@ -54,25 +54,38 @@ describe('calendarUtils', () => {
 
   describe('getEventColor', () => {
     it('returns correct color classes for exam', () => {
-      expect(getEventColor('exam')).toContain('bg-red-500 text-red-700 border-red-200')
+      const color = getEventColor('exam')
+      expect(color).toContain('bg-red-500')
+      expect(color).toContain('text-red-700')
+      expect(color).toContain('border-red-200')
     })
 
     it('returns correct color classes for assignment', () => {
-      expect(getEventColor('assignment')).toContain(
-        'bg-orange-500 text-orange-700 border-orange-200'
-      )
+      const color = getEventColor('assignment')
+      expect(color).toContain('bg-orange-500')
+      expect(color).toContain('text-orange-700')
+      expect(color).toContain('border-orange-200')
     })
 
     it('returns correct color classes for quiz', () => {
-      expect(getEventColor('quiz')).toContain('bg-blue-500 text-blue-700 border-blue-200')
+      const color = getEventColor('quiz')
+      expect(color).toContain('bg-blue-500')
+      expect(color).toContain('text-blue-700')
+      expect(color).toContain('border-blue-200')
     })
 
     it('returns correct color classes for event', () => {
-      expect(getEventColor('event')).toContain('bg-purple-500 text-purple-700 border-purple-200')
+      const color = getEventColor('event')
+      expect(color).toContain('bg-purple-500')
+      expect(color).toContain('text-purple-700')
+      expect(color).toContain('border-purple-200')
     })
 
     it('returns default color classes for unknown types', () => {
-      expect(getEventColor('unknown')).toContain('bg-slate-500 text-slate-700 border-slate-200')
+      const color = getEventColor('unknown')
+      expect(color).toContain('bg-slate-500')
+      expect(color).toContain('text-slate-700')
+      expect(color).toContain('border-slate-200')
     })
   })
 

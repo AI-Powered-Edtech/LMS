@@ -62,6 +62,7 @@ describe('lessonService Security Fix', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorage.clear()
+    sessionStorage.clear()
     Object.defineProperty(globalThis, 'crypto', {
       value: {
         subtle: {
@@ -95,7 +96,7 @@ describe('lessonService Security Fix', () => {
       signature: '010203',
       createdAt: Date.now(),
     }
-    localStorage.setItem('edusync_progress_queue', JSON.stringify(signedQueue))
+    sessionStorage.setItem('edusync_progress_queue', JSON.stringify(signedQueue))
 
     // Use queueProgressUpdate to trigger loadSecureQueue
     ;(supabase.rpc as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -107,7 +108,7 @@ describe('lessonService Security Fix', () => {
 
     await lessonService.queueProgressUpdate('456', 'tenant-1', 'started', 10)
 
-    const rawSaved = localStorage.getItem('edusync_progress_queue')
+    const rawSaved = sessionStorage.getItem('edusync_progress_queue')
     expect(rawSaved).toBeTruthy()
 
     const savedQueue = JSON.parse(rawSaved!) as SignedProgressQueue

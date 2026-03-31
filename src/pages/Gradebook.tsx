@@ -1,19 +1,18 @@
 import { ArrowLeft, BookOpen, ChevronDown, Download, Filter, Plus } from 'lucide-react'
-import { Link } from 'react-router-dom'
 
 import { EmptyState } from '@/src/components/ui'
-import { useToast } from '@/src/hooks/useToast'
 import type { Course } from '@/src/features/courses/types'
 import { AddAssignmentModal } from '@/src/features/gradebook/components/AddAssignmentModal'
 import { GradebookMainTable } from '@/src/features/gradebook/components/GradebookMainTable'
 import { GradebookStats } from '@/src/features/gradebook/components/GradebookStats'
 import { GradebookTable } from '@/src/features/gradebook/components/GradebookTable'
 import { useGradebookState } from '@/src/features/gradebook/hooks/useGradebookState'
+import { useToast } from '@/src/hooks/useToast'
 import { cn } from '@/src/utils/cn'
 
 export function Gradebook() {
   const s = useGradebookState()
-  const addToast = useToast((s: any) => s.addToast);
+  const addToast = useToast((s) => s.addToast)
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -75,12 +74,12 @@ export function Gradebook() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-            <Link
-              to="/teacher-dashboard"
+            <button
+              onClick={() => window.history.back()}
               className="p-2 -ml-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
               <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
-            </Link>
+            </button>
             Buku Nilai
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 ml-2 sm:ml-11 text-sm sm:text-base">
@@ -107,7 +106,7 @@ export function Gradebook() {
           </button>
           <button
             type="button"
-            onClick={() => addToast({ type: "info", message: "Fitur Ekspor CSV segera hadir." })}
+            onClick={() => addToast({ type: 'info', message: 'Fitur Ekspor CSV segera hadir.' })}
             aria-label="Ekspor CSV"
             className="px-3 sm:px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2 text-sm sm:text-base shadow-sm transition-all"
           >

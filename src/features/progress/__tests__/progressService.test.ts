@@ -100,7 +100,9 @@ describe('progressService.getStudentProgressBundle', () => {
 
   it('throws on RPC error', async () => {
     mockRpc.mockResolvedValue({ data: null, error: { message: 'RPC failed' } })
-    await expect(progressService.getStudentProgressBundle('student-1', 'tenant-1')).rejects.toMatchObject({
+    await expect(
+      progressService.getStudentProgressBundle('student-1', 'tenant-1')
+    ).rejects.toMatchObject({
       message: 'RPC failed',
     })
   })

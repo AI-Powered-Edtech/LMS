@@ -3,9 +3,8 @@ import { motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { useAuth } from "@/src/contexts/AuthContext"
-
 import { OptimizedImage } from '@/src/components/ui'
+import { useAuth } from '@/src/contexts/AuthContext'
 import { progressService, StudentProgressData } from '@/src/features/progress/api/progressService'
 import { ProgressSkeleton } from '@/src/features/progress/components/ProgressSkeleton'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
@@ -28,6 +27,12 @@ export function StudentProgress() {
         return
       }
 
+      if (!tenantId) {
+        setError('Tidak dapat memuat data: tenant tidak ditemukan.')
+        setLoading(false)
+        return
+      }
+
       setLoading(true)
       try {
         // High performance consolidation: 6 queries -> 1 RPC call
@@ -42,7 +47,7 @@ export function StudentProgress() {
     }
 
     loadProgress()
-  }, [studentId])
+  }, [studentId, tenantId])
 
   if (loading) {
     return <ProgressSkeleton />
@@ -197,7 +202,7 @@ export function StudentProgress() {
               </p>
             ) : (
               quizAttempts.map((attempt) => {
-                const isPassed = attempt.score >= 70 // Assuming 70 is passing score
+                const isPassed = attempt.score >= 70
                 return (
                   <div
                     key={attempt.id}
