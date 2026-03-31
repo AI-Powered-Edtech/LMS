@@ -67,7 +67,7 @@ export function useSubmitQuizAttempt() {
       useToast.getState().addToast({
         type: 'error',
         message: 'Gagal mengirim jawaban kuis.',
-        description: 'Jawaban Anda tersimpan lokal. Silakan coba lagi.',
+        description: 'Periksa koneksi internet Anda dan coba kirim ulang.',
       })
     },
   })

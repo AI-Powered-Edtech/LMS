@@ -400,6 +400,7 @@ export function AdminAnalyticsDashboard() {
   // Empty state - no data
   if (
     !analytics ||
+    !analytics.overview ||
     (analytics.overview.totalCourses === 0 && analytics.overview.totalEnrolled === 0)
   ) {
     return (
@@ -410,6 +411,14 @@ export function AdminAnalyticsDashboard() {
   }
 
   const { overview, activityMetrics, courseEngagement, activityTimeline } = analytics
+
+  // activityMetrics may be null if that analytics slice failed (Promise.allSettled partial failure)
+  const safeMetrics = activityMetrics ?? {
+    assignmentSubmissions: 0,
+    quizAttempts: 0,
+    totalEvents: 0,
+    lessonCompletions: 0,
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
@@ -474,14 +483,14 @@ export function AdminAnalyticsDashboard() {
         />
         <MetricCard
           title="Tugas Dikumpulkan"
-          value={activityMetrics.assignmentSubmissions}
+          value={safeMetrics.assignmentSubmissions}
           icon={FileCheck}
           color="text-cyan-600"
           bgColor="bg-cyan-100"
         />
         <MetricCard
           title="Quiz Dicoba"
-          value={activityMetrics.quizAttempts}
+          value={safeMetrics.quizAttempts}
           icon={ClipboardCheck}
           color="text-rose-600"
           bgColor="bg-rose-100"
@@ -490,8 +499,8 @@ export function AdminAnalyticsDashboard() {
 
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ActivityTimelineChart data={activityTimeline} />
-        <CourseEngagementChart data={courseEngagement} />
+        <ActivityTimelineChart data={activityTimeline ?? []} />
+        <CourseEngagementChart data={courseEngagement ?? []} />
       </div>
 
       {/* Charts Row 2 */}
@@ -537,7 +546,7 @@ export function AdminAnalyticsDashboard() {
                 <span className="text-slate-700 dark:text-slate-300">Total Event (30 Hari)</span>
               </div>
               <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                {activityMetrics.totalEvents.toLocaleString('id-ID')}
+                {safeMetrics.totalEvents.toLocaleString('id-ID')}
               </span>
             </div>
             <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
@@ -546,7 +555,7 @@ export function AdminAnalyticsDashboard() {
                 <span className="text-slate-700 dark:text-slate-300">Lesson Selesai</span>
               </div>
               <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                {activityMetrics.lessonCompletions.toLocaleString('id-ID')}
+                {safeMetrics.lessonCompletions.toLocaleString('id-ID')}
               </span>
             </div>
           </div>

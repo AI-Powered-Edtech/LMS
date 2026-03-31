@@ -10,7 +10,7 @@ interface CourseEnrollmentGuardProps {
 
 export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ children }) => {
   const { courseId } = useParams<{ courseId: string }>()
-  const { user, role, tenantId, loading: authLoading } = useAuth()
+  const { user, role, activeRole, tenantId, loading: authLoading } = useAuth()
   const [isEnrolled, setIsEnrolled] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -18,7 +18,20 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
   const location = useLocation()
   const navigate = useNavigate()
 
+  // Use activeRole (role for the current active tenant) if available,
+  // fall back to global role. This prevents a user who is 'teacher' in Tenant A
+  // from bypassing enrollment checks in Tenant B where they are only a 'student'.
+  const effectiveRole = activeRole ?? role
+
   useEffect(() => {
+    // Safety timeout: if auth takes too long, show error instead of hanging forever
+    const authTimeoutId = setTimeout(() => {
+      if (authLoading) {
+        setError('Verifikasi memakan terlalu lama. Silakan refresh halaman.')
+        setLoading(false)
+      }
+    }, 15000) // 15 second timeout
+
     const verifyEnrollment = async () => {
       if (authLoading || !user || !tenantId) return
 
@@ -29,8 +42,8 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
         return
       }
 
-      // Teachers and Admins bypass enrollment checks
-      if (role === 'teacher' || role === 'admin') {
+      // Teachers and Admins bypass enrollment checks (using tenant-scoped role)
+      if (effectiveRole === 'teacher' || effectiveRole === 'admin') {
         setIsEnrolled(true)
         setLoading(false)
         return
@@ -53,7 +66,8 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
     }
 
     verifyEnrollment()
-  }, [courseId, user, role, tenantId, authLoading, retryCount])
+    return () => clearTimeout(authTimeoutId)
+  }, [courseId, user, effectiveRole, tenantId, authLoading, retryCount])
 
   if (authLoading || loading) {
     return (

@@ -63,12 +63,12 @@ export function ProgressReporter({
     }
 
     try {
-      await lessonService.queueProgressUpdate(lessonId, tenantId, s, pct, pos)
+      await lessonService.queueProgressUpdate(lessonId, tenantIdRef.current, s, pct, pos)
       lastSent.current = { percentage: pct, position: pos ?? 0 }
     } catch (err) {
       if (import.meta.env.DEV) console.error('[ProgressReporter] Failed to sync:', err)
     }
-  }, [lessonId, tenantId]) // Stable deps only — no interval churn
+  }, [lessonId]) // Stable deps only — no interval churn; tenantId read from ref
 
   // FIX 3: Capture interval ID in a local const so rapid unmount/remount cycles
   // cannot have the first mount's cleanup accidentally clear the second mount's interval.
@@ -141,14 +141,14 @@ export function ProgressReporter({
         // Use captured lessonId (from when the effect was set up), not the current one
         lessonService.queueProgressUpdate(
           capturedLessonId,
-          tenantId,
+          tenantIdRef.current,
           latestRef.current.status,
           latestRef.current.progressPercentage,
           latestRef.current.lastPosition
         )
       }
     }
-  }, [lessonId, tenantId]) // re-register when lesson changes so we capture the right ID
+  }, [lessonId]) // re-register when lesson changes so we capture the right ID; tenantId read from ref
 
   // This is an invisible reporting component
   return null

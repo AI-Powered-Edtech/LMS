@@ -184,19 +184,25 @@ export function CreateAssignmentModal({ isOpen, onClose, onCreate }: CreateAssig
                 <div className="flex flex-wrap gap-3">
                   <button
                     type="button"
-                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-700 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-400 text-sm font-bold rounded-xl transition-all"
+                    disabled
+                    title="Fitur segera hadir"
+                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 text-sm font-bold rounded-xl cursor-not-allowed opacity-60"
                   >
                     <FileUp className="w-4 h-4" /> Google Drive
                   </button>
                   <button
                     type="button"
-                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-700 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-400 text-sm font-bold rounded-xl transition-all"
+                    disabled
+                    title="Fitur segera hadir"
+                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 text-sm font-bold rounded-xl cursor-not-allowed opacity-60"
                   >
                     <LinkIcon className="w-4 h-4" /> Link
                   </button>
                   <button
                     type="button"
-                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-slate-700 dark:text-slate-300 hover:text-blue-700 dark:hover:text-blue-400 text-sm font-bold rounded-xl transition-all"
+                    disabled
+                    title="Fitur segera hadir"
+                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 text-sm font-bold rounded-xl cursor-not-allowed opacity-60"
                   >
                     <Paperclip className="w-4 h-4" /> Upload File
                   </button>
@@ -207,7 +213,9 @@ export function CreateAssignmentModal({ isOpen, onClose, onCreate }: CreateAssig
             <div className="p-6 border-t border-slate-100 dark:border-slate-800 shrink-0 flex items-center justify-between bg-white dark:bg-slate-900">
               <button
                 type="button"
-                className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 font-bold text-sm transition-colors"
+                disabled
+                title="Fitur segera hadir"
+                className="text-slate-400 dark:text-slate-500 font-bold text-sm cursor-not-allowed opacity-60"
               >
                 Jadwalkan
               </button>

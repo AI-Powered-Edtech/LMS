@@ -29,8 +29,14 @@ export function useAnalyticsPageState() {
       try {
         const result = await courseService.fetchCourses({ tenantId: activeTenant.id, limit: 50 })
         setCourses(result.courses)
-        if (result.courses.length > 0) {
-          setSelectedCourseId(result.courses[0].id)
+        if (result.courses.length > 0 && !selectedCourseId) {
+          // Only auto-select if there's exactly 1 course (no choice needed).
+          // With multiple courses, let the teacher choose explicitly to prevent
+          // unnecessary RPC calls on every page load.
+          if (result.courses.length === 1) {
+            setSelectedCourseId(result.courses[0].id)
+          }
+          // Otherwise, leave selectedCourseId empty and show placeholder
         }
       } catch (err) {
         if (import.meta.env.DEV) console.error('Failed to load courses', err)
@@ -126,7 +132,18 @@ export function useAnalyticsPageState() {
     [data?.module_completion]
   )
 
-  const studentsToShow = data?.students.top.concat(data?.students.at_risk || []) || []
+  // Deduplicate students: top and at_risk lists may contain the same student
+  // (e.g. a student with low progress who is also in top by some metric).
+  // Without deduplication, the same student appears twice in the table.
+  const studentsToShow = useMemo(() => {
+    const allStudents = [...(data?.students?.top ?? []), ...(data?.students?.at_risk ?? [])]
+    const seenIds = new Set<string>()
+    return allStudents.filter((s) => {
+      if (seenIds.has(s.student_id)) return false
+      seenIds.add(s.student_id)
+      return true
+    })
+  }, [data?.students?.top, data?.students?.at_risk])
 
   const getStatus = (progress: number, _lastActive: string | null) => {
     if (progress < 40) return 'Kritis'

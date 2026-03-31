@@ -37,9 +37,12 @@ export function AuthGuard({ children, requireEmailVerification = true }: AuthGua
   const location = useLocation()
 
   // ── 1. Loading ─────────────────────────────────────────────────────────────
-  // Show a full-screen loading indicator while Supabase resolves the session
-  // and fetches the user profile + memberships.
-  if (loading) {
+  // ROUTE-HIGH-02: Differentiate between initial auth load and token refresh.
+  // Only show the full-screen loader when no user session has been established
+  // yet (true initial load). If a user already exists but loading=true, that
+  // means Supabase is silently refreshing the token — render children normally
+  // to avoid a visible flash/flicker on every token refresh cycle.
+  if (loading && !user) {
     return <AppLoading />
   }
 

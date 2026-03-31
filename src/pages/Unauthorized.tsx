@@ -1,13 +1,24 @@
 import { ArrowLeft, Home, ShieldX } from 'lucide-react'
 import { useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { usePageTitle } from '@/hooks/usePageTitle'
+
+const DASHBOARD_PATHS: Record<string, string> = {
+  teacher: '/app/teacher/dashboard',
+  student: '/app/student/dashboard',
+  admin: '/app/admin/dashboard',
+}
 
 export function Unauthorized() {
   usePageTitle('Tidak Diizinkan')
   const navigate = useNavigate()
+  const location = useLocation()
   const headingRef = useRef<HTMLHeadingElement>(null)
+
+  // State injected by RoleGuard — contains the user's actual role and attempted path
+  const state = location.state as { from?: Location; userRole?: string } | null
+  const dashboardPath = DASHBOARD_PATHS[state?.userRole ?? ''] ?? '/app'
 
   // WCAG 2.4.3: Move focus to the main content area after redirect
   // Without this, keyboard focus stays on whatever was focused before the redirect
@@ -44,11 +55,11 @@ export function Unauthorized() {
           </button>
 
           <button
-            onClick={() => navigate('/app')}
+            onClick={() => navigate(dashboardPath, { replace: true })}
             className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm"
           >
             <Home size={20} />
-            <span>Ke Dashboard</span>
+            <span>Ke Dashboard Saya</span>
           </button>
         </div>
       </div>

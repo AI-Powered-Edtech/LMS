@@ -79,18 +79,21 @@ export const analyticsService = {
   },
 
   async getTenantAnalytics(tenantId: string): Promise<TenantAnalyticsData> {
-    const [overview, activityMetrics, courseEngagement, activityTimeline] = await Promise.all([
-      this.getTenantAnalyticsOverview(tenantId),
-      this.getActivityMetrics(tenantId),
-      this.getCourseEngagementStats(tenantId),
-      this.getActivityTimeline(tenantId),
-    ])
+    // ANAL-MED-01: Use Promise.allSettled so a single failure does not crash all analytics
+    const [overviewResult, activityResult, courseResult, timelineResult] = await Promise.allSettled(
+      [
+        this.getTenantAnalyticsOverview(tenantId),
+        this.getActivityMetrics(tenantId),
+        this.getCourseEngagementStats(tenantId),
+        this.getActivityTimeline(tenantId),
+      ]
+    )
 
     return {
-      overview,
-      activityMetrics,
-      courseEngagement,
-      activityTimeline,
+      overview: overviewResult.status === 'fulfilled' ? overviewResult.value : null,
+      activityMetrics: activityResult.status === 'fulfilled' ? activityResult.value : null,
+      courseEngagement: courseResult.status === 'fulfilled' ? courseResult.value : null,
+      activityTimeline: timelineResult.status === 'fulfilled' ? timelineResult.value : null,
     }
   },
 

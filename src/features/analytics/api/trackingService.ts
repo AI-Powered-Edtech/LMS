@@ -33,7 +33,12 @@ export function trackLearningEvent(params: {
   eventBuffer.push(event)
 
   // Cap buffer to prevent memory leak on persistent failures
+  // ANAL-HIGH-02: Log dropped events for observability instead of silently discarding
   if (eventBuffer.length > MAX_BUFFER_SIZE) {
+    const dropped = eventBuffer.length - MAX_BUFFER_SIZE
+    if (import.meta.env.DEV) {
+      console.warn(`[Analytics] Dropping ${dropped} events (buffer overflow — backend may be slow)`)
+    }
     eventBuffer = eventBuffer.slice(-MAX_BUFFER_SIZE)
   }
 

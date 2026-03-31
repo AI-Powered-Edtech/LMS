@@ -134,26 +134,30 @@ export function useGroupMessages(groupId: string | undefined) {
   })
 
   useEffect(() => {
-    if (!groupId) return
+    if (!groupId || !tenantId) return
 
-    const subscription = groupAssignmentService.subscribeToGroupMessages(groupId, (newMessage) => {
-      queryClient.setQueryData<GroupMessage[]>(
-        groupAssignmentKeys.groupMessages(groupId),
-        (old) => {
-          if (!old) return [newMessage]
-          // Invalidate to fetch relationships (profiles) properly
-          void queryClient.invalidateQueries({
-            queryKey: groupAssignmentKeys.groupMessages(groupId),
-          })
-          return old
-        }
-      )
-    })
+    const subscription = groupAssignmentService.subscribeToGroupMessages(
+      groupId,
+      tenantId,
+      (newMessage) => {
+        queryClient.setQueryData<GroupMessage[]>(
+          groupAssignmentKeys.groupMessages(groupId),
+          (old) => {
+            if (!old) return [newMessage]
+            // Invalidate to fetch relationships (profiles) properly
+            void queryClient.invalidateQueries({
+              queryKey: groupAssignmentKeys.groupMessages(groupId),
+            })
+            return old
+          }
+        )
+      }
+    )
 
     return () => {
       subscription.unsubscribe()
     }
-  }, [groupId, queryClient])
+  }, [groupId, tenantId, queryClient])
 
   return query
 }

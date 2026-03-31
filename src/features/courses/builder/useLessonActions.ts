@@ -56,7 +56,7 @@ export function useLessonActions(
       } catch (err: unknown) {
         // Rollback to previous state
         if (prevLesson) {
-          dispatch({ type: 'UPDATE_LESSON', lessonId, data: prevLesson })
+          dispatch({ type: 'REMOTE_UPDATE_LESSON', lessonId, data: prevLesson })
         }
         setSavingStatus('error')
         addToast({

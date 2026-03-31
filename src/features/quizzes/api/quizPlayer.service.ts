@@ -23,11 +23,18 @@ export { getCurrentQuestionIndex, recordCheatingSignal, recordHeartbeat } from '
  * Get all questions for an attempt with current answers
  */
 export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemptQuestion[]> {
-  // Get the question manifest from the attempt
+  // QUIZ-CRIT-01/02: Auth check — verify the user owns this attempt
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session?.user) throw new Error('Tidak terautentikasi')
+
+  // Get the question manifest from the attempt, scoped to the authenticated student
   const { data: attempt, error: attemptError } = await supabase
     .from('quiz_attempts_v2')
-    .select('question_manifest')
+    .select('question_manifest, student_id, tenant_id')
     .eq('id', attemptId)
+    .eq('student_id', session.user.id) // CRITICAL: ensure user owns this attempt
     .single()
 
   if (attemptError) throw attemptError
@@ -43,7 +50,7 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
   const manifest = attempt.question_manifest || []
   if (manifest.length === 0) return []
 
-  // Fetch all questions in the manifest
+  // Fetch all questions in the manifest, scoped to the attempt's tenant
   const { data: questions, error: questionError } = await supabase
     .from('quiz_questions')
     .select(
@@ -58,6 +65,7 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
     `
     )
     .in('id', manifest)
+    .eq('tenant_id', attempt.tenant_id) // CRITICAL: tenant isolation
 
   if (questionError) throw questionError
 

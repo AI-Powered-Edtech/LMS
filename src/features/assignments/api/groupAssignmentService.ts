@@ -117,12 +117,13 @@ export const groupAssignmentService = {
    * Returns students enrolled in the assignment's class, marking those
    * already assigned to a group for this assignment.
    */
-  async getEligibleStudents(assignmentId: string): Promise<EligibleStudent[]> {
-    // 1. Get class_id from the assignment
+  async getEligibleStudents(assignmentId: string, tenantId: string): Promise<EligibleStudent[]> {
+    // 1. Get class_id from the assignment — scoped to tenant
     const { data: assignment, error: asgErr } = await supabase
       .from('assignments')
       .select('class_id')
       .eq('id', assignmentId)
+      .eq('tenant_id', tenantId)
       .single()
 
     if (asgErr || !assignment?.class_id) {
@@ -130,11 +131,12 @@ export const groupAssignmentService = {
       return []
     }
 
-    // 2. Get enrolled students for the class
+    // 2. Get enrolled students for the class — scoped to tenant
     const { data: enrolled, error: enrollErr } = await supabase
       .from('enrollments')
       .select('user_id:student_id, profiles!enrollments_student_id_fkey(full_name, avatar_url)')
       .eq('class_id', assignment.class_id)
+      .eq('tenant_id', tenantId)
       .eq('status', 'ACTIVE')
 
     if (enrollErr) {
@@ -441,16 +443,20 @@ export const groupAssignmentService = {
   /**
    * Subscribes to realtime group messages inserts.
    */
-  subscribeToGroupMessages(groupId: string, onInsert: (message: GroupMessage) => void) {
+  subscribeToGroupMessages(
+    groupId: string,
+    tenantId: string,
+    onInsert: (message: GroupMessage) => void
+  ) {
     const channel = supabase
-      .channel(`group_messages:${groupId}`)
+      .channel(`group_messages:${groupId}:${tenantId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'group_messages',
-          filter: `group_id=eq.${groupId}`,
+          filter: `group_id=eq.${groupId}&tenant_id=eq.${tenantId}`,
         },
         (payload) => {
           onInsert(payload.new as GroupMessage)
@@ -507,8 +513,12 @@ export const groupAssignmentTaskService = {
     )
   },
 
-  async deleteGroupTask(taskId: string): Promise<void> {
-    const { error } = await supabase.from('group_tasks').delete().eq('id', taskId)
+  async deleteGroupTask(taskId: string, tenantId: string): Promise<void> {
+    const { error } = await supabase
+      .from('group_tasks')
+      .delete()
+      .eq('id', taskId)
+      .eq('tenant_id', tenantId)
     if (error) {
       logDevError('groupAssignmentService', 'Error deleting group task:', error)
       throw error

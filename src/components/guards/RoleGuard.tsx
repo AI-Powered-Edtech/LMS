@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 
 import { type Role, useAuth } from '../../contexts/AuthContext'
 import { AppLoading } from '../layout/AppLoading'
@@ -11,6 +11,7 @@ interface RoleGuardProps {
 
 export function RoleGuard({ children, allowedRoles }: RoleGuardProps) {
   const { activeRole, loading } = useAuth()
+  const location = useLocation()
 
   // SECURITY FIX: Always use activeRole (per-tenant role) — never fall back to the
   // global `role` field. The global role represents the highest privilege across ALL
@@ -35,7 +36,9 @@ export function RoleGuard({ children, allowedRoles }: RoleGuardProps) {
   }
 
   if (!hasAccess) {
-    return <Navigate to="/unauthorized" replace />
+    // Preserve the attempted location and the user's actual role so the
+    // /unauthorized page can offer a "Go to my dashboard" action.
+    return <Navigate to="/unauthorized" state={{ from: location, userRole: activeRole }} replace />
   }
 
   return <>{children}</>

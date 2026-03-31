@@ -260,7 +260,16 @@ export async function listFunnelDefinitions(courseId?: string): Promise<FunnelDe
   if (error) throw parseRpcError(error)
   return ((data as Array<Record<string, unknown>>) ?? []).map((r) => ({
     ...r,
-    steps: Array.isArray(r.steps) ? r.steps : JSON.parse(r.steps as string),
+    steps: Array.isArray(r.steps)
+      ? r.steps
+      : (() => {
+          try {
+            return JSON.parse(r.steps as string)
+          } catch {
+            if (import.meta.env.DEV) console.warn('[Analytics] Invalid funnel steps JSON:', r.steps)
+            return []
+          }
+        })(),
   })) as unknown as FunnelDefinition[]
 }
 
@@ -392,7 +401,7 @@ export async function fetchLatestEvents(tenantId: string, limit = 10): Promise<L
     .limit(limit)
 
   if (error) {
-    console.error('Failed to fetch live events', error)
+    if (import.meta.env.DEV) console.error('Failed to fetch live events', error)
     throw error
   }
 

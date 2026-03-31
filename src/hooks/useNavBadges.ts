@@ -47,7 +47,7 @@ export function useNavBadges(): NavBadges {
   // atau masih DRAFT.
   const { data: pendingAssignments = 0 } = useQuery({
     queryKey: navBadgeKeys.pendingAssignments(user?.id ?? '', tenantId ?? ''),
-    queryFn: () => assignmentService.getPendingAssignmentCount(tenantId!),
+    queryFn: () => assignmentService.getPendingAssignmentCount(tenantId!, user!.id),
     enabled: enabled && isStudent,
     staleTime: BADGE_STALE,
   })

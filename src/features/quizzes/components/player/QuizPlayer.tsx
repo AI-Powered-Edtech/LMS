@@ -3,7 +3,7 @@
 
 import { Eye, WifiOff } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { cn } from '@/utils/cn'
@@ -58,10 +58,19 @@ export function QuizPlayer({
   const [resumeToast, setResumeToast] = useState<{ show: boolean; current: number; total: number }>(
     { show: false, current: 0, total: 0 }
   )
+  // QUIZ-HIGH-06: Ref to track the resume toast timeout so it can be cleared on unmount
+  const resumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const totalQuestions = attemptQuestions.length
   const question = attemptQuestions[currentQuestionIdx]
   const resetStore = useQuizPlayerStore((state) => state.resetStore)
+
+  // QUIZ-CRIT-03/04: Keep a stable ref to latest answers so the timer callback
+  // always submits current answers even when the closure is stale
+  const answersRef = useRef(answers)
+  useEffect(() => {
+    answersRef.current = answers
+  }, [answers])
 
   useEffect(() => {
     // Reset store state when attempt changes
@@ -97,8 +106,8 @@ export function QuizPlayer({
             current: resumeIndex + 1,
             total: attemptQuestions.length,
           })
-          // Auto-hide toast after 2 seconds
-          setTimeout(() => {
+          // Auto-hide toast after 2 seconds (stored in ref for cleanup)
+          resumeTimeoutRef.current = setTimeout(() => {
             setResumeToast((prev) => ({ ...prev, show: false }))
           }, 2000)
         }
@@ -111,13 +120,21 @@ export function QuizPlayer({
     }
 
     computeResumeIndex()
+    // QUIZ-HIGH-06: Clear the toast timeout on cleanup to prevent memory leak / state update on unmounted component
+    return () => {
+      clearTimeout(resumeTimeoutRef.current)
+    }
   }, [attemptId, attemptQuestions, initialAnswers, initialQuestionIndex])
 
   // ── Hooks composition ───────────────────────────────────
   const { timeLeft, progressColor } = useQuizTimer({
     expiresAt,
     timeLimitMinutes: quiz.time_limit_minutes || 10,
-    onTimeUp: () => onSubmit(answers),
+    // QUIZ-CRIT-03: Guard against submitting while already submitting (race condition)
+    // QUIZ-CRIT-04: Use answersRef so timer closure always has the latest answers
+    onTimeUp: () => {
+      if (!isSubmitting) onSubmit(answersRef.current)
+    },
   })
 
   // Create a saveProgress wrapper for the quiz service

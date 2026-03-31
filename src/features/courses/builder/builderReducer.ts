@@ -228,7 +228,7 @@ function coreReducer(state: BuilderState, action: BuilderAction): BuilderState {
     case 'LOAD_BLOCKS_START':
       return { ...state, loadingBlocks: true, pendingLessonId: action.lessonId }
     case 'LOAD_BLOCKS_ERROR':
-      return { ...state, loadingBlocks: false, error: action.error }
+      return { ...state, loadingBlocks: false, error: action.error, pendingLessonId: null }
     case 'LOAD_BLOCKS_SUCCESS':
       // Ignore stale responses from a previously requested lesson
       if (state.pendingLessonId && state.pendingLessonId !== action.lessonId) {

@@ -27,6 +27,7 @@ export function useAssignments() {
   const userId = user?.id
   const [assignments, setAssignments] = useState<AssignmentUiState[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
@@ -40,6 +41,7 @@ export function useAssignments() {
 
   const loadAssignments = async () => {
     try {
+      setError(null)
       setLoading(true)
 
       if (!tenantId) return
@@ -123,12 +125,13 @@ export function useAssignments() {
         })
         setAssignments(mapped)
       }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to load assignments', error)
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('Failed to load assignments', err)
+      setError('Gagal memuat tugas. Silakan coba lagi.')
     } finally {
       setLoading(false)
     }
   }
 
-  return { assignments, loading, refetch: loadAssignments, setAssignments }
+  return { assignments, loading, error, refetch: loadAssignments, setAssignments }
 }

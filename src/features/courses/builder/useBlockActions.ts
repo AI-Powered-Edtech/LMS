@@ -174,7 +174,7 @@ export function useBlockActions(
       const reordered = blockIds
         .map((id) => blocks.find((b) => b.id === id))
         .filter(Boolean)
-        .map((b, idx) => ({ ...b!, orderIndex: idx }))
+        .map((b, idx) => ({ ...b, orderIndex: idx }))
       dispatch({ type: 'SET_BLOCKS', blocks: reordered as DomainBlock[] })
 
       try {

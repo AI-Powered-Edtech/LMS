@@ -76,11 +76,10 @@ export const assignmentService = {
   ) {
     const { data, error } = await supabase
       .from('assignment_submissions')
-      .upsert({
-        ...submission,
-        status: 'submitted',
-        submitted_at: new Date().toISOString(),
-      })
+      .upsert(
+        { ...submission, status: 'submitted', submitted_at: new Date().toISOString() },
+        { onConflict: 'assignment_id,student_id' }
+      )
       .select(SUBMISSION_COLUMNS)
       .single()
 
@@ -94,6 +93,7 @@ export const assignmentService = {
 
   /**
    * Students unsubmit their work.
+   * Only allows unsubmitting when status is 'submitted' — prevents reverting graded work.
    */
   async unsubmitAssignment(assignmentId: string, studentId: string, tenantId: string) {
     const { data, error } = await supabase
@@ -105,6 +105,7 @@ export const assignmentService = {
       .eq('assignment_id', assignmentId)
       .eq('student_id', studentId)
       .eq('tenant_id', tenantId)
+      .eq('status', 'submitted')
       .select(SUBMISSION_COLUMNS)
       .single()
     if (error) {
@@ -284,13 +285,16 @@ export const assignmentService = {
   },
 
   /**
-   * Verify assignment exists and optionally belongs to a tenant (SpeedGrader auth check).
+   * Verify assignment exists and belongs to a tenant (SpeedGrader auth check).
+   * tenantId is required to enforce tenant isolation.
    */
-  async getAssignmentById(assignmentId: string, tenantId?: string): Promise<Assignment | null> {
-    let query = supabase.from('assignments').select(ASSIGNMENT_COLUMNS).eq('id', assignmentId)
-    if (tenantId) query = query.eq('tenant_id', tenantId)
-
-    const { data, error } = await query.maybeSingle()
+  async getAssignmentById(assignmentId: string, tenantId: string): Promise<Assignment | null> {
+    const { data, error } = await supabase
+      .from('assignments')
+      .select(ASSIGNMENT_COLUMNS)
+      .eq('id', assignmentId)
+      .eq('tenant_id', tenantId)
+      .maybeSingle()
 
     if (error) {
       logDevError('assignmentService', 'Error fetching assignment by ID:', error)
@@ -302,20 +306,20 @@ export const assignmentService = {
 
   /**
    * Fetch a single submission's text (SpeedGrader inline view).
+   * tenantId is required to prevent cross-tenant data leaks.
    */
   async getSubmissionText(
     assignmentId: string,
     studentId: string,
-    tenantId?: string
+    tenantId: string
   ): Promise<string | null> {
-    let query = supabase
+    const { data, error } = await supabase
       .from('assignment_submissions')
       .select('submission_text')
       .eq('assignment_id', assignmentId)
       .eq('student_id', studentId)
-    if (tenantId) query = query.eq('tenant_id', tenantId)
-
-    const { data, error } = await query.maybeSingle()
+      .eq('tenant_id', tenantId)
+      .maybeSingle()
 
     if (error) {
       logDevError('assignmentService', 'Error fetching submission text:', error)
@@ -373,6 +377,7 @@ export const assignmentService = {
 
   /**
    * Upload an assignment submission file to storage and return its public URL.
+   * Validates MIME type and sanitizes filename before upload.
    */
   async uploadSubmissionFile(
     file: File,
@@ -380,7 +385,23 @@ export const assignmentService = {
     assignmentId: string,
     userId: string
   ): Promise<string> {
-    const storagePath = `${tenantId}/assignments/${assignmentId}/${userId}/${Date.now()}-${file.name}`
+    const ALLOWED_TYPES = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain',
+    ]
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      throw new Error(
+        `Tipe file "${file.type}" tidak didukung. Upload PDF, gambar, atau dokumen Word.`
+      )
+    }
+    // Sanitize filename to prevent path traversal
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+    const storagePath = `${tenantId}/assignments/${assignmentId}/${userId}/${Date.now()}-${safeName}`
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('assignment-submissions')
       .upload(storagePath, file, { upsert: false })
@@ -395,19 +416,20 @@ export const assignmentService = {
    * Get count of pending (published, not yet submitted) assignments for a student.
    * Used by useNavBadges for the bottom nav badge.
    */
-  async getPendingAssignmentCount(tenantId: string): Promise<number> {
+  async getPendingAssignmentCount(tenantId: string, userId: string): Promise<number> {
     const { count, error } = await supabase
       .from('assignments')
       .select(
         `id,
-         assignment_submissions!left(id, status)`,
+         assignment_submissions!left(id, status, student_id)`,
         { count: 'exact', head: false }
       )
       .eq('tenant_id', tenantId)
       .eq('is_published', true)
-      .or(`assignment_submissions.student_id.is.null,assignment_submissions.status.neq.SUBMITTED`, {
+      .or(`assignment_submissions.student_id.is.null,assignment_submissions.status.neq.submitted`, {
         foreignTable: 'assignment_submissions',
       })
+      .eq('assignment_submissions.student_id', userId)
 
     if (error) {
       if (import.meta.env.DEV)

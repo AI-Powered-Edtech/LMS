@@ -30,7 +30,7 @@ function getCourseGradient(courseId: string | null | undefined, gradients: strin
   return gradients[hash % gradients.length]
 }
 
-export const Courses: React.FC = () => {
+export function Courses() {
   const navigate = useNavigate()
   const getPath = useRoleBasedPath()
   const { user, activeTenant } = useAuth()

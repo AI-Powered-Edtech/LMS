@@ -56,17 +56,14 @@ export function SpeedGrader() {
   // Load submission data when switching students
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    if (!assignmentId || !currentStudent) return
+    if (!assignmentId || !currentStudent || !tenantId) return
 
     const loadStudentData = async () => {
       setIsLoading(true)
       setSaveStatus('idle')
 
       try {
-        const assignment = await assignmentService.getAssignmentById(
-          assignmentId,
-          tenantId ?? undefined
-        )
+        const assignment = await assignmentService.getAssignmentById(assignmentId, tenantId)
         if (!assignment) {
           if (import.meta.env.DEV) console.error('Assignment not found or access denied')
           setIsLoading(false)
@@ -82,7 +79,7 @@ export function SpeedGrader() {
         const submissionText = await assignmentService.getSubmissionText(
           assignmentId,
           currentStudent.id,
-          tenantId ?? undefined
+          tenantId
         )
 
         setSubmissionText(submissionText || '')

@@ -78,12 +78,14 @@ export interface ActivityTimePoint {
   assignmentSubmissions: number
 }
 
-// Combined tenant analytics data for dashboard
+// Combined tenant analytics data for dashboard.
+// Fields are nullable because getTenantAnalytics uses Promise.allSettled —
+// a partial failure yields null for the failed slice rather than crashing the whole dashboard.
 export interface TenantAnalyticsData {
-  overview: TenantAnalyticsOverview
-  activityMetrics: ActivityMetrics
-  courseEngagement: CourseEngagement[]
-  activityTimeline: ActivityTimePoint[]
+  overview: TenantAnalyticsOverview | null
+  activityMetrics: ActivityMetrics | null
+  courseEngagement: CourseEngagement[] | null
+  activityTimeline: ActivityTimePoint[] | null
 }
 
 // Custom error types for better error handling

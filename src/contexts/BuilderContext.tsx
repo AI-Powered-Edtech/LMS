@@ -296,7 +296,6 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
       ...courseActions,
       ...moduleActions,
       ...lessonActions,
-      updateLesson: lessonActions.updateLesson,
       ...blockActions,
     }),
     [courseActions, moduleActions, lessonActions, blockActions]

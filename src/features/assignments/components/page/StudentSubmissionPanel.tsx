@@ -120,11 +120,19 @@ export function StudentSubmissionPanel({
       {assignment.status === 'assigned' || assignment.status === 'late' ? (
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
-            <button className="flex items-center justify-center gap-2 p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-              <FileUp className="w-4 h-4 text-blue-500" /> Drive
+            <button
+              disabled
+              title="Fitur segera hadir"
+              className="flex items-center justify-center gap-2 p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60"
+            >
+              <FileUp className="w-4 h-4" /> Drive
             </button>
-            <button className="flex items-center justify-center gap-2 p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-              <LinkIcon className="w-4 h-4 text-blue-500" /> Link
+            <button
+              disabled
+              title="Fitur segera hadir"
+              className="flex items-center justify-center gap-2 p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60"
+            >
+              <LinkIcon className="w-4 h-4" /> Link
             </button>
             <button
               className="flex items-center justify-center gap-2 p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
@@ -132,8 +140,12 @@ export function StudentSubmissionPanel({
             >
               <Paperclip className="w-4 h-4 text-blue-500" /> File
             </button>
-            <button className="flex items-center justify-center gap-2 p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-              <Camera className="w-4 h-4 text-blue-500" /> Kamera
+            <button
+              disabled
+              title="Fitur segera hadir"
+              className="flex items-center justify-center gap-2 p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60"
+            >
+              <Camera className="w-4 h-4" /> Kamera
             </button>
           </div>
           <input
