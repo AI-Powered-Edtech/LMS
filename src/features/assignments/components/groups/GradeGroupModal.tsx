@@ -51,6 +51,7 @@ export function GradeGroupModal({ group, assignmentId, onClose }: Props) {
 
   return (
     <div
+      role="presentation"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
       onKeyDown={(e) => e.key === 'Escape' && onClose()}
     >

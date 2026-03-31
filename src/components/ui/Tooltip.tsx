@@ -49,6 +49,7 @@ export function Tooltip({ content, position = 'top', children }: TooltipProps) {
   return (
     <div
       className="relative inline-flex"
+      role="presentation"
       onMouseEnter={show}
       onMouseLeave={hide}
       onFocus={show}

@@ -139,7 +139,7 @@ export function AdminQuizOverview() {
       <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-          <span className="ml-3 text-slate-600 font-medium">Memuat data kuis...</span>
+          <span className="ml-3 text-slate-600 dark:text-slate-400 font-medium">Memuat data kuis...</span>
         </div>
       </div>
     )
@@ -148,51 +148,51 @@ export function AdminQuizOverview() {
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="mb-6">
+              <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">
           Overview Kuis Sekolah
         </h1>
-        <p className="text-slate-500 mt-1">
+        <p className="text-slate-500 dark:text-slate-400 mt-1">
           Pantau semua kuis dan aktivitas anti-cheat di seluruh sekolah
         </p>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
-            <BookOpen className="w-5 h-5 text-blue-600" />
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
+            <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <p className="text-2xl font-black text-slate-800">{totalQuizzes}</p>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Kuis</p>
+            <p className="text-2xl font-black text-slate-800 dark:text-slate-100">{totalQuizzes}</p>
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Kuis</p>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
-            <BarChart3 className="w-5 h-5 text-green-600" />
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
+            <BarChart3 className="w-5 h-5 text-green-600 dark:text-green-400" />
           </div>
           <div>
-            <p className="text-2xl font-black text-slate-800">{publishedCount}</p>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Diterbitkan</p>
+            <p className="text-2xl font-black text-slate-800 dark:text-slate-100">{publishedCount}</p>
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Diterbitkan</p>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
-            <Users className="w-5 h-5 text-purple-600" />
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
+            <Users className="w-5 h-5 text-purple-600 dark:text-purple-400" />
           </div>
           <div>
-            <p className="text-2xl font-black text-slate-800">{totalAttempts}</p>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Percobaan</p>
+            <p className="text-2xl font-black text-slate-800 dark:text-slate-100">{totalAttempts}</p>
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Percobaan</p>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-            <Trophy className="w-5 h-5 text-amber-600" />
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+            <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400" />
           </div>
           <div>
-            <p className="text-2xl font-black text-slate-800">{avgScore}%</p>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Rata-rata</p>
+            <p className="text-2xl font-black text-slate-800 dark:text-slate-100">{avgScore}%</p>
+            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Rata-rata</p>
           </div>
         </div>
       </div>
@@ -234,7 +234,7 @@ export function AdminQuizOverview() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center mb-4">
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-center mb-4">
           <p className="text-red-600">{error}</p>
         </div>
       )}
@@ -261,11 +261,11 @@ export function AdminQuizOverview() {
             />
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200">
+                  <tr className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
                     {[
                       { key: 'quiz_title' as SortKey, label: 'Kuis' },
                       { key: 'total_attempts' as SortKey, label: 'Percobaan' },
@@ -291,14 +291,14 @@ export function AdminQuizOverview() {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                   {filteredQuizzes.map((quiz) => {
                     const badge = statusBadge[quiz.status] ?? statusBadge.draft
                     return (
-                      <tr key={quiz.quiz_id} className="hover:bg-slate-50 transition-colors">
+                      <tr key={quiz.quiz_id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                         <td className="px-4 py-3">
                           <div>
-                            <p className="font-bold text-slate-800">{quiz.quiz_title}</p>
+                            <p className="font-bold text-slate-800 dark:text-slate-200">{quiz.quiz_title}</p>
                             <p className="text-xs text-slate-500">
                               {quiz.class_name ?? 'No class'} · {quiz.teacher_name ?? 'Unknown'}
                               {' · '}
@@ -315,7 +315,7 @@ export function AdminQuizOverview() {
                             {badge.label}
                           </span>
                         </td>
-                        <td className="px-4 py-3 font-bold text-slate-700">
+                        <td className="px-4 py-3 font-bold text-slate-700 dark:text-slate-300">
                           {quiz.total_attempts}
                         </td>
                         <td className="px-4 py-3">
@@ -362,7 +362,7 @@ export function AdminQuizOverview() {
                   })}
                   {filteredQuizzes.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-4 py-12 text-center text-slate-500">
+                      <td colSpan={5} className="px-4 py-12 text-center text-slate-500 dark:text-slate-400">
                         Tidak ada kuis ditemukan.
                       </td>
                     </tr>
@@ -376,7 +376,7 @@ export function AdminQuizOverview() {
 
       {/* Audit Log Tab */}
       {activeTab === 'audit' && (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
           {auditLog.length === 0 ? (
             <div className="p-12 text-center">
               <ShieldAlert className="w-10 h-10 text-green-400 mx-auto mb-3" />
@@ -404,10 +404,10 @@ export function AdminQuizOverview() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                   {auditLog.map((entry) => (
-                    <tr key={entry.signal_id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 font-medium text-slate-800">{entry.student_name}</td>
+                    <tr key={entry.signal_id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                      <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">{entry.student_name}</td>
                       <td className="px-4 py-3 text-slate-600">{entry.quiz_title}</td>
                       <td className="px-4 py-3">
                         <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-red-100 text-red-700">

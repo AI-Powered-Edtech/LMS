@@ -72,6 +72,14 @@ export function FunnelComparison({ courseId }: FunnelComparisonProps) {
           {funnels.map((f) => (
             <div
               key={f.funnel_id}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setSelectedFunnelId((prev) => (prev === f.funnel_id ? null : f.funnel_id))
+                }
+              }}
               className={`group flex cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 transition-colors ${
                 selectedFunnelId === f.funnel_id
                   ? 'bg-indigo-50 dark:bg-indigo-900/20'

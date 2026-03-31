@@ -94,9 +94,9 @@ export function VirtualTable<T>({
       className={`overflow-auto ${className}`}
       style={{ maxHeight }}
       tabIndex={onRowClick ? 0 : undefined}
-      role={onRowClick ? 'grid' : undefined}
+      role="grid"
       aria-label={caption}
-      onKeyDown={onRowClick ? handleKeyDown : undefined}
+      onKeyDown={handleKeyDown}
     >
       <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
         {caption && <caption className="sr-only">{caption}</caption>}

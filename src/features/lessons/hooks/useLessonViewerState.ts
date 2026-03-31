@@ -47,6 +47,13 @@ export function useLessonViewerState() {
   const [_sidebarLoading, setSidebarLoading] = useState(false)
   const [moduleTitle, setModuleTitle] = useState<string>('')
 
+  // Refs to avoid stale closures in handleCompletionMet
+  const moduleProgressRef = useRef<Record<string, LessonProgress>>({})
+  moduleProgressRef.current = moduleProgress
+
+  const moduleLessonsRef = useRef<Lesson[]>([])
+  moduleLessonsRef.current = moduleLessons
+
   // UI state
   const [showCelebration, setShowCelebration] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
@@ -56,6 +63,9 @@ export function useLessonViewerState() {
   const [lastQuizScore, _setLastQuizScore] = useState<number | null>(null)
   const [showXPReward, setShowXPReward] = useState(false)
   const [activeTab, setActiveTab] = useState<'content' | 'discussion' | 'ai_tutor'>('content')
+
+  // Throttle ref for handleVideoTimeUpdate (Fix H-11)
+  const lastVideoUpdateRef = useRef(0)
 
   // Computed navigation state
   const currentLessonIndex = moduleLessons.findIndex((l) => l.id === lessonId)
@@ -95,7 +105,6 @@ export function useLessonViewerState() {
     [setSearchParams, moduleLessons, moduleProgress, role]
   )
 
-  /* eslint-disable react-hooks/exhaustive-deps */
   const handleCompletionMet = useCallback(async () => {
     if (
       !state.lesson ||
@@ -130,29 +139,36 @@ export function useLessonViewerState() {
         }))
       }
 
-      setShowCelebration(true)
-      try {
-        const confetti = (await import('canvas-confetti')).default
-        confetti({ particleCount: 150, spread: 80, origin: { y: 0.7 } })
-      } catch (err) {
-        if (import.meta.env.DEV) console.warn('Confetti failed:', err)
-      }
-      setTimeout(() => setShowCelebration(false), 4000)
-
+      // Check if module will be completed — determine before firing confetti (Fix M-15)
+      let willShowModuleComplete = false
       if (moduleId && moduleCompleteShownRef.current !== moduleId) {
         const updatedProgress = {
-          ...moduleProgress,
+          ...moduleProgressRef.current,
           [state.lesson!.id]: { completed: true, status: 'completed' },
         }
         const allDone =
-          moduleLessons.length > 0 &&
-          moduleLessons.every(
+          moduleLessonsRef.current.length > 0 &&
+          moduleLessonsRef.current.every(
             (l) => updatedProgress[l.id]?.completed || updatedProgress[l.id]?.status === 'completed'
           )
-        if (allDone) {
-          moduleCompleteShownRef.current = moduleId
-          setTimeout(() => setShowModuleComplete(true), 4200)
+        willShowModuleComplete = allDone
+      }
+
+      setShowCelebration(true)
+      // Only fire lesson confetti if module completion won't show its own (Fix M-15)
+      if (!willShowModuleComplete) {
+        try {
+          const confetti = (await import('canvas-confetti')).default
+          confetti({ particleCount: 150, spread: 80, origin: { y: 0.7 } })
+        } catch (err) {
+          if (import.meta.env.DEV) console.warn('Confetti failed:', err)
         }
+      }
+      setTimeout(() => setShowCelebration(false), 4000)
+
+      if (willShowModuleComplete) {
+        moduleCompleteShownRef.current = moduleId
+        setTimeout(() => setShowModuleComplete(true), 4200)
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error('Completion failed:', err)
@@ -163,8 +179,7 @@ export function useLessonViewerState() {
       })
       addToast({ message: 'Gagal menandai selesai. Coba lagi.', type: 'error' })
     }
-  }, [state.lesson, state.status, tenantId, user?.id, actions, addToast])
-  /* eslint-enable react-hooks/exhaustive-deps */
+  }, [state.lesson, state.status, tenantId, user?.id, actions, addToast, moduleId])
 
   const handleProgressUpdate = useCallback(
     (percentage: number, position?: number) => {
@@ -192,9 +207,17 @@ export function useLessonViewerState() {
     [lessonId, tenantId, user?.id, state.progressPercentage, state.status]
   )
 
+  // Fix H-11: Throttled to 10s — ProgressReporter handles 5s percentage updates
   const handleVideoTimeUpdate = useCallback(
     async (blockId: string, seconds: number) => {
       if (!lessonId || !tenantId || !user?.id || state.status === 'completed') return
+
+      // Throttle: only update if 10+ seconds have passed since last call
+      // ProgressReporter handles the 5-second percentage updates
+      const now = Date.now()
+      if (now - lastVideoUpdateRef.current < 10000) return
+      lastVideoUpdateRef.current = now
+
       await lessonService.queueProgressUpdate(
         lessonId,
         tenantId,
@@ -214,7 +237,7 @@ export function useLessonViewerState() {
         if (el) {
           el.scrollIntoView({ behavior: 'smooth', block: 'start' })
           if (offset && offset > 0)
-            setTimeout(() => window.scrollBy({ top: offset, behavior: 'smooth' }), 300)
+            setTimeout(() => window.scrollBy({ top: offset, behavior: 'smooth' }), 600)
           return
         }
       }
@@ -228,9 +251,12 @@ export function useLessonViewerState() {
     []
   )
 
+  // Fix L-30: Also scroll to top on start over
   const handleStartOver = useCallback(() => {
     setShowResumeBanner(false)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
+
   const handleResume = useCallback(() => {
     setShowResumeBanner(false)
     setTimeout(() => {

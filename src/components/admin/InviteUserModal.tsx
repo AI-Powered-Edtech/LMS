@@ -91,8 +91,8 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
   }
 
   return (
-    <div style={styles.overlay} onClick={handleClose}>
-      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+    <div role="presentation" style={styles.overlay} onClick={handleClose}>
+      <div role="presentation" style={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div style={styles.header}>
           <h2 style={styles.title}>📨 Undang Pengguna Baru</h2>
           <p style={styles.subtitle}>
