@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { useToast } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { CommentData } from '@/src/features/discussions/api/commentService'
-import { createQueryKeys } from '@/src/shared/lib/queryKeys'
+import { useToast } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { CommentData } from '@/features/discussions/api/commentService'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
 
 type Comment = CommentData
 

@@ -2,11 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { create } from 'zustand'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { Classroom, classroomService } from '@/src/features/classroom/api/classroomService'
-import { useToast } from '@/src/hooks/useToast'
-import { createQueryKeys } from '@/src/lib/queryKeys'
-import { captureError } from '@/src/utils/sentry'
+import { useAuth } from '@/contexts/AuthContext'
+import { Classroom, classroomService } from '@/features/classroom/api/classroomService'
+import { useToast } from '@/hooks/useToast'
+import { createQueryKeys } from '@/lib/queryKeys'
+import { captureError } from '@/utils/sentry'
 
 const classroomKeys = createQueryKeys('classrooms')
 

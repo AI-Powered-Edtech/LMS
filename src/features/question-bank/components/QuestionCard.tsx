@@ -1,7 +1,7 @@
 import { CheckCircle, Edit, FileText, List, Tag, Trash2, Type } from 'lucide-react'
 import React from 'react'
 
-import { QuestionBankItem } from '@/src/features/question-bank/api/questionBankService'
+import { QuestionBankItem } from '@/features/question-bank/api/questionBankService'
 
 interface QuestionCardProps {
   question: QuestionBankItem

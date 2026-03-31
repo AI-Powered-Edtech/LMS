@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 import { useAuth } from '../../contexts/AuthContext'
 import { useTenantQuery } from '../useTenantQuery'
@@ -18,7 +18,7 @@ const fromMock = vi.fn(() => ({
   insert: insertMock,
 }))
 
-vi.mock('@/src/services/supabase/client', () => {
+vi.mock('@/services/supabase/client', () => {
   return {
     supabase: {
       from: vi.fn(() => fromMock()),

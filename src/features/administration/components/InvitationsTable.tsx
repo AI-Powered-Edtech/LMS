@@ -10,8 +10,8 @@ import {
 } from 'lucide-react'
 import React from 'react'
 
-import type { TenantInvitation } from '@/src/features/administration/api/adminUserService'
-import { cn } from '@/src/utils/cn'
+import type { TenantInvitation } from '@/features/administration/api/adminUserService'
+import { cn } from '@/utils/cn'
 
 const ROLE_CONFIG: Record<
   string,

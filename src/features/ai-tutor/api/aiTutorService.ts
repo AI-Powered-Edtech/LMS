@@ -17,7 +17,7 @@ export {
 } from './promptBuilder'
 
 // Import supabase for internal use
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 /**
  * Ask a question to the AI Tutor

@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 export interface Discussion {
   id: string

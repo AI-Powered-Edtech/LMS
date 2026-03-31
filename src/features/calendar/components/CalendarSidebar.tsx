@@ -11,10 +11,10 @@ import {
 } from 'lucide-react'
 import { motion } from 'motion/react'
 
-import type { CalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
-import { getCountdown, getEventColor } from '@/src/features/calendar/utils/calendarUtils'
-import { cn } from '@/src/utils/cn'
-import { translateEventType } from '@/src/utils/statusTranslations'
+import type { CalendarEvent } from '@/features/calendar/hooks/useCalendarQueries'
+import { getCountdown, getEventColor } from '@/features/calendar/utils/calendarUtils'
+import { cn } from '@/utils/cn'
+import { translateEventType } from '@/utils/statusTranslations'
 
 interface CalendarSidebarProps {
   selectedDate: Date | null

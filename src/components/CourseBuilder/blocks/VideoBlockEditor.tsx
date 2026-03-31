@@ -1,10 +1,10 @@
 import { Clock, Link as LinkIcon, Play, Video } from 'lucide-react'
 import { useState } from 'react'
 
-import { useBuilder } from '@/src/contexts/BuilderContext'
-import { InteractiveVideoEditor } from '@/src/features/courses/components/InteractiveVideoEditor'
-import type { InteractiveVideoMetadata } from '@/src/features/lessons/types'
-import { parseVideoUrl } from '@/src/utils/videoUtils'
+import { useBuilder } from '@/contexts/BuilderContext'
+import { InteractiveVideoEditor } from '@/features/courses/components/InteractiveVideoEditor'
+import type { InteractiveVideoMetadata } from '@/features/lessons/types'
+import { parseVideoUrl } from '@/utils/videoUtils'
 
 interface VideoBlockEditorProps {
   blockId: string

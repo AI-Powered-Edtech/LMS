@@ -3,10 +3,10 @@ import { AlertTriangle, Calendar, Filter, Flame, TrendingUp, Trophy } from 'luci
 import { motion } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { EmptyState, OptimizedImage, SkeletonCard } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { rankLeaderboard } from '@/src/utils/clientCompute'
-import { cn } from '@/src/utils/cn'
+import { EmptyState, OptimizedImage, SkeletonCard } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { rankLeaderboard } from '@/utils/clientCompute'
+import { cn } from '@/utils/cn'
 
 import { useLeaderboardV2 } from '../queries/gamificationQueries'
 import type { LeaderboardPeriod, LeaderboardSortBy, LeaderboardV2Entry } from '../types'

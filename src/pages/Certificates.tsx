@@ -22,14 +22,14 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { EmptyState, SkeletonCard } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import type { Certificate } from '@/src/features/gamification'
-import { useStudentCertificates } from '@/src/features/gamification'
-import { certificateService } from '@/src/features/gamification/api/certificateService'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useToast } from '@/src/hooks/useToast'
+import { EmptyState, SkeletonCard } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import type { Certificate } from '@/features/gamification'
+import { useStudentCertificates } from '@/features/gamification'
+import { certificateService } from '@/features/gamification/api/certificateService'
+import { useDebounce } from '@/hooks/useDebounce'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useToast } from '@/hooks/useToast'
 
 export function Certificates() {
   const addToast = useToast((s) => s.addToast)
@@ -227,7 +227,8 @@ export function Certificates() {
             Gagal Memuat Sertifikat
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md">
-            Terjadi kesalahan saat memuat daftar sertifikat Anda. Silakan muat ulang halaman atau coba lagi nanti.
+            Terjadi kesalahan saat memuat daftar sertifikat Anda. Silakan muat ulang halaman atau
+            coba lagi nanti.
           </p>
         </div>
       </div>

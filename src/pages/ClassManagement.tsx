@@ -1,13 +1,13 @@
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { ArrowLeft, Loader2, Plus, X } from 'lucide-react'
-import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
 import { useEffect } from 'react'
 import { type Resolver, useForm } from 'react-hook-form'
 
-import { ClassDetailPanel } from '@/src/features/classroom/components/ClassDetailPanel'
-import { ClassListPanel } from '@/src/features/classroom/components/ClassListPanel'
-import { useClassManagementState } from '@/src/features/classroom/hooks/useClassManagementState'
-import { type ClassroomFormData, ClassroomFormSchema } from '@/src/shared/schemas/forms'
+import { ClassDetailPanel } from '@/features/classroom/components/ClassDetailPanel'
+import { ClassListPanel } from '@/features/classroom/components/ClassListPanel'
+import { useClassManagementState } from '@/features/classroom/hooks/useClassManagementState'
+import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
+import { type ClassroomFormData, ClassroomFormSchema } from '@/shared/schemas/forms'
 
 export function ClassManagement() {
   const s = useClassManagementState()

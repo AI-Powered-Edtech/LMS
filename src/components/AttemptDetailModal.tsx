@@ -10,13 +10,13 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   AttemptDetailAnswer,
   quizAnalyticsService,
-} from '@/src/features/quizzes/api/quizAnalyticsService'
-import { gradeAttemptQuestion } from '@/src/features/quizzes/api/quizManager.service'
-import { cn } from '@/src/utils/cn'
+} from '@/features/quizzes/api/quizAnalyticsService'
+import { gradeAttemptQuestion } from '@/features/quizzes/api/quizManager.service'
+import { cn } from '@/utils/cn'
 
 interface AttemptDetailModalProps {
   attemptId: string

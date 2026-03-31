@@ -1,9 +1,6 @@
 import { ChevronDown } from 'lucide-react'
 
-import type {
-  AssignmentOption,
-  ClassOption,
-} from '@/src/features/quizzes/hooks/useQuizGradebookState'
+import type { AssignmentOption, ClassOption } from '@/features/quizzes/hooks/useQuizGradebookState'
 
 interface QuizGradebookFiltersProps {
   classes: ClassOption[]

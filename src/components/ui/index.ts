@@ -1,5 +1,5 @@
 // EduSync LMS — UI Design System
-// Import: import { Button, Card, Modal } from '@/src/components/ui';
+// Import: import { Button, Card, Modal } from '@/components/ui';
 
 export { Avatar } from './Avatar'
 export { Badge } from './Badge'

@@ -3,10 +3,10 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { BadgeManager } from '@/src/features/gamification/components/BadgeManager'
-import { ReportList } from '@/src/features/reports/components/ReportList'
-import { ReportScheduler } from '@/src/features/reports/components/ReportScheduler'
-import { cn } from '@/src/utils/cn'
+import { BadgeManager } from '@/features/gamification/components/BadgeManager'
+import { ReportList } from '@/features/reports/components/ReportList'
+import { ReportScheduler } from '@/features/reports/components/ReportScheduler'
+import { cn } from '@/utils/cn'
 
 import {
   useCourseDashboard,

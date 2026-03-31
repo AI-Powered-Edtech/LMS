@@ -17,11 +17,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   administrationService,
   type AuditLog,
-} from '@/src/features/administration/api/administrationService'
-import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
-import { captureError } from '@/src/utils/sentry'
+} from '@/features/administration/api/administrationService'
+import { AdministrationSkeleton } from '@/features/administration/components/AdministrationSkeleton'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
+import { captureError } from '@/utils/sentry'
 
 const ACTION_CONFIG: Record<
   string,

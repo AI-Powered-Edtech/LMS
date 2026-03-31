@@ -1,6 +1,6 @@
 import { BookOpen, Circle } from 'lucide-react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import { useCourseDashboard } from '../queries/analyticsQueries'
 

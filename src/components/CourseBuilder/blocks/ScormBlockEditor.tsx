@@ -10,9 +10,9 @@ import {
 } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useBuilder } from '@/src/contexts/BuilderContext'
-import { supabase } from '@/src/services/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
+import { useBuilder } from '@/contexts/BuilderContext'
+import { supabase } from '@/services/supabase/client'
 
 interface ScormBlockEditorProps {
   blockId: string

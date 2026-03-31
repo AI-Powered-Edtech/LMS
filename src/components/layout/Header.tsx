@@ -2,16 +2,16 @@ import { Activity, Flame, LogOut, Moon, Star, Sun, UserCircle } from 'lucide-rea
 import { memo, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { Role, useAuth } from '@/src/contexts/AuthContext'
-import { useTheme } from '@/src/contexts/ThemeContext'
-import { LevelBadge } from '@/src/features/gamification/components/LevelBadge'
-import { useStudentXPProfile } from '@/src/features/gamification/queries/gamificationQueries'
-import { NotificationBell as AppNotificationBell } from '@/src/features/notifications'
-import { useStudentProgressData } from '@/src/features/progress/hooks/useStudentProgressQueries'
-import { NotificationBell as StruggleBell } from '@/src/features/struggle'
-import { cn } from '@/src/utils/cn'
-import { captureError } from '@/src/utils/sentry'
+import { OptimizedImage } from '@/components/ui'
+import { Role, useAuth } from '@/contexts/AuthContext'
+import { useTheme } from '@/contexts/ThemeContext'
+import { LevelBadge } from '@/features/gamification/components/LevelBadge'
+import { useStudentXPProfile } from '@/features/gamification/queries/gamificationQueries'
+import { NotificationBell as AppNotificationBell } from '@/features/notifications'
+import { useStudentProgressData } from '@/features/progress/hooks/useStudentProgressQueries'
+import { NotificationBell as StruggleBell } from '@/features/struggle'
+import { cn } from '@/utils/cn'
+import { captureError } from '@/utils/sentry'
 
 export const Header = memo(function Header() {
   const { xp } = useStudentProgressData()

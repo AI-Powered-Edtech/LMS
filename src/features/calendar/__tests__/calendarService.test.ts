@@ -4,7 +4,7 @@ import { calendarService } from '../api/calendarService'
 
 const mockFromChain = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
+vi.mock('@/services/supabase/client', () => ({
   supabase: {
     from: (table: string) => {
       // Return a deeply chainable proxy that ultimately resolves via mockFromChain

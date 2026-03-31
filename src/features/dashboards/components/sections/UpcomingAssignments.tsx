@@ -1,9 +1,9 @@
 import { AlertTriangle, ArrowRight } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { Badge, Card, EmptyState, SkeletonCard } from '@/src/components/ui'
-import { cn } from '@/src/utils/cn'
-import { translateLessonType } from '@/src/utils/statusTranslations'
+import { Badge, Card, EmptyState, SkeletonCard } from '@/components/ui'
+import { cn } from '@/utils/cn'
+import { translateLessonType } from '@/utils/statusTranslations'
 
 interface Assignment {
   id: string

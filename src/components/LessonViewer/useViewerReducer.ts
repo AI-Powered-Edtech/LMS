@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useReducer } from 'react'
 
-import { Lesson, LessonProgress } from '@/src/features/lessons'
+import { Lesson, LessonProgress } from '@/features/lessons'
 
 // ============================================================
 // State

@@ -1,8 +1,8 @@
 import { CheckCircle, Clock, FileText, XCircle } from 'lucide-react'
 import { motion } from 'motion/react'
 
-import type { QuizAttemptResult } from '@/src/features/quizzes'
-import { cn } from '@/src/utils/cn'
+import type { QuizAttemptResult } from '@/features/quizzes'
+import { cn } from '@/utils/cn'
 
 interface QuizViewerResultProps {
   result: QuizAttemptResult

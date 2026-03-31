@@ -2,11 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { AlertCircle, Calendar, CheckCircle, Clock, XCircle } from 'lucide-react'
 import { useMemo } from 'react'
 
-import { EmptyState } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { ProgressSkeleton } from '@/src/features/progress/components/ProgressSkeleton'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { EmptyState } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { ProgressSkeleton } from '@/features/progress/components/ProgressSkeleton'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { supabase } from '@/services/supabase/client'
 
 const STATUS_CONFIG = {
   hadir: {
@@ -195,7 +195,10 @@ export function StudentAttendance() {
           {isLoading ? (
             <div className="p-8 space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-12 bg-slate-100 dark:bg-slate-700 rounded-xl animate-pulse" />
+                <div
+                  key={i}
+                  className="h-12 bg-slate-100 dark:bg-slate-700 rounded-xl animate-pulse"
+                />
               ))}
             </div>
           ) : myRecords.length === 0 ? (

@@ -12,15 +12,15 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { ModerationSkeleton } from '@/src/features/moderation/components/ModerationSkeleton'
+import { ModerationSkeleton } from '@/features/moderation/components/ModerationSkeleton'
 import {
   useModerationReports,
   useResolveReport,
-} from '@/src/features/moderation/queries/moderationQueries'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
-import { translateContentType } from '@/src/utils/statusTranslations'
+} from '@/features/moderation/queries/moderationQueries'
+import { useDebounce } from '@/hooks/useDebounce'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
+import { translateContentType } from '@/utils/statusTranslations'
 
 export function ModerationDashboard() {
   usePageTitle('Dasbor Moderasi')

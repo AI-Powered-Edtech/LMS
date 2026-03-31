@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useToast } from '@/src/hooks/useToast'
-import { captureError } from '@/src/utils/sentry'
+import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/useToast'
+import { captureError } from '@/utils/sentry'
 
 import { CourseVersion, versionService } from '../api/versionService'
 

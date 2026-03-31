@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { getPendingCount } from '@/src/utils/offlineStorage'
+import { getPendingCount } from '@/utils/offlineStorage'
 
 /**
  * Returns the number of items waiting in the offline sync queue.

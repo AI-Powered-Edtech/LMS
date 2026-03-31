@@ -9,7 +9,7 @@ import { HelpCircle, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
-import { usePageHelp } from '@/src/hooks/usePageHelp'
+import { usePageHelp } from '@/hooks/usePageHelp'
 
 export function HelpButton() {
   const helpItem = usePageHelp()

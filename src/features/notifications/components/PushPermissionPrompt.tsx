@@ -11,7 +11,7 @@
 import { Bell, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import { usePushSubscription } from '../hooks/usePushSubscription'
 

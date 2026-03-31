@@ -2,8 +2,8 @@ import { valibotResolver } from '@hookform/resolvers/valibot'
 import { useForm } from 'react-hook-form'
 import * as v from 'valibot'
 
-import { FormField } from '@/src/components/ui/FormField'
-import { cn } from '@/src/utils/cn'
+import { FormField } from '@/components/ui/FormField'
+import { cn } from '@/utils/cn'
 
 const schema = v.object({
   name: v.pipe(v.string(), v.minLength(1, 'Nama wajib diisi')),

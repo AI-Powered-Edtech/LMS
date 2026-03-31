@@ -1,7 +1,7 @@
 import { type RealtimeChannel } from '@supabase/supabase-js'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 import type { BuilderAction } from './builderReducer'
 

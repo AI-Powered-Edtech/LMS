@@ -1,8 +1,8 @@
 import { AlertTriangle, Loader2, Package, RefreshCw } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { lessonService, type UpsertScormRuntimeParams } from '@/src/features/lessons/api/lessonService'
+import { useAuth } from '@/contexts/AuthContext'
+import { lessonService, type UpsertScormRuntimeParams } from '@/features/lessons/api/lessonService'
 
 import {
   createScormBridge,

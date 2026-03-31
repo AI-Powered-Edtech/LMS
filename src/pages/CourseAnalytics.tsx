@@ -1,9 +1,9 @@
 import { ArrowLeft, BarChart3 } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { EmptyState } from '@/src/components/ui'
-import { TeacherAnalyticsDashboard } from '@/src/features/analytics'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { EmptyState } from '@/components/ui'
+import { TeacherAnalyticsDashboard } from '@/features/analytics'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export function CourseAnalytics() {
   usePageTitle('Analitik Kursus')

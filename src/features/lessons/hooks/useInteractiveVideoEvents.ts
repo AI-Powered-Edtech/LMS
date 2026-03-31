@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import type { InteractiveEvent, InteractiveVideoMetadata, Quiz } from '@/src/features/lessons/types'
-import { getQuizWithQuestions } from '@/src/features/quizzes/api/quizManager.service'
+import { useAuth } from '@/contexts/AuthContext'
+import type { InteractiveEvent, InteractiveVideoMetadata, Quiz } from '@/features/lessons/types'
+import { getQuizWithQuestions } from '@/features/quizzes/api/quizManager.service'
 
 // ==========================================================================
 // useInteractiveVideoEvents — Shared hook for interactive video pop-up quizzes

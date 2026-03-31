@@ -1,7 +1,7 @@
-import { HubView } from '@/src/components/HubView'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { navigationItems } from '@/src/shared/config/navigation'
+import { HubView } from '@/components/HubView'
+import { useAuth } from '@/contexts/AuthContext'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { navigationItems } from '@/shared/config/navigation'
 
 export function Directory() {
   usePageTitle('Direktori')

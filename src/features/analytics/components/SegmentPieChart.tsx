@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 
-import { useTheme } from '@/src/contexts/ThemeContext'
+import { useTheme } from '@/contexts/ThemeContext'
 
 import { EngagementSegment, EngagementSummaryRow } from '../types'
 

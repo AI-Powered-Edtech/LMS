@@ -1,21 +1,21 @@
 import { Grid, List, Plus } from 'lucide-react'
 import { useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { AddEventModal } from '@/src/features/calendar/components/AddEventModal'
-import { AgendaView } from '@/src/features/calendar/components/AgendaView'
-import { CalendarSidebar } from '@/src/features/calendar/components/CalendarSidebar'
-import { CalendarSkeleton } from '@/src/features/calendar/components/CalendarSkeleton'
-import { MonthView } from '@/src/features/calendar/components/MonthView'
+import { useAuth } from '@/contexts/AuthContext'
+import { AddEventModal } from '@/features/calendar/components/AddEventModal'
+import { AgendaView } from '@/features/calendar/components/AgendaView'
+import { CalendarSidebar } from '@/features/calendar/components/CalendarSidebar'
+import { CalendarSkeleton } from '@/features/calendar/components/CalendarSkeleton'
+import { MonthView } from '@/features/calendar/components/MonthView'
 import {
   type CalendarEvent,
   useCalendarEvents,
   useUpdateCalendarEvent,
-} from '@/src/features/calendar/hooks/useCalendarQueries'
-import { useCalendarStore } from '@/src/features/calendar/hooks/useCalendarQueries'
-import { useSendNotification } from '@/src/features/notifications'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+} from '@/features/calendar/hooks/useCalendarQueries'
+import { useCalendarStore } from '@/features/calendar/hooks/useCalendarQueries'
+import { useSendNotification } from '@/features/notifications'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 export function Calendar() {
   usePageTitle('Kalender')

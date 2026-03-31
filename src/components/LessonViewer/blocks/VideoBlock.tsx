@@ -2,10 +2,10 @@ import { AlertTriangle } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useOptionalLearningSession } from '@/src/features/analytics'
-import { useInteractiveVideoEvents } from '@/src/features/lessons/hooks/useInteractiveVideoEvents'
-import { QuizViewer } from '@/src/features/quizzes/components/QuizViewer'
-import { parseVideoUrl, type VideoType } from '@/src/utils/videoUtils'
+import { useOptionalLearningSession } from '@/features/analytics'
+import { useInteractiveVideoEvents } from '@/features/lessons/hooks/useInteractiveVideoEvents'
+import { QuizViewer } from '@/features/quizzes/components/QuizViewer'
+import { parseVideoUrl, type VideoType } from '@/utils/videoUtils'
 
 interface VideoBlockProps {
   blockId?: string
@@ -46,7 +46,8 @@ export function VideoBlock({
   const hasCalledCompletion = useRef(false)
   const lastReportedSecond = useRef(0)
   // H3: Anti-skip — high-water mark for the furthest point the student has watched
-  const maxWatchedTimeRef = useRef(0)
+  // VB-2 FIX: Initialize to savedVideoPosition so canplay seek is not clamped
+  const maxWatchedTimeRef = useRef(savedVideoPosition ?? 0)
   // L3: Initialize to null to avoid flash before URL is parsed
   const [videoType, setVideoType] = useState<VideoType | null>(null)
   const [embedUrl, setEmbedUrl] = useState<string | null>(null)
@@ -54,6 +55,14 @@ export function VideoBlock({
   // Interactive Video — shared hook
   const { activeEvent, loadedQuizzes, checkForEvent, handleEventComplete } =
     useInteractiveVideoEvents({ metadata, videoRef })
+
+  // VB-2 FIX: Sync maxWatchedTimeRef when savedVideoPosition changes
+  // This ensures anti-skip doesn't block resume seeks
+  useEffect(() => {
+    if (savedVideoPosition != null && savedVideoPosition > maxWatchedTimeRef.current) {
+      maxWatchedTimeRef.current = savedVideoPosition
+    }
+  }, [savedVideoPosition])
 
   // Parse URL on mount or when URL changes
   useEffect(() => {
@@ -124,7 +133,6 @@ export function VideoBlock({
     if (videoType === 'direct' || !containerRef.current) return
 
     const container = containerRef.current
-    let timerId: ReturnType<typeof setTimeout> | null = null
     let visibleSeconds = 0
     let visibilityCheckInterval: ReturnType<typeof setInterval> | null = null
     // Required minimum visible seconds before auto-completing (2 minutes)
@@ -176,7 +184,6 @@ export function VideoBlock({
 
     return () => {
       observer.disconnect()
-      if (timerId) clearTimeout(timerId)
       if (visibilityCheckInterval) clearInterval(visibilityCheckInterval)
     }
   }, [videoType, isCompleted, onProgressUpdate, onCompletionMet, onStartViewing])
@@ -189,14 +196,21 @@ export function VideoBlock({
   // Handle canplay event - seek to saved position for direct videos
   const handleCanPlay = useCallback(() => {
     // Only seek for direct video elements (YouTube/Vimeo embeds don't allow JS seeking)
+    // VB-2 FIX: maxWatchedTimeRef is already initialized to savedVideoPosition,
+    // so the anti-skip handler won't block this seek
     if (savedVideoPosition && videoRef.current && videoType === 'direct') {
       videoRef.current.currentTime = savedVideoPosition
     }
   }, [savedVideoPosition, videoType])
 
-  // H3: Anti-skip — prevent seeking past unwatched portion
+  // H3: Anti-skip — prevent seeking FORWARD past unwatched portion
+  // VB-4 FIX: Only clamp forward seeks, allow backward seeking (rewind)
   const handleSeeking = useCallback(() => {
-    if (videoRef.current && videoRef.current.currentTime > maxWatchedTimeRef.current + 2) {
+    if (!videoRef.current) return
+    const targetTime = videoRef.current.currentTime
+    // Only block forward skips past the high-water mark (+ 2s tolerance)
+    // Allow backward seeks (rewind) freely
+    if (targetTime > maxWatchedTimeRef.current + 2) {
       videoRef.current.currentTime = maxWatchedTimeRef.current
     }
   }, [])
@@ -220,8 +234,8 @@ export function VideoBlock({
             className="absolute inset-0 w-full h-full rounded-lg"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            // L1: sandbox attribute for security
-            sandbox="allow-scripts allow-same-origin allow-presentation"
+            // VB-7 FIX: Added allow-forms and allow-popups for YouTube/Vimeo compatibility
+            sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
             // L2: Unique title per iframe for accessibility
             title={blockId ? `Pemutar video ${blockId.slice(-6)}` : 'Pemutar video'}
           />
@@ -246,7 +260,7 @@ export function VideoBlock({
             onTimeUpdate={handleTimeUpdate}
             onPlay={handlePlay}
             onCanPlay={handleCanPlay}
-            // H3: Anti-skip handler
+            // H3: Anti-skip handler (VB-4 FIX: only blocks forward seeks)
             onSeeking={handleSeeking}
             className="absolute inset-0 w-full h-full rounded-lg"
             controlsList="nodownload"

@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle, HelpCircle, Loader2 } from 'lucide-react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 interface QuizEditorToolbarProps {
   isPublished: boolean

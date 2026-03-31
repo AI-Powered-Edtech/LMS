@@ -3,8 +3,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
+import { useAuth } from '@/contexts/AuthContext'
+import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
 
 const WELCOME_KEY = 'edusync_teacher_welcomed'
 

@@ -10,10 +10,10 @@ import React, {
   useState,
 } from 'react'
 
-import { authService } from '@/src/features/auth/api/authService'
-import { useToast } from '@/src/hooks/useToast'
-import { supabase } from '@/src/services/supabase/client'
-import { addBreadcrumb, captureError, clearSentryUser, setSentryUser } from '@/src/utils/sentry'
+import { authService } from '@/features/auth/api/authService'
+import { useToast } from '@/hooks/useToast'
+import { supabase } from '@/services/supabase/client'
+import { addBreadcrumb, captureError, clearSentryUser, setSentryUser } from '@/utils/sentry'
 
 export type Role = 'teacher' | 'student' | 'admin'
 
@@ -283,41 +283,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ;(async () => {
             let offset = PAGE_SIZE
             let hasMore = true
+            let maxIterations = 20 // Safety: prevent infinite loop
             const extraMemberships: TenantMembership[] = []
             const extraTenantsMap: Record<string, Tenant> = {}
 
-            while (hasMore) {
-              const { data: more } = await supabase
-                .from('user_roles')
-                .select(`role, tenant_id, tenants ( id, name, slug, is_active )`)
-                .eq('user_id', userId)
-                .range(offset, offset + PAGE_SIZE - 1)
+            try {
+              while (hasMore && maxIterations-- > 0) {
+                const { data: more, error: moreError } = await supabase
+                  .from('user_roles')
+                  .select(`role, tenant_id, tenants ( id, name, slug, is_active )`)
+                  .eq('user_id', userId)
+                  .range(offset, offset + PAGE_SIZE - 1)
 
-              if (!more || more.length === 0) {
-                hasMore = false
-                break
-              }
-
-              more.forEach((r: (typeof rolesData)[number]) => {
-                if (r.tenants) {
-                  const t = Array.isArray(r.tenants) ? r.tenants[0] : r.tenants
-                  extraMemberships.push({
-                    tenant_id: r.tenant_id,
-                    tenant_name: t.name,
-                    tenant_logo: null,
-                    role: r.role.toLowerCase() as Role,
-                  })
-                  extraTenantsMap[t.id] = {
-                    id: t.id,
-                    name: t.name,
-                    slug: t.slug,
-                    is_active: t.is_active,
-                  }
+                if (moreError) {
+                  if (import.meta.env.DEV)
+                    console.error('[Auth] Background pagination error:', moreError)
+                  break
                 }
-              })
 
-              offset += PAGE_SIZE
-              if (more.length < PAGE_SIZE) hasMore = false
+                if (!more || more.length === 0) {
+                  hasMore = false
+                  break
+                }
+
+                more.forEach((r: (typeof rolesData)[number]) => {
+                  if (r.tenants) {
+                    const t = Array.isArray(r.tenants) ? r.tenants[0] : r.tenants
+                    extraMemberships.push({
+                      tenant_id: r.tenant_id,
+                      tenant_name: t.name,
+                      tenant_logo: null,
+                      role: r.role.toLowerCase() as Role,
+                    })
+                    extraTenantsMap[t.id] = {
+                      id: t.id,
+                      name: t.name,
+                      slug: t.slug,
+                      is_active: t.is_active,
+                    }
+                  }
+                })
+
+                hasMore = more.length === PAGE_SIZE
+                offset += PAGE_SIZE
+              }
+            } catch (err) {
+              if (import.meta.env.DEV)
+                console.error('[Auth] Background membership pagination failed:', err)
             }
 
             if (extraMemberships.length > 0) {
@@ -453,23 +465,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ])
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s)
-      setUser(s?.user ?? null)
-      if (s?.user) {
-        wasAuthenticatedRef.current = true
-        addBreadcrumb('Session restored — fetching user data', 'auth', { userId: s.user.id })
-        withTimeout(fetchUserData(s.user.id))
-          .then(() => processPendingInvite(s!.user.id))
-          .then(() => processPendingJoinCode())
-          .finally(() => {
-            setLoading(false)
-          })
-      } else {
-        setLoadingMemberships(false)
+    supabase.auth
+      .getSession()
+      .then(({ data: { session: s } }) => {
+        setSession(s)
+        setUser(s?.user ?? null)
+        if (s?.user) {
+          wasAuthenticatedRef.current = true
+          addBreadcrumb('Session restored — fetching user data', 'auth', { userId: s.user.id })
+          withTimeout(fetchUserData(s.user.id))
+            .then(() => processPendingInvite(s!.user.id))
+            .then(() => processPendingJoinCode())
+            .finally(() => {
+              setLoading(false)
+            })
+        } else {
+          setLoadingMemberships(false)
+          setLoading(false)
+        }
+      })
+      .catch((err) => {
+        if (import.meta.env.DEV) console.error('[Auth] getSession failed:', err)
         setLoading(false)
-      }
-    })
+      })
 
     // Listen for auth changes
     const {

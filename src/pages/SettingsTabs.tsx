@@ -7,13 +7,13 @@ import { Camera, Eye, EyeOff, Lock, Monitor, Moon, Save, Sun } from 'lucide-reac
 import { useCallback, useState } from 'react'
 import { type Resolver, useForm } from 'react-hook-form'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { OfflineFormNotice } from '@/src/components/ui/OfflineFormNotice'
-import type { Theme } from '@/src/contexts/ThemeContext'
-import { publicProfileService } from '@/src/features/profile/api/publicProfileService'
-import { supabase } from '@/src/services/supabase/client'
-import { type ProfileFormData, ProfileFormSchema } from '@/src/shared/schemas/forms'
-import { cn } from '@/src/utils/cn'
+import { OptimizedImage } from '@/components/ui'
+import { OfflineFormNotice } from '@/components/ui/OfflineFormNotice'
+import type { Theme } from '@/contexts/ThemeContext'
+import { publicProfileService } from '@/features/profile/api/publicProfileService'
+import { supabase } from '@/services/supabase/client'
+import { type ProfileFormData, ProfileFormSchema } from '@/shared/schemas/forms'
+import { cn } from '@/utils/cn'
 
 // ── Toggle Row ────────────────────────────────────────────────────────────────
 export function ToggleRow({
@@ -228,7 +228,10 @@ export function SecurityTab() {
       const { data: user } = await supabase.auth.getUser()
       const email = user.user?.email
       if (email) {
-        const { error: verifyError } = await supabase.auth.signInWithPassword({ email, password: currentPassword })
+        const { error: verifyError } = await supabase.auth.signInWithPassword({
+          email,
+          password: currentPassword,
+        })
         if (verifyError) {
           throw new Error('Kata sandi lama tidak valid.')
         }

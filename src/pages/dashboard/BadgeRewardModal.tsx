@@ -1,8 +1,8 @@
 import { Star, Trophy } from 'lucide-react'
 import { motion } from 'motion/react'
 
-import { Button, Modal, ModalBody } from '@/src/components/ui'
-import { useReducedMotion } from '@/src/hooks/useReducedMotion'
+import { Button, Modal, ModalBody } from '@/components/ui'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 interface BadgeRewardModalProps {
   open: boolean

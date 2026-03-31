@@ -5,8 +5,8 @@
 // Extracted from quizPlayer.service.ts for modularity.
 // ==========================================================================
 
-import { supabase } from '@/src/services/supabase/client'
-import { logDevError } from '@/src/utils/logDevError'
+import { supabase } from '@/services/supabase/client'
+import { logDevError } from '@/utils/logDevError'
 
 import type { QuizAttemptQuestion, SubmitAnswer } from '../types/quizzes.types'
 

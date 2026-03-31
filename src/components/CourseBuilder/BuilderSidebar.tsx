@@ -16,16 +16,18 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
-import { useBuilder } from '@/src/contexts/BuilderContext'
-import { useToast } from '@/src/hooks/useToast'
-import { cn } from '@/src/utils/cn'
-import { translateLessonType } from '@/src/utils/statusTranslations'
+import { useBuilder } from '@/contexts/BuilderContext'
+import { useToast } from '@/hooks/useToast'
+import { cn } from '@/utils/cn'
+import { translateLessonType } from '@/utils/statusTranslations'
 
 export function BuilderSidebar() {
   const { state, actions, mobile } = useBuilder()
   const addToast = useToast((s) => s.addToast)
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const [addingLessonTo, setAddingLessonTo] = useState<string | null>(null)
+  const [editingModuleId, setEditingModuleId] = useState<string | null>(null)
+  const [editingTitle, setEditingTitle] = useState('')
   const [pendingDelete, setPendingDelete] = useState<{
     type: 'module' | 'lesson'
     id: string
@@ -68,6 +70,18 @@ export function BuilderSidebar() {
 
     if (type === 'LESSON') {
       const moduleId = source.droppableId
+      const destinationModuleId = destination.droppableId
+
+      // Cross-module lesson drag is not yet supported
+      if (moduleId !== destinationModuleId) {
+        addToast({
+          type: 'info',
+          message:
+            'Memindahkan materi antar modul belum didukung. Gunakan tombol tambah materi di modul tujuan.',
+        })
+        return
+      }
+
       const mod = state.modules.find((m) => m.id === moduleId)
       if (!mod) return
       const lessonIds = mod.lessons.map((l) => l.id)
@@ -75,6 +89,14 @@ export function BuilderSidebar() {
       lessonIds.splice(destination.index, 0, moved)
       actions.reorderLessons(lessonIds)
     }
+  }
+
+  const handleModuleTitleSave = (moduleId: string) => {
+    const trimmed = editingTitle.trim()
+    if (trimmed && trimmed !== state.modules.find((m) => m.id === moduleId)?.title) {
+      actions.updateModule(moduleId, { title: trimmed })
+    }
+    setEditingModuleId(null)
   }
 
   const handleAddModule = () => {
@@ -204,9 +226,43 @@ export function BuilderSidebar() {
                             ) : (
                               <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                             )}
-                            <span className="text-xs font-bold text-slate-700 truncate flex-1">
-                              {mod.title}
-                            </span>
+                            {editingModuleId === mod.id ? (
+                              <input
+                                autoFocus
+                                type="text"
+                                value={editingTitle}
+                                onChange={(e) => setEditingTitle(e.target.value)}
+                                onBlur={() => handleModuleTitleSave(mod.id)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') handleModuleTitleSave(mod.id)
+                                  if (e.key === 'Escape') setEditingModuleId(null)
+                                  e.stopPropagation()
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex-1 text-xs font-bold text-slate-700 bg-white border border-indigo-300 rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-indigo-400 min-w-0"
+                              />
+                            ) : (
+                              <span
+                                role="button"
+                                tabIndex={0}
+                                className="text-xs font-bold text-slate-700 truncate flex-1 cursor-text"
+                                onDoubleClick={(e) => {
+                                  e.stopPropagation()
+                                  setEditingModuleId(mod.id)
+                                  setEditingTitle(mod.title)
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === 'F2') {
+                                    e.stopPropagation()
+                                    setEditingModuleId(mod.id)
+                                    setEditingTitle(mod.title)
+                                  }
+                                }}
+                                title="Klik dua kali atau tekan Enter untuk mengubah nama"
+                              >
+                                {mod.title}
+                              </span>
+                            )}
                             <span className="text-[10px] text-slate-400 font-medium">
                               {mod.lessons.length}
                             </span>

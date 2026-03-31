@@ -2,8 +2,8 @@ import { AlertTriangle, ArrowLeft, CheckCircle, Flag, Send, Target } from 'lucid
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
-import { SubmitAnswer } from '@/src/features/quizzes'
-import { cn } from '@/src/utils/cn'
+import { SubmitAnswer } from '@/features/quizzes'
+import { cn } from '@/utils/cn'
 
 import type { QuizAttemptQuestion, QuizOptionSnapshot } from '../../types/quizzes.types'
 import { QuestionPalette } from './QuestionPalette'

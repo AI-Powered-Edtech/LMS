@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useBuilder } from '@/src/contexts/BuilderContext'
+import { useAuth } from '@/contexts/AuthContext'
+import { useBuilder } from '@/contexts/BuilderContext'
 import {
   builderQuizService,
   type QuizBlockData,
-} from '@/src/features/courses/api/builder/quizBuilderService'
-import type { QuestionType } from '@/src/features/quizzes'
-import { QuizStatus } from '@/src/features/quizzes/types/quizzes.types'
+} from '@/features/courses/api/builder/quizBuilderService'
+import type { QuestionType } from '@/features/quizzes'
+import { QuizStatus } from '@/features/quizzes/types/quizzes.types'
 
 export function useQuizEditorState(_blockId: string) {
   const { tenantId } = useAuth()

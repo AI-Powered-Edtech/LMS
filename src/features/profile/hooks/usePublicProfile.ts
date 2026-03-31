@@ -3,8 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   type PublicProfileData,
   publicProfileService,
-} from '@/src/features/profile/api/publicProfileService'
-import { captureError } from '@/src/utils/sentry'
+} from '@/features/profile/api/publicProfileService'
+import { captureError } from '@/utils/sentry'
 
 // ── Query key factory ──────────────────────────────────────────────────────────
 const profileKeys = {

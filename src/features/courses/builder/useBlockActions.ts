@@ -1,8 +1,8 @@
 import { type Dispatch, type MutableRefObject, useCallback } from 'react'
 
-import { builderBlockService } from '@/src/features/courses/api/builder/blockService'
-import { useToast } from '@/src/hooks/useToast'
-import { DomainBlock } from '@/src/shared/types/blockTypes'
+import { builderBlockService } from '@/features/courses/api/builder/blockService'
+import { useToast } from '@/hooks/useToast'
+import { DomainBlock } from '@/shared/types/blockTypes'
 
 import type { BuilderAction, BuilderState } from './builderReducer'
 import type { PresenceData } from './useBuilderPresence'
@@ -126,12 +126,21 @@ export function useBlockActions(
       broadcast,
       userName,
       getBlockLocker,
+      addToast, // FIX 2: was missing from dependency array
     ]
   )
 
   const deleteBlock = useCallback(
     async (blockId: string) => {
       if (!tenantId) return
+
+      // FIX 1: Clear any pending save timer for this block to prevent stale update after delete
+      const pendingTimer = saveTimerRef.current.get(blockId)
+      if (pendingTimer) {
+        clearTimeout(pendingTimer)
+        saveTimerRef.current.delete(blockId)
+      }
+
       const previousBlocks = state.activeLesson?.blocks ?? []
 
       dispatch({ type: 'DELETE_BLOCK', blockId })
@@ -150,23 +159,26 @@ export function useBlockActions(
         })
       }
     },
-    [state.activeLesson, tenantId, dispatch, addToast, broadcast, userName]
+    [state.activeLesson, tenantId, dispatch, addToast, broadcast, userName, saveTimerRef] // FIX 1: added saveTimerRef
   )
 
   const reorderBlocks = useCallback(
     async (blockIds: string[]) => {
-      if (!state.activeLesson) return
+      // FIX 3: Capture locals safely, remove unsafe ! non-null assertions
+      const lessonId = state.activeLesson?.id
+      const blocks = state.activeLesson?.blocks
+      if (!lessonId || !blocks || !tenantId) return
 
-      const previousBlocks = state.activeLesson.blocks
+      const previousBlocks = blocks
 
       const reordered = blockIds
-        .map((id) => state.activeLesson!.blocks.find((b) => b.id === id))
+        .map((id) => blocks.find((b) => b.id === id))
         .filter(Boolean)
         .map((b, idx) => ({ ...b!, orderIndex: idx }))
       dispatch({ type: 'SET_BLOCKS', blocks: reordered as DomainBlock[] })
 
       try {
-        await builderBlockService.reorderBlocks(state.activeLesson!.id, blockIds, tenantId!)
+        await builderBlockService.reorderBlocks(lessonId, blockIds, tenantId)
         broadcast?.({ type: 'SET_BLOCKS', blocks: reordered as DomainBlock[] }, userName ?? '')
       } catch (error: unknown) {
         if (import.meta.env.DEV) console.error('Failed to reorder blocks', error)

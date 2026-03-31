@@ -12,11 +12,11 @@ import {
 } from 'lucide-react'
 import React, { useEffect } from 'react'
 
-import { QuestionSearchModal } from '@/src/features/question-bank/components/QuestionSearchModal'
-import { type QuestionType, type QuizMode } from '@/src/features/quizzes'
-import { QuizStatus } from '@/src/features/quizzes/types/quizzes.types'
-import { useDraftAutosave } from '@/src/hooks/useDraftAutosave'
-import { cn } from '@/src/utils/cn'
+import { QuestionSearchModal } from '@/features/question-bank/components/QuestionSearchModal'
+import { type QuestionType, type QuizMode } from '@/features/quizzes'
+import { QuizStatus } from '@/features/quizzes/types/quizzes.types'
+import { useDraftAutosave } from '@/hooks/useDraftAutosave'
+import { cn } from '@/utils/cn'
 
 // ─────────────────────────────────────────────────────────
 // Types (internal to quiz editor)

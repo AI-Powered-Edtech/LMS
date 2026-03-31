@@ -1,6 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 
-import { ErrorFallback } from '@/src/components/ui/ErrorFallback'
+import { ErrorFallback } from '@/components/ui/ErrorFallback'
 
 /* ─── Types ───────────────────────────────────────────────────── */
 

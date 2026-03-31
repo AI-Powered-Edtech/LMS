@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
 
-import { useCourses } from '@/src/features/courses/queries/courseQueries'
-import type { Course } from '@/src/features/courses/types'
-import { Assignment, useGradebook } from '@/src/features/gradebook/hooks/useGradebookQueries'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { useCourses } from '@/features/courses/queries/courseQueries'
+import type { Course } from '@/features/courses/types'
+import { Assignment, useGradebook } from '@/features/gradebook/hooks/useGradebookQueries'
+import { useDebounce } from '@/hooks/useDebounce'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export function useGradebookState() {
   usePageTitle('Buku Nilai')

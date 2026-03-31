@@ -1,8 +1,8 @@
 import { ArrowRight, Loader2, Sparkles } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { cn } from '@/src/utils/cn'
+import { useAuth } from '@/contexts/AuthContext'
+import { cn } from '@/utils/cn'
 
 import { useRecommendations, useRecordRecommendationAction } from '../queries/recommendationQueries'
 

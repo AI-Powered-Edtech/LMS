@@ -13,21 +13,21 @@ import {
 import { motion } from 'motion/react'
 import { useEffect } from 'react'
 
-import { OptimizedImage, useToast } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { BadgeShowcase } from '@/src/features/gamification/components/BadgeShowcase'
-import { CertificateViewer } from '@/src/features/gamification/components/CertificateViewer'
-import { StreakCounter } from '@/src/features/gamification/components/StreakCounter'
-import { XPProgressBar } from '@/src/features/gamification/components/XPProgressBar'
+import { OptimizedImage, useToast } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { BadgeShowcase } from '@/features/gamification/components/BadgeShowcase'
+import { CertificateViewer } from '@/features/gamification/components/CertificateViewer'
+import { StreakCounter } from '@/features/gamification/components/StreakCounter'
+import { XPProgressBar } from '@/features/gamification/components/XPProgressBar'
 import {
   useStudentCertificates,
   useStudentXPProfile,
-} from '@/src/features/gamification/queries/gamificationQueries'
-import { PasswordChangeForm } from '@/src/features/profile/components/PasswordChangeForm'
-import { ProfileForm } from '@/src/features/profile/components/ProfileForm'
-import { useStudentProgressData } from '@/src/features/progress/hooks/useStudentProgressQueries'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+} from '@/features/gamification/queries/gamificationQueries'
+import { PasswordChangeForm } from '@/features/profile/components/PasswordChangeForm'
+import { ProfileForm } from '@/features/profile/components/ProfileForm'
+import { useStudentProgressData } from '@/features/progress/hooks/useStudentProgressQueries'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 export function Profile() {
   usePageTitle('Profil')

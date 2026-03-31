@@ -4,7 +4,7 @@ import React, { ReactElement } from 'react'
 import { HashRouter } from 'react-router-dom'
 import { vi } from 'vitest'
 
-import { AuthContext, AuthContextType } from '@/src/contexts/AuthContext'
+import { AuthContext, AuthContextType } from '@/contexts/AuthContext'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,7 +69,7 @@ Object.defineProperty(window, 'matchMedia', {
 })
 
 // Need to export a custom ThemeProvider wrapper or include it
-import { ThemeProvider } from '@/src/contexts/ThemeContext'
+import { ThemeProvider } from '@/contexts/ThemeContext'
 export function renderWithAllProviders(
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'> & { authValue?: Partial<AuthContextType> }

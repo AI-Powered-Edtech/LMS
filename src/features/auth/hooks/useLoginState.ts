@@ -2,16 +2,16 @@ import { valibotResolver } from '@hookform/resolvers/valibot'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { authService } from '@/src/features/auth/api/authService'
+import { useAuth } from '@/contexts/AuthContext'
+import { authService } from '@/features/auth/api/authService'
 import {
   type LoginFormData,
   LoginFormSchema,
   type RegisterFormData,
   RegisterFormSchema,
-} from '@/src/shared/schemas/forms'
-import { loginRateLimiter } from '@/src/utils/rateLimiter'
-import { translateAuthError } from '@/src/utils/translateAuthError'
+} from '@/shared/schemas/forms'
+import { loginRateLimiter } from '@/utils/rateLimiter'
+import { translateAuthError } from '@/utils/translateAuthError'
 
 export interface InviteInfo {
   email: string

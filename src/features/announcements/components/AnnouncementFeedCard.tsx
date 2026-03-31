@@ -12,9 +12,9 @@ import {
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
-import { CommentSection } from '@/src/components/Social/CommentSection'
-import { OptimizedImage } from '@/src/components/ui'
-import { cn } from '@/src/utils/cn'
+import { CommentSection } from '@/components/Social/CommentSection'
+import { OptimizedImage } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
 interface Attachment {
   name: string

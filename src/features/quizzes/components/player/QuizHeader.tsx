@@ -1,4 +1,4 @@
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import { AutosaveIndicator, SaveStatus } from './AutosaveIndicator'
 import { QuizTimerDisplay } from './QuizTimerDisplay'

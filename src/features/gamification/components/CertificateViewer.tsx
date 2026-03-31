@@ -1,9 +1,9 @@
 import { Award, Calendar, Download } from 'lucide-react'
 
-import { EmptyState, SkeletonCard } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { cn } from '@/src/utils/cn'
-import { escapeHtml } from '@/src/utils/sanitize'
+import { EmptyState, SkeletonCard } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { cn } from '@/utils/cn'
+import { escapeHtml } from '@/utils/sanitize'
 
 import { useStudentCertificates } from '../queries/gamificationQueries'
 import type { Certificate } from '../types'

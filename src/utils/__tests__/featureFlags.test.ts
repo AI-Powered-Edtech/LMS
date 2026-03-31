@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock AuthContext before importing featureFlags
-vi.mock('@/src/contexts/AuthContext', () => ({
+vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({ tenantId: null, user: null }),
 }))
 
 // Mock Supabase before importing featureFlags
-vi.mock('@/src/services/supabase/client', () => {
+vi.mock('@/services/supabase/client', () => {
   const mockSelect = vi.fn()
   const mockFrom = vi.fn((_table?: string) => ({ select: mockSelect }))
   const mockEq = vi.fn(() => ({ eq: mockEq }))
@@ -34,7 +34,7 @@ import {
 } from '../featureFlags'
 
 // Access mock helpers
-const supabaseMock = await import('@/src/services/supabase/client')
+const supabaseMock = await import('@/services/supabase/client')
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockSelect: ReturnType<typeof vi.fn> = (supabaseMock as any).__mockSelect
 

@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 import { useAuth } from '../contexts/AuthContext'
 

@@ -1,7 +1,7 @@
 import { BookOpen, CheckCircle, ChevronRight, Clock, Layers } from 'lucide-react'
 import { motion } from 'motion/react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 export interface ModuleWithProgress {
   id: string
@@ -25,8 +25,8 @@ export function ModuleList({ modules, onSelectModule, nextIncompleteModuleId }: 
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: 0.16 }}
     >
-      <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-        <Layers className="w-5 h-5 text-slate-400" />
+      <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+        <Layers className="w-5 h-5 text-slate-400 dark:text-slate-500" />
         Daftar Modul
       </h2>
 
@@ -56,10 +56,10 @@ export function ModuleList({ modules, onSelectModule, nextIncompleteModuleId }: 
                 className={cn(
                   'w-full flex items-center gap-4 p-4 md:p-5 rounded-2xl border text-left transition-all duration-200 group',
                   isComplete
-                    ? 'bg-emerald-50/60 border-emerald-200/70 hover:bg-emerald-50'
+                    ? 'bg-emerald-50/60 border-emerald-200/70 hover:bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-800/70 dark:hover:bg-emerald-900/30'
                     : isNext
-                      ? 'bg-white border-blue-300 shadow-md shadow-blue-100/50 hover:shadow-lg hover:shadow-blue-100/60 ring-1 ring-blue-200/50'
-                      : 'bg-white border-slate-200/70 hover:border-slate-300 hover:shadow-md hover:shadow-slate-200/40'
+                      ? 'bg-white border-blue-300 shadow-md shadow-blue-100/50 hover:shadow-lg hover:shadow-blue-100/60 ring-1 ring-blue-200/50 dark:bg-slate-800 dark:border-blue-600'
+                      : 'bg-white border-slate-200/70 hover:border-slate-300 hover:shadow-md hover:shadow-slate-200/40 dark:bg-slate-800 dark:border-slate-700/70'
                 )}
               >
                 {/* Module number / check */}
@@ -93,15 +93,15 @@ export function ModuleList({ modules, onSelectModule, nextIncompleteModuleId }: 
                     className={cn(
                       'font-semibold truncate transition-colors text-sm md:text-base',
                       isComplete
-                        ? 'text-emerald-800'
+                        ? 'text-emerald-800 dark:text-emerald-300'
                         : isNext
-                          ? 'text-blue-800'
-                          : 'text-slate-700 group-hover:text-blue-700'
+                          ? 'text-blue-800 dark:text-blue-300'
+                          : 'text-slate-700 group-hover:text-blue-700 dark:text-slate-200 dark:group-hover:text-blue-400'
                     )}
                   >
                     {mod.title}
                   </p>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
+                  <div className="flex items-center gap-3 mt-1 text-xs text-slate-400 dark:text-slate-500">
                     <span className="flex items-center gap-1">
                       <BookOpen className="w-3 h-3" />
                       {mod.lessonCount} pelajaran
@@ -117,13 +117,13 @@ export function ModuleList({ modules, onSelectModule, nextIncompleteModuleId }: 
                   {/* Mini progress bar */}
                   {mod.lessonCount > 0 && percentage > 0 && !isComplete && (
                     <div className="mt-2 flex items-center gap-2">
-                      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="flex-1 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full transition-all duration-500"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>
-                      <span className="text-[10px] font-semibold text-slate-400">
+                      <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
                         {percentage}%
                       </span>
                     </div>

@@ -10,9 +10,9 @@ import {
 } from 'lucide-react'
 import { Info, MessageSquare, Sparkles } from 'lucide-react'
 
-import { Breadcrumb } from '@/src/components/ui'
-import { SmartNextButton } from '@/src/features/recommendations'
-import { cn } from '@/src/utils/cn'
+import { Breadcrumb } from '@/components/ui'
+import { SmartNextButton } from '@/features/recommendations'
+import { cn } from '@/utils/cn'
 
 import type { Lesson } from '../../index'
 

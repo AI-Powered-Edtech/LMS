@@ -1,9 +1,9 @@
 import { CheckCircle2, ChevronDown, ChevronUp, Circle, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
-import { cn } from '@/src/utils/cn'
+import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/services/supabase/client'
+import { cn } from '@/utils/cn'
 
 import { ONBOARDING_STEPS, OnboardingProgress } from '../types'
 

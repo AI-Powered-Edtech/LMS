@@ -3,8 +3,8 @@ import { FileText, FileUp, Link as LinkIcon, Paperclip, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { type Resolver, useForm } from 'react-hook-form'
 
-import { OfflineFormNotice } from '@/src/components/ui/OfflineFormNotice'
-import { type AssignmentFormData, AssignmentFormSchema } from '@/src/shared/schemas/forms'
+import { OfflineFormNotice } from '@/components/ui/OfflineFormNotice'
+import { type AssignmentFormData, AssignmentFormSchema } from '@/shared/schemas/forms'
 
 export interface NewAssignmentData extends AssignmentFormData {
   class: string

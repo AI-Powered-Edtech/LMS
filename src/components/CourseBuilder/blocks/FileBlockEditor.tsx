@@ -1,9 +1,9 @@
 import { Archive, File, FileText, FileUp, Loader2, Presentation, Sheet } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useBuilder } from '@/src/contexts/BuilderContext'
-import { storageService } from '@/src/features/storage'
+import { useAuth } from '@/contexts/AuthContext'
+import { useBuilder } from '@/contexts/BuilderContext'
+import { storageService } from '@/features/storage'
 
 interface FileBlockEditorProps {
   blockId: string

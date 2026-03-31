@@ -1,9 +1,9 @@
 import { Activity, AlertTriangle, CheckCircle, RefreshCw, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { Spinner } from '@/src/components/ui'
-import { administrationService } from '@/src/features/administration/api/administrationService'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { Spinner } from '@/components/ui'
+import { administrationService } from '@/features/administration/api/administrationService'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 interface HealthCheck {
   status: 'healthy' | 'degraded' | 'down'

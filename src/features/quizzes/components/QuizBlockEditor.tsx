@@ -1,11 +1,11 @@
 import { BarChart3, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 
-import { QuestionSearchModal } from '@/src/features/question-bank/components/QuestionSearchModal'
-import type { QuestionType, QuizMode } from '@/src/features/quizzes'
-import { QuizAnalyticsPanel } from '@/src/features/quizzes/components/analytics'
-import { QuestionList } from '@/src/features/quizzes/components/QuestionList'
-import { QuizEditorToolbar } from '@/src/features/quizzes/components/QuizEditorToolbar'
-import { useQuizEditorState } from '@/src/features/quizzes/hooks/useQuizEditorState'
+import { QuestionSearchModal } from '@/features/question-bank/components/QuestionSearchModal'
+import type { QuestionType, QuizMode } from '@/features/quizzes'
+import { QuizAnalyticsPanel } from '@/features/quizzes/components/analytics'
+import { QuestionList } from '@/features/quizzes/components/QuestionList'
+import { QuizEditorToolbar } from '@/features/quizzes/components/QuizEditorToolbar'
+import { useQuizEditorState } from '@/features/quizzes/hooks/useQuizEditorState'
 
 export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
   const s = useQuizEditorState(_blockId)

@@ -12,8 +12,8 @@ import { motion } from 'motion/react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { useToast } from '@/src/components/ui'
-import { cn } from '@/src/utils/cn'
+import { useToast } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
 import { TeacherGroupEntry } from '../../api/groupAssignmentService'
 import { useTeacherGroups } from '../../hooks/useGroupAssignments'

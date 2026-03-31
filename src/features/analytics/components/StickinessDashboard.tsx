@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
-import { useTheme } from '@/src/contexts/ThemeContext'
+import { useTheme } from '@/contexts/ThemeContext'
 
 import { RetentionRow } from '../types'
 

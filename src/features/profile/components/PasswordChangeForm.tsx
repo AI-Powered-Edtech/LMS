@@ -1,8 +1,8 @@
 import { CheckCircle, KeyRound, Lock } from 'lucide-react'
 import { useState } from 'react'
 
-import { Button, Card, Input } from '@/src/components/ui'
-import { settingsService } from '@/src/features/settings/api/settingsService'
+import { Button, Card, Input } from '@/components/ui'
+import { settingsService } from '@/features/settings/api/settingsService'
 
 type Status = 'idle' | 'loading' | 'success' | 'error'
 

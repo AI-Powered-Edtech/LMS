@@ -22,11 +22,11 @@ import {
   X,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useBuilder } from '@/src/contexts/BuilderContext'
-import { QuizBlockEditor } from '@/src/features/quizzes/components/QuizBlockEditor'
-import { cn } from '@/src/utils/cn'
+import { useBuilder } from '@/contexts/BuilderContext'
+import { QuizBlockEditor } from '@/features/quizzes/components/QuizBlockEditor'
+import { cn } from '@/utils/cn'
 
 import { AssignmentBlockEditor } from './blocks/AssignmentBlockEditor'
 import { FileBlockEditor } from './blocks/FileBlockEditor'
@@ -39,6 +39,48 @@ import { CollaboratorCursor } from './CollaboratorCursor'
 export function LessonBlockEditor() {
   const { state, actions, presence, mobile } = useBuilder()
   const [showAddMenu, setShowAddMenu] = useState(false)
+  const [deletingBlockId, setDeletingBlockId] = useState<string | null>(null)
+
+  // FIX 1: Local title state with debounced API call
+  // Derive the current lesson title from state.modules (activeLesson in state only holds id+blocks)
+  const activeLessonTitle =
+    state.modules.flatMap((m) => m.lessons).find((l) => l.id === state.activeLesson?.id)?.title ??
+    ''
+
+  const [localTitle, setLocalTitle] = useState(activeLessonTitle)
+
+  const activeLessonIdRef = useRef(state.activeLesson?.id)
+  useEffect(() => {
+    if (state.activeLesson?.id !== activeLessonIdRef.current) {
+      activeLessonIdRef.current = state.activeLesson?.id
+      const title =
+        state.modules.flatMap((m) => m.lessons).find((l) => l.id === state.activeLesson?.id)
+          ?.title ?? ''
+      setLocalTitle(title)
+    }
+  }, [state.activeLesson?.id, state.modules])
+
+  const titleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleTitleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newTitle = e.target.value
+      setLocalTitle(newTitle)
+      if (state.activeLesson) {
+        if (titleDebounceRef.current) clearTimeout(titleDebounceRef.current)
+        titleDebounceRef.current = setTimeout(() => {
+          actions.updateLesson(state.activeLesson!.id, { title: newTitle })
+        }, 600)
+      }
+    },
+    [state.activeLesson, actions]
+  )
+
+  useEffect(() => {
+    return () => {
+      if (titleDebounceRef.current) clearTimeout(titleDebounceRef.current)
+    }
+  }, [])
 
   if (!state.activeLesson) {
     return (
@@ -203,12 +245,8 @@ export function LessonBlockEditor() {
         <div className="mb-10 p-6 md:p-8 bg-white dark:bg-slate-800 rounded-[32px] border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
           <input
             type="text"
-            value={activeLesson?.title || ''}
-            onChange={(e) => {
-              if (activeLesson) {
-                actions.updateLesson(activeLesson.id, { title: e.target.value })
-              }
-            }}
+            value={localTitle}
+            onChange={handleTitleChange}
             className={cn(
               'w-full font-black text-slate-800 dark:text-slate-100 bg-transparent border-none outline-none placeholder:text-slate-400 focus:ring-0 tracking-tight',
               mobile.isMobile ? 'text-2xl' : 'text-3xl'
@@ -322,18 +360,45 @@ export function LessonBlockEditor() {
                                 </button>
                               </div>
 
-                              <button
-                                onClick={() => {
-                                  if (confirm('Hapus konten ini?')) {
-                                    actions.deleteBlock(block.id)
-                                  }
-                                }}
-                                className="p-2 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
-                                aria-label="Hapus konten"
-                                title="Hapus konten"
-                              >
-                                <Trash2 className="w-5 h-5" />
-                              </button>
+                              {/* FIX 2: Inline delete confirmation — replaces native confirm() */}
+                              {deletingBlockId === block.id ? (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-red-600 font-semibold">Hapus?</span>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      actions.deleteBlock(block.id)
+                                      setDeletingBlockId(null)
+                                    }}
+                                    className="p-1.5 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700"
+                                    aria-label="Konfirmasi hapus"
+                                  >
+                                    Ya
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setDeletingBlockId(null)
+                                    }}
+                                    className="p-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-200"
+                                    aria-label="Batal hapus"
+                                  >
+                                    Batal
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setDeletingBlockId(block.id)
+                                  }}
+                                  className="p-2 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                                  aria-label="Hapus konten"
+                                  title="Hapus konten"
+                                >
+                                  <Trash2 className="w-5 h-5" />
+                                </button>
+                              )}
                             </div>
 
                             {/* Block Content */}
@@ -354,9 +419,11 @@ export function LessonBlockEditor() {
 
         {/* Add Block Button */}
         <div className="relative mt-8">
+          {/* FIX 3: aria-controls links button to the menu it controls */}
           <button
             onClick={() => setShowAddMenu(!showAddMenu)}
             aria-expanded={showAddMenu}
+            aria-controls="add-block-menu"
             className={cn(
               'w-full py-5 rounded-[24px] font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 transition-all',
               'border-2 border-dashed outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
@@ -373,6 +440,7 @@ export function LessonBlockEditor() {
           <AnimatePresence>
             {showAddMenu && (
               <motion.div
+                id="add-block-menu"
                 initial={{ opacity: 0, y: 15, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}

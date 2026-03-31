@@ -12,17 +12,17 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import type { Notification, NotificationType } from '@/src/features/notifications'
+import { useAuth } from '@/contexts/AuthContext'
+import type { Notification, NotificationType } from '@/features/notifications'
 import {
   fetchNotifications,
   markAllNotificationsRead,
   markNotificationRead,
   notificationKeys,
   NotificationPreferencesPanel,
-} from '@/src/features/notifications'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+} from '@/features/notifications'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

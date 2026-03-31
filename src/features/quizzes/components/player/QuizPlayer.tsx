@@ -5,8 +5,8 @@ import { Eye, WifiOff } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { useNetworkStatus } from '@/src/hooks/useNetworkStatus'
-import { cn } from '@/src/utils/cn'
+import { useNetworkStatus } from '@/hooks/useNetworkStatus'
+import { cn } from '@/utils/cn'
 
 import * as quizPlayerService from '../../api/quizPlayer.service'
 import { getCurrentQuestionIndex } from '../../api/quizPlayer.service'

@@ -10,15 +10,15 @@ import {
 } from 'lucide-react'
 import { useMemo } from 'react'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { VirtualTable } from '@/src/components/ui/VirtualTable'
-import { AssignmentResultRow } from '@/src/features/quizzes'
+import { OptimizedImage } from '@/components/ui'
+import { VirtualTable } from '@/components/ui/VirtualTable'
+import { AssignmentResultRow } from '@/features/quizzes'
 import {
   formatDuration,
   getScoreBg,
   getScoreColor,
-} from '@/src/features/quizzes/hooks/useQuizGradebookState'
-import { cn } from '@/src/utils/cn'
+} from '@/features/quizzes/hooks/useQuizGradebookState'
+import { cn } from '@/utils/cn'
 
 interface QuizGradebookTableProps {
   filteredAttempts: AssignmentResultRow[]

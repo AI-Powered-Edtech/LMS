@@ -14,12 +14,12 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-import { AnalyticsCharts } from '@/src/features/analytics/components/AnalyticsCharts'
-import { AnalyticsStudentTable } from '@/src/features/analytics/components/AnalyticsStudentTable'
-import { useAnalyticsPageState } from '@/src/features/analytics/hooks/useAnalyticsPageState'
-import { StruggleConfigPanel } from '@/src/features/struggle'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+import { AnalyticsCharts } from '@/features/analytics/components/AnalyticsCharts'
+import { AnalyticsStudentTable } from '@/features/analytics/components/AnalyticsStudentTable'
+import { useAnalyticsPageState } from '@/features/analytics/hooks/useAnalyticsPageState'
+import { StruggleConfigPanel } from '@/features/struggle'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 export function Analytics() {
   usePageTitle('Analitik')

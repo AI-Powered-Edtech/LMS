@@ -5,8 +5,8 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as v from 'valibot'
 
-import { Button, Input, Modal, ModalBody, ModalHeader } from '@/src/components/ui'
-import { FormField } from '@/src/components/ui/FormField'
+import { Button, Input, Modal, ModalBody, ModalHeader } from '@/components/ui'
+import { FormField } from '@/components/ui/FormField'
 
 const JoinClassSchema = v.object({
   code: v.pipe(v.string(), v.minLength(1, 'Wajib diisi')),

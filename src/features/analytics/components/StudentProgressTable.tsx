@@ -1,8 +1,8 @@
 import { Users } from 'lucide-react'
 
-import { Badge, Card, EmptyState, Skeleton } from '@/src/components/ui'
-import { VirtualTable } from '@/src/components/ui/VirtualTable'
-import { cn } from '@/src/utils/cn'
+import { Badge, Card, EmptyState, Skeleton } from '@/components/ui'
+import { VirtualTable } from '@/components/ui/VirtualTable'
+import { cn } from '@/utils/cn'
 
 import type { EngagementSegment, StudentSignal } from '../types'
 import { formatPct, formatTime, pctBgColor, relativeTime, struggleColor } from '../utils/formatters'

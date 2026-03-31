@@ -13,8 +13,8 @@ import {
 import { memo, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { SkeletonCard } from '@/src/components/ui'
-import { cn } from '@/src/utils/cn'
+import { SkeletonCard } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
 import { useNotifications } from '../hooks/useNotifications'
 import type { Notification, NotificationType } from '../types'

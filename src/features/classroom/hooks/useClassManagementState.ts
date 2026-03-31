@@ -1,17 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import {
-  classroomService,
-  type EnrolledStudent,
-} from '@/src/features/classroom/api/classroomService'
-import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useToast } from '@/src/hooks/useToast'
-import { useUndoableAction } from '@/src/hooks/useUndoableAction'
-import { captureError } from '@/src/utils/sentry'
+import { useAuth } from '@/contexts/AuthContext'
+import { classroomService, type EnrolledStudent } from '@/features/classroom/api/classroomService'
+import { useClassroom } from '@/features/classroom/hooks/useClassroomQueries'
+import { useDebounce } from '@/hooks/useDebounce'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useToast } from '@/hooks/useToast'
+import { useUndoableAction } from '@/hooks/useUndoableAction'
+import { captureError } from '@/utils/sentry'
 
 export function useClassManagementState() {
   usePageTitle('Class Management')

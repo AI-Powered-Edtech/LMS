@@ -1,9 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
-import { GC, STALE } from '@/src/utils/queryConstants'
+import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/services/supabase/client'
+import { GC, STALE } from '@/utils/queryConstants'
 
 import { discussionService } from '../api/discussionService'
 

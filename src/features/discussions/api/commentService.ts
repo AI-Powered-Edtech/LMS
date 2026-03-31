@@ -1,6 +1,6 @@
-import { supabase } from '@/src/services/supabase/client'
-import { validate } from '@/src/shared/lib/validate'
-import { DiscussionPostRowSchema } from '@/src/shared/schemas'
+import { supabase } from '@/services/supabase/client'
+import { validate } from '@/shared/lib/validate'
+import { DiscussionPostRowSchema } from '@/shared/schemas'
 
 export interface CommentData {
   id: string

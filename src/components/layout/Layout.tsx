@@ -1,7 +1,7 @@
 // Use the full-featured UI OfflineBanner (with syncing state + dismiss)
 // instead of the simpler layout/OfflineBanner.tsx
-import { OfflineBanner } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
+import { OfflineBanner } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
 
 import { AdminLayout } from './AdminLayout'
 import { StudentLayout } from './StudentLayout'

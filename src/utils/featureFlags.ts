@@ -1,8 +1,8 @@
 // EduSync LMS — Feature Flags
 // Tenant-aware, rollout-percentage feature flag system backed by Supabase
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/services/supabase/client'
 
 export interface FeatureFlag {
   flag_name: string

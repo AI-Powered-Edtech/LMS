@@ -4,7 +4,7 @@
 import type { Metric } from 'web-vitals'
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals'
 
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 /* ─── Helpers ──────────────────────────────────────────────── */
 

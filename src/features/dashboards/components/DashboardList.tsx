@@ -2,7 +2,7 @@ import { Edit2, Loader2, Plus, Share2, Star, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import { useDashboards, useDeleteDashboard } from '../queries/dashboardQueries'
 import type { DashboardConfig } from '../types'

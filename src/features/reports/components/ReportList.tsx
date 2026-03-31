@@ -2,7 +2,7 @@ import { Calendar, FileText, Loader2, Play, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import { useDeleteReport, useGenerateReportData, useReports } from '../queries/reportQueries'
 import type { ScheduledReport } from '../types'

@@ -1,13 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   AchievementData,
   ModuleStatus,
   studentProgressService,
-} from '@/src/features/progress/api/studentProgressService'
-import { createQueryKeys } from '@/src/shared/lib/queryKeys'
-import { captureError } from '@/src/utils/sentry'
+} from '@/features/progress/api/studentProgressService'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { captureError } from '@/utils/sentry'
 
 type Achievement = AchievementData & { icon: 'crown' | 'zap' | 'target' | 'star' }
 

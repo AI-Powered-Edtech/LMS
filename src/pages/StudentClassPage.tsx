@@ -2,11 +2,11 @@ import { ArrowLeft, BookOpen, GraduationCap, Play } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
-import { Course, courseService } from '@/src/features/courses'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { captureError } from '@/src/utils/sentry'
+import { useAuth } from '@/contexts/AuthContext'
+import { useClassroom } from '@/features/classroom/hooks/useClassroomQueries'
+import { Course, courseService } from '@/features/courses'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { captureError } from '@/utils/sentry'
 
 export function StudentClassPage() {
   usePageTitle('Halaman Kelas Siswa')

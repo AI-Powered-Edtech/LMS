@@ -1,8 +1,8 @@
 import { Activity, BookOpen, CheckCircle, Users } from 'lucide-react'
 import { motion } from 'motion/react'
 
-import { Card, Skeleton } from '@/src/components/ui'
-import { cn } from '@/src/utils/cn'
+import { Card, Skeleton } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
 import type { CourseAnalytics } from '../types'
 import { formatPct, pctColor } from '../utils/formatters'

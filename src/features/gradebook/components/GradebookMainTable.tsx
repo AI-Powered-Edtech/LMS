@@ -1,14 +1,14 @@
 import { Edit2, MoreVertical, Save, Search, Users, X } from 'lucide-react'
 
-import { EmptyState, OptimizedImage } from '@/src/components/ui'
-import type { Assignment } from '@/src/features/gradebook/hooks/useGradebookQueries'
+import { EmptyState, OptimizedImage } from '@/components/ui'
+import type { Assignment } from '@/features/gradebook/hooks/useGradebookQueries'
 import {
   getGradeBg,
   getGradeColor,
   getTypeColor,
   getTypeLabel,
-} from '@/src/features/gradebook/hooks/useGradebookState'
-import { cn } from '@/src/utils/cn'
+} from '@/features/gradebook/hooks/useGradebookState'
+import { cn } from '@/utils/cn'
 
 interface GradeEntry {
   score: number | null

@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 export type ReportStatus = 'pending' | 'approved' | 'rejected'
 export type ReportReason = 'ai_generated' | 'inappropriate' | 'spam' | 'harassment' | 'other'
@@ -104,7 +104,11 @@ export const moderationService = {
   /**
    * Resolve a report (approve or reject) in content_reports table.
    */
-  async resolveReport(reportId: string, status: 'approved' | 'rejected', tenantId: string): Promise<void> {
+  async resolveReport(
+    reportId: string,
+    status: 'approved' | 'rejected',
+    tenantId: string
+  ): Promise<void> {
     const {
       data: { user },
     } = await supabase.auth.getUser()

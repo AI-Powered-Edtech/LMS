@@ -3,19 +3,19 @@ import { id as localeId } from 'date-fns/locale'
 import { Megaphone, Pin, Plus, Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import type { Announcement as DBAnnouncement } from '@/src/features/announcements'
-import { useAnnouncements, useSaveAnnouncement, useSubmitRSVP } from '@/src/features/announcements'
+import { useAuth } from '@/contexts/AuthContext'
+import type { Announcement as DBAnnouncement } from '@/features/announcements'
+import { useAnnouncements, useSaveAnnouncement, useSubmitRSVP } from '@/features/announcements'
 import {
   type AnnouncementCardData,
   AnnouncementFeedCard,
-} from '@/src/features/announcements/components/AnnouncementFeedCard'
-import { AnnouncementSkeleton } from '@/src/features/announcements/components/AnnouncementSkeleton'
-import { CreateAnnouncementModal } from '@/src/features/announcements/components/CreateAnnouncementModal'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useToast } from '@/src/hooks/useToast'
-import { cn } from '@/src/utils/cn'
+} from '@/features/announcements/components/AnnouncementFeedCard'
+import { AnnouncementSkeleton } from '@/features/announcements/components/AnnouncementSkeleton'
+import { CreateAnnouncementModal } from '@/features/announcements/components/CreateAnnouncementModal'
+import { useDebounce } from '@/hooks/useDebounce'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useToast } from '@/hooks/useToast'
+import { cn } from '@/utils/cn'
 
 const PAGE_SIZE = 10
 

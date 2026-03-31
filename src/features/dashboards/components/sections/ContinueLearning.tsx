@@ -2,7 +2,7 @@ import { ArrowRight, BookOpen, Play } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 
-import { Badge, Card, EmptyState, SkeletonCard } from '@/src/components/ui'
+import { Badge, Card, EmptyState, SkeletonCard } from '@/components/ui'
 
 interface CourseItem {
   id: string

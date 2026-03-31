@@ -1,6 +1,6 @@
 import { CheckCircle2, CheckSquare, Clock, MoreVertical, Plus } from 'lucide-react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import { GroupTask } from '../../api/groupAssignmentService'
 

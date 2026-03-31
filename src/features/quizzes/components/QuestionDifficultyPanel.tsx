@@ -1,7 +1,7 @@
 import { BarChart3, Loader2 } from 'lucide-react'
 
-import type { QuestionDifficulty } from '@/src/features/quizzes/api/quizAnalyticsService'
-import { cn } from '@/src/utils/cn'
+import type { QuestionDifficulty } from '@/features/quizzes/api/quizAnalyticsService'
+import { cn } from '@/utils/cn'
 
 interface QuestionDifficultyPanelProps {
   questionDifficulty: QuestionDifficulty[]

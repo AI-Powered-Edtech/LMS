@@ -1,23 +1,9 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.8'
+import { corsHeaders, handleCors } from '../_shared/cors.ts'
+import { jsonResponse, errorResponse } from '../_shared/response.ts'
 
 const LLM_TIMEOUT_MS = 15000 // 15s
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('CORS_ORIGIN') ?? 'https://lms.edusync.dev',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-function jsonResponse(data: any, status = 200) {
-  return new Response(JSON.stringify(data), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    status,
-  })
-}
-
-function errorResponse(message: string, status = 500) {
-  return jsonResponse({ error: message }, status)
-}
 
 // Ensure the user is authenticated and is a teacher or admin
 async function authenticate(req: Request) {
@@ -126,9 +112,8 @@ async function callGroq(messages: any[]) {
 
 serve(async (req) => {
   // CORS Preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  const corsResponse = handleCors(req)
+  if (corsResponse) return corsResponse
 
   try {
     const { user, supabaseClient, tenantId } = await authenticate(req)

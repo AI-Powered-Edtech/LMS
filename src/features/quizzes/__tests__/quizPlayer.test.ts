@@ -5,7 +5,7 @@ import { startQuizAttempt, submitQuizAttempt } from '../api/quizPlayer.service'
 const mockRpc = vi.fn()
 const mockGetSession = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
+vi.mock('@/services/supabase/client', () => ({
   supabase: {
     rpc: (...args: unknown[]) => mockRpc(...args),
     auth: {

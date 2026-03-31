@@ -8,8 +8,8 @@
 
 import { useQuery } from '@tanstack/react-query'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { createQueryKeys } from '@/src/shared/lib/queryKeys'
+import { useAuth } from '@/contexts/AuthContext'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
 
 import { leaderboardService } from '../api/leaderboardService'
 

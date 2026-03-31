@@ -1,7 +1,7 @@
 import { AlertTriangle, CheckCircle, Clock, FileText, RefreshCw, XCircle } from 'lucide-react'
 
-import { Badge, Button, EmptyState, Tabs } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
+import { Badge, Button, EmptyState, Tabs } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
 
 import type { ContentType, Report, ReportReason, ReportStatus } from '../api/moderationService'
 import { useModerationDashboard } from '../hooks/useModerationDashboard'

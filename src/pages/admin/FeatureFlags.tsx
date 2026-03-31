@@ -1,13 +1,13 @@
 import { AlertCircle, Flag, RefreshCw, Save, ToggleLeft, ToggleRight } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
-import { EmptyState } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
-import { featureFlagService } from '@/src/features/administration/api/featureFlagService'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
-import { FeatureFlag } from '@/src/utils/featureFlags'
+import { EmptyState } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { featureFlagService } from '@/features/administration/api/featureFlagService'
+import { AdministrationSkeleton } from '@/features/administration/components/AdministrationSkeleton'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
+import { FeatureFlag } from '@/utils/featureFlags'
 
 // ---------------------------------------------------------------------------
 // Local draft state extends FeatureFlag with a dirty flag
@@ -51,7 +51,9 @@ export default function FeatureFlagsPage() {
   if (role !== 'admin') {
     return (
       <div className="p-6 max-w-5xl mx-auto text-center">
-        <p className="text-red-600 font-bold">Akses ditolak. Hanya admin yang dapat mengakses halaman ini.</p>
+        <p className="text-red-600 font-bold">
+          Akses ditolak. Hanya admin yang dapat mengakses halaman ini.
+        </p>
       </div>
     )
   }

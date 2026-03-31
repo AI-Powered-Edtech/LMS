@@ -1,6 +1,6 @@
 import { MessageSquare, Send } from 'lucide-react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 interface Comment {
   id: string

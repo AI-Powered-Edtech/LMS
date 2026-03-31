@@ -2,8 +2,8 @@ import { Loader2, Plus, Trash2, UserPlus, Users, X } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useCallback, useState } from 'react'
 
-import { useToast } from '@/src/components/ui'
-import { cn } from '@/src/utils/cn'
+import { useToast } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
 import { CreateGroupInput } from '../../api/groupAssignmentService'
 import { useEligibleStudents } from '../../hooks/useEligibleStudents'

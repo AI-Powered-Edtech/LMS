@@ -1,18 +1,18 @@
 import { AlertTriangle, BookOpen } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import {
   CourseHeader,
   ModuleList,
   type ModuleWithProgress,
   ProgressSummary,
-} from '@/src/components/CourseOverview'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { courseService } from '@/src/features/courses'
-import { lessonService } from '@/src/features/lessons/api/lessonService'
-import { LessonSkeleton } from '@/src/features/lessons/components/LessonSkeleton'
-import { cn } from '@/src/utils/cn'
+} from '@/components/CourseOverview'
+import { useAuth } from '@/contexts/AuthContext'
+import { courseService } from '@/features/courses'
+import { lessonService } from '@/features/lessons/api/lessonService'
+import { LessonSkeleton } from '@/features/lessons/components/LessonSkeleton'
+import { cn } from '@/utils/cn'
 
 // ============================================================
 // Types
@@ -39,6 +39,7 @@ export function CourseBrowser({
   courseId?: string
 }) {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [, setModulesLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -53,6 +54,7 @@ export function CourseBrowser({
 
   useEffect(() => {
     if (!user?.id) return
+    let isMounted = true
     setLoading(true)
     setModulesLoading(true)
     setFetchError(null)
@@ -81,13 +83,17 @@ export function CourseBrowser({
           ids: courseId ? [courseId] : undefined,
         })
 
-        if (!coursesData?.length) {
+        if (!isMounted) return
+
+        const publishedCourses = (coursesData || []).filter((c) => c.status === 'published')
+
+        if (!publishedCourses.length) {
           setLoading(false)
           setModulesLoading(false)
           return
         }
 
-        const activeCourse = coursesData[0]
+        const activeCourse = publishedCourses[0]
         setCourse({
           id: activeCourse.id,
           title: activeCourse.title,
@@ -101,6 +107,8 @@ export function CourseBrowser({
           courseService.getCourseModulesWithLessons(activeCourse.id, tenantId),
           courseService.getTeacherName(activeCourse.created_by, tenantId),
         ])
+
+        if (!isMounted) return
 
         if (teacherName) setInstructorName(teacherName)
 
@@ -133,6 +141,9 @@ export function CourseBrowser({
             }
           }
         )
+
+        if (!isMounted) return
+
         setModules(modulesNoProgress)
         setTotalLessons(totalL)
         setTotalDuration(totalDur)
@@ -140,8 +151,11 @@ export function CourseBrowser({
 
         // Phase 4: fetch progress and update modules
         const completedSet = await lessonService.getCompletedLessonIds(user.id, allLessonIds)
-        let completedL = 0,
-          foundNextIncomplete = false
+
+        if (!isMounted) return
+
+        let completedL = 0
+        let nextIncompleteId: string | undefined
         const modulesWithProgress: ModuleWithProgress[] = (
           modulesData as unknown as ModuleRow[]
         ).map((m) => {
@@ -149,9 +163,8 @@ export function CourseBrowser({
           const completedCount = lessons.filter((l) => completedSet.has(l.id)).length
           const duration = lessons.reduce((s, l) => s + (l.duration_minutes || 5), 0)
           completedL += completedCount
-          if (!foundNextIncomplete && completedCount < lessons.length) {
-            setNextIncompleteModuleId(m.id)
-            foundNextIncomplete = true
+          if (!nextIncompleteId && completedCount < lessons.length) {
+            nextIncompleteId = m.id
           }
           return {
             id: m.id,
@@ -164,13 +177,19 @@ export function CourseBrowser({
         })
         setModules(modulesWithProgress)
         setCompletedLessons(completedL)
+        if (nextIncompleteId) setNextIncompleteModuleId(nextIncompleteId)
       } catch (err) {
+        if (!isMounted) return
         if (import.meta.env.DEV) console.error('[CourseBrowser] fetch failed:', err)
         setFetchError('Gagal memuat materi. Periksa koneksi internet kamu dan coba lagi.')
         setLoading(false)
         setModulesLoading(false)
       }
     })()
+
+    return () => {
+      isMounted = false
+    }
   }, [tenantId, courseId, user?.id, retryCount])
 
   const handleContinueLearning = useCallback(() => {
@@ -255,7 +274,7 @@ export function CourseBrowser({
             )}
           >
             <span className="text-3xl shrink-0">
-              {completedLessons === totalLessons ? '🎓' : '🎓'}
+              {completedLessons === totalLessons ? '🎓' : '📚'}
             </span>
             <div className="flex-1">
               {completedLessons === totalLessons ? (
@@ -265,9 +284,12 @@ export function CourseBrowser({
                   </p>
                   <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">
                     Lihat dan unduh sertifikat kamu di halaman{' '}
-                    <Link to="/profile" className="font-bold underline">
+                    <button
+                      onClick={() => navigate('/app/student/certificates')}
+                      className="font-bold underline"
+                    >
                       Profil
-                    </Link>
+                    </button>
                   </p>
                 </>
               ) : (

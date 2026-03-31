@@ -1,28 +1,28 @@
 import { AlertTriangle, ArrowLeft, BookOpen, Loader2 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
-import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary'
+import { FeatureErrorBoundary } from '@/components/FeatureErrorBoundary'
 import {
   LessonSidebar,
   MultiBlockViewer,
   ProgressReporter,
   ScrollProgressBar,
-} from '@/src/components/LessonViewer'
-import { DiscussionBoard } from '@/src/components/Social/DiscussionBoard'
-import { AITutorPanel } from '@/src/features/ai-tutor/components/AITutorPanel'
-import { LearningSessionProvider } from '@/src/features/analytics'
-import { GuideRenderer } from '@/src/features/guidance'
-import { CourseBrowser } from '@/src/features/lessons/components/CourseBrowser'
-import { LessonEventTracker } from '@/src/features/lessons/components/LessonEventTracker'
-import { StudentCoursesList } from '@/src/features/lessons/components/StudentCoursesList'
+} from '@/components/LessonViewer'
+import { DiscussionBoard } from '@/components/Social/DiscussionBoard'
+import { AITutorPanel } from '@/features/ai-tutor/components/AITutorPanel'
+import { LearningSessionProvider } from '@/features/analytics'
+import { GuideRenderer } from '@/features/guidance'
+import { CourseBrowser } from '@/features/lessons/components/CourseBrowser'
+import { LessonEventTracker } from '@/features/lessons/components/LessonEventTracker'
+import { StudentCoursesList } from '@/features/lessons/components/StudentCoursesList'
 import {
   LegacyContentFallback,
   LessonBottomNav,
   LessonCelebrations,
   LessonTopBar,
-} from '@/src/features/lessons/components/viewer'
-import { useLessonViewerState } from '@/src/features/lessons/hooks/useLessonViewerState'
-import { StruggleHelpPrompt } from '@/src/features/struggle'
+} from '@/features/lessons/components/viewer'
+import { useLessonViewerState } from '@/features/lessons/hooks/useLessonViewerState'
+import { StruggleHelpPrompt } from '@/features/struggle'
 
 // ============================================================
 // LessonViewer Page -- Thin orchestrator
@@ -168,7 +168,7 @@ export function LessonViewer() {
                       </h2>
                       <p className="text-slate-500 dark:text-slate-400 mb-4">{s.state.error}</p>
                       <button
-                        onClick={s.actions.retry}
+                        onClick={s.handleRetry}
                         className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors"
                       >
                         Coba Lagi
@@ -226,6 +226,7 @@ export function LessonViewer() {
                       {s.state.lesson.lesson_resources &&
                       s.state.lesson.lesson_resources.length > 0 ? (
                         <MultiBlockViewer
+                          key={s.state.lesson.id}
                           lesson={s.state.lesson}
                           isCompleted={s.state.status === 'completed'}
                           savedVideoBlockId={s.state.progress?.last_block_id ?? null}
@@ -269,9 +270,9 @@ export function LessonViewer() {
                     >
                       <div className="max-w-3xl mx-auto">
                         <DiscussionBoard
-                          courseId={s.state.lesson.course_id}
+                          courseId={s.courseId}
                           lessonId={s.state.lesson.id}
-                          isTeacher={s.role === 'teacher'}
+                          isTeacher={s.role === 'teacher' || s.role === 'admin'}
                         />
                       </div>
                     </motion.div>
@@ -296,7 +297,7 @@ export function LessonViewer() {
                       <AITutorPanel
                         lessonId={s.state.lesson.id}
                         lessonTitle={s.state.lesson.title}
-                        courseId={s.state.lesson.course_id}
+                        courseId={s.courseId}
                       />
                     </motion.div>
                   )}
@@ -318,6 +319,7 @@ export function LessonViewer() {
             )}
 
           {/* Progress Reporter (invisible -- syncs to Supabase every 5s) */}
+          {/* Only report progress when actively viewing/in-progress, not during completion or idle */}
           {s.state.lesson && s.tenantId && (
             <ProgressReporter
               lessonId={s.state.lesson.id}
@@ -331,7 +333,7 @@ export function LessonViewer() {
               }
               progressPercentage={s.state.progressPercentage}
               lastPosition={s.state.lastPosition}
-              enabled={['in_progress', 'viewing'].includes(s.state.status)}
+              enabled={s.state.status === 'in_progress' || s.state.status === 'viewing'}
             />
           )}
 

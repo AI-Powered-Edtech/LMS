@@ -2,9 +2,9 @@ import { Check, Clock, Plus, Trash2, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import type { InteractiveEvent, InteractiveVideoMetadata } from '@/src/features/lessons/types'
-import { getTeacherQuizzes } from '@/src/features/quizzes/api/quizManager.service'
+import { useAuth } from '@/contexts/AuthContext'
+import type { InteractiveEvent, InteractiveVideoMetadata } from '@/features/lessons/types'
+import { getTeacherQuizzes } from '@/features/quizzes/api/quizManager.service'
 
 interface InteractiveVideoEditorProps {
   metadata: InteractiveVideoMetadata

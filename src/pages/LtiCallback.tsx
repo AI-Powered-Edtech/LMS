@@ -2,7 +2,7 @@ import { AlertTriangle, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 // ==========================================================================
 // LtiCallback — Handles the redirect after LTI launch

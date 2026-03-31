@@ -1,8 +1,8 @@
 import { Crown, Trophy } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import { Card, EmptyState } from '@/src/components/ui'
-import type { LeaderboardEntry } from '@/src/features/gamification'
+import { Card, EmptyState } from '@/components/ui'
+import type { LeaderboardEntry } from '@/features/gamification'
 
 interface LeaderboardPreviewProps {
   xp: number

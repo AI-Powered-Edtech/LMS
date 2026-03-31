@@ -8,10 +8,10 @@
 import { AlertTriangle, Eye, Loader2, Shield, ShieldAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
+import { translateQuizAttemptStatus } from '@/utils/statusTranslations'
 
 import { getSuspiciousAttempts, type SuspiciousAttempt } from '../../api/suspiciousAttempts.service'
-import { translateQuizAttemptStatus } from '@/src/utils/statusTranslations'
 
 interface SuspiciousAttemptsPanelProps {
   quizId: string

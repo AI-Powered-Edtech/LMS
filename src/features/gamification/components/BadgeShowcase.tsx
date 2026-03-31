@@ -1,9 +1,9 @@
 import { Award, Lock } from 'lucide-react'
 import { motion } from 'motion/react'
 
-import { SkeletonCard } from '@/src/components/ui'
-import { useReducedMotion } from '@/src/hooks/useReducedMotion'
-import { cn } from '@/src/utils/cn'
+import { SkeletonCard } from '@/components/ui'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { cn } from '@/utils/cn'
 
 import { useStudentBadges } from '../queries/gamificationQueries'
 import type { BadgeDefinition, BadgeRarity } from '../types'
@@ -118,7 +118,7 @@ function BadgeCard({
 }
 
 function criteriaHint(badge: BadgeDefinition): string {
-  if (!badge.criteria) return "Selesaikan tantangan";
+  if (!badge.criteria) return 'Selesaikan tantangan'
   const c = badge.criteria as Record<string, unknown>
   switch (c.type) {
     case 'lessons_completed':

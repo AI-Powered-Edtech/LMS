@@ -12,12 +12,12 @@ import {
 import { motion } from 'motion/react'
 import { useEffect, useMemo, useState } from 'react'
 
-import { useToast } from '@/src/components/ui/Toast'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
-import { cn } from '@/src/utils/cn'
+import { useToast } from '@/components/ui/Toast'
+import { useAuth } from '@/contexts/AuthContext'
+import { useDebounce } from '@/hooks/useDebounce'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { supabase } from '@/services/supabase/client'
+import { cn } from '@/utils/cn'
 
 // --- UTILS ---
 const formatCurrency = (amount: number) => {
@@ -185,7 +185,10 @@ export function BillingDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => addToast({ type: "info", message: "Segera hadir" })} className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm">
+          <button
+            onClick={() => addToast({ type: 'info', message: 'Segera hadir' })}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm"
+          >
             <Plus className="w-4 h-4" />
             Metode Pembayaran
           </button>

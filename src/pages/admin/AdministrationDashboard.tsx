@@ -24,11 +24,11 @@ import {
   SyncHistoryItem,
   SyncResult,
   TenantModuleConfig,
-} from '@/src/features/administration/api/administrationService'
-import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useToast } from '@/src/hooks/useToast'
-import { cn } from '@/src/utils/cn'
+} from '@/features/administration/api/administrationService'
+import { AdministrationSkeleton } from '@/features/administration/components/AdministrationSkeleton'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useToast } from '@/hooks/useToast'
+import { cn } from '@/utils/cn'
 
 // Default sync status for initial state (will be replaced with real data)
 const defaultSyncStatus: SyncHistoryItem[] = [

@@ -1,10 +1,10 @@
 import { CheckCircle, Save, User } from 'lucide-react'
 import { useState } from 'react'
 
-import { Button, Card, Input, OptimizedImage } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { settingsService } from '@/src/features/settings/api/settingsService'
-import { cn } from '@/src/utils/cn'
+import { Button, Card, Input, OptimizedImage } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { settingsService } from '@/features/settings/api/settingsService'
+import { cn } from '@/utils/cn'
 
 type Status = 'idle' | 'loading' | 'success' | 'error'
 

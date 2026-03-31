@@ -22,7 +22,7 @@ const { mockStorageRemove, mockStorageFrom, mockSingle, mockFrom } = vi.hoisted(
   }
 })
 
-vi.mock('@/src/services/supabase/client', () => ({
+vi.mock('@/services/supabase/client', () => ({
   supabase: {
     from: mockFrom,
     storage: {

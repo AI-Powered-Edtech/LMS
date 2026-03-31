@@ -3,14 +3,14 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { AssignCourseModal } from '@/src/components/Classroom/AssignCourseModal'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { Course, courseService } from '@/src/features/courses'
-import { useInfiniteCoursesQuery } from '@/src/features/courses/queries/courseQueries'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
-import { useToast } from '@/src/hooks/useToast'
-import { cn } from '@/src/utils/cn'
+import { AssignCourseModal } from '@/components/Classroom/AssignCourseModal'
+import { useAuth } from '@/contexts/AuthContext'
+import { Course, courseService } from '@/features/courses'
+import { useInfiniteCoursesQuery } from '@/features/courses/queries/courseQueries'
+import { useDebounce } from '@/hooks/useDebounce'
+import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
+import { useToast } from '@/hooks/useToast'
+import { cn } from '@/utils/cn'
 
 // Gradient palette rotated per card index
 const CARD_GRADIENTS = [
@@ -52,14 +52,15 @@ export const Courses: React.FC = () => {
   const [newDescription, setNewDescription] = useState('')
   const [isCreating, setIsCreating] = useState(false)
 
+  // FIX 6: courseId defaults to null instead of empty string
   // Assign Class Modal State
   const [assignModal, setAssignModal] = useState<{
     isOpen: boolean
-    courseId: string
+    courseId: string | null
     courseTitle: string
   }>({
     isOpen: false,
-    courseId: '',
+    courseId: null,
     courseTitle: '',
   })
 
@@ -67,13 +68,14 @@ export const Courses: React.FC = () => {
   const createModalRef = useRef<HTMLDivElement>(null)
 
   // M-2: Escape key handler via useEffect so document receives the event
+  // FIX 1: Guard Escape key with !isCreating to prevent closing modal during submission
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isModalOpen) setIsModalOpen(false)
+      if (e.key === 'Escape' && isModalOpen && !isCreating) setIsModalOpen(false)
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isModalOpen])
+  }, [isModalOpen, isCreating])
 
   // M-17: Focus trap for create course modal
   useEffect(() => {
@@ -117,6 +119,8 @@ export const Courses: React.FC = () => {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage()
   }
 
+  // FIX 4: Re-attach observer when isLoading changes so sentinel is found after
+  // the empty/loading state unmounts and the grid (with sentinel) remounts.
   useEffect(() => {
     const sentinel = sentinelRef.current
     if (!sentinel) return
@@ -128,7 +132,7 @@ export const Courses: React.FC = () => {
     )
     observer.observe(sentinel)
     return () => observer.disconnect()
-  }, []) // stable — uses ref internally
+  }, [isLoading]) // re-attach sentinel after loading state changes
 
   // Server-side search covers title. Client-side filter covers description
   // (the service only does ilike on title, so we locally filter description as well)
@@ -142,6 +146,8 @@ export const Courses: React.FC = () => {
 
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault()
+    // FIX 2: Guard against double-submission
+    if (isCreating) return
     if (!activeTenant?.id || !user?.id || !newTitle.trim()) return
 
     try {
@@ -154,6 +160,9 @@ export const Courses: React.FC = () => {
       })
 
       setIsModalOpen(false)
+      // FIX 3: Reset form state after successful creation
+      setNewTitle('')
+      setNewDescription('')
       navigate(
         `${getPath('/app/teacher/course-builder', '/app/admin/course-builder')}?courseId=${newCourse.id}`
       )
@@ -316,11 +325,12 @@ export const Courses: React.FC = () => {
       <AnimatePresence>
         {isModalOpen && (
           // M-3: Click outside the modal panel closes it
+          // FIX 1: Guard backdrop click with !isCreating to prevent closing during submission
           <div
             role="presentation"
             className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-md"
             onClick={(e) => {
-              if (e.target === e.currentTarget) setIsModalOpen(false)
+              if (e.target === e.currentTarget && !isCreating) setIsModalOpen(false)
             }}
           >
             <motion.div
@@ -398,13 +408,15 @@ export const Courses: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Assign Course Modal */}
-      <AssignCourseModal
-        isOpen={assignModal.isOpen}
-        onClose={() => setAssignModal((prev) => ({ ...prev, isOpen: false }))}
-        courseId={assignModal.courseId}
-        courseTitle={assignModal.courseTitle}
-      />
+      {/* Assign Course Modal — FIX 6: only render when courseId is not null */}
+      {assignModal.courseId && (
+        <AssignCourseModal
+          isOpen={assignModal.isOpen}
+          onClose={() => setAssignModal((prev) => ({ ...prev, isOpen: false }))}
+          courseId={assignModal.courseId}
+          courseTitle={assignModal.courseTitle}
+        />
+      )}
     </div>
   )
 }
@@ -433,7 +445,17 @@ function CourseCard({ course, gradientClass, onNavigate, onAssign }: CourseCardP
         'transition-all duration-300 hover:-translate-y-1'
       )}
       onClick={onNavigate}
-      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onNavigate()}
+      // FIX 5: Enter fires on keydown (standard); Space fires on keyup (native button spec)
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') onNavigate()
+        // Space is handled in onKeyUp per native button spec
+      }}
+      onKeyUp={(e) => {
+        if (e.key === ' ') {
+          e.preventDefault()
+          onNavigate()
+        }
+      }}
     >
       {/* Thumbnail / gradient header */}
       <div

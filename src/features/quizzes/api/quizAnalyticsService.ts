@@ -1,5 +1,5 @@
-import { supabase } from '@/src/services/supabase/client'
-import { logDevError } from '@/src/utils/logDevError'
+import { supabase } from '@/services/supabase/client'
+import { logDevError } from '@/utils/logDevError'
 
 // --- Types ---
 

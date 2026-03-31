@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/src/services/supabase/client', () => ({
+vi.mock('@/services/supabase/client', () => ({
   supabase: {
     functions: {
       invoke: vi.fn(),
@@ -8,7 +8,7 @@ vi.mock('@/src/services/supabase/client', () => ({
   },
 }))
 
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 import { askTutor } from '..'
 

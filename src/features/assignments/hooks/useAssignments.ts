@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { assignmentService } from '@/src/features/assignments/api/assignmentService'
+import { useAuth } from '@/contexts/AuthContext'
+import { assignmentService } from '@/features/assignments/api/assignmentService'
 
 import { AssignmentUiState, StudentSubmission } from '../types'
 

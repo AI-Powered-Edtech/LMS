@@ -5,7 +5,7 @@
  * All methods require tenantId for proper multi-tenant isolation.
  */
 
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 import type { LeaderboardEntry } from '../types'
 

@@ -17,20 +17,29 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { AssignCourseModal } from '@/src/components/Classroom/AssignCourseModal'
-import { useBuilder } from '@/src/contexts/BuilderContext'
-import { cn } from '@/src/utils/cn'
-import { translateCourseStatus } from '@/src/utils/statusTranslations'
+import { AssignCourseModal } from '@/components/Classroom/AssignCourseModal'
+import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { useBuilder } from '@/contexts/BuilderContext'
+import { CourseSettingsModal } from '@/features/courses/components/CourseSettingsModal'
+import { CourseVersionHistoryDrawer } from '@/features/courses/components/CourseVersionHistoryDrawer'
+import { SaveTemplateModal } from '@/features/courses/components/SaveTemplateModal'
+import { cn } from '@/utils/cn'
+import { translateCourseStatus } from '@/utils/statusTranslations'
 
 import { PresenceAvatars } from './PresenceAvatars'
+
 export function BuilderTopBar() {
   const { state, actions, mobile, presence, offline } = useBuilder()
+  const { role } = useAuth()
   const navigate = useNavigate()
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [, setIsSettingsOpen] = useState(false)
-  const [, setIsVersionHistoryOpen] = useState(false)
-  const [, setIsSaveTemplateOpen] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false)
+  const [isSaveTemplateOpen, setIsSaveTemplateOpen] = useState(false)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [pendingNavAction, setPendingNavAction] = useState<(() => void) | null>(null)
 
   const statusConfig = {
     idle: { icon: null, text: '', color: '' },
@@ -53,6 +62,17 @@ export function BuilderTopBar() {
 
   const status = statusConfig[state.savingStatus]
 
+  const courseListPath = role === 'admin' ? '/app/admin/courses' : '/app/teacher/courses'
+
+  const handleExitWithConfirm = () => {
+    if (state.savingStatus === 'saving' || offline.isDirty) {
+      setPendingNavAction(() => () => navigate(courseListPath))
+      setIsConfirmOpen(true)
+      return
+    }
+    navigate(courseListPath)
+  }
+
   return (
     <div className="h-20 bg-white/70 border-b border-slate-200/60 flex items-center justify-between px-8 shrink-0 sticky top-0 z-40 backdrop-blur-xl">
       {/* Left: Back + Title */}
@@ -60,12 +80,9 @@ export function BuilderTopBar() {
         <button
           onClick={() => {
             if (state.savingStatus === 'saving' || offline.isDirty) {
-              if (
-                !window.confirm(
-                  'Ada perubahan yang belum tersimpan. Yakin ingin meninggalkan halaman?'
-                )
-              )
-                return
+              setPendingNavAction(() => () => navigate(-1))
+              setIsConfirmOpen(true)
+              return
             }
             navigate(-1)
           }}
@@ -189,7 +206,8 @@ export function BuilderTopBar() {
                   <div className="h-px bg-slate-100 dark:bg-slate-700 my-1" />
                   <button
                     onClick={() => {
-                      navigate('/app/teacher/courses')
+                      setIsMobileMenuOpen(false)
+                      handleExitWithConfirm()
                     }}
                     className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3 text-rose-500"
                   >
@@ -284,7 +302,8 @@ export function BuilderTopBar() {
 
         <button
           onClick={() => setIsAssignModalOpen(true)}
-          className="px-5 py-2.5 text-sm font-black text-white bg-slate-900 hover:bg-black shadow-xl shadow-slate-200 hover:shadow-slate-300 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2"
+          disabled={!state.courseId}
+          className="px-5 py-2.5 text-sm font-black text-white bg-slate-900 hover:bg-black shadow-xl shadow-slate-200 hover:shadow-slate-300 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Users className="w-4 h-4" />
           Bagikan
@@ -298,6 +317,57 @@ export function BuilderTopBar() {
         courseId={state.courseId || ''}
         courseTitle={state.courseTitle || ''}
       />
+
+      {/* Course Settings Modal */}
+      <CourseSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        courseId={state.courseId || ''}
+      />
+
+      {/* Version History Drawer */}
+      <CourseVersionHistoryDrawer
+        isOpen={isVersionHistoryOpen}
+        onClose={() => setIsVersionHistoryOpen(false)}
+        courseId={state.courseId || ''}
+      />
+
+      {/* Save as Template Modal */}
+      <SaveTemplateModal
+        isOpen={isSaveTemplateOpen}
+        onClose={() => setIsSaveTemplateOpen(false)}
+        type="course"
+        sourceId={state.courseId || ''}
+        defaultTitle={state.courseTitle || ''}
+      />
+
+      {/* Unsaved Changes Confirmation */}
+      <Modal open={isConfirmOpen} onClose={() => setIsConfirmOpen(false)} size="sm">
+        <ModalHeader title="Tinggalkan halaman?" onClose={() => setIsConfirmOpen(false)} />
+        <ModalBody>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Ada perubahan yang belum tersimpan. Yakin ingin meninggalkan halaman ini?
+          </p>
+        </ModalBody>
+        <ModalFooter>
+          <button
+            onClick={() => setIsConfirmOpen(false)}
+            className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            onClick={() => {
+              setIsConfirmOpen(false)
+              pendingNavAction?.()
+              setPendingNavAction(null)
+            }}
+            className="px-4 py-2 text-sm font-medium bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+          >
+            Ya, Tinggalkan
+          </button>
+        </ModalFooter>
+      </Modal>
     </div>
   )
 }

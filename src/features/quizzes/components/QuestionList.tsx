@@ -1,9 +1,9 @@
 import { HelpCircle, Plus, Search, Trash2 } from 'lucide-react'
 
-import type { QuizBlockData } from '@/src/features/courses/api/builder/quizBuilderService'
-import type { QuestionType } from '@/src/features/quizzes'
-import { questionTypeLabels } from '@/src/features/quizzes/hooks/useQuizEditorState'
-import { cn } from '@/src/utils/cn'
+import type { QuizBlockData } from '@/features/courses/api/builder/quizBuilderService'
+import type { QuestionType } from '@/features/quizzes'
+import { questionTypeLabels } from '@/features/quizzes/hooks/useQuizEditorState'
+import { cn } from '@/utils/cn'
 
 interface QuestionListProps {
   questions: QuizBlockData['questions']

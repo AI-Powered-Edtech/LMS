@@ -4,11 +4,11 @@ import { describe, expect, it, vi } from 'vitest'
 import { usePermissions } from '../usePermissions'
 
 // Mock useAuth — the hook lives in AuthContext, not a local useAuth.ts
-vi.mock('@/src/contexts/AuthContext', () => ({
+vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(),
 }))
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 const mockUseAuth = vi.mocked(useAuth)
 
 const basePermissions = {

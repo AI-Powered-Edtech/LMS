@@ -1,7 +1,7 @@
 import { AlertCircle, AlertTriangle, LogIn, RefreshCcw } from 'lucide-react'
 import { Component, ErrorInfo, ReactNode } from 'react'
 
-import { captureError } from '@/src/utils/sentry'
+import { captureError } from '@/utils/sentry'
 
 interface Props {
   children?: ReactNode

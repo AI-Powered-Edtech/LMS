@@ -8,7 +8,7 @@ import {
   Tooltip,
 } from 'recharts'
 
-import { useTheme } from '@/src/contexts/ThemeContext'
+import { useTheme } from '@/contexts/ThemeContext'
 
 import { EngagementSummaryRow } from '../types'
 

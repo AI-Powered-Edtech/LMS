@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { supabase } from '@/src/services/supabase/client'
-import { createQueryKeys } from '@/src/shared/lib/queryKeys'
-import { GC, STALE } from '@/src/utils/queryConstants'
-import { captureError } from '@/src/utils/sentry'
+import { supabase } from '@/services/supabase/client'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { GC, STALE } from '@/utils/queryConstants'
+import { captureError } from '@/utils/sentry'
 
 import type { OnboardingProgress } from '../types'
 

@@ -5,8 +5,8 @@ import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 
-import { cn } from '@/src/utils/cn'
-import { katexSanitizeSchema } from '@/src/utils/sanitizeMarkdown'
+import { cn } from '@/utils/cn'
+import { katexSanitizeSchema } from '@/utils/sanitizeMarkdown'
 
 interface MarkdownBlockProps {
   content: string

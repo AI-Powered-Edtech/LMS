@@ -1,8 +1,8 @@
-import { supabase } from '@/src/services/supabase/client'
-import { mapCourse } from '@/src/shared/types/courseMappers'
-import { DomainCourse } from '@/src/shared/types/courseTypes'
-import { mapModule } from '@/src/shared/types/moduleMappers'
-import { DomainModule } from '@/src/shared/types/moduleTypes'
+import { supabase } from '@/services/supabase/client'
+import { mapCourse } from '@/shared/types/courseMappers'
+import { DomainCourse } from '@/shared/types/courseTypes'
+import { mapModule } from '@/shared/types/moduleMappers'
+import { DomainModule } from '@/shared/types/moduleTypes'
 
 interface BuilderLessonRow {
   order: number

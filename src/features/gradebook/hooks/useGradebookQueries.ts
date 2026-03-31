@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { createQueryKeys } from '@/src/shared/lib/queryKeys'
-import { captureError } from '@/src/utils/sentry'
+import { useAuth } from '@/contexts/AuthContext'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { captureError } from '@/utils/sentry'
 
 import {
   GradebookAssignment,

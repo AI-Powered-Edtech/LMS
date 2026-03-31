@@ -4,21 +4,21 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { MessageSquare } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-import { ReportModal } from '@/src/components/moderation/ReportModal'
-import { EmptyState } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { discussionService } from '@/src/features/discussions/api/discussionService'
+import { ReportModal } from '@/components/moderation/ReportModal'
+import { EmptyState } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { discussionService } from '@/features/discussions/api/discussionService'
 import {
   CreatePostForm,
   ForumHeader,
   ForumSearchBar,
   PostItem,
-} from '@/src/features/discussions/components/forum'
-import { buildForumPosts } from '@/src/features/discussions/utils/forumUtils'
-import { useStudentXPProfile } from '@/src/features/gamification/queries/gamificationQueries'
-import { useSubmitReport } from '@/src/features/moderation/queries/moderationQueries'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+} from '@/features/discussions/components/forum'
+import { buildForumPosts } from '@/features/discussions/utils/forumUtils'
+import { useStudentXPProfile } from '@/features/gamification/queries/gamificationQueries'
+import { useSubmitReport } from '@/features/moderation/queries/moderationQueries'
+import { useDebounce } from '@/hooks/useDebounce'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export function Forum() {
   usePageTitle('Forum')

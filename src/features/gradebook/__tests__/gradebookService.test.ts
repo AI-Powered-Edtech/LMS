@@ -12,7 +12,7 @@ const { mockRpc, mockFrom, mockMaybeSingle } = vi.hoisted(() => {
   return { mockRpc, mockFrom, mockMaybeSingle }
 })
 
-vi.mock('@/src/services/supabase/client', () => ({
+vi.mock('@/services/supabase/client', () => ({
   supabase: {
     rpc: mockRpc,
     from: mockFrom,

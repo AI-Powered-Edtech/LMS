@@ -1,6 +1,6 @@
 import { Archive, Download, ExternalLink, File, FileText, Presentation, Sheet } from 'lucide-react'
 
-import { sanitizeUrl } from '@/src/utils/sanitize'
+import { sanitizeUrl } from '@/utils/sanitize'
 
 interface FileBlockViewerProps {
   url: string

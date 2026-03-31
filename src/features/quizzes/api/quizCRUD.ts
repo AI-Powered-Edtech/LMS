@@ -5,7 +5,7 @@
 // Extracted from quizManager.service.ts for modularity.
 // ==========================================================================
 
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 import type { QuizMode } from '../types/quizzes.types'
 

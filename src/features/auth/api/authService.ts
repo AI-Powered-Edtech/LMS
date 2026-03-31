@@ -1,5 +1,5 @@
-import { supabase } from '@/src/services/supabase/client'
-import { captureError } from '@/src/utils/sentry'
+import { supabase } from '@/services/supabase/client'
+import { captureError } from '@/utils/sentry'
 
 export interface InvitationInfo {
   email: string

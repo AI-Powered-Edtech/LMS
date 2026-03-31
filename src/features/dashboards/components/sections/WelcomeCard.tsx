@@ -1,9 +1,9 @@
 import { BookOpen, Eye, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import { Button, Card } from '@/src/components/ui'
-import { StreakCounter } from '@/src/features/gamification/components/StreakCounter'
-import { XPProgressBar } from '@/src/features/gamification/components/XPProgressBar'
+import { Button, Card } from '@/components/ui'
+import { StreakCounter } from '@/features/gamification/components/StreakCounter'
+import { XPProgressBar } from '@/features/gamification/components/XPProgressBar'
 
 interface ImpersonatedStudent {
   name: string

@@ -1,7 +1,7 @@
 import { AlertCircle, CheckCircle, Loader2, MessageSquare, Save, Sparkles } from 'lucide-react'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { cn } from '@/src/utils/cn'
+import { OptimizedImage } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
 import type { RubricItem, SpeedGraderStudent } from './types'
 import { QUICK_COMMENTS } from './types'

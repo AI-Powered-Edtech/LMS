@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from 'motion/react'
 import { useId, useRef } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 export interface Tab {
   id: string

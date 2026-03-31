@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { useOptionalLearningSession } from '@/src/features/analytics'
-import { type QuizAttemptResult, quizService } from '@/src/features/quizzes'
-import { useQuizAutosave } from '@/src/features/quizzes/hooks/useQuizAutosave'
-import type { SubmitAnswer } from '@/src/features/quizzes/types/quizzes.types'
+import { useOptionalLearningSession } from '@/features/analytics'
+import { type QuizAttemptResult, quizService } from '@/features/quizzes'
+import { useQuizAutosave } from '@/features/quizzes/hooks/useQuizAutosave'
+import type { SubmitAnswer } from '@/features/quizzes/types/quizzes.types'
 
 import type { MultiTypeAnswer, QuestionType, QuizQuestion } from './quizViewerTypes'
 

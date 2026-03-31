@@ -7,8 +7,8 @@
 import { AlertCircle, Clock, Loader2, Send } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
-import { type AITutorError, validateQuestion } from '@/src/features/ai-tutor'
-import { cn } from '@/src/utils/cn'
+import { type AITutorError, validateQuestion } from '@/features/ai-tutor'
+import { cn } from '@/utils/cn'
 
 interface AITutorInputProps {
   onSendQuestion: (question: string) => Promise<void>

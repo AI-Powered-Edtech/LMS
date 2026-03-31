@@ -1,7 +1,7 @@
 import { Plus, User, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-import { Button, Card, EmptyState } from '@/src/components/ui'
+import { Button, Card, EmptyState } from '@/components/ui'
 
 interface Classroom {
   id: string

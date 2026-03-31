@@ -5,10 +5,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
-import { STALE } from '@/src/utils/queryConstants'
-import { captureError } from '@/src/utils/sentry'
+import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/services/supabase/client'
+import { STALE } from '@/utils/queryConstants'
+import { captureError } from '@/utils/sentry'
 
 import * as notificationApi from '../api/notificationApi'
 import type { Notification, NotificationPreferences } from '../types'

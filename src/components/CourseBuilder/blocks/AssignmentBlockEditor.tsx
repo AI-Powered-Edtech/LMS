@@ -1,13 +1,13 @@
 import { AlertTriangle, Calendar, CheckCircle, FileText, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useBuilder } from '@/src/contexts/BuilderContext'
+import { useAuth } from '@/contexts/AuthContext'
+import { useBuilder } from '@/contexts/BuilderContext'
 import {
   type AssignmentBlockData,
   builderAssignmentService,
-} from '@/src/features/courses/api/builder/assignmentBuilderService'
-import { cn } from '@/src/utils/cn'
+} from '@/features/courses/api/builder/assignmentBuilderService'
+import { cn } from '@/utils/cn'
 
 export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }) {
   const { tenantId } = useAuth()

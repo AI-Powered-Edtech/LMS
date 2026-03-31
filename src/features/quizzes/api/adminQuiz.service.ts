@@ -5,9 +5,9 @@
  * Used by the Admin Quiz Overview dashboard.
  */
 
-import { supabase } from '@/src/services/supabase/client'
-import { validateArray } from '@/src/shared/lib/validate'
-import { QuizRowSchema } from '@/src/shared/schemas'
+import { supabase } from '@/services/supabase/client'
+import { validateArray } from '@/shared/lib/validate'
+import { QuizRowSchema } from '@/shared/schemas'
 
 // ─── Types ───────────────────────────────────────────────
 

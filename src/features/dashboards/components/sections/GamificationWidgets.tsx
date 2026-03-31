@@ -1,8 +1,8 @@
 import { Clock, Crown, Star, Target, Trophy, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-import { Card, EmptyState } from '@/src/components/ui'
-import { cn } from '@/src/utils/cn'
+import { Card, EmptyState } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
 interface Achievement {
   id: string

@@ -4,7 +4,7 @@
 
 import { ArrowLeft, CheckCircle, HelpCircle, XCircle } from 'lucide-react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import type { QuestionType, QuizAttemptQuestion } from '../../types/quizzes.types'
 

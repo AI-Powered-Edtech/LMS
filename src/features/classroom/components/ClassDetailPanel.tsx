@@ -13,8 +13,8 @@ import {
   X,
 } from 'lucide-react'
 
-import type { EnrolledStudent } from '@/src/features/classroom/api/classroomService'
-import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
+import type { EnrolledStudent } from '@/features/classroom/api/classroomService'
+import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
 
 interface SelectedClass {
   id: string

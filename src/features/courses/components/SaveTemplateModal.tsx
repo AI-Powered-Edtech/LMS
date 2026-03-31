@@ -1,7 +1,7 @@
 import { Book, CheckCircle, FileText, FolderOpen, Loader2, Save } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
-import { Modal, ModalHeader } from '@/src/components/ui/Modal'
+import { Modal, ModalHeader } from '@/components/ui/Modal'
 
 import { useSaveTemplate } from '../queries/useTemplates'
 

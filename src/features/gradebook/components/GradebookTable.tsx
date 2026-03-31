@@ -1,8 +1,8 @@
 import { Download, RefreshCw, Search } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 
-import { EmptyState, Skeleton } from '@/src/components/ui'
-import { cn } from '@/src/utils/cn'
+import { EmptyState, Skeleton } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
 import { exportGradebookCSV } from '../api/gradebookApi'
 import {
@@ -260,7 +260,10 @@ export function GradebookTable({ courseId }: Props) {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[600px]" aria-label="Tabel nilai kelas">
+        <table
+          className="w-full text-left border-collapse min-w-[600px]"
+          aria-label="Tabel nilai kelas"
+        >
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
               <th className="p-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider sticky left-0 bg-slate-50 dark:bg-slate-900 z-10 min-w-[180px]">

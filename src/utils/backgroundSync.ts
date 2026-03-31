@@ -1,9 +1,9 @@
 // EduSync LMS — Background Sync
 // Processes the offline sync queue when connectivity is restored
 
-import { useToast } from '@/src/hooks/useToast'
-import { supabase } from '@/src/services/supabase/client'
-import { captureError } from '@/src/utils/sentry'
+import { useToast } from '@/hooks/useToast'
+import { supabase } from '@/services/supabase/client'
+import { captureError } from '@/utils/sentry'
 
 import { getPendingSubmissions, markSynced } from './offlineStorage'
 

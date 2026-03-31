@@ -11,9 +11,9 @@
 
 import { useQuery } from '@tanstack/react-query'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { assignmentService } from '@/src/features/assignments/api/assignmentService'
-import { supabase } from '@/src/services/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
+import { assignmentService } from '@/features/assignments/api/assignmentService'
+import { supabase } from '@/services/supabase/client'
 
 const BADGE_STALE = 2 * 60 * 1000 // 2 menit
 

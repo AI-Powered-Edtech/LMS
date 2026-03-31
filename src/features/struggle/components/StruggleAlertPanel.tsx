@@ -2,7 +2,7 @@ import { AlertCircle, Bell } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 
-import { EmptyState, Skeleton } from '@/src/components/ui'
+import { EmptyState, Skeleton } from '@/components/ui'
 
 import { useMarkAlertsRead, useStruggleAlerts } from '../queries/useStruggleQueries'
 import { relativeTime } from '../utils/struggleHelpers'

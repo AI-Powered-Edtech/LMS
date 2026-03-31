@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 
-import { useToast } from '@/src/hooks/useToast'
+import { useToast } from '@/hooks/useToast'
 
 /** Extract HTTP status from various error shapes returned by Supabase/fetch. */
 function getErrorStatus(error: unknown): number | undefined {

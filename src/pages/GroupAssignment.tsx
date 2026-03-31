@@ -1,9 +1,9 @@
 import { useParams } from 'react-router-dom'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { StudentGroupView } from '@/src/features/assignments/components/groups/StudentGroupView'
-import { TeacherGroupView } from '@/src/features/assignments/components/groups/TeacherGroupView'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { useAuth } from '@/contexts/AuthContext'
+import { StudentGroupView } from '@/features/assignments/components/groups/StudentGroupView'
+import { TeacherGroupView } from '@/features/assignments/components/groups/TeacherGroupView'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export function GroupAssignment() {
   usePageTitle('Tugas Kelompok')

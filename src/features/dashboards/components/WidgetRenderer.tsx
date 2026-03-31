@@ -1,10 +1,10 @@
 import { Activity, Loader2 } from 'lucide-react'
 
-import { EngagementTrend } from '@/src/features/analytics/components/EngagementTrend'
-import { FunnelChart } from '@/src/features/analytics/components/FunnelChart'
-import { RetentionHeatmap } from '@/src/features/analytics/components/RetentionHeatmap'
-import { RiskRadar } from '@/src/features/analytics/components/RiskRadar'
-import { SegmentPieChart } from '@/src/features/analytics/components/SegmentPieChart'
+import { EngagementTrend } from '@/features/analytics/components/EngagementTrend'
+import { FunnelChart } from '@/features/analytics/components/FunnelChart'
+import { RetentionHeatmap } from '@/features/analytics/components/RetentionHeatmap'
+import { RiskRadar } from '@/features/analytics/components/RiskRadar'
+import { SegmentPieChart } from '@/features/analytics/components/SegmentPieChart'
 import {
   useAtRiskStudents,
   useEngagementSummary,
@@ -12,8 +12,8 @@ import {
   useFunnelList,
   useFunnelResults,
   useRetentionMatrix,
-} from '@/src/features/analytics/queries/analyticsQueries'
-import { LeaderboardV2 } from '@/src/features/gamification/components/LeaderboardV2'
+} from '@/features/analytics/queries/analyticsQueries'
+import { LeaderboardV2 } from '@/features/gamification/components/LeaderboardV2'
 
 import type { WidgetConfig } from '../types'
 

@@ -5,11 +5,11 @@ import { useLoginState } from '../useLoginState'
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
-vi.mock('@/src/contexts/AuthContext', () => ({
+vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(),
 }))
 
-vi.mock('@/src/features/auth/api/authService', () => ({
+vi.mock('@/features/auth/api/authService', () => ({
   authService: {
     validateInvitation: vi.fn(),
     publicLookupClass: vi.fn(),
@@ -17,16 +17,16 @@ vi.mock('@/src/features/auth/api/authService', () => ({
   },
 }))
 
-vi.mock('@/src/utils/rateLimiter', () => ({
+vi.mock('@/utils/rateLimiter', () => ({
   loginRateLimiter: {
     check: vi.fn(),
     reset: vi.fn(),
   },
 }))
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { authService } from '@/src/features/auth/api/authService'
-import { loginRateLimiter } from '@/src/utils/rateLimiter'
+import { useAuth } from '@/contexts/AuthContext'
+import { authService } from '@/features/auth/api/authService'
+import { loginRateLimiter } from '@/utils/rateLimiter'
 
 const mockUseAuth = vi.mocked(useAuth)
 const mockAuthService = vi.mocked(authService)

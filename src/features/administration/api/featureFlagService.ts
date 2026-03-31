@@ -2,8 +2,8 @@
  * Feature Flag Service — service layer for the FeatureFlags admin page.
  * Keeps inline Supabase calls out of page components.
  */
-import { supabase } from '@/src/services/supabase/client'
-import { type FeatureFlag, invalidateFlagCache } from '@/src/utils/featureFlags'
+import { supabase } from '@/services/supabase/client'
+import { type FeatureFlag, invalidateFlagCache } from '@/utils/featureFlags'
 
 export const featureFlagService = {
   /**

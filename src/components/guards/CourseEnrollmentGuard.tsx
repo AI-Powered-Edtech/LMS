@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Navigate, useLocation, useParams } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { useAuth } from '../../contexts/AuthContext'
 import { courseService } from '../../features/courses'
@@ -14,7 +14,9 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
   const [isEnrolled, setIsEnrolled] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [retryCount, setRetryCount] = useState(0)
   const location = useLocation()
+  const navigate = useNavigate()
 
   useEffect(() => {
     const verifyEnrollment = async () => {
@@ -22,6 +24,7 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
 
       // No courseId means we're not on a specific course page — allow through
       if (!courseId) {
+        setIsEnrolled(true)
         setLoading(false)
         return
       }
@@ -32,6 +35,9 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
         setLoading(false)
         return
       }
+
+      setError(null)
+      setLoading(true)
 
       try {
         const enrolled = await courseService.checkEnrollment(courseId, user.id, tenantId)
@@ -47,7 +53,7 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
     }
 
     verifyEnrollment()
-  }, [courseId, user, role, tenantId, authLoading])
+  }, [courseId, user, role, tenantId, authLoading, retryCount])
 
   if (authLoading || loading) {
     return (
@@ -60,15 +66,23 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-        <div className="bg-red-50 text-red-600 p-4 rounded-xl max-w-md">
-          <h3 className="font-bold mb-2">Terjadi Kesalahan</h3>
-          <p>{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg font-medium"
-          >
-            Coba Lagi
-          </button>
+        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-xl max-w-md border border-red-200 dark:border-red-800">
+          <h3 className="font-bold mb-2 text-red-700 dark:text-red-300">Terjadi Kesalahan</h3>
+          <p className="text-sm mb-4">{error}</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => setRetryCount((c) => c + 1)}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+            >
+              Coba Lagi
+            </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="px-4 py-2 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 rounded-lg font-medium hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+            >
+              Kembali
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -79,7 +93,7 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
     return (
       <Navigate
         to="/app/student/courses"
-        state={{ from: location, error: 'You are not enrolled in this course.' }}
+        state={{ from: location, error: 'Kamu belum terdaftar di kursus ini.' }}
         replace
       />
     )

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useNetworkStatus } from '@/src/hooks/useNetworkStatus'
-import { deleteBuilderDraft, saveBuilderDraft } from '@/src/utils/offlineStorage'
+import { useNetworkStatus } from '@/hooks/useNetworkStatus'
+import { deleteBuilderDraft, saveBuilderDraft } from '@/utils/offlineStorage'
 
 import type { BuilderState } from './builderReducer'
 

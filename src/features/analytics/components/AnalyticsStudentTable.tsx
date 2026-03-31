@@ -2,7 +2,7 @@ import { AlertTriangle, Clock, Eye, Filter } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import React from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 interface StudentData {
   student_id: string
@@ -50,7 +50,10 @@ export function AnalyticsStudentTable({
       </div>
 
       <div className="overflow-x-auto flex-1">
-        <table className="w-full text-sm text-left text-slate-600 dark:text-slate-400" aria-label="Tabel analitik siswa">
+        <table
+          className="w-full text-sm text-left text-slate-600 dark:text-slate-400"
+          aria-label="Tabel analitik siswa"
+        >
           <thead className="text-xs text-slate-500 dark:text-slate-400 uppercase bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
             <tr>
               <th scope="col" className="px-6 py-4 font-bold">

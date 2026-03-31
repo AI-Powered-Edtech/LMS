@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 import { scheduleSync, syncPendingSubmissions } from '../backgroundSync'
 import { getPendingSubmissions, markSynced } from '../offlineStorage'
@@ -10,7 +10,7 @@ vi.mock('../offlineStorage', () => ({
   markSynced: vi.fn(),
 }))
 
-vi.mock('@/src/services/supabase/client', () => ({
+vi.mock('@/services/supabase/client', () => ({
   supabase: {
     from: vi.fn(),
   },

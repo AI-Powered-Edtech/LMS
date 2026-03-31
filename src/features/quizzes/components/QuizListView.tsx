@@ -15,12 +15,12 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import { type QuizMode } from '@/src/features/quizzes'
-import { QuizAssignmentStatus } from '@/src/features/quizzes/components/QuizAssignmentStatus'
-import { QuizAssignModal } from '@/src/features/quizzes/components/QuizAssignModal'
-import { QuizStatus } from '@/src/features/quizzes/types/quizzes.types'
-import { useToast } from '@/src/hooks/useToast'
-import { cn } from '@/src/utils/cn'
+import { type QuizMode } from '@/features/quizzes'
+import { QuizAssignmentStatus } from '@/features/quizzes/components/QuizAssignmentStatus'
+import { QuizAssignModal } from '@/features/quizzes/components/QuizAssignModal'
+import { QuizStatus } from '@/features/quizzes/types/quizzes.types'
+import { useToast } from '@/hooks/useToast'
+import { cn } from '@/utils/cn'
 
 // ─────────────────────────────────────────────────────────
 // Types

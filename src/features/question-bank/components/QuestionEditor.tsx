@@ -6,9 +6,9 @@ import {
   CreateQuestionPayload,
   questionBankService,
   UpdateQuestionPayload,
-} from '@/src/features/question-bank/api/questionBankService'
-import { QuestionType } from '@/src/features/quizzes'
-import { useToast } from '@/src/hooks/useToast'
+} from '@/features/question-bank/api/questionBankService'
+import { QuestionType } from '@/features/quizzes'
+import { useToast } from '@/hooks/useToast'
 
 interface QuestionEditorProps {
   isOpen: boolean

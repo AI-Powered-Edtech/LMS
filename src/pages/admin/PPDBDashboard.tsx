@@ -1,6 +1,6 @@
 import { UserPlus } from 'lucide-react'
 
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export function PPDBDashboard() {
   usePageTitle('Dasbor PPDB')
@@ -10,9 +10,7 @@ export function PPDBDashboard() {
       <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center mb-6">
         <UserPlus className="w-10 h-10 text-blue-600 dark:text-blue-400" />
       </div>
-      <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-        PPDB Online
-      </h1>
+      <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">PPDB Online</h1>
       <p className="text-slate-500 dark:text-slate-400 max-w-md mb-6">
         Modul Penerimaan Peserta Didik Baru untuk pengelolaan pendaftaran siswa baru secara online
         sedang dalam pengembangan.

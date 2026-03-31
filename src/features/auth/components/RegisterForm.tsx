@@ -2,9 +2,9 @@ import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 
-import { FormField } from '@/src/components/ui/FormField'
-import type { ClassInfo, InviteInfo } from '@/src/features/auth/hooks/useLoginState'
-import type { RegisterFormData } from '@/src/shared/schemas/forms'
+import { FormField } from '@/components/ui/FormField'
+import type { ClassInfo, InviteInfo } from '@/features/auth/hooks/useLoginState'
+import type { RegisterFormData } from '@/shared/schemas/forms'
 
 interface RegisterStep1Props {
   registerForm: UseFormReturn<RegisterFormData>

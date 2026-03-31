@@ -1,6 +1,6 @@
 import { memo } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: 'info' | 'success' | 'warning' | 'danger' | 'neutral'

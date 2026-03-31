@@ -3,7 +3,7 @@ import { id } from 'date-fns/locale'
 import { AlertTriangle, CheckCircle, Clock, History, Loader2, Save, X } from 'lucide-react'
 import { useState } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import { useCourseVersions, useRestoreVersion, useSaveVersion } from '../queries/useCourseVersions'
 

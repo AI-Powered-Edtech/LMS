@@ -11,15 +11,15 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { useToast } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useToast } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
 // TODO: AI generation will be routed through backend API (Phase 5)
-import { useAddCalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
-import { creatorService } from '@/src/features/creator/api/creatorService'
-import { useSendNotification } from '@/src/features/notifications'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
-import { cn } from '@/src/utils/cn'
+import { useAddCalendarEvent } from '@/features/calendar/hooks/useCalendarQueries'
+import { creatorService } from '@/features/creator/api/creatorService'
+import { useSendNotification } from '@/features/notifications'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
+import { cn } from '@/utils/cn'
 
 // Maps loadingText values to a step index (0-based)
 const LOADING_STEPS = [

@@ -1,11 +1,11 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 
-import { LoginForm } from '@/src/features/auth/components/LoginForm'
-import { RegisterStep1, RegisterStep2 } from '@/src/features/auth/components/RegisterForm'
-import { useLoginState } from '@/src/features/auth/hooks/useLoginState'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+import { LoginForm } from '@/features/auth/components/LoginForm'
+import { RegisterStep1, RegisterStep2 } from '@/features/auth/components/RegisterForm'
+import { useLoginState } from '@/features/auth/hooks/useLoginState'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 export function Login() {
   usePageTitle('Masuk')

@@ -8,7 +8,7 @@ const mockSelect = vi.fn(() => ({ order: mockOrder }))
 const mockUpdate = vi.fn(() => ({ eq: mockUpdateEq }))
 const mockUpdateEq = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
+vi.mock('@/services/supabase/client', () => ({
   supabase: {
     from: (...args: unknown[]) => {
       const table = args[0] as string

@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { create } from 'zustand'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { CalendarEvent, calendarService } from '@/src/features/calendar/api/calendarService'
-import { createQueryKeys } from '@/src/shared/lib/queryKeys'
-import { STALE } from '@/src/utils/queryConstants'
+import { useAuth } from '@/contexts/AuthContext'
+import { CalendarEvent, calendarService } from '@/features/calendar/api/calendarService'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { STALE } from '@/utils/queryConstants'
 
 // Zustand store for calendar events (client-side state since no server persistence)
 interface CalendarState {

@@ -1,7 +1,7 @@
 import { WifiOff } from 'lucide-react'
 
-import { useNetworkStatus } from '@/src/hooks/useNetworkStatus'
-import { cn } from '@/src/utils/cn'
+import { useNetworkStatus } from '@/hooks/useNetworkStatus'
+import { cn } from '@/utils/cn'
 
 interface OfflineFormNoticeProps {
   /** Extra Tailwind classes applied to the root element */

@@ -1,7 +1,7 @@
 // EduSync LMS — iCalendar Export Utility
 // RFC 5545 compliant — dapat diimport ke Google Calendar, Apple Calendar, Outlook.
 
-import type { CalendarEvent } from '@/src/features/calendar/api/calendarService'
+import type { CalendarEvent } from '@/features/calendar/api/calendarService'
 
 /**
  * Menghasilkan string iCalendar (.ics) dari array CalendarEvent.

@@ -4,7 +4,7 @@ import { getQuizzesByCourse, getTeacherQuizzes } from '../api/quizManager.servic
 
 const mockFrom = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
+vi.mock('@/services/supabase/client', () => ({
   supabase: {
     from: (...args: unknown[]) => mockFrom(...args),
   },

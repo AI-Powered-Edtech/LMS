@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 
-import { captureError } from '@/src/utils/sentry'
+import { captureError } from '@/utils/sentry'
 
 import { askTutor } from '../api/aiTutorService'
 

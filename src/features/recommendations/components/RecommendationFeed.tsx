@@ -2,7 +2,7 @@ import { Lightbulb, Loader2, Sparkles } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import { useRecommendations, useRecordRecommendationAction } from '../queries/recommendationQueries'
 import type { Recommendation, RecommendationType } from '../types'

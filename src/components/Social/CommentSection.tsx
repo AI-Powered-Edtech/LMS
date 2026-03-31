@@ -4,11 +4,11 @@ import { Edit2, MessageSquare, MoreVertical, Pin, Send, Trash2 } from 'lucide-re
 import { AnimatePresence, motion } from 'motion/react'
 import { memo, useCallback, useEffect, useState } from 'react'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { Discussion, discussionService } from '@/src/features/discussions/api/discussionService'
-import { useToast } from '@/src/hooks/useToast'
-import { cn } from '@/src/utils/cn'
+import { OptimizedImage } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { Discussion, discussionService } from '@/features/discussions/api/discussionService'
+import { useToast } from '@/hooks/useToast'
+import { cn } from '@/utils/cn'
 
 // ⚡ Perf: CommentItem extracted to file-level and wrapped in React.memo.
 // Previously defined INSIDE CommentSection's render body, which caused React

@@ -11,9 +11,9 @@ import {
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { useToast } from '@/src/components/ui'
-import { authService } from '@/src/features/auth/api/authService'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { useToast } from '@/components/ui'
+import { authService } from '@/features/auth/api/authService'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 import { useAuth } from '../contexts/AuthContext'
 

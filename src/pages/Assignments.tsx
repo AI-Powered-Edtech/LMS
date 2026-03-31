@@ -3,10 +3,10 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { useToast } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { assignmentService } from '@/src/features/assignments/api/assignmentService'
-import { AssignmentSkeleton } from '@/src/features/assignments/components/AssignmentSkeleton'
+import { useToast } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { assignmentService } from '@/features/assignments/api/assignmentService'
+import { AssignmentSkeleton } from '@/features/assignments/components/AssignmentSkeleton'
 import {
   AssignmentListSidebar,
   CreateAssignmentModal,
@@ -14,16 +14,16 @@ import {
   PrivateCommentsPanel,
   StudentSubmissionPanel,
   TeacherSubmissionsPanel,
-} from '@/src/features/assignments/components/page'
-import type { NewAssignmentData } from '@/src/features/assignments/components/page/CreateAssignmentModal'
-import { useAssignments } from '@/src/features/assignments/hooks/useAssignments'
-import { useAddCalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
-import { useComments } from '@/src/features/discussions/hooks/useCommentQueries'
-import { useGradebook } from '@/src/features/gradebook/hooks/useGradebookQueries'
-import { useSendNotification } from '@/src/features/notifications'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { translateLessonType } from '@/src/utils/statusTranslations'
+} from '@/features/assignments/components/page'
+import type { NewAssignmentData } from '@/features/assignments/components/page/CreateAssignmentModal'
+import { useAssignments } from '@/features/assignments/hooks/useAssignments'
+import { useAddCalendarEvent } from '@/features/calendar/hooks/useCalendarQueries'
+import { useComments } from '@/features/discussions/hooks/useCommentQueries'
+import { useGradebook } from '@/features/gradebook/hooks/useGradebookQueries'
+import { useSendNotification } from '@/features/notifications'
+import { useDebounce } from '@/hooks/useDebounce'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { translateLessonType } from '@/utils/statusTranslations'
 
 export function Assignments() {
   const addToast = useToast((s) => s.addToast)

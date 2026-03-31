@@ -1,6 +1,6 @@
 import { FileText } from 'lucide-react'
 
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export function DocumentManager() {
   usePageTitle('Manajemen Dokumen')

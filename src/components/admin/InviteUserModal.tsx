@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as v from 'valibot'
 
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 import { useAuth } from '../../contexts/AuthContext'
 import { FormField } from '../ui/FormField'

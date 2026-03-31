@@ -1,14 +1,14 @@
 import { ArrowLeft, BookOpen, ChevronDown, Download, Filter, Plus } from 'lucide-react'
 
-import { EmptyState } from '@/src/components/ui'
-import type { Course } from '@/src/features/courses/types'
-import { AddAssignmentModal } from '@/src/features/gradebook/components/AddAssignmentModal'
-import { GradebookMainTable } from '@/src/features/gradebook/components/GradebookMainTable'
-import { GradebookStats } from '@/src/features/gradebook/components/GradebookStats'
-import { GradebookTable } from '@/src/features/gradebook/components/GradebookTable'
-import { useGradebookState } from '@/src/features/gradebook/hooks/useGradebookState'
-import { useToast } from '@/src/hooks/useToast'
-import { cn } from '@/src/utils/cn'
+import { EmptyState } from '@/components/ui'
+import type { Course } from '@/features/courses/types'
+import { AddAssignmentModal } from '@/features/gradebook/components/AddAssignmentModal'
+import { GradebookMainTable } from '@/features/gradebook/components/GradebookMainTable'
+import { GradebookStats } from '@/features/gradebook/components/GradebookStats'
+import { GradebookTable } from '@/features/gradebook/components/GradebookTable'
+import { useGradebookState } from '@/features/gradebook/hooks/useGradebookState'
+import { useToast } from '@/hooks/useToast'
+import { cn } from '@/utils/cn'
 
 export function Gradebook() {
   const s = useGradebookState()

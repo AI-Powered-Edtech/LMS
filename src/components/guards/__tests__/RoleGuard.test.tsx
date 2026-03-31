@@ -6,15 +6,15 @@ import { describe, expect, it, vi } from 'vitest'
 import { RoleGuard } from '../RoleGuard'
 
 // Mock useAuth
-vi.mock('@/src/contexts/AuthContext', () => ({
+vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(),
 }))
 // Mock AppLoading
-vi.mock('@/src/components/layout/AppLoading', () => ({
+vi.mock('@/components/layout/AppLoading', () => ({
   AppLoading: () => <div data-testid="app-loading">Loading...</div>,
 }))
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 const mockUseAuth = vi.mocked(useAuth)
 
 function renderWithRouter(ui: React.ReactElement) {

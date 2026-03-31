@@ -1,9 +1,9 @@
 import { AlertTriangle, Cloud, Loader2 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
-import type { QuizQuestion } from '@/src/features/quizzes/hooks/quizViewerTypes'
-import { useQuizViewerState } from '@/src/features/quizzes/hooks/useQuizViewerState'
-import { cn } from '@/src/utils/cn'
+import type { QuizQuestion } from '@/features/quizzes/hooks/quizViewerTypes'
+import { useQuizViewerState } from '@/features/quizzes/hooks/useQuizViewerState'
+import { cn } from '@/utils/cn'
 
 import { QuizViewerQuestion } from './QuizViewerQuestion'
 import { QuizViewerResult } from './QuizViewerResult'

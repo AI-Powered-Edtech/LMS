@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 // Custom error types for administration operations
 class AdministrationError extends Error {

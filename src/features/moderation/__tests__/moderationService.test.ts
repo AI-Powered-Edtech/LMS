@@ -20,7 +20,7 @@ const { mockChain, mockFrom } = vi.hoisted(() => {
   return { mockChain, mockFrom }
 })
 
-vi.mock('@/src/services/supabase/client', () => ({
+vi.mock('@/services/supabase/client', () => ({
   supabase: {
     from: mockFrom,
     auth: {

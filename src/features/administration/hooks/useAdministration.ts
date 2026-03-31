@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { captureError } from '@/src/utils/sentry'
+import { captureError } from '@/utils/sentry'
 
 import { administrationService } from '../api/administrationService'
 

@@ -1,16 +1,16 @@
 import { Bell, CheckCircle2, Circle, Clock, Download, MapPin, Paperclip, Video } from 'lucide-react'
 import { motion } from 'motion/react'
 
-import type { CalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
+import type { CalendarEvent } from '@/features/calendar/hooks/useCalendarQueries'
 import {
   DAYS_OF_WEEK,
   getCountdown,
   getEventColor,
   getPriorityIcon,
-} from '@/src/features/calendar/utils/calendarUtils'
-import { cn } from '@/src/utils/cn'
-import { downloadICal } from '@/src/utils/icalExport'
-import { translateEventType } from '@/src/utils/statusTranslations'
+} from '@/features/calendar/utils/calendarUtils'
+import { cn } from '@/utils/cn'
+import { downloadICal } from '@/utils/icalExport'
+import { translateEventType } from '@/utils/statusTranslations'
 
 interface AgendaViewProps {
   events: CalendarEvent[]

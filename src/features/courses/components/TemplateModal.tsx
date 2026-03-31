@@ -3,8 +3,8 @@ import { id } from 'date-fns/locale'
 import { Book, CheckCircle, FileText, FolderOpen, Import, Loader2, Search } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { Modal, ModalHeader } from '@/src/components/ui/Modal'
-import { useDebounce } from '@/src/hooks/useDebounce'
+import { Modal, ModalHeader } from '@/components/ui/Modal'
+import { useDebounce } from '@/hooks/useDebounce'
 
 import { useImportTemplate, useTemplates } from '../queries/useTemplates'
 

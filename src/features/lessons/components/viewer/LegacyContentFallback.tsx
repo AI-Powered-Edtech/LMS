@@ -1,8 +1,8 @@
 import { Trophy } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-import { ArticleViewer, AssignmentViewer, VideoViewer } from '@/src/components/LessonViewer'
-import { ReviewPrompt } from '@/src/features/recommendations'
+import { ArticleViewer, AssignmentViewer, VideoViewer } from '@/components/LessonViewer'
+import { ReviewPrompt } from '@/features/recommendations'
 
 import type { Lesson } from '../../index'
 

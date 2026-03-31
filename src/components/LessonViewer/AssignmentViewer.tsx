@@ -10,12 +10,12 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   assignmentService,
   AssignmentSubmission,
-} from '@/src/features/assignments/api/assignmentService'
-import { cn } from '@/src/utils/cn'
+} from '@/features/assignments/api/assignmentService'
+import { cn } from '@/utils/cn'
 
 interface AssignmentViewerProps {
   assignmentId: string

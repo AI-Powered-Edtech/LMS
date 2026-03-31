@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import type { RefObject } from 'react'
 
-import type { AssignmentUiState } from '@/src/features/assignments/types'
+import type { AssignmentUiState } from '@/features/assignments/types'
 
 import { getStatusBadge } from './assignmentPageUtils'
 

@@ -2,8 +2,8 @@ import { ArrowRight, Star, Trophy, X } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useEffect, useRef } from 'react'
 
-import { useReducedMotion } from '@/src/hooks/useReducedMotion'
-import { cn } from '@/src/utils/cn'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { cn } from '@/utils/cn'
 
 interface ModuleCompletionModalProps {
   moduleTitle: string

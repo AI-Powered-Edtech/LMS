@@ -1,14 +1,14 @@
 import { HelpCircle } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { classroomService } from '@/src/features/classroom/api/classroomService'
-import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
-import { type QuestionType, type QuizMode, quizService } from '@/src/features/quizzes'
-import { QuizEditorView } from '@/src/features/quizzes/components/QuizEditorView'
-import { QuizListView } from '@/src/features/quizzes/components/QuizListView'
-import { QuizStatus } from '@/src/features/quizzes/types/quizzes.types'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { useAuth } from '@/contexts/AuthContext'
+import { classroomService } from '@/features/classroom/api/classroomService'
+import { useClassroom } from '@/features/classroom/hooks/useClassroomQueries'
+import { type QuestionType, type QuizMode, quizService } from '@/features/quizzes'
+import { QuizEditorView } from '@/features/quizzes/components/QuizEditorView'
+import { QuizListView } from '@/features/quizzes/components/QuizListView'
+import { QuizStatus } from '@/features/quizzes/types/quizzes.types'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 // ─────────────────────────────────────────────────────────
 // Types
@@ -262,11 +262,13 @@ export function QuizManager() {
       // Detect and delete removed questions
       const currentQuizData = await quizService.getQuizWithQuestions(quizId!, tenantId!)
       const existingDbIds = (currentQuizData?.quiz_questions || []).map((q: any) => q.id)
-      const newDbIds = existingQs.map(q => q.id!)
+      const newDbIds = existingQs.map((q) => q.id!)
       const deletedIds = existingDbIds.filter((id: string) => !newDbIds.includes(id))
-      
+
       if (deletedIds.length > 0) {
-        await Promise.all(deletedIds.map((id: string) => quizService.deleteQuizQuestion(id, tenantId!)))
+        await Promise.all(
+          deletedIds.map((id: string) => quizService.deleteQuizQuestion(id, tenantId!))
+        )
       }
 
       // Update existing questions sequentially to avoid race conditions

@@ -5,8 +5,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import type { Notification } from '@/src/features/notifications'
-import { useMarkAllAsRead, useMarkAsRead, useNotifications } from '@/src/features/notifications'
+import type { Notification } from '@/features/notifications'
+import { useMarkAllAsRead, useMarkAsRead, useNotifications } from '@/features/notifications'
 
 import { cn } from '../../utils/cn'
 

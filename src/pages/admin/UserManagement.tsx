@@ -1,13 +1,13 @@
 import { ChevronDown, Filter, Mail, RefreshCw, Search, UserPlus, Users } from 'lucide-react'
 
-import { ChangeRoleModal } from '@/src/components/admin/ChangeRoleModal'
-import { InviteUserModal } from '@/src/components/admin/InviteUserModal'
-import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
-import { InvitationsTable } from '@/src/features/administration/components/InvitationsTable'
-import { UserTable } from '@/src/features/administration/components/UserTable'
-import { useUserManagementState } from '@/src/features/administration/hooks/useUserManagementState'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+import { ChangeRoleModal } from '@/components/admin/ChangeRoleModal'
+import { InviteUserModal } from '@/components/admin/InviteUserModal'
+import { AdministrationSkeleton } from '@/features/administration/components/AdministrationSkeleton'
+import { InvitationsTable } from '@/features/administration/components/InvitationsTable'
+import { UserTable } from '@/features/administration/components/UserTable'
+import { useUserManagementState } from '@/features/administration/hooks/useUserManagementState'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 export function UserManagement() {
   usePageTitle('User Management')

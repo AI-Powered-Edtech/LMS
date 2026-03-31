@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react'
 
-import { useToast } from '@/src/hooks/useToast'
+import { useToast } from '@/hooks/useToast'
 
 /* ─── Types ───────────────────────────────────────────────────────────── */
 

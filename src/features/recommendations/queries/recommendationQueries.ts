@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { GC, STALE } from '@/src/utils/queryConstants'
-import { captureError } from '@/src/utils/sentry'
+import { GC, STALE } from '@/utils/queryConstants'
+import { captureError } from '@/utils/sentry'
 
 import { recommendationService } from '../api/recommendationService'
 

@@ -1,6 +1,6 @@
-import { ScormPlayer } from '@/src/features/lessons/components/ScormPlayer'
-import type { LessonResource } from '@/src/features/lessons/types'
-import type { Assignment, Quiz } from '@/src/features/lessons/types'
+import { ScormPlayer } from '@/features/lessons/components/ScormPlayer'
+import type { LessonResource } from '@/features/lessons/types'
+import type { Assignment, Quiz } from '@/features/lessons/types'
 
 import { AssignmentViewer } from './AssignmentViewer'
 import { FileBlockViewer } from './blocks/FileBlockViewer'

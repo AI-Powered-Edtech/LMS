@@ -2,7 +2,7 @@ import { GripVertical, Loader2, Plus, Save, Trash2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useCallback, useState } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import { useSaveDashboard } from '../queries/dashboardQueries'
 import type { DashboardConfig, LayoutItem, WidgetConfig, WidgetType } from '../types'

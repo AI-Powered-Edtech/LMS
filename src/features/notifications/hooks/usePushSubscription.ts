@@ -9,8 +9,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { logDevError, logDevWarn } from '@/src/utils/logDevError'
+import { useAuth } from '@/contexts/AuthContext'
+import { logDevError, logDevWarn } from '@/utils/logDevError'
 
 import * as notificationApi from '../api/notificationApi'
 

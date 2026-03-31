@@ -10,9 +10,9 @@ import {
 } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useNavBadges } from '@/src/hooks/useNavBadges'
-import { cn } from '@/src/utils/cn'
+import { useAuth } from '@/contexts/AuthContext'
+import { useNavBadges } from '@/hooks/useNavBadges'
+import { cn } from '@/utils/cn'
 
 // Badge count yang ditampilkan per path
 type BadgeKey = 'assignments' | 'announcements' | null

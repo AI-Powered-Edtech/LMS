@@ -3,9 +3,9 @@ import { id } from 'date-fns/locale'
 import { AlertCircle, Calendar, Loader2, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { QuizAssignment, quizService } from '@/src/features/quizzes'
-import { useToast } from '@/src/hooks/useToast'
+import { useAuth } from '@/contexts/AuthContext'
+import { QuizAssignment, quizService } from '@/features/quizzes'
+import { useToast } from '@/hooks/useToast'
 
 interface QuizAssignmentStatusProps {
   quizId: string

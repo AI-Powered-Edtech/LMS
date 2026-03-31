@@ -1,14 +1,14 @@
 import { Award, BookOpen, ChevronLeft, Eye, EyeOff, Flame, Star, User, Zap } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   useProfileIdByUsername,
   usePublicProfileById,
   useUpdateProfilePrivacy,
-} from '@/src/features/profile/hooks/usePublicProfile'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+} from '@/features/profile/hooks/usePublicProfile'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 function ProfileSkeleton() {

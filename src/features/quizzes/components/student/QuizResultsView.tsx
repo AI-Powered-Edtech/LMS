@@ -2,7 +2,7 @@ import { Award, Clock, Eye, Play, Star, ThumbsUp, Trophy, XCircle } from 'lucide
 import { motion } from 'motion/react'
 import { lazy, Suspense, useEffect, useState } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 // Lazy-loaded Confetti component
 const Confetti = lazy(() => import('./Confetti').then((module) => ({ default: module.Confetti })))

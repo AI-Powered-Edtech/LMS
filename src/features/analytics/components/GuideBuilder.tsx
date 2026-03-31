@@ -1,9 +1,9 @@
 import { Loader2, Save, X } from 'lucide-react'
 import { useState } from 'react'
 
-import type { GuideSegment, GuideTrigger, GuideType, LearningGuide } from '@/src/features/guidance'
-import { useUpsertGuide } from '@/src/features/guidance'
-import { cn } from '@/src/utils/cn'
+import type { GuideSegment, GuideTrigger, GuideType, LearningGuide } from '@/features/guidance'
+import { useUpsertGuide } from '@/features/guidance'
+import { cn } from '@/utils/cn'
 
 interface Props {
   courseId: string

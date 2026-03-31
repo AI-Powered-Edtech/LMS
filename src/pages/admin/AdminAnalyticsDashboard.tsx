@@ -30,12 +30,12 @@ import {
   YAxis,
 } from 'recharts'
 
-import { useTheme } from '@/src/contexts/ThemeContext'
-import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
-import { ActivityTimePoint, CourseEngagement } from '@/src/features/analytics'
-import { useTenantAnalytics } from '@/src/features/analytics/queries/analyticsQueries'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+import { useTheme } from '@/contexts/ThemeContext'
+import { AdministrationSkeleton } from '@/features/administration/components/AdministrationSkeleton'
+import { ActivityTimePoint, CourseEngagement } from '@/features/analytics'
+import { useTenantAnalytics } from '@/features/analytics/queries/analyticsQueries'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 // Color palette for charts
 interface MetricCardProps {

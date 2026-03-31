@@ -1,4 +1,4 @@
-import { Skeleton } from '@/src/components/ui'
+import { Skeleton } from '@/components/ui'
 
 export function ProfileSkeleton() {
   return (

@@ -1,17 +1,16 @@
-import { BookOpen, User } from 'lucide-react'
+import { AlertTriangle, BookOpen } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { courseService } from '@/src/features/courses/api/courseService'
-import { translateCourseStatus } from '@/src/utils/statusTranslations'
+import { useAuth } from '@/contexts/AuthContext'
+import { courseService } from '@/features/courses/api/courseService'
+import { translateCourseStatus } from '@/utils/statusTranslations'
 
 interface Course {
   id: string
   title: string
   description?: string
   status: string
-  profiles?: { full_name: string }
 }
 
 export function StudentCoursesList() {
@@ -20,40 +19,38 @@ export function StudentCoursesList() {
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
     if (!tenantId) return
     setLoading(true)
+    setError(null)
     courseService
       .fetchCourses({ tenantId, limit: 50 })
       .then((res) => {
         // Filter out drafts if necessary, though fetchCourses might handle it
-        setCourses(
-          (res.courses as unknown as Course[]).filter(
-            (c) => c.status === 'published' || c.status === 'active'
-          )
-        )
+        setCourses((res.courses as unknown as Course[]).filter((c) => c.status === 'published'))
       })
       .catch((err) => {
         if (import.meta.env.DEV) console.error('Failed to fetch courses:', err)
         setError('Gagal memuat daftar kursus. Silakan muat ulang halaman.')
       })
       .finally(() => setLoading(false))
-  }, [tenantId])
+  }, [tenantId, retryCount])
 
   if (error) {
     return (
       <div className="flex items-center justify-center h-[80vh]">
         <div className="text-center p-8">
           <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-            <BookOpen className="w-8 h-8 text-red-400" />
+            <AlertTriangle className="w-8 h-8 text-red-400" />
           </div>
           <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-2">
             Gagal Memuat Kursus
           </h2>
           <p className="text-slate-500 dark:text-slate-400 mb-4">{error}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => setRetryCount((c) => c + 1)}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
           >
             Muat Ulang
@@ -127,18 +124,21 @@ export function StudentCoursesList() {
                     </p>
                   )}
 
-                  <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700/50 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-                      <User className="w-4 h-4" />
-                      Pengajar: {course.profiles?.full_name || 'Pengajar'}
-                    </div>
+                  <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700/50 flex items-center justify-end">
                     <span className="text-xs font-bold px-2 py-1 rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 uppercase">
                       {translateCourseStatus(course.status)}
                     </span>
                   </div>
                 </div>
                 <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700/50 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors">
-                  <button className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm shadow-blue-200 dark:shadow-none">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      navigate(`/app/student/courses/${course.id}`)
+                    }}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm shadow-blue-200 dark:shadow-none"
+                  >
                     Mulai Belajar
                   </button>
                 </div>

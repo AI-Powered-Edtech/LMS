@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { Discussion } from '@/src/features/discussions/api/discussionService'
+import type { Discussion } from '@/features/discussions/api/discussionService'
 
 import { buildForumPosts, checkProfanity, mapToPost, timeAgo } from '../forumUtils'
 

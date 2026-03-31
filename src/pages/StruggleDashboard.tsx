@@ -2,15 +2,15 @@ import { AlertCircle, Bell, BookOpen, Settings2, Users } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { Card, EmptyState, Skeleton } from '@/src/components/ui'
-import { StruggleConfigPanel } from '@/src/features/struggle/components/StruggleConfigPanel'
+import { Card, EmptyState, Skeleton } from '@/components/ui'
+import { StruggleConfigPanel } from '@/features/struggle/components/StruggleConfigPanel'
 import {
   useMarkAlertsRead,
   useStruggleAlerts,
-} from '@/src/features/struggle/queries/useStruggleQueries'
-import { relativeTime } from '@/src/features/struggle/utils/struggleHelpers'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
+} from '@/features/struggle/queries/useStruggleQueries'
+import { relativeTime } from '@/features/struggle/utils/struggleHelpers'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Severity badge

@@ -14,15 +14,15 @@ import {
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { Badge, Button, Card, EmptyState, SkeletonCard } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useAssignments } from '@/src/features/assignments/hooks/useAssignments'
-import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
-import { DashboardSkeleton } from '@/src/features/dashboards/components/DashboardSkeleton'
-import { TeacherWelcome } from '@/src/features/onboarding'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { navigationItems } from '@/src/shared/config/navigation'
-import { cn } from '@/src/utils/cn'
+import { Badge, Button, Card, EmptyState, SkeletonCard } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { useAssignments } from '@/features/assignments/hooks/useAssignments'
+import { useClassroom } from '@/features/classroom/hooks/useClassroomQueries'
+import { DashboardSkeleton } from '@/features/dashboards/components/DashboardSkeleton'
+import { TeacherWelcome } from '@/features/onboarding'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { navigationItems } from '@/shared/config/navigation'
+import { cn } from '@/utils/cn'
 
 export function TeacherDashboard() {
   usePageTitle('Dasbor Guru')

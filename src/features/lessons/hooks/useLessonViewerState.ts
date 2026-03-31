@@ -1,17 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 
-import { useViewerReducer } from '@/src/components/LessonViewer'
-import { useAuth } from '@/src/contexts/AuthContext'
-import {
-  isLessonLocked,
-  type Lesson,
-  type LessonProgress,
-  lessonService,
-} from '@/src/features/lessons'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useToast } from '@/src/hooks/useToast'
-import { captureError } from '@/src/utils/sentry'
+import { useViewerReducer } from '@/components/LessonViewer'
+import { useAuth } from '@/contexts/AuthContext'
+import { isLessonLocked, type Lesson, type LessonProgress, lessonService } from '@/features/lessons'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useToast } from '@/hooks/useToast'
+import { captureError } from '@/utils/sentry'
 
 export function useLessonViewerState() {
   usePageTitle('Lesson Viewer')
@@ -53,6 +48,9 @@ export function useLessonViewerState() {
 
   const moduleLessonsRef = useRef<Lesson[]>([])
   moduleLessonsRef.current = moduleLessons
+
+  // Retry counter — incrementing this triggers the lesson load effect to re-run (Fix LV-6)
+  const [lessonRetryCount, setLessonRetryCount] = useState(0)
 
   // UI state
   const [showCelebration, setShowCelebration] = useState(false)
@@ -114,10 +112,8 @@ export function useLessonViewerState() {
       state.status === 'loading'
     )
       return
-    if (import.meta.env.DEV) {
-      if (import.meta.env.DEV)
-        console.debug('[Lesson Completion]', { lessonId: state.lesson.id, status: state.status })
-    }
+    if (import.meta.env.DEV)
+      console.debug('[Lesson Completion]', { lessonId: state.lesson.id, status: state.status })
     actions.completionMet()
 
     try {
@@ -251,6 +247,12 @@ export function useLessonViewerState() {
     []
   )
 
+  // Fix LV-6: Retry increments counter so the lesson load effect re-runs
+  const handleRetry = useCallback(() => {
+    actions.retry()
+    setLessonRetryCount((c) => c + 1)
+  }, [actions])
+
   // Fix L-30: Also scroll to top on start over
   const handleStartOver = useCallback(() => {
     setShowResumeBanner(false)
@@ -309,7 +311,7 @@ export function useLessonViewerState() {
     return () => {
       cancelled = true
     }
-  }, [moduleId, user?.id, tenantId])
+  }, [moduleId, user?.id, tenantId, addToast])
 
   // Load selected lesson (state machine: LOAD_LESSON)
   useEffect(() => {
@@ -333,7 +335,7 @@ export function useLessonViewerState() {
     return () => {
       cancelled = true
     }
-  }, [lessonId, user?.id, tenantId, actions])
+  }, [lessonId, user?.id, tenantId, actions, lessonRetryCount])
 
   // M8: Enforce lesson lock even for direct URL navigation
   // After module lessons are loaded, check if the current URL lesson is locked
@@ -415,6 +417,7 @@ export function useLessonViewerState() {
     setActiveTab,
 
     // Callbacks
+    handleRetry,
     handleSelectModule,
     handleSelectLesson,
     handleCompletionMet,

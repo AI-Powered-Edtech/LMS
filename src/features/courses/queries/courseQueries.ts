@@ -1,7 +1,7 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { STALE } from '@/src/utils/queryConstants'
+import { useAuth } from '@/contexts/AuthContext'
+import { STALE } from '@/utils/queryConstants'
 
 import { courseService } from '../api/courseService'
 import { FetchCoursesOptions } from '../types'

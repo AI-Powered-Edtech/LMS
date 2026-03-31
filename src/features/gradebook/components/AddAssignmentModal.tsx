@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 
-import type { Assignment } from '@/src/features/gradebook/hooks/useGradebookQueries'
+import type { Assignment } from '@/features/gradebook/hooks/useGradebookQueries'
 
 interface AddAssignmentModalProps {
   isOpen: boolean

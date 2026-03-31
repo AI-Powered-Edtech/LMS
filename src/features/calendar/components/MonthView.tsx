@@ -1,9 +1,9 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useMemo } from 'react'
 
-import type { CalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
-import { DAYS_OF_WEEK, getEventBgColor } from '@/src/features/calendar/utils/calendarUtils'
-import { cn } from '@/src/utils/cn'
+import type { CalendarEvent } from '@/features/calendar/hooks/useCalendarQueries'
+import { DAYS_OF_WEEK, getEventBgColor } from '@/features/calendar/utils/calendarUtils'
+import { cn } from '@/utils/cn'
 
 interface MonthViewProps {
   currentDate: Date

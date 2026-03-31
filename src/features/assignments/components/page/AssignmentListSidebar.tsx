@@ -1,9 +1,9 @@
 import { Clock, FileText, Filter, Search, Users } from 'lucide-react'
 
-import type { Tab } from '@/src/components/ui'
-import { EmptyState, Tabs } from '@/src/components/ui'
-import type { AssignmentUiState } from '@/src/features/assignments/types'
-import { cn } from '@/src/utils/cn'
+import type { Tab } from '@/components/ui'
+import { EmptyState, Tabs } from '@/components/ui'
+import type { AssignmentUiState } from '@/features/assignments/types'
+import { cn } from '@/utils/cn'
 
 import { getStatusBadge } from './assignmentPageUtils'
 

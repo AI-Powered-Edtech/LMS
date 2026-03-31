@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { STALE } from '@/src/utils/queryConstants'
-import { captureError } from '@/src/utils/sentry'
+import { useAuth } from '@/contexts/AuthContext'
+import { STALE } from '@/utils/queryConstants'
+import { captureError } from '@/utils/sentry'
 
 import {
   fetchGradebookEntries,

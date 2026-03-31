@@ -2,15 +2,15 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { BookOpen, Filter, Loader2, Plus, Search } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
-import { useToast } from '@/src/components/ui'
+import { useToast } from '@/components/ui'
 import {
   QuestionBankItem,
   questionBankService,
-} from '@/src/features/question-bank/api/questionBankService'
-import { QuestionBankSkeleton } from '@/src/features/question-bank/components/QuestionBankSkeleton'
-import { QuestionCard } from '@/src/features/question-bank/components/QuestionCard'
-import { QuestionEditor } from '@/src/features/question-bank/components/QuestionEditor'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+} from '@/features/question-bank/api/questionBankService'
+import { QuestionBankSkeleton } from '@/features/question-bank/components/QuestionBankSkeleton'
+import { QuestionCard } from '@/features/question-bank/components/QuestionCard'
+import { QuestionEditor } from '@/features/question-bank/components/QuestionEditor'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export function QuestionBankPage() {
   const addToast = useToast((s) => s.addToast)

@@ -2,8 +2,8 @@ import { Activity, Pause, Play, Radio } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { analyticsService, type LiveEvent } from '@/src/features/analytics/api/analyticsService'
+import { useAuth } from '@/contexts/AuthContext'
+import { analyticsService, type LiveEvent } from '@/features/analytics/api/analyticsService'
 
 const EVENT_LABELS: Record<string, string> = {
   LESSON_STARTED: 'mulai pelajaran',

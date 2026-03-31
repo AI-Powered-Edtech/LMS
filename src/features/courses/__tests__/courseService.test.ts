@@ -31,7 +31,7 @@ const {
   mockFrom: vi.fn(),
 }))
 
-vi.mock('@/src/services/supabase/client', () => ({
+vi.mock('@/services/supabase/client', () => ({
   supabase: {
     from: (table: string) => {
       mockFrom(table)

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 
-import { OptimizedImage } from '@/src/components/ui'
-import type { AssignmentUiState } from '@/src/features/assignments/types'
+import { OptimizedImage } from '@/components/ui'
+import type { AssignmentUiState } from '@/features/assignments/types'
 
 interface TeacherSubmissionsPanelProps {
   assignment: AssignmentUiState

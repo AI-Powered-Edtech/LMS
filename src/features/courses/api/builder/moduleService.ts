@@ -1,6 +1,6 @@
-import { supabase } from '@/src/services/supabase/client'
-import { mapModule } from '@/src/shared/types/moduleMappers'
-import { DomainModule } from '@/src/shared/types/moduleTypes'
+import { supabase } from '@/services/supabase/client'
+import { mapModule } from '@/shared/types/moduleMappers'
+import { DomainModule } from '@/shared/types/moduleTypes'
 
 /**
  * Module Service for Course Builder (refactored)

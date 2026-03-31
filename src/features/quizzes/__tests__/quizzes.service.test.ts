@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mockFrom = vi.fn()
 const mockRpc = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
+vi.mock('@/services/supabase/client', () => ({
   supabase: {
     from: (...args: unknown[]) => mockFrom(...args),
     rpc: (...args: unknown[]) => mockRpc(...args),

@@ -1,8 +1,8 @@
 import { type Dispatch, useCallback } from 'react'
 
-import { builderModuleService } from '@/src/features/courses/api/builder/moduleService'
-import { useToast } from '@/src/hooks/useToast'
-import { DomainModule } from '@/src/shared/types/moduleTypes'
+import { builderModuleService } from '@/features/courses/api/builder/moduleService'
+import { useToast } from '@/hooks/useToast'
+import { DomainModule } from '@/shared/types/moduleTypes'
 
 import type { BuilderAction, BuilderState } from './builderReducer'
 

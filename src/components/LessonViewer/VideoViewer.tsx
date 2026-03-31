@@ -2,9 +2,9 @@ import { AlertTriangle, CheckCircle2, FileText, Lock, Sparkles } from 'lucide-re
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useInteractiveVideoEvents } from '@/src/features/lessons/hooks/useInteractiveVideoEvents'
-import { QuizViewer } from '@/src/features/quizzes/components/QuizViewer'
-import { cn } from '@/src/utils/cn'
+import { useInteractiveVideoEvents } from '@/features/lessons/hooks/useInteractiveVideoEvents'
+import { QuizViewer } from '@/features/quizzes/components/QuizViewer'
+import { cn } from '@/utils/cn'
 
 interface Transcript {
   time: number

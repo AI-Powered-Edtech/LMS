@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 
-import type { Role } from '@/src/contexts/AuthContext'
-import { useAuth } from '@/src/contexts/AuthContext'
+import type { Role } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 
 export function usePermissions() {
   const { permissions, roles, activeRole } = useAuth()

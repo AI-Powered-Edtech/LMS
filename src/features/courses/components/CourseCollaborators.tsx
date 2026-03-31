@@ -2,9 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, Search, Shield, Trash2, User } from 'lucide-react'
 import { useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { useToast } from '@/src/hooks/useToast'
+import { useAuth } from '@/contexts/AuthContext'
+import { useDebounce } from '@/hooks/useDebounce'
+import { useToast } from '@/hooks/useToast'
 
 import { type Collaborator, collaboratorService } from '../api/builder/collaboratorService'
 

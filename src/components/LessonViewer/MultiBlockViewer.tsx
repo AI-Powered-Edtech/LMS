@@ -1,10 +1,10 @@
 import { motion } from 'motion/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { useOptionalLearningSession } from '@/src/features/analytics'
-import { BLOCK_REGISTRY, isValidBlockType } from '@/src/features/lessons/blockRegistry'
-import type { Lesson } from '@/src/features/lessons/types'
-import { cn } from '@/src/utils/cn'
+import { useOptionalLearningSession } from '@/features/analytics'
+import { BLOCK_REGISTRY, isValidBlockType } from '@/features/lessons/blockRegistry'
+import type { Lesson } from '@/features/lessons/types'
+import { cn } from '@/utils/cn'
 
 import { BlockRenderer } from './BlockRenderer'
 import { BlockSkeleton } from './blocks/BlockSkeleton'
@@ -180,7 +180,7 @@ export function MultiBlockViewer({
         const blockEl = document.getElementById(`block-${activeBlockRef.current.id}`)
         if (blockEl) {
           const rect = blockEl.getBoundingClientRect()
-          const offset = Math.round(window.scrollY - rect.top)
+          const offset = Math.round(rect.top + window.scrollY)
           onResumeAnchorUpdate({
             lastBlockId: activeBlockRef.current.id,
             lastBlockIndex: activeBlockRef.current.index,
@@ -245,8 +245,12 @@ export function MultiBlockViewer({
           const done = completedSet.has(block.id)
           return (
             <div key={block.id} className="flex items-center gap-1 shrink-0">
-              <a
-                href={`#block-${block.id}`}
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById(`block-${block.id}`)
+                  el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
                 className={cn(
                   'flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold border transition-all duration-200',
                   done
@@ -258,7 +262,7 @@ export function MultiBlockViewer({
               >
                 <Icon className="w-3 h-3" />
                 <span>{def.label}</span>
-              </a>
+              </button>
               {idx < total - 1 && (
                 <span className="text-slate-300 dark:text-slate-700 text-xs select-none">/</span>
               )}

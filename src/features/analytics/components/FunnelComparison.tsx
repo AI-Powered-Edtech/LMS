@@ -2,7 +2,7 @@ import { ChevronRight, Plus, Trash2, TrendingDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
-import { Skeleton } from '@/src/components/ui'
+import { Skeleton } from '@/components/ui'
 
 import { useDeleteFunnel, useFunnelList, useFunnelResults } from '../queries/analyticsQueries'
 import { FunnelBuilder } from './FunnelBuilder'

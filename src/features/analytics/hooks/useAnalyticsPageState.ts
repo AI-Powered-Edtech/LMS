@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { useToast } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { AnalyticsError } from '@/src/features/analytics'
+import { useToast } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { AnalyticsError } from '@/features/analytics'
 import {
   useRefreshCourseStats,
   useTeacherAnalytics,
-} from '@/src/features/analytics/queries/analyticsQueries'
-import { Course, courseService } from '@/src/features/courses'
-import { captureError } from '@/src/utils/sentry'
+} from '@/features/analytics/queries/analyticsQueries'
+import { Course, courseService } from '@/features/courses'
+import { captureError } from '@/utils/sentry'
 
 export function useAnalyticsPageState() {
   const addToast = useToast((s) => s.addToast)

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { cn } from '@/src/utils/cn'
+import { OptimizedImage } from '@/components/ui'
+import { cn } from '@/utils/cn'
 
 /* ─── Types ───────────────────────────────────────────────────── */
 

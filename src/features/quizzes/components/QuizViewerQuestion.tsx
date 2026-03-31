@@ -2,8 +2,8 @@ import type {
   MultiTypeAnswer,
   QuestionType,
   QuizQuestion,
-} from '@/src/features/quizzes/hooks/quizViewerTypes'
-import { cn } from '@/src/utils/cn'
+} from '@/features/quizzes/hooks/quizViewerTypes'
+import { cn } from '@/utils/cn'
 
 function QuestionTypeBadge({ type, points }: { type: QuestionType; points?: number }) {
   const labels: Record<QuestionType, string> = {

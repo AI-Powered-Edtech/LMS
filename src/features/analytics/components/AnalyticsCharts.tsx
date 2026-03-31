@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from 'recharts'
 
-import { useTheme } from '@/src/contexts/ThemeContext'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface RadarDataItem {
   subject: string

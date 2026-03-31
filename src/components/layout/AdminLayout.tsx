@@ -2,11 +2,10 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useEffect } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 
-import { FeatureErrorBoundary } from '@/src/components/FeatureErrorBoundary'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useToast } from '@/src/hooks/useToast'
-
-import { OnboardingChecklist } from '@/src/features/onboarding'
+import { FeatureErrorBoundary } from '@/components/FeatureErrorBoundary'
+import { useAuth } from '@/contexts/AuthContext'
+import { OnboardingChecklist } from '@/features/onboarding'
+import { useToast } from '@/hooks/useToast'
 
 import { HelpButton } from '../ui/HelpButton'
 import { Header } from './Header'

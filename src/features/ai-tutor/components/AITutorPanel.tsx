@@ -13,7 +13,7 @@ import rehypeKatex from 'rehype-katex'
 import rehypeSanitize from 'rehype-sanitize'
 import remarkMath from 'remark-math'
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   type AITutorError,
   type AITutorMessage,
@@ -22,11 +22,11 @@ import {
   formatDifficulty,
   generateMessageId,
   getDifficultyColor,
-} from '@/src/features/ai-tutor'
-import { cn } from '@/src/utils/cn'
-import { aiTutorRateLimiter } from '@/src/utils/rateLimiter'
-import { katexSanitizeSchema } from '@/src/utils/sanitizeMarkdown'
-import { captureError } from '@/src/utils/sentry'
+} from '@/features/ai-tutor'
+import { cn } from '@/utils/cn'
+import { aiTutorRateLimiter } from '@/utils/rateLimiter'
+import { katexSanitizeSchema } from '@/utils/sanitizeMarkdown'
+import { captureError } from '@/utils/sentry'
 
 import { AITutorInput } from './AITutorInput'
 import { AITutorTyping } from './AITutorTyping'

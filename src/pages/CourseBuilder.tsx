@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { BuilderSidebar, BuilderTopBar, LessonBlockEditor } from '@/src/components/CourseBuilder'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { BuilderProvider, useBuilder } from '@/src/contexts/BuilderContext'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { BuilderSidebar, BuilderTopBar, LessonBlockEditor } from '@/components/CourseBuilder'
+import { useAuth } from '@/contexts/AuthContext'
+import { BuilderProvider, useBuilder } from '@/contexts/BuilderContext'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 /**
  * CourseBuilderPage — The actual builder UI.

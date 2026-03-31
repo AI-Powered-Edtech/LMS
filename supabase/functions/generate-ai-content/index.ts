@@ -1,15 +1,11 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('CORS_ORIGIN') ?? 'https://lms.edusync.dev',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { corsHeaders, handleCors } from '../_shared/cors.ts'
+import { jsonResponse, errorResponse } from '../_shared/response.ts'
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  const corsResponse = handleCors(req)
+  if (corsResponse) return corsResponse
 
   try {
     const supabaseClient = createClient(
@@ -24,10 +20,7 @@ serve(async (req) => {
     } = await supabaseClient.auth.getUser()
 
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 401,
-      })
+      return errorResponse('Unauthorized', 401)
     }
 
     // Get tenant_id and role from user_roles for security
@@ -39,13 +32,7 @@ serve(async (req) => {
 
     const tenantId = roleData?.tenant_id
     if (!tenantId) {
-      return new Response(
-        JSON.stringify({ error: 'Tenant context missing. Please contact administrator.' }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 403,
-        }
-      )
+      return errorResponse('Tenant context missing. Please contact administrator.', 403)
     }
 
     // Process FormData with tenant context
@@ -56,18 +43,12 @@ serve(async (req) => {
     const difficulty = formData.get('difficulty') as string
 
     if (!file) {
-      return new Response(JSON.stringify({ error: 'File is required' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      })
+      return errorResponse('File is required', 400)
     }
 
     // Validate file size (10MB limit)
     if (file.size > 10 * 1024 * 1024) {
-      return new Response(JSON.stringify({ error: 'File size exceeds 10MB limit' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      })
+      return errorResponse('File size exceeds 10MB limit', 400)
     }
 
     // Basic MIME type validation
@@ -80,10 +61,7 @@ serve(async (req) => {
     ]
 
     if (!validTypes.includes(file.type)) {
-      return new Response(JSON.stringify({ error: 'Unsupported file type' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      })
+      return errorResponse('Unsupported file type', 400)
     }
 
     const questionCount = parseInt(questionCountStr || '10', 10)
@@ -132,15 +110,9 @@ serve(async (req) => {
       questions,
     }
 
-    return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    })
+    return jsonResponse(result)
   } catch (error) {
     console.error(error)
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500,
-    })
+    return errorResponse('Internal Server Error', 500)
   }
 })

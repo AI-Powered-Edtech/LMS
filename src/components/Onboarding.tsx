@@ -2,7 +2,7 @@ import { ArrowRight, Sparkles, Target, Trophy, Users, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 
 export function Onboarding() {
   const [isOpen, setIsOpen] = useState(false)

@@ -9,7 +9,9 @@ import compression from 'vite-plugin-compression2'
 
 const cspDirectives = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sentry-cdn.com",
+  // Removed 'unsafe-inline' and 'unsafe-eval': Vite SPA uses compiled JS bundles (no inline scripts, no eval).
+  "script-src 'self' https://js.sentry-cdn.com",
+  // 'unsafe-inline' kept: React inline style props (style={{}}) render as style attributes, which require unsafe-inline.
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https://*.supabase.co https://*.cloudfront.net",
   "font-src 'self' https://fonts.gstatic.com",
@@ -196,7 +198,7 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(__dirname, 'src'),
       },
     },
     server: {

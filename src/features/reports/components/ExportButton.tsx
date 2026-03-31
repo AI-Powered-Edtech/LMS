@@ -2,8 +2,8 @@ import { Download, Loader2 } from 'lucide-react'
 import Papa from 'papaparse'
 import { useState } from 'react'
 
-import { cn } from '@/src/utils/cn'
-import { escapeHtml } from '@/src/utils/sanitize'
+import { cn } from '@/utils/cn'
+import { escapeHtml } from '@/utils/sanitize'
 
 function exportAsPrintablePDF(data: Record<string, unknown>[], filename: string) {
   if (data.length === 0) return

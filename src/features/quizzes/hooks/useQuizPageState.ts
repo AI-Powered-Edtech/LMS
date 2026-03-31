@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   type QuizAttempt,
   type QuizAttemptQuestion,
@@ -9,24 +9,24 @@ import {
   quizService,
   type StudentQuizAssignment,
   type SubmitAnswer,
-} from '@/src/features/quizzes'
+} from '@/features/quizzes'
 import {
   getAttemptQuestions,
   getCurrentQuestionIndex,
-} from '@/src/features/quizzes/api/quizPlayer.service'
+} from '@/features/quizzes/api/quizPlayer.service'
 import {
   useStartQuizAttempt,
   useSubmitQuizAttempt,
-} from '@/src/features/quizzes/queries/quizPlayer.mutations'
+} from '@/features/quizzes/queries/quizPlayer.mutations'
 import {
   useStudentQuizAssignments,
   useUserAttempts,
-} from '@/src/features/quizzes/queries/quizPlayer.queries'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { useToast } from '@/src/hooks/useToast'
-import { cacheQuiz } from '@/src/utils/offlineStorage'
-import { quizSubmitRateLimiter } from '@/src/utils/rateLimiter'
-import { captureError } from '@/src/utils/sentry'
+} from '@/features/quizzes/queries/quizPlayer.queries'
+import { useDebounce } from '@/hooks/useDebounce'
+import { useToast } from '@/hooks/useToast'
+import { cacheQuiz } from '@/utils/offlineStorage'
+import { quizSubmitRateLimiter } from '@/utils/rateLimiter'
+import { captureError } from '@/utils/sentry'
 
 export function useQuizPageState() {
   const { tenantId } = useAuth()
@@ -210,7 +210,12 @@ export function useQuizPageState() {
           quizId: quiz.quiz_id,
           questions: questions.map((q) => ({
             ...q,
-            type: q.question_type === 'MCQ' ? 'multiple_choice' : q.question_type === 'TRUE_FALSE' ? 'true_false' : 'essay',
+            type:
+              q.question_type === 'MCQ'
+                ? 'multiple_choice'
+                : q.question_type === 'TRUE_FALSE'
+                  ? 'true_false'
+                  : 'essay',
             order: q.order_index || 0,
           })),
           options: [],

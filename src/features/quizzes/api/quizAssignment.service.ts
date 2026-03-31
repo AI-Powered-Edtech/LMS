@@ -1,7 +1,7 @@
 // Quiz Assignment Service - Assignment Management API
 // Extracted from quizService.ts for the Quiz Engine Refactor
 
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 import type { AssignmentUpsertInput, QuizAssignment } from '../types/quizzes.types'
 
@@ -174,9 +174,7 @@ export async function getClassQuizAssignments(
   if (error) throw error
 
   return (data || []).map((assignment) => {
-    const quiz = Array.isArray(assignment.quizzes)
-      ? assignment.quizzes[0]
-      : assignment.quizzes
+    const quiz = Array.isArray(assignment.quizzes) ? assignment.quizzes[0] : assignment.quizzes
     return {
       id: assignment.id,
       quiz_id: assignment.quiz_id,

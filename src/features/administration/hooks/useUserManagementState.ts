@@ -8,9 +8,9 @@ import {
   TenantInvitation,
   TenantUser,
   updateUserRole,
-} from '@/src/features/administration/api/adminUserService'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { useToast } from '@/src/hooks/useToast'
+} from '@/features/administration/api/adminUserService'
+import { useDebounce } from '@/hooks/useDebounce'
+import { useToast } from '@/hooks/useToast'
 
 type Tab = 'users' | 'invitations'
 

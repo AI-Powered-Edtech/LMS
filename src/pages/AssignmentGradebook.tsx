@@ -13,17 +13,17 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { useToast } from '@/src/components/ui'
-import { VirtualTable } from '@/src/components/ui/VirtualTable'
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useToast } from '@/components/ui'
+import { VirtualTable } from '@/components/ui/VirtualTable'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   type Assignment,
   assignmentService,
   type AssignmentSubmission,
-} from '@/src/features/assignments/api/assignmentService'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
-import { captureError } from '@/src/utils/sentry'
+} from '@/features/assignments/api/assignmentService'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
+import { captureError } from '@/utils/sentry'
 
 export function AssignmentGradebook() {
   usePageTitle('Buku Nilai Tugas')

@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import { createContext, useCallback, useContext, useEffect, useId, useRef } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 /* ─── Modal ────────────────────────────────────────────────── */
 

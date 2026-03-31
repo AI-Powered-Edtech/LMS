@@ -1,9 +1,9 @@
 import { Star, Zap } from 'lucide-react'
 import { motion } from 'motion/react'
 
-import { useReducedMotion } from '@/src/hooks/useReducedMotion'
-import { computeXPToNextLevel } from '@/src/utils/clientCompute'
-import { cn } from '@/src/utils/cn'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { computeXPToNextLevel } from '@/utils/clientCompute'
+import { cn } from '@/utils/cn'
 
 import { useStudentXPProfile } from '../queries/gamificationQueries'
 import { getLevelTier } from './LevelBadge'

@@ -16,16 +16,16 @@ import {
  */
 import { useEffect, useMemo, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   type AdminQuizOverviewItem,
   type AntiCheatAuditEntry,
   getAntiCheatAuditLog,
   getSchoolQuizOverview,
-} from '@/src/features/quizzes/api/adminQuiz.service'
-import { useDebounce } from '@/src/hooks/useDebounce'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+} from '@/features/quizzes/api/adminQuiz.service'
+import { useDebounce } from '@/hooks/useDebounce'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 type SortKey = 'quiz_title' | 'total_attempts' | 'avg_score' | 'pass_rate' | 'created_at'
 type SortDir = 'asc' | 'desc'

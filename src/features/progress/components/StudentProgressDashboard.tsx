@@ -1,8 +1,8 @@
 import { AlertCircle, BookOpen, CheckCircle2, Lock, Star, Trophy, Zap } from 'lucide-react'
 
-import { EmptyState } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { cn } from '@/src/utils/cn'
+import { EmptyState } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { cn } from '@/utils/cn'
 
 import type { AchievementData, ModuleStatus } from '../api/studentProgressService'
 import { useStudentAchievements, useStudentProgressSummary } from '../queries/progressQueries'

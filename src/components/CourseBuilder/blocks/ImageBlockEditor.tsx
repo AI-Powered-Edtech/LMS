@@ -1,10 +1,10 @@
 import { ImagePlus, Loader2 } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useBuilder } from '@/src/contexts/BuilderContext'
-import { storageService } from '@/src/features/storage'
+import { OptimizedImage } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { useBuilder } from '@/contexts/BuilderContext'
+import { storageService } from '@/features/storage'
 
 interface ImageBlockEditorProps {
   blockId: string

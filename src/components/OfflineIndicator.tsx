@@ -1,9 +1,9 @@
 import { CloudOff, WifiOff } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
-import { useNetworkStatus } from '@/src/hooks/useNetworkStatus'
-import { useSyncQueueCount } from '@/src/hooks/useSyncQueueCount'
-import { cn } from '@/src/utils/cn'
+import { useNetworkStatus } from '@/hooks/useNetworkStatus'
+import { useSyncQueueCount } from '@/hooks/useSyncQueueCount'
+import { cn } from '@/utils/cn'
 
 // ---------------------------------------------------------------------------
 // Global floating banner — mounted once in App.tsx

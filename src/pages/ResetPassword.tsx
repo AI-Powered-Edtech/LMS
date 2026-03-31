@@ -5,9 +5,9 @@ import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import * as v from 'valibot'
 
-import { FormField } from '@/src/components/ui/FormField'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { FormField } from '@/components/ui/FormField'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { supabase } from '@/services/supabase/client'
 
 const resetPasswordSchema = v.pipe(
   v.object({
@@ -90,14 +90,21 @@ export function ResetPassword() {
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-10 w-full max-w-[420px] shadow-2xl border border-slate-200 dark:border-slate-700/50">
           <div className="text-center mb-8">
             <span className="text-5xl inline-block mb-4">⏳</span>
-            <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold mt-2 mb-1">Memverifikasi...</h1>
-            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed m-0">Menunggu verifikasi link reset password.</p>
+            <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold mt-2 mb-1">
+              Memverifikasi...
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed m-0">
+              Menunggu verifikasi link reset password.
+            </p>
           </div>
           <div className="text-center mb-6">
             <p className="text-slate-500 dark:text-slate-400 text-sm m-0">
               Jika halaman ini tidak berubah, link mungkin sudah kedaluwarsa.
             </p>
-            <Link to="/forgot-password" className="text-blue-600 dark:text-blue-400 text-sm font-bold no-underline block text-center mt-4 hover:text-blue-700 dark:hover:text-blue-300">
+            <Link
+              to="/forgot-password"
+              className="text-blue-600 dark:text-blue-400 text-sm font-bold no-underline block text-center mt-4 hover:text-blue-700 dark:hover:text-blue-300"
+            >
               Minta link baru →
             </Link>
           </div>
@@ -126,7 +133,10 @@ export function ResetPassword() {
             <p className="text-emerald-700 dark:text-emerald-400 font-bold mb-2">
               Password telah diperbarui. Mengarahkan ke dashboard dalam 3 detik...
             </p>
-            <Link to="/" className="text-blue-600 dark:text-blue-400 text-sm font-bold no-underline block text-center mt-4 hover:text-blue-700 dark:hover:text-blue-300">
+            <Link
+              to="/"
+              className="text-blue-600 dark:text-blue-400 text-sm font-bold no-underline block text-center mt-4 hover:text-blue-700 dark:hover:text-blue-300"
+            >
               Ke Dashboard →
             </Link>
           </div>
@@ -189,7 +199,11 @@ export function ResetPassword() {
 
             {error && <div className="text-red-500 text-xs font-bold mt-1">{error}</div>}
 
-            <button type="submit" className="mt-2 p-3 bg-blue-600 text-white font-bold rounded-lg border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors w-full" disabled={isSubmitting}>
+            <button
+              type="submit"
+              className="mt-2 p-3 bg-blue-600 text-white font-bold rounded-lg border-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors w-full"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? 'Menyimpan...' : 'Simpan Password Baru'}
             </button>
           </form>
@@ -198,5 +212,3 @@ export function ResetPassword() {
     </div>
   )
 }
-
-

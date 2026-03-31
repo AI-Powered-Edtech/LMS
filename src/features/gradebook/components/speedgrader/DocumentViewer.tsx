@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import type { RefObject } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 import type { ActiveTool, Annotation } from './types'
 

@@ -1,5 +1,5 @@
-import type { QuestionType } from '@/src/features/quizzes'
-import { supabase } from '@/src/services/supabase/client'
+import type { QuestionType } from '@/features/quizzes'
+import { supabase } from '@/services/supabase/client'
 
 // ────────────────────────────────────────────────────────────
 // Types

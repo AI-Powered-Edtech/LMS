@@ -3,9 +3,9 @@ import { AnimatePresence } from 'motion/react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { useToast } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { cn } from '@/src/utils/cn'
+import { useToast } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { cn } from '@/utils/cn'
 
 import {
   useCreateGroupTask,

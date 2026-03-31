@@ -3,7 +3,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 
-import { GC, STALE } from '@/src/utils/queryConstants'
+import { GC, STALE } from '@/utils/queryConstants'
 
 import * as quizPlayerService from '../api/quizPlayer.service'
 import { QuizKeys } from './queryKeys'

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { AssignmentResultRow, quizService } from '@/src/features/quizzes'
+import { useAuth } from '@/contexts/AuthContext'
+import { AssignmentResultRow, quizService } from '@/features/quizzes'
 import {
   QuestionDifficulty,
   quizAnalyticsService,
-} from '@/src/features/quizzes/api/quizAnalyticsService'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+} from '@/features/quizzes/api/quizAnalyticsService'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export interface AssignmentOption {
   id: string

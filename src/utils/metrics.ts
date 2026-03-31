@@ -1,7 +1,7 @@
 // EduSync LMS — Application metrics tracking
 // Fire-and-forget: sends metrics to app_metrics table without blocking UI
 
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 export type MetricName =
   | 'quiz.completion_rate'

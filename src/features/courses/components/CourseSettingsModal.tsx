@@ -2,8 +2,8 @@ import { CheckCircle, Loader2, Settings, Users, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { courseService } from '@/src/features/courses/api/courseService'
+import { useAuth } from '@/contexts/AuthContext'
+import { courseService } from '@/features/courses/api/courseService'
 
 import { CourseCollaborators } from './CourseCollaborators'
 

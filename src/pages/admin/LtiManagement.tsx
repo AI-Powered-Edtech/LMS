@@ -13,19 +13,18 @@ import {
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 
-import { EmptyState, useToast } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-
-import { LtiPlatformFormModal } from '@/src/features/lti/components/LtiPlatformFormModal'
+import { EmptyState, useToast } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { LtiPlatformFormModal } from '@/features/lti/components/LtiPlatformFormModal'
 import {
-  useLtiPlatforms,
   useCreateLtiPlatform,
-  useUpdateLtiPlatform,
   useDeleteLtiPlatform,
+  useLtiPlatforms,
   useToggleLtiPlatform,
-} from '@/src/features/lti/queries/ltiQueries'
-import type { CreateLtiPlatformParams, LtiPlatformRegistration } from '@/src/features/lti/types'
+  useUpdateLtiPlatform,
+} from '@/features/lti/queries/ltiQueries'
+import type { CreateLtiPlatformParams, LtiPlatformRegistration } from '@/features/lti/types'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 export function LtiManagement() {
   usePageTitle('Pengaturan LTI')

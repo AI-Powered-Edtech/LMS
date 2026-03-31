@@ -6,7 +6,7 @@ import {
   ContentType,
   ReportReason,
   useSubmitReport,
-} from '@/src/features/moderation/queries/moderationQueries'
+} from '@/features/moderation/queries/moderationQueries'
 
 interface ReportModalProps {
   isOpen: boolean

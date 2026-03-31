@@ -1,8 +1,8 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
-import type { PresenceData } from '@/src/features/courses/builder/useBuilderPresence'
-import { cn } from '@/src/utils/cn'
+import type { PresenceData } from '@/features/courses/builder/useBuilderPresence'
+import { cn } from '@/utils/cn'
 
 interface PresenceAvatarsProps {
   others: PresenceData[]

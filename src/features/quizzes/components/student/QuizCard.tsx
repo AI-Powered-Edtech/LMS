@@ -2,9 +2,9 @@ import { Loader2, Play, Target, WifiOff } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 
-import type { StudentQuizAssignment } from '@/src/features/quizzes'
-import { cn } from '@/src/utils/cn'
-import { getCachedQuiz } from '@/src/utils/offlineStorage'
+import type { StudentQuizAssignment } from '@/features/quizzes'
+import { cn } from '@/utils/cn'
+import { getCachedQuiz } from '@/utils/offlineStorage'
 
 export function QuizCard({
   quiz,

@@ -15,7 +15,7 @@
  * - optionN/correctN: Option text and whether it's correct (TRUE/FALSE/1/0)
  */
 
-import type { QuestionType } from '@/src/features/quizzes'
+import type { QuestionType } from '@/features/quizzes'
 
 // ─── Types ───────────────────────────────────────────────
 

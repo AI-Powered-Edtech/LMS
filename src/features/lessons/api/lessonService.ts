@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 import { Lesson, LessonProgress, ProgressQueueItem, SignedProgressQueue } from '../types'
 
@@ -55,7 +55,12 @@ async function getSessionKey(): Promise<string | null> {
     data: { session },
   } = await supabase.auth.getSession()
   if (!session || !session.user) return null
-  return session.user.id + (session.expires_at || 0).toString()
+  // NOTE: Using created_at (stable per-user) rather than expires_at (per-token) as the
+  // HMAC key suffix. This means the key is the same across sessions for the same user,
+  // but since progress queue data lives in sessionStorage (cleared on tab close) and is
+  // non-sensitive, the practical risk is acceptable. The previous expires_at approach
+  // caused queue invalidation on every token refresh (bug fix rationale).
+  return session.user.id + '_' + (session.user.created_at || session.user.id)
 }
 
 async function loadSecureQueue(): Promise<ProgressQueueItem[]> {
@@ -117,40 +122,43 @@ async function saveSecureQueue(queue: ProgressQueueItem[]): Promise<void> {
     return
   }
 
-  const payload = JSON.stringify(queue)
+  // Size cap: trim queue BEFORE signing to prevent storage bloat
+  let queueToStore = queue
+  if (queue.length > 50) {
+    // Keep the 50 most recent items (sorted by timestamp descending)
+    queueToStore = [...queue].sort((a, b) => b.timestamp - a.timestamp).slice(0, 50)
+  }
+  const payload = JSON.stringify(queueToStore)
   const signature = await signData(payload, sessionKey)
   const signedQueue: SignedProgressQueue = {
     payload,
     signature,
     createdAt: Date.now(),
   }
+  const storedRaw = JSON.stringify(signedQueue)
 
-  // Size cap: if queue JSON is >50KB, drop the oldest items to prevent storage bloat
-  const queueJson = JSON.stringify(signedQueue)
-  let storedRaw: string
-  if (queueJson.length > 50 * 1024) {
-    try {
-      const parsed = JSON.parse(queueJson)
-      if (Array.isArray(parsed?.payload)) {
-        const trimmed = { ...parsed, payload: parsed.payload.slice(-20) }
-        storedRaw = JSON.stringify(trimmed)
-        sessionStorage.setItem(QUEUE_KEY, storedRaw)
-      } else {
-        storedRaw = queueJson
-        sessionStorage.setItem(QUEUE_KEY, storedRaw)
-      }
-    } catch {
-      storedRaw = queueJson
-      sessionStorage.setItem(QUEUE_KEY, storedRaw)
+  // Additional byte-size safety cap (50KB)
+  if (storedRaw.length > 50 * 1024) {
+    // Still too large: further trim to last 20 items
+    const trimmedQueue = queueToStore.slice(-20)
+    const trimPayload = JSON.stringify(trimmedQueue)
+    const trimSignature = await signData(trimPayload, sessionKey)
+    const trimmedSignedQueue: SignedProgressQueue = {
+      payload: trimPayload,
+      signature: trimSignature,
+      createdAt: Date.now(),
     }
-  } else {
-    storedRaw = queueJson
-    sessionStorage.setItem(QUEUE_KEY, storedRaw)
+    const trimmedRaw = JSON.stringify(trimmedSignedQueue)
+    sessionStorage.setItem(QUEUE_KEY, trimmedRaw)
+    _cachedRawQueue = trimmedRaw
+    _cachedQueueData = structuredClone(trimmedQueue)
+    return
   }
 
+  sessionStorage.setItem(QUEUE_KEY, storedRaw)
   // Update cache immediately to prevent the next loadSecureQueue from re-verifying HMAC
   _cachedRawQueue = storedRaw
-  _cachedQueueData = structuredClone(queue)
+  _cachedQueueData = structuredClone(queueToStore)
 }
 
 // ============================================================
@@ -330,8 +338,9 @@ export const lessonService = {
   ): Promise<void> {
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
+    if (authError || !user) throw new Error('Not authenticated')
 
     const { error } = await supabase.rpc('update_lesson_progress_monotonic', {
       p_user_id: user.id,
@@ -594,7 +603,7 @@ export const lessonService = {
       .select('cmi_data, score_raw, lesson_status, total_time, suspend_data')
       .eq('user_id', userId)
       .eq('scorm_package_id', scormPackageId)
-      .single()
+      .maybeSingle()
 
     return data ?? null
   },

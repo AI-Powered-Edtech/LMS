@@ -14,7 +14,7 @@ import {
   YAxis,
 } from 'recharts'
 
-import { useTheme } from '@/src/contexts/ThemeContext'
+import { useTheme } from '@/contexts/ThemeContext'
 
 import type { QuestionStatsWithQuestion } from '../../api/quizAnalytics.service'
 

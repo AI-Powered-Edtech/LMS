@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 
-import { MarkdownBlock } from '@/src/components/LessonViewer/blocks/MarkdownBlock'
-import { useBuilder } from '@/src/contexts/BuilderContext'
-import { cn } from '@/src/utils/cn'
+import { MarkdownBlock } from '@/components/LessonViewer/blocks/MarkdownBlock'
+import { useBuilder } from '@/contexts/BuilderContext'
+import { cn } from '@/utils/cn'
 
 interface TextBlockEditorProps {
   blockId: string

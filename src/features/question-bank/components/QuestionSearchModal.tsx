@@ -5,8 +5,8 @@ import React, { useEffect, useState } from 'react'
 import {
   QuestionBankItem,
   questionBankService,
-} from '@/src/features/question-bank/api/questionBankService'
-import { useToast } from '@/src/hooks/useToast'
+} from '@/features/question-bank/api/questionBankService'
+import { useToast } from '@/hooks/useToast'
 
 import { QuestionCard } from './QuestionCard'
 

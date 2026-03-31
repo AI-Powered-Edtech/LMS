@@ -13,15 +13,15 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import { memo, useEffect, useRef, useState } from 'react'
 
-import { SkeletonCard } from '@/src/components/ui'
-import type { Lesson, LessonProgress } from '@/src/features/lessons'
+import { SkeletonCard } from '@/components/ui'
+import type { Lesson, LessonProgress } from '@/features/lessons'
 import {
   formatDuration,
   getLessonDuration,
   getModuleDuration,
   isLessonLocked,
-} from '@/src/features/lessons'
-import { cn } from '@/src/utils/cn'
+} from '@/features/lessons'
+import { cn } from '@/utils/cn'
 
 interface LessonSidebarProps {
   moduleTitle?: string

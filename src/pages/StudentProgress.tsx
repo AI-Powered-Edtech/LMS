@@ -2,12 +2,12 @@ import { Award, BarChart2, BookOpen, TrendingUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { OptimizedImage } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { progressService, StudentProgressData } from '@/src/features/progress/api/progressService'
-import { ProgressSkeleton } from '@/src/features/progress/components/ProgressSkeleton'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { cn } from '@/src/utils/cn'
+import { OptimizedImage } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { progressService, StudentProgressData } from '@/features/progress/api/progressService'
+import { ProgressSkeleton } from '@/features/progress/components/ProgressSkeleton'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { cn } from '@/utils/cn'
 
 export function StudentProgress() {
   usePageTitle('Progres Siswa')

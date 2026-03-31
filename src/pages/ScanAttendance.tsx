@@ -3,10 +3,10 @@ import { Camera, FileText, Upload } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { useToast } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { classroomService } from '@/src/features/classroom/api/classroomService'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { useToast } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { classroomService } from '@/features/classroom/api/classroomService'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 /**
  * ScanAttendance — AI-powered attendance book scanning.

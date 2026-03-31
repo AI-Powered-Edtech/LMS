@@ -1,27 +1,27 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { aiGraderService } from '@/src/features/assignments/api/aiGraderService'
-import { assignmentService } from '@/src/features/assignments/api/assignmentService'
-import { useComments } from '@/src/features/discussions/hooks/useCommentQueries'
+import { useAuth } from '@/contexts/AuthContext'
+import { aiGraderService } from '@/features/assignments/api/aiGraderService'
+import { assignmentService } from '@/features/assignments/api/assignmentService'
+import { useComments } from '@/features/discussions/hooks/useCommentQueries'
 import type {
   ActiveTool,
   Annotation,
   SaveStatus,
   SpeedGraderStudent,
-} from '@/src/features/gradebook/components/speedgrader'
+} from '@/features/gradebook/components/speedgrader'
 import {
   DEFAULT_RUBRIC,
   DocumentViewer,
   GraderTopBar,
   RubricPanel,
   SaveStatusToast,
-} from '@/src/features/gradebook/components/speedgrader'
-import { useGradebook } from '@/src/features/gradebook/hooks/useGradebookQueries'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { useToast } from '@/src/hooks/useToast'
-import { captureError } from '@/src/utils/sentry'
+} from '@/features/gradebook/components/speedgrader'
+import { useGradebook } from '@/features/gradebook/hooks/useGradebookQueries'
+import { usePageTitle } from '@/hooks/usePageTitle'
+import { useToast } from '@/hooks/useToast'
+import { captureError } from '@/utils/sentry'
 
 export function SpeedGrader() {
   usePageTitle('Penilaian Cepat')

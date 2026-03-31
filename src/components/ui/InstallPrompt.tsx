@@ -1,8 +1,8 @@
 import { Download, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
-import { usePWAInstall } from '@/src/hooks/usePWAInstall'
-import { cn } from '@/src/utils/cn'
+import { usePWAInstall } from '@/hooks/usePWAInstall'
+import { cn } from '@/utils/cn'
 
 export function InstallPrompt() {
   const { canInstall, promptInstall, isDismissed, dismiss } = usePWAInstall()

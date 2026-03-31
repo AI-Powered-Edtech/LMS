@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowRight, CheckSquare } from 'lucide-react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 interface QuizFooterProps {
   currentQuestionIdx: number

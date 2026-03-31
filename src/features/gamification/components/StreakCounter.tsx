@@ -2,9 +2,9 @@ import { Flame } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useMemo } from 'react'
 
-import { useReducedMotion } from '@/src/hooks/useReducedMotion'
-import { calculateStreak } from '@/src/utils/clientCompute'
-import { cn } from '@/src/utils/cn'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { calculateStreak } from '@/utils/clientCompute'
+import { cn } from '@/utils/cn'
 
 import { useStudentXPProfile } from '../queries/gamificationQueries'
 

@@ -1,9 +1,9 @@
 import { ArrowLeft, LayoutDashboard } from 'lucide-react'
 import { useState } from 'react'
 
-import type { DashboardConfig } from '@/src/features/dashboards'
-import { DashboardBuilder, DashboardList, DashboardViewer } from '@/src/features/dashboards'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
+import type { DashboardConfig } from '@/features/dashboards'
+import { DashboardBuilder, DashboardList, DashboardViewer } from '@/features/dashboards'
+import { usePageTitle } from '@/hooks/usePageTitle'
 
 type View = 'list' | 'create' | 'edit' | 'view'
 

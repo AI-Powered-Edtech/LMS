@@ -2,14 +2,14 @@ import { Check, ChevronDown, LogOut, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries'
-import { useArrowNavigation } from '@/src/hooks/useArrowNavigation'
-import { ModuleId, useModuleConfig } from '@/src/hooks/useModuleConfig'
-import { useToast } from '@/src/hooks/useToast'
-import { navigationItems } from '@/src/shared/config/navigation'
-import { cn } from '@/src/utils/cn'
-import { captureError } from '@/src/utils/sentry'
+import { useAuth } from '@/contexts/AuthContext'
+import { useClassroom } from '@/features/classroom/hooks/useClassroomQueries'
+import { useArrowNavigation } from '@/hooks/useArrowNavigation'
+import { ModuleId, useModuleConfig } from '@/hooks/useModuleConfig'
+import { useToast } from '@/hooks/useToast'
+import { navigationItems } from '@/shared/config/navigation'
+import { cn } from '@/utils/cn'
+import { captureError } from '@/utils/sentry'
 
 export function Sidebar() {
   const { addToast } = useToast()

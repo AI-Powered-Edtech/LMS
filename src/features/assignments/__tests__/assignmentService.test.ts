@@ -5,7 +5,7 @@ import { assignmentService } from '../api/assignmentService'
 const mockSingle = vi.fn()
 const mockFrom = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
+vi.mock('@/services/supabase/client', () => ({
   supabase: {
     from: (...args: unknown[]) => mockFrom(...args),
   },

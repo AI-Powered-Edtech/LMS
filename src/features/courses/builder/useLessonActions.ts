@@ -1,10 +1,10 @@
 import { type Dispatch, useCallback } from 'react'
 
-import { builderBlockService } from '@/src/features/courses/api/builder/blockService'
-import { builderLessonService } from '@/src/features/courses/api/builder/lessonService'
-import { useToast } from '@/src/hooks/useToast'
-import { DomainLesson } from '@/src/shared/types/lessonTypes'
-import { captureError } from '@/src/utils/sentry'
+import { builderBlockService } from '@/features/courses/api/builder/blockService'
+import { builderLessonService } from '@/features/courses/api/builder/lessonService'
+import { useToast } from '@/hooks/useToast'
+import { DomainLesson } from '@/shared/types/lessonTypes'
+import { captureError } from '@/utils/sentry'
 
 import type { BuilderAction, BuilderState } from './builderReducer'
 
@@ -137,7 +137,7 @@ export function useLessonActions(
   const selectLesson = useCallback(
     async (lessonId: string) => {
       if (!tenantId) return
-      dispatch({ type: 'LOAD_BLOCKS_START' })
+      dispatch({ type: 'LOAD_BLOCKS_START', lessonId })
       try {
         const blocks = await builderBlockService.fetchLessonBlocks(lessonId, tenantId)
         dispatch({ type: 'LOAD_BLOCKS_SUCCESS', lessonId, blocks })

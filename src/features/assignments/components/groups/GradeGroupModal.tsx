@@ -2,7 +2,7 @@ import { Loader2 } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'
 
-import { useToast } from '@/src/components/ui'
+import { useToast } from '@/components/ui'
 
 import { TeacherGroupEntry } from '../../api/groupAssignmentService'
 import { useGradeGroupSubmission } from '../../hooks/useGroupAssignments'
