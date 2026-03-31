@@ -304,7 +304,7 @@ export function LessonBlockEditor() {
                                 <button
                                   onClick={() => handleMoveUp(idx)}
                                   disabled={idx === 0}
-                                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 rounded-xl transition-all disabled:opacity-30"
+                                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 rounded-xl transition-all disabled:opacity-30 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                                   aria-label="Pindah ke atas"
                                   title="Pindah ke atas"
                                 >
@@ -313,7 +313,7 @@ export function LessonBlockEditor() {
                                 <button
                                   onClick={() => handleMoveDown(idx)}
                                   disabled={idx === state.activeLesson!.blocks.length - 1}
-                                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 rounded-xl transition-all disabled:opacity-30"
+                                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 rounded-xl transition-all disabled:opacity-30 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                                   aria-label="Pindah ke bawah"
                                   title="Pindah ke bawah"
                                 >
@@ -327,7 +327,7 @@ export function LessonBlockEditor() {
                                     actions.deleteBlock(block.id)
                                   }
                                 }}
-                                className="p-2 md:opacity-0 md:group-hover:opacity-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 rounded-xl transition-all"
+                                className="p-2 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 rounded-xl transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                                 aria-label="Hapus konten"
                                 title="Hapus konten"
                               >

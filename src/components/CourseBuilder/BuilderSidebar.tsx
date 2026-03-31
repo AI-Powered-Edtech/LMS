@@ -238,7 +238,7 @@ export function BuilderSidebar() {
                                     defaultTitle: mod.title,
                                   })
                                 }}
-                                className="p-2 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 rounded transition-colors"
+                                className="p-2 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                                 aria-label="Simpan sebagai Template"
                                 title="Simpan sebagai Template"
                               >
@@ -251,7 +251,7 @@ export function BuilderSidebar() {
                                     actions.deleteModule(mod.id)
                                   }
                                 }}
-                                className="p-2 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded transition-colors ml-0.5"
+                                className="p-2 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded transition-colors ml-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                                 aria-label="Hapus modul"
                                 title="Hapus modul"
                               >
@@ -367,7 +367,7 @@ export function BuilderSidebar() {
                                                   })
                                                 }}
                                                 className={cn(
-                                                  'p-2 rounded-md transition-colors',
+                                                  'p-2 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
                                                   state.activeLesson?.id === lesson.id
                                                     ? 'hover:bg-white/20 text-white/70 hover:text-white'
                                                     : 'hover:bg-indigo-50 text-slate-500 hover:text-indigo-600'
@@ -385,7 +385,7 @@ export function BuilderSidebar() {
                                                   }
                                                 }}
                                                 className={cn(
-                                                  'p-2 rounded-md transition-colors',
+                                                  'p-2 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500',
                                                   state.activeLesson?.id === lesson.id
                                                     ? 'hover:bg-white/20 text-white/70 hover:text-white'
                                                     : 'hover:bg-rose-50 text-slate-500 hover:text-rose-600'
