@@ -165,7 +165,7 @@ Pages di `src/pages/` harus tipis — hanya import dari feature module.
 
 - Hapus baris `file:` pertama
 - Buat code block baru tanpa baris `file:` (tidak akan ter-sync)
-- Ubah token `{%DOPEN%` atau `%DCLOSE%}` (encoding JSX)
+- Ubah token `{{` atau `}}` (encoding JSX)
 
 **Membuat file baru:** Kamu tidak bisa membuat file baru via Notion. Tulis instruksi di laporan sprint — Claude Code yang buat.
 
