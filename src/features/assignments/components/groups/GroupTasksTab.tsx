@@ -2,17 +2,12 @@ import { CheckCircle2, CheckSquare, Clock, MoreVertical, Plus } from 'lucide-rea
 
 import { cn } from '@/src/utils/cn'
 
-interface Task {
-  id: number
-  title: string
-  assignee: string
-  status: string
-}
+import { GroupTask } from '../../api/groupAssignmentService'
 
 interface Props {
-  tasks: Task[]
+  tasks: GroupTask[]
   newTaskTitle: string
-  onToggleStatus: (id: number) => void
+  onToggleStatus: (id: string, currentStatus: string) => void
   onTaskTitleChange: (title: string) => void
   onAddTask: () => void
 }
@@ -24,7 +19,7 @@ export function GroupTasksTab({
   onTaskTitleChange,
   onAddTask,
 }: Props) {
-  const completedCount = tasks.filter((t) => t.status === 'completed').length
+  const completedCount = tasks.filter((t) => t.status === 'done').length
 
   return (
     <div className="p-6 flex flex-col flex-1">
@@ -51,18 +46,18 @@ export function GroupTasksTab({
             >
               <div className="flex items-center gap-4">
                 <button
-                  onClick={() => onToggleStatus(task.id)}
+                  onClick={() => onToggleStatus(task.id, task.status)}
                   aria-label={`Ubah status: ${task.title}`}
                   className={cn(
                     'w-6 h-6 rounded flex items-center justify-center border transition-colors',
-                    task.status === 'completed'
+                    task.status === 'done'
                       ? 'bg-emerald-500 border-emerald-500 text-white'
                       : task.status === 'in_progress'
                         ? 'bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-amber-600'
                         : 'bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-600 text-transparent hover:border-indigo-400'
                   )}
                 >
-                  {task.status === 'completed' ? (
+                  {task.status === 'done' ? (
                     <CheckCircle2 className="w-4 h-4" />
                   ) : task.status === 'in_progress' ? (
                     <Clock className="w-4 h-4" />
@@ -74,7 +69,7 @@ export function GroupTasksTab({
                   <p
                     className={cn(
                       'font-bold text-sm transition-colors',
-                      task.status === 'completed'
+                      task.status === 'done'
                         ? 'text-slate-400 line-through'
                         : 'text-slate-800 dark:text-slate-200'
                     )}
@@ -82,7 +77,10 @@ export function GroupTasksTab({
                     {task.title}
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Penanggung Jawab: {task.assignee}
+                    Penanggung Jawab:{' '}
+                    {task.profiles
+                      ? `${task.profiles.first_name} ${task.profiles.last_name}`
+                      : 'Belum ditugaskan'}
                   </p>
                 </div>
               </div>
