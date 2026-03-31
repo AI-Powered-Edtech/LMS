@@ -11,7 +11,6 @@ import {
   Settings,
   Users,
 } from 'lucide-react'
-import { motion } from 'motion/react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -23,7 +22,6 @@ import { DashboardSkeleton } from '@/src/features/dashboards/components/Dashboar
 import { TeacherWelcome } from '@/src/features/onboarding'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { navigationItems } from '@/src/shared/config/navigation'
-import { staggerContainer, staggerItem } from '@/src/utils/animations'
 import { cn } from '@/src/utils/cn'
 
 export function TeacherDashboard() {
@@ -118,14 +116,9 @@ export function TeacherDashboard() {
             <AlertCircle className="w-5 h-5 text-orange-500" />
             Perlu Perhatian Anda
           </h2>
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-            variants={staggerContainer}
-            initial="hidden"
-            animate="show"
-          >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {alerts.map((alert) => (
-              <motion.div key={alert.id} variants={staggerItem}>
+              <div key={alert.id}>
                 <Card
                   hover
                   padding="md"
@@ -170,9 +163,9 @@ export function TeacherDashboard() {
                     />
                   </div>
                 </Card>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       )}
 
@@ -192,14 +185,9 @@ export function TeacherDashboard() {
             ))}
           </div>
         ) : classrooms.length > 0 ? (
-          <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-            variants={staggerContainer}
-            initial="hidden"
-            animate="show"
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {classrooms.map((classroom) => (
-              <motion.div key={classroom.id} variants={staggerItem}>
+              <div key={classroom.id}>
                 <Card padding="none" hover className="overflow-hidden flex flex-col">
                   <div className="p-6 border-b border-slate-100 dark:border-slate-700">
                     <div className="flex justify-between items-start mb-4">
@@ -258,9 +246,9 @@ export function TeacherDashboard() {
                     </Button>
                   </div>
                 </Card>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         ) : (
           <Card>
             <EmptyState
@@ -284,21 +272,15 @@ export function TeacherDashboard() {
             Lihat Semua <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-          variants={staggerContainer}
-          initial="hidden"
-          animate="show"
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {navigationItems
             .filter((item) => item.location === 'teaching-hub' && item.roles.includes('teacher'))
             .slice(0, 4)
             .map((tool) => {
               const IconComponent = tool.icon
               return (
-                <motion.button
+                <button
                   key={tool.id}
-                  variants={staggerItem}
                   onClick={() => navigate(tool.path)}
                   className="flex items-center gap-4 p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-blue-300 hover:shadow-md transition-all group"
                 >
@@ -321,10 +303,10 @@ export function TeacherDashboard() {
                       </span>
                     )}
                   </div>
-                </motion.button>
+                </button>
               )
             })}
-        </motion.div>
+        </div>
       </div>
 
       {/* Recent Activity — placeholder until API available */}

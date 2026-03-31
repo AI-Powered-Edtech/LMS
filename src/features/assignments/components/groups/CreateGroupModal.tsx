@@ -66,7 +66,7 @@ export function CreateGroupModal({ assignmentId, onClose }: Props) {
   const getStudentName = useCallback(
     (userId: string) => {
       const s = students.find((st) => st.user_id === userId)
-      return s ? `${s.first_name} ${s.last_name}`.trim() : 'Tanpa Nama'
+      return s?.full_name ?? 'Tanpa Nama'
     },
     [students]
   )
@@ -104,6 +104,7 @@ export function CreateGroupModal({ assignmentId, onClose }: Props) {
 
   return (
     <div
+      role="presentation"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
       onKeyDown={(e) => e.key === 'Escape' && onClose()}
     >
@@ -236,7 +237,7 @@ export function CreateGroupModal({ assignmentId, onClose }: Props) {
                         </option>
                         {availableStudents.map((s) => (
                           <option key={s.user_id} value={s.user_id}>
-                            {`${s.first_name} ${s.last_name}`}
+                            {s.full_name}
                           </option>
                         ))}
                       </select>

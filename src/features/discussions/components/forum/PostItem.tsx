@@ -18,7 +18,7 @@ import rehypeKatex from 'rehype-katex'
 import rehypeSanitize from 'rehype-sanitize'
 import remarkMath from 'remark-math'
 
-import { OptimizedImage } from '@/src/components/ui'
+import { OptimizedImage, useToast } from '@/src/components/ui'
 import { discussionService } from '@/src/features/discussions/api/discussionService'
 import type { ForumPost } from '@/src/features/discussions/types/forum'
 import type { ForumComment } from '@/src/features/discussions/types/forum'
@@ -161,7 +161,10 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport }: PostItemProp
               {showMenu && (
                 <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden z-10">
                   {isTeacher && (
-                    <button onClick={() => addToast({ type: "info", message: "Segera hadir" })} className="w-full text-left px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-2 border-b border-slate-100 dark:border-slate-700">
+                    <button
+                      onClick={() => addToast({ type: 'info', message: 'Segera hadir' })}
+                      className="w-full text-left px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-2 border-b border-slate-100 dark:border-slate-700"
+                    >
                       <Share2 className="w-4 h-4" /> Push ke GCR
                     </button>
                   )}
@@ -208,7 +211,10 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport }: PostItemProp
           )}
 
           <div className="prose prose-slate dark:prose-invert max-w-none mb-4 prose-pre:bg-slate-800 prose-pre:text-slate-50 prose-pre:rounded-xl">
-            <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}>
+            <ReactMarkdown
+              remarkPlugins={[remarkMath]}
+              rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}
+            >
               {post.content}
             </ReactMarkdown>
           </div>

@@ -1,5 +1,4 @@
 import { Award, BarChart2, BookOpen, TrendingUp } from 'lucide-react'
-import { motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
@@ -8,7 +7,6 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { progressService, StudentProgressData } from '@/src/features/progress/api/progressService'
 import { ProgressSkeleton } from '@/src/features/progress/components/ProgressSkeleton'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { staggerContainer, staggerItem } from '@/src/utils/animations'
 import { cn } from '@/src/utils/cn'
 
 export function StudentProgress() {
@@ -85,16 +83,8 @@ export function StudentProgress() {
         </div>
       </div>
 
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-3 gap-6"
-        variants={staggerContainer}
-        initial="hidden"
-        animate="show"
-      >
-        <motion.div
-          variants={staggerItem}
-          className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4"
-        >
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
             <BookOpen className="w-6 h-6" />
           </div>
@@ -106,11 +96,8 @@ export function StudentProgress() {
               {completedLessonsCount}
             </p>
           </div>
-        </motion.div>
-        <motion.div
-          variants={staggerItem}
-          className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4"
-        >
+        </div>
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-xl flex items-center justify-center">
             <Award className="w-6 h-6" />
           </div>
@@ -120,11 +107,8 @@ export function StudentProgress() {
             </p>
             <p className="text-2xl font-black text-slate-900 dark:text-slate-100">{totalXP}</p>
           </div>
-        </motion.div>
-        <motion.div
-          variants={staggerItem}
-          className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4"
-        >
+        </div>
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
             <TrendingUp className="w-6 h-6" />
           </div>
@@ -136,8 +120,8 @@ export function StudentProgress() {
               {achievements.length}
             </p>
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
       <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
         <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
@@ -235,21 +219,15 @@ export function StudentProgress() {
           <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
             <Award className="w-5 h-5 text-amber-500" /> Daftar Lencana
           </h2>
-          <motion.div
-            className="grid grid-cols-2 gap-4"
-            variants={staggerContainer}
-            initial="hidden"
-            animate="show"
-          >
+          <div className="grid grid-cols-2 gap-4">
             {achievements.length === 0 ? (
               <p className="text-slate-500 dark:text-slate-400 italic text-sm text-center py-4 col-span-2">
                 Belum ada lencana yang diraih.
               </p>
             ) : (
               achievements.map((ach) => (
-                <motion.div
+                <div
                   key={ach.id}
-                  variants={staggerItem}
                   className="p-4 bg-amber-50 border border-amber-100 rounded-2xl text-center"
                 >
                   <div className="text-3xl mb-2">
@@ -261,10 +239,10 @@ export function StudentProgress() {
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     {new Date(ach.earned_at).toLocaleDateString('id-ID')}
                   </p>
-                </motion.div>
+                </div>
               ))
             )}
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>

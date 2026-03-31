@@ -95,3 +95,6 @@ path/
 
 # notion-sync command sentinel files
 __command__*
+
+# Empty placeholder config (not needed)
+config.json

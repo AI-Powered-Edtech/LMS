@@ -40,7 +40,7 @@ export function CourseBrowser({
 }) {
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
-  const [modulesLoading, setModulesLoading] = useState(true)
+  const [, setModulesLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
   const [course, setCourse] = useState<CourseData | null>(null)
@@ -63,7 +63,13 @@ export function CourseBrowser({
       id: string
       title: string
       order: number
-      lessons: Array<{ id: string; title: string; type: string; order: number; duration_minutes?: number }>
+      lessons: Array<{
+        id: string
+        title: string
+        type: string
+        order: number
+        duration_minutes?: number
+      }>
     }
 
     ;(async () => {
@@ -75,10 +81,19 @@ export function CourseBrowser({
           ids: courseId ? [courseId] : undefined,
         })
 
-        if (!coursesData?.length) { setLoading(false); setModulesLoading(false); return }
+        if (!coursesData?.length) {
+          setLoading(false)
+          setModulesLoading(false)
+          return
+        }
 
         const activeCourse = coursesData[0]
-        setCourse({ id: activeCourse.id, title: activeCourse.title, description: activeCourse.description, created_by: activeCourse.created_by })
+        setCourse({
+          id: activeCourse.id,
+          title: activeCourse.title,
+          description: activeCourse.description,
+          created_by: activeCourse.created_by,
+        })
         setLoading(false) // ← unblock render: course header shows now
 
         // Phase 2: fetch modules + instructor in parallel
@@ -89,7 +104,10 @@ export function CourseBrowser({
 
         if (teacherName) setInstructorName(teacherName)
 
-        if (!modulesData.length) { setModulesLoading(false); return }
+        if (!modulesData.length) {
+          setModulesLoading(false)
+          return
+        }
 
         // Phase 3: show modules without progress first, then fetch progress
         const allLessonIds = (modulesData as Array<{ lessons?: Array<{ id: string }> }>).flatMap(
@@ -97,13 +115,24 @@ export function CourseBrowser({
         )
 
         // Show modules immediately (without progress marks)
-        let totalL = 0, totalDur = 0
-        const modulesNoProgress: ModuleWithProgress[] = (modulesData as unknown as ModuleRow[]).map((m) => {
-          const lessons = m.lessons || []
-          const duration = lessons.reduce((s, l) => s + (l.duration_minutes || 5), 0)
-          totalL += lessons.length; totalDur += duration
-          return { id: m.id, title: m.title, order: m.order, lessonCount: lessons.length, completedLessons: 0, durationMinutes: duration }
-        })
+        let totalL = 0,
+          totalDur = 0
+        const modulesNoProgress: ModuleWithProgress[] = (modulesData as unknown as ModuleRow[]).map(
+          (m) => {
+            const lessons = m.lessons || []
+            const duration = lessons.reduce((s, l) => s + (l.duration_minutes || 5), 0)
+            totalL += lessons.length
+            totalDur += duration
+            return {
+              id: m.id,
+              title: m.title,
+              order: m.order,
+              lessonCount: lessons.length,
+              completedLessons: 0,
+              durationMinutes: duration,
+            }
+          }
+        )
         setModules(modulesNoProgress)
         setTotalLessons(totalL)
         setTotalDuration(totalDur)
@@ -111,14 +140,27 @@ export function CourseBrowser({
 
         // Phase 4: fetch progress and update modules
         const completedSet = await lessonService.getCompletedLessonIds(user.id, allLessonIds)
-        let completedL = 0, foundNextIncomplete = false
-        const modulesWithProgress: ModuleWithProgress[] = (modulesData as unknown as ModuleRow[]).map((m) => {
+        let completedL = 0,
+          foundNextIncomplete = false
+        const modulesWithProgress: ModuleWithProgress[] = (
+          modulesData as unknown as ModuleRow[]
+        ).map((m) => {
           const lessons = m.lessons || []
           const completedCount = lessons.filter((l) => completedSet.has(l.id)).length
           const duration = lessons.reduce((s, l) => s + (l.duration_minutes || 5), 0)
           completedL += completedCount
-          if (!foundNextIncomplete && completedCount < lessons.length) { setNextIncompleteModuleId(m.id); foundNextIncomplete = true }
-          return { id: m.id, title: m.title, order: m.order, lessonCount: lessons.length, completedLessons: completedCount, durationMinutes: duration }
+          if (!foundNextIncomplete && completedCount < lessons.length) {
+            setNextIncompleteModuleId(m.id)
+            foundNextIncomplete = true
+          }
+          return {
+            id: m.id,
+            title: m.title,
+            order: m.order,
+            lessonCount: lessons.length,
+            completedLessons: completedCount,
+            durationMinutes: duration,
+          }
         })
         setModules(modulesWithProgress)
         setCompletedLessons(completedL)

@@ -7,10 +7,9 @@ import { AssignCourseModal } from '@/src/components/Classroom/AssignCourseModal'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { Course, courseService } from '@/src/features/courses'
 import { useInfiniteCoursesQuery } from '@/src/features/courses/queries/courseQueries'
-import { useDebounce } from "@/src/hooks/useDebounce"
-import { useRoleBasedPath } from "@/src/hooks/useRoleBasedPath"
+import { useDebounce } from '@/src/hooks/useDebounce'
+import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
 import { useToast } from '@/src/hooks/useToast'
-import { staggerContainer, staggerItem } from '@/src/utils/animations'
 import { cn } from '@/src/utils/cn'
 
 // Gradient palette rotated per card index
@@ -102,7 +101,9 @@ export const Courses: React.FC = () => {
       })
 
       setIsModalOpen(false)
-      navigate(`${getPath("/app/teacher/course-builder", "/app/admin/course-builder")}?courseId=${newCourse.id}`)
+      navigate(
+        `${getPath('/app/teacher/course-builder', '/app/admin/course-builder')}?courseId=${newCourse.id}`
+      )
     } catch (err: unknown) {
       if (import.meta.env.DEV) console.error('Failed to create course:', err)
       addToast({
@@ -211,12 +212,9 @@ export const Courses: React.FC = () => {
           )}
         </motion.div>
       ) : (
-        <motion.div
+        <div
           data-testid="course-grid"
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-          variants={staggerContainer}
-          initial="hidden"
-          animate="show"
         >
           <AnimatePresence>
             {filteredCourses.map((course, idx) => (
@@ -224,7 +222,11 @@ export const Courses: React.FC = () => {
                 key={course.id}
                 course={course}
                 gradientClass={CARD_GRADIENTS[idx % CARD_GRADIENTS.length]}
-                onNavigate={() => navigate(`${getPath("/app/teacher/course-builder", "/app/admin/course-builder")}?courseId=${course.id}`)}
+                onNavigate={() =>
+                  navigate(
+                    `${getPath('/app/teacher/course-builder', '/app/admin/course-builder')}?courseId=${course.id}`
+                  )
+                }
                 onAssign={() =>
                   setAssignModal({ isOpen: true, courseId: course.id, courseTitle: course.title })
                 }
@@ -249,13 +251,14 @@ export const Courses: React.FC = () => {
               Semua {filteredCourses.length} kursus ditampilkan
             </p>
           )}
-        </motion.div>
+        </div>
       )}
 
       {/* Create Course Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <div
+            role="presentation"
             className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-md"
             onKeyDown={(e) => e.key === 'Escape' && setIsModalOpen(false)}
           >
@@ -358,15 +361,16 @@ function CourseCard({ course, gradientClass, onNavigate, onAssign }: CourseCardP
     null
 
   return (
-    <motion.div
-      variants={staggerItem}
-      exit={{ opacity: 0, scale: 0.95 }}
+    <div
+      role="button"
+      tabIndex={0}
       className={cn(
         'group cursor-pointer bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-700/60',
         'overflow-hidden shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 dark:hover:shadow-indigo-900/20',
         'transition-all duration-300 hover:-translate-y-1'
       )}
       onClick={onNavigate}
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onNavigate()}
     >
       {/* Thumbnail / gradient header */}
       <div
@@ -443,6 +447,6 @@ function CourseCard({ course, gradientClass, onNavigate, onAssign }: CourseCardP
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
