@@ -36,7 +36,7 @@ export function useStudentProgressData() {
   // Modules query
   const modules = useQuery({
     queryKey: progressKeys.modules(tenantId!),
-    queryFn: () => studentProgressService.fetchModules(tenantId!),
+    queryFn: () => studentProgressService.fetchModules(tenantId!, user?.id ?? undefined),
     enabled: !!tenantId,
   })
 
@@ -111,7 +111,8 @@ export function useAddXP() {
   return useMutation({
     mutationFn: async (amount: number) => {
       if (!userId) throw new Error('Missing user')
-      await studentProgressService.addXP(userId, amount)
+      if (!tenantId) throw new Error('Missing tenant')
+      await studentProgressService.addXP(userId, amount, tenantId)
       return amount
     },
     onMutate: async (amount) => {

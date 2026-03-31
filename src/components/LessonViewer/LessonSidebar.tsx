@@ -133,22 +133,23 @@ export const LessonSidebar = memo(function LessonSidebar({
         )}
       </div>
 
+      {/* Toast for locked lessons — placed outside scroll container so it stays fixed */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="mx-4 mt-2 z-30 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm px-4 py-3 rounded-lg shadow-lg"
+          >
+            {toastMessage}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Lesson List - Virtualized */}
       <div ref={parentRef} className="flex-1 overflow-y-auto relative custom-scrollbar">
-        {/* Toast for locked lessons */}
-        <AnimatePresence>
-          {toastMessage && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="absolute top-2 left-4 right-4 z-30 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm px-4 py-3 rounded-lg shadow-lg"
-            >
-              {toastMessage}
-            </motion.div>
-          )}
-        </AnimatePresence>
         {lessons.length === 0 ? (
           <div className="p-4 space-y-3">
             <SkeletonCard lines={1} />

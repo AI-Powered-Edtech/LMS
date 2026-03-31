@@ -55,15 +55,22 @@ export function useBlockActions(
           await builderBlockService.updateBlock(blockId, tenantId, data)
           setSavingStatus('saved')
           broadcast?.({ type: 'UPDATE_BLOCK', blockId, data }, userName ?? '')
-        } catch {
+        } catch (err: unknown) {
+          if (import.meta.env.DEV) console.error('Failed to update block:', err)
           setSavingStatus('error')
+          addToast({
+            type: 'error',
+            message:
+              'Gagal menyimpan konten: ' +
+              (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
+          })
         }
         saveTimerRef.current.delete(blockId)
       }, 2000)
 
       saveTimerRef.current.set(blockId, timer)
     },
-    [tenantId, dispatch, setSavingStatus, saveTimerRef, broadcast, userName]
+    [tenantId, dispatch, setSavingStatus, saveTimerRef, addToast, broadcast, userName]
   )
 
   const saveBlock = useCallback(
@@ -100,8 +107,15 @@ export function useBlockActions(
         await builderBlockService.updateBlock(blockId, tenantId, data)
         setSavingStatus('saved')
         broadcast?.({ type: 'UPDATE_BLOCK', blockId, data }, userName ?? '')
-      } catch {
+      } catch (err: unknown) {
+        if (import.meta.env.DEV) console.error('Failed to save block:', err)
         setSavingStatus('error')
+        addToast({
+          type: 'error',
+          message:
+            'Gagal menyimpan konten: ' +
+            (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
+        })
       }
     },
     [

@@ -56,20 +56,77 @@ interface AssignmentData {
 export const studentProgressService = {
   /**
    * Fetch course modules for a specific tenant, ordered by position.
+   * When userId is provided, derives module status from lesson progress.
    */
-  async fetchModules(tenantId: string): Promise<ModuleData[]> {
-    const { data } = await supabase
+  async fetchModules(tenantId: string, userId?: string): Promise<ModuleData[]> {
+    const { data: moduleData } = await supabase
       .from('course_modules')
       .select('id, title, order, course_id')
       .eq('tenant_id', tenantId)
       .order('order')
 
-    return (data ?? []).map((m, i) => ({
-      id: m.id,
-      title: m.title,
-      status: (i === 0 ? 'active' : 'locked') as ModuleStatus,
-      position: { x: 50, y: i * 20 + 10 },
-    }))
+    if (!moduleData || moduleData.length === 0) return []
+
+    if (!userId) {
+      return moduleData.map((m, i) => ({
+        id: m.id,
+        title: m.title,
+        status: (i === 0 ? 'active' : 'locked') as ModuleStatus,
+        position: { x: 50, y: i * 20 + 10 },
+      }))
+    }
+
+    const moduleIds = moduleData.map((m) => m.id)
+    const { data: lessonData } = await supabase
+      .from('lessons')
+      .select('id, module_id')
+      .in('module_id', moduleIds)
+      .eq('tenant_id', tenantId)
+
+    const { data: progressData } = await supabase
+      .from('lesson_progress')
+      .select('lesson_id, completed')
+      .eq('user_id', userId)
+      .eq('tenant_id', tenantId)
+
+    const completedSet = new Set(
+      (progressData ?? []).filter((p) => p.completed).map((p) => p.lesson_id)
+    )
+
+    const lessonsByModule = new Map<string, string[]>()
+    ;(lessonData ?? []).forEach((l: { id: string; module_id: string }) => {
+      const arr = lessonsByModule.get(l.module_id) ?? []
+      arr.push(l.id)
+      lessonsByModule.set(l.module_id, arr)
+    })
+
+    let prevMastered = true
+    return moduleData.map((m, i) => {
+      const lessons = lessonsByModule.get(m.id) ?? []
+      const completedCount = lessons.filter((id) => completedSet.has(id)).length
+      const totalCount = lessons.length
+
+      let status: ModuleStatus
+      if (totalCount === 0) {
+        status = prevMastered || i === 0 ? 'active' : 'locked'
+      } else if (completedCount === totalCount) {
+        status = 'mastered'
+      } else if (completedCount > 0) {
+        status = 'active'
+      } else if (prevMastered || i === 0) {
+        status = 'active'
+      } else {
+        status = 'locked'
+      }
+
+      prevMastered = status === 'mastered'
+      return {
+        id: m.id,
+        title: m.title,
+        status,
+        position: { x: 50, y: i * 20 + 10 },
+      }
+    })
   },
 
   /**
@@ -81,7 +138,7 @@ export const studentProgressService = {
   ): Promise<Record<string, LessonProgress>> {
     const { data } = await supabase
       .from('lesson_progress')
-      .select('lesson_id, completed, completed_at')
+      .select('lesson_id, module_id, completed, completed_at')
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)
 
@@ -89,7 +146,7 @@ export const studentProgressService = {
     ;(data ?? []).forEach((p) => {
       progressMap[p.lesson_id] = {
         lessonId: p.lesson_id,
-        moduleId: p.lesson_id,
+        moduleId: (p as any).module_id ?? '',
         status: p.completed ? 'completed' : 'in_progress',
         progress: p.completed ? 100 : 50,
         lastAccessed: p.completed_at ? new Date(p.completed_at) : undefined,
@@ -107,7 +164,7 @@ export const studentProgressService = {
   ): Promise<Record<string, QuizAttempt[]>> {
     const { data } = await supabase
       .from('quiz_attempts_v2')
-      .select('id, quiz_id, score, started_at, submitted_at, passed')
+      .select('id, quiz_id, score, started_at, submitted_at, passed, quizzes(total_points)')
       .eq('student_id', userId)
       .eq('tenant_id', tenantId)
       .in('status', ['SUBMITTED', 'GRADED'])
@@ -120,8 +177,11 @@ export const studentProgressService = {
         id: a.id,
         quizId: a.quiz_id,
         score: a.score ?? 0,
-        totalPoints: 100,
-        percentage: a.score ?? 0,
+        totalPoints: (a as any).quizzes?.total_points ?? 100,
+        percentage: (() => {
+          const tp = (a as any).quizzes?.total_points ?? 100
+          return tp > 0 ? Math.round(((a.score ?? 0) / tp) * 100) : (a.score ?? 0)
+        })(),
         passed: a.passed ?? (a.score ?? 0) >= 70,
         completedAt: new Date(a.submitted_at || a.started_at),
         answers: {},
@@ -230,10 +290,11 @@ export const studentProgressService = {
   /**
    * Add XP to a user via RPC.
    */
-  async addXP(userId: string, amount: number): Promise<void> {
+  async addXP(userId: string, amount: number, tenantId: string): Promise<void> {
     const { error } = await supabase.rpc('add_user_points', {
       p_user_id: userId,
       p_points: amount,
+      p_tenant_id: tenantId,
     })
     if (error) if (import.meta.env.DEV) console.error('Error adding XP:', error)
   },

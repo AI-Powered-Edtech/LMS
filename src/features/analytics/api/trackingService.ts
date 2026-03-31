@@ -50,11 +50,11 @@ export function startEventFlushing() {
 
 /** Stop the flush timer and flush remaining events (call on unmount) */
 export function stopEventFlushing() {
-  if (flushTimer) {
+  if (flushTimer !== null) {
     clearInterval(flushTimer)
     flushTimer = null
   }
-  flushEvents()
+  void flushEvents() // explicit void to mark intentional floating promise
 }
 
 /** Flush buffered events to the database */

@@ -115,7 +115,7 @@ export function MultiBlockViewer({
           }
         })
       },
-      { threshold: 0.3 }
+      { threshold: 0.5 }
     )
 
     blocks.forEach((block) => {
@@ -347,7 +347,7 @@ export function MultiBlockViewer({
                           if (blockTotal === 0) return
                           // H-12: Use completedSet.size (state) instead of completedIds.current.size (ref)
                           // C-5: Cap at 100 instead of 99 so active block updates can reach 100%
-                          const basePct = (completedSet.size / blockTotal) * 100
+                          const basePct = (completedCount / blockTotal) * 100
                           const blockPct = (pct / 100) * (1 / blockTotal) * 100
                           onProgressUpdate(Math.min(Math.round(basePct + blockPct), 100))
                         }

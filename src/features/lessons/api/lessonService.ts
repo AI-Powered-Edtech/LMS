@@ -423,6 +423,12 @@ export const lessonService = {
   /**
    * Attempts to flush the offline progress queue synchronously.
    * Prevents race conditions by using a sequential loop and a memory-level lock.
+   *
+   * NOTE (M7): This lock is in-memory and tab-local. Multiple browser tabs could
+   * process their individual offline queues concurrently — each tab's queue is
+   * stored under the same sessionStorage key WITHIN that tab, so there is no
+   * true cross-tab conflict (session storage is isolated per tab, not shared).
+   * For cross-origin/cross-tab isolation, the Web Locks API could be used.
    */
   async processOfflineQueue(tenantId: string): Promise<void> {
     if ((this as unknown as { _isProcessingOfflineQueue?: boolean })._isProcessingOfflineQueue)
@@ -430,6 +436,41 @@ export const lessonService = {
     ;(this as unknown as { _isProcessingOfflineQueue?: boolean })._isProcessingOfflineQueue = true
 
     try {
+      // ── NEW: Replay progress beacons written during page unload ──────────────
+      // These were written synchronously by the beforeunload handler in ProgressReporter.
+      // Scan all sessionStorage keys for progress_beacon_* entries and replay them.
+      const beaconKeys: string[] = []
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i)
+        if (key?.startsWith('progress_beacon_')) beaconKeys.push(key)
+      }
+      for (const key of beaconKeys) {
+        try {
+          const raw = sessionStorage.getItem(key)
+          if (!raw) continue
+          const beacon = JSON.parse(raw) as {
+            lessonId: string
+            tenantId: string
+            status: 'started' | 'in_progress' | 'completed'
+            percentage: number
+            position?: number
+            timestamp: number
+          }
+          // Use the beacon's own tenantId (it may differ from the function param in shared devices)
+          await this.updateProgress(
+            beacon.lessonId,
+            beacon.tenantId || tenantId,
+            beacon.status,
+            beacon.percentage,
+            beacon.position ?? undefined
+          )
+          sessionStorage.removeItem(key)
+        } catch {
+          // Leave failed beacon for next attempt — don't block the rest of the queue
+        }
+      }
+      // ── END beacon replay ────────────────────────────────────────────────────
+
       let queue: ProgressQueueItem[] = await loadSecureQueue()
 
       if (queue.length === 0) return
@@ -471,7 +512,7 @@ export const lessonService = {
    * Convenience wrapper around updateProgress.
    */
   async completeLesson(lessonId: string, tenantId: string): Promise<void> {
-    await this.updateProgress(lessonId, tenantId, 'completed', 100)
+    await this.queueProgressUpdate(lessonId, tenantId, 'completed', 100)
   },
 
   /**

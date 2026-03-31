@@ -26,6 +26,12 @@ export function ProgressReporter({
   const lastSent = useRef({ percentage: 0, position: 0 })
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+  // C7 fix: Reset lastSent when lesson changes to prevent stale high-water mark
+  // blocking progress reports for the new lesson
+  useEffect(() => {
+    lastSent.current = { percentage: 0, position: 0 }
+  }, [lessonId])
+
   // Store latest prop values in refs for stable callbacks (FL-1 fix)
   // This eliminates interval churn caused by sendUpdate dependency changes
   const latestRef = useRef({ status, progressPercentage, lastPosition })

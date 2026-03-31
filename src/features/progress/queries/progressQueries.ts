@@ -47,7 +47,7 @@ export function useStudentProgressSummary(userId: string) {
 
   const modulesQuery = useQuery({
     queryKey: progressKeys.modules(tenantId ?? ''),
-    queryFn: () => studentProgressService.fetchModules(tenantId!),
+    queryFn: () => studentProgressService.fetchModules(tenantId!, userId),
     enabled: !!tenantId,
   })
 

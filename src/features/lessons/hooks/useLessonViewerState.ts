@@ -254,8 +254,9 @@ export function useLessonViewerState() {
   // Fix L-30: Also scroll to top on start over
   const handleStartOver = useCallback(() => {
     setShowResumeBanner(false)
+    actions.startViewing()
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [])
+  }, [actions])
 
   const handleResume = useCallback(() => {
     setShowResumeBanner(false)
@@ -298,6 +299,8 @@ export function useLessonViewerState() {
       })
       .catch((err) => {
         if (import.meta.env.DEV) console.error('Failed to load module lessons:', err)
+        if (!cancelled)
+          addToast({ type: 'error', message: 'Gagal memuat daftar pelajaran. Silakan coba lagi.' })
       })
       .finally(() => {
         if (!cancelled) setSidebarLoading(false)
@@ -331,6 +334,26 @@ export function useLessonViewerState() {
       cancelled = true
     }
   }, [lessonId, user?.id, tenantId, actions])
+
+  // M8: Enforce lesson lock even for direct URL navigation
+  // After module lessons are loaded, check if the current URL lesson is locked
+  useEffect(() => {
+    if (!lessonId || !moduleLessons.length || role === 'teacher' || role === 'admin') return
+    const lessonIndex = moduleLessons.findIndex((l) => l.id === lessonId)
+    if (lessonIndex === -1) return // lesson not in this module, let normal flow handle it
+    if (isLessonLocked(moduleLessons, moduleProgress, lessonIndex, role)) {
+      // Locked — remove lessonId from URL so only the module view shows
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('lessonId')
+        return next
+      })
+      addToast({
+        type: 'warning',
+        message: 'Pelajaran ini masih terkunci. Selesaikan pelajaran sebelumnya terlebih dahulu.',
+      })
+    }
+  }, [lessonId, moduleLessons, moduleProgress, role, setSearchParams, addToast])
 
   // Show resume banner when lesson loads with saved progress
   useEffect(() => {

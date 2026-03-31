@@ -98,7 +98,9 @@ export function VideoViewer({
     // Use ref instead of state to avoid stale value lag (M-24)
     if (videoRef.current && time <= maxWatchedRef.current) {
       videoRef.current.currentTime = time
-      videoRef.current.play()
+      videoRef.current.play().catch(() => {
+        // Auto-play blocked by browser policy — user must interact to play
+      })
     }
   }
 

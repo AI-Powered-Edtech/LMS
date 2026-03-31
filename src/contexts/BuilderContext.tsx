@@ -196,7 +196,10 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
       // (e.g., fast typist or block just added), navigating away silently
       // discarded those changes. Now we also check offline.isDirty which
       // tracks any pending unsaved mutations via the BUILDER_DRAFTS IndexedDB store.
-      if (state.savingStatus === 'saving' || offline.isDirty) {
+      // M19: Also check for pending debounced block save timers that haven't fired yet.
+      // saveTimerRef is a stable ref, so reading .current inside the handler is always fresh.
+      const hasPendingTimers = saveTimerRef.current.size > 0
+      if (state.savingStatus === 'saving' || offline.isDirty || hasPendingTimers) {
         e.preventDefault()
       }
     }
@@ -211,6 +214,14 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
       timers.forEach((timer) => clearTimeout(timer))
     }
   }, [])
+
+  // M18: Clear pending block save timers when active lesson changes to prevent stale writes
+  useEffect(() => {
+    return () => {
+      saveTimerRef.current.forEach((timer) => clearTimeout(timer))
+      saveTimerRef.current.clear()
+    }
+  }, [state.activeLesson?.id])
 
   // Domain action hooks
   const userName = profile ? `${profile.first_name} ${profile.last_name}`.trim() : 'Anonim'

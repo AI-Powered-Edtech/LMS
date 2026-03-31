@@ -34,6 +34,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [inviteLink, setInviteLink] = useState('')
+  const [copied, setCopied] = useState(false)
 
   if (!isOpen) return null
 
@@ -79,8 +80,26 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
     }
   }
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(inviteLink)
+  const copyLink = async () => {
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(inviteLink)
+      } else {
+        // Fallback for non-HTTPS contexts
+        const textarea = document.createElement('textarea')
+        textarea.value = inviteLink
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+      }
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Silent fail — link is visible for manual copy
+    }
   }
 
   const handleClose = () => {
@@ -114,7 +133,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
             <div style={styles.linkBox}>
               <code style={styles.linkCode}>{inviteLink}</code>
               <button style={styles.copyBtn} onClick={copyLink}>
-                📋 Copy
+                {copied ? '✅ Tersalin!' : '📋 Salin Link'}
               </button>
             </div>
             <p style={styles.linkHint}>Kirimkan link ini ke pengguna. Berlaku selama 7 hari.</p>

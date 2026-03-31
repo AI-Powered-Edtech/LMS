@@ -19,12 +19,15 @@ export function useModuleActions(
   const addModule = useCallback(
     async (title: string) => {
       if (!state.courseId || !tenantId) return
+      setSavingStatus('saving')
       try {
         const mod = await builderModuleService.createModule(state.courseId, title, tenantId)
         dispatch({ type: 'ADD_MODULE', module: mod })
         broadcast?.({ type: 'ADD_MODULE', module: mod }, userName ?? '')
+        setSavingStatus('saved')
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Failed to add module:', err)
+        setSavingStatus('error')
         addToast({
           type: 'error',
           message:
@@ -33,7 +36,7 @@ export function useModuleActions(
         })
       }
     },
-    [state.courseId, tenantId, dispatch, addToast, broadcast, userName]
+    [state.courseId, tenantId, dispatch, addToast, setSavingStatus, broadcast, userName]
   )
 
   const updateModule = useCallback(
@@ -66,11 +69,15 @@ export function useModuleActions(
   const deleteModule = useCallback(
     async (moduleId: string) => {
       if (!tenantId) return
+      // Save previous state for rollback
+      const previousModules = state.modules
       dispatch({ type: 'DELETE_MODULE', moduleId })
       try {
         await builderModuleService.deleteModule(moduleId, tenantId)
         broadcast?.({ type: 'DELETE_MODULE', moduleId }, userName ?? '')
       } catch (err: unknown) {
+        // Rollback: restore modules to pre-delete state
+        dispatch({ type: 'SET_MODULES', modules: previousModules })
         if (import.meta.env.DEV) console.error('Failed to delete module:', err)
         addToast({
           type: 'error',
@@ -80,7 +87,7 @@ export function useModuleActions(
         })
       }
     },
-    [tenantId, dispatch, addToast, broadcast, userName]
+    [state.modules, tenantId, dispatch, addToast, broadcast, userName]
   )
 
   const reorderModules = useCallback(

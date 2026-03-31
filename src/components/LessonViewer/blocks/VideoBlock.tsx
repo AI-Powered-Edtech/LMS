@@ -45,7 +45,10 @@ export function VideoBlock({
   const containerRef = useRef<HTMLDivElement>(null)
   const hasCalledCompletion = useRef(false)
   const lastReportedSecond = useRef(0)
-  const [videoType, setVideoType] = useState<VideoType>('direct')
+  // H3: Anti-skip — high-water mark for the furthest point the student has watched
+  const maxWatchedTimeRef = useRef(0)
+  // L3: Initialize to null to avoid flash before URL is parsed
+  const [videoType, setVideoType] = useState<VideoType | null>(null)
   const [embedUrl, setEmbedUrl] = useState<string | null>(null)
 
   // Interactive Video — shared hook
@@ -77,11 +80,17 @@ export function VideoBlock({
     if (checkForEvent(currentTime)) return
 
     if (duration > 0) {
+      // H3: Track the furthest point watched (high-water mark)
+      if (currentTime > maxWatchedTimeRef.current) {
+        maxWatchedTimeRef.current = currentTime
+      }
+
       const percentage = Math.round((currentTime / duration) * 100)
       onProgressUpdate(percentage)
 
+      // L5: Use hasCalledCompletion.current only — avoids dep on isCompleted
       // Completion: 95% watched
-      if (percentage >= 95 && !isCompleted && !hasCalledCompletion.current) {
+      if (percentage >= 95 && !hasCalledCompletion.current) {
         hasCalledCompletion.current = true
         onCompletionMet()
       }
@@ -101,7 +110,7 @@ export function VideoBlock({
     }
   }, [
     videoType,
-    isCompleted,
+    // L5: isCompleted removed from deps — checked via hasCalledCompletion.current
     onProgressUpdate,
     onCompletionMet,
     onVideoTimeUpdate,
@@ -133,6 +142,12 @@ export function VideoBlock({
                 // Only count time when tab is visible
                 if (document.visibilityState === 'visible') {
                   visibleSeconds += 1
+                  // H2: Report intermediate progress so student doesn't see 0% for 2 minutes
+                  const intermediatePct = Math.min(
+                    Math.round((visibleSeconds / REQUIRED_VISIBLE_SECONDS) * 79),
+                    79
+                  )
+                  onProgressUpdate(intermediatePct)
                 }
                 if (visibleSeconds >= REQUIRED_VISIBLE_SECONDS && !hasCalledCompletion.current) {
                   hasCalledCompletion.current = true
@@ -179,6 +194,16 @@ export function VideoBlock({
     }
   }, [savedVideoPosition, videoType])
 
+  // H3: Anti-skip — prevent seeking past unwatched portion
+  const handleSeeking = useCallback(() => {
+    if (videoRef.current && videoRef.current.currentTime > maxWatchedTimeRef.current + 2) {
+      videoRef.current.currentTime = maxWatchedTimeRef.current
+    }
+  }, [])
+
+  // L3: Don't render anything until URL is parsed to avoid type flash
+  if (!videoType) return null
+
   // Render embedded video (YouTube/Vimeo)
   // Note: Seeking is not possible via JS for embeds due to cross-origin restrictions.
   // The savedVideoPosition prop is silently ignored for YouTube/Vimeo embeds.
@@ -195,7 +220,10 @@ export function VideoBlock({
             className="absolute inset-0 w-full h-full rounded-lg"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            title="Pemutar video"
+            // L1: sandbox attribute for security
+            sandbox="allow-scripts allow-same-origin allow-presentation"
+            // L2: Unique title per iframe for accessibility
+            title={blockId ? `Pemutar video ${blockId.slice(-6)}` : 'Pemutar video'}
           />
         </div>
       </div>
@@ -218,6 +246,8 @@ export function VideoBlock({
             onTimeUpdate={handleTimeUpdate}
             onPlay={handlePlay}
             onCanPlay={handleCanPlay}
+            // H3: Anti-skip handler
+            onSeeking={handleSeeking}
             className="absolute inset-0 w-full h-full rounded-lg"
             controlsList="nodownload"
           />

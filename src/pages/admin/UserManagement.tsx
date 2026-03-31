@@ -74,19 +74,23 @@ export function UserManagement() {
           <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{totalCount}</p>
         </div>
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Pending Invites</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Undangan Pending</p>
           <p className="text-2xl font-bold text-amber-600">
             {invitations.filter((i) => i.status === 'pending').length}
           </p>
         </div>
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Active Users</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            Aktif (halaman ini)
+          </p>
           <p className="text-2xl font-bold text-green-600">
             {users.filter((u) => u.is_active).length}
           </p>
         </div>
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Admins</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+            Admin (halaman ini)
+          </p>
           <p className="text-2xl font-bold text-purple-600">
             {users.filter((u) => u.roles.includes('ADMIN')).length}
           </p>
@@ -208,7 +212,7 @@ export function UserManagement() {
           onClose={() => setRoleModal(null)}
           onConfirm={handleRoleChange}
           userName={`${roleModal.user.first_name} ${roleModal.user.last_name}`}
-          currentRoles={roleModal.user.roles}
+          currentRoles={roleModal.user.roles as ('STUDENT' | 'TEACHER' | 'ADMIN')[]}
         />
       )}
       <InviteUserModal

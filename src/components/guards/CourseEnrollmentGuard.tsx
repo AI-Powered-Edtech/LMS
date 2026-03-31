@@ -18,7 +18,13 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
 
   useEffect(() => {
     const verifyEnrollment = async () => {
-      if (authLoading || !user || !tenantId || !courseId) return
+      if (authLoading || !user || !tenantId) return
+
+      // No courseId means we're not on a specific course page — allow through
+      if (!courseId) {
+        setLoading(false)
+        return
+      }
 
       // Teachers and Admins bypass enrollment checks
       if (role === 'teacher' || role === 'admin') {
@@ -72,7 +78,7 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
     // Redirect to courses list if not enrolled
     return (
       <Navigate
-        to="/courses"
+        to="/app/student/courses"
         state={{ from: location, error: 'You are not enrolled in this course.' }}
         replace
       />

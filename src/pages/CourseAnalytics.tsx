@@ -19,8 +19,8 @@ export function CourseAnalytics() {
           title="Kursus tidak ditemukan"
           description="Parameter courseId tidak tersedia. Silakan akses halaman ini dari menu Analitik."
           action={{
-            label: 'Kembali ke Analitik',
-            onClick: () => navigate('/analytics'),
+            label: 'Kembali',
+            onClick: () => navigate(-1),
           }}
         />
       </div>

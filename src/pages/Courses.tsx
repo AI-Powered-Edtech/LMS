@@ -23,7 +23,9 @@ const CARD_GRADIENTS = [
 ]
 
 // M-10: Deterministic gradient based on course.id to prevent flicker on search filter
-function getCourseGradient(courseId: string, gradients: string[]): string {
+// L-11: Guard against null/undefined courseId to prevent crash on split('')
+function getCourseGradient(courseId: string | null | undefined, gradients: string[]): string {
+  if (!courseId) return gradients[0]
   const hash = courseId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
   return gradients[hash % gradients.length]
 }
@@ -61,12 +63,43 @@ export const Courses: React.FC = () => {
     courseTitle: '',
   })
 
+  // M-17: Ref for focus trap inside the create course modal
+  const createModalRef = useRef<HTMLDivElement>(null)
+
   // M-2: Escape key handler via useEffect so document receives the event
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isModalOpen) setIsModalOpen(false)
     }
     document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isModalOpen])
+
+  // M-17: Focus trap for create course modal
+  useEffect(() => {
+    if (!isModalOpen || !createModalRef.current) return
+    const modal = createModalRef.current
+    const focusableSelectors =
+      'input, textarea, button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    const focusable = modal.querySelectorAll<HTMLElement>(focusableSelectors)
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault()
+          last?.focus()
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault()
+          first?.focus()
+        }
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    first?.focus()
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isModalOpen])
 
@@ -154,6 +187,7 @@ export const Courses: React.FC = () => {
           </p>
         </div>
         <button
+          type="button"
           onClick={openModal}
           className="group relative flex items-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-500/30 active:scale-95 overflow-hidden shrink-0"
         >
@@ -193,6 +227,7 @@ export const Courses: React.FC = () => {
             <p className="text-xl font-bold mb-3">Oops! Ada kendala</p>
             <p className="text-sm opacity-80 mb-6">Gagal memuat daftar materi.</p>
             <button
+              type="button"
               onClick={() => refetch()}
               className="flex items-center justify-center w-full space-x-2 px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg hover:shadow-red-500/20"
             >
@@ -225,6 +260,7 @@ export const Courses: React.FC = () => {
           </p>
           {!search && (
             <button
+              type="button"
               onClick={openModal}
               className="px-8 py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 shadow-xl shadow-indigo-500/20 transition-all hover:-translate-y-1 active:scale-95"
             >
@@ -288,6 +324,7 @@ export const Courses: React.FC = () => {
             }}
           >
             <motion.div
+              ref={createModalRef}
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -464,6 +501,7 @@ function CourseCard({ course, gradientClass, onNavigate, onAssign }: CourseCardP
           <div className="flex items-center gap-2">
             {/* L-2: aria-label for assistive technology */}
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation()
                 onAssign()

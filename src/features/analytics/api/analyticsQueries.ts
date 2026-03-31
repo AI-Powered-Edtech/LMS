@@ -68,8 +68,10 @@ export async function getTeacherAnalytics(
 /**
  * Refresh all course stats (admin only)
  */
-export async function refreshAllCourseStats(_tenantId: string): Promise<void> {
-  const { error } = await supabase.rpc('refresh_all_course_stats')
+export async function refreshAllCourseStats(tenantId: string): Promise<void> {
+  const { error } = await supabase.rpc('refresh_all_course_stats', {
+    p_tenant_id: tenantId,
+  })
 
   if (error) {
     if (import.meta.env.DEV) console.error('Failed to refresh all course stats:', error)
@@ -197,29 +199,36 @@ export async function fetchActivityTimeline(
 
 export async function getCourseAnalyticsDashboard(
   courseId: string,
-  _tenantId: string
+  tenantId: string
 ): Promise<CourseAnalytics | null> {
-  const { data, error } = await supabase.rpc('get_course_analytics', { p_course_id: courseId })
+  const { data, error } = await supabase.rpc('get_course_analytics', {
+    p_course_id: courseId,
+    p_tenant_id: tenantId,
+  })
   if (error) throw parseRpcError(error)
   return (data as CourseAnalytics[])?.[0] ?? null
 }
 
 export async function getLessonAnalyticsDashboard(
   courseId: string,
-  _tenantId: string
+  tenantId: string
 ): Promise<LessonAnalytics[]> {
-  const { data, error } = await supabase.rpc('get_lesson_analytics', { p_course_id: courseId })
+  const { data, error } = await supabase.rpc('get_lesson_analytics', {
+    p_course_id: courseId,
+    p_tenant_id: tenantId,
+  })
   if (error) throw parseRpcError(error)
   return (data as LessonAnalytics[]) ?? []
 }
 
 export async function getStudentSignalsDashboard(
   courseId: string,
-  _tenantId: string,
+  tenantId: string,
   lessonId?: string
 ): Promise<StudentSignal[]> {
   const { data, error } = await supabase.rpc('get_student_signals', {
     p_course_id: courseId,
+    p_tenant_id: tenantId,
     p_lesson_id: lessonId ?? null,
   })
   if (error) throw parseRpcError(error)

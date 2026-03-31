@@ -18,7 +18,6 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useToast } from '@/src/hooks/useToast'
 
 import {
   administrationService,
@@ -28,6 +27,7 @@ import {
 } from '@/src/features/administration/api/administrationService'
 import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { useToast } from '@/src/hooks/useToast'
 import { cn } from '@/src/utils/cn'
 
 // Default sync status for initial state (will be replaced with real data)
@@ -160,6 +160,7 @@ export function AdministrationDashboard() {
       setModules((prev) =>
         prev.map((m) => (m.moduleId === moduleId ? { ...m, isEnabled: !newEnabledState } : m))
       )
+      addToast({ type: 'error', message: 'Gagal mengubah status modul. Silakan coba lagi.' })
     }
   }
 
@@ -200,7 +201,12 @@ export function AdministrationDashboard() {
     }
   }
 
-  // Format relative time
+  /**
+   * Local time formatter for sync history display.
+   * NOTE (L19): Similar to `relativeTime()` in analytics/utils/formatters.ts but
+   * includes a "Kemarin" (Yesterday) case. TODO: Consider consolidating to a
+   * shared utility.
+   */
   const formatRelativeTime = (dateString: string): string => {
     const date = new Date(dateString)
     const now = new Date()
@@ -234,10 +240,27 @@ export function AdministrationDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-sm font-medium border border-green-200 dark:border-green-800">
+          <div
+            className={cn(
+              'flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border',
+              isSyncing
+                ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
+                : syncMessage?.type === 'error'
+                  ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
+                  : 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800'
+            )}
+          >
             <Activity className="w-4 h-4" />
-            <span className="hidden sm:inline">Sistem Online</span>
-            <span className="sm:hidden">Online</span>
+            <span className="hidden sm:inline">
+              {isSyncing
+                ? 'Menyinkronkan...'
+                : syncMessage?.type === 'error'
+                  ? 'Gangguan'
+                  : 'Sistem Online'}
+            </span>
+            <span className="sm:hidden">
+              {isSyncing ? 'Sinkron' : syncMessage?.type === 'error' ? 'Error' : 'Online'}
+            </span>
           </div>
           <button
             onClick={handleSync}
@@ -306,7 +329,10 @@ export function AdministrationDashboard() {
                   className="flex items-start justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600"
                 >
                   <div className="flex-1 pr-4">
-                    <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm mb-1">
+                    <h4
+                      className="font-bold text-slate-900 dark:text-slate-100 text-sm mb-1 line-clamp-2 break-words"
+                      title={module.name}
+                    >
                       {module.name}
                     </h4>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
@@ -414,7 +440,7 @@ export function AdministrationDashboard() {
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">Aksi Cepat</h3>
           <div className="space-y-3">
             <button
-              onClick={() => navigate('/app/admin/settings')}
+              onClick={() => navigate('/app/admin/administration')}
               className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3"
             >
               <Settings className="w-5 h-5 text-slate-500" />
@@ -423,7 +449,7 @@ export function AdministrationDashboard() {
               </span>
             </button>
             <button
-              onClick={() => navigate('/app/admin/user-management')}
+              onClick={() => navigate('/app/admin/users')}
               className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3"
             >
               <Users className="w-5 h-5 text-slate-500" />
@@ -432,7 +458,7 @@ export function AdministrationDashboard() {
               </span>
             </button>
             <button
-              onClick={() => navigate('/app/admin/audit-log')}
+              onClick={() => navigate('/app/admin/audit')}
               className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3"
             >
               <FileText className="w-5 h-5 text-slate-500" />

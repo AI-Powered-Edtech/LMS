@@ -115,16 +115,16 @@ export function LessonBlockEditor() {
   }
 
   const handleDragEnd = (result: DropResult) => {
-    if (!result.destination) return
-    const blockIds = state.activeLesson!.blocks.map((b) => b.id)
+    if (!result.destination || !state.activeLesson) return
+    const blockIds = state.activeLesson.blocks.map((b) => b.id)
     const [moved] = blockIds.splice(result.source.index, 1)
     blockIds.splice(result.destination.index, 0, moved)
     actions.reorderBlocks(blockIds)
   }
 
   const handleMoveUp = (index: number) => {
-    if (index === 0) return
-    const blockIds = state.activeLesson!.blocks.map((b) => b.id)
+    if (index === 0 || !state.activeLesson) return
+    const blockIds = state.activeLesson.blocks.map((b) => b.id)
     const temp = blockIds[index]
     blockIds[index] = blockIds[index - 1]
     blockIds[index - 1] = temp
@@ -132,7 +132,8 @@ export function LessonBlockEditor() {
   }
 
   const handleMoveDown = (index: number) => {
-    const blocks = state.activeLesson!.blocks
+    if (!state.activeLesson) return
+    const blocks = state.activeLesson.blocks
     if (index === blocks.length - 1) return
     const blockIds = blocks.map((b) => b.id)
     const temp = blockIds[index]
@@ -228,7 +229,7 @@ export function LessonBlockEditor() {
             </span>
             <div className="h-4 w-[1px] bg-slate-200 mx-1" />
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-              {state.activeLesson.blocks.length} KONTEN
+              {state.activeLesson?.blocks.length ?? 0} KONTEN
             </span>
           </div>
         </div>
@@ -243,7 +244,7 @@ export function LessonBlockEditor() {
                 className="space-y-4 md:space-y-3"
               >
                 <AnimatePresence>
-                  {state.activeLesson!.blocks.map((block, idx) => {
+                  {(state.activeLesson?.blocks ?? []).map((block, idx) => {
                     const locker = presence.getBlockLocker(block.id)
                     const isLocked = !!locker
 
@@ -312,7 +313,7 @@ export function LessonBlockEditor() {
                                 </button>
                                 <button
                                   onClick={() => handleMoveDown(idx)}
-                                  disabled={idx === state.activeLesson!.blocks.length - 1}
+                                  disabled={idx === (state.activeLesson?.blocks.length ?? 0) - 1}
                                   className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 rounded-xl transition-all disabled:opacity-30 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
                                   aria-label="Pindah ke bawah"
                                   title="Pindah ke bawah"

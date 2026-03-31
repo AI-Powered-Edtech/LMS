@@ -8,6 +8,7 @@ import {
   AuditDashboard,
   BillingDashboard,
   ClassManagement,
+  CourseAnalytics,
   CourseBuilder,
   Courses,
   Creator,
@@ -120,6 +121,14 @@ export function AdminRoutes() {
         element={
           <S>
             <AdminAnalyticsDashboard />
+          </S>
+        }
+      />
+      <Route
+        path="course-analytics"
+        element={
+          <S feature="Course Analytics">
+            <CourseAnalytics />
           </S>
         }
       />

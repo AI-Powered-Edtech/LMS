@@ -8,6 +8,7 @@ import {
   Loader2,
   MoreVertical,
   Save,
+  Send,
   Settings,
   Users,
   WifiOff,
@@ -16,11 +17,12 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { AssignCourseModal } from "@/src/components/Classroom/AssignCourseModal"
-import { PresenceAvatars } from "./PresenceAvatars"
+import { AssignCourseModal } from '@/src/components/Classroom/AssignCourseModal'
 import { useBuilder } from '@/src/contexts/BuilderContext'
-import { translateCourseStatus } from '@/src/utils/statusTranslations'
 import { cn } from '@/src/utils/cn'
+import { translateCourseStatus } from '@/src/utils/statusTranslations'
+
+import { PresenceAvatars } from './PresenceAvatars'
 export function BuilderTopBar() {
   const { state, actions, mobile, presence, offline } = useBuilder()
   const navigate = useNavigate()
@@ -56,7 +58,17 @@ export function BuilderTopBar() {
       {/* Left: Back + Title */}
       <div className="flex items-center gap-6 min-w-0">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            if (state.savingStatus === 'saving' || offline.isDirty) {
+              if (
+                !window.confirm(
+                  'Ada perubahan yang belum tersimpan. Yakin ingin meninggalkan halaman?'
+                )
+              )
+                return
+            }
+            navigate(-1)
+          }}
           className="p-2.5 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-100 rounded-xl transition-all text-slate-500 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
           title="Kembali"
           aria-label="Kembali"
@@ -247,26 +259,10 @@ export function BuilderTopBar() {
             className="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-100 dark:shadow-blue-900/30 hover:shadow-blue-200 dark:hover:shadow-blue-900/50 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 group"
             aria-label="Ajukan review"
           >
-            {status.icon}
-            <span className={state.savingStatus === 'saving' ? 'animate-pulse' : ''}>
-              {status.text}
-            </span>
+            <Send className="w-4 h-4" />
+            Ajukan Review
           </button>
         )}
-
-        <div className="h-8 w-[1px] bg-slate-200/50 mx-1" />
-
-        {/* Preview Button */}
-        <button
-          onClick={() => {
-            window.open(`/courses/${state.courseId}?preview=true`, '_blank')
-          }}
-          disabled={!state.courseId}
-          className="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200/60 hover:text-indigo-600 hover:bg-white hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Eye className="w-4 h-4" />
-          Pratinjau
-        </button>
 
         {/* Publish/Draft Toggle Button */}
         {state.courseStatus === 'published' ? (

@@ -19,6 +19,7 @@ export function StudentCoursesList() {
   const { tenantId } = useAuth()
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!tenantId) return
@@ -33,9 +34,34 @@ export function StudentCoursesList() {
           )
         )
       })
-      .catch(console.error)
+      .catch((err) => {
+        if (import.meta.env.DEV) console.error('Failed to fetch courses:', err)
+        setError('Gagal memuat daftar kursus. Silakan muat ulang halaman.')
+      })
       .finally(() => setLoading(false))
   }, [tenantId])
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-[80vh]">
+        <div className="text-center p-8">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <BookOpen className="w-8 h-8 text-red-400" />
+          </div>
+          <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-2">
+            Gagal Memuat Kursus
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
+          >
+            Muat Ulang
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   if (loading) {
     return (
@@ -104,7 +130,7 @@ export function StudentCoursesList() {
                   <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700/50 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
                       <User className="w-4 h-4" />
-                      Pengajar: {course.profiles?.full_name || 'Teacher Dev'}
+                      Pengajar: {course.profiles?.full_name || 'Pengajar'}
                     </div>
                     <span className="text-xs font-bold px-2 py-1 rounded-lg bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 uppercase">
                       {translateCourseStatus(course.status)}

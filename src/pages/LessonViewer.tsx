@@ -8,8 +8,8 @@ import {
   ProgressReporter,
   ScrollProgressBar,
 } from '@/src/components/LessonViewer'
-import { AITutorPanel } from '@/src/features/ai-tutor/components/AITutorPanel'
 import { DiscussionBoard } from '@/src/components/Social/DiscussionBoard'
+import { AITutorPanel } from '@/src/features/ai-tutor/components/AITutorPanel'
 import { LearningSessionProvider } from '@/src/features/analytics'
 import { GuideRenderer } from '@/src/features/guidance'
 import { CourseBrowser } from '@/src/features/lessons/components/CourseBrowser'
@@ -38,10 +38,13 @@ export function LessonViewer() {
 
   // No module selected --> course browser
   if (!s.moduleId) {
+    if (!s.tenantId) {
+      return <StudentCoursesList />
+    }
     return (
       <CourseBrowser
         onSelectModule={s.handleSelectModule}
-        tenantId={s.tenantId!}
+        tenantId={s.tenantId}
         courseId={s.courseId}
       />
     )
@@ -249,46 +252,54 @@ export function LessonViewer() {
                   )}
 
                 {/* Discussion Tab */}
-                {s.state.lesson && s.activeTab === 'discussion' && (
-                  <motion.div
-                    key="discussion-tab"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="flex-1 p-8 overflow-auto bg-slate-50/50 dark:bg-slate-800/50"
-                    role="tabpanel"
-                    id="panel-discussion"
-                    aria-labelledby="tab-discussion"
-                  >
-                    <div className="max-w-3xl mx-auto">
-                      <DiscussionBoard
-                        courseId={s.state.lesson.course_id}
-                        lessonId={s.state.lesson.id}
-                        isTeacher={s.role === 'teacher'}
-                      />
-                    </div>
-                  </motion.div>
-                )}
+                {s.state.lesson &&
+                  s.activeTab === 'discussion' &&
+                  ['viewing', 'in_progress', 'completing', 'completed'].includes(
+                    s.state.status
+                  ) && (
+                    <motion.div
+                      key="discussion-tab"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="flex-1 p-8 overflow-auto bg-slate-50/50 dark:bg-slate-800/50"
+                      role="tabpanel"
+                      id="panel-discussion"
+                      aria-labelledby="tab-discussion"
+                    >
+                      <div className="max-w-3xl mx-auto">
+                        <DiscussionBoard
+                          courseId={s.state.lesson.course_id}
+                          lessonId={s.state.lesson.id}
+                          isTeacher={s.role === 'teacher'}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
 
                 {/* AI Tutor Tab */}
-                {s.state.lesson && s.activeTab === 'ai_tutor' && (
-                  <motion.div
-                    key="ai-tutor-tab"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="flex-1 overflow-hidden"
-                    role="tabpanel"
-                    id="panel-ai-tutor"
-                    aria-labelledby="tab-ai-tutor"
-                  >
-                    <AITutorPanel
-                      lessonId={s.state.lesson.id}
-                      lessonTitle={s.state.lesson.title}
-                      courseId={s.state.lesson.course_id}
-                    />
-                  </motion.div>
-                )}
+                {s.state.lesson &&
+                  s.activeTab === 'ai_tutor' &&
+                  ['viewing', 'in_progress', 'completing', 'completed'].includes(
+                    s.state.status
+                  ) && (
+                    <motion.div
+                      key="ai-tutor-tab"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="flex-1 overflow-hidden"
+                      role="tabpanel"
+                      id="panel-ai-tutor"
+                      aria-labelledby="tab-ai-tutor"
+                    >
+                      <AITutorPanel
+                        lessonId={s.state.lesson.id}
+                        lessonTitle={s.state.lesson.title}
+                        courseId={s.state.lesson.course_id}
+                      />
+                    </motion.div>
+                  )}
               </AnimatePresence>
             </FeatureErrorBoundary>
           </div>

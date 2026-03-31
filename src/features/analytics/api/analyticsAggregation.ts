@@ -139,7 +139,7 @@ export function aggregateActivityMetrics(
     const c = Number(r.count)
     totalEvents += c
     if (r.event_type === 'LESSON_COMPLETED') lessonCompletions += c
-    if (r.event_type === 'QUIZ_ATTEMPT' || r.event_type === 'QUIZ_SUBMITTED') quizAttempts += c
+    if (r.event_type === 'QUIZ_SUBMITTED') quizAttempts += c
     if (r.event_type === 'ASSIGNMENT_SUBMITTED') assignmentSubmissions += c
   })
 
