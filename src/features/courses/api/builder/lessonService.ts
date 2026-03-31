@@ -12,11 +12,17 @@ export const builderLessonService = {
     title: string,
     tenantId: string
   ): Promise<DomainLesson> {
-    const { count } = await supabase
+    // Get next order using MAX+1 to avoid race conditions with COUNT pattern
+    const { data: maxRow } = await supabase
       .from('lessons')
-      .select('id', { count: 'exact', head: true })
+      .select('"order"')
       .eq('module_id', moduleId)
       .eq('tenant_id', tenantId)
+      .order('"order"', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    const nextOrder = (maxRow?.order ?? -1) + 1
 
     const { data, error } = await supabase
       .from('lessons')
@@ -24,7 +30,7 @@ export const builderLessonService = {
         module_id: moduleId,
         type,
         title,
-        order: count || 0,
+        order: nextOrder,
         is_published: false,
         tenant_id: tenantId,
       })

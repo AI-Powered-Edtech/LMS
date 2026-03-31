@@ -49,9 +49,11 @@ export function StudentRoutes() {
       <Route
         path="courses"
         element={
-          <S feature="Lesson Viewer">
-            <LessonViewer />
-          </S>
+          <CourseEnrollmentGuard>
+            <S feature="Lesson Viewer">
+              <LessonViewer />
+            </S>
+          </CourseEnrollmentGuard>
         }
       />
       <Route

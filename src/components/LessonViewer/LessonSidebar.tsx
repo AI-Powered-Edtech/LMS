@@ -11,7 +11,7 @@ import {
   X,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { memo, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 
 import { SkeletonCard } from '@/src/components/ui'
 import type { Lesson, LessonProgress } from '@/src/features/lessons'
@@ -60,6 +60,13 @@ export const LessonSidebar = memo(function LessonSidebar({
 }: LessonSidebarProps) {
   const completedCount = lessons.filter((l) => progress[l.id]?.status === 'completed').length
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+    }
+  }, [])
 
   const parentRef = useRef<HTMLDivElement>(null)
 
@@ -173,8 +180,12 @@ export const LessonSidebar = memo(function LessonSidebar({
                   <button
                     onClick={() => {
                       if (isLocked) {
+                        if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
                         setToastMessage('Selesaikan pelajaran sebelumnya terlebih dahulu')
-                        setTimeout(() => setToastMessage(null), 3000)
+                        toastTimerRef.current = setTimeout(() => {
+                          setToastMessage(null)
+                          toastTimerRef.current = null
+                        }, 3000)
                         return
                       }
                       onSelectLesson(lesson.id)

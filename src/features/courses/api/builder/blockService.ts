@@ -19,18 +19,24 @@ export const builderBlockService = {
   },
 
   async createBlock(lessonId: string, type: string, tenantId: string): Promise<DomainBlock> {
-    const { count } = await supabase
+    // Get next order_index using MAX+1 to avoid race conditions with COUNT pattern
+    const { data: maxRow } = await supabase
       .from('lesson_resources')
-      .select('id', { count: 'exact', head: true })
+      .select('order_index')
       .eq('lesson_id', lessonId)
       .eq('tenant_id', tenantId)
+      .order('order_index', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    const nextOrderIndex = (maxRow?.order_index ?? -1) + 1
 
     const { data, error } = await supabase
       .from('lesson_resources')
       .insert({
         lesson_id: lessonId,
         type,
-        order_index: count || 0,
+        order_index: nextOrderIndex,
         tenant_id: tenantId,
       })
       .select('id, lesson_id, tenant_id, order_index, type, url, title, content, metadata')

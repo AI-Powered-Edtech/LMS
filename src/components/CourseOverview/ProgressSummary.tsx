@@ -84,7 +84,7 @@ export function ProgressSummary({
           </div>
         </div>
 
-        <div className="hidden md:flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center shrink-0">
             <Trophy className="w-4 h-4 text-emerald-500" />
           </div>

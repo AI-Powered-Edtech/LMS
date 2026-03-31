@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import type { InteractiveEvent, InteractiveVideoMetadata, Quiz } from '@/src/features/lessons/types'
@@ -51,6 +51,14 @@ export function useInteractiveVideoEvents({
   const activeRef = useRef(activeEvent)
   activeRef.current = activeEvent
 
+  // Stable key derived from the identity of each event — detects additions, removals, and swaps
+  // even when the array length stays the same (e.g. one quiz replaced by another).
+  // Uses quizId+timeInSeconds as the unique event fingerprint.
+  const eventIdsKey = useMemo(
+    () => events.map((e) => `${e.quizId ?? ''}:${e.timeInSeconds}`).join(','),
+    [events]
+  )
+
   // Prefetch quizzes referenced by events
   useEffect(() => {
     if (!tenantId || events.length === 0) return
@@ -66,8 +74,7 @@ export function useInteractiveVideoEvents({
         })
         .catch((err) => console.error('[useInteractiveVideoEvents] Failed to load quiz', err))
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tenantId, events.length])
+  }, [tenantId, eventIdsKey])
 
   // Check if the current playback time matches an interactive event
   const checkForEvent = useCallback(

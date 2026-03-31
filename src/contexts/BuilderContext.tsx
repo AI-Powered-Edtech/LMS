@@ -9,7 +9,12 @@ import {
   useRef,
 } from 'react'
 
+import { useToast } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
+import { builderBlockService } from '@/src/features/courses/api/builder/blockService'
+import { builderLessonService } from '@/src/features/courses/api/builder/lessonService'
+import { builderModuleService } from '@/src/features/courses/api/builder/moduleService'
+import { courseService } from '@/src/features/courses/api/courseService'
 import {
   builderReducer,
   type BuilderState,
@@ -22,8 +27,6 @@ import {
 } from '@/src/features/courses/builder'
 import { useBuilderChannel } from '@/src/features/courses/builder/useBuilderChannel'
 import { useBuilderOffline } from '@/src/features/courses/builder/useBuilderOffline'
-import { courseService } from '@/src/features/courses/api/courseService'
-import { useToast } from '@/src/components/ui'
 import type { PresenceData } from '@/src/features/courses/builder/useBuilderPresence'
 import { useMobileBuilder } from '@/src/features/courses/builder/useMobileBuilder'
 import { DomainBlock } from '@/src/shared/types/blockTypes'
@@ -103,7 +106,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   const mobile = useMobileBuilder()
 
   // Realtime channel for collaborative editing
-  const { channelRef } = useBuilderChannel(state.courseId, user?.id ?? null, dispatch)
+  const { channelRef, broadcast } = useBuilderChannel(state.courseId, user?.id ?? null, dispatch)
 
   // Presence tracking (who else is editing)
   const presence = useBuilderPresence(
@@ -118,17 +121,51 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   const offline = useBuilderOffline(state.courseId, state, async () => {
     if (!state.courseId || !tenantId) return
     try {
+      // 1. Sync course metadata
       await courseService.updateCourse(
         state.courseId,
-        {
-          title: state.courseTitle,
-          description: state.courseDescription,
-        },
+        { title: state.courseTitle, description: state.courseDescription },
         tenantId
       )
+
+      // 2. Sync module titles (for existing modules that were edited offline)
+      await Promise.allSettled(
+        state.modules.map((mod) =>
+          builderModuleService.updateModule(mod.id, tenantId, { title: mod.title })
+        )
+      )
+
+      // 3. Sync lesson data (for existing lessons that were edited offline)
+      await Promise.allSettled(
+        state.modules.flatMap((mod) =>
+          mod.lessons.map((lesson) =>
+            builderLessonService.updateLesson(lesson.id, tenantId, {
+              title: lesson.title,
+              isPublished: lesson.isPublished,
+              durationMinutes: lesson.durationMinutes,
+            })
+          )
+        )
+      )
+
+      // 4. Sync block data for active lesson (if any)
+      if (state.activeLesson) {
+        await Promise.allSettled(
+          state.activeLesson.blocks.map((block) =>
+            builderBlockService.updateBlock(block.id, tenantId, {
+              title: block.title,
+              content: block.content,
+              url: block.url,
+              metadata: block.metadata,
+            })
+          )
+        )
+      }
+
+      addToast({ type: 'success', message: 'Perubahan berhasil disinkronkan.' })
     } catch (e) {
       console.error(e)
-      addToast({ type: 'error', message: 'Gagal menyinkronkan kursus ke server.' })
+      addToast({ type: 'error', message: 'Gagal menyinkronkan ke server. Coba lagi.' })
     }
   })
 
@@ -176,16 +213,35 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // Domain action hooks
+  const userName = profile ? `${profile.first_name} ${profile.last_name}`.trim() : 'Anonim'
+
   const courseActions = useCourseActions(state, dispatch, tenantId, setSavingStatus)
-  const moduleActions = useModuleActions(state, dispatch, tenantId, setSavingStatus)
-  const lessonActions = useLessonActions(state, dispatch, tenantId, setSavingStatus)
+  const moduleActions = useModuleActions(
+    state,
+    dispatch,
+    tenantId,
+    setSavingStatus,
+    broadcast,
+    userName
+  )
+  const lessonActions = useLessonActions(
+    state,
+    dispatch,
+    tenantId,
+    setSavingStatus,
+    broadcast,
+    userName
+  )
   const blockActions = useBlockActions(
     state,
     dispatch,
     tenantId,
     setSavingStatus,
     activeLessonIdRef,
-    saveTimerRef
+    saveTimerRef,
+    broadcast,
+    userName,
+    presence.getBlockLocker
   )
 
   // ⚡ Perf: Memoize actions object — the action hooks return stable useCallback refs,
@@ -201,12 +257,19 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     [courseActions, moduleActions, lessonActions, blockActions]
   )
 
-  // ⚡ Perf: Memoize context value to prevent ALL consumers from re-rendering
-  // on every provider render. Without this, every keystroke in a block editor
-  // would cascade re-renders to all 10+ BuilderContext consumers.
+  // ⚡ Perf: Split memoization so stable parts (actions, mobile, presence, offline)
+  // don't get a new reference every time volatile `state` changes (e.g. on every
+  // keystroke). The stableValue memo only recreates when those rarely-changing
+  // values actually change; the outer value memo still updates whenever state
+  // changes (expected), but preserves the stable inner references.
+  const stableValue = useMemo(
+    () => ({ actions, mobile, presence, offline }),
+    [actions, mobile, presence, offline]
+  )
+
   const value: BuilderContextValue = useMemo(
-    () => ({ state, actions, mobile, presence, offline }),
-    [state, actions, mobile, presence, offline]
+    () => ({ ...stableValue, state }),
+    [stableValue, state]
   )
 
   return <BuilderContext.Provider value={value}>{children}</BuilderContext.Provider>

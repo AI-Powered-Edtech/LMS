@@ -31,6 +31,11 @@ export function ProgressReporter({
   const latestRef = useRef({ status, progressPercentage, lastPosition })
   latestRef.current = { status, progressPercentage, lastPosition }
 
+  // C-9 fix: track enabled in a ref so the stable interval can check it
+  // without needing to be recreated when enabled changes
+  const enabledRef = useRef(enabled)
+  enabledRef.current = enabled
+
   const sendUpdate = useCallback(async () => {
     const { status: s, progressPercentage: pct, lastPosition: pos } = latestRef.current
 
@@ -47,16 +52,17 @@ export function ProgressReporter({
     }
   }, [lessonId, tenantId]) // Stable deps only — no interval churn
 
-  // Throttled 5-second interval — stable, won't recreate on progress changes
+  // C-9: Stable interval — only recreated if sendUpdate changes (stable deps: lessonId, tenantId).
+  // Uses enabledRef to gate sends without resetting the 5-second timer on every status change.
   useEffect(() => {
-    if (!enabled) return
-
-    intervalRef.current = setInterval(sendUpdate, 5000)
+    intervalRef.current = setInterval(() => {
+      if (enabledRef.current) sendUpdate()
+    }, 5000)
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
-  }, [enabled, sendUpdate])
+  }, [sendUpdate]) // only recreate if sendUpdate changes (stable deps: lessonId, tenantId)
 
   // Handle online and beforeunload events
   useEffect(() => {
@@ -64,9 +70,30 @@ export function ProgressReporter({
       lessonService.processOfflineQueue(tenantId)
     }
 
+    // C-6: beforeunload async ops are abandoned by the browser.
+    // Primary fix: write to sessionStorage synchronously — lessonService.processOfflineQueue
+    // will pick this up on the next page load.
+    // Secondary: also attempt the async path (may complete if unload is slow enough).
     const handleBeforeUnload = () => {
       const { status: s, progressPercentage: pct, lastPosition: pos } = latestRef.current
       if (pct > lastSent.current.percentage || (pos ?? 0) > lastSent.current.position) {
+        // Use sessionStorage for reliable synchronous delivery during page unload
+        try {
+          sessionStorage.setItem(
+            `progress_beacon_${lessonId}`,
+            JSON.stringify({
+              lessonId,
+              tenantId,
+              status: s,
+              percentage: pct,
+              position: pos,
+              timestamp: Date.now(),
+            })
+          )
+        } catch {
+          // sessionStorage write failed (private mode, quota exceeded) — ignore
+        }
+        // Also attempt the async path (may or may not complete)
         lessonService.queueProgressUpdate(lessonId, tenantId, s, pct, pos)
       }
     }
@@ -80,14 +107,24 @@ export function ProgressReporter({
     }
   }, [tenantId, lessonId])
 
-  // Flush on unmount or lesson change
+  // H-10: Flush on unmount or lesson change.
+  // Capture lessonId at effect registration time so the cleanup uses the OLD lessonId,
+  // not the new one that triggered the re-registration.
   useEffect(() => {
+    const capturedLessonId = lessonId // capture current lesson at effect registration
     return () => {
       if (latestRef.current.progressPercentage > lastSent.current.percentage) {
-        sendUpdate()
+        // Use captured lessonId (from when the effect was set up), not the current one
+        lessonService.queueProgressUpdate(
+          capturedLessonId,
+          tenantId,
+          latestRef.current.status,
+          latestRef.current.progressPercentage,
+          latestRef.current.lastPosition
+        )
       }
     }
-  }, [lessonId, sendUpdate])
+  }, [lessonId, tenantId]) // re-register when lesson changes so we capture the right ID
 
   // This is an invisible reporting component
   return null

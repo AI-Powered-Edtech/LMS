@@ -118,11 +118,15 @@ export function useBlockActions(
   const deleteBlock = useCallback(
     async (blockId: string) => {
       if (!tenantId) return
+      const previousBlocks = state.activeLesson?.blocks ?? []
+
       dispatch({ type: 'DELETE_BLOCK', blockId })
       try {
         await builderBlockService.deleteBlock(blockId, tenantId)
         broadcast?.({ type: 'DELETE_BLOCK', blockId }, userName ?? '')
       } catch (err: unknown) {
+        // Rollback: restore previous blocks
+        dispatch({ type: 'SET_BLOCKS', blocks: previousBlocks })
         if (import.meta.env.DEV) console.error('Failed to delete block:', err)
         addToast({
           type: 'error',
@@ -132,7 +136,7 @@ export function useBlockActions(
         })
       }
     },
-    [tenantId, dispatch, addToast, broadcast, userName]
+    [state.activeLesson, tenantId, dispatch, addToast, broadcast, userName]
   )
 
   const reorderBlocks = useCallback(

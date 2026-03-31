@@ -85,10 +85,11 @@ export function SmartPlayer({
   const progressPctRef = useRef(progress?.progress_percentage ?? 0)
   const lastPositionRef = useRef(progress?.last_position ?? 0)
 
-  // Derive viewer status for ProgressReporter
+  // Derive viewer status for ProgressReporter from props (not refs) so it
+  // reflects the latest value on re-render (L-21 fix).
   const reporterStatus: 'started' | 'in_progress' | 'completed' = isCompleted
     ? 'completed'
-    : progressPctRef.current > 0
+    : progress && progress.progress_percentage > 0
       ? 'in_progress'
       : 'started'
 

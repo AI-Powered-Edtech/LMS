@@ -116,33 +116,45 @@ export function VideoBlock({
 
     const container = containerRef.current
     let timerId: ReturnType<typeof setTimeout> | null = null
+    let visibleSeconds = 0
+    let visibilityCheckInterval: ReturnType<typeof setInterval> | null = null
+    // Required minimum visible seconds before auto-completing (2 minutes)
+    const REQUIRED_VISIBLE_SECONDS = 120
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
             onStartViewing()
 
-            // Start 30s timer when block becomes visible
-            if (!timerId && !isCompleted && !hasCalledCompletion.current) {
-              timerId = setTimeout(() => {
-                if (!hasCalledCompletion.current) {
+            // Start counting visible seconds
+            if (!visibilityCheckInterval && !isCompleted && !hasCalledCompletion.current) {
+              visibilityCheckInterval = setInterval(() => {
+                // Only count time when tab is visible
+                if (document.visibilityState === 'visible') {
+                  visibleSeconds += 1
+                }
+                if (visibleSeconds >= REQUIRED_VISIBLE_SECONDS && !hasCalledCompletion.current) {
                   hasCalledCompletion.current = true
                   onProgressUpdate(80)
                   onCompletionMet()
+                  if (visibilityCheckInterval) {
+                    clearInterval(visibilityCheckInterval)
+                    visibilityCheckInterval = null
+                  }
                 }
-              }, 30000)
+              }, 1000)
             }
           } else {
-            // Cancel timer when user scrolls away
-            if (timerId) {
-              clearTimeout(timerId)
-              timerId = null
+            // Pause counting when out of view, but don't reset
+            if (visibilityCheckInterval) {
+              clearInterval(visibilityCheckInterval)
+              visibilityCheckInterval = null
             }
           }
         })
       },
-      { threshold: 0.8 }
+      { threshold: 0.5 } // Also fix H-16: reduced from 0.8 to 0.5
     )
 
     observer.observe(container)
@@ -150,6 +162,7 @@ export function VideoBlock({
     return () => {
       observer.disconnect()
       if (timerId) clearTimeout(timerId)
+      if (visibilityCheckInterval) clearInterval(visibilityCheckInterval)
     }
   }, [videoType, isCompleted, onProgressUpdate, onCompletionMet, onStartViewing])
 

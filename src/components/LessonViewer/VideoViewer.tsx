@@ -39,6 +39,9 @@ export function VideoViewer({
   const isCompletedRef = useRef(isCompleted)
   isCompletedRef.current = isCompleted
   const [isStalled, setIsStalled] = useState(false)
+  const isStalledRef = useRef(isStalled)
+  isStalledRef.current = isStalled
+  const [mediaError, setMediaError] = useState<string | null>(null)
   const hasCalledCompletion = useRef(false)
 
   // Interactive Video — shared hook
@@ -69,10 +72,12 @@ export function VideoViewer({
     }
 
     if (duration > 0) {
-      const percentage = Math.round((Math.max(time, maxWatchedRef.current) / duration) * 100)
-      onProgressUpdate(percentage, Math.floor(time))
+      // Progress display uses the high-water mark position
+      const displayPct = Math.round((maxWatchedRef.current / duration) * 100)
+      onProgressUpdate(displayPct, Math.floor(time))
 
-      if (percentage >= 95 && !isCompletedRef.current && !hasCalledCompletion.current) {
+      // Completion: high-water mark must reach 95% (enforced by handleSeeking anti-cheat)
+      if (displayPct >= 95 && !isCompletedRef.current && !hasCalledCompletion.current) {
         hasCalledCompletion.current = true
         onCompletionMet()
       }
@@ -80,7 +85,7 @@ export function VideoViewer({
   }, [onProgressUpdate, onCompletionMet, checkForEvent])
 
   const handleSeeking = useCallback(() => {
-    if (videoRef.current && videoRef.current.currentTime > maxWatchedRef.current + 1) {
+    if (videoRef.current && videoRef.current.currentTime > maxWatchedRef.current) {
       videoRef.current.currentTime = maxWatchedRef.current
     }
   }, [])
@@ -90,7 +95,8 @@ export function VideoViewer({
   }, [onStartViewing])
 
   const handleTranscriptClick = (time: number) => {
-    if (videoRef.current && time <= maxWatchedTime) {
+    // Use ref instead of state to avoid stale value lag (M-24)
+    if (videoRef.current && time <= maxWatchedRef.current) {
       videoRef.current.currentTime = time
       videoRef.current.play()
     }
@@ -104,9 +110,32 @@ export function VideoViewer({
     setIsStalled(false)
   }, [])
 
+  const handleMediaError = useCallback(() => {
+    if (!videoRef.current) return
+    const err = videoRef.current.error
+    let msg = 'Video tidak dapat diputar.'
+    if (err) {
+      switch (err.code) {
+        case MediaError.MEDIA_ERR_NETWORK:
+          // Network error — treat as stall, not fatal
+          setIsStalled(true)
+          return
+        case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+          msg = 'Format video tidak didukung oleh browser Anda.'
+          break
+        case MediaError.MEDIA_ERR_DECODE:
+          msg = 'Video rusak atau tidak dapat didekode.'
+          break
+        default:
+          msg = 'Terjadi kesalahan saat memuat video.'
+      }
+    }
+    setMediaError(msg)
+  }, [])
+
   useEffect(() => {
     const handleOnline = () => {
-      if (videoRef.current && isStalled) {
+      if (videoRef.current && isStalledRef.current) {
         const currentPos = videoRef.current.currentTime
         videoRef.current.load()
         videoRef.current.currentTime = currentPos
@@ -117,7 +146,7 @@ export function VideoViewer({
     }
     window.addEventListener('online', handleOnline)
     return () => window.removeEventListener('online', handleOnline)
-  }, [isStalled])
+  }, []) // stable — uses ref internally
 
   return (
     <div className="w-full h-full overflow-y-auto custom-scrollbar flex flex-col lg:flex-row md:gap-8 max-w-[1400px] mx-auto p-6 md:p-10">
@@ -156,7 +185,7 @@ export function VideoViewer({
               onPlay={handlePlay}
               onWaiting={handleWaitingOrStalled}
               onStalled={handleWaitingOrStalled}
-              onError={handleWaitingOrStalled}
+              onError={handleMediaError}
               onCanPlay={handleCanPlay}
               className="w-full h-full object-cover"
               controlsList="nodownload"
@@ -210,6 +239,22 @@ export function VideoViewer({
                   <p className="text-sm text-slate-300">
                     Menunggu jaringan kembali stabil. Video akan otomatis dilanjutkan.
                   </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Media Error Overlay */}
+            <AnimatePresence>
+              {mediaError && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center text-white z-20 p-6"
+                >
+                  <AlertTriangle className="w-10 h-10 text-red-400 mb-3" />
+                  <h3 className="text-lg font-bold mb-2">Kesalahan Video</h3>
+                  <p className="text-sm text-slate-300 text-center">{mediaError}</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -296,6 +341,7 @@ export function VideoViewer({
                   key={idx}
                   onClick={() => handleTranscriptClick(transcript.time)}
                   disabled={isLocked}
+                  aria-label={`Lompat ke ${Math.floor(transcript.time / 60)}:${(transcript.time % 60).toString().padStart(2, '0')} — ${transcript.text.slice(0, 50)}`}
                   className={cn(
                     'w-full text-left p-4 rounded-xl transition-all text-sm border',
                     isActive

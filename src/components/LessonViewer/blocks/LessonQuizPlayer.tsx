@@ -1,7 +1,7 @@
 // Bridge component: connects BlockRenderer quiz data → QuizPlayer (new engine)
 // Handles attempt lifecycle (start/resume) and delegates to QuizPlayer
 
-import { AlertTriangle, Loader2, Play, RotateCcw } from 'lucide-react'
+import { AlertTriangle, Loader2, Play, RotateCcw, XCircle } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
@@ -12,6 +12,7 @@ import {
   useSubmitQuizAttempt,
 } from '@/src/features/quizzes/queries/quizPlayer.mutations'
 import type { QuizAttemptQuestion, SubmitAnswer } from '@/src/features/quizzes/types/quizzes.types'
+import { useToast } from '@/src/hooks/useToast'
 
 interface LessonQuizPlayerProps {
   quizId: string
@@ -51,6 +52,7 @@ export function LessonQuizPlayer({
   onStartViewing,
 }: LessonQuizPlayerProps) {
   const { user, tenantId } = useAuth()
+  const { addToast } = useToast()
   const [state, setState] = useState<PlayerState>({ phase: 'idle' })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -125,12 +127,21 @@ export function LessonQuizPlayer({
         }
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Submit failed:', err)
+        addToast({
+          type: 'error',
+          message: 'Gagal mengirim jawaban. Periksa koneksi dan coba lagi.',
+        })
       } finally {
         setIsSubmitting(false)
       }
     },
-    [state, submitAttempt, onCompletionMet]
+    [state, submitAttempt, onCompletionMet, addToast]
   )
+
+  const handleRetry = useCallback(() => {
+    setState({ phase: 'idle' })
+    handleStart()
+  }, [handleStart])
 
   // Show completed state if already done
   useEffect(() => {
@@ -139,7 +150,51 @@ export function LessonQuizPlayer({
     }
   }, [isCompleted])
 
-  // ── Idle / Post-Submit: Start screen ──────────────────
+  // ── Failed (not retried yet): prominent retry CTA ─────
+  if (state.phase === 'submitted' && state.passed === false && !isCompleted) {
+    return (
+      <div className="px-6 py-8 max-w-2xl mx-auto">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-8 text-center space-y-6">
+          <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mx-auto">
+            <Play className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">{title}</h3>
+            {instructions && (
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">{instructions}</p>
+            )}
+          </div>
+          <div className="flex items-center justify-center gap-6 text-xs text-slate-500 dark:text-slate-400 font-medium">
+            {timeLimitMinutes && <span>⏱ {timeLimitMinutes} menit</span>}
+            <span>📝 Maks. {maxAttempts}x percobaan</span>
+            <span>✅ Lulus: {passingScore}%</span>
+          </div>
+
+          {/* Failure state: show score, passing requirement, and clear retry CTA */}
+          <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+            <div className="flex items-center gap-2 mb-2 justify-center">
+              <XCircle className="w-5 h-5 text-red-500" />
+              <p className="font-semibold text-red-700 dark:text-red-300">
+                Belum memenuhi nilai minimum
+              </p>
+            </div>
+            <p className="text-sm text-red-600 dark:text-red-400 mb-3">
+              Nilai kamu: <strong>{state.score !== null ? `${state.score}%` : '—'}</strong>. Nilai
+              minimum: <strong>{passingScore}%</strong>.
+            </p>
+            <button
+              onClick={handleRetry}
+              className="w-full min-h-[44px] px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-colors"
+            >
+              Coba Lagi
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Idle / Post-Submit (passed): Start screen ──────────
   if (state.phase === 'idle' || (state.phase === 'submitted' && !isCompleted)) {
     return (
       <div className="px-6 py-8 max-w-2xl mx-auto">
@@ -159,14 +214,14 @@ export function LessonQuizPlayer({
             <span>✅ Lulus: {passingScore}%</span>
           </div>
 
-          {state.phase === 'submitted' && (
+          {state.phase === 'submitted' && state.passed && (
             <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl">
               <p className="font-bold text-emerald-700 dark:text-emerald-300">
-                {state.passed ? 'Selamat! Anda lulus kuis ini.' : 'Belum lulus. Coba lagi?'}
+                Selamat! Anda lulus kuis ini.
               </p>
               {state.score !== null && (
                 <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-1">
-                  Skor: {state.score}
+                  Skor: {state.score}%
                 </p>
               )}
             </div>

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { BuilderSidebar, BuilderTopBar, LessonBlockEditor } from '@/src/components/CourseBuilder'
+import { useAuth } from '@/src/contexts/AuthContext'
 import { BuilderProvider, useBuilder } from '@/src/contexts/BuilderContext'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 
@@ -12,6 +13,7 @@ import { usePageTitle } from '@/src/hooks/usePageTitle'
 function CourseBuilderPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { role } = useAuth()
   const courseId = searchParams.get('courseId')
   const { state, actions } = useBuilder()
 
@@ -49,7 +51,9 @@ function CourseBuilderPage() {
             Materi.
           </p>
           <button
-            onClick={() => navigate('/app/teacher/courses')}
+            onClick={() =>
+              navigate(role === 'admin' ? '/app/admin/courses' : '/app/teacher/courses')
+            }
             className="min-h-[44px] px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors shadow-sm"
           >
             Kembali ke Kelola Materi

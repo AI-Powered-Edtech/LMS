@@ -50,6 +50,17 @@ export function useCourseActions(
       return
     }
 
+    const hasPublishedLessons = state.modules.some(
+      (mod) => mod.lessons && mod.lessons.some((l) => l.isPublished)
+    )
+    if (!hasPublishedLessons) {
+      addToast({
+        type: 'error',
+        message: 'Gagal dipublish: Setidaknya satu pelajaran harus dipublikasikan terlebih dahulu.',
+      })
+      return
+    }
+
     setSavingStatus('saving')
     try {
       await builderCourseService.publishCourse(state.courseId, tenantId)
@@ -73,10 +84,16 @@ export function useCourseActions(
       await builderCourseService.draftCourse(state.courseId, tenantId)
       dispatch({ type: 'SET_COURSE_STATUS', status: 'draft' })
       setSavingStatus('saved')
-    } catch {
+    } catch (err: unknown) {
       setSavingStatus('error')
+      addToast({
+        type: 'error',
+        message:
+          'Gagal mengubah status ke draft: ' +
+          (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
+      })
     }
-  }, [state.courseId, tenantId, dispatch, setSavingStatus])
+  }, [state.courseId, tenantId, dispatch, setSavingStatus, addToast])
 
   const submitForReview = useCallback(async () => {
     if (!state.courseId || !tenantId) return
@@ -86,8 +103,14 @@ export function useCourseActions(
       dispatch({ type: 'SET_COURSE_STATUS', status: 'in_review' })
       setSavingStatus('saved')
       addToast({ type: 'success', message: 'Kursus diajukan untuk review' })
-    } catch {
+    } catch (err: unknown) {
       setSavingStatus('error')
+      addToast({
+        type: 'error',
+        message:
+          'Gagal mengajukan review: ' +
+          (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
+      })
     }
   }, [state.courseId, tenantId, dispatch, setSavingStatus, addToast])
 
@@ -99,8 +122,14 @@ export function useCourseActions(
       dispatch({ type: 'SET_COURSE_STATUS', status: 'approved' })
       setSavingStatus('saved')
       addToast({ type: 'success', message: 'Kursus disetujui' })
-    } catch {
+    } catch (err: unknown) {
       setSavingStatus('error')
+      addToast({
+        type: 'error',
+        message:
+          'Gagal menyetujui kursus: ' +
+          (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
+      })
     }
   }, [state.courseId, tenantId, dispatch, setSavingStatus, addToast])
 

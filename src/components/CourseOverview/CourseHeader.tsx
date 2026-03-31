@@ -27,7 +27,10 @@ export function CourseHeader({
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 shrink-0">
               <BookOpen className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 leading-tight truncate">
+            <h1
+              title={course.title}
+              className="text-2xl md:text-3xl font-bold text-slate-900 leading-tight truncate"
+            >
               {course.title}
             </h1>
           </div>
