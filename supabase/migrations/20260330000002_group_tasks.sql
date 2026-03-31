@@ -147,6 +147,13 @@ BEGIN
     RAISE EXCEPTION 'Invalid status: %', p_new_status;
   END IF;
 
+  -- Verify the task exists
+  IF NOT EXISTS (
+    SELECT 1 FROM group_tasks WHERE id = p_task_id
+  ) THEN
+    RAISE EXCEPTION 'Task not found';
+  END IF;
+
   -- Verify caller is a member of the task's group
   IF NOT EXISTS (
     SELECT 1 FROM group_tasks gt
@@ -159,10 +166,6 @@ BEGIN
   UPDATE group_tasks
   SET status = p_new_status, updated_at = now()
   WHERE id = p_task_id;
-
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Task not found';
-  END IF;
 
   RETURN json_build_object('success', true);
 END;
@@ -185,6 +188,13 @@ BEGIN
     RAISE EXCEPTION 'Not authenticated';
   END IF;
 
+  -- Verify the task exists
+  IF NOT EXISTS (
+    SELECT 1 FROM group_tasks WHERE id = p_task_id
+  ) THEN
+    RAISE EXCEPTION 'Task not found';
+  END IF;
+
   -- Verify caller is the task creator OR a group leader
   IF NOT EXISTS (
     SELECT 1 FROM group_tasks gt
@@ -198,10 +208,6 @@ BEGIN
   END IF;
 
   DELETE FROM group_tasks WHERE id = p_task_id;
-
-  IF NOT FOUND THEN
-    RAISE EXCEPTION 'Task not found';
-  END IF;
 
   RETURN json_build_object('success', true);
 END;

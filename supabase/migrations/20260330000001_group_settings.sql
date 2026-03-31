@@ -37,6 +37,14 @@ BEGIN
     RAISE EXCEPTION 'Tenant mismatch';
   END IF;
 
+  -- Verify caller is the assignment owner (teacher)
+  IF NOT EXISTS (
+    SELECT 1 FROM assignments
+    WHERE id = p_assignment_id AND teacher_id = auth.uid()
+  ) THEN
+    RAISE EXCEPTION 'Not authorized — only the assignment teacher can update settings';
+  END IF;
+
   UPDATE assignments
   SET group_settings = p_settings,
       updated_at     = now()
