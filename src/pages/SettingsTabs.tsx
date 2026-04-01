@@ -228,7 +228,10 @@ export function SecurityTab() {
       const { data: user } = await supabase.auth.getUser()
       const email = user.user?.email
       if (email) {
-        const { error: verifyError } = await supabase.auth.signInWithPassword({ email, password: currentPassword })
+        const { error: verifyError } = await supabase.auth.signInWithPassword({
+          email,
+          password: currentPassword,
+        })
         if (verifyError) {
           throw new Error('Kata sandi lama tidak valid.')
         }
