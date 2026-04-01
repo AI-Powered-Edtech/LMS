@@ -403,8 +403,12 @@ describe('useLoginState', () => {
       mockUseAuth.mockReturnValue(makeAuthContext({ signIn: mockSignIn }))
 
       // Simulasi DEV mode dengan VITE_DEV_PASSWORD tersedia
-      vi.stubEnv('DEV', 'true')
-      vi.stubEnv('VITE_DEV_PASSWORD', 'password123')
+      const originalEnv = import.meta.env
+      Object.defineProperty(import.meta, 'env', {
+        value: { ...originalEnv, DEV: true, VITE_DEV_PASSWORD: 'password123' },
+        writable: true,
+        configurable: true,
+      })
 
       const { result } = renderHook(() => useLoginState())
 
@@ -419,7 +423,11 @@ describe('useLoginState', () => {
       }
 
       // Restore env
-      vi.unstubAllEnvs()
+      Object.defineProperty(import.meta, 'env', {
+        value: originalEnv,
+        writable: true,
+        configurable: true,
+      })
     })
 
     it('fillAccount adalah undefined di lingkungan non-DEV (production guard)', () => {

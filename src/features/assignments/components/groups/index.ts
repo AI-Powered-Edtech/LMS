@@ -1,6 +1,6 @@
 export { GroupChatPanel } from './GroupChatPanel'
-export type { GroupSettings } from './GroupSettingsTab'
 export { GroupSettingsTab } from './GroupSettingsTab'
+export type { GroupSettings } from './GroupSettingsTab'
 export { GroupTasksTab } from './GroupTasksTab'
 export { StudentGroupView } from './StudentGroupView'
 export { TeacherGroupView } from './TeacherGroupView'

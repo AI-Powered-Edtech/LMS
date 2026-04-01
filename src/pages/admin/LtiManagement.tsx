@@ -15,16 +15,17 @@ import { useCallback, useMemo, useState } from 'react'
 
 import { EmptyState, useToast } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
+import { usePageTitle } from '@/src/hooks/usePageTitle'
+
 import { LtiPlatformFormModal } from '@/src/features/lti/components/LtiPlatformFormModal'
 import {
-  useCreateLtiPlatform,
-  useDeleteLtiPlatform,
   useLtiPlatforms,
-  useToggleLtiPlatform,
+  useCreateLtiPlatform,
   useUpdateLtiPlatform,
+  useDeleteLtiPlatform,
+  useToggleLtiPlatform,
 } from '@/src/features/lti/queries/ltiQueries'
 import type { CreateLtiPlatformParams, LtiPlatformRegistration } from '@/src/features/lti/types'
-import { usePageTitle } from '@/src/hooks/usePageTitle'
 
 export function LtiManagement() {
   usePageTitle('Pengaturan LTI')

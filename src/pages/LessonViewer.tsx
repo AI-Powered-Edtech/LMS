@@ -8,8 +8,8 @@ import {
   ProgressReporter,
   ScrollProgressBar,
 } from '@/src/components/LessonViewer'
-import { DiscussionBoard } from '@/src/components/Social/DiscussionBoard'
 import { AITutorPanel } from '@/src/features/ai-tutor/components/AITutorPanel'
+import { DiscussionBoard } from '@/src/components/Social/DiscussionBoard'
 import { LearningSessionProvider } from '@/src/features/analytics'
 import { GuideRenderer } from '@/src/features/guidance'
 import { CourseBrowser } from '@/src/features/lessons/components/CourseBrowser'
