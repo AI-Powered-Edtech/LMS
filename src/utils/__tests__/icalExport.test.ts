@@ -183,8 +183,12 @@ describe('icalExport', () => {
         download: '',
       } as any)
 
-      const appendChildMock = vi.spyOn(document.body, 'appendChild').mockImplementation(() => null as any)
-      const removeChildMock = vi.spyOn(document.body, 'removeChild').mockImplementation(() => null as any)
+      const appendChildMock = vi
+        .spyOn(document.body, 'appendChild')
+        .mockImplementation(() => null as any)
+      const removeChildMock = vi
+        .spyOn(document.body, 'removeChild')
+        .mockImplementation(() => null as any)
 
       downloadICal(events, 'test.ics')
 

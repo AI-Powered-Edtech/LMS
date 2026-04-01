@@ -93,7 +93,8 @@ describe('offlineStorage', () => {
       quizId: 'quiz-abc',
       questions: [{ id: 'q1', text: 'What is 2+2?', type: 'multiple_choice' as const, order: 1 }],
       options: [{ id: 'o1', questionId: 'q1', text: '4', order: 1 }],
-      cachedAt: Date.now(), version: 1,
+      cachedAt: Date.now(),
+      version: 1,
     }
 
     await cacheQuiz(quiz)

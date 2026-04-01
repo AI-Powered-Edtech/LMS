@@ -35,7 +35,10 @@ const LtiPlatformFormSchema = v.object({
     v.nonEmpty('JWKS URL wajib diisi'),
     v.url('JWKS URL harus berupa URL yang valid')
   ),
-  deployment_id: v.pipe(v.string(), v.transform((s) => s || '')),
+  deployment_id: v.pipe(
+    v.string(),
+    v.transform((s) => s || '')
+  ),
   is_active: v.boolean(),
 })
 

@@ -262,11 +262,13 @@ export function QuizManager() {
       // Detect and delete removed questions
       const currentQuizData = await quizService.getQuizWithQuestions(quizId!, tenantId!)
       const existingDbIds = (currentQuizData?.quiz_questions || []).map((q: any) => q.id)
-      const newDbIds = existingQs.map(q => q.id!)
+      const newDbIds = existingQs.map((q) => q.id!)
       const deletedIds = existingDbIds.filter((id: string) => !newDbIds.includes(id))
-      
+
       if (deletedIds.length > 0) {
-        await Promise.all(deletedIds.map((id: string) => quizService.deleteQuizQuestion(id, tenantId!)))
+        await Promise.all(
+          deletedIds.map((id: string) => quizService.deleteQuizQuestion(id, tenantId!))
+        )
       }
 
       // Update existing questions sequentially to avoid race conditions
