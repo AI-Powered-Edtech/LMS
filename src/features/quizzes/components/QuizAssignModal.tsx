@@ -75,6 +75,7 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
       setAssignments(initialAssignments)
     } catch (error) {
       if (import.meta.env.DEV) console.error('Failed to load classes', error)
+      addToast({ type: 'error', message: 'Gagal memuat daftar kelas.' })
     } finally {
       setIsLoading(false)
     }

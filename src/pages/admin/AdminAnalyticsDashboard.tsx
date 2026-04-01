@@ -30,6 +30,7 @@ import {
   YAxis,
 } from 'recharts'
 
+import { EmptyState } from '@/components/ui'
 import { useTheme } from '@/contexts/ThemeContext'
 import { AdministrationSkeleton } from '@/features/administration/components/AdministrationSkeleton'
 import { ActivityTimePoint, CourseEngagement } from '@/features/analytics'
@@ -75,23 +76,6 @@ function MetricCard({ title, value, icon: Icon, trend, color, bgColor }: MetricC
           {typeof value === 'number' ? value.toLocaleString('id-ID') : value}
         </p>
       </div>
-    </div>
-  )
-}
-
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center justify-center py-20">
-      <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
-        <BarChart3 className="w-8 h-8 text-slate-400" />
-      </div>
-      <h3 className="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
-        Belum Ada Data
-      </h3>
-      <p className="mt-2 text-slate-500 dark:text-slate-400 text-center max-w-md">
-        Data analitik akan muncul setelah ada aktivitas pembelajaran di platform. Pastikan siswa
-        telah enroll dan menyelesaikan lesson.
-      </p>
     </div>
   )
 }
@@ -405,7 +389,11 @@ export function AdminAnalyticsDashboard() {
   ) {
     return (
       <div className="max-w-7xl mx-auto p-4 md:p-8">
-        <EmptyState />
+        <EmptyState
+          icon={<BarChart3 className="w-8 h-8" />}
+          title="Belum Ada Data"
+          description="Data analitik akan muncul setelah ada aktivitas pembelajaran di platform. Pastikan siswa telah enroll dan menyelesaikan lesson."
+        />
       </div>
     )
   }

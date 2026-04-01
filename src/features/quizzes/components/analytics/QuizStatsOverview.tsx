@@ -1,8 +1,9 @@
 // Quiz Stats Overview Component
 // Shows summary statistics cards for a quiz
 
-import { Clock, TrendingUp, Trophy, Users } from 'lucide-react'
+import { BarChart2, Clock, TrendingUp, Trophy, Users } from 'lucide-react'
 
+import { EmptyState } from '@/components/ui'
 import { cn } from '@/utils/cn'
 
 // Format time helper
@@ -46,13 +47,12 @@ export function QuizStatsOverview({ stats, isLoading }: QuizStatsOverviewProps) 
 
   if (!stats) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-8 text-center">
-        <p className="text-slate-500 dark:text-slate-400">
-          Belum ada data statistik untuk kuis ini.
-        </p>
-        <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
-          Statistik akan muncul setelah siswa mengerjakan kuis.
-        </p>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+        <EmptyState
+          icon={<BarChart2 className="w-8 h-8" />}
+          title="Belum ada data statistik untuk kuis ini."
+          description="Statistik akan muncul setelah siswa mengerjakan kuis."
+        />
       </div>
     )
   }

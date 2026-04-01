@@ -8,6 +8,7 @@ import {
   type ModuleWithProgress,
   ProgressSummary,
 } from '@/components/CourseOverview'
+import { Breadcrumb } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import { courseService } from '@/features/courses'
 import { lessonService } from '@/features/lessons/api/lessonService'
@@ -248,6 +249,14 @@ export function CourseBrowser({
   return (
     <div className="h-full overflow-auto bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 dark:from-slate-900 dark:via-blue-900/10 dark:to-slate-900">
       <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 space-y-6">
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', href: '/app/student/dashboard' },
+            { label: 'Kursus', href: '/app/student/courses' },
+            { label: course.title },
+          ]}
+          className="mb-2"
+        />
         <CourseHeader
           course={course}
           instructorName={instructorName}

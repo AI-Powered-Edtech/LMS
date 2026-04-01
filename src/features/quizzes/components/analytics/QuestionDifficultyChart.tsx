@@ -1,7 +1,7 @@
 // Question Difficulty Chart Component
 // Shows a horizontal bar chart of correct% vs incorrect% per question
 
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, BarChart2 } from 'lucide-react'
 import { useMemo } from 'react'
 import {
   Bar,
@@ -14,6 +14,7 @@ import {
   YAxis,
 } from 'recharts'
 
+import { EmptyState } from '@/components/ui'
 import { useTheme } from '@/contexts/ThemeContext'
 
 import type { QuestionStatsWithQuestion } from '../../api/quizAnalytics.service'
@@ -129,11 +130,12 @@ export function QuestionDifficultyChart({ questions, isLoading }: QuestionDiffic
 
   if (!questions || questions.length === 0) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-8 text-center">
-        <p className="text-slate-500 dark:text-slate-400">Belum ada data soal untuk kuis ini.</p>
-        <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
-          Data kesulitan soal akan muncul setelah siswa mengerjakan kuis.
-        </p>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+        <EmptyState
+          icon={<BarChart2 className="w-8 h-8" />}
+          title="Belum ada data soal untuk kuis ini."
+          description="Data kesulitan soal akan muncul setelah siswa mengerjakan kuis."
+        />
       </div>
     )
   }

@@ -59,6 +59,7 @@ export function useUserManagementState() {
         }
       } catch (err) {
         if (import.meta.env.DEV) console.error('Failed to fetch users:', err)
+        addToast({ type: 'error', message: 'Gagal memuat daftar pengguna.' })
       } finally {
         setLoading(false)
       }
@@ -73,6 +74,7 @@ export function useUserManagementState() {
       setInvitations(data)
     } catch (err) {
       if (import.meta.env.DEV) console.error('Failed to fetch invitations:', err)
+      addToast({ type: 'error', message: 'Gagal memuat daftar undangan.' })
     } finally {
       setLoading(false)
     }

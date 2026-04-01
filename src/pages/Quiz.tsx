@@ -3,6 +3,7 @@ import { AnimatePresence } from 'motion/react'
 
 import { AttemptDetailModal } from '@/components/AttemptDetailModal'
 import { FeatureErrorBoundary } from '@/components/FeatureErrorBoundary'
+import { EmptyState } from '@/components/ui'
 import { QuizPlayer } from '@/features/quizzes/components/player/QuizPlayer'
 import { QuizSkeleton } from '@/features/quizzes/components/QuizSkeleton'
 import { QuizAnswerReview } from '@/features/quizzes/components/student/QuizAnswerReview'
@@ -15,7 +16,7 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { cn } from '@/utils/cn'
 
 export function QuizModule() {
-  usePageTitle('Quiz Module')
+  usePageTitle('Modul Kuis')
   const {
     searchQuery,
     setSearchQuery,
@@ -307,8 +308,12 @@ export function QuizModule() {
               )
             })
           ) : (
-            <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-10 text-slate-500 dark:text-slate-400">
-              Belum ada kuis yang tersedia.
+            <div className="col-span-1 md:col-span-2 lg:col-span-3">
+              <EmptyState
+                icon={<HelpCircle className="w-8 h-8" />}
+                title="Belum ada kuis yang tersedia"
+                description="Kuis dari pengajar Anda akan muncul di sini."
+              />
             </div>
           )}
         </div>
@@ -330,9 +335,11 @@ export function QuizModule() {
               />
             ))
           ) : (
-            <div className="text-center py-10 text-slate-500 dark:text-slate-400">
-              Anda belum menyelesaikan kuis apapun.
-            </div>
+            <EmptyState
+              icon={<CheckCircle className="w-8 h-8" />}
+              title="Anda belum menyelesaikan kuis apapun"
+              description="Selesaikan kuis dari tab Tersedia untuk melihat hasilnya di sini."
+            />
           )}
         </div>
       )}

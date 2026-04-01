@@ -78,9 +78,14 @@ export function LtiCallback() {
               // External redirect (shouldn't happen, but handle gracefully)
               navigate('/app/student/courses', { replace: true })
             }
-          } catch {
-            // If redirect is a relative path
-            navigate(redirect, { replace: true })
+          } catch (err) {
+            if (import.meta.env.DEV)
+              console.warn(
+                '[LtiCallback] Redirect URL parse failed, falling back to courses:',
+                redirect,
+                err
+              )
+            navigate('/app/student/courses', { replace: true })
           }
         }, 500)
       } catch (err) {

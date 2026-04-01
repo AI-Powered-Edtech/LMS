@@ -1,8 +1,8 @@
-import { AlertTriangle, Pencil, Plus, Save, X } from 'lucide-react'
+import { AlertTriangle, Award, Pencil, Plus, Save, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
-import { SkeletonCard } from '@/components/ui'
+import { EmptyState, SkeletonCard } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
@@ -318,6 +318,14 @@ export function BadgeManager() {
       </AnimatePresence>
 
       {/* Badge Lists */}
+      {tenantBadges.length === 0 && systemBadges.length === 0 && (
+        <EmptyState
+          icon={<Award className="w-8 h-8" />}
+          title="Belum ada badge"
+          description='Klik "Badge Baru" untuk membuat badge kustom pertama Anda.'
+        />
+      )}
+
       {tenantBadges.length > 0 && (
         <div className="space-y-2">
           <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">

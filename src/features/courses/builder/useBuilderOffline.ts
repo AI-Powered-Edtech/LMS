@@ -66,8 +66,9 @@ export function useBuilderOffline(
         setLastSavedAt(new Date())
         setIsDirty(!isOnline)
         setHasPendingDraft(!isOnline)
-      } catch {
+      } catch (err) {
         // IndexedDB save failed — non-critical
+        if (import.meta.env.DEV) console.warn('[BuilderOffline] IndexedDB draft save failed:', err)
       }
     }, 5000)
 

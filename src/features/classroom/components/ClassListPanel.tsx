@@ -1,5 +1,6 @@
 import { BookOpen, Hash, Loader2, Search, Users } from 'lucide-react'
 
+import { EmptyState } from '@/components/ui'
 import { cn } from '@/utils/cn'
 
 interface Classroom {
@@ -47,11 +48,11 @@ export function ClassListPanel({
           <span className="text-sm">Memuat kelas...</span>
         </div>
       ) : filteredClassrooms.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-          <BookOpen className="w-10 h-10 mb-2 opacity-30" />
-          <p className="text-sm font-medium text-slate-500">Belum ada kelas</p>
-          <p className="text-xs mt-1">Klik "Buat Kelas Baru" untuk memulai</p>
-        </div>
+        <EmptyState
+          icon={<BookOpen className="w-8 h-8" />}
+          title="Belum ada kelas"
+          description='Klik "Buat Kelas Baru" untuk memulai'
+        />
       ) : (
         <div className="space-y-2">
           {filteredClassrooms.map((cls) => (

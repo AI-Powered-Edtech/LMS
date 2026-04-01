@@ -97,3 +97,21 @@ export function translateEventType(type: string): string {
   }
   return map[type.toLowerCase()] ?? type
 }
+
+/**
+ * Translate raw Supabase/Postgres error messages to user-friendly Bahasa Indonesia.
+ * Use this instead of displaying err.message directly.
+ */
+export function translateDbError(message: string): string {
+  if (!message) return 'Terjadi kesalahan. Silakan coba lagi.'
+  if (message.includes('app_role') || message.includes('invalid input value for enum'))
+    return 'Terjadi kesalahan konfigurasi. Hubungi administrator.'
+  if (message.includes('Unauthorized') || message.includes('P0002'))
+    return 'Anda tidak memiliki akses untuk tindakan ini.'
+  if (message.includes('not found') || message.includes('P0001')) return 'Data tidak ditemukan.'
+  if (message.includes('duplicate') || message.includes('23505'))
+    return 'Data sudah ada. Tidak bisa membuat duplikat.'
+  if (message.includes('network') || message.includes('fetch'))
+    return 'Gagal terhubung ke server. Periksa koneksi internet Anda.'
+  return 'Terjadi kesalahan. Silakan coba lagi.'
+}

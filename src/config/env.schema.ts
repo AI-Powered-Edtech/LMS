@@ -38,12 +38,30 @@ export function validateEnv(): AppEnv {
   } catch {
     const root = document.getElementById('root')
     if (root) {
-      root.innerHTML = `
-        <div style="padding:2rem;font-family:monospace;color:#b91c1c;">
-          <h1>Konfigurasi Bermasalah</h1>
-          <p>Variabel environment belum lengkap. Cek <code>.env.example</code>.</p>
-          <p>Buka DevTools Console untuk detail.</p>
-        </div>`
+      root.textContent = ''
+
+      const wrapper = document.createElement('div')
+      wrapper.style.padding = '2rem'
+      wrapper.style.fontFamily = 'monospace'
+      wrapper.style.color = '#b91c1c'
+
+      const h1 = document.createElement('h1')
+      h1.textContent = 'Konfigurasi Bermasalah'
+
+      const p1 = document.createElement('p')
+      p1.textContent = 'Variabel environment belum lengkap. Cek '
+      const code = document.createElement('code')
+      code.textContent = '.env.example'
+      p1.appendChild(code)
+      p1.appendChild(document.createTextNode('.'))
+
+      const p2 = document.createElement('p')
+      p2.textContent = 'Buka DevTools Console untuk detail.'
+
+      wrapper.appendChild(h1)
+      wrapper.appendChild(p1)
+      wrapper.appendChild(p2)
+      root.appendChild(wrapper)
     }
     throw new Error('ENV_VALIDATION_FAILED')
   }

@@ -14,6 +14,7 @@ import {
 import { useUserAttempts } from '@/features/quizzes/queries/quizPlayer.queries'
 import type { QuizAttemptQuestion, SubmitAnswer } from '@/features/quizzes/types/quizzes.types'
 import { useToast } from '@/hooks/useToast'
+import { captureError } from '@/utils/sentry'
 
 interface LessonQuizPlayerProps {
   quizId: string
@@ -121,6 +122,7 @@ export function LessonQuizPlayer({
         initialIndex,
       })
     } catch (err: unknown) {
+      captureError(err, { context: 'LessonQuizPlayer.startQuiz' })
       const message = err instanceof Error ? err.message : 'Gagal memulai kuis'
       setState({ phase: 'error', message })
     }

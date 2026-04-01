@@ -8,6 +8,7 @@
 import { AlertTriangle, Eye, Loader2, Shield, ShieldAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { EmptyState } from '@/components/ui'
 import { cn } from '@/utils/cn'
 import { translateQuizAttemptStatus } from '@/utils/statusTranslations'
 
@@ -100,15 +101,12 @@ export function SuspiciousAttemptsPanel({
   if (attempts.length === 0) {
     return (
       <div className={className}>
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-6 text-center">
-          <Shield className="w-10 h-10 text-green-400 mx-auto mb-3" />
-          <p className="text-green-700 dark:text-green-300 font-medium">
-            Tidak ada aktivitas mencurigakan
-          </p>
-          <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-            Semua percobaan kuis ini berjalan tanpa deteksi kecurangan.
-          </p>
-        </div>
+        <EmptyState
+          icon={<Shield className="w-8 h-8" />}
+          title="Tidak ada aktivitas mencurigakan"
+          description="Semua percobaan kuis ini berjalan tanpa deteksi kecurangan."
+          className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl"
+        />
       </div>
     )
   }

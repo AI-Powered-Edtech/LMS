@@ -104,8 +104,9 @@ export function usePushSubscription(): UsePushSubscriptionReturn {
         if (!cancelled) {
           setIsSubscribed(existing !== null)
         }
-      } catch {
+      } catch (err) {
         // Service worker not ready or push not available
+        if (import.meta.env.DEV) console.warn('[Push] SW check error:', err)
         if (!cancelled) {
           setIsSubscribed(false)
         }
@@ -203,8 +204,10 @@ export function usePushSubscription(): UsePushSubscriptionReturn {
           if (existing) {
             await existing.unsubscribe()
           }
-        } catch {
+        } catch (err) {
           // PushManager may not be available; still clear server-side
+          if (import.meta.env.DEV) console.warn('[Push] PushManager unsubscribe failed:', err)
+          // Non-fatal: server-side will be cleared regardless
         }
       }
 

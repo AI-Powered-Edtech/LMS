@@ -1,4 +1,5 @@
 import { supabase } from '@/services/supabase/client'
+import { captureError } from '@/utils/sentry'
 
 import { Lesson, LessonProgress, ProgressQueueItem, SignedProgressQueue } from '../types'
 
@@ -387,7 +388,8 @@ export const lessonService = {
         lastPosition,
         resumeAnchor
       )
-    } catch {
+    } catch (err) {
+      captureError(err, { context: 'lessonService.queueProgressUpdate' })
       if (import.meta.env.DEV) {
         console.warn('[Offline Queue] Network error, queuing progress for lesson', lessonId)
       }
@@ -474,8 +476,10 @@ export const lessonService = {
             beacon.position ?? undefined
           )
           sessionStorage.removeItem(key)
-        } catch {
+        } catch (err) {
           // Leave failed beacon for next attempt — don't block the rest of the queue
+          if (import.meta.env.DEV)
+            console.warn('[lessonService] Beacon replay failed, will retry:', err)
         }
       }
       // ── END beacon replay ────────────────────────────────────────────────────
@@ -495,7 +499,8 @@ export const lessonService = {
             item.lastPosition || undefined,
             item.resumeAnchor
           )
-        } catch {
+        } catch (err) {
+          captureError(err, { context: 'lessonService.flushOfflineQueue' })
           if (import.meta.env.DEV) {
             console.warn('[Offline Queue] Failed to sync item, re-queuing', item.lessonId)
           }
@@ -705,15 +710,22 @@ export const lessonService = {
     const scormApiUrl = `${supabaseUrl}/rest/v1/rpc/upsert_scorm_runtime`
 
     // Validate URL before fetch — prevent SSRF
-    const ALLOWED_DOMAINS = ['supabase.co', 'supabase.in']
+    // Strict origin match: the request URL's origin must equal the configured Supabase URL's origin.
     try {
-      const parsedUrl = new URL(scormApiUrl)
-      if (!ALLOWED_DOMAINS.some((domain) => parsedUrl.hostname.endsWith(domain))) {
-        console.error('[lessonService] Blocked: Invalid API URL')
+      const requestedOrigin = new URL(scormApiUrl).origin
+      const allowedOrigin = new URL(import.meta.env.VITE_SUPABASE_URL || '').origin
+      if (requestedOrigin !== allowedOrigin) {
+        captureError(new Error('SSRF blocked: SCORM API URL origin mismatch'), {
+          context: 'lessonService.postScormRuntime',
+        })
+        if (import.meta.env.DEV) console.error('[lessonService] Blocked: Invalid API URL')
         return
       }
     } catch {
-      console.error('[lessonService] Blocked: Invalid API URL')
+      captureError(new Error('SSRF blocked: Failed to parse SCORM API URL'), {
+        context: 'lessonService.postScormRuntime',
+      })
+      if (import.meta.env.DEV) console.error('[lessonService] Blocked: Invalid API URL')
       return
     }
 

@@ -17,6 +17,44 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 
 import { useAuth } from '../contexts/AuthContext'
 
+/**
+ * WorkspaceSelector — Entry page for workspace management.
+ *
+ * ## Route
+ * `/#/workspace-selector`
+ * Wrapped in `AuthGuard` (requires valid session). Accessible before tenant selection.
+ *
+ * ## Two branches
+ *
+ * ### Branch A — New User (memberships.length === 0)
+ * Renders the onboarding step machine for users with no tenant membership yet.
+ * This is the primary onboarding entry point after email verification.
+ *
+ * Step machine (`OnboardingStep` union type):
+ * ```
+ * pick-role
+ *   ├── student-form  → authService.onboardStudentJoinClass({ joinCode, fullName })
+ *   │                   → window.location.href = '/'  (full reload to refresh auth state)
+ *   ├── teacher-form  → authService.createSchoolTenant({ schoolName, fullName, role: 'teacher' })
+ *   │                   → window.location.href = '/'
+ *   └── admin-form    → authService.createSchoolTenant({ schoolName, fullName, role: 'admin' })
+ *                       → window.location.href = '/'
+ * ```
+ * After success, `window.location.href = '/'` triggers a full page reload so that
+ * `AuthContext` re-fetches memberships and `TenantGuard` routes to the correct dashboard.
+ *
+ * ### Branch B — Existing User (memberships.length > 0)
+ * Renders a list of the user's school memberships. Clicking a school calls
+ * `setActiveTenant(tenant_id)` and the `useEffect` redirects to `/app`.
+ *
+ * ### Auto-redirect
+ * If `activeTenant` is already set and memberships exist, the `useEffect` calls
+ * `navigate('/app')` immediately, skipping the selector entirely.
+ *
+ * @see src/components/guards/TenantGuard.tsx — redirects here when activeTenant is null
+ * @see src/features/auth/api/authService.ts — onboardStudentJoinClass, createSchoolTenant
+ * @see docs/ONBOARDING_FLOW.md — full onboarding flow documentation
+ */
 type OnboardingStep = 'pick-role' | 'student-form' | 'teacher-form' | 'admin-form'
 
 export function WorkspaceSelector() {

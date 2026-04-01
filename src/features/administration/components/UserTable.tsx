@@ -5,10 +5,12 @@ import {
   MoreVertical,
   RefreshCw,
   Shield,
+  Users,
   XCircle,
 } from 'lucide-react'
 import React from 'react'
 
+import { EmptyState } from '@/components/ui'
 import type { TenantUser } from '@/features/administration/api/adminUserService'
 import { cn } from '@/utils/cn'
 
@@ -80,8 +82,12 @@ export function UserTable({
             </tr>
           ) : users.length === 0 ? (
             <tr>
-              <td colSpan={6} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500">
-                Tidak ada pengguna ditemukan.
+              <td colSpan={6}>
+                <EmptyState
+                  icon={<Users className="w-8 h-8" />}
+                  title="Tidak ada pengguna ditemukan"
+                  description="Coba ubah filter atau tambah pengguna baru"
+                />
               </td>
             </tr>
           ) : (

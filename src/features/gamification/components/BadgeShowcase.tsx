@@ -1,7 +1,7 @@
 import { Award, Lock } from 'lucide-react'
 import { motion } from 'motion/react'
 
-import { SkeletonCard } from '@/components/ui'
+import { EmptyState, SkeletonCard } from '@/components/ui'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { cn } from '@/utils/cn'
 
@@ -147,14 +147,7 @@ export function BadgeShowcase({ compact }: BadgeShowcaseProps) {
   if (isLoading) return <SkeletonCard lines={2} />
 
   if (!badges || badges.length === 0) {
-    return (
-      <div className="flex flex-col items-center gap-3 py-8 text-slate-400 dark:text-slate-500">
-        <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-          <Award className="h-8 w-8" />
-        </div>
-        <p className="text-sm font-medium">Belum ada lencana tersedia</p>
-      </div>
-    )
+    return <EmptyState icon={<Award className="w-8 h-8" />} title="Belum ada lencana tersedia" />
   }
 
   const earned = badges.filter((b) => b.is_earned)

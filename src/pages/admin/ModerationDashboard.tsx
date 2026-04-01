@@ -12,6 +12,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { EmptyState } from '@/components/ui'
 import { ModerationSkeleton } from '@/features/moderation/components/ModerationSkeleton'
 import {
   useModerationReports,
@@ -242,13 +243,11 @@ export function ModerationDashboard() {
               </motion.div>
             ))
           ) : (
-            <div className="text-center py-12 bg-slate-50 dark:bg-slate-700/50 rounded-3xl border border-slate-200 dark:border-slate-700 border-dashed">
-              <CheckCircle className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">
-                Tidak ada laporan
-              </h3>
-              <p className="text-slate-500 dark:text-slate-400 mt-1">Semua aman terkendali!</p>
-            </div>
+            <EmptyState
+              icon={<CheckCircle className="w-8 h-8" />}
+              title="Tidak ada laporan"
+              description="Semua aman terkendali!"
+            />
           )}
         </AnimatePresence>
       </div>

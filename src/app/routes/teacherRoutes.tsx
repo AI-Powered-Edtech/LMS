@@ -1,5 +1,6 @@
 import { Outlet, Route } from 'react-router-dom'
 
+import { CourseEnrollmentGuard } from '../../components/guards/CourseEnrollmentGuard'
 import { RoleGuard } from '../../components/guards/RoleGuard'
 import {
   Analytics,
@@ -13,6 +14,7 @@ import {
   DocumentManager,
   Gradebook,
   Leaderboard,
+  LessonViewer,
   ModerationDashboard,
   NotFound,
   QuestionBankPage,
@@ -214,6 +216,16 @@ export function TeacherRoutes() {
           <S feature="Deteksi Kesulitan">
             <StruggleDashboard />
           </S>
+        }
+      />
+      <Route
+        path="preview/:courseId"
+        element={
+          <CourseEnrollmentGuard>
+            <S feature="Pratinjau Kursus">
+              <LessonViewer />
+            </S>
+          </CourseEnrollmentGuard>
         }
       />
       <Route

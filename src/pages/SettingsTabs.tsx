@@ -14,6 +14,7 @@ import { publicProfileService } from '@/features/profile/api/publicProfileServic
 import { supabase } from '@/services/supabase/client'
 import { type ProfileFormData, ProfileFormSchema } from '@/shared/schemas/forms'
 import { cn } from '@/utils/cn'
+import { captureError } from '@/utils/sentry'
 
 // ── Toggle Row ────────────────────────────────────────────────────────────────
 export function ToggleRow({
@@ -92,7 +93,9 @@ export function AccountTab({
     try {
       await publicProfileService.updateProfileName(userId, data.fullName)
       setProfileMessage({ type: 'success', text: 'Profil berhasil diperbarui.' })
-    } catch {
+    } catch (err) {
+      captureError(err, { context: 'SettingsTabs.updateProfile' })
+      if (import.meta.env.DEV) console.error('[SettingsTabs] Profile update failed:', err)
       setProfileMessage({ type: 'error', text: 'Gagal memperbarui profil. Coba lagi.' })
     } finally {
       setSavingProfile(false)
@@ -242,7 +245,9 @@ export function SecurityTab() {
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
-    } catch {
+    } catch (err) {
+      captureError(err, { context: 'SettingsTabs.changePassword' })
+      if (import.meta.env.DEV) console.error('[SettingsTabs] Password change failed:', err)
       setPasswordMessage({
         type: 'error',
         text: 'Gagal mengubah kata sandi. Pastikan kata sandi lama benar.',

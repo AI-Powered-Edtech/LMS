@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Spinner } from '@/components/ui'
 import { administrationService } from '@/features/administration/api/administrationService'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { captureError } from '@/utils/sentry'
 
 interface HealthCheck {
   status: 'healthy' | 'degraded' | 'down'
@@ -104,7 +105,9 @@ export function SystemHealth() {
       }
 
       setMetrics(summary)
-    } catch {
+    } catch (err) {
+      captureError(err, { context: 'SystemHealth.fetch' })
+      console.error('[SystemHealth] Health check failed:', err)
       setHealth({
         status: 'down',
         checks: { db: 'error', auth: 'error' },

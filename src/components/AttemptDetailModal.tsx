@@ -17,6 +17,7 @@ import {
 } from '@/features/quizzes/api/quizAnalyticsService'
 import { gradeAttemptQuestion } from '@/features/quizzes/api/quizManager.service'
 import { cn } from '@/utils/cn'
+import { captureError } from '@/utils/sentry'
 
 interface AttemptDetailModalProps {
   attemptId: string
@@ -160,6 +161,7 @@ export function AttemptDetailModal({
         })
       }, 3000)
     } catch (err: unknown) {
+      captureError(err, { context: 'AttemptDetailModal.gradeAnswer' })
       setGradingToast((prev) => ({
         ...prev,
         [answer.question_id]: {

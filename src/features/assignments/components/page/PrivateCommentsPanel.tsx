@@ -1,5 +1,6 @@
 import { MessageSquare, Send } from 'lucide-react'
 
+import { EmptyState } from '@/components/ui'
 import { cn } from '@/utils/cn'
 
 interface Comment {
@@ -61,10 +62,10 @@ export function PrivateCommentsPanel({
             </div>
           ))}
           {comments.length === 0 && (
-            <div className="h-full flex items-center justify-center text-sm text-slate-400 dark:text-slate-500 text-center px-4">
-              Belum ada komentar pribadi. Tambahkan komentar untuk berdiskusi dengan{' '}
-              {role === 'teacher' ? 'siswa' : 'guru'}.
-            </div>
+            <EmptyState
+              icon={<MessageSquare className="w-8 h-8" />}
+              title="Belum ada komentar pribadi"
+            />
           )}
         </div>
 

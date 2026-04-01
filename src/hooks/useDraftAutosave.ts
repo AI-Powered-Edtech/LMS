@@ -94,6 +94,7 @@ export function useDraftAutosave<T>({
       } catch (err) {
         // localStorage quota exceeded — fail silently (not critical)
         if (import.meta.env.DEV) console.warn('[useDraftAutosave] Save failed:', err)
+        setSaveStatusText('Gagal menyimpan otomatis')
       } finally {
         setIsSaving(false)
       }

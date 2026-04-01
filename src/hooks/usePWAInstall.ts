@@ -76,6 +76,8 @@ export function usePWAInstall(): PWAInstallState {
       localStorage.setItem(STORAGE_KEY, String(Date.now()))
     } catch {
       // localStorage unavailable — fail silently
+      if (import.meta.env.DEV)
+        console.warn('[usePWAInstall] localStorage write failed for dismiss state')
     }
     setIsDismissed(true)
   }, [])

@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react'
 
+import { EmptyState } from '@/components/ui'
 import type { EnrolledStudent } from '@/features/classroom/api/classroomService'
 import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
 
@@ -259,13 +260,11 @@ export function ClassDetailPanel({
               <span className="text-sm">Memuat siswa...</span>
             </div>
           ) : students.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-slate-400 dark:text-slate-500">
-              <Users className="w-10 h-10 mb-2 opacity-30" />
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                Belum ada siswa
-              </p>
-              <p className="text-xs mt-1">Bagikan kode gabung untuk mengundang siswa.</p>
-            </div>
+            <EmptyState
+              icon={<Users className="w-8 h-8" />}
+              title="Belum ada siswa"
+              description="Bagikan kode gabung untuk mengundang siswa"
+            />
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-700">
               {students.map((student) => (

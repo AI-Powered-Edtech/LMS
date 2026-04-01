@@ -1,5 +1,6 @@
-import { MessageSquare, Send } from 'lucide-react'
+import { MessageCircle, MessageSquare, Send } from 'lucide-react'
 
+import { EmptyState } from '@/components/ui'
 import { cn } from '@/utils/cn'
 
 import { GroupMessage } from '../../api/groupAssignmentService'
@@ -22,9 +23,11 @@ export function GroupChatPanel({ chat, myUserId, newMessage, onMessageChange, on
 
       <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50/30 dark:bg-slate-900/30 custom-scrollbar">
         {chat.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-slate-400 dark:text-slate-500 text-sm">
-            Belum ada pesan. Mulai diskusi!
-          </div>
+          <EmptyState
+            icon={<MessageCircle className="w-8 h-8" />}
+            title="Belum ada pesan"
+            description="Mulai diskusi dengan anggota grup"
+          />
         ) : (
           chat.map((msg) => {
             const isMe = msg.user_id === myUserId

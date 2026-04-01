@@ -29,8 +29,9 @@ export async function trackMetric(
       metric_value: value,
       metadata: metadata ?? {},
     })
-  } catch {
+  } catch (err) {
     // Metrics are non-critical — silently ignore errors
+    if (import.meta.env.DEV) console.warn('[metrics] Failed to record metric:', err)
   }
 }
 

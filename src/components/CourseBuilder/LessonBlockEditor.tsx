@@ -151,7 +151,7 @@ export function LessonBlockEditor() {
       try {
         navigator.vibrate?.(50)
       } catch {
-        /* ignore */
+        // navigator.vibrate() not available — non-fatal on non-mobile platforms
       }
     }
   }

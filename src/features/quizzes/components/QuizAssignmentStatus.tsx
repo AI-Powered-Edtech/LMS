@@ -3,6 +3,7 @@ import { id } from 'date-fns/locale'
 import { AlertCircle, Calendar, Loader2, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { EmptyState } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import { QuizAssignment, quizService } from '@/features/quizzes'
 import { useToast } from '@/hooks/useToast'
@@ -96,14 +97,11 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
       </div>
 
       {assignments.length === 0 ? (
-        <div className="text-center p-6 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800">
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-            Belum di-assign ke kelas manapun.
-          </p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-            Klik tombol di atas untuk menyebarkan kuis ini.
-          </p>
-        </div>
+        <EmptyState
+          title="Belum di-assign ke kelas manapun."
+          description="Klik tombol di atas untuk menyebarkan kuis ini."
+          className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800"
+        />
       ) : (
         <div className="space-y-3">
           {assignments.map((assignment) => {

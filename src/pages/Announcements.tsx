@@ -3,6 +3,7 @@ import { id as localeId } from 'date-fns/locale'
 import { Megaphone, Pin, Plus, Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
+import { EmptyState } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Announcement as DBAnnouncement } from '@/features/announcements'
 import { useAnnouncements, useSaveAnnouncement, useSubmitRSVP } from '@/features/announcements'
@@ -282,17 +283,11 @@ export function Announcements() {
         )}
 
         {filteredAnnouncements.length === 0 && (
-          <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700">
-            <div className="w-20 h-20 bg-slate-50 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Megaphone className="w-10 h-10 text-slate-300 dark:text-slate-500" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-700 dark:text-slate-200 mb-2">
-              Tidak ada pengumuman
-            </h3>
-            <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-              Belum ada pengumuman baru yang sesuai dengan filter atau pencarian Anda.
-            </p>
-          </div>
+          <EmptyState
+            icon={<Megaphone className="w-8 h-8" />}
+            title="Tidak ada pengumuman"
+            description="Belum ada pengumuman baru yang sesuai dengan filter atau pencarian Anda."
+          />
         )}
       </div>
 

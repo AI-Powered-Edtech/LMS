@@ -39,6 +39,7 @@ function persistDismiss(): void {
     localStorage.setItem(DISMISS_KEY, String(Date.now()))
   } catch {
     // localStorage may be unavailable
+    if (import.meta.env.DEV) console.warn('[PushPermissionPrompt] localStorage write failed')
   }
 }
 

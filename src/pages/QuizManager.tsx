@@ -200,10 +200,23 @@ export function QuizManager() {
 
   const handleSave = async (targetStatus?: QuizStatus) => {
     if (!activeClassroomId || !tenantId) return
-    // Prevent publishing without questions
-    if (targetStatus === 'published' && form.questions.length === 0) {
-      setError('Tidak bisa publish kuis tanpa soal. Tambahkan minimal 1 soal.')
-      return
+    if (targetStatus === 'published') {
+      // Prevent publishing without a title
+      if (!form.title.trim()) {
+        setError('Judul kuis wajib diisi sebelum dipublish.')
+        return
+      }
+      // Prevent publishing without questions
+      if (form.questions.length === 0) {
+        setError('Tidak bisa publish kuis tanpa soal. Tambahkan minimal 1 soal.')
+        return
+      }
+      // Prevent publishing with empty question text
+      const emptyQ = form.questions.findIndex((q) => !q.text?.trim())
+      if (emptyQ !== -1) {
+        setError(`Soal nomor ${emptyQ + 1} belum diisi. Isi semua pertanyaan sebelum dipublish.`)
+        return
+      }
     }
     setIsSaving(true)
     setError(null)

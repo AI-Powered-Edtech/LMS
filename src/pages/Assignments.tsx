@@ -27,7 +27,7 @@ import { translateLessonType } from '@/utils/statusTranslations'
 
 export function Assignments() {
   const addToast = useToast((s) => s.addToast)
-  usePageTitle('Assignments')
+  usePageTitle('Tugas')
   const { role, tenantId, user } = useAuth()
   const { addEvent } = useAddCalendarEvent()
   const sendNotification = useSendNotification()

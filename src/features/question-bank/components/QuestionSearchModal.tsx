@@ -57,6 +57,7 @@ export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
       setQuestions(data)
     } catch (error) {
       if (import.meta.env.DEV) console.error('Failed to load questions:', error)
+      addToast({ type: 'error', message: 'Gagal memuat soal. Coba lagi.' })
     } finally {
       setLoading(false)
     }

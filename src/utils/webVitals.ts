@@ -52,8 +52,9 @@ async function sendMetricProd(metric: Metric): Promise<void> {
         navigationType: metric.navigationType,
       },
     })
-  } catch {
+  } catch (err) {
     // Silently drop — vitals are non-critical telemetry
+    if (import.meta.env.DEV) console.warn('[webVitals] Failed to report metric:', err)
   }
 }
 

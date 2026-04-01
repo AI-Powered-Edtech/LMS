@@ -1,6 +1,6 @@
 import { ArrowLeft, BookOpen, ChevronDown, Download, Filter, Plus } from 'lucide-react'
 
-import { EmptyState } from '@/components/ui'
+import { Breadcrumb, EmptyState } from '@/components/ui'
 import type { Course } from '@/features/courses/types'
 import { AddAssignmentModal } from '@/features/gradebook/components/AddAssignmentModal'
 import { GradebookMainTable } from '@/features/gradebook/components/GradebookMainTable'
@@ -16,6 +16,10 @@ export function Gradebook() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      <Breadcrumb
+        items={[{ label: 'Dashboard', href: '/app/teacher/dashboard' }, { label: 'Nilai' }]}
+        className="mb-2"
+      />
       {/* Gradebook per Kursus (data Supabase) */}
       <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm p-4 sm:p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

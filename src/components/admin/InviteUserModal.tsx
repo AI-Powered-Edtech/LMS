@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as v from 'valibot'
 
+import { useToast } from '@/hooks/useToast'
 import { supabase } from '@/services/supabase/client'
 
 import { useAuth } from '../../contexts/AuthContext'
@@ -23,6 +24,7 @@ interface InviteUserModalProps {
 
 export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalProps) {
   const { user, tenantId, activeTenant } = useAuth()
+  const addToast = useToast((s) => s.addToast)
   const { control, handleSubmit, reset, watch, setValue } = useForm<InviteUserData>({
     resolver: valibotResolver(InviteUserSchema),
     defaultValues: { email: '', role: 'STUDENT' },
@@ -98,7 +100,8 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // Silent fail — link is visible for manual copy
+      if (import.meta.env.DEV) console.warn('[InviteUserModal] Clipboard write failed')
+      addToast({ type: 'info', message: 'Salin tautan secara manual dari kolom di atas.' })
     }
   }
 

@@ -38,6 +38,8 @@ export function setCache<T>(key: string, data: T, ttlMinutes: number): void {
       localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(entry))
     } catch {
       // Silently fail — app works without cache
+      if (import.meta.env.DEV)
+        console.warn('[cache] localStorage quota exceeded, clearing and retrying:', key)
     }
   }
 }
@@ -70,7 +72,8 @@ export async function cachedQuery<T>(
     try {
       localStorage.removeItem('edusync_cache_' + key)
     } catch {
-      /* ignore */
+      if (import.meta.env.DEV)
+        console.warn('[cache] Failed to remove corrupted cache entry for key:', key)
     }
     throw error
   }

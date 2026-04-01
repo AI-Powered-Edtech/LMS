@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { useMemo } from 'react'
 
-import { OptimizedImage } from '@/components/ui'
+import { EmptyState, OptimizedImage } from '@/components/ui'
 import { VirtualTable } from '@/components/ui/VirtualTable'
 import { AssignmentResultRow } from '@/features/quizzes'
 import {
@@ -189,24 +189,22 @@ export function QuizGradebookTable({
       )}
 
       {!selectedAssignment ? (
-        <div className="flex flex-col items-center justify-center py-16 text-slate-400 dark:text-slate-500">
-          <HelpCircle className="w-12 h-12 mb-3 opacity-30" />
-          <p className="font-medium text-slate-500 dark:text-slate-400">
-            Pilih kelas dan assignment
-          </p>
-          <p className="text-sm mt-1">untuk melihat rekap nilai siswa.</p>
-        </div>
+        <EmptyState
+          icon={<HelpCircle className="w-8 h-8" />}
+          title="Pilih kelas dan assignment"
+          description="untuk melihat rekap nilai siswa."
+        />
       ) : isLoading ? (
         <div className="flex items-center justify-center py-16 text-slate-400 dark:text-slate-500 gap-2">
           <Loader2 className="w-5 h-5 animate-spin" />
           <span className="text-sm">Memuat data...</span>
         </div>
       ) : filteredAttempts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-slate-400 dark:text-slate-500">
-          <Clock className="w-10 h-10 mb-3 opacity-30" />
-          <p className="font-medium text-slate-500 dark:text-slate-400">Belum ada percobaan</p>
-          <p className="text-sm mt-1">Siswa belum mengerjakan assignment kuis ini.</p>
-        </div>
+        <EmptyState
+          icon={<Clock className="w-8 h-8" />}
+          title="Belum ada percobaan"
+          description="Siswa belum mengerjakan assignment kuis ini."
+        />
       ) : (
         <VirtualTable<AssignmentResultRow>
           data={filteredAttempts}

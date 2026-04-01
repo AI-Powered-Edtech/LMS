@@ -222,8 +222,10 @@ export function useQuizPageState() {
           cachedAt: Date.now(),
           version: 1,
         })
-      } catch {
+      } catch (err) {
         // IndexedDB caching failure is non-critical — continue
+        if (import.meta.env.DEV)
+          console.warn('[useQuizPageState] IndexedDB quiz cache write failed:', err)
       }
 
       setInitialAnswers(recoveredAnswers)

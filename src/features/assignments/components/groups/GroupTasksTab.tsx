@@ -1,5 +1,6 @@
 import { CheckCircle2, CheckSquare, Clock, MoreVertical, Plus } from 'lucide-react'
 
+import { EmptyState } from '@/components/ui'
 import { cn } from '@/utils/cn'
 
 import { GroupTask } from '../../api/groupAssignmentService'
@@ -33,11 +34,11 @@ export function GroupTasksTab({
       </div>
       <div className="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
         {tasks.length === 0 ? (
-          <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-            <CheckSquare className="w-10 h-10 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-            <p className="font-medium">Belum ada sub-tugas.</p>
-            <p className="text-sm mt-1">Tambahkan sub-tugas di bawah.</p>
-          </div>
+          <EmptyState
+            icon={<CheckSquare className="w-8 h-8" />}
+            title="Belum ada sub-tugas"
+            description="Tambahkan sub-tugas di bawah"
+          />
         ) : (
           tasks.map((task) => (
             <div

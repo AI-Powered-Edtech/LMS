@@ -4,6 +4,52 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
 
+/**
+ * Onboarding — 3-step intro wizard modal for students and teachers.
+ *
+ * ## What it is
+ * A full-screen overlay modal that introduces key platform features to new users.
+ * Renders role-specific content: students see learning-path features, teachers see
+ * teaching/AI tools.
+ *
+ * ## When it shows
+ * Shown once per role, on first visit after gaining a tenant membership.
+ * Trigger condition: `localStorage.getItem('onboarded_${role}')` is falsy.
+ * The check is guarded by a `useRef` flag so it only runs once per component lifecycle,
+ * preventing re-display on re-mounts.
+ *
+ * ## Persistence
+ * - localStorage key: `onboarded_student` (for role='student')
+ * - localStorage key: `onboarded_teacher` (for role='teacher')
+ * - Value set on completion: `'true'`
+ * - Set on: "Mulai Sekarang" button, "Lewati" button, Close (X) button, backdrop click,
+ *   or Escape key press.
+ *
+ * ## Which layouts mount it
+ * - `StudentLayout` (`src/components/layout/StudentLayout.tsx`) — line 43
+ * - `TeacherLayout` (`src/components/layout/TeacherLayout.tsx`) — line 43
+ * Admin layout does NOT mount this component (admin uses `OnboardingChecklist` instead).
+ *
+ * ## z-index
+ * Rendered at `z-[1000]`, above all other UI including the StudentWelcome/TeacherWelcome
+ * modals (which are at z-50).
+ *
+ * ## Steps
+ * Student: Selamat Datang → Peta Pembelajaran → Kumpulkan XP & Bersaing
+ * Teacher: Selamat Datang, Guru! → Kreator AI → Pantau & Evaluasi
+ *
+ * ## How to reset (for testing)
+ * In the browser console:
+ * ```js
+ * localStorage.removeItem('onboarded_student')
+ * localStorage.removeItem('onboarded_teacher')
+ * ```
+ *
+ * @see src/features/onboarding/components/OnboardingChecklist.tsx — admin equivalent
+ * @see src/features/onboarding/components/StudentWelcome.tsx — student welcome modal (z-50)
+ * @see src/features/onboarding/components/TeacherWelcome.tsx — teacher welcome modal (z-50)
+ * @see docs/ONBOARDING_FLOW.md — full onboarding architecture documentation
+ */
 export function Onboarding() {
   const [isOpen, setIsOpen] = useState(false)
   const [step, setStep] = useState(0)

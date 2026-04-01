@@ -3,8 +3,28 @@ import { useState } from 'react'
 
 import { Button, Card, Input } from '@/components/ui'
 import { settingsService } from '@/features/settings/api/settingsService'
+import { cn } from '@/utils/cn'
 
 type Status = 'idle' | 'loading' | 'success' | 'error'
+
+type PasswordStrength = 'weak' | 'medium' | 'strong'
+
+function getPasswordStrength(password: string): PasswordStrength | null {
+  if (!password) return null
+  if (password.length < 8) return 'weak'
+
+  const checks = [
+    /[a-z]/.test(password), // lowercase
+    /[A-Z]/.test(password), // uppercase
+    /[0-9]/.test(password), // number
+    /[^a-zA-Z0-9]/.test(password), // special char
+  ]
+  const score = checks.filter(Boolean).length
+
+  if (score >= 3) return 'strong'
+  if (score >= 2) return 'medium'
+  return 'weak'
+}
 
 export function PasswordChangeForm() {
   const [newPassword, setNewPassword] = useState('')
@@ -43,6 +63,7 @@ export function PasswordChangeForm() {
   }
 
   const isLoading = status === 'loading'
+  const passwordStrength = getPasswordStrength(newPassword)
 
   return (
     <Card padding="lg" className="rounded-3xl dark:bg-slate-800 dark:border-slate-700">
@@ -73,6 +94,46 @@ export function PasswordChangeForm() {
           autoComplete="new-password"
         />
 
+        {newPassword && (
+          <div className="mt-1">
+            <div className="flex gap-1 mb-1">
+              {(['weak', 'medium', 'strong'] as const).map((level, i) => {
+                const strengthIndex = passwordStrength
+                  ? ['weak', 'medium', 'strong'].indexOf(passwordStrength)
+                  : -1
+                return (
+                  <div
+                    key={level}
+                    className={cn(
+                      'h-1.5 flex-1 rounded-full transition-colors duration-200',
+                      i <= strengthIndex
+                        ? passwordStrength === 'weak'
+                          ? 'bg-red-500'
+                          : passwordStrength === 'medium'
+                            ? 'bg-yellow-500'
+                            : 'bg-green-500'
+                        : 'bg-slate-200 dark:bg-slate-700'
+                    )}
+                  />
+                )
+              })}
+            </div>
+            <p
+              className={cn(
+                'text-xs',
+                passwordStrength === 'weak' && 'text-red-500',
+                passwordStrength === 'medium' && 'text-yellow-600 dark:text-yellow-400',
+                passwordStrength === 'strong' && 'text-green-600 dark:text-green-400'
+              )}
+            >
+              {passwordStrength === 'weak' &&
+                'Kata sandi lemah — tambahkan huruf besar, angka, atau simbol'}
+              {passwordStrength === 'medium' && 'Kata sandi cukup kuat'}
+              {passwordStrength === 'strong' && 'Kata sandi kuat ✓'}
+            </p>
+          </div>
+        )}
+
         <Input
           label="Konfirmasi Kata Sandi"
           type="password"
@@ -91,13 +152,6 @@ export function PasswordChangeForm() {
               : undefined
           }
         />
-
-        {/* Password strength hint */}
-        {newPassword.length > 0 && newPassword.length < 8 && (
-          <p className="text-xs text-amber-600 dark:text-amber-400">
-            Kata sandi terlalu pendek ({newPassword.length}/8 karakter)
-          </p>
-        )}
 
         {/* Feedback */}
         {status === 'error' && errorMsg && (

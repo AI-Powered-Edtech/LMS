@@ -1,5 +1,6 @@
 import { HelpCircle, Plus, Search, Trash2 } from 'lucide-react'
 
+import { EmptyState } from '@/components/ui'
 import type { QuizBlockData } from '@/features/courses/api/builder/quizBuilderService'
 import type { QuestionType } from '@/features/quizzes'
 import { questionTypeLabels } from '@/features/quizzes/hooks/useQuizEditorState'
@@ -62,17 +63,12 @@ export function QuestionList({
       </div>
 
       {questions.length === 0 ? (
-        <div className="text-center p-12 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-[32px] bg-white/50 dark:bg-slate-800/30">
-          <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <HelpCircle className="w-8 h-8 text-slate-300 dark:text-slate-600" />
-          </div>
-          <p className="text-sm font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-            Belum ada soal
-          </p>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
-            Klik "Buat Baru" untuk mulai menyusun pertanyaan kuis.
-          </p>
-        </div>
+        <EmptyState
+          icon={<HelpCircle className="w-8 h-8" />}
+          title="Belum ada soal"
+          description='Klik "Buat Baru" untuk mulai menyusun pertanyaan kuis.'
+          className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-[32px] bg-white/50 dark:bg-slate-800/30"
+        />
       ) : (
         questions.map((q, qIdx) => (
           <div

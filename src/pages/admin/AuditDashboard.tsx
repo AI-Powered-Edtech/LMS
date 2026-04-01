@@ -2,6 +2,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import {
   ArrowRight,
   ChevronDown,
+  ClipboardList,
   Clock,
   FileText,
   Filter,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 
+import { EmptyState } from '@/components/ui'
 import {
   administrationService,
   type AuditLog,
@@ -265,11 +267,11 @@ export function AuditDashboard() {
               Memuat audit log...
             </div>
           ) : logs.length === 0 ? (
-            <div className="px-6 py-16 text-center text-slate-400">
-              <FileText className="w-8 h-8 mx-auto mb-3 text-slate-300" />
-              <p className="font-medium text-slate-500 dark:text-slate-400">Belum ada aktivitas</p>
-              <p className="text-sm mt-1">Audit log akan muncul saat admin melakukan perubahan.</p>
-            </div>
+            <EmptyState
+              icon={<ClipboardList className="w-8 h-8" />}
+              title="Belum ada aktivitas"
+              description="Log aktivitas akan muncul di sini"
+            />
           ) : (
             <div
               style={{

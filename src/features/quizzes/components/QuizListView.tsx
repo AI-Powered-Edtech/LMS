@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { EmptyState } from '@/components/ui'
 import { type QuizMode } from '@/features/quizzes'
 import { QuizAssignmentStatus } from '@/features/quizzes/components/QuizAssignmentStatus'
 import { QuizAssignModal } from '@/features/quizzes/components/QuizAssignModal'
@@ -240,20 +241,13 @@ export function QuizListView({
           ))}
         </div>
       ) : quizzes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-800 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
-          <HelpCircle className="w-12 h-12 mb-3 text-slate-300 dark:text-slate-600" />
-          <p className="font-bold text-slate-700 dark:text-slate-300">Belum ada kuis</p>
-          <p className="text-sm mt-1 text-slate-400 dark:text-slate-500">
-            Klik "Buat Kuis Baru" untuk memulai.
-          </p>
-          <button
-            onClick={openNewQuiz}
-            className="mt-5 min-h-[44px] flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Buat Kuis Baru
-          </button>
-        </div>
+        <EmptyState
+          icon={<HelpCircle className="w-8 h-8" />}
+          title="Belum ada kuis"
+          description='Klik "Buat Kuis Baru" untuk memulai.'
+          action={{ label: 'Buat Kuis Baru', onClick: openNewQuiz }}
+          className="bg-white dark:bg-slate-800 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl"
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {quizzes.map((quiz) => (

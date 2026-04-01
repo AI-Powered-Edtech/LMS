@@ -13,7 +13,7 @@ import {
 import { memo, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { SkeletonCard } from '@/components/ui'
+import { EmptyState, SkeletonCard } from '@/components/ui'
 import { cn } from '@/utils/cn'
 
 import { useNotifications } from '../hooks/useNotifications'
@@ -242,18 +242,11 @@ export const NotificationPanel = memo(function NotificationPanel({
             <SkeletonCard lines={2} />
           </div>
         ) : recent.length === 0 ? (
-          <div className="p-12 text-center" role="status">
-            <Inbox
-              className="w-10 h-10 text-slate-200 dark:text-slate-700 mx-auto mb-3"
-              aria-hidden="true"
-            />
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Tidak ada notifikasi baru
-            </p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-              Notifikasi terbaru akan muncul di sini.
-            </p>
-          </div>
+          <EmptyState
+            icon={<Inbox className="w-8 h-8" />}
+            title="Tidak ada notifikasi baru"
+            description="Kamu akan melihat notifikasi di sini"
+          />
         ) : (
           recent.map((n) => (
             <NotificationItem key={n.id} notification={n} markRead={markRead} onClose={onClose} />

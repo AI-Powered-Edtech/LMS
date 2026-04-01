@@ -7,15 +7,21 @@ import { visualizer } from 'rollup-plugin-visualizer'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
 import compression from 'vite-plugin-compression2'
 
+const isDev = process.env.NODE_ENV !== 'production'
+const scriptSrc = isDev
+  ? "'self' 'unsafe-inline' 'unsafe-eval' https://js.sentry-cdn.com"
+  : "'self' https://js.sentry-cdn.com"
+
 const cspDirectives = [
   "default-src 'self'",
-  // Removed 'unsafe-inline' and 'unsafe-eval': Vite SPA uses compiled JS bundles (no inline scripts, no eval).
-  "script-src 'self' https://js.sentry-cdn.com",
+  `script-src ${scriptSrc}`,
   // 'unsafe-inline' kept: React inline style props (style={{}}) render as style attributes, which require unsafe-inline.
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "img-src 'self' data: blob: https://*.supabase.co https://*.cloudfront.net",
+  "img-src 'self' data: blob: https://*.supabase.co https://*.cloudfront.net https://api.dicebear.com",
   "font-src 'self' https://fonts.gstatic.com",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://sentry.io https://*.vercel.app",
+  "media-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
+  "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

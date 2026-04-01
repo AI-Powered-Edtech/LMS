@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { EmptyState } from '@/components/ui'
 import type { Notification } from '@/features/notifications'
 import { useMarkAllAsRead, useMarkAsRead, useNotifications } from '@/features/notifications'
 
@@ -94,13 +95,11 @@ export const NotificationCenter: React.FC = () => {
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
                 </div>
               ) : notifications.length === 0 ? (
-                <div className="p-12 text-center">
-                  <Inbox className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-                  <h4 className="text-slate-900 font-medium">Kotak masuk kosong</h4>
-                  <p className="text-slate-500 text-xs">
-                    Semua notifikasi baru akan muncul di sini.
-                  </p>
-                </div>
+                <EmptyState
+                  icon={<Inbox className="w-8 h-8" />}
+                  title="Kotak masuk kosong"
+                  description="Semua notifikasi baru akan muncul di sini"
+                />
               ) : (
                 <div className="divide-y divide-slate-50">
                   {notifications.map((notif) => (

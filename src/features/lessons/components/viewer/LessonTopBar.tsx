@@ -86,7 +86,11 @@ export function LessonTopBar({
             </button>
             <Breadcrumb
               items={[
-                { label: 'Materi', href: '/lesson' },
+                { label: 'Dashboard', href: '/app/student/dashboard' },
+                {
+                  label: 'Kursus',
+                  href: courseId ? `/app/student/courses/${courseId}` : '/app/student/courses',
+                },
                 { label: moduleTitle || 'Modul' },
                 { label: lesson.title },
               ]}

@@ -1,4 +1,5 @@
 import { supabase } from '@/services/supabase/client'
+import { captureError } from '@/utils/sentry'
 
 import type { EventMetadata, LearningEvent, LearningEventType } from '../types/events.types'
 
@@ -85,6 +86,7 @@ async function flushEvents() {
       eventBuffer = [...batch, ...eventBuffer].slice(-MAX_BUFFER_SIZE)
     }
   } catch (err) {
+    captureError(err, { context: 'trackingService.flushEvents' })
     if (import.meta.env.DEV) console.warn('[Analytics] Flush error:', err)
     eventBuffer = [...batch, ...eventBuffer].slice(-MAX_BUFFER_SIZE)
   } finally {

@@ -2,7 +2,7 @@ import { Award, BarChart2, BookOpen, TrendingUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
-import { OptimizedImage } from '@/components/ui'
+import { Breadcrumb, OptimizedImage } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import { progressService, StudentProgressData } from '@/features/progress/api/progressService'
 import { ProgressSkeleton } from '@/features/progress/components/ProgressSkeleton'
@@ -67,6 +67,13 @@ export function StudentProgress() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-12">
+      <Breadcrumb
+        items={[
+          { label: 'Dashboard', href: '/app/teacher/dashboard' },
+          { label: 'Kemajuan Siswa' },
+        ]}
+        className="mb-2"
+      />
       <div className="flex items-center gap-4">
         <div className="w-16 h-16 bg-slate-200 rounded-full overflow-hidden shadow-md">
           <OptimizedImage

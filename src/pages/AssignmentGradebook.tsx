@@ -13,7 +13,7 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { useToast } from '@/components/ui'
+import { EmptyState, useToast } from '@/components/ui'
 import { VirtualTable } from '@/components/ui/VirtualTable'
 import { useAuth } from '@/contexts/AuthContext'
 import {
@@ -24,6 +24,7 @@ import {
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { cn } from '@/utils/cn'
 import { captureError } from '@/utils/sentry'
+import { translateDbError } from '@/utils/statusTranslations'
 
 export function AssignmentGradebook() {
   usePageTitle('Buku Nilai Tugas')
@@ -52,7 +53,7 @@ export function AssignmentGradebook() {
         const data = await assignmentService.getAssignmentsByTenant(tenantId!)
         setAssignments(data)
       } catch (err) {
-        setError(err instanceof Error ? err.message : String(err))
+        setError(translateDbError(err instanceof Error ? err.message : String(err)))
       } finally {
         setLoading(false)
       }
@@ -223,12 +224,12 @@ export function AssignmentGradebook() {
         /* Assignments Grid */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {assignments.length === 0 ? (
-            <div className="col-span-full p-12 text-center bg-slate-50 dark:bg-slate-700/50 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-3xl">
-              <FileText className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-slate-600 dark:text-slate-400">
-                Belum Ada Tugas
-              </h3>
-              <p className="text-slate-400">Buat tugas pertama Anda di Course Builder.</p>
+            <div className="col-span-full">
+              <EmptyState
+                icon={<FileText className="w-8 h-8" />}
+                title="Belum Ada Tugas"
+                description="Buat tugas pertama Anda di Course Builder."
+              />
             </div>
           ) : (
             assignments.map((assignment) => (

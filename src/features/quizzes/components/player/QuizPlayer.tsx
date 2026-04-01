@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { cn } from '@/utils/cn'
+import { captureError } from '@/utils/sentry'
 
 import * as quizPlayerService from '../../api/quizPlayer.service'
 import { getCurrentQuestionIndex } from '../../api/quizPlayer.service'
@@ -113,6 +114,7 @@ export function QuizPlayer({
         }
       } catch (error) {
         // Gracefully fallback to initial index on error
+        captureError(error, { context: 'QuizPlayer.computeResumeIndex' })
         if (import.meta.env.DEV) console.error('Failed to compute resume index:', error)
       } finally {
         setIsResuming(false)

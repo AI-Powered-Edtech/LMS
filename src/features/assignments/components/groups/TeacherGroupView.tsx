@@ -12,7 +12,7 @@ import { motion } from 'motion/react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { useToast } from '@/components/ui'
+import { EmptyState, useToast } from '@/components/ui'
 import { cn } from '@/utils/cn'
 
 import { TeacherGroupEntry } from '../../api/groupAssignmentService'
@@ -163,11 +163,11 @@ export function TeacherGroupView({ assignmentId }: Props) {
               Ringkasan Kelompok
             </h3>
             {groups.length === 0 ? (
-              <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-                <Users className="w-12 h-12 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-                <p className="font-medium">Belum ada aktivitas kelompok.</p>
-                <p className="text-sm mt-1">Buat kelompok baru untuk memulai.</p>
-              </div>
+              <EmptyState
+                icon={<Users className="w-8 h-8" />}
+                title="Belum ada aktivitas kelompok"
+                description="Buat kelompok baru untuk memulai"
+              />
             ) : (
               <div className="space-y-3">
                 {groups.map((group) => {

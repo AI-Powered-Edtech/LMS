@@ -58,6 +58,7 @@ export function QuestionBankPage() {
       setQuestions(data)
     } catch (error) {
       if (import.meta.env.DEV) console.error('Failed to load questions:', error)
+      addToast({ type: 'error', message: 'Gagal memuat bank soal. Coba lagi.' })
     } finally {
       setLoading(false)
     }

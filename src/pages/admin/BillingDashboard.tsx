@@ -12,6 +12,7 @@ import {
 import { motion } from 'motion/react'
 import { useEffect, useMemo, useState } from 'react'
 
+import { EmptyState } from '@/components/ui'
 import { useToast } from '@/components/ui/Toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -304,11 +305,12 @@ export function BillingDashboard() {
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {filteredInvoices.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={4}
-                    className="px-6 py-12 text-center text-slate-500 dark:text-slate-400"
-                  >
-                    Tidak ada tagihan ditemukan.
+                  <td colSpan={4}>
+                    <EmptyState
+                      icon={<Receipt className="w-8 h-8" />}
+                      title="Tidak ada tagihan"
+                      description="Tagihan akan muncul setelah ada transaksi"
+                    />
                   </td>
                 </tr>
               ) : (

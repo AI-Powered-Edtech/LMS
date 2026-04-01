@@ -29,6 +29,7 @@ import { AdministrationSkeleton } from '@/features/administration/components/Adm
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
+import { captureError } from '@/utils/sentry'
 
 // Default sync status for initial state (will be replaced with real data)
 const defaultSyncStatus: SyncHistoryItem[] = [
@@ -126,6 +127,7 @@ export function AdministrationDashboard() {
         setSyncHistory(defaultSyncStatus)
       }
     } catch (error) {
+      captureError(error, { context: 'AdministrationDashboard.fetchSyncHistory' })
       if (import.meta.env.DEV) console.error('Failed to fetch sync history:', error)
       // Use defaults on error
       setSyncHistory(defaultSyncStatus)
@@ -191,6 +193,7 @@ export function AdministrationDashboard() {
         })
       }
     } catch (error) {
+      captureError(error, { context: 'AdministrationDashboard.triggerSync' })
       if (import.meta.env.DEV) console.error('Sync failed:', error)
       setSyncMessage({
         type: 'error',
@@ -350,6 +353,9 @@ export function AdministrationDashboard() {
                     </div>
                   </div>
                   <button
+                    role="switch"
+                    aria-checked={module.isEnabled}
+                    aria-label={`${module.isEnabled ? 'Nonaktifkan' : 'Aktifkan'} modul ${module.name}`}
                     onClick={() => handleToggleModule(module.moduleId)}
                     className={cn(
                       'shrink-0 transition-colors',

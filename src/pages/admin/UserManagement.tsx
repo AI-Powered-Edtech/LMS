@@ -10,7 +10,7 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 import { cn } from '@/utils/cn'
 
 export function UserManagement() {
-  usePageTitle('User Management')
+  usePageTitle('Manajemen Pengguna')
   const {
     tab,
     setTab,

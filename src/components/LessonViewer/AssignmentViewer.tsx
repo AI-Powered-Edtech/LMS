@@ -68,6 +68,7 @@ export function AssignmentViewer({
         }
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Error loading submission:', err)
+        setError(err instanceof Error ? err.message : 'Gagal memuat submisi tugas.')
       } finally {
         setIsLoading(false)
       }

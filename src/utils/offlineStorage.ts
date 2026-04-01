@@ -328,8 +328,13 @@ export async function getAnswersEncrypted(quizId: string, userId: string): Promi
       try {
         const answer = await decryptData<CachedAnswer>(record.payload, userId)
         results.push(answer)
-      } catch {
+      } catch (err) {
         // Abaikan record yang gagal didekripsi (kunci berbeda atau data korup)
+        if (import.meta.env.DEV)
+          console.warn(
+            '[offlineStorage] Decryption failed for record — key mismatch or corruption:',
+            err
+          )
       }
     }
   }

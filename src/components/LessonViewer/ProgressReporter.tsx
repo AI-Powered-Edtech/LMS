@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 
 import { lessonService } from '@/features/lessons'
+import { captureError } from '@/utils/sentry'
 
 interface ProgressReporterProps {
   lessonId: string
@@ -66,6 +67,7 @@ export function ProgressReporter({
       await lessonService.queueProgressUpdate(lessonId, tenantIdRef.current, s, pct, pos)
       lastSent.current = { percentage: pct, position: pos ?? 0 }
     } catch (err) {
+      captureError(err, { context: 'ProgressReporter.syncProgress' })
       if (import.meta.env.DEV) console.error('[ProgressReporter] Failed to sync:', err)
     }
   }, [lessonId]) // Stable deps only — no interval churn; tenantId read from ref
@@ -115,7 +117,10 @@ export function ProgressReporter({
             })
           )
         } catch {
-          // sessionStorage write failed (private mode, quota exceeded) — ignore
+          if (import.meta.env.DEV)
+            console.warn(
+              '[ProgressReporter] sessionStorage beacon write failed (quota/private mode)'
+            )
         }
         // Also attempt the async path (may or may not complete)
         lessonService.queueProgressUpdate(lessonId, tenantId, s, pct, pos)

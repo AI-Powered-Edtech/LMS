@@ -116,8 +116,10 @@ function safeDeepClone<T>(obj: T): T {
     if (typeof structuredClone === 'function') {
       return structuredClone(obj)
     }
-  } catch {
+  } catch (err) {
     // Fall through to JSON fallback
+    if (import.meta.env.DEV)
+      console.warn('[builderReducer] structuredClone failed, falling back to JSON:', err)
   }
   // JSON fallback: works for all plain JSON-serializable data (our DomainBlock/Module types)
   return JSON.parse(JSON.stringify(obj)) as T

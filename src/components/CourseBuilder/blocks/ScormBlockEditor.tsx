@@ -13,6 +13,7 @@ import { useCallback, useRef, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useBuilder } from '@/contexts/BuilderContext'
 import { supabase } from '@/services/supabase/client'
+import { captureError } from '@/utils/sentry'
 
 interface ScormBlockEditorProps {
   blockId: string
@@ -140,8 +141,11 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
           .delete()
           .eq('id', scormMeta.scorm_package_id)
           .eq('tenant_id', tenantId!)
-      } catch {
-        // Non-fatal — metadata will be cleared regardless
+      } catch (err) {
+        captureError(err, { context: 'ScormBlockEditor.deletePackage' })
+        if (import.meta.env.DEV)
+          console.error('[ScormBlockEditor] Failed to delete scorm_package record:', err)
+        // UI metadata will be cleared, but DB record may be orphaned
       }
     }
 

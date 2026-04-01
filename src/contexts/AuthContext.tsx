@@ -195,6 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .single()
           if (retryData) profileData = retryData
         } catch (rpcErr) {
+          captureError(rpcErr, { context: 'AuthContext.ensureProfileExists' })
           if (import.meta.env.DEV) {
             console.error('[Auth] ensure_profile_exists() failed:', rpcErr)
           }
@@ -328,6 +329,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 offset += PAGE_SIZE
               }
             } catch (err) {
+              captureError(err, { context: 'AuthContext.fetchMemberships' })
               if (import.meta.env.DEV)
                 console.error('[Auth] Background membership pagination failed:', err)
             }
@@ -657,6 +659,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       // Even if Supabase signOut fails (network error, expired session),
       // we've already cleared local state so the user is effectively logged out.
+      captureError(err, { context: 'AuthContext.signOut' })
       if (import.meta.env.DEV) console.error('[Auth] signOut error (state already cleared):', err)
     }
   }, [])

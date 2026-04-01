@@ -14,13 +14,15 @@ CREATE TABLE IF NOT EXISTS tenant_invitations (
   tenant_id   UUID        NOT NULL,
   email       TEXT        NOT NULL,
   role        TEXT        NOT NULL DEFAULT 'teacher',
+  status      TEXT        NOT NULL DEFAULT 'pending',
   -- Token unik yang dikirim via email; bukan sequential agar tidak bisa ditebak
   token       UUID        NOT NULL UNIQUE DEFAULT gen_random_uuid(),
   expires_at  TIMESTAMPTZ NOT NULL DEFAULT (now() + INTERVAL '7 days'),
   accepted_at TIMESTAMPTZ,
   invited_by  UUID        NOT NULL,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-  CONSTRAINT chk_invitation_role CHECK (role IN ('teacher', 'admin', 'student')),
+  CONSTRAINT chk_invitation_role CHECK (lower(role) IN ('teacher', 'admin', 'student')),
+  CONSTRAINT chk_invitation_status CHECK (status IN ('pending', 'accepted', 'revoked', 'expired')),
   -- Email harus valid (format dasar)
   CONSTRAINT chk_invitation_email CHECK (email ~* '^[^@]+@[^@]+\.[^@]+$')
 );
@@ -74,13 +76,15 @@ CREATE POLICY "admins_manage_invitations"
     )
   );
 
--- tenant_invitations: siapapun boleh membaca token yang valid untuk validasi
+-- tenant_invitations: siapapun boleh membaca token undangan yang masih aktif untuk validasi
 -- (token bersifat seperti password sementara; tanpa akses ini, validate_invitation
 -- tidak bisa diakses oleh user yang belum login)
+-- Hanya undangan berstatus 'pending' yang dapat dibaca — undangan revoked atau expired tidak boleh terekspos.
 CREATE POLICY "public_read_valid_invitation"
   ON tenant_invitations FOR SELECT
   USING (
-    accepted_at IS NULL
+    status = 'pending'
+    AND accepted_at IS NULL
     AND expires_at > now()
   );
 

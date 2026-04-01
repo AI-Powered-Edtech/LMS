@@ -17,8 +17,9 @@ export function useSyncQueueCount(): number {
     try {
       const total = await getPendingCount()
       setCount(total)
-    } catch {
+    } catch (err) {
       // IndexedDB unavailable — count stays 0
+      if (import.meta.env.DEV) console.warn('[useSyncQueueCount] IndexedDB unavailable:', err)
     }
   }, [])
 

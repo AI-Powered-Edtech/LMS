@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import React, { useEffect } from 'react'
 
+import { EmptyState } from '@/components/ui'
 import { QuestionSearchModal } from '@/features/question-bank/components/QuestionSearchModal'
 import { type QuestionType, type QuizMode } from '@/features/quizzes'
 import { QuizStatus } from '@/features/quizzes/types/quizzes.types'
@@ -360,15 +361,12 @@ export function QuizEditorView({
         </div>
 
         {form.questions.length === 0 ? (
-          <div className="text-center p-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">
-            <HelpCircle className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-              Belum ada soal.
-            </p>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-              Klik "Tambah Soal" untuk mulai membuat pertanyaan.
-            </p>
-          </div>
+          <EmptyState
+            icon={<HelpCircle className="w-8 h-8" />}
+            title="Belum ada soal."
+            description='Klik "Tambah Soal" untuk mulai membuat pertanyaan.'
+            className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl"
+          />
         ) : (
           <div className="space-y-4">
             {form.questions.map((q, qIdx) => (

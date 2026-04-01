@@ -1,6 +1,6 @@
 import { AlertTriangle, BookOpen } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { courseService } from '@/features/courses/api/courseService'
@@ -15,11 +15,13 @@ interface Course {
 
 export function StudentCoursesList() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { tenantId } = useAuth()
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
+  const enrollmentError = (location.state as { error?: string } | null)?.error ?? null
 
   useEffect(() => {
     if (!tenantId) return
@@ -79,6 +81,13 @@ export function StudentCoursesList() {
             Jelajahi dan pilih materi yang tersedia untuk Anda pelajari.
           </p>
         </div>
+
+        {enrollmentError && (
+          <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl text-amber-800 dark:text-amber-300">
+            <AlertTriangle className="w-5 h-5 shrink-0" />
+            <p className="text-sm font-medium">{enrollmentError}</p>
+          </div>
+        )}
 
         {courses.length === 0 ? (
           <div className="text-center p-12 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">

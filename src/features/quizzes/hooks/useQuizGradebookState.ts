@@ -7,6 +7,8 @@ import {
   quizAnalyticsService,
 } from '@/features/quizzes/api/quizAnalyticsService'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { captureError } from '@/utils/sentry'
+import { translateDbError } from '@/utils/statusTranslations'
 
 export interface AssignmentOption {
   id: string
@@ -50,8 +52,11 @@ export function useQuizGradebookState() {
       try {
         const data = await quizService.getTeacherClasses(user.id, activeTenant.id)
         setClasses(data)
-      } catch {
-        if (import.meta.env.DEV) console.error('[useQuizGradebookState] Failed to load classes')
+      } catch (err) {
+        captureError(err, { context: 'useQuizGradebookState.loadClasses' })
+        setError('Gagal memuat daftar kelas.')
+        if (import.meta.env.DEV)
+          console.error('[useQuizGradebookState] Failed to load classes', err)
       }
     }
 
@@ -99,7 +104,7 @@ export function useQuizGradebookState() {
       const data = await quizService.getAssignmentResults(selectedAssignment, activeTenant!.id)
       setAttempts(data)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Gagal memuat hasil assignment')
+      setError(translateDbError(err instanceof Error ? err.message : ''))
     } finally {
       setIsLoading(false)
     }
@@ -121,8 +126,9 @@ export function useQuizGradebookState() {
       try {
         const data = await quizAnalyticsService.getQuestionDifficulty(selectedAssignment)
         setQuestionDifficulty(data)
-      } catch {
-        if (import.meta.env.DEV) console.error('Failed to load question difficulty')
+      } catch (err) {
+        captureError(err, { context: 'useQuizGradebookState.loadDifficulty' })
+        if (import.meta.env.DEV) console.error('Failed to load question difficulty', err)
       } finally {
         setIsDifficultyLoading(false)
       }

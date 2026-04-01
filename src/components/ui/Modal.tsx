@@ -70,8 +70,20 @@ export function Modal({ open, onClose, size = 'md', ariaLabel, children }: Modal
       focusable?.focus()
     }, 50)
 
+    // DOM-level focus boundary: snap focus back if it strays outside the modal
+    const handleFocusIn = () => {
+      if (!contentRef.current) return
+      if (document.activeElement !== null && !contentRef.current.contains(document.activeElement)) {
+        const focusable = contentRef.current.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)
+        focusable?.focus()
+      }
+    }
+
+    document.addEventListener('focusin', handleFocusIn)
+
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('focusin', handleFocusIn)
       document.body.style.overflow = ''
       clearTimeout(timer)
     }
