@@ -1,5 +1,5 @@
+import { ArrowLeft,Home, RefreshCw, WifiOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { WifiOff, RefreshCw, Home, ArrowLeft } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { usePageTitle } from '@/src/hooks/usePageTitle'

@@ -18,7 +18,6 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useToast } from '@/src/hooks/useToast'
 
 import {
   administrationService,
@@ -28,6 +27,7 @@ import {
 } from '@/src/features/administration/api/administrationService'
 import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
+import { useToast } from '@/src/hooks/useToast'
 import { cn } from '@/src/utils/cn'
 
 // Default sync status for initial state (will be replaced with real data)

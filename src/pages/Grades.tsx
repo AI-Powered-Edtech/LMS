@@ -5,10 +5,10 @@ import { useMemo, useState } from 'react'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useCourses } from '@/src/features/courses/queries/courseQueries'
 import type { Course } from '@/src/features/courses/types'
+import { gradebookService } from "@/src/features/gradebook/api/gradebookService"
 import { GradebookSkeleton } from '@/src/features/gradebook/components/GradebookSkeleton'
 import { StudentGradeView } from '@/src/features/gradebook/components/StudentGradeView'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { gradebookService } from "@/src/features/gradebook/api/gradebookService"
 import { cn } from '@/src/utils/cn'
 
 interface Assignment {
