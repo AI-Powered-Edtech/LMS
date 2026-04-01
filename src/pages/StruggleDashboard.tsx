@@ -73,11 +73,20 @@ export function StruggleDashboard() {
   })
   const markRead = useMarkAlertsRead()
 
-  const unreadCount = alerts.filter((a) => !a.read_at).length
-  const highCount = alerts.filter((a) => a.severity === 'high').length
+  // ⚡ Perf: consolidate multiple array traversals into a single pass to reduce O(N) operations.
+  let unreadCount = 0
+  let highCount = 0
+  for (let i = 0; i < alerts.length; i++) {
+    const a = alerts[i]
+    if (!a.read_at) unreadCount++
+    if (a.severity === 'high') highCount++
+  }
 
   function handleMarkAllRead() {
-    const ids = alerts.filter((a) => !a.read_at).map((a) => a.alert_id)
+    const ids: string[] = []
+    for (let i = 0; i < alerts.length; i++) {
+      if (!alerts[i].read_at) ids.push(alerts[i].alert_id)
+    }
     if (ids.length > 0) markRead.mutate(ids)
   }
 

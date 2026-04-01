@@ -80,11 +80,19 @@ export function LiveActivityFeed({
   // Update active users/lessons for parent components
   useEffect(() => {
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
-    const recentEvents = events.filter((e) => e.created_at >= fiveMinAgo)
-    const activeUsers = new Set(recentEvents.map((e) => e.user_id))
-    const activeLessons = new Set(
-      recentEvents.filter((e) => e.lesson_id).map((e) => e.lesson_id as string)
-    )
+
+    // ⚡ Perf: consolidate multiple array traversals into a single pass to reduce O(N) operations.
+    const activeUsers = new Set<string>()
+    const activeLessons = new Set<string>()
+
+    for (let i = 0; i < events.length; i++) {
+      const e = events[i]
+      if (e.created_at >= fiveMinAgo) {
+        if (e.user_id) activeUsers.add(e.user_id)
+        if (e.lesson_id) activeLessons.add(e.lesson_id as string)
+      }
+    }
+
     onActiveUsersChange?.(activeUsers.size)
     onActiveLessonsChange?.(activeLessons)
   }, [events, onActiveUsersChange, onActiveLessonsChange])

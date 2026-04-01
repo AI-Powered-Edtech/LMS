@@ -62,11 +62,16 @@ export function useInteractiveVideoEvents({
   // Prefetch quizzes referenced by events
   useEffect(() => {
     if (!tenantId || events.length === 0) return
-    const quizIds = events.map((e) => e.quizId).filter(Boolean) as string[]
-    if (quizIds.length === 0) return
 
-    // Deduplicate
-    const uniqueIds = [...new Set(quizIds)]
+    // ⚡ Perf: consolidate multiple array traversals into a single pass to reduce O(N) operations.
+    const uniqueIds = new Set<string>()
+    for (let i = 0; i < events.length; i++) {
+      const qId = events[i].quizId
+      if (qId) uniqueIds.add(qId as string)
+    }
+
+    if (uniqueIds.size === 0) return
+
     uniqueIds.forEach((id) => {
       getQuizWithQuestions(id, tenantId)
         .then((quizData) => {
