@@ -3,8 +3,8 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { EmptyState } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
-import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import { featureFlagService } from '@/src/features/administration/api/featureFlagService'
+import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
 import { FeatureFlag } from '@/src/utils/featureFlags'
@@ -51,7 +51,9 @@ export default function FeatureFlagsPage() {
   if (role !== 'admin') {
     return (
       <div className="p-6 max-w-5xl mx-auto text-center">
-        <p className="text-red-600 font-bold">Akses ditolak. Hanya admin yang dapat mengakses halaman ini.</p>
+        <p className="text-red-600 font-bold">
+          Akses ditolak. Hanya admin yang dapat mengakses halaman ini.
+        </p>
       </div>
     )
   }
