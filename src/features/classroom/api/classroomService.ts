@@ -97,11 +97,7 @@ export const classroomService = {
    * Update classroom name.
    */
   async updateClassroom(id: string, name: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
-      .from('classes')
-      .update({ name })
-      .eq('id', id)
-      .eq('tenant_id', tenantId)
+    const { error } = await supabase.from('classes').update({ name }).eq('id', id).eq('tenant_id', tenantId)
     if (error) throw error
   },
 
@@ -188,26 +184,9 @@ export const classroomService = {
   subscribeToChanges(tenantId: string, onUpdate: () => void): () => void {
     const channel = supabase
       .channel('classrooms-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'classes', filter: `tenant_id=eq.${tenantId}` },
-        onUpdate
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'enrollments', filter: `tenant_id=eq.${tenantId}` },
-        onUpdate
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'course_classes',
-          filter: `tenant_id=eq.${tenantId}`,
-        },
-        onUpdate
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'classes', filter: `tenant_id=eq.${tenantId}` }, onUpdate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'enrollments', filter: `tenant_id=eq.${tenantId}` }, onUpdate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'course_classes', filter: `tenant_id=eq.${tenantId}` }, onUpdate)
       .subscribe()
 
     return () => {
@@ -219,11 +198,7 @@ export const classroomService = {
    * Delete a classroom by ID.
    */
   async deleteClassroom(classId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
-      .from('classes')
-      .delete()
-      .eq('id', classId)
-      .eq('tenant_id', tenantId)
+    const { error } = await supabase.from('classes').delete().eq('id', classId).eq('tenant_id', tenantId)
     if (error) throw error
   },
 

@@ -14,5 +14,5 @@ export const profilePreferences = {
   },
   updateLocalePreferences(userId: string, prefs: any) {
     localStorage.setItem(`locale_prefs_${userId}`, JSON.stringify(prefs))
-  },
+  }
 }

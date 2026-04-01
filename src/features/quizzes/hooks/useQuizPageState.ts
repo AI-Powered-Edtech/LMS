@@ -210,12 +210,7 @@ export function useQuizPageState() {
           quizId: quiz.quiz_id,
           questions: questions.map((q) => ({
             ...q,
-            type:
-              q.question_type === 'MCQ'
-                ? 'multiple_choice'
-                : q.question_type === 'TRUE_FALSE'
-                  ? 'true_false'
-                  : 'essay',
+            type: q.question_type === 'MCQ' ? 'multiple_choice' : q.question_type === 'TRUE_FALSE' ? 'true_false' : 'essay',
             order: q.order_index || 0,
           })),
           options: [],

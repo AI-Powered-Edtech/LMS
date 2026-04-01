@@ -143,7 +143,7 @@
 /* ─── Dark Mode Overrides ────────────────────────────────────── */
 
 .dark,
-[data-theme='dark'] {
+[data-theme="dark"] {
   /* Primary (Blue) - inverted for dark backgrounds */
   --color-primary-50: #172554;
   --color-primary-100: #1e3a5f;

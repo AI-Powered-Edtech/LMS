@@ -1,4 +1,4 @@
-import { AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react'
+import { CheckCircle, Clock, AlertCircle, XCircle } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
 
 import type { AttendanceStudentDetail, ClassStudent } from '../types'

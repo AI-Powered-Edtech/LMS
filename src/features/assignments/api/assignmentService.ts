@@ -405,13 +405,13 @@ export const assignmentService = {
       )
       .eq('tenant_id', tenantId)
       .eq('is_published', true)
-      .or(`assignment_submissions.student_id.is.null,assignment_submissions.status.neq.SUBMITTED`, {
-        foreignTable: 'assignment_submissions',
-      })
+      .or(
+        `assignment_submissions.student_id.is.null,assignment_submissions.status.neq.SUBMITTED`,
+        { foreignTable: 'assignment_submissions' }
+      )
 
     if (error) {
-      if (import.meta.env.DEV)
-        console.error('[assignmentService] getPendingAssignmentCount error:', error)
+      if (import.meta.env.DEV) console.error('[assignmentService] getPendingAssignmentCount error:', error)
       return 0
     }
 

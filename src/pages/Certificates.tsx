@@ -227,8 +227,7 @@ export function Certificates() {
             Gagal Memuat Sertifikat
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md">
-            Terjadi kesalahan saat memuat daftar sertifikat Anda. Silakan muat ulang halaman atau
-            coba lagi nanti.
+            Terjadi kesalahan saat memuat daftar sertifikat Anda. Silakan muat ulang halaman atau coba lagi nanti.
           </p>
         </div>
       </div>

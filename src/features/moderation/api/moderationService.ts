@@ -104,11 +104,7 @@ export const moderationService = {
   /**
    * Resolve a report (approve or reject) in content_reports table.
    */
-  async resolveReport(
-    reportId: string,
-    status: 'approved' | 'rejected',
-    tenantId: string
-  ): Promise<void> {
+  async resolveReport(reportId: string, status: 'approved' | 'rejected', tenantId: string): Promise<void> {
     const {
       data: { user },
     } = await supabase.auth.getUser()

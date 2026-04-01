@@ -52,10 +52,7 @@ export function PathAnalysisDashboard({ courseId }: Props) {
       </div>
 
       {/* Tabs */}
-      <div
-        className="mb-4 flex gap-1 border-b border-slate-200 dark:border-slate-700"
-        role="tablist"
-      >
+      <div className="mb-4 flex gap-1 border-b border-slate-200 dark:border-slate-700" role="tablist">
         {TABS.map((tab) => (
           <button
             key={tab.id}

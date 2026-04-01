@@ -44,10 +44,7 @@ export function GroupSettingsTab({ onSave }: Props) {
       </h3>
       <div className="space-y-6">
         <div className="space-y-3">
-          <label
-            htmlFor="group-method"
-            className="text-sm font-bold text-slate-700 dark:text-slate-300"
-          >
+          <label htmlFor="group-method" className="text-sm font-bold text-slate-700 dark:text-slate-300">
             Metode Pembagian Kelompok
           </label>
           <select
@@ -123,9 +120,7 @@ export function GroupSettingsTab({ onSave }: Props) {
                 className="mt-1 w-4 h-4 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 dark:focus:ring-indigo-400"
               />
               <div>
-                <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">
-                  Folder Bersama
-                </p>
+                <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">Folder Bersama</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   Buat folder Google Drive khusus untuk tiap kelompok.
                 </p>

@@ -211,15 +211,8 @@ export const gamificationService = {
     if (!row) return null
     return {
       ...row,
-      recent_xp: (() => {
-        try {
-          return typeof row.recent_xp === 'string'
-            ? JSON.parse(row.recent_xp)
-            : (row.recent_xp ?? [])
-        } catch {
-          return []
-        }
-      })(),
+      recent_xp:
+        ( () => { try { return typeof row.recent_xp === 'string' ? JSON.parse(row.recent_xp) : (row.recent_xp ?? []) } catch { return [] } })(),
     } as StudentXPProfile
   },
 

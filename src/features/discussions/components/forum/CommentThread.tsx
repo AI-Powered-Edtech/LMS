@@ -105,10 +105,7 @@ export function CommentThread({
             </div>
           </div>
           <div className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-pre:bg-slate-800 prose-pre:text-slate-50 prose-pre:rounded-xl">
-            <ReactMarkdown
-              remarkPlugins={[remarkMath]}
-              rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}
-            >
+            <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}>
               {comment.content}
             </ReactMarkdown>
           </div>
