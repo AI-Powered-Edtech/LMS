@@ -1,7 +1,7 @@
 import { AlertCircle, Bell, BookOpen, Settings2, Users } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate } from "react-router-dom"
-import { useRoleBasedPath } from "@/src/hooks/useRoleBasedPath"
+import { useNavigate } from 'react-router-dom'
+import { useRoleBasedPath } from '@/src/hooks/useRoleBasedPath'
 
 import { Card, EmptyState, Skeleton } from '@/src/components/ui'
 import { StruggleConfigPanel } from '@/src/features/struggle/components/StruggleConfigPanel'
@@ -94,7 +94,9 @@ export function StruggleDashboard() {
     if (!alerts.find((a) => a.alert_id === alertId)?.read_at) {
       markRead.mutate([alertId])
     }
-    navigate(`${getPath("/app/teacher/course-analytics", "/app/admin/course-analytics")}?courseId=${courseId}&lessonId=${lessonId}`)
+    navigate(
+      `${getPath('/app/teacher/course-analytics', '/app/admin/course-analytics')}?courseId=${courseId}&lessonId=${lessonId}`
+    )
   }
 
   return (
