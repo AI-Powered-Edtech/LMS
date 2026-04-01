@@ -1,5 +1,5 @@
+import { ArrowLeft, Home, RefreshCw, WifiOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { WifiOff, RefreshCw, Home, ArrowLeft } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { usePageTitle } from '@/src/hooks/usePageTitle'
@@ -35,12 +35,9 @@ export function Offline() {
           <WifiOff className="h-12 w-12 text-slate-400 dark:text-slate-600" />
         </div>
 
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-          Anda Sedang Offline
-        </h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Anda Sedang Offline</h1>
         <p className="mt-3 text-slate-500 dark:text-slate-400">
-          Halaman ini membutuhkan koneksi internet.
-          Silakan periksa koneksi Anda dan coba lagi.
+          Halaman ini membutuhkan koneksi internet. Silakan periksa koneksi Anda dan coba lagi.
         </p>
 
         {/* Connection Status Indicator */}
@@ -82,9 +79,7 @@ export function Offline() {
 
         {/* Tips for offline use */}
         <div className="mt-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 p-4 text-left border border-blue-100 dark:border-blue-800">
-          <h3 className="font-bold text-blue-900 dark:text-blue-100">
-            Tips Menggunakan Offline
-          </h3>
+          <h3 className="font-bold text-blue-900 dark:text-blue-100">Tips Menggunakan Offline</h3>
           <ul className="mt-2 text-sm text-blue-700 dark:text-blue-300 space-y-1">
             <li>• Quiz yang sudah dimulai akan tersimpan otomatis</li>
             <li>• Lesson video yang sudah dimuat dapat ditonton offline</li>
@@ -95,7 +90,8 @@ export function Offline() {
         {/* Screen reader accessibility */}
         <p className="sr-only">
           Anda sedang offline. Koneksi internet Anda saat ini tidak aktif.
-          {isOnline && ' Koneksi telah dipulihkan. Klik tombol Coba Lagi untuk memuat ulang halaman.'}
+          {isOnline &&
+            ' Koneksi telah dipulihkan. Klik tombol Coba Lagi untuk memuat ulang halaman.'}
         </p>
       </div>
     </div>
