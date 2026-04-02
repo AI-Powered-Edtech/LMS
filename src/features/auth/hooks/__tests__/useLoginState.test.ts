@@ -403,7 +403,7 @@ describe('useLoginState', () => {
       mockUseAuth.mockReturnValue(makeAuthContext({ signIn: mockSignIn }))
 
       // Simulasi DEV mode dengan VITE_DEV_PASSWORD tersedia
-      vi.stubEnv('DEV', 'true')
+      vi.stubEnv('DEV', true as any)
       vi.stubEnv('VITE_DEV_PASSWORD', 'password123')
 
       const { result } = renderHook(() => useLoginState())
