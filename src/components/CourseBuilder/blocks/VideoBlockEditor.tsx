@@ -97,6 +97,8 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
           metadata={(block.metadata as InteractiveVideoMetadata) || {}}
           onSave={handleSaveInteractiveMetadata}
           onClose={() => setShowInteractiveEditor(false)}
+          lessonId={state.activeLesson?.id}
+          blockId={blockId}
         />
       )}
     </div>

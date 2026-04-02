@@ -21,7 +21,15 @@ import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
 import { translateLessonType } from '@/utils/statusTranslations'
 
-export function BuilderSidebar() {
+interface BuilderSidebarProps {
+  /**
+   * Jika true, sidebar dirender langsung (inline) tanpa logika drawer/desktop wrapper.
+   * Digunakan untuk mobile tab-based layout di CourseBuilder.
+   */
+  inlineMode?: boolean
+}
+
+export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
   const { state, actions, mobile } = useBuilder()
   const addToast = useToast((s) => s.addToast)
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
@@ -113,7 +121,12 @@ export function BuilderSidebar() {
   }
 
   const sidebarContent = (
-    <div className="w-[340px] bg-slate-50/30 border-r border-slate-200/60 flex flex-col h-full shrink-0 relative z-10 backdrop-blur-xl">
+    <div
+      className={cn(
+        'bg-slate-50/30 dark:bg-slate-900/30 border-r border-slate-200/60 dark:border-slate-700/60 flex flex-col h-full shrink-0 relative z-10 backdrop-blur-xl',
+        inlineMode ? 'w-full' : 'w-[340px]'
+      )}
+    >
       {/* Header */}
       <div className="px-6 py-5 border-b border-slate-200/50 flex items-center justify-between bg-white/50">
         <div>
@@ -145,7 +158,7 @@ export function BuilderSidebar() {
               <Import className="w-3.5 h-3.5" />
             </button>
           </div>
-          {mobile.isMobile && (
+          {mobile.isMobile && !inlineMode && (
             <button
               onClick={mobile.closeSidebar}
               className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
@@ -330,12 +343,14 @@ export function BuilderSidebar() {
                                               tabIndex={0}
                                               onClick={() => {
                                                 actions.selectLesson(lesson.id)
-                                                if (mobile.isMobile) mobile.closeSidebar()
+                                                if (mobile.isMobile && !inlineMode)
+                                                  mobile.closeSidebar()
                                               }}
                                               onKeyDown={(e) => {
                                                 if (e.key === 'Enter' || e.key === ' ') {
                                                   actions.selectLesson(lesson.id)
-                                                  if (mobile.isMobile) mobile.closeSidebar()
+                                                  if (mobile.isMobile && !inlineMode)
+                                                    mobile.closeSidebar()
                                                 }
                                               }}
                                               className={cn(
@@ -548,6 +563,11 @@ export function BuilderSidebar() {
       )}
     </div>
   )
+
+  // Mode inline: render konten sidebar langsung tanpa wrapper nav/drawer
+  if (inlineMode) {
+    return <>{sidebarContent}</>
+  }
 
   return (
     <>

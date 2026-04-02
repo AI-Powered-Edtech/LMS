@@ -177,7 +177,7 @@ export const courseService = {
       .from('course_enrollments')
       .select('id', { count: 'exact', head: true })
       .eq('course_id', courseId)
-      .in('status', ['active', 'ACTIVE', 'Active'])
+      .eq('status', 'ACTIVE') // enrollment_status enum: only uppercase valid
 
     if (!countError && (count ?? 0) > 0) {
       throw new Error(
@@ -228,16 +228,14 @@ export const courseService = {
    * @param userId - The user ID whose name to fetch
    * @param tenantId - The tenant context; user must be a member of this tenant
    */
-  async getTeacherName(userId: string, tenantId: string): Promise<string | null> {
-    // Single query: join profiles with tenant_memberships for tenant isolation.
-    // The !inner join ensures only rows where the membership exists are returned,
-    // which implicitly verifies the user belongs to the requested tenant.
+  async getTeacherName(userId: string): Promise<string | null> {
+    // NOTE: tenant_memberships FK does not exist on profiles — use simple query.
+    // RLS on profiles table already enforces tenant isolation.
     const { data, error } = await supabase
       .from('profiles')
-      .select('full_name, tenant_memberships!inner(user_id, tenant_id)')
+      .select('full_name')
       .eq('id', userId)
-      .eq('tenant_memberships.tenant_id', tenantId)
-      .maybeSingle()
+      .single()
 
     if (error) {
       logDevWarn('courseService', 'Error fetching teacher name:', error.message)
@@ -259,7 +257,7 @@ export const courseService = {
       .eq('course_id', courseId)
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)
-      .in('status', ['active', 'ACTIVE', 'Active'])
+      .eq('status', 'ACTIVE') // enrollment_status enum: only uppercase valid
       .maybeSingle()
 
     if (error) {

@@ -7,6 +7,9 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
 
 const WELCOME_KEY = 'edusync_teacher_welcomed'
+// Coordina com o wizard: não mostrar enquanto o wizard estiver ativo
+const WIZARD_DISMISS_KEY = 'edusync_teacher_onboarding_dismissed'
+const WIZARD_COMPLETED_KEY = 'edusync_teacher_onboarding_completed'
 
 export function TeacherWelcome() {
   const { profile } = useAuth()
@@ -15,7 +18,12 @@ export function TeacherWelcome() {
   const [show, setShow] = useState(false)
 
   useEffect(() => {
-    if (!localStorage.getItem(WELCOME_KEY)) {
+    // Wizard already dismissed/completed → TeacherWelcome can show for returning teachers
+    const wizardDone =
+      localStorage.getItem(WIZARD_DISMISS_KEY) === '1' ||
+      localStorage.getItem(WIZARD_COMPLETED_KEY) === '1'
+
+    if (wizardDone && !localStorage.getItem(WELCOME_KEY)) {
       // Small delay so the dashboard loads first
       const timer = setTimeout(() => setShow(true), 800)
       return () => clearTimeout(timer)

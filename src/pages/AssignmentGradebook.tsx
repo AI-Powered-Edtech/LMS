@@ -4,16 +4,13 @@ import {
   CheckCircle,
   Clock,
   FileText,
-  GraduationCap,
   Loader2,
   Search,
-  Send,
   Users,
 } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { EmptyState, useToast } from '@/components/ui'
+import { EmptyState } from '@/components/ui'
 import { VirtualTable } from '@/components/ui/VirtualTable'
 import { useAuth } from '@/contexts/AuthContext'
 import {
@@ -21,6 +18,8 @@ import {
   assignmentService,
   type AssignmentSubmission,
 } from '@/features/assignments/api/assignmentService'
+import { AssignmentCard } from '@/features/assignments/components/AssignmentCard'
+import { GradingModal } from '@/features/assignments/components/GradingModal'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { cn } from '@/utils/cn'
 import { captureError } from '@/utils/sentry'
@@ -28,7 +27,6 @@ import { translateDbError } from '@/utils/statusTranslations'
 
 export function AssignmentGradebook() {
   usePageTitle('Buku Nilai Tugas')
-  const { addToast } = useToast()
   const { user, tenantId } = useAuth()
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null)
@@ -38,18 +36,13 @@ export function AssignmentGradebook() {
   const [loadingSubmissions, setLoadingSubmissions] = useState(false)
   const [_error, setError] = useState<string | null>(null)
 
-  // Grading State
   const [gradingSubmission, setGradingSubmission] = useState<AssignmentSubmission | null>(null)
-  const [score, setScore] = useState<number>(0)
-  const [feedback, setFeedback] = useState<string>('')
-  const [isSubmittingGrade, setIsSubmittingGrade] = useState(false)
 
   useEffect(() => {
     if (!user?.id) return
     async function loadAssignments() {
       setLoading(true)
       try {
-        // Fetch all assignments in the tenant via service layer
         const data = await assignmentService.getAssignmentsByTenant(tenantId!)
         setAssignments(data)
       } catch (err) {
@@ -61,7 +54,6 @@ export function AssignmentGradebook() {
     loadAssignments()
   }, [user?.id, tenantId])
 
-  // ⚡ PERFORMANCE: Memoize handlers to prevent unnecessary re-renders
   const handleSelectAssignment = useCallback(async (assignment: Assignment) => {
     setSelectedAssignment(assignment)
     setLoadingSubmissions(true)
@@ -76,35 +68,9 @@ export function AssignmentGradebook() {
     }
   }, [])
 
-  // ⚡ PERFORMANCE: Memoize grading handlers
-  const handleOpenGrading = useCallback((submission: AssignmentSubmission) => {
-    setGradingSubmission(submission)
-    setScore(submission.score || 0)
-    setFeedback(submission.feedback || '')
+  const handleUpdateSubmission = useCallback((updated: AssignmentSubmission) => {
+    setSubmissions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
   }, [])
-
-  const handleSaveGrade = useCallback(async () => {
-    if (!gradingSubmission) return
-    setIsSubmittingGrade(true)
-    try {
-      const result = await assignmentService.gradeSubmission(
-        gradingSubmission.id,
-        tenantId!,
-        score,
-        feedback
-      )
-      // Update local state
-      setSubmissions((prev) => prev.map((s) => (s.id === result.id ? result : s)))
-      setGradingSubmission(null)
-    } catch (err) {
-      addToast({
-        type: 'error',
-        message: 'Gagal menyimpan nilai: ' + (err instanceof Error ? err.message : String(err)),
-      })
-    } finally {
-      setIsSubmittingGrade(false)
-    }
-  }, [gradingSubmission, score, feedback])
 
   const submissionColumns = useMemo(
     () => [
@@ -183,7 +149,7 @@ export function AssignmentGradebook() {
         header: 'Aksi',
         render: (sub: AssignmentSubmission) => (
           <button
-            onClick={() => handleOpenGrading(sub)}
+            onClick={() => setGradingSubmission(sub)}
             className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all transform active:scale-95 shadow-md shadow-blue-500/20"
           >
             {sub.status === 'graded' ? 'Edit Nilai' : 'Nilai Sekarang'}
@@ -191,12 +157,11 @@ export function AssignmentGradebook() {
         ),
       },
     ],
-    [selectedAssignment, handleOpenGrading]
+    [selectedAssignment]
   )
 
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
-      {/* Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">
@@ -221,7 +186,6 @@ export function AssignmentGradebook() {
       </header>
 
       {!selectedAssignment ? (
-        /* Assignments Grid */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {assignments.length === 0 ? (
             <div className="col-span-full">
@@ -233,39 +197,15 @@ export function AssignmentGradebook() {
             </div>
           ) : (
             assignments.map((assignment) => (
-              <motion.button
+              <AssignmentCard
                 key={assignment.id}
-                whileHover={{ y: -4 }}
-                onClick={() => handleSelectAssignment(assignment)}
-                className="group text-left bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all flex flex-col h-full"
-              >
-                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
-                  <FileText className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-700 transition-colors line-clamp-2 flex-1">
-                  {assignment.title}
-                </h3>
-                <div className="flex items-center gap-4 mt-6 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  <span className="flex items-center gap-1.5">
-                    <Award className="w-3.5 h-3.5" />
-                    {assignment.max_points} Pts
-                  </span>
-                  {assignment.due_date && (
-                    <span className="flex items-center gap-1.5 text-rose-500">
-                      <Clock className="w-3.5 h-3.5" />
-                      {new Date(assignment.due_date).toLocaleDateString('id-ID', {
-                        day: 'numeric',
-                        month: 'short',
-                      })}
-                    </span>
-                  )}
-                </div>
-              </motion.button>
+                assignment={assignment}
+                onSelect={handleSelectAssignment}
+              />
             ))
           )}
         </div>
       ) : (
-        /* Submissions List View */
         <div className="space-y-6">
           <button
             onClick={() => setSelectedAssignment(null)}
@@ -315,126 +255,13 @@ export function AssignmentGradebook() {
         </div>
       )}
 
-      {/* Grading Modal */}
-      <AnimatePresence>
-        {gradingSubmission && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setGradingSubmission(null)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-4xl bg-white dark:bg-slate-800 rounded-[32px] border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-            >
-              <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50/50">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                    <GraduationCap className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-slate-800 dark:text-slate-200">
-                      Menilai:{' '}
-                      {Array.isArray(gradingSubmission?.user_profiles)
-                        ? gradingSubmission?.user_profiles[0]?.full_name
-                        : gradingSubmission?.user_profiles?.full_name}
-                    </h3>
-                    <p className="text-xs text-slate-400 font-medium">
-                      Tugas: {selectedAssignment?.title}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setGradingSubmission(null)}
-                  className="p-2 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors"
-                >
-                  <ArrowLeft className="w-5 h-5 text-slate-400 rotate-180" />
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-auto p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Student Submission */}
-                <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest px-1">
-                    Hasil Pekerjaan Siswa
-                  </h4>
-                  <div className="bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 min-h-[300px] text-slate-700 dark:text-slate-300 whitespace-pre-wrap text-sm leading-relaxed italic">
-                    {gradingSubmission.submission_text || 'Siswa tidak menyertakan teks tambahan.'}
-                  </div>
-                  {gradingSubmission.file_url && (
-                    <a
-                      href={gradingSubmission.file_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                    >
-                      <FileText className="w-5 h-5 text-blue-500" />
-                      <span className="text-sm font-bold text-slate-600 dark:text-slate-400">
-                        Buka File Lampiran
-                      </span>
-                    </a>
-                  )}
-                </div>
-
-                {/* Grading Form */}
-                <div className="space-y-6">
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-widest px-1">
-                    Berikan Penilaian
-                  </h4>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase flex justify-between">
-                      Skor (0 - {selectedAssignment?.max_points})
-                      <span className="text-blue-600">
-                        {score} / {selectedAssignment?.max_points}
-                      </span>
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      max={selectedAssignment?.max_points}
-                      value={score}
-                      onChange={(e) => setScore(parseInt(e.target.value) || 0)}
-                      className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-lg"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                      Umpan Balik (Feedback)
-                    </label>
-                    <textarea
-                      value={feedback}
-                      onChange={(e) => setFeedback(e.target.value)}
-                      rows={8}
-                      className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none text-sm resize-none"
-                      placeholder="Tuliskan catatan untuk siswa di sini..."
-                    />
-                  </div>
-
-                  <button
-                    onClick={handleSaveGrade}
-                    disabled={isSubmittingGrade}
-                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/20 transition-all flex items-center justify-center gap-2 disabled:bg-slate-300 transform active:scale-[0.98]"
-                  >
-                    {isSubmittingGrade ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <Send className="w-5 h-5" />
-                    )}
-                    Kirim Penilaian
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <GradingModal
+        submission={gradingSubmission}
+        assignment={selectedAssignment}
+        tenantId={tenantId}
+        onClose={() => setGradingSubmission(null)}
+        onUpdateSubmission={handleUpdateSubmission}
+      />
     </div>
   )
 }

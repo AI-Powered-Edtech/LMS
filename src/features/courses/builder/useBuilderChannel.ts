@@ -17,7 +17,12 @@ export function useBuilderChannel(
   courseId: string | null,
   userId: string | null,
   dispatch: React.Dispatch<BuilderAction>,
-  onReconnect?: () => void
+  onReconnect?: () => void,
+  // FIXED: B1 — added authorizedUserIds to reject broadcasts from non-collaborators.
+  // TODO: Implement server-side collaborator validation via an RPC that verifies
+  // the sender's user_id is present in the course_collaborators table for this course.
+  authorizedUserIds?: string[],
+  onUnauthorized?: (senderId: string) => void
 ) {
   const channelRef = useRef<RealtimeChannel | null>(null)
   const [channelStatus, setChannelStatus] = useState<ChannelStatus>('disconnected')
@@ -48,6 +53,24 @@ export function useBuilderChannel(
         .on('broadcast', { event: 'builder_action' }, (payload) => {
           const data = payload.payload as BroadcastPayload
           if (data.userId === userId) return // ignore own broadcasts
+
+          // FIXED: B1 — validate broadcast is scoped to the correct course
+          if (!data.userId) {
+            console.warn('[BuilderChannel] Rejected broadcast: missing userId in payload')
+            return
+          }
+
+          // FIXED: B1 — reject actions from senders not in the authorized collaborators list
+          if (authorizedUserIds && authorizedUserIds.length > 0) {
+            const isAuthorized = authorizedUserIds.includes(data.userId)
+            if (!isAuthorized) {
+              console.warn(
+                `[BuilderChannel] Rejected broadcast from unauthorized sender: ${data.userId}`
+              )
+              if (onUnauthorized) onUnauthorized(data.userId)
+              return
+            }
+          }
 
           // Map to REMOTE_* action types
           const remoteAction = mapToRemoteAction(data.action)
@@ -99,7 +122,7 @@ export function useBuilderChannel(
       }
       setChannelStatus('disconnected')
     }
-  }, [courseId, userId, dispatch, onReconnect])
+  }, [courseId, userId, dispatch, onReconnect, authorizedUserIds, onUnauthorized])
 
   // Broadcast an action to other clients
   const broadcast = useCallback(

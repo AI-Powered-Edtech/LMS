@@ -11,10 +11,7 @@ function exportAsPrintablePDF(data: Record<string, unknown>[], filename: string)
   const columns = Object.keys(data[0])
   const rows = data.map((row) => columns.map((col) => escapeHtml(String(row[col] ?? ''))))
 
-  const w = window.open('', '_blank', 'width=900,height=700')
-  if (!w) return
-
-  w.document.write(`<!DOCTYPE html>
+  const htmlString = `<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -40,12 +37,25 @@ function exportAsPrintablePDF(data: Record<string, unknown>[], filename: string)
   <br>
   <button onclick="window.print();window.close()">Cetak / Simpan PDF</button>
 </body>
-</html>`)
-  w.document.close()
-  w.focus()
-  setTimeout(() => {
-    w.print()
-  }, 300)
+</html>`
+
+  // PERFORMANCE: Use Blob URL instead of document.write() to avoid blocking
+  // the main thread during report export. document.write() is synchronous and
+  // can freeze the UI, especially for large datasets.
+  const blob = new Blob([htmlString], { type: 'text/html;charset=utf-8' })
+  const blobUrl = URL.createObjectURL(blob)
+
+  const printWindow = window.open(blobUrl, '_blank', 'width=900,height=700')
+  if (!printWindow) {
+    URL.revokeObjectURL(blobUrl)
+    return
+  }
+
+  printWindow.onload = () => {
+    printWindow.focus()
+    URL.revokeObjectURL(blobUrl)
+    setTimeout(() => printWindow.print(), 300)
+  }
 }
 
 interface ExportButtonProps {

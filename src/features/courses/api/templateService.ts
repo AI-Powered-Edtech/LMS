@@ -6,7 +6,7 @@ export interface ContentTemplate {
   type: 'course' | 'module' | 'lesson'
   title: string
   description: string | null
-  content: any
+  content: Record<string, unknown>
   created_at: string
   created_by: string
   tenant_id: string

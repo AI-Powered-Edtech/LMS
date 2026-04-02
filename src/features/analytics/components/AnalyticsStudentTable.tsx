@@ -193,8 +193,13 @@ export function AnalyticsStudentTable({
                                   Disarankan untuk menghubungi siswa melalui fitur pesan atau
                                   melakukan check-in pada sesi berikutnya.
                                 </p>
-                                <button className="text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 px-3 py-1.5 rounded-lg transition-colors">
-                                  Kirim Pesan Otomatis (Segera Hadir)
+                                <button
+                                  onClick={() =>
+                                    alert('Fitur kirim pesan otomatis dalam pengembangan')
+                                  }
+                                  className="text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 px-3 py-1.5 rounded-lg transition-colors"
+                                >
+                                  Kirim Pesan
                                 </button>
                               </div>
                             </div>

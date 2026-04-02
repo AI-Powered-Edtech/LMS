@@ -19,7 +19,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useAssignments } from '@/features/assignments/hooks/useAssignments'
 import { useClassroom } from '@/features/classroom/hooks/useClassroomQueries'
 import { DashboardSkeleton } from '@/features/dashboards/components/DashboardSkeleton'
-import { TeacherWelcome } from '@/features/onboarding'
+import { TeacherOnboardingWizard, TeacherWelcome } from '@/features/onboarding'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { navigationItems } from '@/shared/config/navigation'
 import { cn } from '@/utils/cn'
@@ -322,6 +322,10 @@ export function TeacherDashboard() {
         />
       </Card>
 
+      {/* Guided onboarding wizard untuk guru baru (muncul sebagai modal overlay) */}
+      <TeacherOnboardingWizard />
+
+      {/* Simple welcome popup untuk guru yang sudah pernah login */}
       <TeacherWelcome />
     </div>
   )

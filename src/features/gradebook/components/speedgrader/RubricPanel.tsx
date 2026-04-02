@@ -18,6 +18,8 @@ interface RubricPanelProps {
   onFeedbackChange: (feedback: string) => void
   onAIGrade: () => void
   onSaveAndNext: (status: 'graded' | 'needs_revision') => void
+  /** Di mobile, action footer disembunyikan karena digantikan fixed bottom bar di halaman */
+  isMobile?: boolean
 }
 
 function StudentInfoHeader({
@@ -106,13 +108,14 @@ export function RubricPanel({
   onFeedbackChange,
   onAIGrade,
   onSaveAndNext,
+  isMobile = false,
 }: RubricPanelProps) {
   const addQuickComment = (comment: string) => {
     onFeedbackChange(feedback ? `${feedback}\n${comment}` : comment)
   }
 
   return (
-    <div className="w-full md:w-96 bg-white dark:bg-slate-900 border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-700 flex flex-col shrink-0 z-20 shadow-[-4px_0_24px_rgba(0,0,0,0.02)]">
+    <div className="w-full bg-white dark:bg-slate-900 border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-700 flex flex-col shrink-0 z-20 shadow-[-4px_0_24px_rgba(0,0,0,0.02)]">
       <StudentInfoHeader student={currentStudent} totalScore={totalScore} isLoading={isLoading} />
 
       {/* Rubric Matrix */}
@@ -204,7 +207,7 @@ export function RubricPanel({
                 Umpan Balik (Opsional)
               </h4>
               <textarea
-                value={feedback}
+                value={feedback ?? ''}
                 onChange={(e) => onFeedbackChange(e.target.value)}
                 placeholder="Berikan komentar tambahan untuk siswa..."
                 className="w-full h-24 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-800 dark:text-white transition-all resize-none"
@@ -225,25 +228,27 @@ export function RubricPanel({
         )}
       </div>
 
-      {/* Action Footer */}
-      <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-2">
-        <button
-          onClick={() => onSaveAndNext('needs_revision')}
-          disabled={isLoading}
-          className="flex-1 py-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
-        >
-          <AlertCircle className="w-5 h-5" />
-          Minta Revisi
-        </button>
-        <button
-          onClick={() => onSaveAndNext('graded')}
-          disabled={isLoading}
-          className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-200 dark:shadow-none active:scale-95 disabled:opacity-50"
-        >
-          <Save className="w-5 h-5" />
-          Simpan & Lanjut
-        </button>
-      </div>
+      {/* Action Footer — disembunyikan di mobile karena ada fixed bottom bar di halaman */}
+      {!isMobile && (
+        <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-2">
+          <button
+            onClick={() => onSaveAndNext('needs_revision')}
+            disabled={isLoading}
+            className="flex-1 py-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+          >
+            <AlertCircle className="w-5 h-5" />
+            Minta Revisi
+          </button>
+          <button
+            onClick={() => onSaveAndNext('graded')}
+            disabled={isLoading}
+            className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-200 dark:shadow-none active:scale-95 disabled:opacity-50"
+          >
+            <Save className="w-5 h-5" />
+            Simpan &amp; Lanjut
+          </button>
+        </div>
+      )}
     </div>
   )
 }
