@@ -122,7 +122,8 @@ export async function getSuspiciousAttempts(
     // PERFORMANCE: Combine multiple array traversals into a single pass to reduce O(N) operations.
     let tabSwitches = 0
     let blurs = 0
-    for (const s of sigs) {
+    for (let i = 0; i < sigs.length; i++) {
+      const s = sigs[i]
       if (s.signal_type === 'TAB_SWITCH') tabSwitches++
       else if (s.signal_type === 'WINDOW_BLUR') blurs++
     }
