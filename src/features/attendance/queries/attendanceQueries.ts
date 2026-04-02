@@ -2,8 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { createQueryKeys } from '@/src/shared/lib/queryKeys'
-import { GC,STALE } from '@/src/utils/queryConstants'
 import { captureError } from '@/src/utils/sentry'
+import { STALE, GC } from '@/src/utils/queryConstants'
 
 import { attendanceService } from '../api/attendanceService'
 import type { UpsertAttendanceParams } from '../types'

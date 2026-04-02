@@ -17,11 +17,10 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { AssignCourseModal } from "@/src/components/Classroom/AssignCourseModal"
-import { useBuilder } from '@/src/contexts/BuilderContext'
-import { cn } from '@/src/utils/cn'
-import { translateCourseStatus } from '@/src/utils/statusTranslations'
-
 import { PresenceAvatars } from "./PresenceAvatars"
+import { useBuilder } from '@/src/contexts/BuilderContext'
+import { translateCourseStatus } from '@/src/utils/statusTranslations'
+import { cn } from '@/src/utils/cn'
 export function BuilderTopBar() {
   const { state, actions, mobile, presence, offline } = useBuilder()
   const navigate = useNavigate()

@@ -1,6 +1,6 @@
-import { valibotResolver } from '@hookform/resolvers/valibot'
 import { useCallback, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
+import { valibotResolver } from '@hookform/resolvers/valibot'
 import * as v from 'valibot'
 
 import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/src/components/ui'

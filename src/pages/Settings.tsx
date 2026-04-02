@@ -2,12 +2,12 @@ import { Bell, Globe, Lock, LogOut, Monitor, User } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { type Theme,useTheme } from '@/src/contexts/ThemeContext'
-import { profilePreferences } from "@/src/features/profile/api/profilePreferences"
+import { useTheme, type Theme } from '@/src/contexts/ThemeContext'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
 import { captureError } from '@/src/utils/sentry'
 
+import { profilePreferences } from "@/src/features/profile/api/profilePreferences"
 import { AccountTab, AppearanceTab, SecurityTab, ToggleRow } from './SettingsTabs'
 
 type SettingsTab = 'account' | 'notifications' | 'security' | 'appearance' | 'language'
