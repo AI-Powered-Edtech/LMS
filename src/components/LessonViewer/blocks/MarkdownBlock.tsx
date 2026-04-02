@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 
 import { cn } from '@/src/utils/cn'
+import { sanitizeUrl } from '@/src/utils/sanitize'
 import { katexSanitizeSchema } from '@/src/utils/sanitizeMarkdown'
 
 interface MarkdownBlockProps {
@@ -41,7 +42,7 @@ export function MarkdownBlock({ content, className }: MarkdownBlockProps) {
         rehypePlugins={[rehypeKatex, [rehypeSanitize, katexSanitizeSchema]]}
         components={{
           a: ({ href, children }) => (
-            <a href={href} target="_blank" rel="noopener noreferrer">
+            <a href={sanitizeUrl(href)} target="_blank" rel="noopener noreferrer">
               {children}
             </a>
           ),
