@@ -29,7 +29,7 @@ export const Header = memo(function Header() {
   const xpNeeded = xpNext - xpCurrent
   const progress = xpNeeded > 0 ? Math.min(((totalXp - xpCurrent) / xpNeeded) * 100, 100) : 100
 
-  const { role, profile, signOut } = useAuth()
+  const { role, profile, signOut, user } = useAuth()
   const { resolvedTheme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [isProfileOpen, setIsProfileOpen] = useState(false)
@@ -171,7 +171,10 @@ export const Header = memo(function Header() {
             className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-slate-200 dark:bg-slate-700 border-2 border-white dark:border-slate-800 shadow-sm overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <OptimizedImage
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+              src={
+                profile?.avatar_url ||
+                `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.first_name || user?.id}`
+              }
               alt="Foto profil pengguna"
               className="w-full h-full object-cover"
             />
