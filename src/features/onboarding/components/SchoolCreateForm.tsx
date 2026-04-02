@@ -2,7 +2,7 @@ import { ArrowLeft, Loader2, ShieldCheck, Users } from 'lucide-react'
 import type { FormEvent } from 'react'
 
 interface SchoolCreateFormProps {
-  role: 'teacher' | 'admin'
+  userRole: 'teacher' | 'admin'
   fullName: string
   schoolName: string
   isSubmitting: boolean
@@ -42,7 +42,7 @@ const ROLE_CONFIG = {
 }
 
 export function SchoolCreateForm({
-  role,
+  userRole,
   fullName,
   schoolName,
   isSubmitting,
@@ -51,7 +51,7 @@ export function SchoolCreateForm({
   onBack,
   onSubmit,
 }: SchoolCreateFormProps) {
-  const cfg = ROLE_CONFIG[role]
+  const cfg = ROLE_CONFIG[userRole]
   const Icon = cfg.icon
 
   return (

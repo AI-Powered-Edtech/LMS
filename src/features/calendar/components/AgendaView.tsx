@@ -40,6 +40,19 @@ export function AgendaView({ events, today, onToggleCompletion }: AgendaViewProp
         )}
       </div>
       <div className="space-y-4">
+        {upcomingEvents.length === 0 && (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Clock className="w-8 h-8 text-slate-400" />
+            </div>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">
+              Tidak ada agenda mendatang
+            </p>
+            <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">
+              Semua tugas dan jadwal akan muncul di sini
+            </p>
+          </div>
+        )}
         {upcomingEvents.map((event, index) => {
           const countdown = getCountdown(event.date, today)
           return (

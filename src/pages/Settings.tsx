@@ -3,12 +3,13 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { type Theme, useTheme } from '@/contexts/ThemeContext'
+import { NotificationPreferencesPanel } from '@/features/notifications'
 import { profilePreferences } from '@/features/profile/api/profilePreferences'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { cn } from '@/utils/cn'
 import { captureError } from '@/utils/sentry'
 
-import { AccountTab, AppearanceTab, SecurityTab, ToggleRow } from './SettingsTabs'
+import { AccountTab, AppearanceTab, SecurityTab } from './SettingsTabs'
 
 type SettingsTab = 'account' | 'notifications' | 'security' | 'appearance' | 'language'
 
@@ -32,25 +33,6 @@ export function Settings() {
   const { theme, setTheme } = useTheme()
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('account')
-
-  const initPrefs = user ? profilePreferences.getNotificationPreferences(user.id) : null
-  const [notifEmail, setNotifEmail] = useState(initPrefs?.email ?? true)
-  const [notifPush, setNotifPush] = useState(initPrefs?.push ?? true)
-  const [notifAssignment, setNotifAssignment] = useState(initPrefs?.assignment ?? true)
-  const [notifGrade, setNotifGrade] = useState(initPrefs?.grade ?? true)
-  const [notifAnnouncement, setNotifAnnouncement] = useState(initPrefs?.announcement ?? true)
-
-  useEffect(() => {
-    if (user) {
-      profilePreferences.updateNotificationPreferences(user.id, {
-        email: notifEmail,
-        push: notifPush,
-        assignment: notifAssignment,
-        grade: notifGrade,
-        announcement: notifAnnouncement,
-      })
-    }
-  }, [notifEmail, notifPush, notifAssignment, notifGrade, notifAnnouncement, user])
 
   const initLocale = user ? profilePreferences.getLocalePreferences(user.id) : null
   const [language, setLanguage] = useState(initLocale?.language ?? 'id')
@@ -131,56 +113,19 @@ export function Settings() {
           )}
 
           {activeTab === 'notifications' && (
-            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-slate-100 dark:border-slate-700">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                  Preferensi Notifikasi
-                </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                  Atur jenis notifikasi yang ingin Anda terima.
-                </p>
-              </div>
-              <div className="p-6 space-y-5">
-                <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                  Saluran
-                </h3>
-                <ToggleRow
-                  label="Notifikasi Email"
-                  description="Terima pemberitahuan melalui email"
-                  checked={notifEmail}
-                  onChange={setNotifEmail}
-                />
-                <ToggleRow
-                  label="Notifikasi Push"
-                  description="Terima notifikasi push di browser"
-                  checked={notifPush}
-                  onChange={setNotifPush}
-                />
-                <div className="border-t border-slate-100 dark:border-slate-700 pt-5 mt-5">
-                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-4">
-                    Kategori
-                  </h3>
-                  <div className="space-y-4">
-                    <ToggleRow
-                      label="Tugas & Kuis"
-                      description="Tugas baru, tenggat, dan hasil kuis"
-                      checked={notifAssignment}
-                      onChange={setNotifAssignment}
-                    />
-                    <ToggleRow
-                      label="Nilai & Umpan Balik"
-                      description="Penilaian baru dan komentar guru"
-                      checked={notifGrade}
-                      onChange={setNotifGrade}
-                    />
-                    <ToggleRow
-                      label="Pengumuman"
-                      description="Pengumuman kelas dan sekolah"
-                      checked={notifAnnouncement}
-                      onChange={setNotifAnnouncement}
-                    />
-                  </div>
+            <div className="space-y-4">
+              <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-slate-100 dark:border-slate-700">
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                    Preferensi Notifikasi
+                  </h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    Pilih saluran pemberitahuan untuk setiap jenis notifikasi. Perubahan tersimpan
+                    otomatis.
+                  </p>
                 </div>
+                {/* Enhanced per-type × per-channel matrix panel */}
+                <NotificationPreferencesPanel embedded />
               </div>
             </div>
           )}
