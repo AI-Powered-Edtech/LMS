@@ -34,10 +34,7 @@ export const leaderboardService = {
       .order('rank', { ascending: true })
       .limit(20)
 
-    // Only filter by class_id if provided
-    if (classId) {
-      query = query.eq('class_id', classId)
-    }
+    // NOTE: class_id column does not exist in current leaderboards schema — skip filter
 
     const { data, error } = await query
 

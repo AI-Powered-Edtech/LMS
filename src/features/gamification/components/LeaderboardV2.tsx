@@ -1,7 +1,7 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { AlertTriangle, Calendar, Filter, Flame, TrendingUp, Trophy } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { EmptyState, OptimizedImage, SkeletonCard } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
@@ -58,8 +58,8 @@ export function LeaderboardV2() {
 
   const list = rankedEntries
 
-  const isCurrentUser = (e: LeaderboardV2Entry) => e.user_id === user?.id
-  const currentUserEntry = list.find(isCurrentUser)
+  const isCurrentUser = useCallback((e: LeaderboardV2Entry) => e.user_id === user?.id, [user?.id])
+  const currentUserEntry = useMemo(() => list.find(isCurrentUser), [list, isCurrentUser])
 
   const parentRef = useRef<HTMLDivElement>(null)
   const listTail = list.slice(3)

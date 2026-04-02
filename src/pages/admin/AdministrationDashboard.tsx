@@ -7,13 +7,10 @@ import {
   Database,
   FileText,
   GraduationCap,
-  LayoutGrid,
   Loader2,
   RefreshCw,
   Server,
   Settings,
-  ToggleLeft,
-  ToggleRight,
   Users,
 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
@@ -23,9 +20,8 @@ import {
   administrationService,
   SyncHistoryItem,
   SyncResult,
-  TenantModuleConfig,
 } from '@/features/administration/api/administrationService'
-import { AdministrationSkeleton } from '@/features/administration/components/AdministrationSkeleton'
+import { FeatureManagement } from '@/features/administration/components/FeatureManagement'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
@@ -74,10 +70,6 @@ export function AdministrationDashboard() {
   const navigate = useNavigate()
   const addToast = useToast((s) => s.addToast)
   usePageTitle('Dasbor Administrasi')
-  // State for modules
-  const [modules, setModules] = useState<TenantModuleConfig[]>([])
-  const [modulesLoading, setModulesLoading] = useState(true)
-  const [modulesError, setModulesError] = useState<string | null>(null)
 
   // State for sync operations
   const [isSyncing, setIsSyncing] = useState(false)
@@ -89,30 +81,6 @@ export function AdministrationDashboard() {
   // State for sync history
   const [syncHistory, setSyncHistory] = useState<SyncHistoryItem[]>([])
   const [syncHistoryLoading, setSyncHistoryLoading] = useState(true)
-
-  // Fetch modules on mount
-  const fetchModules = useCallback(async () => {
-    try {
-      setModulesLoading(true)
-      setModulesError(null)
-
-      const data = await administrationService.getTenantModules()
-
-      // If no data from database, use defaults
-      if (data.length === 0) {
-        setModules(administrationService.getDefaultModules())
-      } else {
-        setModules(data)
-      }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to fetch modules:', error)
-      setModulesError('Gagal memuat konfigurasi modul. Menggunakan default.')
-      // Fallback to defaults on error
-      setModules(administrationService.getDefaultModules())
-    } finally {
-      setModulesLoading(false)
-    }
-  }, [])
 
   // Fetch sync history on mount
   const fetchSyncHistory = useCallback(async () => {
@@ -138,33 +106,8 @@ export function AdministrationDashboard() {
 
   // Initial data fetch
   useEffect(() => {
-    fetchModules()
     fetchSyncHistory()
-  }, [fetchModules, fetchSyncHistory])
-
-  // Toggle module handler
-  const handleToggleModule = async (moduleId: string) => {
-    const module = modules.find((m) => m.moduleId === moduleId)
-    if (!module) return
-
-    const newEnabledState = !module.isEnabled
-
-    // Optimistic update
-    setModules((prev) =>
-      prev.map((m) => (m.moduleId === moduleId ? { ...m, isEnabled: newEnabledState } : m))
-    )
-
-    try {
-      await administrationService.toggleTenantModule(moduleId, newEnabledState)
-    } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to toggle module:', error)
-      // Revert on error
-      setModules((prev) =>
-        prev.map((m) => (m.moduleId === moduleId ? { ...m, isEnabled: !newEnabledState } : m))
-      )
-      addToast({ type: 'error', message: 'Gagal mengubah status modul. Silakan coba lagi.' })
-    }
-  }
+  }, [fetchSyncHistory])
 
   // Sync handler
   const handleSync = async () => {
@@ -223,10 +166,6 @@ export function AdministrationDashboard() {
     if (diffHours < 24) return `${diffHours} jam yang lalu`
     if (diffDays === 1) return 'Kemarin'
     return `${diffDays} hari yang lalu`
-  }
-
-  if (modulesLoading && modules.length === 0) {
-    return <AdministrationSkeleton />
   }
 
   return (
@@ -293,97 +232,12 @@ export function AdministrationDashboard() {
         </div>
       )}
 
+      {/* Feature Management — unified module + feature flags panel */}
+      <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <FeatureManagement defaultTab="modules" />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Module Configuration Card */}
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm md:col-span-3">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-xl flex items-center justify-center">
-              <LayoutGrid className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                Konfigurasi Modul & Fitur
-              </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                Aktifkan atau nonaktifkan fitur sesuai kebutuhan sekolah.
-              </p>
-            </div>
-          </div>
-
-          {/* Error State for Modules */}
-          {modulesError && (
-            <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-lg border border-amber-200 dark:border-amber-800 text-sm flex items-center gap-2">
-              <AlertCircle className="w-4 h-4" />
-              {modulesError}
-            </div>
-          )}
-
-          {/* Loading State */}
-          {modulesLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-              <span className="ml-3 text-slate-500 dark:text-slate-400">Memuat modul...</span>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {modules.map((module) => (
-                <div
-                  key={module.moduleId}
-                  className="flex items-start justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600"
-                >
-                  <div className="flex-1 pr-4">
-                    <h4
-                      className="font-bold text-slate-900 dark:text-slate-100 text-sm mb-1 line-clamp-2 break-words"
-                      title={module.name}
-                    >
-                      {module.name}
-                    </h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
-                      {module.description}
-                    </p>
-                    <div className="flex gap-1 flex-wrap">
-                      {module.targetRoles.map((role) => (
-                        <span
-                          key={role}
-                          className="text-[10px] uppercase font-bold px-1.5 py-0.5 bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300 rounded"
-                        >
-                          {role === 'teacher' ? 'Guru' : 'Siswa'}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <button
-                    role="switch"
-                    aria-checked={module.isEnabled}
-                    aria-label={`${module.isEnabled ? 'Nonaktifkan' : 'Aktifkan'} modul ${module.name}`}
-                    onClick={() => handleToggleModule(module.moduleId)}
-                    className={cn(
-                      'shrink-0 transition-colors',
-                      module.isEnabled
-                        ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-slate-400 dark:text-slate-600'
-                    )}
-                  >
-                    {module.isEnabled ? (
-                      <ToggleRight className="w-8 h-8" />
-                    ) : (
-                      <ToggleLeft className="w-8 h-8" />
-                    )}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Empty State */}
-          {!modulesLoading && modules.length === 0 && (
-            <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-              <LayoutGrid className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-              <p>Tidak ada modul tersedia.</p>
-            </div>
-          )}
-        </div>
-
         {/* PDDIKTI Status Card */}
         <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm md:col-span-2">
           <div className="flex items-center justify-between mb-6">

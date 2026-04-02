@@ -4,9 +4,11 @@ import {
   ChevronDown,
   ClipboardList,
   Clock,
+  Download,
   FileText,
   Filter,
   KeyRound,
+  Loader2,
   Mail,
   RefreshCw,
   Shield,
@@ -21,7 +23,9 @@ import {
   type AuditLog,
 } from '@/features/administration/api/administrationService'
 import { AdministrationSkeleton } from '@/features/administration/components/AdministrationSkeleton'
+import { exportAuditLogsToCSV } from '@/features/administration/utils/auditExport'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
 import { captureError } from '@/utils/sentry'
 
@@ -79,14 +83,29 @@ const ACTION_OPTIONS = [
 
 export function AuditDashboard() {
   usePageTitle('Dasbor Audit')
+  const addToast = useToast((s) => s.addToast)
   const [logs, setLogs] = useState<AuditLog[]>([])
   const [loading, setLoading] = useState(true)
   const [actionFilter, setActionFilter] = useState('')
   const [totalCount, setTotalCount] = useState(0)
   const [cursor, setCursor] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
 
   const PAGE_SIZE = 30
+
+  const handleExportCSV = useCallback(async () => {
+    setIsExporting(true)
+    try {
+      exportAuditLogsToCSV(logs)
+      addToast({ type: 'success', message: 'Log audit berhasil diekspor' })
+    } catch (err) {
+      captureError(err, { context: 'AuditDashboard.exportCSV' })
+      addToast({ type: 'error', message: 'Gagal mengekspor log audit. Coba lagi.' })
+    } finally {
+      setIsExporting(false)
+    }
+  }, [logs, addToast])
 
   const fetchLogs = useCallback(
     async (newCursor?: string) => {
@@ -220,9 +239,31 @@ export function AuditDashboard() {
             Riwayat semua aktivitas admin dalam sekolah Anda.
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-          <Clock className="w-4 h-4" />
-          <span>{totalCount} total entri</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+            <Clock className="w-4 h-4" />
+            <span>{totalCount} total entri</span>
+          </div>
+          {/* Export CSV Button */}
+          <button
+            onClick={handleExportCSV}
+            disabled={isExporting || logs.length === 0}
+            className={cn(
+              'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all',
+              'focus-visible:ring-2 focus-visible:ring-blue-500 outline-none',
+              logs.length > 0 && !isExporting
+                ? 'bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
+            )}
+            title="Ekspor log audit ke CSV"
+          >
+            {isExporting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            Ekspor CSV
+          </button>
         </div>
       </div>
 

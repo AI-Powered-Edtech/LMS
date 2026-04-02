@@ -6,15 +6,18 @@ import {
   Link as LinkIcon,
   Loader2,
   Pencil,
+  QrCode,
   Settings2,
   Trash2,
   UserPlus,
   Users,
   X,
 } from 'lucide-react'
+import { useState } from 'react'
 
 import { EmptyState } from '@/components/ui'
 import type { EnrolledStudent } from '@/features/classroom/api/classroomService'
+import { QRCodeGenerator } from '@/features/classroom/components/QRCodeGenerator'
 import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
 
 interface SelectedClass {
@@ -60,6 +63,8 @@ export function ClassDetailPanel({
   onRemoveStudent,
 }: ClassDetailPanelProps) {
   const getPath = useRoleBasedPath()
+  const [showQR, setShowQR] = useState(false)
+
   if (!selectedClass) {
     return (
       <div className="flex-1 min-w-0">
@@ -165,11 +170,11 @@ export function ClassDetailPanel({
               <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
                 Kode Gabung
               </p>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-[0.2em]">
                   {selectedClass.join_code}
                 </span>
-                <div className="flex gap-1.5 ml-auto">
+                <div className="flex gap-1.5 ml-auto flex-wrap">
                   <button
                     onClick={() =>
                       onHandleCopy(selectedClass.join_code, 'code-' + selectedClass.id)
@@ -186,7 +191,7 @@ export function ClassDetailPanel({
                   <button
                     onClick={() =>
                       onHandleCopy(
-                        `${window.location.origin}/dashboard?join=${selectedClass.join_code}`,
+                        `${window.location.origin}/#/join?code=${selectedClass.join_code}`,
                         'link-' + selectedClass.id
                       )
                     }
@@ -199,10 +204,29 @@ export function ClassDetailPanel({
                     )}
                     {copiedId === 'link-' + selectedClass.id ? 'Tersalin!' : 'Salin Link'}
                   </button>
+                  <button
+                    onClick={() => setShowQR((v) => !v)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 font-medium text-xs rounded-lg transition-colors"
+                    title="Tampilkan QR Code"
+                    aria-label="Tampilkan QR Code"
+                  >
+                    <QrCode className="w-3.5 h-3.5" />
+                    QR Code
+                  </button>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* QR Code panel (collapsible) */}
+          {showQR && (
+            <div className="mt-4">
+              <QRCodeGenerator
+                joinCode={selectedClass.join_code}
+                onClose={() => setShowQR(false)}
+              />
+            </div>
+          )}
 
           {/* Quick Actions */}
           <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">

@@ -12,12 +12,7 @@ function CertificateCard({ cert }: { cert: Certificate }) {
   const { activeTenant, profile } = useAuth()
 
   const handlePrint = () => {
-    const w = window.open('', '_blank')
-    if (!w) return
-
-    // SECURITY: All user-controlled values interpolated into document.write() MUST be
-    // escaped via escapeHtml() to prevent Stored XSS. Profile name and course title are
-    // stored in the database and can contain attacker-controlled content.
+    // SECURITY: All user-controlled values MUST be escaped via escapeHtml().
     const safeCertNumber = escapeHtml(cert.certificate_number)
     const safeTenantName = escapeHtml(activeTenant?.name ?? 'EduSync')
     const safeFirstName = escapeHtml(profile?.first_name ?? '')
@@ -30,42 +25,54 @@ function CertificateCard({ cert }: { cert: Certificate }) {
       year: 'numeric',
     })
 
-    w.document.write(`
-            <!DOCTYPE html>
-            <html><head><title>Sertifikat - ${safeCertNumber}</title>
-            <style>
-                @page { size: landscape; margin: 0; }
-                body { margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: Georgia, serif; background: #fff; }
-                .cert { width: 900px; padding: 60px; border: 8px double #b8860b; text-align: center; position: relative; }
-                .cert::before { content: ''; position: absolute; inset: 12px; border: 2px solid #daa520; }
-                h1 { color: #1e3a5f; font-size: 36px; margin: 0 0 8px; }
-                .school { color: #666; font-size: 14px; margin-bottom: 32px; }
-                .label { color: #888; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
-                .name { color: #1e3a5f; font-size: 28px; font-weight: bold; margin-bottom: 8px; }
-                .course { color: #333; font-size: 20px; margin-bottom: 32px; }
-                .meta { color: #888; font-size: 12px; margin-top: 24px; }
-            </style></head><body>
-            <div class="cert">
-                <h1>SERTIFIKAT</h1>
-                <p class="school">${safeTenantName}</p>
-                <p class="label">Diberikan kepada</p>
-                <p class="name">${safeFirstName} ${safeLastName}</p>
-                <p class="label">Atas penyelesaian kursus</p>
-                <p class="course">${safeCourseTitle}</p>
-                <p class="meta">
-                    ${issuedDate}
-                    &nbsp;·&nbsp; ${safeCertNumber}
-                </p>
-            </div>
-            </body></html>
-        `)
-    w.document.close()
-    // SECURITY: Sever the window.opener reference so the print window cannot
-    // access or manipulate the parent window's DOM / localStorage via JavaScript.
-    w.opener = null
-    setTimeout(() => {
-      w.print()
-    }, 300)
+    const htmlString = `<!DOCTYPE html>
+<html><head><title>Sertifikat - ${safeCertNumber}</title>
+<style>
+    @page { size: landscape; margin: 0; }
+    body { margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: Georgia, serif; background: #fff; }
+    .cert { width: 900px; padding: 60px; border: 8px double #b8860b; text-align: center; position: relative; }
+    .cert::before { content: ''; position: absolute; inset: 12px; border: 2px solid #daa520; }
+    h1 { color: #1e3a5f; font-size: 36px; margin: 0 0 8px; }
+    .school { color: #666; font-size: 14px; margin-bottom: 32px; }
+    .label { color: #888; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .name { color: #1e3a5f; font-size: 28px; font-weight: bold; margin-bottom: 8px; }
+    .course { color: #333; font-size: 20px; margin-bottom: 32px; }
+    .meta { color: #888; font-size: 12px; margin-top: 24px; }
+</style></head><body>
+<div class="cert">
+    <h1>SERTIFIKAT</h1>
+    <p class="school">${safeTenantName}</p>
+    <p class="label">Diberikan kepada</p>
+    <p class="name">${safeFirstName} ${safeLastName}</p>
+    <p class="label">Atas penyelesaian kursus</p>
+    <p class="course">${safeCourseTitle}</p>
+    <p class="meta">
+        ${issuedDate}
+        &nbsp;·&nbsp; ${safeCertNumber}
+    </p>
+</div>
+</body></html>`
+
+    // PERFORMANCE: Use Blob URL instead of document.write() to avoid blocking
+    // the main thread. document.write() is synchronous and can freeze the UI
+    // for 200-500ms on large HTML — especially noticeable at this emotionally
+    // significant moment for students.
+    const blob = new Blob([htmlString], { type: 'text/html;charset=utf-8' })
+    const blobUrl = URL.createObjectURL(blob)
+
+    const printWindow = window.open(blobUrl, '_blank')
+    if (!printWindow) {
+      URL.revokeObjectURL(blobUrl)
+      return
+    }
+
+    // Revoke blob URL after the window has loaded to free memory,
+    // then trigger print. The window remains open because the browser
+    // has already parsed the HTML.
+    printWindow.onload = () => {
+      URL.revokeObjectURL(blobUrl)
+      setTimeout(() => printWindow.print(), 300)
+    }
   }
 
   return (
