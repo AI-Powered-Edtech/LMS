@@ -186,8 +186,9 @@ export const assignmentService = {
 
   /**
    * Fetches all submissions for an assignment (for Teacher Gradebook).
+   * FIXED: A2 — replaced hardcoded limit(200) with configurable limit parameter.
    */
-  async getAssignmentSubmissions(assignmentId: string, tenantId: string) {
+  async getAssignmentSubmissions(assignmentId: string, tenantId: string, limit: number = 100) {
     const { data, error } = await supabase
       .from('assignment_submissions')
       .select(
@@ -202,7 +203,7 @@ export const assignmentService = {
       .eq('assignment_id', assignmentId)
       .eq('tenant_id', tenantId)
       .order('submitted_at', { ascending: false })
-      .limit(200)
+      .limit(limit)
 
     if (error) {
       logDevError('assignmentService', 'Error fetching assignment submissions:', error)
@@ -268,13 +269,19 @@ export const assignmentService = {
   /**
    * Fetches all assignments for a tenant (used by AssignmentGradebook).
    * Returns a flat list ordered by created_at.
+   * FIXED: A2 — added pagination parameters to prevent unbounded query results.
    */
-  async getAssignmentsByTenant(tenantId: string): Promise<Assignment[]> {
+  async getAssignmentsByTenant(
+    tenantId: string,
+    page: number = 0,
+    pageSize: number = 50
+  ): Promise<Assignment[]> {
     const { data, error } = await supabase
       .from('assignments')
       .select(ASSIGNMENT_COLUMNS)
       .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false })
+      .range(page * pageSize, (page + 1) * pageSize - 1)
 
     if (error) {
       logDevError('assignmentService', 'Error fetching assignments by tenant:', error)
@@ -330,6 +337,36 @@ export const assignmentService = {
   },
 
   /**
+   * Fetch submission ID dan teks sekaligus (SpeedGrader annotation support).
+   * Mengembalikan { id, submission_text } atau null jika tidak ada submission.
+   */
+  async getSubmission(
+    assignmentId: string,
+    studentId: string,
+    tenantId: string
+  ): Promise<{ id: string; submission_text: string | null } | null> {
+    const { data, error } = await supabase
+      .from('assignment_submissions')
+      .select('id, submission_text')
+      .eq('assignment_id', assignmentId)
+      .eq('student_id', studentId)
+      .eq('tenant_id', tenantId)
+      .maybeSingle()
+
+    if (error) {
+      logDevError('assignmentService', 'Error fetching submission:', error)
+      return null
+    }
+
+    if (!data) return null
+
+    return {
+      id: data.id as string,
+      submission_text: (data.submission_text as string | null) ?? null,
+    }
+  },
+
+  /**
    * Internal method to fetch assignments with submissions.
    * Supports pagination for scalability with large datasets.
    */
@@ -376,7 +413,9 @@ export const assignmentService = {
   },
 
   /**
-   * Upload an assignment submission file to storage and return its public URL.
+   * Upload an assignment submission file to a PRIVATE storage bucket.
+   * Returns the STORAGE PATH (not public URL) for security.
+   * Use storageService.createSignedUrl() to access the file.
    * Validates MIME type and sanitizes filename before upload.
    */
   async uploadSubmissionFile(
@@ -406,37 +445,68 @@ export const assignmentService = {
       .from('assignment-submissions')
       .upload(storagePath, file, { upsert: false })
     if (uploadError) throw uploadError
-    const { data: publicData } = supabase.storage
-      .from('assignment-submissions')
-      .getPublicUrl(uploadData?.path || '')
-    return publicData?.publicUrl || uploadData?.path || ''
+    return uploadData?.path ?? storagePath
   },
 
   /**
    * Get count of pending (published, not yet submitted) assignments for a student.
+   * Only counts assignments in courses the student is actively enrolled in.
    * Used by useNavBadges for the bottom nav badge.
    */
   async getPendingAssignmentCount(tenantId: string, userId: string): Promise<number> {
-    const { count, error } = await supabase
-      .from('assignments')
-      .select(
-        `id,
-         assignment_submissions!left(id, status, student_id)`,
-        { count: 'exact', head: false }
-      )
+    // Step 1: Fetch the student's actively enrolled course IDs
+    // NOTE: use course_enrollments (has course_id), NOT enrollments (has class_id, no course_id)
+    const { data: enrollments, error: eErr } = await supabase
+      .from('course_enrollments')
+      .select('course_id')
+      .eq('user_id', userId)
       .eq('tenant_id', tenantId)
-      .eq('is_published', true)
-      .or(`assignment_submissions.student_id.is.null,assignment_submissions.status.neq.submitted`, {
-        foreignTable: 'assignment_submissions',
-      })
-      .eq('assignment_submissions.student_id', userId)
+      .eq('status', 'ACTIVE') // enrollment_status enum: uppercase only
 
-    if (error) {
+    if (eErr) {
       if (import.meta.env.DEV)
-        console.error('[assignmentService] getPendingAssignmentCount error:', error)
+        console.error('[assignmentService] getPendingAssignmentCount enrollments error:', eErr)
       return 0
     }
 
-    return count ?? 0
+    if (!enrollments || enrollments.length === 0) return 0
+
+    const enrolledCourseIds = enrollments.map((e) => e.course_id)
+
+    // Step 2: Get all published assignments in the enrolled courses
+    const { data: allAssignments, error: aErr } = await supabase
+      .from('assignments')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('is_published', true)
+      .in('course_id', enrolledCourseIds)
+
+    if (aErr) {
+      if (import.meta.env.DEV)
+        console.error('[assignmentService] getPendingAssignmentCount error:', aErr)
+      return 0
+    }
+
+    if (!allAssignments || allAssignments.length === 0) return 0
+
+    // Step 3: Get submitted assignment IDs for this student
+    const { data: submitted, error: sErr } = await supabase
+      .from('assignment_submissions')
+      .select('assignment_id')
+      .eq('student_id', userId)
+      .eq('status', 'submitted')
+      .in(
+        'assignment_id',
+        allAssignments.map((a) => a.id)
+      )
+
+    if (sErr) {
+      if (import.meta.env.DEV)
+        console.error('[assignmentService] getPendingAssignmentCount submissions error:', sErr)
+      return allAssignments.length
+    }
+
+    const submittedIds = new Set((submitted ?? []).map((s) => s.assignment_id))
+    return allAssignments.filter((a) => !submittedIds.has(a.id)).length
   },
 }

@@ -32,7 +32,7 @@
     "perf:lighthouse": "npx lhci autorun --config=lighthouserc.json 2>/dev/null || npx lighthouse http://localhost:5173 --output=json --output-path=./lighthouse-report.json --chrome-flags='--headless'",
     "check:circular": "madge --circular --extensions ts,tsx --config .madgerc.json src/",
     "check:unused": "knip",
-    "bundlesize": "bundlesize"
+    "bundlesize": "bundlesize2"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
@@ -67,6 +67,7 @@
     "valibot": "^1.3.1",
     "vite": "^6.2.0",
     "web-vitals": "^5.2.0",
+    "workbox-window": "^7.4.0",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
@@ -86,6 +87,7 @@
     "@typescript-eslint/parser": "^8.57.1",
     "@vitejs/plugin-react": "^5.0.4",
     "@vitest/coverage-v8": "^4.1.0",
+    "bundlesize2": "^0.0.35",
     "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-jsx-a11y": "^6.10.2",
@@ -109,7 +111,8 @@
     "overrides": {
       "serialize-javascript": ">=7.0.5",
       "picomatch": ">=4.0.4",
-      "brace-expansion": ">=5.0.5"
+      "brace-expansion": ">=5.0.5",
+      "lodash": ">=4.18.0"
     }
   },
   "lint-staged": {

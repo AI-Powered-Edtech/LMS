@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   ArrowLeft,
+  BookOpen,
   CheckCircle,
   HelpCircle,
   Loader2,
@@ -10,14 +11,18 @@ import {
   Trash2,
   X,
 } from 'lucide-react'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { EmptyState } from '@/components/ui'
+import { type QuestionBankItem } from '@/features/question-bank/api/questionBankService'
 import { QuestionSearchModal } from '@/features/question-bank/components/QuestionSearchModal'
 import { type QuestionType, type QuizMode } from '@/features/quizzes'
 import { QuizStatus } from '@/features/quizzes/types/quizzes.types'
 import { useDraftAutosave } from '@/hooks/useDraftAutosave'
+import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
+
+import { ImportFromQuestionBank } from './ImportFromQuestionBank'
 
 // ─────────────────────────────────────────────────────────
 // Types (internal to quiz editor)
@@ -123,6 +128,83 @@ export function QuizEditorView({
   loadQuizzes,
   draftKey,
 }: QuizEditorViewProps) {
+  const { addToast } = useToast()
+  const [showImportModal, setShowImportModal] = useState(false)
+  const [isImportingFromBank, setIsImportingFromBank] = useState(false)
+
+  // ── Import dari Bank Soal ────────────────────────────────
+
+  const handleImportFromBank = async (bankQuestions: QuestionBankItem[]) => {
+    if (!editingQuizId) return
+    if (bankQuestions.length === 0) return
+
+    setIsImportingFromBank(true)
+    try {
+      const { questionBankService } =
+        await import('@/features/question-bank/api/questionBankService')
+
+      // Import soal secara batch — cek duplikasi terlebih dahulu
+      const existingIds = new Set(form.questions.map((q) => q.id).filter(Boolean))
+      const toImport = bankQuestions.filter((q) => !existingIds.has(q.id))
+
+      if (toImport.length === 0) {
+        addToast({
+          type: 'warning',
+          message: 'Semua soal yang dipilih sudah ada di kuis ini.',
+        })
+        setIsImportingFromBank(false)
+        return
+      }
+
+      // Tambahkan soal satu per satu secara sequential
+      for (let i = 0; i < toImport.length; i++) {
+        const q = toImport[i]
+        await questionBankService.addQuestionToQuiz(
+          q.id,
+          editingQuizId,
+          1,
+          form.questions.length + i
+        )
+      }
+
+      // Update local form state dengan soal baru
+      const newQuestions = toImport.map((q, idx) => ({
+        id: q.id,
+        text: q.question_text,
+        order: form.questions.length + idx + 1,
+        question_type: q.question_type as QuestionType,
+        points: 1,
+        explanation: q.explanation || null,
+        options: (q.options || []).map(
+          (o: { id?: string; option_text: string; is_correct: boolean }) => ({
+            id: o.id,
+            text: o.option_text,
+            is_correct: o.is_correct,
+          })
+        ),
+      }))
+
+      setForm((prev) => ({
+        ...prev,
+        questions: [...prev.questions, ...newQuestions],
+      }))
+
+      addToast({
+        type: 'success',
+        message: `${toImport.length} soal berhasil diimpor ke kuis.`,
+      })
+
+      setShowImportModal(false)
+    } catch (err) {
+      addToast({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Gagal mengimpor soal. Coba lagi.',
+      })
+    } finally {
+      setIsImportingFromBank(false)
+    }
+  }
+
   const draftStorageKey = draftKey ?? `quiz-editor-draft-${form?.id ?? 'new'}`
   const { saveStatusText, loadDraft } = useDraftAutosave({
     key: draftStorageKey,
@@ -341,13 +423,22 @@ export function QuizEditorView({
           {!isPublished && (
             <div className="flex items-center gap-2">
               {editingQuizId && (
-                <button
-                  type="button"
-                  onClick={() => setShowQuestionModal(true)}
-                  className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 font-bold rounded-lg text-xs flex items-center gap-1 transition-colors"
-                >
-                  <Search className="w-3.5 h-3.5" /> Bank Soal
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setShowImportModal(true)}
+                    className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 font-bold rounded-lg text-xs flex items-center gap-1.5 transition-colors"
+                  >
+                    <BookOpen className="w-3.5 h-3.5" /> Impor dari Bank Soal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowQuestionModal(true)}
+                    className="px-3 py-1.5 bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 text-neutral-600 dark:text-neutral-300 font-bold rounded-lg text-xs flex items-center gap-1 transition-colors"
+                  >
+                    <Search className="w-3.5 h-3.5" /> Bank Soal
+                  </button>
+                </>
               )}
               <button
                 type="button"
@@ -511,7 +602,7 @@ export function QuizEditorView({
         )}
       </div>
 
-      {/* Question Bank Modal */}
+      {/* Question Bank Modal (satu per satu) */}
       {editingQuizId && (
         <QuestionSearchModal
           quizId={editingQuizId}
@@ -540,6 +631,17 @@ export function QuizEditorView({
             }))
             setShowQuestionModal(false)
           }}
+        />
+      )}
+
+      {/* Import Batch dari Bank Soal */}
+      {editingQuizId && (
+        <ImportFromQuestionBank
+          isOpen={showImportModal}
+          onClose={() => setShowImportModal(false)}
+          onImport={handleImportFromBank}
+          existingQuestionIds={form.questions.map((q) => q.id).filter(Boolean) as string[]}
+          isImporting={isImportingFromBank}
         />
       )}
     </div>

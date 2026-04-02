@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { courseService } from '@/features/courses/api/courseService'
+import { supabase } from '@/services/supabase/client'
 import { translateCourseStatus } from '@/utils/statusTranslations'
 
 interface Course {
@@ -16,7 +16,7 @@ interface Course {
 export function StudentCoursesList() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { tenantId } = useAuth()
+  const { user, tenantId } = useAuth()
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -24,21 +24,31 @@ export function StudentCoursesList() {
   const enrollmentError = (location.state as { error?: string } | null)?.error ?? null
 
   useEffect(() => {
-    if (!tenantId) return
+    if (!tenantId || !user?.id) return
     setLoading(true)
     setError(null)
-    courseService
-      .fetchCourses({ tenantId, limit: 50 })
-      .then((res) => {
-        // Filter out drafts if necessary, though fetchCourses might handle it
-        setCourses((res.courses as unknown as Course[]).filter((c) => c.status === 'published'))
+    // NOTE: Only fetch courses the student is enrolled in via course_enrollments.
+    // Students are enrolled automatically when they join a class (handle_student_joined_class trigger).
+    // DO NOT fetch all published courses — that shows inaccessible content.
+    supabase
+      .from('course_enrollments')
+      .select('course_id, courses!inner(id, title, description, status)')
+      .eq('user_id', user.id)
+      .eq('tenant_id', tenantId)
+      .eq('status', 'ACTIVE') // enrollment_status enum: uppercase only
+      .then(({ data, error: err }) => {
+        if (err) throw err
+        const enrolled = (data ?? [])
+          .map((e) => (e as unknown as { courses: Course }).courses)
+          .filter((c) => c.status === 'published')
+        setCourses(enrolled)
       })
       .catch((err) => {
-        if (import.meta.env.DEV) console.error('Failed to fetch courses:', err)
+        if (import.meta.env.DEV) console.error('Failed to fetch enrolled courses:', err)
         setError('Gagal memuat daftar kursus. Silakan muat ulang halaman.')
       })
       .finally(() => setLoading(false))
-  }, [tenantId, retryCount])
+  }, [tenantId, user?.id, retryCount])
 
   if (error) {
     return (

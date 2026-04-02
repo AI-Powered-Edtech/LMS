@@ -159,13 +159,33 @@ export async function getSuspiciousAttempts(
 
 /**
  * Get the total count of suspicious attempts for a quiz (for badge display).
+ *
+ * Uses a 2-query approach because PostgREST cross-table column filters
+ * (.eq('related_table.column', value)) only work with an !inner join in the
+ * select string — they do NOT work on head-only count queries.  We therefore
+ * first resolve the attempt IDs that belong to the quiz, then count signals.
  */
 export async function getSuspiciousAttemptCount(quizId: string, tenantId: string): Promise<number> {
+  // Step 1: resolve attempt IDs for this quiz + tenant
+  const { data: attempts, error: attemptsError } = await supabase
+    .from('quiz_attempts_v2')
+    .select('id')
+    .eq('quiz_id', quizId)
+    .eq('tenant_id', tenantId)
+
+  if (attemptsError) {
+    if (import.meta.env.DEV) console.error('Error fetching attempts for count:', attemptsError)
+    return 0
+  }
+
+  const attemptIds = attempts?.map((a) => a.id) ?? []
+  if (attemptIds.length === 0) return 0
+
+  // Step 2: count cheating signals for those attempts
   const { count, error } = await supabase
     .from('quiz_cheating_signals')
     .select('attempt_id', { count: 'exact', head: true })
-    .eq('quiz_attempts_v2.quiz_id', quizId)
-    .eq('quiz_attempts_v2.tenant_id', tenantId)
+    .in('attempt_id', attemptIds)
 
   if (error) {
     if (import.meta.env.DEV) console.error('Error counting suspicious attempts:', error)

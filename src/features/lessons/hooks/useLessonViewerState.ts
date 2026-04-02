@@ -275,6 +275,32 @@ export function useLessonViewerState() {
   // Effects
   // ============================================================
 
+  // Validate URL parameters before use
+  useEffect(() => {
+    if (moduleId && !/^[a-zA-Z0-9_-]+$/.test(moduleId)) {
+      addToast({ type: 'error', message: 'Tautan modul tidak valid.' })
+      setSearchParams(
+        (prev) => {
+          prev.delete('moduleId')
+          prev.delete('lessonId')
+          return prev
+        },
+        { replace: true }
+      )
+      return
+    }
+    if (lessonId && !/^[a-zA-Z0-9_-]+$/.test(lessonId)) {
+      addToast({ type: 'error', message: 'Tautan pelajaran tidak valid.' })
+      setSearchParams(
+        (prev) => {
+          prev.delete('lessonId')
+          return prev
+        },
+        { replace: true }
+      )
+    }
+  }, [moduleId, lessonId, addToast, setSearchParams])
+
   // Load module lessons for sidebar
   useEffect(() => {
     if (!moduleId || !user?.id || !tenantId) return
@@ -291,8 +317,10 @@ export function useLessonViewerState() {
         if (import.meta.env.DEV) console.error('Failed to load module title:', err)
       })
 
+    // FIXED: C1 — pass isTeacher so draft lessons are hidden from students
+    const isTeacher = role === 'teacher' || role === 'admin'
     lessonService
-      .fetchModuleLessons(moduleId, user.id, tenantId)
+      .fetchModuleLessons(moduleId, user.id, tenantId, isTeacher)
       .then(({ lessons, progress }) => {
         if (!cancelled) {
           setModuleLessons(lessons)

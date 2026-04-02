@@ -134,6 +134,18 @@ export function useQuizPageState() {
   // Handle auto-open if quizId is in search params
   useEffect(() => {
     const targetQuizId = searchParams.get('quizId')
+    // Validate quizId format (UUID or alphanumeric)
+    if (targetQuizId && !/^[a-zA-Z0-9_-]+$/.test(targetQuizId)) {
+      addToast({ type: 'error', message: 'Tautan kuis tidak valid.' })
+      setSearchParams(
+        (prev) => {
+          prev.delete('quizId')
+          return prev
+        },
+        { replace: true }
+      )
+      return
+    }
     if (targetQuizId && quizzes.length > 0 && !isQuizActive && !showResults && !pendingQuiz) {
       const quiz = quizzes.find((q) => q.id === targetQuizId)
       if (quiz) {
@@ -148,9 +160,28 @@ export function useQuizPageState() {
           },
           { replace: true }
         )
+      } else {
+        // Quiz ID valid but not found in list
+        addToast({ type: 'warning', message: 'Kuis tidak ditemukan.' })
+        setSearchParams(
+          (prev) => {
+            prev.delete('quizId')
+            return prev
+          },
+          { replace: true }
+        )
       }
     }
-  }, [searchParams, quizzes, quizAttempts, isQuizActive, showResults, pendingQuiz, setSearchParams])
+  }, [
+    searchParams,
+    quizzes,
+    quizAttempts,
+    isQuizActive,
+    showResults,
+    pendingQuiz,
+    setSearchParams,
+    addToast,
+  ])
 
   const handleStartOrResume = async (
     quiz: StudentQuizAssignment & { isResume?: boolean; activeAttempt?: QuizAttempt }

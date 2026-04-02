@@ -4,15 +4,12 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { classroomService } from '@/features/classroom/api/classroomService'
 import { useClassroom } from '@/features/classroom/hooks/useClassroomQueries'
-import { type QuestionType, type QuizMode, quizService } from '@/features/quizzes'
+import { type QuizMode, quizService } from '@/features/quizzes'
 import { QuizEditorView } from '@/features/quizzes/components/QuizEditorView'
 import { QuizListView } from '@/features/quizzes/components/QuizListView'
+import { type QuizFormData, useQuizForm } from '@/features/quizzes/hooks/useQuizForm'
 import { QuizStatus } from '@/features/quizzes/types/quizzes.types'
 import { usePageTitle } from '@/hooks/usePageTitle'
-
-// ─────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────
 
 interface QuizListItem {
   id: string
@@ -26,34 +23,6 @@ interface QuizListItem {
   assignment_count?: number
   created_at: string
   updated_at: string
-}
-
-interface QuizQuestion {
-  id?: string
-  text: string
-  order: number
-  question_type: QuestionType
-  points: number
-  explanation: string | null
-  tenant_id?: string
-  options: { id?: string; text: string; is_correct: boolean }[]
-}
-
-interface QuizFormData {
-  id?: string
-  title: string
-  instructions: string
-  mode: QuizMode
-  time_limit_minutes: number | null
-  max_attempts: number
-  passing_score: number
-  shuffle_questions: boolean
-  shuffle_options: boolean
-  show_correct_answers: boolean
-  available_from: string
-  due_at: string
-  status: QuizStatus
-  questions: QuizQuestion[]
 }
 
 const emptyForm: QuizFormData = {
@@ -104,9 +73,21 @@ export function QuizManager() {
   const [expandedQuizId, setExpandedQuizId] = useState<string | null>(null)
 
   // Editor state
-  const [form, setForm] = useState<QuizFormData>(emptyForm)
   const [isSaving, setIsSaving] = useState(false)
   const [showQuestionModal, setShowQuestionModal] = useState(false)
+
+  const {
+    form,
+    setForm,
+    addQuestion,
+    updateQuestion,
+    removeQuestion,
+    updateQuestionType,
+    addOption,
+    updateOption,
+    removeOption,
+    setCorrectOption,
+  } = useQuizForm(emptyForm)
 
   // ─── List Loading ──────────────────────────────────────
 
@@ -136,7 +117,7 @@ export function QuizManager() {
   // ─── Open Editor ────────────────────────────────────────
 
   const openNewQuiz = () => {
-    setForm(emptyForm)
+    setForm({ ...emptyForm, questions: [] })
     setEditingQuizId(null)
     setView('editor')
   }
@@ -346,109 +327,6 @@ export function QuizManager() {
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err))
     }
-  }
-
-  // ─── Question CRUD (local state) ────────────────────────
-
-  const addQuestion = () => {
-    setForm((prev) => ({
-      ...prev,
-      questions: [
-        ...prev.questions,
-        {
-          text: '',
-          order: prev.questions.length + 1,
-          question_type: 'MCQ' as QuestionType,
-          points: 1,
-          explanation: null,
-          options: [
-            { text: 'Opsi A', is_correct: true },
-            { text: 'Opsi B', is_correct: false },
-          ],
-        },
-      ],
-    }))
-  }
-
-  const updateQuestion = <K extends keyof QuizQuestion>(
-    idx: number,
-    field: K,
-    value: QuizQuestion[K]
-  ) => {
-    const qs = [...form.questions]
-    qs[idx][field] = value
-    setForm({ ...form, questions: qs })
-  }
-
-  const removeQuestion = (idx: number) => {
-    const qs = [...form.questions]
-    qs.splice(idx, 1)
-    // Reorder
-    qs.forEach((q, i) => {
-      q.order = i + 1
-    })
-    setForm({ ...form, questions: qs })
-  }
-
-  const updateQuestionType = (qIdx: number, newType: QuestionType) => {
-    const q = form.questions[qIdx]
-    const hasOptions = q.options.some((o) => o.text.trim() !== '')
-    const isToTextType = ['SHORT_ANSWER', 'ESSAY'].includes(newType)
-    const isFromOptionType = ['MCQ', 'TRUE_FALSE', 'MULTIPLE_SELECT'].includes(q.question_type)
-
-    if (isFromOptionType && isToTextType && hasOptions) {
-      if (!confirm('Mengubah tipe soal ini akan menghapus semua opsi jawaban. Lanjutkan?')) {
-        return
-      }
-    }
-
-    const qs = [...form.questions]
-    qs[qIdx].question_type = newType
-    if (newType === 'TRUE_FALSE') {
-      qs[qIdx].options = [
-        { text: 'Benar', is_correct: true },
-        { text: 'Salah', is_correct: false },
-      ]
-    } else if (newType === 'SHORT_ANSWER' || newType === 'ESSAY') {
-      qs[qIdx].options = []
-    } else if (qs[qIdx].options.length === 0) {
-      qs[qIdx].options = [
-        { text: 'Opsi A', is_correct: true },
-        { text: 'Opsi B', is_correct: false },
-      ]
-    }
-    setForm({ ...form, questions: qs })
-  }
-
-  const addOption = (qIdx: number) => {
-    const qs = [...form.questions]
-    qs[qIdx].options.push({ text: 'Opsi Baru', is_correct: false })
-    setForm({ ...form, questions: qs })
-  }
-
-  const updateOption = (qIdx: number, oIdx: number, text: string) => {
-    const qs = [...form.questions]
-    qs[qIdx].options[oIdx].text = text
-    setForm({ ...form, questions: qs })
-  }
-
-  const removeOption = (qIdx: number, oIdx: number) => {
-    const qs = [...form.questions]
-    qs[qIdx].options.splice(oIdx, 1)
-    setForm({ ...form, questions: qs })
-  }
-
-  const setCorrectOption = (qIdx: number, oIdx: number) => {
-    const qs = [...form.questions]
-    const qType = qs[qIdx].question_type
-    if (qType === 'MULTIPLE_SELECT') {
-      qs[qIdx].options[oIdx].is_correct = !qs[qIdx].options[oIdx].is_correct
-    } else {
-      qs[qIdx].options.forEach((o, i) => {
-        o.is_correct = i === oIdx
-      })
-    }
-    setForm({ ...form, questions: qs })
   }
 
   const isPublished = form.status === 'published'
