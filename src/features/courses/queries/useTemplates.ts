@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { useAuth } from "@/src/contexts/AuthContext"
+import { useAuth } from '@/src/contexts/AuthContext'
 
 import { ContentTemplate, templateService } from '../api/templateService'
 

@@ -51,7 +51,9 @@ export default function FeatureFlagsPage() {
   if (role !== 'admin') {
     return (
       <div className="p-6 max-w-5xl mx-auto text-center">
-        <p className="text-red-600 font-bold">Akses ditolak. Hanya admin yang dapat mengakses halaman ini.</p>
+        <p className="text-red-600 font-bold">
+          Akses ditolak. Hanya admin yang dapat mengakses halaman ini.
+        </p>
       </div>
     )
   }

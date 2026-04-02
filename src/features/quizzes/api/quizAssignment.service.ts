@@ -174,9 +174,7 @@ export async function getClassQuizAssignments(
   if (error) throw error
 
   return (data || []).map((assignment) => {
-    const quiz = Array.isArray(assignment.quizzes)
-      ? assignment.quizzes[0]
-      : assignment.quizzes
+    const quiz = Array.isArray(assignment.quizzes) ? assignment.quizzes[0] : assignment.quizzes
     return {
       id: assignment.id,
       quiz_id: assignment.quiz_id,

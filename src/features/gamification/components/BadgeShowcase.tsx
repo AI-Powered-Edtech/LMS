@@ -118,7 +118,7 @@ function BadgeCard({
 }
 
 function criteriaHint(badge: BadgeDefinition): string {
-  if (!badge.criteria) return "Selesaikan tantangan";
+  if (!badge.criteria) return 'Selesaikan tantangan'
   const c = badge.criteria as Record<string, unknown>
   switch (c.type) {
     case 'lessons_completed':

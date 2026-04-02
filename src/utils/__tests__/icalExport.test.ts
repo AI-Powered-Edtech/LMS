@@ -1,8 +1,8 @@
-import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { CalendarEvent } from '@/src/features/calendar/api/calendarService'
 
-import { downloadICal,generateICal } from '../icalExport'
+import { downloadICal, generateICal } from '../icalExport'
 
 describe('icalExport', () => {
   const baseDate = new Date('2024-05-15T10:00:00Z')
@@ -185,8 +185,12 @@ describe('icalExport', () => {
         download: '',
       } as any)
 
-      const appendChildMock = vi.spyOn(document.body, 'appendChild').mockImplementation(() => null as any)
-      const removeChildMock = vi.spyOn(document.body, 'removeChild').mockImplementation(() => null as any)
+      const appendChildMock = vi
+        .spyOn(document.body, 'appendChild')
+        .mockImplementation(() => null as any)
+      const removeChildMock = vi
+        .spyOn(document.body, 'removeChild')
+        .mockImplementation(() => null as any)
 
       downloadICal(events, 'test.ics')
 

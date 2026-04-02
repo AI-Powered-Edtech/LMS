@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { createQueryKeys } from '@/src/shared/lib/queryKeys'
-import { GC,STALE } from '@/src/utils/queryConstants'
+import { GC, STALE } from '@/src/utils/queryConstants'
 import { captureError } from '@/src/utils/sentry'
 
 import { ltiService } from '../api/ltiService'

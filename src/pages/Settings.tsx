@@ -2,8 +2,8 @@ import { Bell, Globe, Lock, LogOut, Monitor, User } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { type Theme,useTheme } from '@/src/contexts/ThemeContext'
-import { profilePreferences } from "@/src/features/profile/api/profilePreferences"
+import { type Theme, useTheme } from '@/src/contexts/ThemeContext'
+import { profilePreferences } from '@/src/features/profile/api/profilePreferences'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { cn } from '@/src/utils/cn'
 import { captureError } from '@/src/utils/sentry'
@@ -33,7 +33,7 @@ export function Settings() {
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('account')
 
-  const initPrefs = user ? profilePreferences.getNotificationPreferences(user.id) : null;
+  const initPrefs = user ? profilePreferences.getNotificationPreferences(user.id) : null
   const [notifEmail, setNotifEmail] = useState(initPrefs?.email ?? true)
   const [notifPush, setNotifPush] = useState(initPrefs?.push ?? true)
   const [notifAssignment, setNotifAssignment] = useState(initPrefs?.assignment ?? true)
@@ -53,8 +53,8 @@ export function Settings() {
   }, [notifEmail, notifPush, notifAssignment, notifGrade, notifAnnouncement, user])
 
   const initLocale = user ? profilePreferences.getLocalePreferences(user.id) : null
-  const [language, setLanguage] = useState(initLocale?.language ?? "id")
-  const [timezone, setTimezone] = useState(initLocale?.timezone ?? "Asia/Jakarta")
+  const [language, setLanguage] = useState(initLocale?.language ?? 'id')
+  const [timezone, setTimezone] = useState(initLocale?.timezone ?? 'Asia/Jakarta')
 
   useEffect(() => {
     if (user) {
@@ -207,7 +207,8 @@ export function Settings() {
                     Bahasa
                   </label>
                   <select
-                    value={language} onChange={(e) => setLanguage(e.target.value)}
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white"
                   >
                     <option value="id">Bahasa Indonesia</option>
@@ -218,7 +219,8 @@ export function Settings() {
                     Zona Waktu
                   </label>
                   <select
-                    value={timezone} onChange={(e) => setTimezone(e.target.value)}
+                    value={timezone}
+                    onChange={(e) => setTimezone(e.target.value)}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white"
                   >
                     <option value="Asia/Jakarta">WIB (UTC+7) — Jakarta</option>

@@ -1,8 +1,8 @@
-import { fireEvent,render } from '@testing-library/react'
+import { fireEvent, render } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
 import { AttendanceChecklist } from '../components/AttendanceChecklist'
-import type { AttendanceStudentDetail,ClassStudent } from '../types'
+import type { AttendanceStudentDetail, ClassStudent } from '../types'
 
 const mockStudents: ClassStudent[] = [
   { student_id: 's1', full_name: 'Andi Pratama' },

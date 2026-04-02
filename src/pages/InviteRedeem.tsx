@@ -1,6 +1,6 @@
-import { CheckCircle, Loader2, Mail,XCircle } from 'lucide-react'
+import { CheckCircle, Loader2, Mail, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useNavigate,useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { supabase } from '@/src/services/supabase/client'
@@ -68,9 +68,7 @@ export function InviteRedeem() {
             <h1 className="mt-6 text-2xl font-bold text-slate-900 dark:text-white">
               Memvalidasi undangan...
             </h1>
-            <p className="mt-2 text-slate-500 dark:text-slate-400">
-              Mohon tunggu sebentar.
-            </p>
+            <p className="mt-2 text-slate-500 dark:text-slate-400">Mohon tunggu sebentar.</p>
           </>
         )}
 
