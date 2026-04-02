@@ -375,6 +375,7 @@ export function AssignmentGradebook() {
                       <FileText className="w-5 h-5 text-blue-500" />
                       <span className="text-sm font-bold text-slate-600 dark:text-slate-400">
                         Buka File Lampiran
+                        <span className="sr-only">(buka di tab baru)</span>
                       </span>
                     </a>
                   )}

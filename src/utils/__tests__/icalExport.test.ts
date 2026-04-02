@@ -1,6 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { generateICal, downloadICal } from '../icalExport'
+import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest'
+
 import type { CalendarEvent } from '@/src/features/calendar/api/calendarService'
+
+import { downloadICal,generateICal } from '../icalExport'
 
 describe('icalExport', () => {
   const baseDate = new Date('2024-05-15T10:00:00Z')
