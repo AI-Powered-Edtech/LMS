@@ -42,14 +42,16 @@ function MetricCard({
       case 'at_risk_count':
         return summary.find((r: { segment: string }) => r.segment === 'at_risk')?.student_count ?? 0
       case 'avg_engagement': {
-        const total = summary.reduce(
-          (a: number, r: { student_count: number }) => a + r.student_count,
-          0
-        )
-        const high =
-          summary.find((r: { segment: string }) => r.segment === 'high')?.student_count ?? 0
-        const med =
-          summary.find((r: { segment: string }) => r.segment === 'medium')?.student_count ?? 0
+        // ⚡ Perf: consolidate multiple chained array traversals into a single pass to reduce O(N) operations.
+        let total = 0
+        let high = 0
+        let med = 0
+        for (let i = 0; i < summary.length; i++) {
+          const r = summary[i] as { segment: string; student_count: number }
+          total += r.student_count
+          if (r.segment === 'high') high = r.student_count
+          else if (r.segment === 'medium') med = r.student_count
+        }
         if (total === 0) return '-'
         return `${Math.round(((high * 100 + med * 60) / (total * 100)) * 100)}%`
       }
