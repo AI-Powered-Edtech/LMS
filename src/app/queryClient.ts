@@ -19,21 +19,30 @@ function isNetworkError(error: unknown): boolean {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      // Jangan retry client errors (400-499) — deterministically invalid
+      // Kecuali 429 Too Many Requests (transient), boleh retry 1x
       retry: (failureCount, error) => {
-        // Never retry client errors (400-499) — they are deterministically invalid
-        // Exception: 429 Too Many Requests is transient, allow 1 retry
         const status = getErrorStatus(error)
         if (typeof status === 'number' && status >= 400 && status < 500 && status !== 429) {
           return false
         }
-        // For network errors and 5xx: retry once
-        return failureCount < 1
+        // Network errors dan 5xx: retry maksimal 2x
+        return failureCount < 2
       },
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      // Exponential backoff: 1s → 2s → 4s... max 10s
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10_000),
+      // Data dianggap fresh selama 1 menit (turun dari 5 menit untuk data yang lebih aktual)
+      staleTime: 60_000,
+      // Garbage collection setelah 5 menit tidak digunakan
+      gcTime: 5 * 60_000,
+      // Tidak refetch aggressif saat window focus (hemat quota)
       refetchOnWindowFocus: false,
+      // PWA support: queries berjalan saat offline dengan cache
+      networkMode: 'offlineFirst',
     },
     mutations: {
       retry: 0,
+      networkMode: 'offlineFirst',
     },
   },
 })

@@ -4,26 +4,39 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 
 export function RoleResolver() {
-  const { role, loading } = useAuth()
+  // SECURITY FIX: Use activeRole (per-tenant role) instead of global `role`.
+  // The global `role` is the highest-privilege role across ALL tenants and can
+  // cause wrong redirects when a user's tenant membership hasn't loaded yet
+  // (roles=[] → getPrimaryRole([]) returns 'student' fallback, causing the admin
+  // to land on /app/student → RoleGuard denies → /unauthorized).
+  const { activeRole, loading } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
     if (!loading) {
-      switch (role) {
+      switch (activeRole) {
         case 'admin':
           navigate('/app/admin', { replace: true })
           break
+        case 'principal':
+          navigate('/app/principal', { replace: true })
+          break
         case 'teacher':
           navigate('/app/teacher', { replace: true })
+          break
+        case 'parent':
+          navigate('/app/parent', { replace: true })
           break
         case 'student':
           navigate('/app/student', { replace: true })
           break
         default:
-          navigate('/unauthorized', { replace: true })
+          // activeRole is null → no active tenant; TenantGuard upstream should
+          // already redirect to /workspace-selector, but guard here as fallback.
+          navigate('/workspace-selector', { replace: true })
       }
     }
-  }, [role, loading, navigate])
+  }, [activeRole, loading, navigate])
 
   return (
     <div className="flex h-screen items-center justify-center bg-slate-900">

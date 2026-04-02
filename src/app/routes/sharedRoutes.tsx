@@ -7,6 +7,7 @@ import {
   Assignments,
   Calendar,
   Directory,
+  EnrollPage,
   ForgotPassword,
   Forum,
   GroupAssignment,
@@ -16,6 +17,7 @@ import {
   NotFound,
   NotificationsPage,
   Offline,
+  ParentRegisterPage,
   Profile,
   PublicProfile,
   ResetPassword,
@@ -114,6 +116,31 @@ export function PublicRoutes() {
         element={
           <S>
             <Offline />
+          </S>
+        }
+      />
+      {/*
+       * Pendaftaran orang tua via OTP nomor HP.
+       * Dapat diakses tanpa login — orang tua belum punya akun saat mendaftar.
+       */}
+      <Route
+        path="/register-parent"
+        element={
+          <S feature="Daftar Orang Tua">
+            <ParentRegisterPage />
+          </S>
+        }
+      />
+      {/*
+       * Deep link enrollment: /#/join?code=XXXXXX
+       * Accessible without authentication — EnrollPage handles the auth redirect
+       * internally (saves code to sessionStorage, redirects to /login).
+       */}
+      <Route
+        path="/join"
+        element={
+          <S feature="Bergabung ke Kelas">
+            <EnrollPage />
           </S>
         }
       />

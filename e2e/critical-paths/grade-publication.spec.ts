@@ -167,4 +167,28 @@ test.describe('Critical Path — Grade Publication Flow', () => {
     expect(bodyLen).toBeGreaterThan(50)
     await expect(page).not.toHaveURL(/login/)
   })
+
+  test('halaman gradebook memenuhi performance budget', async ({ page }) => {
+    await loginAsTeacher(page)
+    await page.goto('/#/app/teacher/gradebook')
+    await page.waitForLoadState('networkidle')
+
+    const metrics = await page.evaluate(() => {
+      const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
+      const paintEntries = performance.getEntriesByType('paint')
+      const fcpEntry = paintEntries.find((e) => e.name === 'first-contentful-paint')
+      return {
+        fcp: fcpEntry ? fcpEntry.startTime : null,
+        loadTime: nav ? nav.loadEventEnd - nav.startTime : null,
+      }
+    })
+
+    // Gradebook adalah halaman kompleks, budget lebih longgar
+    if (metrics.fcp !== null) {
+      expect(metrics.fcp).toBeLessThan(4000)
+    }
+    if (metrics.loadTime !== null) {
+      expect(metrics.loadTime).toBeLessThan(8000)
+    }
+  })
 })

@@ -7,7 +7,10 @@ import { Role, useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
 import { LevelBadge } from '@/features/gamification/components/LevelBadge'
 import { useStudentXPProfile } from '@/features/gamification/queries/gamificationQueries'
-import { NotificationBell as AppNotificationBell } from '@/features/notifications'
+import {
+  AdminNotificationBell,
+  NotificationBell as AppNotificationBell,
+} from '@/features/notifications'
 import { useStudentProgressData } from '@/features/progress/hooks/useStudentProgressQueries'
 import { NotificationBell as StruggleBell } from '@/features/struggle'
 import { cn } from '@/utils/cn'
@@ -64,6 +67,8 @@ export const Header = memo(function Header() {
     student: 'Siswa',
     teacher: 'Guru',
     admin: 'Administrator',
+    parent: 'Orang Tua',
+    principal: 'Kepala Sekolah',
   }
 
   return (
@@ -147,6 +152,9 @@ export const Header = memo(function Header() {
 
         {/* Struggle Detection Bell — teacher/admin only */}
         <StruggleBell />
+
+        {/* Admin Notification Center — admin only */}
+        {role === 'admin' && <AdminNotificationBell />}
 
         {/* App Notification Bell — all roles */}
         <AppNotificationBell />

@@ -68,23 +68,36 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['icons/favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png'],
+        includeAssets: ['favicon.ico', 'robots.txt', 'icons/*.png', 'icons/*.svg'],
         manifest: {
           name: 'EduSync LMS',
           short_name: 'EduSync',
-          description: 'Sistem Manajemen Pembelajaran untuk sekolah Indonesia',
-          theme_color: '#2563eb',
+          description: 'Platform Belajar Digital untuk Sekolah Indonesia',
+          theme_color: '#6366f1',
           background_color: '#ffffff',
           display: 'standalone',
+          orientation: 'any',
           start_url: '/',
+          scope: '/',
+          lang: 'id',
           icons: [
-            { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-            { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+            { src: '/icons/icon-72x72.png', sizes: '72x72', type: 'image/png' },
+            { src: '/icons/icon-96x96.png', sizes: '96x96', type: 'image/png' },
+            { src: '/icons/icon-128x128.png', sizes: '128x128', type: 'image/png' },
+            { src: '/icons/icon-144x144.png', sizes: '144x144', type: 'image/png' },
+            { src: '/icons/icon-152x152.png', sizes: '152x152', type: 'image/png' },
+            {
+              src: '/icons/icon-192.png',
+              sizes: '192x192',
+              type: 'image/png',
+              purpose: 'any maskable',
+            },
+            { src: '/icons/icon-384x384.png', sizes: '384x384', type: 'image/png' },
             {
               src: '/icons/icon-512.png',
               sizes: '512x512',
               type: 'image/png',
-              purpose: 'maskable',
+              purpose: 'any maskable',
             },
           ],
           categories: ['education'],
@@ -120,7 +133,9 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
-          navigateFallback: '/offline.html',
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          navigateFallback: '/index.html',
+          navigateFallbackDenylist: [/^\/api/, /^\/supabase/],
           runtimeCaching: [
             // NEVER cache: RPC endpoints with user context (POST requests)
             {
@@ -188,6 +203,7 @@ export default defineConfig(({ mode }) => {
             },
           ],
         },
+        devOptions: { enabled: true },
       }),
       ...(isAnalyze
         ? [visualizer({ open: true, filename: 'stats.html', gzipSize: true, brotliSize: true })]
@@ -215,18 +231,20 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks: {
+            // ── Vendor chunks ───────────────────────────────────────────────
             'vendor-react': ['react', 'react-dom', 'react-router-dom'],
             'vendor-supabase': ['@supabase/supabase-js'],
             'vendor-recharts': ['recharts'],
             'vendor-katex': ['katex'],
-            'vendor-query': ['@tanstack/react-query'],
+            'vendor-query': ['@tanstack/react-query', '@tanstack/react-virtual'],
             'vendor-motion': ['motion'],
             'vendor-dnd': ['@hello-pangea/dnd'],
             'vendor-markdown': ['remark-gfm', 'remark-math', 'rehype-katex'],
             'vendor-sentry': ['@sentry/react'],
             'vendor-date': ['date-fns'],
             'vendor-sanitize': ['dompurify'],
-            'vendor-form': ['react-hook-form', '@hookform/resolvers', 'valibot'],
+            'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'valibot'],
+            'vendor-ui': ['lucide-react'],
           },
         },
       },

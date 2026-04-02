@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/useToast'
 import { supabase } from '@/services/supabase/client'
 import { addBreadcrumb, captureError, clearSentryUser, setSentryUser } from '@/utils/sentry'
 
-export type Role = 'teacher' | 'student' | 'admin'
+export type Role = 'teacher' | 'student' | 'admin' | 'parent' | 'principal'
 
 export interface Permissions {
   canCreateCourse: boolean
@@ -23,6 +23,15 @@ export interface Permissions {
   canViewAnalytics: boolean
   canTakeExams: boolean
   canScheduleExams: boolean
+  // Parent permissions
+  canViewOwnChildProgress: boolean
+  canMessageTeacher: boolean
+  canViewChildGrades: boolean
+  canViewChildAttendance: boolean
+  // Principal permissions
+  canViewExecutiveDashboard: boolean
+  canGenerateReports: boolean
+  canConfigurePrincipalSettings: boolean
 }
 
 const rolePermissions: Record<Role, Permissions> = {
@@ -32,6 +41,13 @@ const rolePermissions: Record<Role, Permissions> = {
     canViewAnalytics: false,
     canTakeExams: true,
     canScheduleExams: false,
+    canViewOwnChildProgress: false,
+    canMessageTeacher: false,
+    canViewChildGrades: false,
+    canViewChildAttendance: false,
+    canViewExecutiveDashboard: false,
+    canGenerateReports: false,
+    canConfigurePrincipalSettings: false,
   },
   teacher: {
     canCreateCourse: true,
@@ -39,6 +55,13 @@ const rolePermissions: Record<Role, Permissions> = {
     canViewAnalytics: true,
     canTakeExams: false,
     canScheduleExams: true,
+    canViewOwnChildProgress: false,
+    canMessageTeacher: false,
+    canViewChildGrades: false,
+    canViewChildAttendance: false,
+    canViewExecutiveDashboard: false,
+    canGenerateReports: false,
+    canConfigurePrincipalSettings: false,
   },
   admin: {
     canCreateCourse: true,
@@ -46,6 +69,41 @@ const rolePermissions: Record<Role, Permissions> = {
     canViewAnalytics: true,
     canTakeExams: false,
     canScheduleExams: true,
+    canViewOwnChildProgress: false,
+    canMessageTeacher: false,
+    canViewChildGrades: false,
+    canViewChildAttendance: false,
+    canViewExecutiveDashboard: false,
+    canGenerateReports: false,
+    canConfigurePrincipalSettings: false,
+  },
+  parent: {
+    canCreateCourse: false,
+    canManageUsers: false,
+    canViewAnalytics: false,
+    canTakeExams: false,
+    canScheduleExams: false,
+    canViewOwnChildProgress: true,
+    canMessageTeacher: true,
+    canViewChildGrades: true,
+    canViewChildAttendance: true,
+    canViewExecutiveDashboard: false,
+    canGenerateReports: false,
+    canConfigurePrincipalSettings: false,
+  },
+  principal: {
+    canCreateCourse: false,
+    canManageUsers: false,
+    canViewAnalytics: true,
+    canTakeExams: false,
+    canScheduleExams: false,
+    canViewOwnChildProgress: false,
+    canMessageTeacher: false,
+    canViewChildGrades: false,
+    canViewChildAttendance: false,
+    canViewExecutiveDashboard: true,
+    canGenerateReports: true,
+    canConfigurePrincipalSettings: true,
   },
 }
 
@@ -105,7 +163,9 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 function getPrimaryRole(roles: Role[]): Role {
   if (roles.includes('admin')) return 'admin'
+  if (roles.includes('principal')) return 'principal'
   if (roles.includes('teacher')) return 'teacher'
+  if (roles.includes('parent')) return 'parent'
   return 'student'
 }
 

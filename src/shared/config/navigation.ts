@@ -1,27 +1,38 @@
 import {
+  Activity,
   Award,
   BarChart3,
+  BookOpen,
   BookOpenCheck,
   Building2,
   Calendar,
+  ClipboardList,
   CreditCard,
+  DollarSign,
   FileSignature,
   FileText,
+  Flag,
   FolderKanban,
   Gamepad2,
   GraduationCap,
+  Grid3X3,
   HelpCircle,
   Home,
+  LayoutDashboard,
   LayoutGrid,
   type LucideIcon,
   Megaphone,
   MessageSquare,
   PenTool,
   PlayCircle,
+  Puzzle,
   ScanFace,
+  School,
   Settings,
+  Settings2,
   Shield,
   Sparkles,
+  TrendingUp,
   Trophy,
   UserCircle,
   UserPlus,
@@ -50,6 +61,74 @@ export interface NavItem {
   border?: string
   notification?: number
 }
+
+// ─── Admin Navigation Groups ──────────────────────────────────────────────────
+
+export interface AdminNavItem {
+  label: string
+  icon: LucideIcon
+  href: string
+  /** Optional badge text, e.g. "Segera" */
+  badge?: string
+}
+
+export interface AdminNavGroup {
+  group: string
+  items: AdminNavItem[]
+}
+
+/**
+ * Grouped admin sidebar navigation config.
+ * Groups are collapsible and support active-state highlighting.
+ */
+export const adminNavGroups: AdminNavGroup[] = [
+  {
+    group: 'Utama',
+    items: [
+      { label: 'Dasbor', icon: LayoutDashboard, href: '/app/admin/dashboard' },
+      { label: 'Admin Hub', icon: Grid3X3, href: '/admin-hub' },
+    ],
+  },
+  {
+    group: 'Pengguna & Kelas',
+    items: [
+      { label: 'Pengguna', icon: Users, href: '/app/admin/users' },
+      { label: 'Kelas', icon: School, href: '/app/admin/classes' },
+      { label: 'Kursus', icon: BookOpen, href: '/app/admin/courses' },
+    ],
+  },
+  {
+    group: 'Akademik',
+    items: [
+      { label: 'Buku Nilai', icon: ClipboardList, href: '/app/admin/gradebook' },
+      { label: 'Analitik', icon: BarChart3, href: '/app/admin/analytics' },
+      { label: 'Progres Siswa', icon: TrendingUp, href: '/app/admin/student-progress/overview' },
+    ],
+  },
+  {
+    group: 'Administrasi',
+    items: [
+      { label: 'Administrasi', icon: Settings2, href: '/app/admin/administration' },
+      { label: 'Audit', icon: Shield, href: '/app/admin/audit' },
+      { label: 'Moderasi', icon: Flag, href: '/app/admin/moderation' },
+    ],
+  },
+  {
+    group: 'Keuangan',
+    items: [
+      { label: 'Tagihan', icon: CreditCard, href: '/billing' },
+      { label: 'Keuangan', icon: DollarSign, href: '/app/admin/finance', badge: 'Segera' },
+    ],
+  },
+  {
+    group: 'Sistem',
+    items: [
+      { label: 'Kesehatan Sistem', icon: Activity, href: '/app/admin/system-health' },
+      { label: 'Integrasi LTI', icon: Puzzle, href: '/admin/lti', badge: 'Segera' },
+      { label: 'Pengaturan', icon: Settings, href: '/settings' },
+    ],
+  },
+]
 
 export const navigationItems: NavItem[] = [
   // --- SIDEBAR ITEMS (HUBS) ---

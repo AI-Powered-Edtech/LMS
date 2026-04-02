@@ -7,10 +7,14 @@ graph LR
     S["Siswa (Student)"]
     T["Guru (Teacher)"]
     A["Admin"]
+    P["Orang Tua (Parent)"]
+    PR["Kepala Sekolah (Principal)"]
 
     S --> |belajar di| CLASS["Kelas"]
     T --> |mengajar| CLASS
     A --> |mengelola| PLATFORM["Platform"]
+    P --> |memantau| S
+    PR --> |mengawasi| PLATFORM
 ```
 
 ---
@@ -150,29 +154,92 @@ Admin Hub (/#/admin-hub) or Admin Dashboard (/#/app/admin)
 
 ---
 
+## 4. Parent Flows
+
+### 4.1 Registrasi & Login
+
+```
+/register-parent
+  → OTP via nomor HP (WhatsApp)
+  → Verifikasi OTP
+  → Setup profil (nama, hubungan ke siswa)
+  → Auto-link ke profil siswa via student_parent_links
+  → /app/parent (Parent Dashboard)
+
+Login via /login
+  → role 'parent' detected
+  → redirect /app/parent
+```
+
+### 4.2 Dashboard Orang Tua
+
+```
+Parent Dashboard (/app/parent)
+  → ParentDashboard: traffic light status, nilai terbaru, kehadiran, tugas
+  → /app/parent/nilai → detail nilai per mata pelajaran (semua subject)
+  → /app/parent/kehadiran → kalender kehadiran (monthly calendar view)
+  → /app/parent/pesan → MessageTeacher (daftar percakapan dengan guru)
+  → /app/parent/pesan/:threadId → MessageThreadView (in-app chat)
+  → /app/parent/laporan → MonthlyReportPage (laporan bulanan PDF)
+  → /app/parent/pengaturan → DigestSettings (konfigurasi notifikasi harian)
+```
+
+---
+
+## 5. Principal Flows
+
+### 5.1 Login & Dashboard
+
+```
+Login via /login
+  → role 'principal' detected
+  → redirect /app/principal
+
+Executive Dashboard (/app/principal)
+  → ExecutiveDashboard: adoption metrics + academic overview + ROI calculator
+  → /app/principal/analytics → BeforeAfterAnalytics (perbandingan sebelum/sesudah LMS)
+  → /app/principal/report → ReportPreview (laporan print-friendly untuk yayasan/dinas)
+  → /app/principal/survey → SurveyPage (kelola survey kepuasan guru/siswa/orang tua)
+```
+
+---
+
 ## Route Quick Reference
 
 All routes use hash prefix `/#/`:
 
-| Path                         | Who             | Page                 |
-| ---------------------------- | --------------- | -------------------- |
-| `/login`                     | Public          | Login                |
-| `/app/student`               | Student         | Student Dashboard    |
-| `/app/teacher`               | Teacher         | Teacher Dashboard    |
-| `/app/admin`                 | Admin           | Admin Dashboard      |
-| `/dashboard`                 | Student         | Dashboard (legacy)   |
-| `/analytics`                 | Teacher/Admin   | Analytics            |
-| `/teaching`                  | Teacher         | Teaching Hub         |
-| `/teaching/course-builder`   | Teacher/Admin   | Course Builder       |
-| `/teaching/quiz-manager`     | Teacher/Admin   | Quiz Manager         |
-| `/teaching/classes`          | Teacher/Admin   | Class Management     |
-| `/teaching/course-analytics` | Teacher/Admin   | Per-course analytics |
-| `/gradebook`                 | Teacher/Admin   | Gradebook            |
-| `/leaderboard`               | Student/Teacher | Leaderboard          |
-| `/courses/:courseId`         | Student         | Lesson Viewer        |
-| `/settings`                  | All             | Settings             |
-| `/profile`                   | All             | Profile              |
-| `/announcements`             | All             | Announcements        |
+| Path                          | Who             | Page                       |
+| ----------------------------- | --------------- | -------------------------- |
+| `/login`                      | Public          | Login                      |
+| `/register-parent`            | Public          | Registrasi Orang Tua (OTP) |
+| `/join?code=XXXXXX`           | Public/Student  | Deep Link Enrollment       |
+| `/app/student`                | Student         | Student Dashboard          |
+| `/app/teacher`                | Teacher         | Teacher Dashboard          |
+| `/app/admin`                  | Admin           | Admin Dashboard            |
+| `/app/parent`                 | Parent          | Parent Dashboard           |
+| `/app/parent/nilai`           | Parent          | Detail Nilai               |
+| `/app/parent/kehadiran`       | Parent          | Kalender Kehadiran         |
+| `/app/parent/pesan`           | Parent          | Pesan ke Guru              |
+| `/app/parent/pesan/:threadId` | Parent          | Thread Percakapan          |
+| `/app/parent/laporan`         | Parent          | Laporan Bulanan            |
+| `/app/parent/pengaturan`      | Parent          | Pengaturan Notifikasi      |
+| `/app/principal`              | Principal       | Executive Dashboard        |
+| `/app/principal/analytics`    | Principal       | Before-After Analytics     |
+| `/app/principal/report`       | Principal       | Report Preview             |
+| `/app/principal/survey`       | Principal       | Survey Kepuasan            |
+| `/dashboard`                  | Student         | Dashboard (legacy)         |
+| `/analytics`                  | Teacher/Admin   | Analytics                  |
+| `/teaching`                   | Teacher         | Teaching Hub               |
+| `/teaching/course-builder`    | Teacher/Admin   | Course Builder             |
+| `/teaching/quiz-manager`      | Teacher/Admin   | Quiz Manager               |
+| `/teaching/classes`           | Teacher/Admin   | Class Management           |
+| `/teaching/course-analytics`  | Teacher/Admin   | Per-course analytics       |
+| `/gradebook`                  | Teacher/Admin   | Gradebook                  |
+| `/leaderboard`                | Student/Teacher | Leaderboard                |
+| `/courses/:courseId`          | Student         | Lesson Viewer              |
+| `/settings`                   | All             | Settings                   |
+| `/profile`                    | All             | Profile                    |
+| `/announcements`              | All             | Announcements              |
 
 <!-- Phase 5 Feature Cross-Reference -->
 
@@ -199,6 +266,8 @@ EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
 | moderation      | Admin          | Moderasi — Moderasi konten user-generated (diskusi, komentar)                                                              |
 | notifications   | Communication  | Notifikasi — Sistem notifikasi real-time dengan bell icon dan panel                                                        |
 | onboarding      | Admin          | Onboarding — Wizard onboarding untuk pengguna baru                                                                         |
+| **parent**      | **Parent**     | **Parent Portal — Registrasi OTP, dashboard pemantauan anak, pesan guru, laporan bulanan, digest notifikasi**              |
+| **principal**   | **Principal**  | **Principal Dashboard — Executive metrics, before-after analytics, report otomatis, survey kepuasan**                      |
 | progress        | Learning       | Kemajuan Belajar — Tracking progress belajar siswa secara granular per kursus, modul, dan pelajaran                        |
 | question-bank   | Assessment     | Bank Soal — Repositori soal yang bisa digunakan ulang di berbagai kuis                                                     |
 | quizzes         | Assessment     | Kuis — Sistem kuis komprehensif dengan timer, anti-cheat, autosave, review mode, dan analitik hasil per soal               |

@@ -95,6 +95,10 @@ export const Offline = withErrorBoundary(
   lazy(() => import('../pages/Offline').then((m) => ({ default: m.Offline }))),
   'Offline'
 )
+export const EnrollPage = withErrorBoundary(
+  lazy(() => import('../pages/EnrollPage').then((m) => ({ default: m.EnrollPage }))),
+  'Bergabung ke Kelas'
+)
 
 // ============================================================
 // Teacher pages
@@ -294,4 +298,17 @@ export const SystemHealth = withErrorBoundary(
 export const FeatureFlagsPage = withErrorBoundary(
   lazy(() => import('../pages/admin/FeatureFlags')),
   'Pengaturan Fitur'
+)
+
+// ============================================================
+// Parent pages
+// ============================================================
+
+export const ParentRegisterPage = withErrorBoundary(
+  lazy(() =>
+    import('../features/auth/components/ParentRegisterPage').then((m) => ({
+      default: m.ParentRegisterPage,
+    }))
+  ),
+  'Daftar Orang Tua'
 )

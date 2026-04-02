@@ -247,6 +247,59 @@ flowchart LR
 | `37_comprehensive_reinforcement` | Global RLS optimization and Analytics hardening             |
 | `38_final_polish`                | Idempotent schema alignment and final RLS performance sweep |
 
+---
+
+## Lesson Video Captions
+
+Menyimpan WebVTT caption tracks untuk video pelajaran, memenuhi persyaratan aksesibilitas **WCAG 1.2.2 Level A** (Captions Pre-recorded).
+
+### Design Notes
+
+- Caption bersifat **per-lesson** (bila `block_id = NULL`) atau **per-block** (bila `block_id` diisi), memungkinkan caption granular untuk setiap konten video dalam block-based editor.
+- URL caption (`vtt_url`) menunjuk ke file WebVTT yang tersimpan di Supabase Storage (public bucket).
+- `is_default` menandai caption yang secara otomatis aktif saat video diputar.
+- Satu lesson/block dapat memiliki beberapa caption dalam bahasa berbeda (`language_code`).
+
+### Tables
+
+| Table                   | Purpose                                                                         |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| `lesson_video_captions` | WebVTT caption tracks per lesson atau per content block, mendukung multi-bahasa |
+
+### Schema
+
+```sql
+CREATE TABLE public.lesson_video_captions (
+    id             uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    tenant_id      uuid NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+    lesson_id      uuid NOT NULL REFERENCES public.lessons(id) ON DELETE CASCADE,
+    block_id       uuid,                          -- NULL = lesson-level; set = per-block caption
+    language_code  varchar(5) NOT NULL DEFAULT 'id',
+    label          text NOT NULL,                 -- e.g. "Bahasa Indonesia", "English"
+    vtt_url        text NOT NULL,                 -- Supabase Storage public URL (.vtt)
+    is_default     boolean DEFAULT false,
+    created_at     timestamptz DEFAULT now() NOT NULL,
+    updated_at     timestamptz DEFAULT now() NOT NULL
+);
+```
+
+### RLS Policies
+
+| Operation | Policy                           | Roles             |
+| --------- | -------------------------------- | ----------------- |
+| SELECT    | `tenant_id = get_my_tenant_id()` | Semua user tenant |
+| INSERT    | `tenant_id = get_my_tenant_id()` | Teacher           |
+| UPDATE    | `tenant_id = get_my_tenant_id()` | Teacher           |
+| DELETE    | `tenant_id = get_my_tenant_id()` | Teacher           |
+
+### Migrations
+
+| Version                         | Description                                                                   |
+| ------------------------------- | ----------------------------------------------------------------------------- |
+| `20260402000001_video_captions` | Membuat tabel `lesson_video_captions`, RLS policies, dan trigger `updated_at` |
+
+---
+
 <!-- Phase 5 Feature Cross-Reference -->
 
 ## Feature Module Cross-Reference
@@ -279,5 +332,6 @@ EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
 | reports         | Analytics      | Laporan — Generator laporan akademik, keuangan (SPP), PPDB, dan custom                                                     |
 | storage         | Infrastructure | Penyimpanan — Manajemen file dan media untuk materi pembelajaran                                                           |
 | struggle        | Analytics      | Deteksi Kesulitan — Deteksi otomatis siswa yang kesulitan berdasarkan pola belajar, waktu per soal, dan penurunan performa |
+| video-captions  | Learning       | Caption Video — WebVTT caption tracks untuk aksesibilitas video pelajaran (WCAG 1.2.2 Level A)                             |
 
 Setiap feature module mengikuti arsitektur standar dengan folder: api/, queries/, hooks/, types/, components/, dan **tests**/. Semua feature mendukung dark mode dan skeleton loading screens.

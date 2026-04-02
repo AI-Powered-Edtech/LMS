@@ -121,4 +121,31 @@ test.describe('Critical Path — Student Login & Dashboard', () => {
 
     expect(navVisible).toBeTruthy()
   })
+
+  test('login memenuhi performance budget', async ({ page }) => {
+    await page.goto('/#/login')
+    await page.waitForLoadState('networkidle')
+
+    // Ambil performance metrics
+    const metrics = await page.evaluate(() => {
+      const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
+      const paintEntries = performance.getEntriesByType('paint')
+      const fcpEntry = paintEntries.find((e) => e.name === 'first-contentful-paint')
+      return {
+        fcp: fcpEntry ? fcpEntry.startTime : null,
+        loadTime: nav ? nav.loadEventEnd - nav.startTime : null,
+        domInteractive: nav ? nav.domInteractive - nav.startTime : null,
+      }
+    })
+
+    // FCP harus < 3000ms (relaxed untuk dev environment)
+    if (metrics.fcp !== null) {
+      expect(metrics.fcp).toBeLessThan(3000)
+    }
+
+    // DOM interactive harus < 5000ms
+    if (metrics.domInteractive !== null) {
+      expect(metrics.domInteractive).toBeLessThan(5000)
+    }
+  })
 })

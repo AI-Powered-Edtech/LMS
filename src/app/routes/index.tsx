@@ -7,6 +7,8 @@ import { Layout } from '../../components/layout/Layout'
 import { NotFound } from '../lazyPages'
 import { AdminRoutes } from './adminRoutes'
 import { LegacyRedirects } from './legacyRedirects'
+import { ParentRoutes } from './parentRoutes'
+import { PrincipalRoutes } from './principalRoutes'
 import { PublicRoutes, SharedAuthRoutes } from './sharedRoutes'
 import { StudentRoutes } from './studentRoutes'
 import { TeacherRoutes } from './teacherRoutes'
@@ -40,6 +42,8 @@ export function AppRoutes() {
           {StudentRoutes()}
           {TeacherRoutes()}
           {AdminRoutes()}
+          {ParentRoutes()}
+          {PrincipalRoutes()}
         </Route>
 
         {/* === Shared Routes (all authenticated roles) === */}

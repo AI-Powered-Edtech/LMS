@@ -4,6 +4,8 @@ import { OfflineBanner } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 
 import { AdminLayout } from './AdminLayout'
+import { ParentLayout } from './ParentLayout'
+import { PrincipalLayout } from './PrincipalLayout'
 import { StudentLayout } from './StudentLayout'
 import { TeacherLayout } from './TeacherLayout'
 
@@ -28,6 +30,8 @@ export function Layout() {
       {activeRole === 'student' && <StudentLayout />}
       {activeRole === 'teacher' && <TeacherLayout />}
       {activeRole === 'admin' && <AdminLayout />}
+      {activeRole === 'parent' && <ParentLayout />}
+      {activeRole === 'principal' && <PrincipalLayout />}
     </>
   )
 }

@@ -37,7 +37,7 @@ export async function syncPendingSubmissions(): Promise<SyncResult> {
         const payload = item.payload as QuizSubmissionPayload
 
         const { error } = await supabase
-          .from('quiz_attempts')
+          .from('quiz_attempts_v2')
           .update({
             answers: payload.answers,
             completed_at: new Date().toISOString(),
@@ -110,5 +110,5 @@ export function scheduleSync(attempt: number = 0): void {
 // ─── Helper (noop if offlineStorage doesn't support it yet) ──────────────────
 
 async function updateItemAttempts(_id: string, _attempts: number): Promise<void> {
-  // TODO: implement in offlineStorage.ts when needed
+  // NOTE: Offline storage akan diimplementasi seiring pengembangan PWA. Lihat SW.2 di IMPLEMENTATION_PLAN.md.
 }

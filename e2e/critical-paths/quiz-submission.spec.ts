@@ -200,4 +200,24 @@ test.describe('Critical Path — Quiz Submission Flow', () => {
     )
     expect(fatalErrors).toHaveLength(0)
   })
+
+  test('halaman quiz memenuhi performance budget', async ({ page }) => {
+    await loginAsStudent(page)
+    await page.goto('/#/app/student/quizzes')
+    await page.waitForLoadState('networkidle')
+
+    const metrics = await page.evaluate(() => {
+      const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
+      const paintEntries = performance.getEntriesByType('paint')
+      const fcpEntry = paintEntries.find((e) => e.name === 'first-contentful-paint')
+      return {
+        fcp: fcpEntry ? fcpEntry.startTime : null,
+        loadTime: nav ? nav.loadEventEnd - nav.startTime : null,
+      }
+    })
+
+    if (metrics.fcp !== null) {
+      expect(metrics.fcp).toBeLessThan(3000)
+    }
+  })
 })
