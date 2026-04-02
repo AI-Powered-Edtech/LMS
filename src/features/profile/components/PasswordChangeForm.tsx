@@ -11,7 +11,10 @@ type PasswordStrength = 'weak' | 'medium' | 'strong'
 
 function getPasswordStrength(password: string): PasswordStrength | null {
   if (!password) return null
-  if (password.length < 8) return 'weak'
+  if (password.length < 12) return 'weak'
+
+  // A password that's long enough but missing uppercase or digits is still 'weak'
+  if (!/[A-Z]/.test(password) || !/[0-9]/.test(password)) return 'weak'
 
   const checks = [
     /[a-z]/.test(password), // lowercase
@@ -33,7 +36,9 @@ export function PasswordChangeForm() {
   const [errorMsg, setErrorMsg] = useState('')
 
   const validate = (): string | null => {
-    if (newPassword.length < 8) return 'Kata sandi minimal 8 karakter.'
+    if (newPassword.length < 12) return 'Kata sandi minimal 12 karakter.'
+    if (!/[A-Z]/.test(newPassword)) return 'Kata sandi harus mengandung minimal satu huruf kapital.'
+    if (!/[0-9]/.test(newPassword)) return 'Kata sandi harus mengandung minimal satu angka.'
     if (newPassword !== confirmPassword) return 'Konfirmasi kata sandi tidak cocok.'
     return null
   }
@@ -88,7 +93,7 @@ export function PasswordChangeForm() {
             setNewPassword(e.target.value)
             if (status === 'error') setErrorMsg('')
           }}
-          placeholder="Minimal 8 karakter"
+          placeholder="Minimal 12 karakter, huruf kapital & angka"
           disabled={isLoading}
           icon={<Lock className="w-4 h-4" />}
           autoComplete="new-password"
@@ -127,7 +132,7 @@ export function PasswordChangeForm() {
               )}
             >
               {passwordStrength === 'weak' &&
-                'Kata sandi lemah — tambahkan huruf besar, angka, atau simbol'}
+                'Kata sandi lemah — minimal 12 karakter dengan huruf kapital & angka'}
               {passwordStrength === 'medium' && 'Kata sandi cukup kuat'}
               {passwordStrength === 'strong' && 'Kata sandi kuat ✓'}
             </p>

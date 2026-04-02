@@ -6,13 +6,29 @@ export type NotificationType =
   | 'grade_posted'
   | 'assignment_due'
   | 'quiz_available'
+  | 'quiz_result'
   | 'announcement'
   | 'course_enrolled'
   | 'badge_earned'
   | 'discussion_reply'
+  | 'message_received'
   | 'system'
   // Legacy types kept for backward compatibility with existing data
   | 'grade'
+  // Admin-specific notification types
+  | 'invitation_accepted'
+  | 'moderation_report'
+  | 'sync_failure'
+  | 'system_alert'
+  | 'user_joined'
+
+/** Admin-specific notification event types */
+export type AdminNotificationType =
+  | 'invitation_accepted'
+  | 'moderation_report'
+  | 'sync_failure'
+  | 'system_alert'
+  | 'user_joined'
 
 export interface Notification {
   id: string

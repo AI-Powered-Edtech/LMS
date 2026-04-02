@@ -138,7 +138,7 @@ export const studentProgressService = {
   ): Promise<Record<string, LessonProgress>> {
     const { data } = await supabase
       .from('lesson_progress')
-      .select('lesson_id, module_id, completed, completed_at')
+      .select('lesson_id, completed, completed_at')
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Link, Navigate, useLocation } from 'react-router-dom'
 
 import { LoginForm } from '@/features/auth/components/LoginForm'
 import { RegisterStep1, RegisterStep2 } from '@/features/auth/components/RegisterForm'
@@ -226,6 +226,22 @@ export function Login() {
             </>
           )}
         </div>
+
+        {/* Parent Registration Link */}
+        {step !== 3 && (
+          <div className="mt-4 text-center">
+            <Link
+              to="/register-parent"
+              className="inline-flex items-center gap-2 text-sm text-blue-400/80 hover:text-blue-300 transition-colors group"
+            >
+              <span className="text-base">👨‍👩‍👧</span>
+              <span>
+                Daftar sebagai Orang Tua Siswa
+                <span className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+              </span>
+            </Link>
+          </div>
+        )}
 
         {/* Dev quick login */}
         {import.meta.env.DEV && step !== 3 && (

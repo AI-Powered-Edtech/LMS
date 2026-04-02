@@ -75,11 +75,19 @@ const TAB_LABELS: Record<FilterTab, string> = {
   grade: 'Nilai',
   assignment_due: 'Tugas',
   quiz_available: 'Kuis',
+  quiz_result: 'Hasil Kuis',
   announcement: 'Pengumuman',
   course_enrolled: 'Kursus',
   badge_earned: 'Lencana',
   discussion_reply: 'Diskusi',
+  message_received: 'Pesan',
   system: 'Sistem',
+  // Admin types
+  system_alert: 'Peringatan Sistem',
+  invitation_accepted: 'Undangan',
+  moderation_report: 'Moderasi',
+  sync_failure: 'Sinkronisasi',
+  user_joined: 'Pengguna Baru',
 }
 
 const FILTER_TABS: FilterTab[] = [
