@@ -39,6 +39,14 @@ export default [
 
       '@typescript-eslint/no-floating-promises': 'warn',
 
+      '@typescript-eslint/explicit-function-return-types': ['warn', {
+        allowExpressions: true,
+        allowTypedFunctionExpressions: true,
+        allowHigherOrderFunctions: true,
+        allowDirectConstAssertionInArrowFunctions: true,
+        allowConciseArrowFunctionExpressionsStartingWithVoid: true,
+      }],
+
       '@typescript-eslint/ban-ts-comment': ['warn', {
         'ts-expect-error': 'allow-with-description',
         'ts-ignore': true,

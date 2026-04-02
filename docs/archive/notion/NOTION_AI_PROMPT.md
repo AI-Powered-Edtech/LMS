@@ -37,3 +37,27 @@ Kamu coding agent di codebase EduSync LMS. Aturan:
 **Selesai kerja — WAJIB ikuti 2 langkah ini:**
 
 1. Tulis laporan akhir dengan format:
+
+```
+RINGKASAN: [1 kalimat apa yang dikerjakan]
+
+FILE DIUBAH:
+- src/path/file1.tsx — [apa yang diubah]
+- src/path/file2.tsx — [apa yang diubah]
+
+CATATAN UNTUK REVIEWER:
+- [hal penting yang perlu dicek]
+- [dependency atau side effect]
+- [file/task yang belum selesai dan perlu di-follow-up]
+```
+
+2. Setelah laporan, buka halaman utama EduSync, edit code block `__command__`, ganti isinya jadi:
+
+```
+file:__command__
+BUAT_PR
+```
+
+PR otomatis dibuat di GitHub. Developer review dan merge.
+
+JANGAN trigger BUAT_PR tanpa laporan. JANGAN trigger di tengah kerja.
