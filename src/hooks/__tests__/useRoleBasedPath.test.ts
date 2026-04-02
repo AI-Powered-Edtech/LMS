@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { useAuth } from '@/src/contexts/AuthContext'
+
 import { useRoleBasedPath } from '../useRoleBasedPath'
 
 vi.mock('@/src/contexts/AuthContext', () => ({
