@@ -63,14 +63,13 @@ export function RubricCriterionRow({
             className={INPUT_CLS}
           />
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
               Poin Maks:
-            </span>
+            </label>
             <input
               type="number"
               min={1}
               max={1000}
-              aria-label="Poin maksimal kriteria"
               value={criterion.max_points}
               onChange={(e) => onUpdate({ max_points: parseInt(e.target.value, 10) || 0 })}
               className="w-20 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm dark:text-white text-center font-bold"
@@ -125,14 +124,13 @@ export function RubricCriterionRow({
                     className={cn(INPUT_CLS, 'sm:col-span-1')}
                   />
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
                       Poin:
-                    </span>
+                    </label>
                     <input
                       type="number"
                       min={0}
                       max={criterion.max_points}
-                      aria-label="Poin untuk tingkat ini"
                       value={level.points}
                       onChange={(e) =>
                         onUpdateLevel(level.id, { points: parseInt(e.target.value, 10) || 0 })

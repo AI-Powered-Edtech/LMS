@@ -17,30 +17,27 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
 import { useBuilder } from '@/contexts/BuilderContext'
-import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
 import { translateLessonType } from '@/utils/statusTranslations'
 
-interface BuilderSidebarProps {
-  /**
-   * Jika true, sidebar dirender langsung (inline) tanpa logika drawer/desktop wrapper.
-   * Digunakan untuk mobile tab-based layout di CourseBuilder.
-   */
-  inlineMode?: boolean
-}
-
-export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
-  const { state, actions, mobile } = useBuilder()
-  const addToast = useToast((s) => s.addToast)
+export function BuilderSidebar() {
+  const { state, actions } = useBuilder()
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const [addingLessonTo, setAddingLessonTo] = useState<string | null>(null)
-  const [editingModuleId, setEditingModuleId] = useState<string | null>(null)
-  const [editingTitle, setEditingTitle] = useState('')
-  const [pendingDelete, setPendingDelete] = useState<{
-    type: 'module' | 'lesson'
-    id: string
-    title: string
-  } | null>(null)
+  const [_templateModalConfig, setTemplateModalConfig] = useState<any>({
+    isOpen: false,
+    type: '',
+    targetId: '',
+    sourceId: '',
+    defaultTitle: '',
+  })
+  const [_saveTemplateConfig, setSaveTemplateConfig] = useState<any>({
+    isOpen: false,
+    type: '',
+    sourceId: '',
+    defaultTitle: '',
+  })
+  const mobile = { isMobile: false, sidebarOpen: false, closeSidebar: () => {} }
 
   const toggleModule = (id: string) => {
     setExpandedModules((prev) => {
@@ -78,18 +75,6 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
 
     if (type === 'LESSON') {
       const moduleId = source.droppableId
-      const destinationModuleId = destination.droppableId
-
-      // Cross-module lesson drag is not yet supported
-      if (moduleId !== destinationModuleId) {
-        addToast({
-          type: 'info',
-          message:
-            'Memindahkan materi antar modul belum didukung. Gunakan tombol tambah materi di modul tujuan.',
-        })
-        return
-      }
-
       const mod = state.modules.find((m) => m.id === moduleId)
       if (!mod) return
       const lessonIds = mod.lessons.map((l) => l.id)
@@ -97,14 +82,6 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
       lessonIds.splice(destination.index, 0, moved)
       actions.reorderLessons(lessonIds)
     }
-  }
-
-  const handleModuleTitleSave = (moduleId: string) => {
-    const trimmed = editingTitle.trim()
-    if (trimmed && trimmed !== state.modules.find((m) => m.id === moduleId)?.title) {
-      actions.updateModule(moduleId, { title: trimmed })
-    }
-    setEditingModuleId(null)
   }
 
   const handleAddModule = () => {
@@ -121,12 +98,7 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
   }
 
   const sidebarContent = (
-    <div
-      className={cn(
-        'bg-slate-50/30 dark:bg-slate-900/30 border-r border-slate-200/60 dark:border-slate-700/60 flex flex-col h-full shrink-0 relative z-10 backdrop-blur-xl',
-        inlineMode ? 'w-full' : 'w-[340px]'
-      )}
-    >
+    <div className="w-[340px] bg-slate-50/30 border-r border-slate-200/60 flex flex-col h-full shrink-0 relative z-10 backdrop-blur-xl">
       {/* Header */}
       <div className="px-6 py-5 border-b border-slate-200/50 flex items-center justify-between bg-white/50">
         <div>
@@ -141,7 +113,7 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
           <div className="flex items-center">
             <button
               onClick={handleAddModule}
-              className="flex items-center gap-1 p-2 pr-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:z-10"
+              className="flex items-center gap-1 p-2 pr-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95"
               title="Buat Modul Baru"
             >
               <Plus className="w-4 h-4" />
@@ -149,26 +121,35 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
             </button>
             <button
               onClick={() => {
-                addToast({ type: 'info', message: 'Fitur template kursus segera hadir.' })
+                if (state.courseId) {
+                  setTemplateModalConfig({ isOpen: true, type: 'module', targetId: state.courseId })
+                }
               }}
               disabled={!state.courseId}
-              className="flex items-center p-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-r-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95 border-l border-indigo-700/30 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:z-10"
+              className="flex items-center p-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-r-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95 border-l border-indigo-700/30 disabled:opacity-50"
               title="Import dari Template"
-              aria-label="Import dari Template"
             >
               <Import className="w-3.5 h-3.5" />
             </button>
           </div>
-          {mobile.isMobile && !inlineMode && (
+          {mobile.isMobile && (
             <button
               onClick={mobile.closeSidebar}
-              className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+              className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
               aria-label="Tutup navigasi"
             >
               <X className="w-5 h-5" />
             </button>
           )}
         </div>
+        <button
+          onClick={handleAddModule}
+          className="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-md shadow-indigo-100 hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+          title="Tambah Modul"
+          aria-label="Tambah Modul"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Module Tree */}
@@ -240,43 +221,9 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
                             ) : (
                               <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                             )}
-                            {editingModuleId === mod.id ? (
-                              <input
-                                autoFocus
-                                type="text"
-                                value={editingTitle}
-                                onChange={(e) => setEditingTitle(e.target.value)}
-                                onBlur={() => handleModuleTitleSave(mod.id)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') handleModuleTitleSave(mod.id)
-                                  if (e.key === 'Escape') setEditingModuleId(null)
-                                  e.stopPropagation()
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                                className="flex-1 text-xs font-bold text-slate-700 bg-white border border-indigo-300 rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-indigo-400 min-w-0"
-                              />
-                            ) : (
-                              <span
-                                role="button"
-                                tabIndex={0}
-                                className="text-xs font-bold text-slate-700 truncate flex-1 cursor-text"
-                                onDoubleClick={(e) => {
-                                  e.stopPropagation()
-                                  setEditingModuleId(mod.id)
-                                  setEditingTitle(mod.title)
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' || e.key === 'F2') {
-                                    e.stopPropagation()
-                                    setEditingModuleId(mod.id)
-                                    setEditingTitle(mod.title)
-                                  }
-                                }}
-                                title="Klik dua kali atau tekan Enter untuk mengubah nama"
-                              >
-                                {mod.title}
-                              </span>
-                            )}
+                            <span className="text-xs font-bold text-slate-700 truncate flex-1">
+                              {mod.title}
+                            </span>
                             <span className="text-[10px] text-slate-400 font-medium">
                               {mod.lessons.length}
                             </span>
@@ -284,9 +231,11 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  addToast({
-                                    type: 'info',
-                                    message: 'Fitur simpan sebagai template segera hadir.',
+                                  setSaveTemplateConfig({
+                                    isOpen: true,
+                                    type: 'module',
+                                    sourceId: mod.id,
+                                    defaultTitle: mod.title,
                                   })
                                 }}
                                 className="p-2 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
@@ -298,15 +247,13 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  setPendingDelete({
-                                    type: 'module',
-                                    id: mod.id,
-                                    title: mod.title,
-                                  })
+                                  if (confirm('Hapus modul ini beserta seluruh materinya?')) {
+                                    actions.deleteModule(mod.id)
+                                  }
                                 }}
                                 className="p-2 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded transition-colors ml-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                                aria-label={`Hapus Modul ${mod.title}`}
-                                title={`Hapus Modul ${mod.title}`}
+                                aria-label="Hapus modul"
+                                title="Hapus modul"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -344,14 +291,12 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
                                               tabIndex={0}
                                               onClick={() => {
                                                 actions.selectLesson(lesson.id)
-                                                if (mobile.isMobile && !inlineMode)
-                                                  mobile.closeSidebar()
+                                                if (mobile.isMobile) mobile.closeSidebar()
                                               }}
                                               onKeyDown={(e) => {
                                                 if (e.key === 'Enter' || e.key === ' ') {
                                                   actions.selectLesson(lesson.id)
-                                                  if (mobile.isMobile && !inlineMode)
-                                                    mobile.closeSidebar()
+                                                  if (mobile.isMobile) mobile.closeSidebar()
                                                 }
                                               }}
                                               className={cn(
@@ -405,10 +350,28 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
                                               <button
                                                 onClick={(e) => {
                                                   e.stopPropagation()
-                                                  addToast({
-                                                    type: 'info',
-                                                    message:
-                                                      'Fitur simpan sebagai template segera hadir.',
+                                                  if (confirm('Delete this lesson?')) {
+                                                    actions.deleteLesson(lesson.id)
+                                                  }
+                                                }}
+                                                className={cn(
+                                                  'p-1.5 rounded-lg transition-all focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500',
+                                                  state.activeLesson?.id === lesson.id
+                                                    ? 'opacity-0 group-hover/lesson:opacity-100 hover:bg-white/20 text-white'
+                                                    : 'opacity-0 group-hover/lesson:opacity-100 hover:bg-rose-50 text-slate-400 hover:text-rose-500'
+                                                )}
+                                                aria-label="Hapus pelajaran"
+                                              >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                              </button>
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation()
+                                                  setSaveTemplateConfig({
+                                                    isOpen: true,
+                                                    type: 'lesson',
+                                                    sourceId: lesson.id,
+                                                    defaultTitle: lesson.title,
                                                   })
                                                 }}
                                                 className={cn(
@@ -425,11 +388,9 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
                                               <button
                                                 onClick={(e) => {
                                                   e.stopPropagation()
-                                                  setPendingDelete({
-                                                    type: 'lesson',
-                                                    id: lesson.id,
-                                                    title: lesson.title,
-                                                  })
+                                                  if (confirm('Hapus materi ini?')) {
+                                                    actions.deleteLesson(lesson.id)
+                                                  }
                                                 }}
                                                 className={cn(
                                                   'p-2 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500',
@@ -437,8 +398,8 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
                                                     ? 'hover:bg-white/20 text-white/70 hover:text-white'
                                                     : 'hover:bg-rose-50 text-slate-500 hover:text-rose-600'
                                                 )}
-                                                aria-label={`Hapus Materi ${lesson.title}`}
-                                                title={`Hapus Materi ${lesson.title}`}
+                                                aria-label="Hapus pelajaran"
+                                                title="Hapus pelajaran"
                                               >
                                                 <Trash2 className="w-3.5 h-3.5" />
                                               </button>
@@ -481,9 +442,10 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
                                           <button
                                             onClick={() => {
                                               setAddingLessonTo(null)
-                                              addToast({
-                                                type: 'info',
-                                                message: 'Fitur template kursus segera hadir.',
+                                              setTemplateModalConfig({
+                                                isOpen: true,
+                                                type: 'lesson',
+                                                targetId: mod.id,
                                               })
                                             }}
                                             className="w-full py-2 rounded-lg text-xs font-bold text-emerald-600 border border-dashed border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-1"
@@ -495,7 +457,7 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
                                       ) : (
                                         <button
                                           onClick={() => setAddingLessonTo(mod.id)}
-                                          className="w-full mt-2 py-2 text-[10px] font-black text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm rounded-xl transition-all flex items-center justify-center gap-1.5 border border-dashed border-slate-200 hover:border-indigo-200 group/add focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:border-transparent"
+                                          className="w-full mt-2 py-2 text-[10px] font-black text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm rounded-xl transition-all flex items-center justify-center gap-1.5 border border-dashed border-slate-200 hover:border-indigo-200 group/add"
                                         >
                                           <Plus className="w-3.5 h-3.5 group-hover/add:rotate-90 transition-transform duration-300" />
                                           TAMBAH MATERI
@@ -518,57 +480,8 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
           </DragDropContext>
         )}
       </div>
-
-      {/* Inline delete confirmation dialog */}
-      {pendingDelete && (
-        <div
-          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 p-4"
-          onClick={() => setPendingDelete(null)}
-          role="presentation"
-        >
-          <div
-            className="bg-white dark:bg-slate-800 rounded-2xl p-5 w-full max-w-sm shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-            role="presentation"
-          >
-            <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-2">
-              {pendingDelete.type === 'module' ? 'Hapus Modul?' : 'Hapus Materi?'}
-            </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-              {pendingDelete.type === 'module'
-                ? `"${pendingDelete.title}" beserta seluruh materinya akan dihapus.`
-                : `"${pendingDelete.title}" akan dihapus permanen.`}
-            </p>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setPendingDelete(null)}
-                className="flex-1 py-2 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-xl font-medium text-sm hover:bg-slate-50 dark:hover:bg-slate-700"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (pendingDelete.type === 'module') actions.deleteModule(pendingDelete.id)
-                  else actions.deleteLesson(pendingDelete.id)
-                  setPendingDelete(null)
-                }}
-                className="flex-1 py-2 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700"
-              >
-                Hapus
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
-
-  // Mode inline: render konten sidebar langsung tanpa wrapper nav/drawer
-  if (inlineMode) {
-    return <>{sidebarContent}</>
-  }
 
   return (
     <>

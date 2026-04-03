@@ -46,15 +46,9 @@ export async function getMyChildren(): Promise<ChildInfo[]> {
 /**
  * Mengambil nilai terbaru siswa dari gradebook_entries.
  * Dikelompokkan per mata pelajaran (course), ambil 2 nilai terakhir untuk tren.
- * FIXED: Tambahkan parameter tenantId dan filter .eq('tenant_id', tenantId)
- *        untuk memastikan isolasi data antar tenant.
  */
-export async function getChildGrades(
-  studentId: string,
-  tenantId: string
-): Promise<ChildGradeSummary[]> {
+export async function getChildGrades(studentId: string): Promise<ChildGradeSummary[]> {
   // Ambil entri nilai terbaru per course (via courses join)
-  // FIXED: Tambahkan tenant_id filter untuk multi-tenant isolation
   const { data, error } = await supabase
     .from('gradebook_entries')
     .select(
@@ -62,7 +56,6 @@ export async function getChildGrades(
        courses:course_id (title)`
     )
     .eq('student_id', studentId)
-    .eq('tenant_id', tenantId)
     .order('created_at', { ascending: false })
     .limit(50)
 

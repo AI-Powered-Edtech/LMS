@@ -35,7 +35,6 @@ export interface UseTeacherOnboardingReturn {
 const TOTAL_STEPS = 5
 const LS_DISMISS_KEY = 'edusync_teacher_onboarding_dismissed'
 const LS_COMPLETED_KEY = 'edusync_teacher_onboarding_completed'
-const LS_TABLE_UNAVAILABLE_KEY = 'edusync_teacher_onboarding_table_unavailable'
 
 /**
  * Manages teacher onboarding wizard state.
@@ -63,11 +62,10 @@ export function useTeacherOnboarding(): UseTeacherOnboardingReturn {
       return
     }
 
-    // Quick local check — if already dismissed, completed, or table known unavailable, skip DB fetch
+    // Quick local check — if already dismissed or completed, skip DB fetch
     if (
       localStorage.getItem(LS_DISMISS_KEY) === '1' ||
-      localStorage.getItem(LS_COMPLETED_KEY) === '1' ||
-      localStorage.getItem(LS_TABLE_UNAVAILABLE_KEY) === '1'
+      localStorage.getItem(LS_COMPLETED_KEY) === '1'
     ) {
       setState((prev) => ({ ...prev, dismissed: true }))
       setIsLoading(false)
@@ -90,15 +88,8 @@ export function useTeacherOnboarding(): UseTeacherOnboardingReturn {
         if (cancelled) return
 
         if (error) {
-          // Table may not exist yet — suppress wizard so it doesn't block teachers
-          // Also handle PGRST204 (schema cache miss), 42P01 (relation not found), etc.
-          setState((prev) => ({ ...prev, dismissed: true }))
-          if (import.meta.env.DEV) {
-            console.warn(
-              '[useTeacherOnboarding] DB fetch error (wizard suppressed):',
-              error.message
-            )
-          }
+          // Table may not exist yet in local dev — silently skip
+          console.warn('[useTeacherOnboarding] DB fetch error:', error.message)
           setIsLoading(false)
           return
         }

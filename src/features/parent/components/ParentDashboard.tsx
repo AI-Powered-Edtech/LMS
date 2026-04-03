@@ -184,35 +184,6 @@ export function ParentDashboard() {
             <span aria-hidden="true">🔔</span>
             Notifikasi
           </Link>
-
-          {/* Laporan Bulanan — full-width card */}
-          <Link
-            to="/app/parent/laporan"
-            className="col-span-2 flex items-center justify-between gap-2
-                       min-h-[52px] px-4 rounded-2xl
-                       bg-gradient-to-r from-indigo-50 to-purple-50
-                       dark:from-indigo-950/30 dark:to-purple-950/30
-                       border border-indigo-200 dark:border-indigo-800/40
-                       text-indigo-700 dark:text-indigo-300
-                       text-sm font-semibold
-                       active:from-indigo-100 active:to-purple-100
-                       dark:active:from-indigo-900/40 dark:active:to-purple-900/40
-                       transition-colors
-                       focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-          >
-            <div className="flex items-center gap-2">
-              <span aria-hidden="true">📋</span>
-              <div>
-                <p>Laporan Bulanan</p>
-                <p className="text-xs font-normal text-indigo-500 dark:text-indigo-400">
-                  Perkembangan belajar anak
-                </p>
-              </div>
-            </div>
-            <span className="text-indigo-400 dark:text-indigo-500" aria-hidden="true">
-              →
-            </span>
-          </Link>
         </div>
       )}
 

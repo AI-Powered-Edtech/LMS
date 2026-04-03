@@ -1,8 +1,8 @@
 // Bridge component: connects BlockRenderer quiz data → QuizPlayer (new engine)
 // Handles attempt lifecycle (start/resume) and delegates to QuizPlayer
 
-import { AlertTriangle, CheckCircle, Loader2, Play, RotateCcw, XCircle } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { AlertTriangle, Loader2, Play, RotateCcw, XCircle } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
 import * as quizPlayerService from '@/features/quizzes/api/quizPlayer.service'
@@ -11,10 +11,8 @@ import {
   useStartQuizAttempt,
   useSubmitQuizAttempt,
 } from '@/features/quizzes/queries/quizPlayer.mutations'
-import { useUserAttempts } from '@/features/quizzes/queries/quizPlayer.queries'
 import type { QuizAttemptQuestion, SubmitAnswer } from '@/features/quizzes/types/quizzes.types'
 import { useToast } from '@/hooks/useToast'
-import { captureError } from '@/utils/sentry'
 
 interface LessonQuizPlayerProps {
   quizId: string
@@ -57,32 +55,12 @@ export function LessonQuizPlayer({
   const { addToast } = useToast()
   const [state, setState] = useState<PlayerState>({ phase: 'idle' })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  // LQP-3 FIX: Track attempt count — initialised from server to survive refresh
-  const { data: allAttempts } = useUserAttempts(tenantId ?? undefined)
-  const serverAttemptCount = useMemo(
-    () => allAttempts?.filter((a) => a.quiz_id === quizId).length ?? 0,
-    [allAttempts, quizId]
-  )
-  const [attemptCount, setAttemptCount] = useState(0)
-  // Sync with server count when data arrives (don't override if an attempt is in progress)
-  useEffect(() => {
-    if (state.phase === 'idle' || state.phase === 'error') {
-      setAttemptCount(serverAttemptCount)
-    }
-  }, [serverAttemptCount, state.phase])
 
   const startAttempt = useStartQuizAttempt()
   const submitAttempt = useSubmitQuizAttempt()
 
   const handleStart = useCallback(async () => {
     if (!user?.id || !tenantId) return
-    // LQP-2 FIX: Prevent concurrent starts
-    if (state.phase === 'loading') return
-    // LQP-3 FIX: Enforce max attempts client-side
-    if (maxAttempts > 0 && attemptCount >= maxAttempts) {
-      addToast({ type: 'warning', message: 'Percobaan kuis sudah habis.' })
-      return
-    }
 
     setState({ phase: 'loading' })
     onStartViewing()
@@ -112,7 +90,6 @@ export function LessonQuizPlayer({
         initialAnswers
       )
 
-      setAttemptCount((c) => c + 1)
       setState({
         phase: 'ready',
         attemptId: result.attempt_id,
@@ -122,21 +99,10 @@ export function LessonQuizPlayer({
         initialIndex,
       })
     } catch (err: unknown) {
-      captureError(err, { context: 'LessonQuizPlayer.startQuiz' })
       const message = err instanceof Error ? err.message : 'Gagal memulai kuis'
       setState({ phase: 'error', message })
     }
-  }, [
-    quizId,
-    user?.id,
-    tenantId,
-    state.phase,
-    maxAttempts,
-    attemptCount,
-    startAttempt,
-    onStartViewing,
-    addToast,
-  ])
+  }, [quizId, user?.id, tenantId, startAttempt, onStartViewing])
 
   const handleSubmit = useCallback(
     async (answers: Record<string, SubmitAnswer>) => {
@@ -173,22 +139,16 @@ export function LessonQuizPlayer({
   )
 
   const handleRetry = useCallback(() => {
-    // LQP-2 FIX: Prevent double-click starts
-    if (state.phase === 'loading') return
     setState({ phase: 'idle' })
     handleStart()
-  }, [handleStart, state.phase])
+  }, [handleStart])
 
   // Show completed state if already done
-  // LQP-1 FIX: Don't override active attempt (ready/loading phase)
   useEffect(() => {
-    if (state.phase === 'ready' || state.phase === 'loading') return
     if (isCompleted) {
       setState({ phase: 'submitted', score: null, passed: true })
     }
-  }, [isCompleted, state.phase])
-
-  const hasExhaustedAttempts = maxAttempts > 0 && attemptCount >= maxAttempts
+  }, [isCompleted])
 
   // ── Failed (not retried yet): prominent retry CTA ─────
   if (state.phase === 'submitted' && state.passed === false && !isCompleted) {
@@ -205,10 +165,7 @@ export function LessonQuizPlayer({
             )}
           </div>
           <div className="flex items-center justify-center gap-6 text-xs text-slate-500 dark:text-slate-400 font-medium">
-            {/* LQP-7 FIX: Use explicit null/zero check instead of falsy */}
-            {timeLimitMinutes != null && timeLimitMinutes > 0 && (
-              <span>⏱ {timeLimitMinutes} menit</span>
-            )}
+            {timeLimitMinutes && <span>⏱ {timeLimitMinutes} menit</span>}
             <span>📝 Maks. {maxAttempts}x percobaan</span>
             <span>✅ Lulus: {passingScore}%</span>
           </div>
@@ -225,19 +182,12 @@ export function LessonQuizPlayer({
               Nilai kamu: <strong>{state.score !== null ? `${state.score}%` : '—'}</strong>. Nilai
               minimum: <strong>{passingScore}%</strong>.
             </p>
-            {hasExhaustedAttempts ? (
-              <p className="text-sm font-semibold text-red-700 dark:text-red-300">
-                Percobaan sudah habis ({maxAttempts}x)
-              </p>
-            ) : (
-              <button
-                onClick={handleRetry}
-                disabled={startAttempt.isPending}
-                className="w-full min-h-[44px] px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-colors"
-              >
-                Coba Lagi
-              </button>
-            )}
+            <button
+              onClick={handleRetry}
+              className="w-full min-h-[44px] px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-colors"
+            >
+              Coba Lagi
+            </button>
           </div>
         </div>
       </div>
@@ -259,10 +209,7 @@ export function LessonQuizPlayer({
             )}
           </div>
           <div className="flex items-center justify-center gap-6 text-xs text-slate-500 dark:text-slate-400 font-medium">
-            {/* LQP-7 FIX: Use explicit null/zero check instead of falsy */}
-            {timeLimitMinutes != null && timeLimitMinutes > 0 && (
-              <span>⏱ {timeLimitMinutes} menit</span>
-            )}
+            {timeLimitMinutes && <span>⏱ {timeLimitMinutes} menit</span>}
             <span>📝 Maks. {maxAttempts}x percobaan</span>
             <span>✅ Lulus: {passingScore}%</span>
           </div>
@@ -280,36 +227,22 @@ export function LessonQuizPlayer({
             </div>
           )}
 
-          {/* LQP-4 FIX: Show appropriate CTA based on state */}
-          {state.phase === 'submitted' && state.passed ? (
-            // Already passed — show "Selesai" instead of "Coba Lagi"
-            <div className="inline-flex items-center gap-2 px-8 py-3 bg-emerald-600 text-white font-bold rounded-2xl shadow-lg shadow-emerald-200 dark:shadow-emerald-900/40">
-              <CheckCircle className="w-4 h-4" />
-              Selesai
-            </div>
-          ) : hasExhaustedAttempts ? (
-            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-              Percobaan sudah habis ({maxAttempts}x)
-            </p>
-          ) : (
-            <button
-              onClick={handleStart}
-              disabled={startAttempt.isPending}
-              className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-2xl shadow-lg shadow-blue-200 dark:shadow-blue-900/40 transition-all"
-            >
-              {state.phase === 'submitted' ? (
-                <>
-                  <RotateCcw className="w-4 h-4" />
-                  Coba Lagi
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4" />
-                  Mulai Kuis
-                </>
-              )}
-            </button>
-          )}
+          <button
+            onClick={handleStart}
+            className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-200 dark:shadow-blue-900/40 transition-all"
+          >
+            {state.phase === 'submitted' ? (
+              <>
+                <RotateCcw className="w-4 h-4" />
+                Coba Lagi
+              </>
+            ) : (
+              <>
+                <Play className="w-4 h-4" />
+                Mulai Kuis
+              </>
+            )}
+          </button>
         </div>
       </div>
     )

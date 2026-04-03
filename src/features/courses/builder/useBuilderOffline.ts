@@ -29,11 +29,8 @@ export function useBuilderOffline(
   const stateVersionRef = useRef(0)
   const prevTitleRef = useRef('')
   const prevDescriptionRef = useRef('')
+  const prevModulesLengthRef = useRef(0)
   const prevActiveBlocksRef = useRef(0)
-  // FIXED: B3 — replaced modules.length-only check with a structural hash that captures
-  // per-module id, title, and lessons count — catches reorders and title edits without
-  // serialising the full state tree.
-  const prevModulesHashRef = useRef('')
   // Track the last state version that was scheduled for save so we can detect new changes
   const lastSavedVersionRef = useRef(-1)
 
@@ -41,22 +38,11 @@ export function useBuilderOffline(
   useEffect(() => {
     if (!courseId) return
 
-    // FIXED: B3 — compute a lightweight structural hash of the modules array.
-    // Captures: module identity, title changes, and per-module lesson count.
-    // Does NOT serialize full lesson content (avoids O(n) cost on large trees).
-    const modulesHash = JSON.stringify(
-      state.modules.map((m) => ({
-        id: m.id,
-        title: m.title,
-        lessonsLength: m.lessons?.length ?? 0,
-      }))
-    )
-
     // Detect meaningful changes without serialising the full state tree
     const hasChanged =
       state.courseTitle !== prevTitleRef.current ||
       state.courseDescription !== prevDescriptionRef.current ||
-      modulesHash !== prevModulesHashRef.current ||
+      state.modules.length !== prevModulesLengthRef.current ||
       (state.activeLesson?.blocks.length ?? 0) !== prevActiveBlocksRef.current
 
     if (!hasChanged) return
@@ -65,7 +51,7 @@ export function useBuilderOffline(
     stateVersionRef.current += 1
     prevTitleRef.current = state.courseTitle
     prevDescriptionRef.current = state.courseDescription ?? ''
-    prevModulesHashRef.current = modulesHash
+    prevModulesLengthRef.current = state.modules.length
     prevActiveBlocksRef.current = state.activeLesson?.blocks.length ?? 0
 
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
@@ -80,9 +66,8 @@ export function useBuilderOffline(
         setLastSavedAt(new Date())
         setIsDirty(!isOnline)
         setHasPendingDraft(!isOnline)
-      } catch (err) {
+      } catch {
         // IndexedDB save failed — non-critical
-        if (import.meta.env.DEV) console.warn('[BuilderOffline] IndexedDB draft save failed:', err)
       }
     }, 5000)
 

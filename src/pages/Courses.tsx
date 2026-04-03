@@ -8,7 +8,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Course, courseService } from '@/features/courses'
 import { useInfiniteCoursesQuery } from '@/features/courses/queries/courseQueries'
 import { useDebounce } from '@/hooks/useDebounce'
-import { usePageTitle } from '@/hooks/usePageTitle'
 import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
@@ -24,19 +23,23 @@ const CARD_GRADIENTS = [
 ]
 
 // M-10: Deterministic gradient based on course.id to prevent flicker on search filter
-// L-11: Guard against null/undefined courseId to prevent crash on split('')
-function getCourseGradient(courseId: string | null | undefined, gradients: string[]): string {
-  if (!courseId) return gradients[0]
+function getCourseGradient(courseId: string, gradients: string[]): string {
   const hash = courseId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
   return gradients[hash % gradients.length]
 }
 
-export function Courses() {
-  usePageTitle('Kelola Materi')
+export const Courses: React.FC = () => {
   const navigate = useNavigate()
   const getPath = useRoleBasedPath()
   const { user, activeTenant } = useAuth()
   const addToast = useToast((s) => s.addToast)
+
+  useEffect(() => {
+    document.title = 'Kursus — EduSync'
+    return () => {
+      document.title = 'EduSync'
+    }
+  }, [])
 
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebounce(search, 300)
@@ -47,56 +50,23 @@ export function Courses() {
   const [newDescription, setNewDescription] = useState('')
   const [isCreating, setIsCreating] = useState(false)
 
-  // FIX 6: courseId defaults to null instead of empty string
   // Assign Class Modal State
   const [assignModal, setAssignModal] = useState<{
     isOpen: boolean
-    courseId: string | null
+    courseId: string
     courseTitle: string
   }>({
     isOpen: false,
-    courseId: null,
+    courseId: '',
     courseTitle: '',
   })
 
-  // M-17: Ref for focus trap inside the create course modal
-  const createModalRef = useRef<HTMLDivElement>(null)
-
   // M-2: Escape key handler via useEffect so document receives the event
-  // FIX 1: Guard Escape key with !isCreating to prevent closing modal during submission
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isModalOpen && !isCreating) setIsModalOpen(false)
+      if (e.key === 'Escape' && isModalOpen) setIsModalOpen(false)
     }
     document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isModalOpen, isCreating])
-
-  // M-17: Focus trap for create course modal
-  useEffect(() => {
-    if (!isModalOpen || !createModalRef.current) return
-    const modal = createModalRef.current
-    const focusableSelectors =
-      'input, textarea, button:not([disabled]), [tabindex]:not([tabindex="-1"])'
-    const focusable = modal.querySelectorAll<HTMLElement>(focusableSelectors)
-    const first = focusable[0]
-    const last = focusable[focusable.length - 1]
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return
-      if (e.shiftKey) {
-        if (document.activeElement === first) {
-          e.preventDefault()
-          last?.focus()
-        }
-      } else {
-        if (document.activeElement === last) {
-          e.preventDefault()
-          first?.focus()
-        }
-      }
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    first?.focus()
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isModalOpen])
 
@@ -114,8 +84,6 @@ export function Courses() {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage()
   }
 
-  // FIX 4: Re-attach observer when isLoading changes so sentinel is found after
-  // the empty/loading state unmounts and the grid (with sentinel) remounts.
   useEffect(() => {
     const sentinel = sentinelRef.current
     if (!sentinel) return
@@ -127,7 +95,7 @@ export function Courses() {
     )
     observer.observe(sentinel)
     return () => observer.disconnect()
-  }, [isLoading]) // re-attach sentinel after loading state changes
+  }, []) // stable — uses ref internally
 
   // Server-side search covers title. Client-side filter covers description
   // (the service only does ilike on title, so we locally filter description as well)
@@ -141,8 +109,6 @@ export function Courses() {
 
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault()
-    // FIX 2: Guard against double-submission
-    if (isCreating) return
     if (!activeTenant?.id || !user?.id || !newTitle.trim()) return
 
     try {
@@ -155,9 +121,6 @@ export function Courses() {
       })
 
       setIsModalOpen(false)
-      // FIX 3: Reset form state after successful creation
-      setNewTitle('')
-      setNewDescription('')
       navigate(
         `${getPath('/app/teacher/course-builder', '/app/admin/course-builder')}?courseId=${newCourse.id}`
       )
@@ -191,7 +154,6 @@ export function Courses() {
           </p>
         </div>
         <button
-          type="button"
           onClick={openModal}
           className="group relative flex items-center space-x-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-500/30 active:scale-95 overflow-hidden shrink-0"
         >
@@ -231,7 +193,6 @@ export function Courses() {
             <p className="text-xl font-bold mb-3">Oops! Ada kendala</p>
             <p className="text-sm opacity-80 mb-6">Gagal memuat daftar materi.</p>
             <button
-              type="button"
               onClick={() => refetch()}
               className="flex items-center justify-center w-full space-x-2 px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg hover:shadow-red-500/20"
             >
@@ -264,7 +225,6 @@ export function Courses() {
           </p>
           {!search && (
             <button
-              type="button"
               onClick={openModal}
               className="px-8 py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 shadow-xl shadow-indigo-500/20 transition-all hover:-translate-y-1 active:scale-95"
             >
@@ -320,16 +280,14 @@ export function Courses() {
       <AnimatePresence>
         {isModalOpen && (
           // M-3: Click outside the modal panel closes it
-          // FIX 1: Guard backdrop click with !isCreating to prevent closing during submission
           <div
             role="presentation"
             className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-md"
             onClick={(e) => {
-              if (e.target === e.currentTarget && !isCreating) setIsModalOpen(false)
+              if (e.target === e.currentTarget) setIsModalOpen(false)
             }}
           >
             <motion.div
-              ref={createModalRef}
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -403,15 +361,13 @@ export function Courses() {
         )}
       </AnimatePresence>
 
-      {/* Assign Course Modal — FIX 6: only render when courseId is not null */}
-      {assignModal.courseId && (
-        <AssignCourseModal
-          isOpen={assignModal.isOpen}
-          onClose={() => setAssignModal((prev) => ({ ...prev, isOpen: false }))}
-          courseId={assignModal.courseId}
-          courseTitle={assignModal.courseTitle}
-        />
-      )}
+      {/* Assign Course Modal */}
+      <AssignCourseModal
+        isOpen={assignModal.isOpen}
+        onClose={() => setAssignModal((prev) => ({ ...prev, isOpen: false }))}
+        courseId={assignModal.courseId}
+        courseTitle={assignModal.courseTitle}
+      />
     </div>
   )
 }
@@ -440,17 +396,7 @@ function CourseCard({ course, gradientClass, onNavigate, onAssign }: CourseCardP
         'transition-all duration-300 hover:-translate-y-1'
       )}
       onClick={onNavigate}
-      // FIX 5: Enter fires on keydown (standard); Space fires on keyup (native button spec)
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') onNavigate()
-        // Space is handled in onKeyUp per native button spec
-      }}
-      onKeyUp={(e) => {
-        if (e.key === ' ') {
-          e.preventDefault()
-          onNavigate()
-        }
-      }}
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onNavigate()}
     >
       {/* Thumbnail / gradient header */}
       <div
@@ -518,7 +464,6 @@ function CourseCard({ course, gradientClass, onNavigate, onAssign }: CourseCardP
           <div className="flex items-center gap-2">
             {/* L-2: aria-label for assistive technology */}
             <button
-              type="button"
               onClick={(e) => {
                 e.stopPropagation()
                 onAssign()

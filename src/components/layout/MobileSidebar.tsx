@@ -98,7 +98,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
             {/* Header */}
             <div className="p-spacing-md flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center shadow-sm">
+                <div className="w-8 h-8 rounded-radius-lg bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center shadow-sm">
                   <span className="text-white font-bold text-lg">E</span>
                 </div>
                 <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-50 tracking-tight">
@@ -107,7 +107,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
               </div>
               <button
                 onClick={onClose}
-                className="p-2 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                className="p-2 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-radius-lg transition-colors"
                 aria-label="Tutup menu"
               >
                 <X className="w-6 h-6" />
@@ -121,7 +121,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                   <button
                     type="button"
                     onClick={() => setIsClassroomDropdownOpen(!isClassroomDropdownOpen)}
-                    className="w-full flex items-center justify-between bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg p-3"
+                    className="w-full flex items-center justify-between bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-radius-lg p-3"
                   >
                     <div className="flex flex-col items-start truncate pr-2">
                       <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 uppercase tracking-widest">
@@ -140,7 +140,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                   </button>
 
                   {isClassroomDropdownOpen && (
-                    <div className="mt-spacing-xs bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden">
+                    <div className="mt-spacing-xs bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-radius-lg overflow-hidden">
                       {classrooms.map((classroom) => (
                         <button
                           key={classroom.id}
@@ -173,20 +173,20 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                               value={newClassroomName}
                               onChange={(e) => setNewClassroomName(e.target.value)}
                               placeholder="Nama kelas..."
-                              className="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-sm bg-neutral-50 dark:bg-neutral-700"
+                              className="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-radius-sm bg-neutral-50 dark:bg-neutral-700"
                               autoFocus
                             />
                             <div className="flex gap-2">
                               <button
                                 type="submit"
-                                className="flex-1 bg-primary-600 text-white text-xs font-bold py-2 rounded-sm"
+                                className="flex-1 bg-primary-600 text-white text-xs font-bold py-2 rounded-radius-sm"
                               >
                                 Simpan
                               </button>
                               <button
                                 type="button"
                                 onClick={() => setIsAddingClassroom(false)}
-                                className="flex-1 bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-xs font-bold py-2 rounded-sm"
+                                className="flex-1 bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-xs font-bold py-2 rounded-radius-sm"
                               >
                                 Batal
                               </button>
@@ -216,7 +216,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                       key={item.path}
                       to={item.path}
                       className={cn(
-                        'flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200',
+                        'flex items-center gap-3 px-4 py-3 rounded-radius-xl font-medium transition-all duration-200',
                         isActive
                           ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 border border-primary-100 dark:border-primary-800/50'
                           : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
@@ -246,7 +246,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                     captureError(e)
                   }
                 }}
-                className="w-full flex items-center justify-center gap-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-danger-600 font-semibold py-3 px-4 rounded-lg transition-all text-sm"
+                className="w-full flex items-center justify-center gap-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-danger-600 font-semibold py-3 px-4 rounded-radius-lg transition-all text-sm"
               >
                 <LogOut className="w-4 h-4" />
                 Keluar

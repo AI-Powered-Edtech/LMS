@@ -108,7 +108,7 @@ export function CourseBrowser({
         // Phase 2: fetch modules + instructor in parallel
         const [modulesData, teacherName] = await Promise.all([
           courseService.getCourseModulesWithLessons(activeCourse.id, tenantId),
-          courseService.getTeacherName(activeCourse.created_by),
+          courseService.getTeacherName(activeCourse.created_by, tenantId),
         ])
 
         if (!isMounted) return

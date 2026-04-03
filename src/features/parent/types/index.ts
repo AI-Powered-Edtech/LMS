@@ -1,7 +1,6 @@
 // ==========================================================================
 // Parent Feature — Types
 // Wave 4 — Task 29.3: Parent Dashboard
-// Wave 4 — Task 29.6: Monthly Progress Report
 // ==========================================================================
 
 export interface ChildInfo {
@@ -34,30 +33,47 @@ export interface PendingAssignment {
 
 export type TrafficLightStatus = 'green' | 'yellow' | 'red'
 
-// ==========================================================================
-// Monthly Progress Report Types — Task 29.6
-// ==========================================================================
+export interface ChildDashboardData {
+  child: ChildInfo
+  traffic_light: TrafficLightStatus
+  traffic_light_reason: string
+  grades: ChildGradeSummary[]
+  attendance_this_week: AttendanceDay[]
+  pending_assignments: PendingAssignment[]
+  recent_achievements: string[] // nama badge/XP yang didapat
+}
+
+// ── Monthly Report Types ──────────────────────────────────────
+
+export interface AvailableReportMonth {
+  month: number
+  year: number
+  month_name: string
+  label: string
+}
 
 export interface ParentMonthlyReport {
   student: {
+    id: string
     name: string
-    class: string
     avatar: string | null
+    class: string
   }
   period: {
     month: number
     year: number
-    month_name: string // "Maret 2026"
+    month_name: string
   }
   academic: {
+    overall_avg: number
     subjects: Array<{
       name: string
       avg_score: number
+      total_assignments: number
+      completed_assignments: number
       assignments_completed: number
       quizzes_taken: number
-      best_quiz_score: number
     }>
-    overall_avg: number
   }
   attendance: {
     total_days: number
@@ -73,26 +89,10 @@ export interface ParentMonthlyReport {
     ai_tutor_sessions: number
   }
   achievements: Array<{
-    type: 'badge' | 'level_up' | 'streak'
     name: string
+    description: string
     earned_at: string
+    type?: string
   }>
   teacher_notes: string | null
-}
-
-export interface AvailableReportMonth {
-  month: number
-  year: number
-  month_name: string
-  label: string // e.g. "Maret 2026"
-}
-
-export interface ChildDashboardData {
-  child: ChildInfo
-  traffic_light: TrafficLightStatus
-  traffic_light_reason: string
-  grades: ChildGradeSummary[]
-  attendance_this_week: AttendanceDay[]
-  pending_assignments: PendingAssignment[]
-  recent_achievements: string[] // nama badge/XP yang didapat
 }

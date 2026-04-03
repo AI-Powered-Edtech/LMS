@@ -108,12 +108,12 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
     fetchModules()
   }, [fetchModules])
 
-  // Load flags lazily when tab is first opened (stop retrying if there's already an error)
+  // Load flags lazily when tab is first opened
   useEffect(() => {
-    if (activeTab === 'flags' && flags.length === 0 && !flagsLoading && !flagsError) {
+    if (activeTab === 'flags' && flags.length === 0 && !flagsLoading) {
       fetchFlags()
     }
-  }, [activeTab, flags.length, flagsLoading, flagsError, fetchFlags])
+  }, [activeTab, flags.length, flagsLoading, fetchFlags])
 
   // ── Module handlers ───────────────────────────────────────────────────────
   const handleToggleModule = async (moduleId: string) => {

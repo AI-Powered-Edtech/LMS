@@ -1,10 +1,17 @@
-import { Maximize, MessageSquarePlus, MousePointer2, ZoomIn, ZoomOut } from 'lucide-react'
+import {
+  Maximize,
+  MessageSquare,
+  MessageSquarePlus,
+  MousePointer2,
+  X,
+  ZoomIn,
+  ZoomOut,
+} from 'lucide-react'
 import type { RefObject } from 'react'
 
-import { AnnotationLayer } from '@/features/gradebook/components/AnnotationLayer'
 import { cn } from '@/utils/cn'
 
-import type { ActiveTool } from './types'
+import type { ActiveTool, Annotation } from './types'
 
 interface DocumentViewerProps {
   isLoading: boolean
@@ -12,11 +19,16 @@ interface DocumentViewerProps {
   studentName: string
   zoom: number
   activeTool: ActiveTool
-  /** ID submission dari tabel assignment_submissions. Jika null, anotasi dinonaktifkan. */
-  submissionId: string | null
+  annotations?: Annotation[]
   documentRef: RefObject<HTMLDivElement | null>
   onZoomChange: (zoom: number) => void
   onToolChange: (tool: ActiveTool) => void
+  onDocumentClick?: (e: React.MouseEvent) => void
+  onAnnotationToggle?: (id: string) => void
+  onAnnotationUpdate?: (id: string, text: string) => void
+  onAnnotationDelete?: (id: string) => void
+  /** Optional submission ID for external integrations */
+  submissionId?: string | null
 }
 
 function DocumentSkeleton() {
@@ -62,16 +74,83 @@ function FallbackEssay() {
   )
 }
 
+function AnnotationPin({
+  annotation,
+  onToggle,
+  onUpdate,
+  onDelete,
+}: {
+  annotation: Annotation
+  onToggle: (id: string) => void
+  onUpdate: (id: string, text: string) => void
+  onDelete: (id: string) => void
+}) {
+  return (
+    <div
+      role="presentation"
+      className="absolute"
+      style={{ left: `${annotation.x}%`, top: `${annotation.y}%` }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="relative group">
+        <button
+          onClick={() => onToggle(annotation.id)}
+          aria-label="Buka komentar anotasi"
+          className="absolute -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-yellow-400 text-yellow-900 rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform z-10 border-2 border-white dark:border-slate-800"
+        >
+          <MessageSquare className="w-4 h-4" />
+        </button>
+
+        {annotation.isOpen && (
+          <div className="absolute top-4 left-4 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 p-3 z-20">
+            <div className="flex justify-between items-start mb-2">
+              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">
+                Komentar
+              </span>
+              <button
+                onClick={() => onDelete(annotation.id)}
+                aria-label="Hapus anotasi"
+                className="text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <textarea
+              autoFocus
+              value={annotation.text}
+              onChange={(e) => onUpdate(annotation.id, e.target.value)}
+              placeholder="Ketik komentar di sini..."
+              className="w-full text-sm border-none bg-yellow-50/50 dark:bg-yellow-900/20 rounded-lg p-2 focus:ring-0 resize-none h-20 dark:text-white dark:placeholder:text-slate-500"
+            />
+            <div className="flex justify-end mt-2">
+              <button
+                onClick={() => onToggle(annotation.id)}
+                className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700"
+              >
+                Selesai
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function DocumentViewer({
   isLoading,
   submissionText,
   studentName,
   zoom,
   activeTool,
-  submissionId,
+  annotations,
   documentRef,
   onZoomChange,
   onToolChange,
+  onDocumentClick,
+  onAnnotationToggle,
+  onAnnotationUpdate,
+  onAnnotationDelete,
 }: DocumentViewerProps) {
   return (
     <div className="flex-1 bg-slate-200/50 dark:bg-slate-900/50 flex flex-col relative">
@@ -144,6 +223,7 @@ export function DocumentViewer({
           <div
             ref={documentRef}
             role="presentation"
+            onClick={onDocumentClick}
             className={cn(
               'bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 p-12 relative origin-top transition-transform duration-200',
               activeTool === 'comment' ? 'cursor-crosshair' : 'cursor-default'
@@ -173,14 +253,15 @@ export function DocumentViewer({
               )}
             </div>
 
-            {/* AnnotationLayer dirender di atas dokumen, hanya aktif jika submissionId tersedia */}
-            {submissionId && (
-              <AnnotationLayer
-                submissionId={submissionId}
-                isEditable
-                isCommentToolActive={activeTool === 'comment'}
+            {(annotations ?? []).map((ann) => (
+              <AnnotationPin
+                key={ann.id}
+                annotation={ann}
+                onToggle={onAnnotationToggle ?? (() => {})}
+                onUpdate={onAnnotationUpdate ?? (() => {})}
+                onDelete={onAnnotationDelete ?? (() => {})}
               />
-            )}
+            ))}
           </div>
         )}
       </div>

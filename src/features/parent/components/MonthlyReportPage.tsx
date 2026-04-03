@@ -376,7 +376,9 @@ function ReportContent({ report }: { report: ParentMonthlyReport }) {
             {report.achievements.map((achievement, idx) => (
               <div key={idx} className="flex items-center gap-3">
                 <span className="text-lg flex-shrink-0" aria-hidden="true">
-                  {achievementIcon(achievement.type)}
+                  {achievementIcon(
+                    (achievement.type ?? 'badge') as 'badge' | 'level_up' | 'streak'
+                  )}
                 </span>
                 <div>
                   <p className="text-sm font-medium text-slate-700 dark:text-slate-300">

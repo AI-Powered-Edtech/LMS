@@ -214,7 +214,7 @@ export function PrincipalSettingsPage() {
         widget_roi: data.widget_roi,
         widget_teacher_ranking: data.widget_teacher_ranking,
         widget_survey: data.widget_survey,
-        baseline_date: data.baseline_date || null,
+        baseline_date: data.baseline_date || undefined,
         report_schedule: data.report_enabled ? data.report_frequency : null,
         report_email: data.report_email || null,
         report_auto_enabled: data.report_enabled,

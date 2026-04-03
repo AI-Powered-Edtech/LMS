@@ -371,9 +371,6 @@ export function BulkImportWizard({ onClose, onSuccess }: BulkImportWizardProps) 
       onClick={(e) => {
         if (e.target === e.currentTarget && !isProcessing) onClose()
       }}
-      onKeyDown={(e) => {
-        if (e.key === 'Escape' && !isProcessing) onClose()
-      }}
     >
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden">
         {/* Header */}
@@ -495,9 +492,7 @@ export function BulkImportWizard({ onClose, onSuccess }: BulkImportWizardProps) 
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onClick={() => fileInputRef.current?.click()}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click()
-                }}
+                onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
                 className={cn(
                   'border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all',
                   isDragging

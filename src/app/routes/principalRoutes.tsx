@@ -29,11 +29,18 @@ const SurveyPage = lazy(() =>
   }))
 )
 
-const PrincipalSettingsPage = lazy(() =>
-  import('../../features/principal/components/PrincipalSettingsPage').then((m) => ({
-    default: m.PrincipalSettingsPage,
-  }))
-)
+// Settings placeholder — akan diimplementasi di Wave berikutnya
+function PrincipalSettingsPlaceholder() {
+  return (
+    <div className="flex flex-col items-center justify-center gap-4 p-8 text-center">
+      <span className="text-4xl">⚙️</span>
+      <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Pengaturan Dashboard</h1>
+      <p className="text-slate-500 dark:text-slate-400 max-w-sm">
+        Konfigurasi pengaturan kepala sekolah akan tersedia segera.
+      </p>
+    </div>
+  )
+}
 
 /**
  * All /app/principal/* routes.
@@ -62,7 +69,7 @@ export function PrincipalRoutes() {
         path="settings"
         element={
           <S feature="Pengaturan Principal">
-            <PrincipalSettingsPage />
+            <PrincipalSettingsPlaceholder />
           </S>
         }
       />

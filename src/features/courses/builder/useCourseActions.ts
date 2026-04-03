@@ -24,17 +24,14 @@ export function useCourseActions(
         )
         dispatch({ type: 'LOAD_COURSE_SUCCESS', course, modules })
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Gagal memuat data kursus'
-        dispatch({ type: 'LOAD_COURSE_ERROR', error: message })
-        addToast({ type: 'error', message })
+        dispatch({ type: 'LOAD_COURSE_ERROR', error: (err as Error).message })
       }
     },
-    [tenantId, dispatch, addToast]
+    [tenantId, dispatch]
   )
 
   const publishCourse = useCallback(async () => {
     if (!state.courseId || !tenantId) return
-    if (state.savingStatus === 'saving') return
 
     if (state.modules.length === 0) {
       addToast({
@@ -64,15 +61,6 @@ export function useCourseActions(
       return
     }
 
-    if (state.activeLesson && state.activeLesson.blocks.length === 0) {
-      addToast({
-        type: 'warning',
-        message:
-          'Peringatan: Materi yang sedang dibuka tidak memiliki konten. Pastikan semua materi sudah diisi sebelum publikasi.',
-      })
-      // Don't block — just warn
-    }
-
     setSavingStatus('saving')
     try {
       await builderCourseService.publishCourse(state.courseId, tenantId)
@@ -87,26 +75,15 @@ export function useCourseActions(
         message: error instanceof Error ? error.message : 'Gagal menerbitkan kursus',
       })
     }
-  }, [
-    state.courseId,
-    state.modules,
-    state.savingStatus,
-    state.activeLesson,
-    tenantId,
-    dispatch,
-    setSavingStatus,
-    addToast,
-  ])
+  }, [state.courseId, state.modules, tenantId, dispatch, setSavingStatus, addToast])
 
   const draftCourse = useCallback(async () => {
     if (!state.courseId || !tenantId) return
-    if (state.savingStatus === 'saving') return
     setSavingStatus('saving')
     try {
       await builderCourseService.draftCourse(state.courseId, tenantId)
       dispatch({ type: 'SET_COURSE_STATUS', status: 'draft' })
       setSavingStatus('saved')
-      addToast({ type: 'success', message: 'Kursus kembali ke mode draft.' })
     } catch (err: unknown) {
       setSavingStatus('error')
       addToast({
@@ -116,11 +93,10 @@ export function useCourseActions(
           (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
       })
     }
-  }, [state.courseId, state.savingStatus, tenantId, dispatch, setSavingStatus, addToast])
+  }, [state.courseId, tenantId, dispatch, setSavingStatus, addToast])
 
   const submitForReview = useCallback(async () => {
     if (!state.courseId || !tenantId) return
-    if (state.savingStatus === 'saving') return
     setSavingStatus('saving')
     try {
       await builderCourseService.submitForReview(state.courseId, tenantId)
@@ -136,11 +112,10 @@ export function useCourseActions(
           (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
       })
     }
-  }, [state.courseId, state.savingStatus, tenantId, dispatch, setSavingStatus, addToast])
+  }, [state.courseId, tenantId, dispatch, setSavingStatus, addToast])
 
   const approveCourse = useCallback(async () => {
     if (!state.courseId || !tenantId) return
-    if (state.savingStatus === 'saving') return
     setSavingStatus('saving')
     try {
       await builderCourseService.approveCourse(state.courseId, tenantId)
@@ -156,7 +131,7 @@ export function useCourseActions(
           (err instanceof Error ? err.message : 'Kesalahan tidak diketahui'),
       })
     }
-  }, [state.courseId, state.savingStatus, tenantId, dispatch, setSavingStatus, addToast])
+  }, [state.courseId, tenantId, dispatch, setSavingStatus, addToast])
 
   return { loadCourse, publishCourse, draftCourse, submitForReview, approveCourse }
 }

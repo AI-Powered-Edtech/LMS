@@ -149,14 +149,6 @@ export function PublicRoutes() {
         }
       />
       <Route
-        path="/setup-2fa"
-        element={
-          <S feature="Setup 2FA">
-            <MFASetupPage />
-          </S>
-        }
-      />
-      <Route
         path="/verify-2fa"
         element={
           <S feature="Verifikasi 2FA">
@@ -189,6 +181,7 @@ export function SharedAuthRoutes() {
     { path: 'notifications', element: <NotificationsPage /> },
     { path: 'privacy/export-data', element: <DataExportPage /> },
     { path: 'privacy/delete-account', element: <AccountDeletionPage /> },
+    { path: 'setup-2fa', element: <MFASetupPage /> },
   ] as const
 
   return (

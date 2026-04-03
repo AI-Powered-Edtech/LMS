@@ -1,4 +1,4 @@
-// Wave 4 — Task 29.3 + 29.4 + 29.5 + 29.6: Parent Dashboard, Digest, Messaging, Monthly Report
+// Wave 4 — Task 29.3 + 29.4 + 29.5: Parent Dashboard, Digest, Messaging
 // Public route /register-parent ada di sharedRoutes.tsx (PublicRoutes).
 // Routes di sini hanya untuk authenticated /app/parent/* paths.
 
@@ -33,23 +33,22 @@ const DigestSettings = lazy(() =>
   }))
 )
 
-const MonthlyReportPage = lazy(() =>
-  import('../../features/parent/components/MonthlyReportPage').then((m) => ({
-    default: m.MonthlyReportPage,
-  }))
-)
-
-const GradesDetailPage = lazy(() =>
-  import('../../features/parent/components/GradesDetailPage').then((m) => ({
-    default: m.GradesDetailPage,
-  }))
-)
-
-const AttendanceDetailPage = lazy(() =>
-  import('../../features/parent/components/AttendanceDetailPage').then((m) => ({
-    default: m.AttendanceDetailPage,
-  }))
-)
+// Placeholder untuk halaman yang belum diimplementasi
+function ComingSoonPage({ title, icon }: { title: string; icon: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-4 py-16 px-4 text-center">
+      <span className="text-5xl" aria-hidden="true">
+        {icon}
+      </span>
+      <div>
+        <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-2">{title}</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+          Fitur ini sedang disiapkan dan akan segera tersedia.
+        </p>
+      </div>
+    </div>
+  )
+}
 
 /**
  * All /app/parent/* routes (authenticated, role=parent atau admin).
@@ -77,22 +76,22 @@ export function ParentRoutes() {
         }
       />
 
-      {/* Halaman Detail Nilai */}
+      {/* Halaman Nilai — placeholder, akan diimplementasi wave berikutnya */}
       <Route
         path="nilai"
         element={
           <S feature="Nilai Anak">
-            <GradesDetailPage />
+            <ComingSoonPage title="Nilai Lengkap" icon="📊" />
           </S>
         }
       />
 
-      {/* Halaman Kalender Kehadiran */}
+      {/* Halaman Kehadiran — placeholder */}
       <Route
         path="kehadiran"
         element={
           <S feature="Kehadiran Anak">
-            <AttendanceDetailPage />
+            <ComingSoonPage title="Riwayat Kehadiran" icon="📅" />
           </S>
         }
       />
@@ -123,26 +122,6 @@ export function ParentRoutes() {
         element={
           <S feature="Pengaturan Notifikasi">
             <DigestSettings />
-          </S>
-        }
-      />
-
-      {/* Laporan Bulanan — list (default: bulan ini, anak pertama) */}
-      <Route
-        path="laporan"
-        element={
-          <S feature="Laporan Perkembangan Bulanan">
-            <MonthlyReportPage />
-          </S>
-        }
-      />
-
-      {/* Laporan Bulanan — spesifik siswa + bulan */}
-      <Route
-        path="laporan/:studentId/:year/:month"
-        element={
-          <S feature="Laporan Perkembangan Bulanan">
-            <MonthlyReportPage />
           </S>
         }
       />

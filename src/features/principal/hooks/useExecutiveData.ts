@@ -192,8 +192,7 @@ export function useSurveyResults(surveyId: string | null) {
 
   return useQuery({
     queryKey: principalKeys.surveyResults(tenantId ?? '', surveyId ?? ''),
-    // FIXED: Pass tenantId for tenant isolation in survey_responses query
-    queryFn: () => getSurveyResults(surveyId!, tenantId!),
+    queryFn: () => getSurveyResults(surveyId!),
     enabled: !!tenantId && !!surveyId,
     staleTime: STALE.DYNAMIC,
   })

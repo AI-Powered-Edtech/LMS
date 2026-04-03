@@ -21,15 +21,12 @@ export function useLessonActions(
   const addLesson = useCallback(
     async (moduleId: string, type: string, title: string) => {
       if (!tenantId) return
-      setSavingStatus('saving')
       try {
         const lesson = await builderLessonService.createLesson(moduleId, type, title, tenantId)
         dispatch({ type: 'ADD_LESSON', moduleId, lesson })
         broadcast?.({ type: 'ADD_LESSON', moduleId, lesson }, userName ?? '')
-        setSavingStatus('saved')
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Failed to add lesson:', err)
-        setSavingStatus('error')
         addToast({
           type: 'error',
           message:
@@ -38,7 +35,7 @@ export function useLessonActions(
         })
       }
     },
-    [tenantId, dispatch, addToast, setSavingStatus, broadcast, userName]
+    [tenantId, dispatch, addToast, broadcast, userName]
   )
 
   const updateLesson = useCallback(
@@ -56,7 +53,7 @@ export function useLessonActions(
       } catch (err: unknown) {
         // Rollback to previous state
         if (prevLesson) {
-          dispatch({ type: 'REMOTE_UPDATE_LESSON', lessonId, data: prevLesson })
+          dispatch({ type: 'UPDATE_LESSON', lessonId, data: prevLesson })
         }
         setSavingStatus('error')
         addToast({

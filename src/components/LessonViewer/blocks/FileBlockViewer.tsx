@@ -76,9 +76,8 @@ export function FileBlockViewer({ url, title }: FileBlockViewerProps) {
       link.click()
       document.body.removeChild(link)
       URL.revokeObjectURL(blobUrl)
-    } catch (err) {
-      if (import.meta.env.DEV)
-        console.warn('[FileBlockViewer] Blob download failed, falling back to tab open:', err)
+    } catch {
+      // Fallback: open in new tab
       window.open(safeUrl, '_blank', 'noopener,noreferrer')
     }
   }
@@ -105,7 +104,6 @@ export function FileBlockViewer({ url, title }: FileBlockViewerProps) {
           >
             <ExternalLink className="w-4 h-4" />
             Buka
-            <span className="sr-only">(buka di tab baru)</span>
           </a>
         )}
         <a

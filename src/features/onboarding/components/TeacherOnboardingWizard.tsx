@@ -1,18 +1,669 @@
-import { X } from 'lucide-react'
+import {
+  BarChart3,
+  BookOpen,
+  Check,
+  ChevronRight,
+  ClipboardCheck,
+  Copy,
+  GraduationCap,
+  Layers,
+  Rocket,
+  School,
+  Sparkles,
+  X,
+} from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { classroomService } from '@/features/classroom/api/classroomService'
+import { courseService } from '@/features/courses/api/courseService'
 import { cn } from '@/utils/cn'
 
 import { useTeacherOnboarding } from '../hooks/useTeacherOnboarding'
-import {
-  StepCreateClass,
-  StepCreateCourse,
-  StepInviteStudents,
-  StepReady,
-  StepWelcome,
-} from './steps'
+
+/* ─── Types ──────────────────────────────────────────────────── */
+
+interface StepProps {
+  onNext: () => void
+  onSkip?: () => void
+  onPrev?: () => void
+}
+
+/* ─── Step 1 — Selamat Datang ────────────────────────────────── */
+
+function StepWelcome({ onNext }: StepProps) {
+  const { profile } = useAuth()
+  const firstName = profile?.first_name || 'Guru'
+
+  return (
+    <div className="flex flex-col items-center text-center py-4">
+      <div className="w-20 h-20 bg-gradient-to-br from-violet-500 to-indigo-600 rounded-3xl flex items-center justify-center shadow-lg mb-6">
+        <Sparkles className="w-10 h-10 text-white" />
+      </div>
+      <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-3">
+        Selamat Datang di EduSync! 🎉
+      </h2>
+      <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed max-w-sm mb-2">
+        Halo, <span className="font-semibold text-slate-700 dark:text-slate-200">{firstName}</span>!
+        Kami akan membantu Anda memulai perjalanan mengajar digital dalam beberapa langkah mudah.
+      </p>
+      <p className="text-slate-400 dark:text-slate-500 text-xs mb-8">
+        Proses ini hanya memakan waktu sekitar 2 menit.
+      </p>
+      <div className="grid grid-cols-3 gap-4 w-full mb-8">
+        {[
+          {
+            icon: <School className="w-5 h-5" />,
+            label: 'Buat Kelas',
+            color: 'text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30',
+          },
+          {
+            icon: <GraduationCap className="w-5 h-5" />,
+            label: 'Undang Siswa',
+            color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/30',
+          },
+          {
+            icon: <BookOpen className="w-5 h-5" />,
+            label: 'Buat Materi',
+            color: 'text-amber-500 bg-amber-50 dark:bg-amber-900/30',
+          },
+        ].map((item) => (
+          <div key={item.label} className="flex flex-col items-center gap-2">
+            <div
+              className={cn('w-12 h-12 rounded-2xl flex items-center justify-center', item.color)}
+            >
+              {item.icon}
+            </div>
+            <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+              {item.label}
+            </span>
+          </div>
+        ))}
+      </div>
+      <Button
+        size="lg"
+        fullWidth
+        onClick={onNext}
+        className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0"
+      >
+        Mulai Pengaturan
+        <ChevronRight className="w-5 h-5 ml-1" />
+      </Button>
+    </div>
+  )
+}
+
+/* ─── Step 2 — Buat Kelas Pertama ────────────────────────────── */
+
+interface Step2Props extends StepProps {
+  onClassCreated: (classId: string, joinCode: string) => void
+  existingClassId?: string | null
+  existingJoinCode?: string | null
+}
+
+function StepCreateClass({
+  onNext,
+  onSkip,
+  onClassCreated,
+  existingClassId,
+  existingJoinCode,
+}: Step2Props) {
+  const { user, tenantId } = useAuth()
+  const [className, setClassName] = useState('')
+  const [mapel, setMapel] = useState('')
+  const [tahunAjaran, setTahunAjaran] = useState('2025/2026')
+  const [isCreating, setIsCreating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // If class was already created in a previous session
+  if (existingClassId && existingJoinCode) {
+    return (
+      <div className="flex flex-col items-center text-center py-4">
+        <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center mb-4">
+          <Check className="w-8 h-8 text-emerald-500" />
+        </div>
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+          Kelas sudah dibuat!
+        </h3>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
+          Kelas Anda telah berhasil dibuat sebelumnya.
+        </p>
+        <Button fullWidth onClick={onNext}>
+          Lanjut ke Undang Siswa <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+    )
+  }
+
+  async function handleCreateClass() {
+    if (!className.trim()) {
+      setError('Nama kelas wajib diisi.')
+      return
+    }
+    if (!user || !tenantId) return
+
+    setIsCreating(true)
+    setError(null)
+
+    try {
+      // Generate join code (same logic as classroomService)
+      const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+      let joinCode = ''
+      const randomBytes = new Uint8Array(16)
+      while (joinCode.length < 6) {
+        globalThis.crypto.getRandomValues(randomBytes)
+        for (let i = 0; i < randomBytes.length; i++) {
+          if (randomBytes[i] < 252 && joinCode.length < 6) {
+            joinCode += charset[randomBytes[i] % 36]
+          }
+        }
+      }
+
+      // Build display name with mapel & tahun ajaran
+      const fullName = [className.trim(), mapel.trim(), tahunAjaran.trim()]
+        .filter(Boolean)
+        .join(' — ')
+
+      await classroomService.createClassroom(user.id, fullName, tenantId)
+
+      // Fetch the newly created class to get its ID and join_code
+      const { data, error: fetchErr } = await (await import('@/services/supabase/client')).supabase
+        .from('classes')
+        .select('id, join_code')
+        .eq('teacher_id', user.id)
+        .eq('tenant_id', tenantId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (fetchErr || !data) {
+        throw new Error('Gagal mengambil data kelas yang baru dibuat.')
+      }
+
+      onClassCreated(data.id, data.join_code)
+      onNext()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal membuat kelas. Coba lagi.')
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  return (
+    <div className="py-2">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center">
+          <School className="w-6 h-6 text-indigo-500" />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">Buat Kelas Pertama</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Isi detail kelas Anda</p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            Nama Kelas <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={className}
+            onChange={(e) => setClassName(e.target.value)}
+            placeholder="Contoh: Kelas 9A, XII IPA 1"
+            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            Mata Pelajaran
+          </label>
+          <input
+            type="text"
+            value={mapel}
+            onChange={(e) => setMapel(e.target.value)}
+            placeholder="Contoh: Matematika, Bahasa Indonesia"
+            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            Tahun Ajaran
+          </label>
+          <input
+            type="text"
+            value={tahunAjaran}
+            onChange={(e) => setTahunAjaran(e.target.value)}
+            placeholder="Contoh: 2025/2026"
+            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+          />
+        </div>
+
+        {error && (
+          <p className="text-sm text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+            {error}
+          </p>
+        )}
+      </div>
+
+      <div className="flex gap-3 mt-6">
+        <Button variant="ghost" size="sm" onClick={onSkip} className="flex-1">
+          Lewati
+        </Button>
+        <Button
+          size="md"
+          className="flex-[2] bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0"
+          loading={isCreating}
+          onClick={handleCreateClass}
+          disabled={!className.trim()}
+        >
+          Buat Kelas
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Step 3 — Undang Siswa ──────────────────────────────────── */
+
+interface Step3Props extends StepProps {
+  joinCode: string | null
+}
+
+function StepInviteStudents({ onNext, joinCode }: Step3Props) {
+  const [copied, setCopied] = useState(false)
+
+  const displayCode = joinCode || '------'
+  const joinUrl = `${window.location.origin}/#/join?code=${displayCode}`
+  const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=${encodeURIComponent(joinUrl)}&choe=UTF-8`
+
+  function copyCode() {
+    navigator.clipboard.writeText(displayCode).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  function copyLink() {
+    navigator.clipboard.writeText(joinUrl).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <div className="py-2">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center">
+          <GraduationCap className="w-6 h-6 text-emerald-500" />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+            Undang Siswa ke Kelas
+          </h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Bagikan kode ini ke siswa Anda
+          </p>
+        </div>
+      </div>
+
+      {/* Join Code Display */}
+      <div className="bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-900/20 dark:to-violet-900/20 border border-indigo-100 dark:border-indigo-800/40 rounded-2xl p-5 mb-4 text-center">
+        <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-2">
+          Kode Bergabung
+        </p>
+        <p className="text-4xl font-black tracking-[0.3em] text-indigo-700 dark:text-indigo-300 mb-1">
+          {displayCode}
+        </p>
+        {joinCode && (
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+            Berlaku hingga kelas dihapus
+          </p>
+        )}
+      </div>
+
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={copyCode}
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+        >
+          {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+          Salin Kode
+        </button>
+        <button
+          onClick={copyLink}
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+        >
+          <Copy className="w-4 h-4" />
+          Salin Link
+        </button>
+      </div>
+
+      {/* QR Code */}
+      {joinCode && (
+        <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 mb-4">
+          <img
+            src={qrUrl}
+            alt="QR Code bergabung kelas"
+            className="w-16 h-16 rounded-lg"
+            loading="lazy"
+          />
+          <div>
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">QR Code</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Tampilkan di papan tulis agar siswa bisa scan langsung
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/40 rounded-xl p-3 mb-6">
+        <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+          💡 <span className="font-semibold">Tips:</span> Bagikan kode ini ke siswa via WhatsApp
+          atau tulis di papan tulis. Siswa cukup buka EduSync dan masukkan kode ini.
+        </p>
+      </div>
+
+      <Button
+        size="md"
+        fullWidth
+        onClick={onNext}
+        className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white border-0"
+      >
+        Selesai, Lanjut <ChevronRight className="w-4 h-4" />
+      </Button>
+    </div>
+  )
+}
+
+/* ─── Step 4 — Buat Materi Pertama ──────────────────────────── */
+
+interface Step4Props extends StepProps {
+  onCourseCreated: (courseId: string) => void
+  existingCourseId?: string | null
+}
+
+function StepCreateCourse({ onNext, onSkip, onCourseCreated, existingCourseId }: Step4Props) {
+  const { user, tenantId } = useAuth()
+  const navigate = useNavigate()
+  const [title, setTitle] = useState('')
+  const [subject, setSubject] = useState('')
+  const [isCreating, setIsCreating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  if (existingCourseId) {
+    return (
+      <div className="flex flex-col items-center text-center py-4">
+        <div className="w-16 h-16 bg-amber-50 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center mb-4">
+          <Check className="w-8 h-8 text-amber-500" />
+        </div>
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+          Kursus sudah dibuat!
+        </h3>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
+          Kursus Anda telah berhasil dibuat sebelumnya.
+        </p>
+        <Button fullWidth onClick={onNext}>
+          Lanjut <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+    )
+  }
+
+  async function handleCreateCourse() {
+    if (!title.trim()) {
+      setError('Judul kursus wajib diisi.')
+      return
+    }
+    if (!user || !tenantId) return
+
+    setIsCreating(true)
+    setError(null)
+
+    try {
+      const course = await courseService.createCourse({
+        title: title.trim(),
+        description: null,
+        status: 'draft',
+        subject: subject.trim() || null,
+        tenant_id: tenantId,
+        created_by: user.id,
+      })
+
+      onCourseCreated(course.id)
+      // Navigate to course builder with the new course
+      onNext()
+      // Small delay so the wizard can close cleanly
+      setTimeout(() => {
+        navigate(`/app/teacher/course-builder?courseId=${course.id}`)
+      }, 400)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal membuat kursus. Coba lagi.')
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  return (
+    <div className="py-2">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center">
+          <BookOpen className="w-6 h-6 text-amber-500" />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">Buat Materi Pertama</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Mulai buat kursus pembelajaran
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            Judul Kursus <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Contoh: Aljabar Dasar, Teks Narasi"
+            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            Mata Pelajaran
+          </label>
+          <input
+            type="text"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            placeholder="Contoh: Matematika, Bahasa Indonesia"
+            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
+          />
+        </div>
+
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/40 rounded-xl p-3">
+          <p className="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">
+            📝 Setelah membuat kursus, Anda akan langsung diarahkan ke{' '}
+            <strong>Course Builder</strong> untuk menambahkan modul dan materi pelajaran.
+          </p>
+        </div>
+
+        {error && (
+          <p className="text-sm text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg px-3 py-2">
+            {error}
+          </p>
+        )}
+      </div>
+
+      <div className="flex gap-3 mt-6">
+        <Button variant="ghost" size="sm" onClick={onSkip} className="flex-1">
+          Nanti saja
+        </Button>
+        <Button
+          size="md"
+          className="flex-[2] bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
+          loading={isCreating}
+          onClick={handleCreateCourse}
+          disabled={!title.trim()}
+        >
+          <Layers className="w-4 h-4" />
+          Buat Kursus
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Step 5 — Siap Mengajar ─────────────────────────────────── */
+
+interface Step5Props {
+  completedSteps: number[]
+  createdClassId: string | null
+  createdCourseId: string | null
+  onFinish: () => void
+}
+
+function StepReady({ completedSteps, createdClassId, createdCourseId, onFinish }: Step5Props) {
+  const navigate = useNavigate()
+
+  const checklistItems = [
+    {
+      label: 'Kelas dibuat',
+      done: completedSteps.includes(2) || !!createdClassId,
+    },
+    {
+      label: 'Siswa diundang',
+      done: completedSteps.includes(3),
+    },
+    {
+      label: 'Materi ditambahkan',
+      done: completedSteps.includes(4) || !!createdCourseId,
+    },
+  ]
+
+  const nextSteps = [
+    {
+      icon: <ClipboardCheck className="w-5 h-5 text-violet-500" />,
+      label: 'Buat Kuis',
+      path: '/app/teacher/quiz-manager',
+      bg: 'bg-violet-50 dark:bg-violet-900/20 border-violet-100 dark:border-violet-800/40',
+    },
+    {
+      icon: <BarChart3 className="w-5 h-5 text-blue-500" />,
+      label: 'Lihat Analitik',
+      path: '/analytics',
+      bg: 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/40',
+    },
+    {
+      icon: <BookOpen className="w-5 h-5 text-amber-500" />,
+      label: 'Koreksi Tugas',
+      path: '/grader',
+      bg: 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/40',
+    },
+    {
+      icon: <Rocket className="w-5 h-5 text-emerald-500" />,
+      label: 'Eksplorasi Fitur',
+      path: '/app/teacher/teaching-hub',
+      bg: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/40',
+    },
+  ]
+
+  return (
+    <div className="py-2">
+      <div className="text-center mb-6">
+        <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-4">
+          <Rocket className="w-8 h-8 text-white" />
+        </div>
+        <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1">
+          Anda Siap Mengajar! 🚀
+        </h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          EduSync sudah dikonfigurasi untuk Anda.
+        </p>
+      </div>
+
+      {/* Checklist */}
+      <div className="space-y-2 mb-6">
+        {checklistItems.map((item) => (
+          <div
+            key={item.label}
+            className={cn(
+              'flex items-center gap-3 px-4 py-3 rounded-xl border',
+              item.done
+                ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/40'
+                : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700'
+            )}
+          >
+            <div
+              className={cn(
+                'w-6 h-6 rounded-full flex items-center justify-center shrink-0',
+                item.done
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-slate-200 dark:bg-slate-700 text-slate-400'
+              )}
+            >
+              {item.done ? (
+                <Check className="w-3.5 h-3.5" />
+              ) : (
+                <div className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500" />
+              )}
+            </div>
+            <span
+              className={cn(
+                'text-sm font-medium',
+                item.done
+                  ? 'text-emerald-700 dark:text-emerald-400'
+                  : 'text-slate-500 dark:text-slate-400'
+              )}
+            >
+              {item.label}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Next Steps */}
+      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+        Langkah Selanjutnya
+      </p>
+      <div className="grid grid-cols-2 gap-2 mb-6">
+        {nextSteps.map((item) => (
+          <button
+            key={item.path}
+            onClick={() => {
+              onFinish()
+              setTimeout(() => navigate(item.path), 300)
+            }}
+            className={cn(
+              'flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all hover:scale-[1.02] active:scale-[0.98]',
+              item.bg
+            )}
+          >
+            {item.icon}
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+              {item.label}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <Button
+        size="lg"
+        fullWidth
+        onClick={onFinish}
+        className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white border-0"
+      >
+        Mulai Mengajar!
+      </Button>
+    </div>
+  )
+}
 
 /* ─── Main Wizard Component ──────────────────────────────────── */
 

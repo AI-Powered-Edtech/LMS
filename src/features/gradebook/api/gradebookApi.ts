@@ -21,11 +21,12 @@ export async function fetchGradebookEntries(
     .from('gradebook_entries')
     .select(
       `id, tenant_id, student_id, course_id, entity_type, entity_id,
-       score, max_score, feedback, graded_by, graded_at, created_at, updated_at,
+       score, max_score, feedback, graded_by, graded_at, created_at, updated_at, title,
        profiles:student_id (full_name, email)`
     )
     .eq('course_id', courseId)
     .eq('tenant_id', tenantId)
+    .neq('student_id', '00000000-0000-0000-0000-000000000001')
     .order('created_at', { ascending: true })
 
   if (error) throw error
@@ -57,7 +58,7 @@ export async function fetchGradebookEntries(
       updated_at: row.updated_at as string,
       student_name: profile?.full_name ?? undefined,
       student_email: profile?.email ?? undefined,
-      item_title: undefined,
+      item_title: (row.title as string | null) ?? undefined,
       item_type: itemType,
     } satisfies GradebookEntry
   })
@@ -149,6 +150,8 @@ const COLUMN_DEFINITION_SENTINEL = '00000000-0000-0000-0000-000000000001'
  *
  * FIXED: Uses sentinel UUID instead of teacher's user ID to prevent phantom grade
  * entries appearing for the teacher in student grade queries.
+ *
+ * NOTE: Requires migration: ALTER TABLE gradebook_entries ADD COLUMN IF NOT EXISTS title TEXT;
  */
 export async function addGradebookItem(data: {
   courseId: string
@@ -171,6 +174,7 @@ export async function addGradebookItem(data: {
       entity_id: newEntityId,
       score: 0,
       max_score: data.maxScore,
+      title: data.title, // Requires migration: ADD COLUMN IF NOT EXISTS title TEXT
     })
     .select('id, entity_type, entity_id, max_score')
     .single()

@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { useToast } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
-// AI generation dilakukan via Edge Function generate-ai-content
+// TODO: AI generation will be routed through backend API (Phase 5)
 import { useAddCalendarEvent } from '@/features/calendar/hooks/useCalendarQueries'
 import { creatorService } from '@/features/creator/api/creatorService'
 import { useSendNotification } from '@/features/notifications'

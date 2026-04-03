@@ -276,13 +276,11 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
                   return (
                     <div
                       key={q.id}
-                      role="button"
+                      role="checkbox"
+                      aria-checked={selected}
                       tabIndex={alreadyAdded ? -1 : 0}
                       onClick={() => !alreadyAdded && toggleSelect(q.id)}
-                      onKeyDown={(e) => {
-                        if (!alreadyAdded && (e.key === 'Enter' || e.key === ' '))
-                          toggleSelect(q.id)
-                      }}
+                      onKeyDown={(e) => e.key === 'Enter' && !alreadyAdded && toggleSelect(q.id)}
                       className={cn(
                         'flex items-start gap-3 p-4 border rounded-xl transition-all',
                         alreadyAdded

@@ -125,7 +125,6 @@ function QuestionRow({
             onChange={(e) => onChange({ ...question, type: e.target.value as QuestionType })}
             className="text-xs"
             options={QUESTION_TYPE_OPTIONS.map((t) => ({ value: t.value, label: t.label }))}
-            selectSize="sm"
           />
           <label className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
             <input
@@ -274,7 +273,7 @@ export function SurveyBuilder({
 
   return (
     <Modal open={open} onClose={onClose} size="2xl">
-      <ModalHeader title={isEdit ? 'Edit Survey' : 'Buat Survey Baru'} onClose={onClose} />
+      <ModalHeader onClose={onClose}>{isEdit ? 'Edit Survey' : 'Buat Survey Baru'}</ModalHeader>
       <ModalBody>
         <div className="space-y-5">
           {/* ── Survey Info ── */}
@@ -298,7 +297,7 @@ export function SurveyBuilder({
               <Select
                 value={audience}
                 onChange={(e) => setAudience(e.target.value as SurveyAudience)}
-                options={AUDIENCE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+                options={AUDIENCE_OPTIONS}
               />
             </div>
 

@@ -283,56 +283,35 @@ describe('messageApi', () => {
     it('reset parent_unread_count untuk role parent', async () => {
       const chain: Record<string, ReturnType<typeof vi.fn>> = {}
       chain.update = vi.fn().mockReturnValue(chain)
-      chain.eq = vi
-        .fn()
-        .mockReturnValueOnce(chain) // .eq('id', threadId)
-        .mockReturnValueOnce(chain) // .eq(participantField, userId)
-        .mockResolvedValueOnce({ error: null }) // .eq('tenant_id', tenantId)
+      chain.eq = vi.fn().mockResolvedValue({ error: null })
       mockFrom.mockReturnValue(chain)
 
-      // FIXED: markThreadRead now requires userId as 3rd param for auth check
-      await markThreadRead('thread-1', 'parent', 'parent-1', 'tenant-1')
+      await markThreadRead('thread-1', 'parent')
 
       expect(mockFrom).toHaveBeenCalledWith('parent_teacher_threads')
       expect(chain.update).toHaveBeenCalledWith({ parent_unread_count: 0 })
-      expect(chain.eq).toHaveBeenNthCalledWith(1, 'id', 'thread-1')
-      expect(chain.eq).toHaveBeenNthCalledWith(2, 'parent_id', 'parent-1')
-      expect(chain.eq).toHaveBeenNthCalledWith(3, 'tenant_id', 'tenant-1')
+      expect(chain.eq).toHaveBeenCalledWith('id', 'thread-1')
     })
 
     it('reset teacher_unread_count untuk role teacher', async () => {
       const chain: Record<string, ReturnType<typeof vi.fn>> = {}
       chain.update = vi.fn().mockReturnValue(chain)
-      chain.eq = vi
-        .fn()
-        .mockReturnValueOnce(chain) // .eq('id', threadId)
-        .mockReturnValueOnce(chain) // .eq(participantField, userId)
-        .mockResolvedValueOnce({ error: null }) // .eq('tenant_id', tenantId)
+      chain.eq = vi.fn().mockResolvedValue({ error: null })
       mockFrom.mockReturnValue(chain)
 
-      // FIXED: markThreadRead now requires userId as 3rd param
-      await markThreadRead('thread-1', 'teacher', 'teacher-1', 'tenant-1')
+      await markThreadRead('thread-1', 'teacher')
 
       expect(chain.update).toHaveBeenCalledWith({ teacher_unread_count: 0 })
-      expect(chain.eq).toHaveBeenNthCalledWith(1, 'id', 'thread-1')
-      expect(chain.eq).toHaveBeenNthCalledWith(2, 'teacher_id', 'teacher-1')
-      expect(chain.eq).toHaveBeenNthCalledWith(3, 'tenant_id', 'tenant-1')
     })
 
     it('tidak throw error meskipun update gagal (non-fatal)', async () => {
       const chain: Record<string, ReturnType<typeof vi.fn>> = {}
       chain.update = vi.fn().mockReturnValue(chain)
-      chain.eq = vi
-        .fn()
-        .mockReturnValueOnce(chain)
-        .mockReturnValueOnce(chain)
-        .mockResolvedValueOnce({ error: { message: 'Update failed' } })
+      chain.eq = vi.fn().mockResolvedValue({ error: { message: 'Update failed' } })
       mockFrom.mockReturnValue(chain)
 
-      // Seharusnya tidak throw — FIXED: pass userId
-      await expect(
-        markThreadRead('thread-1', 'parent', 'parent-1', 'tenant-1')
-      ).resolves.toBeUndefined()
+      // Seharusnya tidak throw
+      await expect(markThreadRead('thread-1', 'parent')).resolves.toBeUndefined()
     })
   })
 })

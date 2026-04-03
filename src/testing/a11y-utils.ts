@@ -3,36 +3,37 @@
  * Uses jest-axe (compatible with vitest) to detect WCAG violations.
  *
  * Usage:
- *   import { checkA11y } from '@/testing/a11y-utils'
+ *   import { checkA11y, setupA11yMatchers } from '@/testing/a11y-utils'
  *
- *   it('has no a11y violations', async () => {
+ *   beforeAll(() => setupA11yMatchers())
+ *
+ *   it('has no accessibility violations', async () => {
  *     const { container } = render(<MyComponent />)
  *     await checkA11y(container)
  *   })
- *
- * Note: jest-axe matchers are registered in setupTests.ts.
  */
 import { configureAxe, toHaveNoViolations } from 'jest-axe'
 import { expect } from 'vitest'
 
-// Register matchers once at module level
-expect.extend(toHaveNoViolations)
+export function setupA11yMatchers() {
+  expect.extend(toHaveNoViolations)
+}
 
 const axe = configureAxe({
   rules: {
-    // Disabled: requires computed CSS not available in jsdom
+    // Skip color-contrast — requires rendered CSS, not available in jsdom
     'color-contrast': { enabled: false },
-    // Disabled: components rendered in isolation won't have full landmark hierarchy
+    // Skip landmark-unique for test components rendered in isolation
     'landmark-unique': { enabled: false },
-    region: { enabled: false },
   },
 })
 
 /**
- * Assert that a rendered component has no axe-detectable WCAG violations.
- * Color-contrast is excluded because jsdom cannot compute CSS values.
+ * Assert a rendered component container has no axe accessibility violations.
+ * Color contrast is excluded (requires real browser rendering).
  */
 export async function checkA11y(container: HTMLElement): Promise<void> {
   const results = await axe(container)
-  expect(results).toHaveNoViolations()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(expect(results) as any).toHaveNoViolations()
 }

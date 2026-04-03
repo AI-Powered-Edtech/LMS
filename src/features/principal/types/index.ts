@@ -38,14 +38,14 @@ export interface PrincipalSettings {
   report_schedule?: 'monthly' | 'weekly' | 'quarterly' | null
   report_email?: string | null
   report_auto_enabled?: boolean
-  // Dashboard widget visibility
+  // Dashboard widget visibility settings
   widget_adoption?: boolean
   widget_academic?: boolean
   widget_roi?: boolean
   widget_teacher_ranking?: boolean
   widget_survey?: boolean
-  // LMS baseline date (for before/after analysis)
-  baseline_date?: string | null
+  // Baseline for before-after analytics
+  baseline_date?: string
   created_at?: string
   updated_at?: string
 }

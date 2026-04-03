@@ -3,9 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom'
 
 import { useViewerReducer } from '@/components/LessonViewer'
 import { useAuth } from '@/contexts/AuthContext'
-import { adaptivePathService } from '@/features/adaptive-paths'
 import { isLessonLocked, type Lesson, type LessonProgress, lessonService } from '@/features/lessons'
-import { xapi } from '@/features/xapi'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useToast } from '@/hooks/useToast'
 import { captureError } from '@/utils/sentry'
@@ -51,9 +49,6 @@ export function useLessonViewerState() {
   const moduleLessonsRef = useRef<Lesson[]>([])
   moduleLessonsRef.current = moduleLessons
 
-  // Retry counter — incrementing this triggers the lesson load effect to re-run (Fix LV-6)
-  const [lessonRetryCount, setLessonRetryCount] = useState(0)
-
   // UI state
   const [showCelebration, setShowCelebration] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
@@ -67,30 +62,12 @@ export function useLessonViewerState() {
   // Throttle ref for handleVideoTimeUpdate (Fix H-11)
   const lastVideoUpdateRef = useRef(0)
 
-  // Adaptive navigation state
-  const [adaptiveNextLesson, setAdaptiveNextLesson] = useState<{
-    lessonId: string
-    reason: string | null
-  } | null>(null)
-
   // Computed navigation state
   const currentLessonIndex = moduleLessons.findIndex((l) => l.id === lessonId)
-  const sequentialNextLesson =
+  const nextLesson =
     currentLessonIndex >= 0 && currentLessonIndex < moduleLessons.length - 1
       ? moduleLessons[currentLessonIndex + 1]
       : null
-
-  // Prefer adaptive recommendation over sequential default when available
-  const adaptiveNextLessonNode = adaptiveNextLesson
-    ? (moduleLessons.find((l) => l.id === adaptiveNextLesson.lessonId) ?? null)
-    : null
-  const nextLesson = adaptiveNextLessonNode ?? sequentialNextLesson
-
-  // Expose the reason for adaptive navigation (null when using sequential nav)
-  const adaptiveReason: string | null = adaptiveNextLessonNode
-    ? (adaptiveNextLesson?.reason ?? null)
-    : null
-
   const prevLesson = currentLessonIndex > 0 ? (moduleLessons[currentLessonIndex - 1] ?? null) : null
   const isLastLesson = currentLessonIndex >= 0 && currentLessonIndex === moduleLessons.length - 1
   const completedLessonCount = moduleLessons.filter((l) => moduleProgress[l.id]?.completed).length
@@ -119,8 +96,6 @@ export function useLessonViewerState() {
       })
       setActiveTab('content')
       setMobileSidebarOpen(false)
-      // Clear adaptive state when navigating to a new lesson
-      setAdaptiveNextLesson(null)
     },
     [setSearchParams, moduleLessons, moduleProgress, role]
   )
@@ -134,19 +109,15 @@ export function useLessonViewerState() {
       state.status === 'loading'
     )
       return
-    if (import.meta.env.DEV)
-      console.debug('[Lesson Completion]', { lessonId: state.lesson.id, status: state.status })
+    if (import.meta.env.DEV) {
+      if (import.meta.env.DEV)
+        console.debug('[Lesson Completion]', { lessonId: state.lesson.id, status: state.status })
+    }
     actions.completionMet()
 
     try {
       await lessonService.completeLesson(state.lesson.id, tenantId)
       actions.completed()
-
-      // xAPI: record lesson completion — fire-and-forget, never block UI
-      if (courseId && moduleId && state.lesson?.id) {
-        const durationSecs = Math.round((Date.now() - sessionStartRef.current) / 1000)
-        xapi.lessonCompleted(state.lesson.id, courseId, moduleId, durationSecs).catch(() => {})
-      }
 
       setShowXPReward(true)
       setTimeout(() => setShowXPReward(false), 2000)
@@ -194,25 +165,6 @@ export function useLessonViewerState() {
         moduleCompleteShownRef.current = moduleId
         setTimeout(() => setShowModuleComplete(true), 4200)
       }
-
-      // Evaluate adaptive next lesson after completion (non-critical, fire-and-forget)
-      if (user?.id && courseId && state.lesson?.id && tenantId) {
-        adaptivePathService
-          .evaluateNextLesson(user.id, courseId, state.lesson.id, tenantId)
-          .then((result) => {
-            if (result.is_adaptive && result.next_lesson_id) {
-              setAdaptiveNextLesson({
-                lessonId: result.next_lesson_id,
-                reason: result.reason,
-              })
-            }
-          })
-          .catch((err) => {
-            // Non-critical — adaptive evaluation failure should not break the lesson flow
-            if (import.meta.env.DEV)
-              console.warn('[Adaptive] evaluateNextLesson failed (non-critical):', err)
-          })
-      }
     } catch (err) {
       if (import.meta.env.DEV) console.error('Completion failed:', err)
       captureError(err, {
@@ -222,7 +174,7 @@ export function useLessonViewerState() {
       })
       addToast({ message: 'Gagal menandai selesai. Coba lagi.', type: 'error' })
     }
-  }, [state.lesson, state.status, tenantId, user?.id, courseId, actions, addToast, moduleId])
+  }, [state.lesson, state.status, tenantId, user?.id, actions, addToast, moduleId])
 
   const handleProgressUpdate = useCallback(
     (percentage: number, position?: number) => {
@@ -294,18 +246,11 @@ export function useLessonViewerState() {
     []
   )
 
-  // Fix LV-6: Retry increments counter so the lesson load effect re-runs
-  const handleRetry = useCallback(() => {
-    actions.retry()
-    setLessonRetryCount((c) => c + 1)
-  }, [actions])
-
   // Fix L-30: Also scroll to top on start over
   const handleStartOver = useCallback(() => {
     setShowResumeBanner(false)
-    actions.startViewing()
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [actions])
+  }, [])
 
   const handleResume = useCallback(() => {
     setShowResumeBanner(false)
@@ -321,32 +266,6 @@ export function useLessonViewerState() {
   // ============================================================
   // Effects
   // ============================================================
-
-  // Validate URL parameters before use
-  useEffect(() => {
-    if (moduleId && !/^[a-zA-Z0-9_-]+$/.test(moduleId)) {
-      addToast({ type: 'error', message: 'Tautan modul tidak valid.' })
-      setSearchParams(
-        (prev) => {
-          prev.delete('moduleId')
-          prev.delete('lessonId')
-          return prev
-        },
-        { replace: true }
-      )
-      return
-    }
-    if (lessonId && !/^[a-zA-Z0-9_-]+$/.test(lessonId)) {
-      addToast({ type: 'error', message: 'Tautan pelajaran tidak valid.' })
-      setSearchParams(
-        (prev) => {
-          prev.delete('lessonId')
-          return prev
-        },
-        { replace: true }
-      )
-    }
-  }, [moduleId, lessonId, addToast, setSearchParams])
 
   // Load module lessons for sidebar
   useEffect(() => {
@@ -364,10 +283,8 @@ export function useLessonViewerState() {
         if (import.meta.env.DEV) console.error('Failed to load module title:', err)
       })
 
-    // FIXED: C1 — pass isTeacher so draft lessons are hidden from students
-    const isTeacher = role === 'teacher' || role === 'admin'
     lessonService
-      .fetchModuleLessons(moduleId, user.id, tenantId, isTeacher)
+      .fetchModuleLessons(moduleId, user.id, tenantId)
       .then(({ lessons, progress }) => {
         if (!cancelled) {
           setModuleLessons(lessons)
@@ -376,8 +293,6 @@ export function useLessonViewerState() {
       })
       .catch((err) => {
         if (import.meta.env.DEV) console.error('Failed to load module lessons:', err)
-        if (!cancelled)
-          addToast({ type: 'error', message: 'Gagal memuat daftar pelajaran. Silakan coba lagi.' })
       })
       .finally(() => {
         if (!cancelled) setSidebarLoading(false)
@@ -386,7 +301,7 @@ export function useLessonViewerState() {
     return () => {
       cancelled = true
     }
-  }, [moduleId, user?.id, tenantId, addToast])
+  }, [moduleId, user?.id, tenantId])
 
   // Load selected lesson (state machine: LOAD_LESSON)
   useEffect(() => {
@@ -410,27 +325,7 @@ export function useLessonViewerState() {
     return () => {
       cancelled = true
     }
-  }, [lessonId, user?.id, tenantId, actions, lessonRetryCount])
-
-  // M8: Enforce lesson lock even for direct URL navigation
-  // After module lessons are loaded, check if the current URL lesson is locked
-  useEffect(() => {
-    if (!lessonId || !moduleLessons.length || role === 'teacher' || role === 'admin') return
-    const lessonIndex = moduleLessons.findIndex((l) => l.id === lessonId)
-    if (lessonIndex === -1) return // lesson not in this module, let normal flow handle it
-    if (isLessonLocked(moduleLessons, moduleProgress, lessonIndex, role)) {
-      // Locked — remove lessonId from URL so only the module view shows
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev)
-        next.delete('lessonId')
-        return next
-      })
-      addToast({
-        type: 'warning',
-        message: 'Pelajaran ini masih terkunci. Selesaikan pelajaran sebelumnya terlebih dahulu.',
-      })
-    }
-  }, [lessonId, moduleLessons, moduleProgress, role, setSearchParams, addToast])
+  }, [lessonId, user?.id, tenantId, actions])
 
   // Show resume banner when lesson loads with saved progress
   useEffect(() => {
@@ -478,9 +373,6 @@ export function useLessonViewerState() {
     completedLessonCount,
     completedBlockCount,
 
-    // Adaptive navigation
-    adaptiveReason,
-
     // UI state
     showCelebration,
     setShowCelebration,
@@ -495,7 +387,6 @@ export function useLessonViewerState() {
     setActiveTab,
 
     // Callbacks
-    handleRetry,
     handleSelectModule,
     handleSelectLesson,
     handleCompletionMet,
@@ -504,5 +395,6 @@ export function useLessonViewerState() {
     handleVideoTimeUpdate,
     handleStartOver,
     handleResume,
+    handleRetry: actions.retry,
   }
 }

@@ -99,10 +99,6 @@ export const EnrollPage = withErrorBoundary(
   lazy(() => import('../pages/EnrollPage').then((m) => ({ default: m.EnrollPage }))),
   'Bergabung ke Kelas'
 )
-export const PeerReviews = withErrorBoundary(
-  lazy(() => import('../pages/PeerReviews').then((m) => ({ default: m.PeerReviews }))),
-  'Peer Review'
-)
 
 // ============================================================
 // Teacher pages
@@ -355,4 +351,13 @@ export const AccountDeletionPage = withErrorBoundary(
     }))
   ),
   'Hapus Akun'
+)
+
+// ============================================================
+// Peer Review
+// ============================================================
+
+export const PeerReviews = withErrorBoundary(
+  lazy(() => import('../pages/PeerReviews').then((m) => ({ default: m.PeerReviews }))),
+  'Peer Review'
 )

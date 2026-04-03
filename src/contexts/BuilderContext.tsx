@@ -105,28 +105,8 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   // Mobile responsive state
   const mobile = useMobileBuilder()
 
-  // FIX 2: Custom dispatch that cancels all pending block save timers before
-  // applying UNDO/REDO. Without this, a debounced updateBlock timer that fires
-  // after an undo would overwrite the rolled-back state with stale data.
-  const safeDispatch = useCallback(
-    (action: Parameters<typeof dispatch>[0]) => {
-      if (action.type === 'UNDO' || action.type === 'REDO') {
-        // Cancel all pending block save timers to prevent stale writes after undo/redo
-        saveTimerRef.current.forEach((timer) => clearTimeout(timer))
-        saveTimerRef.current.clear()
-      }
-      dispatch(action)
-    },
-    [dispatch]
-  )
-
-  // Realtime channel for collaborative editing — use safeDispatch so that
-  // remote UNDO/REDO broadcasts also flush local pending timers.
-  const { channelRef, broadcast } = useBuilderChannel(
-    state.courseId,
-    user?.id ?? null,
-    safeDispatch
-  )
+  // Realtime channel for collaborative editing
+  const { channelRef, broadcast } = useBuilderChannel(state.courseId, user?.id ?? null, dispatch)
 
   // Presence tracking (who else is editing)
   const presence = useBuilderPresence(
@@ -216,29 +196,13 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
       // (e.g., fast typist or block just added), navigating away silently
       // discarded those changes. Now we also check offline.isDirty which
       // tracks any pending unsaved mutations via the BUILDER_DRAFTS IndexedDB store.
-      // M19: Also check for pending debounced block save timers that haven't fired yet.
-      // saveTimerRef is a stable ref, so reading .current inside the handler is always fresh.
-      const hasPendingTimers = saveTimerRef.current.size > 0
-
-      // FIX 1: Catch lesson title changes that were dispatched (UPDATE_LESSON is an
-      // undoable action so it grows _history) but whose debounce timer in
-      // LessonBlockEditor hasn't fired yet, meaning the server hasn't been updated.
-      // If there's any undo history that hasn't been persisted to the server we
-      // treat the session as dirty and warn the user before they close the tab.
-      const hasUnsavedHistory = (state._history?.length ?? 0) > 0 && state.savingStatus !== 'saved'
-
-      if (
-        state.savingStatus === 'saving' ||
-        offline.isDirty ||
-        hasPendingTimers ||
-        hasUnsavedHistory
-      ) {
+      if (state.savingStatus === 'saving' || offline.isDirty) {
         e.preventDefault()
       }
     }
     window.addEventListener('beforeunload', handler)
     return () => window.removeEventListener('beforeunload', handler)
-  }, [state.savingStatus, offline.isDirty, state._history?.length])
+  }, [state.savingStatus, offline.isDirty])
 
   // Flush all pending saves on unmount
   useEffect(() => {
@@ -248,22 +212,13 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // M18: Clear pending block save timers when active lesson changes to prevent stale writes
-  useEffect(() => {
-    return () => {
-      saveTimerRef.current.forEach((timer) => clearTimeout(timer))
-      saveTimerRef.current.clear()
-    }
-  }, [state.activeLesson?.id])
-
-  // Domain action hooks — all wired to safeDispatch so UNDO/REDO (FIX 2)
-  // correctly flushes pending debounce timers before rolling back state.
+  // Domain action hooks
   const userName = profile ? `${profile.first_name} ${profile.last_name}`.trim() : 'Anonim'
 
-  const courseActions = useCourseActions(state, safeDispatch, tenantId, setSavingStatus)
+  const courseActions = useCourseActions(state, dispatch, tenantId, setSavingStatus)
   const moduleActions = useModuleActions(
     state,
-    safeDispatch,
+    dispatch,
     tenantId,
     setSavingStatus,
     broadcast,
@@ -271,7 +226,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   )
   const lessonActions = useLessonActions(
     state,
-    safeDispatch,
+    dispatch,
     tenantId,
     setSavingStatus,
     broadcast,
@@ -279,7 +234,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   )
   const blockActions = useBlockActions(
     state,
-    safeDispatch,
+    dispatch,
     tenantId,
     setSavingStatus,
     activeLessonIdRef,
@@ -296,6 +251,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
       ...courseActions,
       ...moduleActions,
       ...lessonActions,
+      updateLesson: lessonActions.updateLesson,
       ...blockActions,
     }),
     [courseActions, moduleActions, lessonActions, blockActions]

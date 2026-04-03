@@ -135,8 +135,7 @@ describe('useChildData hooks', () => {
       expect(result.current.grades).toHaveLength(1)
       expect(result.current.grades[0].subject).toBe('Matematika')
       expect(result.current.achievements).toHaveLength(1)
-      // FIXED: getChildGrades now requires tenantId as 2nd param
-      expect(mockGetChildGrades).toHaveBeenCalledWith('s1', 'tenant-1')
+      expect(mockGetChildGrades).toHaveBeenCalledWith('s1')
     })
 
     it('tidak fetch jika studentId null', () => {

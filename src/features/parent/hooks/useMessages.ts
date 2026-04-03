@@ -190,13 +190,12 @@ export function useSendMessage(threadId: string | undefined) {
  * Mutation untuk menandai thread sebagai sudah dibaca.
  */
 export function useMarkThreadRead() {
-  const { user, tenantId } = useAuth()
+  const { user } = useAuth()
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: ({ threadId, role }: { threadId: string; role: 'parent' | 'teacher' }) =>
-      // FIXED: Pass userId + tenantId for participant check and tenant isolation
-      markThreadRead(threadId, role, user!.id, tenantId!),
+      markThreadRead(threadId, role),
     onSuccess: () => {
       if (user?.id) {
         queryClient.invalidateQueries({ queryKey: messageKeys.threads(user.id) })

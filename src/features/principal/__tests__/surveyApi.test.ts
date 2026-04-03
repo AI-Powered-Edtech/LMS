@@ -20,6 +20,20 @@ import {
 } from '../api/surveyApi'
 import type { CreateSurveyInput } from '../types'
 
+// ── Helpers ───────────────────────────────────────────────────────
+
+// @ts-ignore TS6133 — helper reserved for future use
+
+function _chainMock(finalMethod: string, resolvedValue: unknown) {
+  const chain: Record<string, any> = {}
+  const methods = ['select', 'eq', 'order', 'single', 'maybeSingle', 'insert', 'update', 'delete']
+  for (const m of methods) {
+    chain[m] = vi.fn().mockReturnValue(chain)
+  }
+  chain[finalMethod] = vi.fn().mockResolvedValue(resolvedValue)
+  return chain
+}
+
 // ── getSurveys ────────────────────────────────────────────────────
 
 describe('getSurveys', () => {
@@ -262,18 +276,16 @@ describe('getSurveyResults', () => {
         }
       }
       if (table === 'survey_responses') {
-        // FIXED: getSurveyResults now chains two .eq() calls (survey_id + tenant_id)
-        const eqTenant = vi.fn().mockResolvedValue({ data: responses, error: null })
-        const eqSurvey = vi.fn().mockReturnValue({ eq: eqTenant })
         return {
-          select: vi.fn().mockReturnValue({ eq: eqSurvey }),
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({ data: responses, error: null }),
+          }),
         }
       }
       return {}
     })
 
-    // FIXED: getSurveyResults now requires tenantId as 2nd param
-    const result = await getSurveyResults('s1', 'tenant-1')
+    const result = await getSurveyResults('s1')
 
     expect(result.totalResponses).toBe(3)
     expect(result.survey.id).toBe('s1')
@@ -309,10 +321,7 @@ describe('getSurveyResults', () => {
       }),
     })
 
-    // FIXED: pass tenantId
-    await expect(getSurveyResults('bad-id', 'tenant-1')).rejects.toThrow(
-      'Gagal memuat detail survey'
-    )
+    await expect(getSurveyResults('bad-id')).rejects.toThrow('Gagal memuat detail survey')
   })
 
   it('throws error when responses query fails', async () => {
@@ -330,21 +339,19 @@ describe('getSurveyResults', () => {
         }
       }
       if (table === 'survey_responses') {
-        // FIXED: Two .eq() calls now — survey_id then tenant_id
-        const eqTenant = vi.fn().mockResolvedValue({
-          data: null,
-          error: { message: 'responses query failed' },
-        })
-        const eqSurvey = vi.fn().mockReturnValue({ eq: eqTenant })
         return {
-          select: vi.fn().mockReturnValue({ eq: eqSurvey }),
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockResolvedValue({
+              data: null,
+              error: { message: 'responses query failed' },
+            }),
+          }),
         }
       }
       return {}
     })
 
-    // FIXED: pass tenantId
-    await expect(getSurveyResults('s1', 'tenant-1')).rejects.toThrow('Gagal memuat respons survey')
+    await expect(getSurveyResults('s1')).rejects.toThrow('Gagal memuat respons survey')
   })
 })
 

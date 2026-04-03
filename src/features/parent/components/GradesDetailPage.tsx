@@ -269,8 +269,7 @@ export function GradesDetailPage() {
   // Fetch grades
   const gradesQuery = useQuery({
     queryKey: gradePageKeys.grades(tenantId ?? '', effectiveStudentId),
-    // FIXED: Pass tenantId for tenant isolation in getChildGrades query
-    queryFn: () => getChildGrades(effectiveStudentId, tenantId!),
+    queryFn: () => getChildGrades(effectiveStudentId),
     enabled: !!tenantId && !!effectiveStudentId,
     staleTime: STALE.MODERATE,
   })

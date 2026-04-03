@@ -8,7 +8,6 @@ import {
   RefreshCw,
   UserPlus,
 } from 'lucide-react'
-import { memo, useCallback } from 'react'
 
 import { Button } from '@/components/ui'
 import { Skeleton } from '@/components/ui/Skeleton'
@@ -126,7 +125,7 @@ function ActivitySkeleton() {
   )
 }
 
-const ActivityItem = memo(function ActivityItem({ event }: { event: TeacherActivityEvent }) {
+function ActivityItem({ event }: { event: TeacherActivityEvent }) {
   const name = getStudentName(event)
   const { prefix, bold, suffix } = getEventLabel(event)
   const icon = getEventIcon(event.event_type)
@@ -173,14 +172,12 @@ const ActivityItem = memo(function ActivityItem({ event }: { event: TeacherActiv
       </div>
     </div>
   )
-})
+}
 
 // ─── Main Component ────────────────────────────────────────────
 
 export function TeacherActivityFeed() {
   const { data: events, isLoading, isError, isFetching, refetch } = useTeacherActivity()
-
-  const handleRefetch = useCallback(() => refetch(), [refetch])
 
   return (
     <div className="bg-neutral-50 dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700/60 shadow-sm overflow-hidden">
@@ -202,7 +199,7 @@ export function TeacherActivityFeed() {
           variant="ghost"
           size="sm"
           icon={<RefreshCw className={cn('w-3.5 h-3.5', isFetching && 'animate-spin')} />}
-          onClick={handleRefetch}
+          onClick={() => refetch()}
           disabled={isFetching}
           aria-label="Perbarui aktivitas"
         >
@@ -220,7 +217,7 @@ export function TeacherActivityFeed() {
             <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
               Gagal memuat aktivitas. Coba lagi.
             </p>
-            <Button variant="secondary" size="sm" onClick={handleRefetch}>
+            <Button variant="secondary" size="sm" onClick={() => refetch()}>
               Coba Lagi
             </Button>
           </div>

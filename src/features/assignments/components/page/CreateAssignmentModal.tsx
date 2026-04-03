@@ -1,20 +1,11 @@
 import { valibotResolver } from '@hookform/resolvers/valibot'
-import {
-  ClipboardList,
-  FileText,
-  FileUp,
-  Link as LinkIcon,
-  Paperclip,
-  Users2,
-  X,
-} from 'lucide-react'
+import { ClipboardList, FileText, FileUp, Link as LinkIcon, Paperclip, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { type Resolver, useForm } from 'react-hook-form'
 
 import { OfflineFormNotice } from '@/components/ui/OfflineFormNotice'
 import { useAuth } from '@/contexts/AuthContext'
-import { PeerReviewConfigPanel } from '@/features/peer-review'
 import { RubricBuilder, RubricPreview, useRubricByAssignment } from '@/features/rubrics'
 import { type AssignmentFormData, AssignmentFormSchema } from '@/shared/schemas/forms'
 import { cn } from '@/utils/cn'
@@ -35,7 +26,7 @@ interface CreateAssignmentModalProps {
 const INPUT_CLS =
   'w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white aria-[invalid=true]:border-red-400'
 
-type Tab = 'detail' | 'rubrik' | 'peer-review'
+type Tab = 'detail' | 'rubrik'
 
 export function CreateAssignmentModal({
   isOpen,
@@ -96,11 +87,6 @@ export function CreateAssignmentModal({
       id: 'rubrik',
       label: 'Rubrik',
       icon: <ClipboardList className="w-4 h-4" />,
-    },
-    {
-      id: 'peer-review',
-      label: 'Peer Review',
-      icon: <Users2 className="w-4 h-4" />,
     },
   ]
 
@@ -259,9 +245,9 @@ export function CreateAssignmentModal({
                   </div>
 
                   <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 block">
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
                       Lampiran &amp; Integrasi GCR
-                    </span>
+                    </label>
                     <div className="flex flex-wrap gap-3">
                       <button
                         type="button"
@@ -319,12 +305,6 @@ export function CreateAssignmentModal({
                     onSave={handleRubricSave}
                     onCancel={() => setActiveTab('detail')}
                   />
-                </div>
-              )}
-
-              {activeTab === 'peer-review' && (
-                <div className="p-6">
-                  <PeerReviewConfigPanel assignmentId={assignmentId} tenantId={tenantId ?? ''} />
                 </div>
               )}
             </div>

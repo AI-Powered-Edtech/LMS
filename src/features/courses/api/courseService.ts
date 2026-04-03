@@ -49,27 +49,13 @@ export const courseService = {
 
     let { data, error, count } = await query
 
-    // FIX 4: Only fall back on structural/schema errors (missing relation or table).
-    // Auth errors, RLS violations, and other non-schema errors are surfaced directly
-    // so they are not silently swallowed.
+    // Graceful fallback: if the join fails, fetch courses without joined data
     if (error) {
-      const isSchemaError =
-        error.code === 'PGRST200' ||
-        error.code === '42P01' ||
-        error.message?.includes('relation') ||
-        error.message?.includes('does not exist')
-
-      if (!isSchemaError) {
-        logDevError('courseService', 'Error fetching courses:', error)
-        throw error
-      }
-
       logDevWarn(
         'courseService',
-        'Courses join query failed (schema issue), falling back to simple fetch:',
+        'Courses join query failed, falling back to simple fetch:',
         error.message
       )
-
       let fallbackQuery = supabase
         .from('courses')
         .select('id, title, description, status, created_at, updated_at, created_by, tenant_id', {
@@ -168,23 +154,8 @@ export const courseService = {
 
   /**
    * Deletes a course.
-   * FIX 3: Pre-flight check for active enrollments to give a clear error message
-   * instead of a cryptic FK violation or silent cascade.
    */
   async deleteCourse(courseId: string, tenantId: string) {
-    // Pre-flight: check for active enrollments before attempting deletion
-    const { count, error: countError } = await supabase
-      .from('course_enrollments')
-      .select('id', { count: 'exact', head: true })
-      .eq('course_id', courseId)
-      .eq('status', 'ACTIVE') // enrollment_status enum: only uppercase valid
-
-    if (!countError && (count ?? 0) > 0) {
-      throw new Error(
-        `Tidak dapat menghapus: ada ${count} siswa aktif yang terdaftar di kursus ini. Batalkan pendaftaran mereka terlebih dahulu.`
-      )
-    }
-
     const { error } = await supabase
       .from('courses')
       .delete()
@@ -218,19 +189,36 @@ export const courseService = {
 
   /**
    * Fetch teacher display name by user ID (used by CourseBrowser).
-   * FIX 2: Combines the tenant membership check and profile fetch into a single
-   * query using a PostgREST inner join, reducing round-trips from 2 to 1.
-   *
-   * If the !inner join syntax is unsupported by the current Supabase client/PostgREST
-   * version (error code PGRST200 or similar), the query will throw and callers should
-   * fall back to the two-step approach. This join requires PostgREST ≥ 10.1.
+   * Verifies the user belongs to the same tenant before returning the name
+   * to prevent cross-tenant data leakage (C-1 tenant isolation fix).
    *
    * @param userId - The user ID whose name to fetch
    * @param tenantId - The tenant context; user must be a member of this tenant
    */
-  async getTeacherName(userId: string): Promise<string | null> {
-    // NOTE: tenant_memberships FK does not exist on profiles — use simple query.
-    // RLS on profiles table already enforces tenant isolation.
+  async getTeacherName(userId: string, tenantId: string): Promise<string | null> {
+    // Step 1: verify the user is a member of the requested tenant
+    const { data: membership, error: membershipError } = await supabase
+      .from('tenant_memberships')
+      .select('user_id')
+      .eq('user_id', userId)
+      .eq('tenant_id', tenantId)
+      .maybeSingle()
+
+    if (membershipError) {
+      logDevWarn(
+        'courseService',
+        'Error verifying tenant membership for teacher:',
+        membershipError.message
+      )
+      return null
+    }
+
+    if (!membership) {
+      logDevWarn('courseService', 'Teacher does not belong to tenant, skipping name fetch.')
+      return null
+    }
+
+    // Step 2: fetch the profile now that membership is confirmed
     const { data, error } = await supabase
       .from('profiles')
       .select('full_name')
@@ -247,8 +235,6 @@ export const courseService = {
 
   /**
    * Checks if a user is enrolled in a specific course.
-   * FIX 1: Uses .in() with all common status casing variants to guard against
-   * ENUM/text case mismatches between the application and database ('active' vs 'ACTIVE').
    */
   async checkEnrollment(courseId: string, userId: string, tenantId: string) {
     const { data, error } = await supabase
@@ -257,7 +243,7 @@ export const courseService = {
       .eq('course_id', courseId)
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)
-      .eq('status', 'ACTIVE') // enrollment_status enum: only uppercase valid
+      .eq('status', 'ACTIVE')
       .maybeSingle()
 
     if (error) {

@@ -93,7 +93,7 @@ function EditBaselineModal({ open, onClose, current, onSave, isSaving }: EditBas
 
   return (
     <Modal open={open} onClose={onClose} size="lg">
-      <ModalHeader title="Edit Data Baseline (Sebelum LMS)" onClose={onClose} />
+      <ModalHeader onClose={onClose}>Edit Data Baseline (Sebelum LMS)</ModalHeader>
       <ModalBody>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
           Masukkan data rata-rata sekolah <strong>sebelum</strong> menggunakan EduSync LMS. Data ini

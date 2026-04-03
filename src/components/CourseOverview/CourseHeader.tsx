@@ -19,7 +19,7 @@ export function CourseHeader({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 shadow-md shadow-slate-200/40 dark:shadow-none p-6 md:p-8"
+      className="bg-white rounded-2xl border border-slate-200/70 shadow-md shadow-slate-200/40 p-6 md:p-8"
     >
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
         <div className="flex-1 min-w-0">
@@ -29,26 +29,23 @@ export function CourseHeader({
             </div>
             <h1
               title={course.title}
-              className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 leading-tight line-clamp-2"
+              className="text-2xl md:text-3xl font-bold text-slate-900 leading-tight truncate"
             >
               {course.title}
             </h1>
           </div>
 
           {course.description && (
-            <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base leading-relaxed line-clamp-2 mb-3 ml-[52px]">
+            <p className="text-slate-500 text-sm md:text-base leading-relaxed line-clamp-2 mb-3 ml-[52px]">
               {course.description}
             </p>
           )}
 
           {instructorName && (
-            <div className="flex items-center gap-2 text-sm text-slate-400 dark:text-slate-500 ml-[52px]">
+            <div className="flex items-center gap-2 text-sm text-slate-400 ml-[52px]">
               <User className="w-4 h-4" />
               <span>
-                Pengajar:{' '}
-                <span className="text-slate-600 dark:text-slate-300 font-medium">
-                  {instructorName}
-                </span>
+                Pengajar: <span className="text-slate-600 font-medium">{instructorName}</span>
               </span>
             </div>
           )}

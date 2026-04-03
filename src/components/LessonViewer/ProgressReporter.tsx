@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 
 import { lessonService } from '@/features/lessons'
-import { captureError } from '@/utils/sentry'
 
 interface ProgressReporterProps {
   lessonId: string
@@ -27,17 +26,6 @@ export function ProgressReporter({
   const lastSent = useRef({ percentage: 0, position: 0 })
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // FIX 2: tenantIdRef always holds the latest tenantId so handleOnline is never
-  // bound to a stale (e.g. null) value captured at effect registration time.
-  const tenantIdRef = useRef(tenantId)
-  tenantIdRef.current = tenantId
-
-  // C7 fix: Reset lastSent when lesson changes to prevent stale high-water mark
-  // blocking progress reports for the new lesson
-  useEffect(() => {
-    lastSent.current = { percentage: 0, position: 0 }
-  }, [lessonId])
-
   // Store latest prop values in refs for stable callbacks (FL-1 fix)
   // This eliminates interval churn caused by sendUpdate dependency changes
   const latestRef = useRef({ status, progressPercentage, lastPosition })
@@ -51,49 +39,35 @@ export function ProgressReporter({
   const sendUpdate = useCallback(async () => {
     const { status: s, progressPercentage: pct, lastPosition: pos } = latestRef.current
 
-    // FIX 1: Only skip if we've already sent at least once AND there's no new progress.
-    // Without this guard, the very first send (pct=0, pos=0) would be blocked because
-    // 0 <= 0 && 0 <= 0 evaluates to true against the initial lastSent values.
-    const hasEverSent = lastSent.current.percentage > 0 || lastSent.current.position > 0
-    if (
-      hasEverSent &&
-      pct <= lastSent.current.percentage &&
-      (pos ?? 0) <= lastSent.current.position
-    ) {
+    // Only send if there's meaningful change
+    if (pct <= lastSent.current.percentage && (pos ?? 0) <= lastSent.current.position) {
       return
     }
 
     try {
-      await lessonService.queueProgressUpdate(lessonId, tenantIdRef.current, s, pct, pos)
+      await lessonService.queueProgressUpdate(lessonId, tenantId, s, pct, pos)
       lastSent.current = { percentage: pct, position: pos ?? 0 }
     } catch (err) {
-      captureError(err, { context: 'ProgressReporter.syncProgress' })
       if (import.meta.env.DEV) console.error('[ProgressReporter] Failed to sync:', err)
     }
-  }, [lessonId]) // Stable deps only — no interval churn; tenantId read from ref
+  }, [lessonId, tenantId]) // Stable deps only — no interval churn
 
-  // FIX 3: Capture interval ID in a local const so rapid unmount/remount cycles
-  // cannot have the first mount's cleanup accidentally clear the second mount's interval.
-  // Previously, both cleanups shared the same ref, so whichever ran last would
-  // clear whatever ID the ref currently held.
+  // C-9: Stable interval — only recreated if sendUpdate changes (stable deps: lessonId, tenantId).
+  // Uses enabledRef to gate sends without resetting the 5-second timer on every status change.
   useEffect(() => {
-    const id = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       if (enabledRef.current) sendUpdate()
     }, 5000)
-    intervalRef.current = id
 
     return () => {
-      clearInterval(id) // use captured id, not ref
-      intervalRef.current = null
+      if (intervalRef.current) clearInterval(intervalRef.current)
     }
   }, [sendUpdate]) // only recreate if sendUpdate changes (stable deps: lessonId, tenantId)
 
   // Handle online and beforeunload events
   useEffect(() => {
-    // FIX 2: Read tenantId from ref so this handler always uses the current value,
-    // even if the effect was registered when tenantId was still null.
     const handleOnline = () => {
-      if (tenantIdRef.current) lessonService.processOfflineQueue(tenantIdRef.current)
+      lessonService.processOfflineQueue(tenantId)
     }
 
     // C-6: beforeunload async ops are abandoned by the browser.
@@ -117,10 +91,7 @@ export function ProgressReporter({
             })
           )
         } catch {
-          if (import.meta.env.DEV)
-            console.warn(
-              '[ProgressReporter] sessionStorage beacon write failed (quota/private mode)'
-            )
+          // sessionStorage write failed (private mode, quota exceeded) — ignore
         }
         // Also attempt the async path (may or may not complete)
         lessonService.queueProgressUpdate(lessonId, tenantId, s, pct, pos)
@@ -134,7 +105,7 @@ export function ProgressReporter({
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('beforeunload', handleBeforeUnload)
     }
-  }, [lessonId]) // FIX 2: removed tenantId — handleOnline now reads from tenantIdRef
+  }, [tenantId, lessonId])
 
   // H-10: Flush on unmount or lesson change.
   // Capture lessonId at effect registration time so the cleanup uses the OLD lessonId,
@@ -146,14 +117,14 @@ export function ProgressReporter({
         // Use captured lessonId (from when the effect was set up), not the current one
         lessonService.queueProgressUpdate(
           capturedLessonId,
-          tenantIdRef.current,
+          tenantId,
           latestRef.current.status,
           latestRef.current.progressPercentage,
           latestRef.current.lastPosition
         )
       }
     }
-  }, [lessonId]) // re-register when lesson changes so we capture the right ID; tenantId read from ref
+  }, [lessonId, tenantId]) // re-register when lesson changes so we capture the right ID
 
   // This is an invisible reporting component
   return null

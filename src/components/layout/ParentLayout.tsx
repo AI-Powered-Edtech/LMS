@@ -27,7 +27,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { to: '/app/parent', label: 'Beranda', icon: '🏠', activeIcon: '🏡' },
   { to: '/app/parent/nilai', label: 'Nilai', icon: '📊', activeIcon: '📈' },
-  { to: '/app/parent/laporan', label: 'Laporan', icon: '📋', activeIcon: '📋' },
+  { to: '/app/parent/kehadiran', label: 'Kehadiran', icon: '📅', activeIcon: '📆' },
   { to: '/app/parent/pesan', label: 'Pesan', icon: '💬', activeIcon: '💬' },
 ]
 

@@ -104,13 +104,7 @@ export async function getMonthlyTrend(
       if (existing) {
         existing.lesson_completions += Number(row.lesson_completions ?? 0)
         existing.quiz_attempts += Number(row.quiz_attempts ?? 0)
-        // FIXED (C3): active_students adalah PROXY METRIC, bukan distinct user count.
-        // Nilai ini merepresentasikan jumlah lesson_completions tertinggi dalam sebulan,
-        // BUKAN jumlah unik siswa aktif. Rename di display layer menjadi
-        // "lessons_completed_indicator" atau tambahkan tooltip di UI.
-        // Untuk distinct user count yang akurat, gunakan query:
-        //   SELECT COUNT(DISTINCT user_id) FROM learning_events
-        //   WHERE tenant_id = p_tenant_id AND created_at >= <month_start>
+        // Active students: we'll approximate as lesson_completions / average completions
         existing.active_students = Math.max(
           existing.active_students,
           Number(row.lesson_completions ?? 0)

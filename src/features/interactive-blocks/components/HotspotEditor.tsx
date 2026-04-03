@@ -96,14 +96,20 @@ export function HotspotEditor({ data, onChange }: HotspotEditorProps) {
             </span>
           </div>
 
-          {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */}
           <div
+            role="img"
+            aria-label="Area gambar hotspot - klik untuk menambahkan region"
             className={`relative inline-block w-full rounded-lg overflow-hidden border-2 ${
               addingMode
                 ? 'border-amber-400 cursor-crosshair'
                 : 'border-slate-200 dark:border-slate-700 cursor-default'
             }`}
             onClick={handleImageClick}
+            onKeyDown={(e) =>
+              e.key === 'Enter' &&
+              handleImageClick(e as unknown as React.MouseEvent<HTMLDivElement>)
+            }
+            tabIndex={addingMode ? 0 : -1}
           >
             <img
               ref={imageRef}
