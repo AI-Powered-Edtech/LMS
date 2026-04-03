@@ -1,5 +1,64 @@
 # EduSync LMS — Changelog
 
+## [Unreleased] — 2026-04-04
+
+### Security
+
+- Fix stored XSS via react-markdown — sanitize all markdown rendering with DOMPurify (sentinel/xss-fix-react-markdown)
+- Fix XSS in forum post context link URL (sentinel-xss-forum-context-link)
+- Fix overly permissive CORS in Edge Functions (ai-grade-essay, generate-ai-content)
+- Replace Math.random() with crypto.getRandomValues() for classroom join codes
+- Fix reverse tabnabbing in ArticleViewer external links (rel="noopener noreferrer")
+
+### Features
+
+- Parent Portal: OTP registration, mobile dashboard, WhatsApp digest, messaging, monthly reports
+- Principal Dashboard: executive metrics, analytics, report generator, survey system
+- MFA/2FA: setup and verification pages (protected routes only)
+- PWA: install banner, update toast, offline support improvements
+- HLS video streaming support via hls.js
+- Privacy pages: data export and account deletion
+- Parent and Principal role routing
+
+### Performance
+
+- Gradebook: memoize derived stats, fix O(N×M) rendering loops
+- Analytics: consolidate array traversals in aggregateTenantOverview to single pass
+- CSV export: precompute column headers
+- Offline queue: cache secure progress queue to prevent repeated crypto overhead
+- StudentGradeView: O(N) average calculation
+
+### Accessibility (WCAG 2.1)
+
+- Add sr-only screen reader text to all external links across codebase
+- Add aria-labels to Course Builder icon buttons (BuilderSidebar, BuilderTopBar)
+- Improve keyboard accessibility in BuilderSidebar (onKeyDown, tabIndex, role)
+- Add aria-labels to modal close buttons (AttemptDetailModal, ChangeRoleModal, InviteUserModal)
+- Add aria-labels to assignment list filters
+- Add focus-visible styles and aria-labels to icon-only buttons
+
+### Bug Fixes
+
+- Fix phantom sentinel UUID rows appearing as students in Gradebook
+- Restore item_title display in Gradebook entries
+- Move /setup-2fa to protected routes (AuthGuard required)
+- Fix header showing hardcoded DiceBear avatar instead of user's actual avatar
+- Fix duplicate import identifiers in StudentSubmissionPanel and QuizBlockEditor
+
+### Database
+
+- Add gradebook_entries schema migration (entity_type/entity_id/feedback/title columns)
+- Add vote_discussion_secure atomic RPC with tenant isolation
+- Add RLS policies to api_rate_limits table
+
+### Code Quality
+
+- Refactor AuthContext into composable hooks (useSessionManagement, useRoleResolution, useTenantSwitching)
+- Fix all @/src/ import path aliases to correct @/ throughout codebase
+- Add unit tests for cryptoStorage, image utils, and calendar utils
+
+---
+
 ## [2026-04-03] Phase 30+ — Fix Missing DB Tables & RPCs
 
 ### Fixed
