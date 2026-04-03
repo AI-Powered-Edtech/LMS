@@ -92,26 +92,35 @@ export function aggregateTenantOverview(stats: CourseStatsRow[]): TenantAnalytic
     }
   }
 
-  // Aggregate across all courses
-  const totalEnrolled = stats.reduce((sum, s) => sum + (s.total_enrolled || 0), 0)
-  const activeStudents = stats.reduce((sum, s) => sum + (s.active_students || 0), 0)
-  const coursesRunning = stats.filter((s) => (s.active_students || 0) > 0).length
-  const avgProgress =
-    stats.length > 0 ? stats.reduce((sum, s) => sum + (s.avg_progress || 0), 0) / stats.length : 0
-  const avgQuizScore =
-    stats.length > 0 ? stats.reduce((sum, s) => sum + (s.avg_quiz_score || 0), 0) / stats.length : 0
+  // ⚡ Perf: Consolidate multiple array iterations into a single O(N) pass
+  let totalEnrolled = 0
+  let activeStudents = 0
+  let coursesRunning = 0
+  let sumProgress = 0
+  let sumQuizScore = 0
+  let lastRefreshedAt: string | null = null
 
-  // Get most recent refresh timestamp (column may not exist in all environments)
-  const lastRefreshedAt =
-    stats.length > 0
-      ? stats.reduce(
-          (latest, s) => {
-            const current = s.last_refreshed_at ?? null
-            return !latest || (current && new Date(current) > new Date(latest)) ? current : latest
-          },
-          null as string | null
-        )
-      : null
+  for (let i = 0; i < stats.length; i++) {
+    const s = stats[i]
+
+    totalEnrolled += s.total_enrolled || 0
+    activeStudents += s.active_students || 0
+
+    if ((s.active_students || 0) > 0) {
+      coursesRunning++
+    }
+
+    sumProgress += s.avg_progress || 0
+    sumQuizScore += s.avg_quiz_score || 0
+
+    const current = s.last_refreshed_at ?? null
+    if (current && (!lastRefreshedAt || new Date(current) > new Date(lastRefreshedAt))) {
+      lastRefreshedAt = current
+    }
+  }
+
+  const avgProgress = stats.length > 0 ? sumProgress / stats.length : 0
+  const avgQuizScore = stats.length > 0 ? sumQuizScore / stats.length : 0
 
   return {
     totalEnrolled,
