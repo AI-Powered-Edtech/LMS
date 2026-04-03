@@ -1,17 +1,31 @@
 import { test, expect, Page } from '@playwright/test'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import fs from 'fs'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 /**
  * EduSync Visual Regression E2E Tests
  *
- * Uses Playwright's built-in toHaveScreenshot() for snapshot comparison.
- * Run with: npx playwright test --project=visual
- * Update baselines: npx playwright test --project=visual --update-snapshots
+ * Screenshots 10 key pages for visual regression tracking.
+ * Saves full-page screenshots to e2e/screenshots/.
  *
  * Test accounts:
  *   student@edusync.dev / password123
  *   teacher@edusync.dev / password123
  *   admin@edusync.dev   / password123
  */
+
+const SCREENSHOTS_DIR = path.join(__dirname, 'screenshots')
+
+// Ensure screenshots directory exists before tests run
+test.beforeAll(() => {
+  if (!fs.existsSync(SCREENSHOTS_DIR)) {
+    fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true })
+  }
+})
 
 /**
  * Login helper — fills the login form using keyboard events
@@ -54,7 +68,10 @@ test.describe('Visual Regression', () => {
       timeout: 10000,
     })
 
-    await expect(page).toHaveScreenshot('01-login.png', { fullPage: true })
+    await page.screenshot({
+      path: path.join(SCREENSHOTS_DIR, '01-login.png'),
+      fullPage: true,
+    })
   })
 
   // ---------------------------------------------------------------
@@ -71,7 +88,10 @@ test.describe('Visual Regression', () => {
     })
     await page.waitForTimeout(1000)
 
-    await expect(page).toHaveScreenshot('02-student-dashboard.png', { fullPage: true })
+    await page.screenshot({
+      path: path.join(SCREENSHOTS_DIR, '02-student-dashboard.png'),
+      fullPage: true,
+    })
   })
 
   // ---------------------------------------------------------------
@@ -87,7 +107,10 @@ test.describe('Visual Regression', () => {
     })
     await page.waitForTimeout(1000)
 
-    await expect(page).toHaveScreenshot('03-teacher-dashboard.png', { fullPage: true })
+    await page.screenshot({
+      path: path.join(SCREENSHOTS_DIR, '03-teacher-dashboard.png'),
+      fullPage: true,
+    })
   })
 
   // ---------------------------------------------------------------
@@ -103,7 +126,10 @@ test.describe('Visual Regression', () => {
     })
     await page.waitForTimeout(1000)
 
-    await expect(page).toHaveScreenshot('04-admin-dashboard.png', { fullPage: true })
+    await page.screenshot({
+      path: path.join(SCREENSHOTS_DIR, '04-admin-dashboard.png'),
+      fullPage: true,
+    })
   })
 
   // ---------------------------------------------------------------
@@ -117,7 +143,10 @@ test.describe('Visual Regression', () => {
     await expect(page.locator('main, [role="main"], #root')).toBeVisible({ timeout: 10000 })
     await page.waitForTimeout(1000)
 
-    await expect(page).toHaveScreenshot('05-course-list-student.png', { fullPage: true })
+    await page.screenshot({
+      path: path.join(SCREENSHOTS_DIR, '05-course-list-student.png'),
+      fullPage: true,
+    })
   })
 
   // ---------------------------------------------------------------
@@ -139,7 +168,10 @@ test.describe('Visual Regression', () => {
     // If no course link found, stay on courses page — screenshot whatever is shown
     await page.waitForTimeout(1500)
 
-    await expect(page).toHaveScreenshot('06-course-detail.png', { fullPage: true })
+    await page.screenshot({
+      path: path.join(SCREENSHOTS_DIR, '06-course-detail.png'),
+      fullPage: true,
+    })
   })
 
   // ---------------------------------------------------------------
@@ -153,7 +185,10 @@ test.describe('Visual Regression', () => {
     await expect(page.locator('main, [role="main"], #root')).toBeVisible({ timeout: 10000 })
     await page.waitForTimeout(1500)
 
-    await expect(page).toHaveScreenshot('07-smart-player.png', { fullPage: true })
+    await page.screenshot({
+      path: path.join(SCREENSHOTS_DIR, '07-smart-player.png'),
+      fullPage: true,
+    })
   })
 
   // ---------------------------------------------------------------
@@ -167,7 +202,10 @@ test.describe('Visual Regression', () => {
     await expect(page.locator('main, [role="main"], #root')).toBeVisible({ timeout: 10000 })
     await page.waitForTimeout(1000)
 
-    await expect(page).toHaveScreenshot('08-quiz-page.png', { fullPage: true })
+    await page.screenshot({
+      path: path.join(SCREENSHOTS_DIR, '08-quiz-page.png'),
+      fullPage: true,
+    })
   })
 
   // ---------------------------------------------------------------
@@ -181,7 +219,10 @@ test.describe('Visual Regression', () => {
     await expect(page.locator('main, [role="main"], #root')).toBeVisible({ timeout: 10000 })
     await page.waitForTimeout(1000)
 
-    await expect(page).toHaveScreenshot('09-leaderboard.png', { fullPage: true })
+    await page.screenshot({
+      path: path.join(SCREENSHOTS_DIR, '09-leaderboard.png'),
+      fullPage: true,
+    })
   })
 
   // ---------------------------------------------------------------
@@ -195,6 +236,9 @@ test.describe('Visual Regression', () => {
     await expect(page.locator('main, [role="main"], #root')).toBeVisible({ timeout: 10000 })
     await page.waitForTimeout(1000)
 
-    await expect(page).toHaveScreenshot('10-profile.png', { fullPage: true })
+    await page.screenshot({
+      path: path.join(SCREENSHOTS_DIR, '10-profile.png'),
+      fullPage: true,
+    })
   })
 })
