@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { memo, useState } from 'react'
 
 import type { PresenceData } from '@/features/courses/builder/useBuilderPresence'
 import { cn } from '@/utils/cn'
@@ -40,7 +40,8 @@ export function PresenceAvatars({ others }: PresenceAvatarsProps) {
   )
 }
 
-function AvatarCircle({ presence }: { presence: PresenceData }) {
+// ⚡ Perf: memoize individual avatar items to prevent re-rendering all avatars during frequent cursor/presence updates
+const AvatarCircle = memo(function AvatarCircle({ presence }: { presence: PresenceData }) {
   const [showTooltip, setShowTooltip] = useState(false)
   const initial = presence.fullName?.charAt(0)?.toUpperCase() ?? '?'
 
@@ -100,4 +101,4 @@ function AvatarCircle({ presence }: { presence: PresenceData }) {
       </AnimatePresence>
     </motion.div>
   )
-}
+})

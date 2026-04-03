@@ -169,13 +169,17 @@ export const quizAnalyticsService = {
       'Waktu (detik)',
       'Tanggal Submit',
     ]
-    const rows = attempts.map((a) => [
-      a.profiles?.full_name || 'Siswa',
-      a.quizzes?.title || '-',
-      a.score?.toString() ?? '-',
-      a.passed === true ? 'Lulus' : a.passed === false ? 'Tidak Lulus' : '-',
-      a.time_spent?.toString() ?? '-',
-      a.submitted_at
+
+    const headerStr = headers.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(',')
+
+    // ⚡ Perf: pre-compute dynamic template literals into a cached string mapping to prevent string allocation memory overhead inside nested .map loops
+    const rows = attempts.map((a) => {
+      const name = a.profiles?.full_name || 'Siswa'
+      const title = a.quizzes?.title || '-'
+      const score = a.score?.toString() ?? '-'
+      const passed = a.passed === true ? 'Lulus' : a.passed === false ? 'Tidak Lulus' : '-'
+      const time = a.time_spent?.toString() ?? '-'
+      const date = a.submitted_at
         ? new Date(a.submitted_at).toLocaleString('id-ID', {
             day: 'numeric',
             month: 'short',
@@ -183,12 +187,12 @@ export const quizAnalyticsService = {
             hour: '2-digit',
             minute: '2-digit',
           })
-        : '-',
-    ])
+        : '-'
 
-    const csvContent = [headers, ...rows]
-      .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(','))
-      .join('\n')
+      return `"${name.replace(/"/g, '""')}","${title.replace(/"/g, '""')}","${score.replace(/"/g, '""')}","${passed.replace(/"/g, '""')}","${time.replace(/"/g, '""')}","${date.replace(/"/g, '""')}"`
+    })
+
+    const csvContent = [headerStr, ...rows].join('\n')
 
     return csvContent
   },
