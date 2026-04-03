@@ -1,13 +1,28 @@
 import { Award, Lock } from 'lucide-react'
 import { motion } from 'motion/react'
 
-import { SkeletonCard } from '@/src/components/ui'
-import { useReducedMotion } from '@/src/hooks/useReducedMotion'
-import { cn } from '@/src/utils/cn'
+import { EmptyState, SkeletonCard } from '@/components/ui'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { cn } from '@/utils/cn'
 
 import { useStudentBadges } from '../queries/gamificationQueries'
 import type { BadgeDefinition, BadgeRarity } from '../types'
 import { RARITY_CONFIG } from '../types'
+
+/** Terjemahan fallback untuk nama badge yang belum ditranslasi di DB */
+const BADGE_NAME_ID: Record<string, string> = {
+  Scholar: 'Cendekiawan',
+  'Course Master': 'Ahli Kursus',
+  Unstoppable: 'Tak Terhentikan',
+  'On Fire': 'Membara',
+  'Sharp Shooter': 'Penembak Jitu',
+  'Speed Learner': 'Pembelajar Cepat',
+  Bookworm: 'Kutu Buku',
+}
+
+function translateBadgeName(name: string): string {
+  return BADGE_NAME_ID[name] ?? name
+}
 
 interface BadgeShowcaseProps {
   compact?: boolean
@@ -79,7 +94,7 @@ function BadgeCard({
           isEarned ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'
         )}
       >
-        {badge.name}
+        {translateBadgeName(badge.name)}
       </h4>
 
       {!compact && (
@@ -118,7 +133,7 @@ function BadgeCard({
 }
 
 function criteriaHint(badge: BadgeDefinition): string {
-  if (!badge.criteria) return "Selesaikan tantangan";
+  if (!badge.criteria) return 'Selesaikan tantangan'
   const c = badge.criteria as Record<string, unknown>
   switch (c.type) {
     case 'lessons_completed':
@@ -147,14 +162,7 @@ export function BadgeShowcase({ compact }: BadgeShowcaseProps) {
   if (isLoading) return <SkeletonCard lines={2} />
 
   if (!badges || badges.length === 0) {
-    return (
-      <div className="flex flex-col items-center gap-3 py-8 text-slate-400 dark:text-slate-500">
-        <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-          <Award className="h-8 w-8" />
-        </div>
-        <p className="text-sm font-medium">Belum ada lencana tersedia</p>
-      </div>
-    )
+    return <EmptyState icon={<Award className="w-8 h-8" />} title="Belum ada lencana tersedia" />
   }
 
   const earned = badges.filter((b) => b.is_earned)

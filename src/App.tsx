@@ -9,11 +9,14 @@ import { HashRouter as Router } from 'react-router-dom'
 
 import { AppRoutes } from './app/routes'
 import { OfflineIndicator } from './components/OfflineIndicator'
+import { PWAInstallBanner } from './components/PWAInstallBanner'
+import { PWAUpdateToast } from './components/PWAUpdateToast'
 import { SessionManager } from './components/SessionManager'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { ToastContainer } from './components/ui/Toast'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { SkipToContent } from './features/accessibility'
 import { setupPrefetchListeners } from './utils/prefetch'
 
 export default function App() {
@@ -36,11 +39,16 @@ export default function App() {
       <ErrorBoundary>
         <ThemeProvider>
           <AuthProvider>
+            <SkipToContent />
             <ToastContainer />
             <OfflineIndicator />
+            <PWAUpdateToast />
+            <PWAInstallBanner />
             <SessionManager />
             <Router>
-              <AppRoutes />
+              <main id="main-content" tabIndex={-1} className="outline-none">
+                <AppRoutes />
+              </main>
             </Router>
           </AuthProvider>
         </ThemeProvider>

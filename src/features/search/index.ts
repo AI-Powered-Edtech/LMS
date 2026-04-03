@@ -1,0 +1,5 @@
+export { GlobalSearchModal } from './components/GlobalSearchModal'
+export { SearchResultItem } from './components/SearchResultItem'
+export { useGlobalSearch } from './hooks/useGlobalSearch'
+export { globalSearch } from './api/searchService'
+export type { SearchResult } from './api/searchService'

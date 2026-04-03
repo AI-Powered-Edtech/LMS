@@ -1,9 +1,11 @@
 // Use the full-featured UI OfflineBanner (with syncing state + dismiss)
 // instead of the simpler layout/OfflineBanner.tsx
-import { OfflineBanner } from '@/src/components/ui'
-import { useAuth } from '@/src/contexts/AuthContext'
+import { OfflineBanner } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
 
 import { AdminLayout } from './AdminLayout'
+import { ParentLayout } from './ParentLayout'
+import { PrincipalLayout } from './PrincipalLayout'
 import { StudentLayout } from './StudentLayout'
 import { TeacherLayout } from './TeacherLayout'
 
@@ -11,7 +13,9 @@ export function Layout() {
   // SECURITY FIX: Use activeRole (per-tenant) not global `role` so the correct
   // layout is shown for the active tenant context. A user who is admin in Tenant A
   // but student in Tenant B should see the Student layout when in Tenant B.
-  const { activeRole } = useAuth()
+  const { activeRole, role } = useAuth()
+  // Fall back to global role when activeTenant hasn't been set yet
+  const effectiveRole = activeRole ?? role
 
   return (
     <>
@@ -25,9 +29,11 @@ export function Layout() {
 
       <OfflineBanner />
 
-      {activeRole === 'student' && <StudentLayout />}
-      {activeRole === 'teacher' && <TeacherLayout />}
-      {activeRole === 'admin' && <AdminLayout />}
+      {effectiveRole === 'student' && <StudentLayout />}
+      {effectiveRole === 'teacher' && <TeacherLayout />}
+      {effectiveRole === 'admin' && <AdminLayout />}
+      {effectiveRole === 'parent' && <ParentLayout />}
+      {effectiveRole === 'principal' && <PrincipalLayout />}
     </>
   )
 }

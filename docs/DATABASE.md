@@ -1,6 +1,6 @@
 # EduSync LMS — Database Reference
 
-PostgreSQL on Supabase. 160 migration files (001–836, Phase 22 group assignments + public profile).
+PostgreSQL on Supabase. 259 migration files (000_baseline.sql through 20260403000014_calendar_events_persist.sql).
 
 ## Key Tables
 
@@ -92,6 +92,27 @@ PostgreSQL on Supabase. 160 migration files (001–836, Phase 22 group assignmen
 | `lti_sessions`               | Active LTI guest sessions mapped to Supabase users                          |
 | `scorm_packages`             | Registry of uploaded SCORM 1.2/2004 content linked to lessons               |
 | `scorm_runtime_data`         | Per-user SCORM CMI state: scores, status, suspend_data, total_time          |
+
+### New in Phase 27–29
+
+| Table                         | Purpose                                                                           | Added    |
+| ----------------------------- | --------------------------------------------------------------------------------- | -------- |
+| `teacher_onboarding_progress` | Wizard onboarding progress per guru baru (step, dismissed, class/course metadata) | Phase 27 |
+| `onboarding_progress`         | Progress onboarding per user — JSONB steps_completed (one row per user)           | Phase 27 |
+| `ppdb_periods`                | Periode penerimaan peserta didik baru (PPDB)                                      | Phase 28 |
+| `ppdb_registrations`          | Data pendaftar PPDB per periode                                                   | Phase 28 |
+| `app_metrics`                 | Metrik performa dan usage aplikasi (time-series, bigserial)                       | Phase 28 |
+| `rate_limits`                 | Rate limiting counters untuk Edge Function check-rate-limit                       | Phase 29 |
+
+## RPC Reference
+
+### New in Phase 26–29
+
+| RPC                                                                               | Purpose                                                        | Added    |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------- | -------- |
+| `get_audit_logs(p_action, p_cursor, p_limit)`                                     | Paginated audit log query untuk admin dashboard (cursor-based) | Phase 28 |
+| `get_tenant_activity_counts(p_tenant_id, p_days)`                                 | Activity event counts per type untuk analytics                 | Phase 26 |
+| `check_and_increment_rate_limit_v2(p_key, p_action, p_max_attempts, p_window_ms)` | Atomic rate-limit counter dengan fixed-window bucketing        | Phase 29 |
 
 ## Important Column Gotchas
 

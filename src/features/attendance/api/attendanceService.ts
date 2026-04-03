@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 import type { AttendanceRecord, ClassOption, ClassStudent, UpsertAttendanceParams } from '../types'
 
@@ -21,11 +21,14 @@ export const attendanceService = {
   },
 
   /** Fetch enrolled students for a class */
-  async fetchClassStudents(classId: string): Promise<ClassStudent[]> {
+  // FIXED: Added tenantId parameter to enforce tenant scoping on enrollments query
+  async fetchClassStudents(classId: string, tenantId: string): Promise<ClassStudent[]> {
     const { data, error } = await supabase
       .from('enrollments')
       .select('student_id, profiles!enrollments_student_id_fkey(full_name)')
       .eq('class_id', classId)
+      // FIXED: Scope enrollment query to tenant to prevent cross-tenant data access
+      .eq('tenant_id', tenantId)
       .eq('status', 'ACTIVE')
       .order('profiles(full_name)')
 

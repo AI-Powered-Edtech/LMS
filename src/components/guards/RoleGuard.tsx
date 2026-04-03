@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 
 import { type Role, useAuth } from '../../contexts/AuthContext'
 import { AppLoading } from '../layout/AppLoading'
@@ -11,11 +11,12 @@ interface RoleGuardProps {
 
 export function RoleGuard({ children, allowedRoles }: RoleGuardProps) {
   const { activeRole, loading } = useAuth()
+  const location = useLocation()
 
-  // SECURITY FIX: Always use activeRole (per-tenant role) — never fall back to the
-  // global `role` field. The global role represents the highest privilege across ALL
-  // tenants, so using it as fallback allows cross-tenant privilege escalation:
-  // an admin in Tenant A could access admin routes in Tenant B where they are a student.
+  // SECURITY: Only use activeRole (per-tenant role). Never fall back to global role.
+  // Global role is the highest privilege across ALL tenants and can cause
+  // cross-tenant privilege escalation if used for authorization.
+  // During initial load, TenantGuard will already have redirected if no tenant selected.
   const hasAccess = !loading && activeRole !== null && allowedRoles.includes(activeRole)
 
   // WCAG SC 2.4.3 — Focus Order: When access is denied and the user is redirected
@@ -35,7 +36,9 @@ export function RoleGuard({ children, allowedRoles }: RoleGuardProps) {
   }
 
   if (!hasAccess) {
-    return <Navigate to="/unauthorized" replace />
+    // Preserve the attempted location and the user's actual role so the
+    // /unauthorized page can offer a "Go to my dashboard" action.
+    return <Navigate to="/unauthorized" state={{ from: location, userRole: activeRole }} replace />
   }
 
   return <>{children}</>

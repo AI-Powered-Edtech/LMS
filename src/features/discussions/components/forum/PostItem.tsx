@@ -18,12 +18,11 @@ import rehypeKatex from 'rehype-katex'
 import rehypeSanitize from 'rehype-sanitize'
 import remarkMath from 'remark-math'
 
-import { OptimizedImage, useToast } from '@/src/components/ui'
-import { discussionService } from '@/src/features/discussions/api/discussionService'
-import type { ForumPost } from '@/src/features/discussions/types/forum'
-import type { ForumComment } from '@/src/features/discussions/types/forum'
-import { cn } from '@/src/utils/cn'
-import { katexSanitizeSchema } from '@/src/utils/sanitizeMarkdown'
+import { OptimizedImage, useToast } from '@/components/ui'
+import type { ForumPost } from '@/features/discussions/types/forum'
+import type { ForumComment } from '@/features/discussions/types/forum'
+import { cn } from '@/utils/cn'
+import { katexSanitizeSchema } from '@/utils/sanitizeMarkdown'
 
 import { CommentThread } from './CommentThread'
 import { ForumBadge, resolveBadgeType } from './ForumBadge'
@@ -33,24 +32,24 @@ interface PostItemProps {
   isTeacher: boolean
   onMarkBest: (postId: string, commentId: string) => void
   onReport: (id: string, type: 'post' | 'comment', snippet: string, author: string) => void
+  onVote?: (postId: string) => Promise<void>
 }
 
-export function PostItem({ post, isTeacher, onMarkBest, onReport }: PostItemProps) {
+export function PostItem({ post, isTeacher, onMarkBest, onReport, onVote }: PostItemProps) {
   const addToast = useToast((s: any) => s.addToast)
   const [upvoted, setUpvoted] = useState(false)
   const [downvoted, setDownvoted] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
 
-  const handleUpvote = () => {
+  const handleUpvote = async () => {
     if (upvoted) {
       setUpvoted(false)
     } else {
       setUpvoted(true)
       setDownvoted(false)
-      discussionService.voteDiscussion(post.id).then(
-        () => null,
-        () => null
-      )
+      if (onVote) {
+        await onVote(post.id)
+      }
     }
   }
 

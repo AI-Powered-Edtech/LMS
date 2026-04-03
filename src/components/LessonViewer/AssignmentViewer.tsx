@@ -10,12 +10,12 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   assignmentService,
   AssignmentSubmission,
-} from '@/src/features/assignments/api/assignmentService'
-import { cn } from '@/src/utils/cn'
+} from '@/features/assignments/api/assignmentService'
+import { cn } from '@/utils/cn'
 
 interface AssignmentViewerProps {
   assignmentId: string
@@ -68,6 +68,7 @@ export function AssignmentViewer({
         }
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Error loading submission:', err)
+        setError(err instanceof Error ? err.message : 'Gagal memuat submisi tugas.')
       } finally {
         setIsLoading(false)
       }
@@ -246,7 +247,7 @@ export function AssignmentViewer({
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-slate-500">Yakin batalkan?</span>
                       <button
-                        // TODO [FL-M1]: Call assignmentService.cancelSubmission() API when backend supports it
+                        // NOTE: Cancel submission belum didukung backend. Lihat docs/prd/PRD_assignments.md untuk roadmap.
                         onClick={() => {
                           setSubmission(null)
                           setShowCancelConfirm(false)

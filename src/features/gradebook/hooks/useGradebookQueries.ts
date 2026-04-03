@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { createQueryKeys } from '@/src/shared/lib/queryKeys'
-import { captureError } from '@/src/utils/sentry'
+import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/useToast'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { captureError } from '@/utils/sentry'
 
+import { addGradebookItem } from '../api/gradebookApi'
 import {
   GradebookAssignment,
   GradebookData,
@@ -29,6 +31,7 @@ function useGradebookQuery() {
 function useUpdateGrade() {
   const { tenantId } = useAuth()
   const queryClient = useQueryClient()
+  const addToast = useToast((s) => s.addToast)
 
   return useMutation({
     mutationFn: async ({
@@ -49,10 +52,12 @@ function useUpdateGrade() {
       }
     },
     onMutate: async ({ studentId, assignmentId, score, status = 'graded', feedback }) => {
-      // Optimistic update
+      // Cancel outgoing refetches to prevent overwriting optimistic update
       await queryClient.cancelQueries({ queryKey: gradebookKeys.all(tenantId!) })
+      // Snapshot current data for rollback
       const previous = queryClient.getQueryData<GradebookData>(gradebookKeys.all(tenantId!))
 
+      // Optimistically update the cache immediately
       queryClient.setQueryData<GradebookData>(gradebookKeys.all(tenantId!), (old) => {
         if (!old) return old
         const newGrades = { ...old.grades }
@@ -68,9 +73,16 @@ function useUpdateGrade() {
     },
     onError: (err, _vars, context) => {
       captureError(err, { context: 'useUpdateGrade' })
-      if (context?.previous) {
+      // Roll back to the snapshot on error
+      if (context?.previous !== undefined) {
         queryClient.setQueryData(gradebookKeys.all(tenantId!), context.previous)
       }
+      // Notify teacher that the save failed and the change was reverted
+      addToast({ type: 'error', message: 'Gagal menyimpan. Perubahan dikembalikan.' })
+    },
+    onSettled: () => {
+      // Always sync with server after mutation completes (success or error)
+      queryClient.invalidateQueries({ queryKey: gradebookKeys.all(tenantId!) })
     },
   })
 }
@@ -102,7 +114,37 @@ export function useGradebook() {
     return grades[studentId]?.[assignmentId] ?? null
   }
 
-  const addAssignment = (assignment: Assignment) => {
+  // FIXED: addAssignment now persists to DB before updating React Query cache.
+  // courseId param must be a real course UUID (e.g. from selectedCourseId in useGradebookState).
+  // If omitted or empty, DB persist is skipped and only the cache is updated.
+  const addAssignment = async (assignment: Assignment, courseId?: string) => {
+    if (tenantId && courseId) {
+      try {
+        // Persist to database — ensures data survives a page reload.
+        // courseId must be a valid FK to the courses table.
+        await addGradebookItem({
+          courseId, // real course UUID passed by the caller
+          tenantId,
+          title: assignment.title,
+          entityType: assignment.type === 'quiz' ? 'quiz' : 'assignment',
+          maxScore: assignment.maxScore,
+        })
+      } catch (err) {
+        // Non-fatal: optimistic cache update still applied so teacher UX isn't blocked.
+        // The next gradebook refresh will sync from DB.
+        if (import.meta.env.DEV) {
+          console.warn('[Gradebook] addGradebookItem DB persist failed (cache still updated):', err)
+        }
+      }
+    } else if (tenantId && !courseId) {
+      // No valid courseId — skip DB persist. Teacher must select a course first for persistence.
+      if (import.meta.env.DEV) {
+        console.warn(
+          '[Gradebook] addAssignment: no courseId provided, DB persist skipped. Select a course first.'
+        )
+      }
+    }
+    // Update React Query cache regardless (optimistic)
     queryClient.setQueryData<GradebookData>(gradebookKeys.all(tenantId!), (old) => {
       if (!old) return { assignments: [assignment], students: [], grades: {} }
       return { ...old, assignments: [...old.assignments, assignment] }

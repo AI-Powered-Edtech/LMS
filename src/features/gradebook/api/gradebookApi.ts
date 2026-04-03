@@ -1,6 +1,6 @@
 import Papa from 'papaparse'
 
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 import type { GradebookColumn, GradebookEntry, GradebookSettings } from '../types'
 
@@ -14,84 +14,51 @@ export async function fetchGradebookEntries(
   courseId: string,
   tenantId: string
 ): Promise<GradebookEntry[]> {
+  // NOTE: gradebook_entries uses entity_type/entity_id pattern, NOT assignment_id/quiz_id.
+  // Columns: id, tenant_id, course_id, student_id, entity_type, entity_id, score, max_score,
+  //          feedback, graded_by, graded_at, created_at, updated_at
   const { data, error } = await supabase
     .from('gradebook_entries')
     .select(
-      `
-      id,
-      tenant_id,
-      student_id,
-      course_id,
-      assignment_id,
-      quiz_id,
-      score,
-      max_score,
-      percentage,
-      grade_letter,
-      notes,
-      graded_by,
-      graded_at,
-      created_at,
-      updated_at,
-      profiles:student_id (
-        first_name,
-        last_name,
-        email
-      ),
-      assignments:assignment_id (
-        title
-      ),
-      quizzes:quiz_id (
-        title
-      )
-      `
+      `id, tenant_id, student_id, course_id, entity_type, entity_id,
+       score, max_score, feedback, graded_by, graded_at, created_at, updated_at, title,
+       profiles:student_id (full_name, email)`
     )
     .eq('course_id', courseId)
     .eq('tenant_id', tenantId)
+    .neq('student_id', '00000000-0000-0000-0000-000000000001')
     .order('created_at', { ascending: true })
 
   if (error) throw error
 
-  type RawRow = typeof data extends (infer R)[] | null ? R : never
-
-  return ((data ?? []) as RawRow[]).map((row) => {
-    const profile = row.profiles as unknown as {
-      first_name: string
-      last_name: string
-      email: string
-    } | null
-    const assignment = row.assignments as unknown as { title: string } | null
-    const quiz = row.quizzes as unknown as { title: string } | null
-
-    const studentName = profile
-      ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim()
-      : undefined
-    const itemType: 'quiz' | 'assignment' | undefined = row.quiz_id
-      ? 'quiz'
-      : row.assignment_id
-        ? 'assignment'
-        : undefined
-    const itemTitle = quiz?.title ?? assignment?.title ?? undefined
+  return ((data ?? []) as Record<string, unknown>[]).map((row) => {
+    const profile = row.profiles as { full_name: string; email: string } | null
+    const entityType = row.entity_type as string
+    const itemType: 'quiz' | 'assignment' | undefined =
+      entityType === 'quiz' ? 'quiz' : entityType === 'assignment' ? 'assignment' : undefined
+    const score = Number(row.score ?? 0)
+    const maxScore = Number(row.max_score ?? 0)
+    const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0
 
     return {
       id: row.id as string,
       tenant_id: row.tenant_id as string,
       student_id: row.student_id as string,
       course_id: row.course_id as string,
-      assignment_id: (row.assignment_id as string | null) ?? null,
-      quiz_id: (row.quiz_id as string | null) ?? null,
-      score: (row.score as number | null) ?? null,
-      max_score: row.max_score as number,
-      percentage: (row.percentage as number) ?? 0,
-      grade_letter: (row.grade_letter as string | null) ?? null,
-      notes: (row.notes as string | null) ?? null,
+      assignment_id: entityType === 'assignment' ? (row.entity_id as string) : null,
+      quiz_id: entityType === 'quiz' ? (row.entity_id as string) : null,
+      score,
+      max_score: maxScore,
+      percentage,
+      grade_letter: null,
+      notes: (row.feedback as string | null) ?? null,
       graded_by: (row.graded_by as string | null) ?? null,
       graded_at: (row.graded_at as string | null) ?? null,
       created_at: row.created_at as string,
       updated_at: row.updated_at as string,
-      student_name: studentName,
+      student_name: profile?.full_name ?? undefined,
       student_email: profile?.email ?? undefined,
-      item_title: itemTitle,
+      item_title: (row.title as string | null) ?? undefined,
       item_type: itemType,
     } satisfies GradebookEntry
   })
@@ -104,16 +71,19 @@ export async function fetchGradebookEntries(
  */
 export async function updateGradebookEntry(
   id: string,
-  updates: Partial<Pick<GradebookEntry, 'score' | 'notes' | 'grade_letter'>>
+  updates: Partial<Pick<GradebookEntry, 'score' | 'notes'>>
 ): Promise<GradebookEntry> {
+  const dbUpdates: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  if (updates.score !== undefined) dbUpdates.score = updates.score
+  if (updates.notes !== undefined) dbUpdates.feedback = updates.notes // DB column is 'feedback'
+
   const { data, error } = await supabase
     .from('gradebook_entries')
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(dbUpdates)
     .eq('id', id)
     .select(
-      `id, tenant_id, student_id, course_id, assignment_id, quiz_id,
-       score, max_score, percentage, grade_letter, notes,
-       graded_by, graded_at, created_at, updated_at`
+      `id, tenant_id, student_id, course_id, entity_type, entity_id,
+       score, max_score, feedback, graded_by, graded_at, created_at, updated_at`
     )
     .single()
 
@@ -131,6 +101,9 @@ export async function updateGradebookEntry(
 export async function upsertGradebookEntry(
   entry: Omit<GradebookEntry, 'id' | 'percentage'>
 ): Promise<GradebookEntry> {
+  const entityType = entry.quiz_id ? 'quiz' : 'assignment'
+  const entityId = entry.quiz_id ?? entry.assignment_id
+
   const { data, error } = await supabase
     .from('gradebook_entries')
     .upsert(
@@ -138,30 +111,82 @@ export async function upsertGradebookEntry(
         tenant_id: entry.tenant_id,
         student_id: entry.student_id,
         course_id: entry.course_id,
-        assignment_id: entry.assignment_id,
-        quiz_id: entry.quiz_id,
+        entity_type: entityType,
+        entity_id: entityId,
         score: entry.score,
         max_score: entry.max_score,
-        grade_letter: entry.grade_letter,
-        notes: entry.notes,
+        feedback: entry.notes,
         graded_by: entry.graded_by,
         graded_at: entry.graded_at,
         updated_at: new Date().toISOString(),
       },
       {
-        onConflict: 'tenant_id,student_id,course_id,assignment_id,quiz_id',
+        onConflict: 'tenant_id,student_id,course_id,entity_type,entity_id',
       }
     )
     .select(
-      `id, tenant_id, student_id, course_id, assignment_id, quiz_id,
-       score, max_score, percentage, grade_letter, notes,
-       graded_by, graded_at, created_at, updated_at`
+      `id, tenant_id, student_id, course_id, entity_type, entity_id,
+       score, max_score, feedback, graded_by, graded_at, created_at, updated_at`
     )
     .single()
 
   if (error) throw error
 
   return data as unknown as GradebookEntry
+}
+
+// ── Add gradebook item (column definition) ────────────────────────────────────
+
+// Sentinel UUID used as student_id for gradebook column-definition rows.
+// This UUID will never match a real user ID. It marks rows that represent
+// gradebook column definitions rather than actual student grades.
+// TODO (Phase 31): Migrate column definitions to a dedicated `gradebook_columns` table.
+const COLUMN_DEFINITION_SENTINEL = '00000000-0000-0000-0000-000000000001'
+
+/**
+ * Persists a new gradebook column (assignment/quiz/manual item) to the database.
+ * Creates a sentinel row in gradebook_entries to register the entity_type + entity_id
+ * combination. The sentinel student_id is a fixed UUID that never matches a real user.
+ *
+ * FIXED: Uses sentinel UUID instead of teacher's user ID to prevent phantom grade
+ * entries appearing for the teacher in student grade queries.
+ *
+ * NOTE: Requires migration: ALTER TABLE gradebook_entries ADD COLUMN IF NOT EXISTS title TEXT;
+ */
+export async function addGradebookItem(data: {
+  courseId: string
+  tenantId: string
+  title: string
+  entityType: 'assignment' | 'quiz' | 'manual'
+  maxScore: number
+}): Promise<{ id: string; title: string; entityType: string; maxScore: number }> {
+  const newEntityId = crypto.randomUUID()
+
+  const { data: result, error } = await supabase
+    .from('gradebook_entries')
+    .insert({
+      course_id: data.courseId,
+      tenant_id: data.tenantId,
+      // FIXED: Use sentinel UUID — never the calling teacher's user ID.
+      // This prevents phantom grade rows from appearing in student grade queries.
+      student_id: COLUMN_DEFINITION_SENTINEL,
+      entity_type: data.entityType,
+      entity_id: newEntityId,
+      score: 0,
+      max_score: data.maxScore,
+      title: data.title, // Requires migration: ADD COLUMN IF NOT EXISTS title TEXT
+    })
+    .select('id, entity_type, entity_id, max_score')
+    .single()
+
+  if (error) throw error
+
+  return {
+    id: newEntityId,
+    title: data.title,
+    entityType: (result as Record<string, unknown>).entity_type as string,
+    maxScore: Number((result as Record<string, unknown>).max_score),
+  }
 }
 
 // ── Sync ─────────────────────────────────────────────────────────────────────

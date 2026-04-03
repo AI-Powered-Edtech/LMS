@@ -1,7 +1,8 @@
-import { DomainBlock } from '@/src/shared/types/blockTypes'
-import { DomainCourse } from '@/src/shared/types/courseTypes'
-import { DomainLesson } from '@/src/shared/types/lessonTypes'
-import { DomainModule } from '@/src/shared/types/moduleTypes'
+import type { PathRule } from '@/features/adaptive-paths'
+import { DomainBlock } from '@/shared/types/blockTypes'
+import { DomainCourse } from '@/shared/types/courseTypes'
+import { DomainLesson } from '@/shared/types/lessonTypes'
+import { DomainModule } from '@/shared/types/moduleTypes'
 
 // ============================================================
 // State
@@ -21,7 +22,10 @@ export interface BuilderState {
   savingStatus: 'idle' | 'saving' | 'saved' | 'error'
   loadingCourse: boolean
   loadingBlocks: boolean
+  pendingLessonId: string | null // tracks most recently requested lesson to guard against race conditions
   error: string | null
+  // Adaptive learning path rules (non-undoable — saved immediately to DB)
+  pathRules: PathRule[]
   // Undo/Redo history
   _history: UndoSnapshot[]
   _future: UndoSnapshot[]
@@ -50,7 +54,9 @@ export const initialBuilderState: BuilderState = {
   savingStatus: 'idle',
   loadingCourse: false,
   loadingBlocks: false,
+  pendingLessonId: null,
   error: null,
+  pathRules: [],
   _history: [],
   _future: [],
 }
@@ -74,7 +80,7 @@ export type BuilderAction =
   | { type: 'ADD_LESSON'; moduleId: string; lesson: DomainLesson }
   | { type: 'UPDATE_LESSON'; lessonId: string; data: Partial<DomainLesson> }
   | { type: 'DELETE_LESSON'; lessonId: string }
-  | { type: 'LOAD_BLOCKS_START' }
+  | { type: 'LOAD_BLOCKS_START'; lessonId: string }
   | { type: 'LOAD_BLOCKS_SUCCESS'; lessonId: string; blocks: DomainBlock[] }
   | { type: 'LOAD_BLOCKS_ERROR'; error: string }
   | { type: 'SET_ACTIVE_BLOCK'; blockId: string | null }
@@ -98,15 +104,40 @@ export type BuilderAction =
   | { type: 'REMOTE_SET_BLOCKS'; blocks: DomainBlock[] }
   | { type: 'UNDO' }
   | { type: 'REDO' }
+  // Adaptive learning path actions (non-undoable — saved immediately to DB)
+  | { type: 'ADD_PATH_RULE'; rule: PathRule }
+  | { type: 'UPDATE_PATH_RULE'; ruleId: string; data: Partial<PathRule> }
+  | { type: 'DELETE_PATH_RULE'; ruleId: string }
+  | { type: 'SET_LESSON_REMEDIAL'; lessonId: string; isRemedial: boolean }
 
 // ============================================================
 // Helpers
 // ============================================================
 
+/**
+ * Safe deep clone that works across all browsers.
+ * Prefers structuredClone (Node 17+, Chrome 98+, Safari 15.4+, FF 94+)
+ * and falls back to JSON round-trip for older environments.
+ */
+function safeDeepClone<T>(obj: T): T {
+  try {
+    // structuredClone is fastest if available
+    if (typeof structuredClone === 'function') {
+      return structuredClone(obj)
+    }
+  } catch (err) {
+    // Fall through to JSON fallback
+    if (import.meta.env.DEV)
+      console.warn('[builderReducer] structuredClone failed, falling back to JSON:', err)
+  }
+  // JSON fallback: works for all plain JSON-serializable data (our DomainBlock/Module types)
+  return JSON.parse(JSON.stringify(obj)) as T
+}
+
 function takeSnapshot(state: BuilderState): UndoSnapshot {
   return {
-    modules: structuredClone(state.modules),
-    activeLesson: state.activeLesson ? structuredClone(state.activeLesson) : null,
+    modules: safeDeepClone(state.modules),
+    activeLesson: state.activeLesson ? safeDeepClone(state.activeLesson) : null,
   }
 }
 
@@ -206,18 +237,23 @@ function coreReducer(state: BuilderState, action: BuilderAction): BuilderState {
         activeLesson: state.activeLesson?.id === action.lessonId ? null : state.activeLesson,
       }
     case 'LOAD_BLOCKS_START':
-      return { ...state, loadingBlocks: true }
+      return { ...state, loadingBlocks: true, pendingLessonId: action.lessonId }
     case 'LOAD_BLOCKS_ERROR':
-      return { ...state, loadingBlocks: false, error: action.error }
+      return { ...state, loadingBlocks: false, error: action.error, pendingLessonId: null }
     case 'LOAD_BLOCKS_SUCCESS':
+      // Ignore stale responses from a previously requested lesson
+      if (state.pendingLessonId && state.pendingLessonId !== action.lessonId) {
+        return state
+      }
       return {
         ...state,
         loadingBlocks: false,
+        pendingLessonId: null,
         activeLesson: { id: action.lessonId, blocks: action.blocks },
         activeBlockId: null,
       }
     case 'CLOSE_LESSON':
-      return { ...state, activeLesson: null, activeBlockId: null }
+      return { ...state, activeLesson: null, activeBlockId: null, pendingLessonId: null }
     case 'SET_ACTIVE_BLOCK':
       return { ...state, activeBlockId: action.blockId }
     case 'REMOTE_ADD_BLOCK':
@@ -262,6 +298,33 @@ function coreReducer(state: BuilderState, action: BuilderAction): BuilderState {
       }
     case 'SET_SAVING':
       return { ...state, savingStatus: action.status }
+
+    // ── Adaptive learning path actions (non-undoable) ──────
+    case 'ADD_PATH_RULE':
+      return { ...state, pathRules: [...state.pathRules, action.rule] }
+    case 'UPDATE_PATH_RULE':
+      return {
+        ...state,
+        pathRules: state.pathRules.map((r) =>
+          r.id === action.ruleId ? { ...r, ...action.data } : r
+        ),
+      }
+    case 'DELETE_PATH_RULE':
+      return {
+        ...state,
+        pathRules: state.pathRules.filter((r) => r.id !== action.ruleId),
+      }
+    case 'SET_LESSON_REMEDIAL':
+      return {
+        ...state,
+        modules: state.modules.map((m) => ({
+          ...m,
+          lessons: m.lessons.map((l) =>
+            l.id === action.lessonId ? { ...l, is_remedial: action.isRemedial } : l
+          ),
+        })),
+      }
+
     default:
       return state
   }

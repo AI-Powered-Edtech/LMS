@@ -3,19 +3,25 @@ import { Route } from 'react-router-dom'
 import { AuthGuard } from '../../components/guards/AuthGuard'
 import { RoleGuard } from '../../components/guards/RoleGuard'
 import {
+  AccountDeletionPage,
   Announcements,
   Assignments,
   Calendar,
+  DataExportPage,
   Directory,
+  EnrollPage,
   ForgotPassword,
   Forum,
   GroupAssignment,
   InviteRedeem,
   Login,
   LtiCallback,
+  MFASetupPage,
+  MFAVerifyPage,
   NotFound,
   NotificationsPage,
   Offline,
+  ParentRegisterPage,
   Profile,
   PublicProfile,
   ResetPassword,
@@ -117,6 +123,39 @@ export function PublicRoutes() {
           </S>
         }
       />
+      {/*
+       * Pendaftaran orang tua via OTP nomor HP.
+       * Dapat diakses tanpa login — orang tua belum punya akun saat mendaftar.
+       */}
+      <Route
+        path="/register-parent"
+        element={
+          <S feature="Daftar Orang Tua">
+            <ParentRegisterPage />
+          </S>
+        }
+      />
+      {/*
+       * Deep link enrollment: /#/join?code=XXXXXX
+       * Accessible without authentication — EnrollPage handles the auth redirect
+       * internally (saves code to sessionStorage, redirects to /login).
+       */}
+      <Route
+        path="/join"
+        element={
+          <S feature="Bergabung ke Kelas">
+            <EnrollPage />
+          </S>
+        }
+      />
+      <Route
+        path="/verify-2fa"
+        element={
+          <S feature="Verifikasi 2FA">
+            <MFAVerifyPage />
+          </S>
+        }
+      />
     </>
   )
 }
@@ -126,7 +165,7 @@ export function PublicRoutes() {
  * Rendered inside the auth-protected layout.
  */
 export function SharedAuthRoutes() {
-  const allRoles = ['teacher', 'student', 'admin'] as const
+  const allRoles = ['teacher', 'student', 'admin', 'parent', 'principal'] as const
   const sharedPages = [
     { path: 'forum', element: <Forum /> },
     { path: 'profile', element: <Profile /> },
@@ -140,6 +179,9 @@ export function SharedAuthRoutes() {
     { path: 'directory', element: <Directory /> },
     { path: 'social-hub', element: <SocialHub /> },
     { path: 'notifications', element: <NotificationsPage /> },
+    { path: 'privacy/export-data', element: <DataExportPage /> },
+    { path: 'privacy/delete-account', element: <AccountDeletionPage /> },
+    { path: 'setup-2fa', element: <MFASetupPage /> },
   ] as const
 
   return (

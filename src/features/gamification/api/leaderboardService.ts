@@ -5,7 +5,7 @@
  * All methods require tenantId for proper multi-tenant isolation.
  */
 
-import { supabase } from '@/src/services/supabase/client'
+import { supabase } from '@/services/supabase/client'
 
 import type { LeaderboardEntry } from '../types'
 
@@ -18,7 +18,7 @@ export const leaderboardService = {
    * @param classId - The class ID
    * @param tenantId - The tenant ID for isolation
    */
-  async getLeaderboard(classId: string, tenantId: string): Promise<LeaderboardEntry[]> {
+  async getLeaderboard(_classId: string, tenantId: string): Promise<LeaderboardEntry[]> {
     // Try with class_id filter (migration 052+)
     let query = supabase
       .from('leaderboards')
@@ -34,10 +34,7 @@ export const leaderboardService = {
       .order('rank', { ascending: true })
       .limit(20)
 
-    // Only filter by class_id if provided
-    if (classId) {
-      query = query.eq('class_id', classId)
-    }
+    // NOTE: class_id column does not exist in current leaderboards schema — skip filter
 
     const { data, error } = await query
 

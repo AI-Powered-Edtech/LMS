@@ -1,14 +1,14 @@
 import { X } from 'lucide-react'
 import { createContext, useCallback, useContext, useEffect, useId, useRef } from 'react'
 
-import { cn } from '@/src/utils/cn'
+import { cn } from '@/utils/cn'
 
 /* ─── Modal ────────────────────────────────────────────────── */
 
 export interface ModalProps {
   open: boolean
   onClose: () => void
-  size?: 'sm' | 'md' | 'lg' | 'xl'
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'
   /** Optional aria-label for modals without a ModalHeader */
   ariaLabel?: string
   children: React.ReactNode
@@ -19,6 +19,7 @@ const modalSizes = {
   md: 'max-w-md',
   lg: 'max-w-lg',
   xl: 'max-w-xl',
+  '2xl': 'max-w-2xl',
 } as const
 
 const FOCUSABLE_SELECTOR =
@@ -70,8 +71,20 @@ export function Modal({ open, onClose, size = 'md', ariaLabel, children }: Modal
       focusable?.focus()
     }, 50)
 
+    // DOM-level focus boundary: snap focus back if it strays outside the modal
+    const handleFocusIn = () => {
+      if (!contentRef.current) return
+      if (document.activeElement !== null && !contentRef.current.contains(document.activeElement)) {
+        const focusable = contentRef.current.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)
+        focusable?.focus()
+      }
+    }
+
+    document.addEventListener('focusin', handleFocusIn)
+
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('focusin', handleFocusIn)
       document.body.style.overflow = ''
       clearTimeout(timer)
     }
@@ -122,12 +135,13 @@ const ModalTitleIdContext = createContext<string | undefined>(undefined)
 /* ─── ModalHeader ──────────────────────────────────────────── */
 
 export interface ModalHeaderProps {
-  title: string
+  title?: string
   onClose?: () => void
   className?: string
+  children?: React.ReactNode
 }
 
-export function ModalHeader({ title, onClose, className }: ModalHeaderProps) {
+export function ModalHeader({ title, onClose, className, children }: ModalHeaderProps) {
   const titleId = useContext(ModalTitleIdContext)
 
   return (
@@ -137,9 +151,14 @@ export function ModalHeader({ title, onClose, className }: ModalHeaderProps) {
         className
       )}
     >
-      <h2 id={titleId} className="text-lg font-bold text-slate-900 dark:text-white">
-        {title}
-      </h2>
+      {title ? (
+        <h2 id={titleId} className="text-lg font-bold text-slate-900 dark:text-white">
+          {title}
+        </h2>
+      ) : (
+        <div className="flex-1">{children}</div>
+      )}
+      {!title && children && <div className="flex-1">{children}</div>}
       {onClose && (
         <button
           type="button"

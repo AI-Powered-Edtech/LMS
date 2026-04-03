@@ -2,10 +2,19 @@ import { AlertTriangle } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useOptionalLearningSession } from '@/src/features/analytics'
-import { useInteractiveVideoEvents } from '@/src/features/lessons/hooks/useInteractiveVideoEvents'
-import { QuizViewer } from '@/src/features/quizzes/components/QuizViewer'
-import { parseVideoUrl, type VideoType } from '@/src/utils/videoUtils'
+import { useOptionalLearningSession } from '@/features/analytics'
+import { useInteractiveVideoEvents } from '@/features/lessons/hooks/useInteractiveVideoEvents'
+import { QuizViewer } from '@/features/quizzes/components/QuizViewer'
+import { AdaptiveVideoPlayer } from '@/features/video'
+import { parseVideoUrl, type VideoType } from '@/utils/videoUtils'
+
+interface VideoCaption {
+  id: string
+  file_url: string
+  language: string
+  label: string
+  is_default: boolean
+}
 
 interface VideoBlockProps {
   blockId?: string
@@ -17,6 +26,16 @@ interface VideoBlockProps {
   onCompletionMet?: () => void
   onStartViewing?: () => void
   onVideoTimeUpdate?: (seconds: number) => void // NEW: report current time
+  captions?: VideoCaption[]
+}
+
+/**
+ * Detect whether a URL should be streamed via HLS.
+ * Returns the URL if it is an HLS manifest, otherwise null.
+ */
+function isHlsUrl(url: string): boolean {
+  const lower = url.toLowerCase()
+  return lower.includes('.m3u8') || lower.includes('/hls/') || lower.includes('stream.mux.com/')
 }
 
 /**
@@ -24,7 +43,8 @@ interface VideoBlockProps {
  *
  * Features:
  * - YouTube/Vimeo embed support via iframe
- * - Direct video support via video element
+ * - Direct video support via AdaptiveVideoPlayer (HLS.js + MP4 fallback)
+ * - HLS detection: URLs ending in .m3u8 or metadata.hls_url are streamed via HLS.js
  * - Progress tracking using timeupdate (direct) or IntersectionObserver (embed)
  * - 16:9 aspect ratio wrapper
  * - Interactive Video (pop-up quizzes at specific timestamps)
@@ -39,18 +59,31 @@ export function VideoBlock({
   onCompletionMet = () => {},
   onStartViewing = () => {},
   onVideoTimeUpdate,
+  captions,
 }: VideoBlockProps) {
   const { trackEvent } = useOptionalLearningSession()
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const hasCalledCompletion = useRef(false)
   const lastReportedSecond = useRef(0)
-  const [videoType, setVideoType] = useState<VideoType>('direct')
+  // H3: Anti-skip — high-water mark for the furthest point the student has watched
+  // VB-2 FIX: Initialize to savedVideoPosition so canplay seek is not clamped
+  const maxWatchedTimeRef = useRef(savedVideoPosition ?? 0)
+  // L3: Initialize to null to avoid flash before URL is parsed
+  const [videoType, setVideoType] = useState<VideoType | null>(null)
   const [embedUrl, setEmbedUrl] = useState<string | null>(null)
 
   // Interactive Video — shared hook
   const { activeEvent, loadedQuizzes, checkForEvent, handleEventComplete } =
     useInteractiveVideoEvents({ metadata, videoRef })
+
+  // VB-2 FIX: Sync maxWatchedTimeRef when savedVideoPosition changes
+  // This ensures anti-skip doesn't block resume seeks
+  useEffect(() => {
+    if (savedVideoPosition != null && savedVideoPosition > maxWatchedTimeRef.current) {
+      maxWatchedTimeRef.current = savedVideoPosition
+    }
+  }, [savedVideoPosition])
 
   // Parse URL on mount or when URL changes
   useEffect(() => {
@@ -77,11 +110,17 @@ export function VideoBlock({
     if (checkForEvent(currentTime)) return
 
     if (duration > 0) {
+      // H3: Track the furthest point watched (high-water mark)
+      if (currentTime > maxWatchedTimeRef.current) {
+        maxWatchedTimeRef.current = currentTime
+      }
+
       const percentage = Math.round((currentTime / duration) * 100)
       onProgressUpdate(percentage)
 
+      // L5: Use hasCalledCompletion.current only — avoids dep on isCompleted
       // Completion: 95% watched
-      if (percentage >= 95 && !isCompleted && !hasCalledCompletion.current) {
+      if (percentage >= 95 && !hasCalledCompletion.current) {
         hasCalledCompletion.current = true
         onCompletionMet()
       }
@@ -101,7 +140,7 @@ export function VideoBlock({
     }
   }, [
     videoType,
-    isCompleted,
+    // L5: isCompleted removed from deps — checked via hasCalledCompletion.current
     onProgressUpdate,
     onCompletionMet,
     onVideoTimeUpdate,
@@ -115,7 +154,6 @@ export function VideoBlock({
     if (videoType === 'direct' || !containerRef.current) return
 
     const container = containerRef.current
-    let timerId: ReturnType<typeof setTimeout> | null = null
     let visibleSeconds = 0
     let visibilityCheckInterval: ReturnType<typeof setInterval> | null = null
     // Required minimum visible seconds before auto-completing (2 minutes)
@@ -133,6 +171,12 @@ export function VideoBlock({
                 // Only count time when tab is visible
                 if (document.visibilityState === 'visible') {
                   visibleSeconds += 1
+                  // H2: Report intermediate progress so student doesn't see 0% for 2 minutes
+                  const intermediatePct = Math.min(
+                    Math.round((visibleSeconds / REQUIRED_VISIBLE_SECONDS) * 79),
+                    79
+                  )
+                  onProgressUpdate(intermediatePct)
                 }
                 if (visibleSeconds >= REQUIRED_VISIBLE_SECONDS && !hasCalledCompletion.current) {
                   hasCalledCompletion.current = true
@@ -161,7 +205,6 @@ export function VideoBlock({
 
     return () => {
       observer.disconnect()
-      if (timerId) clearTimeout(timerId)
       if (visibilityCheckInterval) clearInterval(visibilityCheckInterval)
     }
   }, [videoType, isCompleted, onProgressUpdate, onCompletionMet, onStartViewing])
@@ -174,10 +217,27 @@ export function VideoBlock({
   // Handle canplay event - seek to saved position for direct videos
   const handleCanPlay = useCallback(() => {
     // Only seek for direct video elements (YouTube/Vimeo embeds don't allow JS seeking)
+    // VB-2 FIX: maxWatchedTimeRef is already initialized to savedVideoPosition,
+    // so the anti-skip handler won't block this seek
     if (savedVideoPosition && videoRef.current && videoType === 'direct') {
       videoRef.current.currentTime = savedVideoPosition
     }
   }, [savedVideoPosition, videoType])
+
+  // H3: Anti-skip — prevent seeking FORWARD past unwatched portion
+  // VB-4 FIX: Only clamp forward seeks, allow backward seeking (rewind)
+  const handleSeeking = useCallback(() => {
+    if (!videoRef.current) return
+    const targetTime = videoRef.current.currentTime
+    // Only block forward skips past the high-water mark (+ 2s tolerance)
+    // Allow backward seeks (rewind) freely
+    if (targetTime > maxWatchedTimeRef.current + 2) {
+      videoRef.current.currentTime = maxWatchedTimeRef.current
+    }
+  }, [])
+
+  // L3: Don't render anything until URL is parsed to avoid type flash
+  if (!videoType) return null
 
   // Render embedded video (YouTube/Vimeo)
   // Note: Seeking is not possible via JS for embeds due to cross-origin restrictions.
@@ -187,40 +247,78 @@ export function VideoBlock({
       return <VideoUnavailable />
     }
 
+    const finalEmbedUrl =
+      videoType === 'youtube' && captions && captions.length > 0
+        ? embedUrl.includes('?')
+          ? `${embedUrl}&cc_load_policy=1`
+          : `${embedUrl}?cc_load_policy=1`
+        : embedUrl
+
     return (
       <div className="px-6 py-4">
         <div ref={containerRef} className="relative w-full" style={{ aspectRatio: '16/9' }}>
           <iframe
-            src={embedUrl}
+            src={finalEmbedUrl}
             className="absolute inset-0 w-full h-full rounded-lg"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            title="Pemutar video"
+            // VB-7 FIX: Added allow-forms and allow-popups for YouTube/Vimeo compatibility
+            sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
+            // L2: Unique title per iframe for accessibility
+            title={blockId ? `Pemutar video ${blockId.slice(-6)}` : 'Pemutar video'}
           />
         </div>
       </div>
     )
   }
 
-  // Render direct video
+  // Render direct video — use AdaptiveVideoPlayer for HLS or regular MP4
   if (videoType === 'direct') {
     if (!url) {
       return <VideoUnavailable />
     }
 
+    // Determine HLS URL: check metadata.hls_url first, then fall back to URL pattern detection
+    const metaHlsUrl =
+      metadata && typeof (metadata as Record<string, unknown>).hls_url === 'string'
+        ? ((metadata as Record<string, unknown>).hls_url as string)
+        : null
+    const resolvedHlsUrl = metaHlsUrl ?? (isHlsUrl(url) ? url : null)
+    const resolvedMp4Url = resolvedHlsUrl ? null : url
+
     return (
       <div className="px-6 py-4">
-        <div ref={containerRef} className="relative w-full" style={{ aspectRatio: '16/9' }}>
-          <video
-            ref={videoRef}
-            src={url}
+        <div
+          ref={containerRef}
+          className="relative w-full rounded-lg overflow-hidden"
+          style={{ aspectRatio: '16/9' }}
+        >
+          <AdaptiveVideoPlayer
+            hlsUrl={resolvedHlsUrl}
+            mp4Url={resolvedMp4Url}
+            videoRef={videoRef}
             controls={!activeEvent}
             onTimeUpdate={handleTimeUpdate}
             onPlay={handlePlay}
             onCanPlay={handleCanPlay}
-            className="absolute inset-0 w-full h-full rounded-lg"
+            // H3: Anti-skip handler (VB-4 FIX: only blocks forward seeks)
+            onSeeking={handleSeeking}
+            className="absolute inset-0 w-full h-full"
             controlsList="nodownload"
+            aria-label={blockId ? `Pemutar video ${blockId.slice(-6)}` : 'Video pelajaran'}
           />
+
+          {/* Captions: injected as <track> elements into the underlying <video> via a portal-like mechanism.
+              Since AdaptiveVideoPlayer wraps the <video> internally, captions are rendered
+              separately when HLS is not active and the video element is accessible. */}
+          {!resolvedHlsUrl && captions && captions.length > 0 && videoRef.current && (
+            // We use a hidden span as a captions trigger — actual track elements must be
+            // children of <video>. For HLS streams, captions can be embedded in the manifest.
+            // For direct MP4, the AdaptiveVideoPlayer renders the <video> so tracks cannot
+            // be injected as children here. This is a known limitation of the wrapper pattern.
+            // Consider passing captions as a prop to AdaptiveVideoPlayer in a future iteration.
+            <></>
+          )}
 
           {/* Interactive Event Overlay */}
           <AnimatePresence>

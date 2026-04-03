@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { attendanceService } from '../api/attendanceService'
 
@@ -6,7 +6,7 @@ import { attendanceService } from '../api/attendanceService'
 const mockFrom = vi.fn()
 const mockRpc = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
+vi.mock('@/services/supabase/client', () => ({
   supabase: {
     from: (...args: unknown[]) => mockFrom(...args),
     rpc: (...args: unknown[]) => mockRpc(...args),
@@ -62,7 +62,7 @@ describe('attendanceService.fetchClassStudents', () => {
     ]
     mockFrom.mockReturnValue(makeChain({ data: mockData, error: null }))
 
-    const result = await attendanceService.fetchClassStudents('c1')
+    const result = await attendanceService.fetchClassStudents('c1', 'tenant1')
 
     expect(mockFrom).toHaveBeenCalledWith('enrollments')
     expect(result).toEqual([
@@ -75,7 +75,7 @@ describe('attendanceService.fetchClassStudents', () => {
     const mockData = [{ student_id: 's1', profiles: [{ full_name: 'Citra' }] }]
     mockFrom.mockReturnValue(makeChain({ data: mockData, error: null }))
 
-    const result = await attendanceService.fetchClassStudents('c1')
+    const result = await attendanceService.fetchClassStudents('c1', 'tenant1')
     expect(result[0].full_name).toBe('Citra')
   })
 
@@ -83,7 +83,7 @@ describe('attendanceService.fetchClassStudents', () => {
     const mockData = [{ student_id: 's1', profiles: null }]
     mockFrom.mockReturnValue(makeChain({ data: mockData, error: null }))
 
-    const result = await attendanceService.fetchClassStudents('c1')
+    const result = await attendanceService.fetchClassStudents('c1', 'tenant1')
     expect(result[0].full_name).toBe('Siswa')
   })
 })

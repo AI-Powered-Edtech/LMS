@@ -1,9 +1,10 @@
-import { CheckCircle, Loader2, Settings, Users, X } from 'lucide-react'
+import { CheckCircle, GitBranch, Loader2, Settings, Users, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useAuth } from '@/src/contexts/AuthContext'
-import { courseService } from '@/src/features/courses/api/courseService'
+import { useAuth } from '@/contexts/AuthContext'
+import { PathRuleList } from '@/features/adaptive-paths'
+import { courseService } from '@/features/courses/api/courseService'
 
 import { CourseCollaborators } from './CourseCollaborators'
 
@@ -247,7 +248,10 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
 // ── Modal ────────────────────────────────────────────────────
 
 export function CourseSettingsModal({ isOpen, onClose, courseId }: CourseSettingsModalProps) {
-  const [activeTab, setActiveTab] = useState<'general' | 'collaborators'>('general')
+  const { tenantId } = useAuth()
+  const [activeTab, setActiveTab] = useState<'general' | 'collaborators' | 'learning-path'>(
+    'general'
+  )
   const modalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -348,14 +352,27 @@ export function CourseSettingsModal({ isOpen, onClose, courseId }: CourseSetting
                 <Users className="w-4 h-4" />
                 Kolaborator
               </button>
+              <button
+                onClick={() => setActiveTab('learning-path')}
+                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all ${
+                  activeTab === 'learning-path'
+                    ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <GitBranch className="w-4 h-4" />
+                Alur Pembelajaran
+              </button>
             </div>
 
             {/* Content Area */}
             <div className="flex-1 p-6 overflow-y-auto">
               {activeTab === 'general' ? (
                 <GeneralSettingsTab courseId={courseId} />
-              ) : (
+              ) : activeTab === 'collaborators' ? (
                 <CourseCollaborators courseId={courseId} />
+              ) : (
+                <PathRuleList courseId={courseId} tenantId={tenantId ?? ''} />
               )}
             </div>
           </div>
