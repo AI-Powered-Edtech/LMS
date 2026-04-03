@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
-import { encryptData, decryptData } from '../cryptoStorage'
+import { describe, expect, it } from 'vitest'
+
+import { decryptData, encryptData } from '../cryptoStorage'
 
 describe('cryptoStorage', () => {
   describe('encryptData dan decryptData', () => {
