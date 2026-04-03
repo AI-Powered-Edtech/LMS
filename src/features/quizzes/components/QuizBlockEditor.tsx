@@ -3,7 +3,6 @@ import { AnimatePresence } from 'motion/react'
 import { useState } from 'react'
 
 import { AIQuizGeneratorPanel, type GeneratedQuestion } from '@/features/ai-quiz-gen'
-import { AIQuizGeneratorPanel, type GeneratedQuestion } from '@/features/ai-quiz-gen'
 import { QuestionSearchModal } from '@/features/question-bank/components/QuestionSearchModal'
 import type { QuestionType, QuizMode } from '@/features/quizzes'
 import { QuizAnalyticsPanel } from '@/features/quizzes/components/analytics'

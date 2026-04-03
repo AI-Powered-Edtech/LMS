@@ -14,7 +14,6 @@ import type { RefObject } from 'react'
 
 import type { AssignmentUiState } from '@/features/assignments/types'
 import { PeerReviewList } from '@/features/peer-review'
-import { PeerReviewList } from '@/features/peer-review'
 
 import { getStatusBadge } from './assignmentPageUtils'
 
