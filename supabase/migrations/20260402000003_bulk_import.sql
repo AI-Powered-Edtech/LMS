@@ -27,11 +27,11 @@ CREATE POLICY "admin_manage_import_jobs"
     FOR ALL
     USING (
         tenant_id = public.get_my_tenant_id() AND
-        public.has_role(auth.uid(), public.get_my_tenant_id(), 'ADMIN')
+        has_role('ADMIN'::app_role)
     )
     WITH CHECK (
         tenant_id = public.get_my_tenant_id() AND
-        public.has_role(auth.uid(), public.get_my_tenant_id(), 'ADMIN')
+        has_role('ADMIN'::app_role)
     );
 
 -- Auto-set tenant_id saat INSERT

@@ -21,6 +21,9 @@ export interface Discussion {
   is_anonymous?: boolean | null
   upvotes?: number | null
   is_best_answer?: boolean | null
+  // Phase 36B: Forum Gamification columns
+  upvote_count?: number | null
+  is_accepted_answer?: boolean | null
   author?: {
     full_name: string
     avatar_url: string | null
@@ -30,11 +33,12 @@ export interface Discussion {
 }
 
 // Explicit columns for discussion queries (no SELECT *)
+// Phase 36B adds: upvote_count, is_accepted_answer
 const DISCUSSION_COLUMNS = `
   id, tenant_id, course_id, lesson_id, announcement_id,
   author_id, parent_id, content, is_pinned, is_edited, is_deleted,
   created_at, updated_at, title, category, tags, is_anonymous,
-  upvotes, is_best_answer,
+  upvotes, is_best_answer, upvote_count, is_accepted_answer,
   author:author_id (full_name, avatar_url)
 `
 
@@ -186,6 +190,78 @@ export const discussionService = {
     }
     const result = data as { success: boolean; reason?: string } | null
     return result ?? { success: false, reason: 'unknown' }
+  },
+
+  // ────────────────────────────────────────────────────────────
+  // Phase 36B: Forum Gamification — Votes & Accepted Answers
+  // ────────────────────────────────────────────────────────────
+
+  /**
+   * Toggle an upvote/downvote on a discussion post via the toggle_post_vote RPC.
+   * Self-voting is prevented server-side. Returns the action performed.
+   */
+  async togglePostVote(
+    postId: string,
+    voteType: 'upvote' | 'downvote' = 'upvote'
+  ): Promise<{ action: 'added' | 'removed' | 'changed'; post_id: string }> {
+    const { data, error } = await supabase.rpc('toggle_post_vote', {
+      p_post_id: postId,
+      p_vote_type: voteType,
+    })
+    if (error) {
+      if (error.code === 'PGRST202' || error.code === '42883') {
+        if (import.meta.env.DEV)
+          console.warn('[discussionService] toggle_post_vote RPC not found — migration needed.')
+        return { action: 'removed', post_id: postId }
+      }
+      throw error
+    }
+    return data as { action: 'added' | 'removed' | 'changed'; post_id: string }
+  },
+
+  /**
+   * Fetch the current user's vote on a specific post.
+   * Returns null if the user has not voted.
+   */
+  async getUserVote(
+    postId: string,
+    userId: string,
+    tenantId: string
+  ): Promise<{ vote_type: 'upvote' | 'downvote' } | null> {
+    const { data, error } = await supabase
+      .from('discussion_votes')
+      .select('vote_type')
+      .eq('post_id', postId)
+      .eq('user_id', userId)
+      .eq('tenant_id', tenantId)
+      .maybeSingle()
+
+    if (error) {
+      if (error.code === '42P01') return null // table not yet created
+      throw error
+    }
+    return data as { vote_type: 'upvote' | 'downvote' } | null
+  },
+
+  /**
+   * Accept a discussion reply as the best answer (teacher/admin only).
+   * Uses the accept_discussion_answer RPC which un-accepts all other answers
+   * in the thread atomically.
+   */
+  async acceptDiscussionAnswer(postId: string): Promise<void> {
+    const { error } = await supabase.rpc('accept_discussion_answer', {
+      p_post_id: postId,
+    })
+    if (error) {
+      if (error.code === 'PGRST202' || error.code === '42883') {
+        if (import.meta.env.DEV)
+          console.warn(
+            '[discussionService] accept_discussion_answer RPC not found — migration needed.'
+          )
+        return
+      }
+      throw error
+    }
   },
 
   /**

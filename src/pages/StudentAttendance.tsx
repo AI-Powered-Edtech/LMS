@@ -43,21 +43,51 @@ export function StudentAttendance() {
   usePageTitle('Kehadiran Siswa')
   const { user, tenantId } = useAuth()
 
-  // FIXED: Use student_id instead of name matching to prevent data leak
-  // Query directly filters by student_id=auth.uid() via RLS + explicit eq filter
+  // Query attendance records via enrollment (which links student → class).
+  // attendance_records.enrollment_id → enrollments.id → enrollments.student_id = user.id
   const { data: records = [], isLoading } = useQuery({
     queryKey: ['student-attendance', user?.id, tenantId],
     queryFn: async () => {
+      // First get the student's enrollment IDs for this tenant
+      const { data: enrollments, error: enrollError } = await supabase
+        .from('enrollments')
+        .select('id, class_id, classes(name)')
+        .eq('tenant_id', tenantId!)
+        .eq('student_id', user!.id)
+        .eq('status', 'ACTIVE')
+
+      if (enrollError) throw enrollError
+      if (!enrollments || enrollments.length === 0) return []
+
+      const enrollmentIds = enrollments.map((e) => e.id)
+
       const { data, error } = await supabase
         .from('attendance_records')
-        .select('id, scan_date, status, class_id, classes(name)')
+        .select('id, date, scan_date, status, enrollment_id')
         .eq('tenant_id', tenantId!)
-        // FIXED: Filter by student_id directly — no fuzzy name matching
-        .eq('student_id', user!.id)
-        .order('scan_date', { ascending: false })
+        .in('enrollment_id', enrollmentIds)
+        .order('date', { ascending: false })
         .limit(60)
+
       if (error) throw error
-      return data ?? []
+
+      // Merge class name from the enrollment lookup
+      const enrollmentMap = new Map(
+        (
+          enrollments as unknown as Array<{
+            id: string
+            class_id: string
+            classes: { name: string } | null
+          }>
+        ).map((e) => [e.id, e.classes?.name ?? ''])
+      )
+      return (data ?? []).map((r) => ({
+        ...r,
+        // Use scan_date if available, fallback to date
+        scan_date: (r as { scan_date?: string | null }).scan_date ?? (r as { date?: string }).date,
+        class_id: null,
+        classes: { name: enrollmentMap.get(r.enrollment_id) ?? '' },
+      }))
     },
     enabled: !!tenantId && !!user,
   })

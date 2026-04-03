@@ -79,7 +79,9 @@ export const documentApi = {
 
     let query = supabase
       .from('school_documents')
-      .select('*')
+      .select(
+        'id, tenant_id, title, description, category, file_url, file_name, file_size, file_type, visibility, created_by, created_at, updated_at'
+      )
       .order('created_at', { ascending: false })
       .range(from, to)
 

@@ -27,6 +27,10 @@ test-results/
 e2e/.auth/
 playwright_output.log
 test-summary*.txt
+.playwright-mcp/
+
+# Dev build artifacts
+dev-dist/
 
 # TypeScript build cache
 tsconfig.tsbuildinfo

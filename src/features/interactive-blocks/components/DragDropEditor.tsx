@@ -110,7 +110,7 @@ export function DragDropEditor({ data, onChange }: DragDropEditorProps) {
           ))}
         </div>
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
           onClick={addCategory}
           className="mt-2 flex items-center gap-1.5"
@@ -165,7 +165,7 @@ export function DragDropEditor({ data, onChange }: DragDropEditorProps) {
           ))}
         </div>
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
           onClick={addItem}
           disabled={categories.length === 0}

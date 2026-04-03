@@ -7,11 +7,13 @@ import {
   Loader2,
   Paperclip,
   UploadCloud,
+  Users2,
   X,
 } from 'lucide-react'
 import type { RefObject } from 'react'
 
 import type { AssignmentUiState } from '@/features/assignments/types'
+import { PeerReviewList } from '@/features/peer-review'
 
 import { getStatusBadge } from './assignmentPageUtils'
 
@@ -25,6 +27,9 @@ interface StudentSubmissionPanelProps {
   onClearFile: (assignmentId: string) => void
   onTurnIn: (id: string) => void
   onUnsubmit: (id: string) => void
+  /** Optional — if provided, shows assigned peer reviews section */
+  userId?: string
+  tenantId?: string
 }
 
 export function StudentSubmissionPanel({
@@ -37,6 +42,8 @@ export function StudentSubmissionPanel({
   onClearFile,
   onTurnIn,
   onUnsubmit,
+  userId,
+  tenantId,
 }: StudentSubmissionPanelProps) {
   return (
     <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
@@ -176,6 +183,19 @@ export function StudentSubmissionPanel({
         >
           Batalkan Penyerahan
         </button>
+      )}
+
+      {/* Peer Review Section */}
+      {userId && tenantId && (
+        <div className="mt-6 pt-5 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex items-center gap-2 mb-3">
+            <Users2 className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+            <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">
+              Tugas Peer Review
+            </h4>
+          </div>
+          <PeerReviewList userId={userId} tenantId={tenantId} />
+        </div>
       )}
     </div>
   )

@@ -5,6 +5,7 @@ import { useViewerReducer } from '@/components/LessonViewer'
 import { useAuth } from '@/contexts/AuthContext'
 import { adaptivePathService } from '@/features/adaptive-paths'
 import { isLessonLocked, type Lesson, type LessonProgress, lessonService } from '@/features/lessons'
+import { xapi } from '@/features/xapi'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useToast } from '@/hooks/useToast'
 import { captureError } from '@/utils/sentry'
@@ -140,6 +141,12 @@ export function useLessonViewerState() {
     try {
       await lessonService.completeLesson(state.lesson.id, tenantId)
       actions.completed()
+
+      // xAPI: record lesson completion — fire-and-forget, never block UI
+      if (courseId && moduleId && state.lesson?.id) {
+        const durationSecs = Math.round((Date.now() - sessionStartRef.current) / 1000)
+        xapi.lessonCompleted(state.lesson.id, courseId, moduleId, durationSecs).catch(() => {})
+      }
 
       setShowXPReward(true)
       setTimeout(() => setShowXPReward(false), 2000)

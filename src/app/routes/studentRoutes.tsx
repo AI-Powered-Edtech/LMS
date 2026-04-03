@@ -11,6 +11,7 @@ import {
   Leaderboard,
   LessonViewer,
   NotFound,
+  PeerReviews,
   QuizModule,
   StudentAttendance,
   StudentClassPage,
@@ -127,6 +128,14 @@ export function StudentRoutes() {
         element={
           <S feature="Leaderboard">
             <Leaderboard />
+          </S>
+        }
+      />
+      <Route
+        path="peer-reviews"
+        element={
+          <S feature="Peer Review">
+            <PeerReviews />
           </S>
         }
       />

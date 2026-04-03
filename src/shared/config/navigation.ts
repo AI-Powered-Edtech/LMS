@@ -37,6 +37,7 @@ import {
   UserCircle,
   UserPlus,
   Users,
+  Users2,
   Wallet,
 } from 'lucide-react'
 
@@ -449,6 +450,19 @@ export const navigationItems: NavItem[] = [
     color: 'text-rose-600',
     bg: 'bg-rose-100',
     border: 'border-rose-200',
+  },
+  {
+    id: 'peer-review',
+    name: 'Peer Review',
+    path: '/app/student/peer-reviews',
+    icon: Users2,
+    roles: ['student'],
+    moduleId: 'peer-review',
+    location: 'learning-hub',
+    description: 'Nilai dan berikan umpan balik tugas sesama siswa.',
+    color: 'text-violet-600',
+    bg: 'bg-violet-100',
+    border: 'border-violet-200',
   },
 
   // Social Hub Items

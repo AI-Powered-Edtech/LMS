@@ -9,6 +9,7 @@ import { useRubricBuilder } from '../hooks/useRubricBuilder'
 import { useSaveRubric } from '../queries/rubricQueries'
 import type { Rubric, RubricInsert } from '../types'
 import { calculateTotalPoints, validateRubric } from '../utils/rubricCalculations'
+import { AIRubricSuggestion } from './AIRubricSuggestion'
 import { RubricCriterionRow } from './RubricCriterionRow'
 import { RubricTemplateModal } from './RubricTemplateModal'
 
@@ -17,6 +18,10 @@ interface RubricBuilderProps {
   initialRubric?: Rubric
   onSave: (rubricId: string) => void
   onCancel: () => void
+  /** Optional assignment context for AI rubric suggestion */
+  assignmentTitle?: string
+  assignmentDescription?: string
+  assignmentInstructions?: string
 }
 
 const INPUT_CLS =
@@ -27,9 +32,13 @@ export function RubricBuilder({
   initialRubric,
   onSave,
   onCancel,
+  assignmentTitle = '',
+  assignmentDescription = '',
+  assignmentInstructions = '',
 }: RubricBuilderProps) {
   const addToast = useToast((s) => s.addToast)
   const [showTemplateModal, setShowTemplateModal] = useState(false)
+  const [aiSuggestionApplied, setAiSuggestionApplied] = useState(false)
   const saveRubric = useSaveRubric()
 
   const {
@@ -105,6 +114,24 @@ export function RubricBuilder({
     loadRubric(cloned)
     setShowTemplateModal(false)
     addToast({ type: 'info', message: `Template "${template.title}" berhasil diimpor.` })
+  }
+
+  const handleAISuggested = (aiRubric: RubricInsert) => {
+    // Map RubricInsert criteria onto a partial Rubric shape loadRubric accepts
+    const asRubric: Rubric = {
+      id: '',
+      tenant_id: '',
+      created_at: '',
+      total_points: 0,
+      assignment_id: assignmentId ?? null,
+      title: aiRubric.title,
+      description: aiRubric.description,
+      is_template: false,
+      created_by: '',
+      criteria: aiRubric.criteria,
+    }
+    loadRubric(asRubric)
+    setAiSuggestionApplied(true)
   }
 
   return (
@@ -203,8 +230,33 @@ export function RubricBuilder({
             <BookTemplate className="w-4 h-4" />
             Impor Template
           </button>
+
+          {/* AI Rubric Suggestion */}
+          <AIRubricSuggestion
+            assignmentTitle={assignmentTitle}
+            description={assignmentDescription}
+            instructions={assignmentInstructions}
+            onSuggested={handleAISuggested}
+          />
         </div>
       </div>
+
+      {/* AI suggestion notice */}
+      {aiSuggestionApplied && (
+        <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-xl">
+          <p className="text-xs font-medium text-violet-700 dark:text-violet-300">
+            ✨ Saran AI dihasilkan — tinjau dan sesuaikan sebelum menyimpan
+          </p>
+          <button
+            type="button"
+            onClick={() => setAiSuggestionApplied(false)}
+            className="text-violet-400 hover:text-violet-600 dark:hover:text-violet-200 transition-colors"
+            aria-label="Tutup notifikasi"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Criteria list */}
       <div className="space-y-3">

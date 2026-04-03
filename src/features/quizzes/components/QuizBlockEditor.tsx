@@ -1,5 +1,8 @@
-import { BarChart3, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
+import { BarChart3, ChevronDown, ChevronUp, Loader2, Sparkles } from 'lucide-react'
+import { AnimatePresence } from 'motion/react'
+import { useState } from 'react'
 
+import { AIQuizGeneratorPanel, type GeneratedQuestion } from '@/features/ai-quiz-gen'
 import { QuestionSearchModal } from '@/features/question-bank/components/QuestionSearchModal'
 import type { QuestionType, QuizMode } from '@/features/quizzes'
 import { QuizAnalyticsPanel } from '@/features/quizzes/components/analytics'
@@ -9,6 +12,25 @@ import { useQuizEditorState } from '@/features/quizzes/hooks/useQuizEditorState'
 
 export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
   const s = useQuizEditorState(_blockId)
+  const [showAIPanel, setShowAIPanel] = useState(false)
+
+  const handleInsertAIQuestions = (questions: GeneratedQuestion[]) => {
+    s.setQuizData((prev) => ({
+      ...prev,
+      questions: [
+        ...prev.questions,
+        ...questions.map((q, i) => ({
+          text: q.text,
+          order: prev.questions.length + i + 1,
+          question_type: (q.question_type || 'MCQ') as QuestionType,
+          points: q.points || 10,
+          explanation: q.explanation || '',
+          options: q.options || [],
+        })),
+      ],
+    }))
+    setShowAIPanel(false)
+  }
 
   if (s.isLoading) {
     return (
@@ -159,6 +181,20 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
         </div>
       </div>
 
+      {/* AI Generate button — only when not published */}
+      {!s.isPublished && s.activeLesson && (
+        <div className="flex items-center justify-end">
+          <button
+            type="button"
+            onClick={() => setShowAIPanel(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-colors bg-violet-50 text-violet-700 hover:bg-violet-100 dark:bg-violet-900/30 dark:text-violet-300 dark:hover:bg-violet-900/50 border border-violet-200 dark:border-violet-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+          >
+            <Sparkles className="w-4 h-4" />
+            🤖 Buat dari Materi
+          </button>
+        </div>
+      )}
+
       <QuestionList
         questions={s.quizData.questions}
         isPublished={s.isPublished}
@@ -173,6 +209,25 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
         onUpdateQuestionPoints={s.updateQuestionPoints}
         onOpenQuestionModal={() => s.setShowQuestionModal(true)}
       />
+
+      {/* AI Quiz Generator Panel */}
+      <AnimatePresence>
+        {showAIPanel && s.activeLesson && (
+          <>
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-black/30 dark:bg-black/50 z-40"
+              onClick={() => setShowAIPanel(false)}
+              aria-hidden="true"
+            />
+            <AIQuizGeneratorPanel
+              lessonId={s.activeLesson.id}
+              onInsertQuestions={handleInsertAIQuestions}
+              onClose={() => setShowAIPanel(false)}
+            />
+          </>
+        )}
+      </AnimatePresence>
 
       {s.isPublished && (
         <p className="text-xs text-center text-slate-400 pb-2">

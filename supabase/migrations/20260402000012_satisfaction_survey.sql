@@ -32,8 +32,8 @@ ALTER TABLE survey_responses ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "principal_manage_surveys" ON satisfaction_surveys
   FOR ALL USING (
     tenant_id = get_my_tenant_id() AND
-    (has_role(auth.uid(), get_my_tenant_id(), 'PRINCIPAL') OR
-     has_role(auth.uid(), get_my_tenant_id(), 'ADMIN'))
+    (has_role('PRINCIPAL'::app_role) OR
+     has_role('ADMIN'::app_role))
   );
 
 -- Semua authenticated bisa melihat active surveys
@@ -53,8 +53,8 @@ CREATE POLICY "submit_survey_response" ON survey_responses
 CREATE POLICY "principal_view_responses" ON survey_responses
   FOR SELECT USING (
     tenant_id = get_my_tenant_id() AND
-    (has_role(auth.uid(), get_my_tenant_id(), 'PRINCIPAL') OR
-     has_role(auth.uid(), get_my_tenant_id(), 'ADMIN'))
+    (has_role('PRINCIPAL'::app_role) OR
+     has_role('ADMIN'::app_role))
   );
 
 CREATE TRIGGER auto_set_tenant_id_surveys

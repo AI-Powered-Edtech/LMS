@@ -8,6 +8,8 @@ import {
   useState,
 } from 'react'
 
+import { xapi } from '@/features/xapi'
+
 import { startEventFlushing, stopEventFlushing, trackLearningEvent } from '../api/trackingService'
 import type { EventMetadata, LearningEventType } from '../types/events.types'
 
@@ -40,6 +42,15 @@ export function LearningSessionProvider({
       prevLessonRef.current = lessonId
       setSessionId(crypto.randomUUID())
     }
+  }, [lessonId])
+
+  // xAPI: record course experienced whenever a new lesson session starts
+  useEffect(() => {
+    if (courseId) {
+      xapi.courseExperienced(courseId).catch(() => {})
+    }
+    // Only re-emit when lessonId changes (new lesson session), not on every courseId change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonId])
 
   useEffect(() => {

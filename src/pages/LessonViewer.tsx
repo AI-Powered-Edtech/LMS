@@ -9,6 +9,7 @@ import {
   ScrollProgressBar,
 } from '@/components/LessonViewer'
 import { DiscussionBoard } from '@/components/Social/DiscussionBoard'
+import { LearningPathRecommendation } from '@/features/ai-recommendations'
 import { AITutorPanel } from '@/features/ai-tutor/components/AITutorPanel'
 import { LearningSessionProvider } from '@/features/analytics'
 import { GuideRenderer } from '@/features/guidance'
@@ -184,18 +185,35 @@ export function LessonViewer() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="flex-1 flex items-center justify-center text-center p-8"
+                    className="flex-1 overflow-auto p-6 md:p-8"
                   >
-                    <div>
-                      <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <ArrowLeft className="w-8 h-8 text-blue-400" />
+                    <div className="max-w-lg mx-auto space-y-6">
+                      {/* Prompt */}
+                      <div className="text-center">
+                        <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                          <ArrowLeft className="w-8 h-8 text-blue-400" />
+                        </div>
+                        <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
+                          Pilih Pelajaran
+                        </h2>
+                        <p className="text-slate-500 dark:text-slate-400">
+                          Klik pelajaran di panel kiri untuk mulai belajar.
+                        </p>
                       </div>
-                      <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
-                        Pilih Pelajaran
-                      </h2>
-                      <p className="text-slate-500 dark:text-slate-400">
-                        Klik pelajaran di panel kiri untuk mulai belajar.
-                      </p>
+
+                      {/* AI Learning Path Recommendations — students only, non-blocking */}
+                      {s.role === 'student' && s.courseId && s.tenantId && (
+                        <LearningPathRecommendation
+                          courseId={s.courseId}
+                          tenantId={s.tenantId}
+                          onNavigateToLesson={(lessonId) => {
+                            s.setSearchParams((prev) => {
+                              prev.set('lessonId', lessonId)
+                              return prev
+                            })
+                          }}
+                        />
+                      )}
                     </div>
                   </motion.div>
                 )}

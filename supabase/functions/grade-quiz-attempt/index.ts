@@ -296,6 +296,56 @@ Deno.serve(async (req: Request) => {
 
     if (queueError) throw queueError
 
+    // 12. Phase 35C: Fire-and-forget LTI grade passback
+    //     Only for fully auto-graded attempts (not 'submitted' which awaits manual grading).
+    //     Fetch quiz metadata needed for passback (quiz_id + tenant_id)
+    if (attemptStatus === 'graded') {
+      try {
+        const { data: attemptMeta } = await supabase
+          .from('quiz_attempts_v2')
+          .select('quiz_id, user_id, tenant_id')
+          .eq('id', attempt_id)
+          .limit(1)
+          .maybeSingle()
+
+        if (attemptMeta?.quiz_id && attemptMeta?.tenant_id && attemptMeta?.user_id) {
+          const passbackUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/lti-grade-passback`
+          const passbackServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+          // Determine max possible points from questions
+          const maxPoints =
+            rows.length > 0
+              ? await supabase
+                  .from('quiz_questions')
+                  .select('points')
+                  .in(
+                    'id',
+                    rows.map((r) => r.question_id)
+                  )
+                  .then(({ data }) => (data ?? []).reduce((sum, q) => sum + (q.points ?? 0), 0))
+              : 100
+
+          fetch(passbackUrl, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${passbackServiceKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              tenant_id: attemptMeta.tenant_id,
+              user_id: attemptMeta.user_id,
+              resource_type: 'quiz',
+              resource_id: attemptMeta.quiz_id,
+              score: totalScore,
+              max_score: maxPoints,
+            }),
+          }).catch(() => {}) // Fire and forget — passback failure must never fail grading
+        }
+      } catch {
+        // Passback errors must never propagate — grading must always succeed
+      }
+    }
+
     return jsonResponse(
       { success: true, attempt_id, score: totalScore, status: attemptStatus },
       200

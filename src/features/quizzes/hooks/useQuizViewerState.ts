@@ -4,6 +4,7 @@ import { useOptionalLearningSession } from '@/features/analytics'
 import { type QuizAttemptResult, quizService } from '@/features/quizzes'
 import { useQuizAutosave } from '@/features/quizzes/hooks/useQuizAutosave'
 import type { SubmitAnswer } from '@/features/quizzes/types/quizzes.types'
+import { xapi } from '@/features/xapi'
 
 import type { MultiTypeAnswer, QuestionType, QuizQuestion } from './quizViewerTypes'
 
@@ -188,7 +189,12 @@ export function useQuizViewerState({
         attempt: currentAttempt.attempt_number ?? 1,
       })
 
+      // xAPI: record quiz attempt — fire-and-forget
+      xapi
+        .quizAttempted(quizId, gradeResult.score ?? 0, gradeResult.passed ?? false)
+        .catch(() => {})
       if (gradeResult.passed) {
+        xapi.quizPassed(quizId, gradeResult.score ?? 0).catch(() => {})
         onCompletionMet()
       }
     } catch (err) {

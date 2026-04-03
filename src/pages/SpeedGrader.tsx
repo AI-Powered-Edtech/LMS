@@ -98,7 +98,7 @@ export function SpeedGrader() {
       }
     }
 
-    loadStudentData()
+    void loadStudentData()
   }, [currentStudentIdx])
   /* eslint-enable react-hooks/exhaustive-deps */
 
@@ -141,17 +141,17 @@ export function SpeedGrader() {
   }
 
   const handleNext = () => {
-    saveCurrentStudent()
+    void saveCurrentStudent()
     if (currentStudentIdx < students.length - 1) setCurrentStudentIdx((s) => s + 1)
   }
 
   const handlePrev = () => {
-    saveCurrentStudent()
+    void saveCurrentStudent()
     if (currentStudentIdx > 0) setCurrentStudentIdx((s) => s - 1)
   }
 
   const handleStudentChange = (idx: number) => {
-    saveCurrentStudent()
+    void saveCurrentStudent()
     setCurrentStudentIdx(idx)
   }
 

@@ -19,7 +19,7 @@ AS $$
   JOIN public.user_roles ur ON ur.user_id = p.id AND ur.tenant_id = p.tenant_id
   WHERE p.tenant_id = p_tenant_id
     AND p.is_active = true
-    AND ur.role = 'student'
+    AND ur.role = 'STUDENT'
   ORDER BY p.last_name, p.first_name;
 $$;
 

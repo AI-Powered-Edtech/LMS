@@ -2,26 +2,28 @@
 -- Phase 32A: Interactive Content Block Types
 -- ============================================================
 
--- Extend resource_type enum
+-- Extend resource_type enum (only if the enum still exists; it may have been migrated to text)
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'FLASHCARD' AND enumtypid = 'public.resource_type'::regtype) THEN
-        ALTER TYPE public.resource_type ADD VALUE 'FLASHCARD';
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'DRAG_DROP' AND enumtypid = 'public.resource_type'::regtype) THEN
-        ALTER TYPE public.resource_type ADD VALUE 'DRAG_DROP';
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'HOTSPOT' AND enumtypid = 'public.resource_type'::regtype) THEN
-        ALTER TYPE public.resource_type ADD VALUE 'HOTSPOT';
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'TIMELINE' AND enumtypid = 'public.resource_type'::regtype) THEN
-        ALTER TYPE public.resource_type ADD VALUE 'TIMELINE';
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'SORTING' AND enumtypid = 'public.resource_type'::regtype) THEN
-        ALTER TYPE public.resource_type ADD VALUE 'SORTING';
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'FILL_BLANK' AND enumtypid = 'public.resource_type'::regtype) THEN
-        ALTER TYPE public.resource_type ADD VALUE 'FILL_BLANK';
+    IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'resource_type' AND typtype = 'e') THEN
+        IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'FLASHCARD' AND enumtypid = 'public.resource_type'::regtype) THEN
+            ALTER TYPE public.resource_type ADD VALUE 'FLASHCARD';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'DRAG_DROP' AND enumtypid = 'public.resource_type'::regtype) THEN
+            ALTER TYPE public.resource_type ADD VALUE 'DRAG_DROP';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'HOTSPOT' AND enumtypid = 'public.resource_type'::regtype) THEN
+            ALTER TYPE public.resource_type ADD VALUE 'HOTSPOT';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'TIMELINE' AND enumtypid = 'public.resource_type'::regtype) THEN
+            ALTER TYPE public.resource_type ADD VALUE 'TIMELINE';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'SORTING' AND enumtypid = 'public.resource_type'::regtype) THEN
+            ALTER TYPE public.resource_type ADD VALUE 'SORTING';
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'FILL_BLANK' AND enumtypid = 'public.resource_type'::regtype) THEN
+            ALTER TYPE public.resource_type ADD VALUE 'FILL_BLANK';
+        END IF;
     END IF;
 END $$;
 
@@ -55,8 +57,8 @@ CREATE POLICY "ibp_own_rows" ON public.interactive_block_progress
         tenant_id = (SELECT public.get_my_tenant_id())
         AND (
             user_id = auth.uid()
-            OR public.has_role('TEACHER')
-            OR public.has_role('ADMIN')
+            OR public.has_role('TEACHER'::app_role)
+            OR public.has_role('ADMIN'::app_role)
         )
     )
     WITH CHECK (

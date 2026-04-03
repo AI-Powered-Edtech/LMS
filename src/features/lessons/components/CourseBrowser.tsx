@@ -1,6 +1,6 @@
 import { AlertTriangle, BookOpen } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import {
   CourseHeader,
@@ -10,6 +10,7 @@ import {
 } from '@/components/CourseOverview'
 import { Breadcrumb } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
+import { LearningPathRecommendation } from '@/features/ai-recommendations'
 import { courseService } from '@/features/courses'
 import { lessonService } from '@/features/lessons/api/lessonService'
 import { LessonSkeleton } from '@/features/lessons/components/LessonSkeleton'
@@ -39,8 +40,9 @@ export function CourseBrowser({
   tenantId: string
   courseId?: string
 }) {
-  const { user } = useAuth()
+  const { user, role } = useAuth()
   const navigate = useNavigate()
+  const [, setSearchParams] = useSearchParams()
   const [loading, setLoading] = useState(true)
   const [, setModulesLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -75,7 +77,7 @@ export function CourseBrowser({
       }>
     }
 
-    ;(async () => {
+    void (async () => {
       try {
         // Phase 1: fetch course → show header immediately
         const { courses: coursesData } = await courseService.fetchCourses({
@@ -336,6 +338,17 @@ export function CourseBrowser({
               Belum ada modul dalam kursus ini.
             </p>
           </div>
+        )}
+
+        {/* AI Learning Path Recommendations — only for students, non-blocking */}
+        {role === 'student' && courseId && (
+          <LearningPathRecommendation
+            courseId={courseId}
+            tenantId={tenantId}
+            onNavigateToLesson={(lessonId) => {
+              setSearchParams({ lessonId })
+            }}
+          />
         )}
       </div>
     </div>

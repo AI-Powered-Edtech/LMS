@@ -22,8 +22,8 @@ ALTER TABLE school_baseline_metrics ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "principal_admin_manage_baseline" ON school_baseline_metrics
   FOR ALL USING (
     tenant_id = get_my_tenant_id() AND
-    (has_role(auth.uid(), get_my_tenant_id(), 'PRINCIPAL') OR
-     has_role(auth.uid(), get_my_tenant_id(), 'ADMIN'))
+    (has_role('PRINCIPAL'::app_role) OR
+     has_role('ADMIN'::app_role))
   );
 
 CREATE TRIGGER auto_set_tenant_id_baseline

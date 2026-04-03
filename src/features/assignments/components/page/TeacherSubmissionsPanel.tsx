@@ -2,7 +2,9 @@ import { FileText } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { EmptyState, OptimizedImage } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
 import type { AssignmentUiState } from '@/features/assignments/types'
+import { PlagiarismCheckButton } from '@/features/plagiarism'
 
 interface TeacherSubmissionsPanelProps {
   assignment: AssignmentUiState
@@ -16,6 +18,7 @@ export function TeacherSubmissionsPanel({
   assignment,
   getStudentGrade,
 }: TeacherSubmissionsPanelProps) {
+  const { tenantId } = useAuth()
   const submissions = assignment.studentSubmissions || []
   const submittedCount = submissions.filter(
     (s: { status: string }) => s.status === 'submitted' || s.status === 'graded'
@@ -68,18 +71,26 @@ export function TeacherSubmissionsPanel({
                     </p>
                   </div>
                 </div>
-                {isGraded ? (
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                    {displayGrade}/100
-                  </span>
-                ) : sub.status === 'submitted' ? (
-                  <Link
-                    to={`/grader?assignmentId=${assignment.id}&studentId=${sub.id}`}
-                    className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
-                  >
-                    Beri Nilai
-                  </Link>
-                ) : null}
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  {/* Plagiarism check — only for submitted/graded text submissions */}
+                  {(sub.status === 'submitted' || sub.status === 'graded') &&
+                    tenantId &&
+                    typeof sub.id === 'string' && (
+                      <PlagiarismCheckButton submissionId={sub.id} tenantId={tenantId} />
+                    )}
+                  {isGraded ? (
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                      {displayGrade}/100
+                    </span>
+                  ) : sub.status === 'submitted' ? (
+                    <Link
+                      to={`/grader?assignmentId=${assignment.id}&studentId=${sub.id}`}
+                      className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      Beri Nilai
+                    </Link>
+                  ) : null}
+                </div>
               </div>
             )
           })

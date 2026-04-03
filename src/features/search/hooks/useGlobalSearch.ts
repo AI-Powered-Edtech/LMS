@@ -22,14 +22,15 @@ export function useGlobalSearch() {
 
   const clear = useCallback(() => {
     setQuery('')
-    setResults([])
+    setResults((prev) => (prev.length === 0 ? prev : []))
     setLoading(false)
     if (debounceRef.current) clearTimeout(debounceRef.current)
   }, [])
 
   useEffect(() => {
     if (!query.trim() || query.trim().length < 2) {
-      setResults([])
+      // Use functional update to avoid setting state if already empty (prevents infinite loop)
+      setResults((prev) => (prev.length === 0 ? prev : []))
       return
     }
 

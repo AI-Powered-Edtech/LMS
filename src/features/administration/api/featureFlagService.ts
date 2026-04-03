@@ -10,13 +10,18 @@ export const featureFlagService = {
    * Fetch all feature flags for a tenant.
    */
   async fetchFlags(tenantId: string): Promise<FeatureFlag[]> {
+    // feature_flags.tenant_ids is an array; use @> (contains) to filter by tenant
     const { data, error } = await supabase
       .from('feature_flags')
       .select('flag_name, enabled, tenant_ids, rollout_percentage')
-      .eq('tenant_id', tenantId)
+      .contains('tenant_ids', [tenantId])
       .order('flag_name')
 
-    if (error) throw error
+    if (error) {
+      // If no flags exist for this tenant, return empty array gracefully
+      if (import.meta.env.DEV) console.warn('[featureFlagService] fetchFlags:', error.message)
+      return []
+    }
     return (data ?? []) as FeatureFlag[]
   },
 
@@ -36,7 +41,7 @@ export const featureFlagService = {
           rollout_percentage: flag.rollout_percentage,
         })
         .eq('flag_name', flag.flag_name)
-        .eq('tenant_id', tenantId)
+        .contains('tenant_ids', [tenantId])
 
       if (error) throw error
     }
