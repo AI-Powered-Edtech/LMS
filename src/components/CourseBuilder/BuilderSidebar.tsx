@@ -304,8 +304,8 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
                                   })
                                 }}
                                 className="p-2 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded transition-colors ml-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                                aria-label="Hapus modul"
-                                title="Hapus modul"
+                                aria-label={`Hapus Modul ${mod.title}`}
+                                title={`Hapus Modul ${mod.title}`}
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -436,8 +436,8 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
                                                     ? 'hover:bg-white/20 text-white/70 hover:text-white'
                                                     : 'hover:bg-rose-50 text-slate-500 hover:text-rose-600'
                                                 )}
-                                                aria-label="Hapus pelajaran"
-                                                title="Hapus pelajaran"
+                                                aria-label={`Hapus Materi ${lesson.title}`}
+                                                title={`Hapus Materi ${lesson.title}`}
                                               >
                                                 <Trash2 className="w-3.5 h-3.5" />
                                               </button>
