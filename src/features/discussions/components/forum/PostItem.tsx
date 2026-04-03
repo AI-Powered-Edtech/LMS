@@ -22,6 +22,7 @@ import { OptimizedImage, useToast } from '@/components/ui'
 import type { ForumPost } from '@/features/discussions/types/forum'
 import type { ForumComment } from '@/features/discussions/types/forum'
 import { cn } from '@/utils/cn'
+import { sanitizeUrl } from '@/utils/sanitize'
 import { katexSanitizeSchema } from '@/utils/sanitizeMarkdown'
 
 import { CommentThread } from './CommentThread'
@@ -201,7 +202,7 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport, onVote }: Post
 
           {post.contextLink && (
             <a
-              href={post.contextLink.url}
+              href={sanitizeUrl(post.contextLink.url)}
               className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 rounded-lg text-sm font-medium mb-4 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border border-indigo-100 dark:border-indigo-800"
             >
               <Code className="w-4 h-4" />
