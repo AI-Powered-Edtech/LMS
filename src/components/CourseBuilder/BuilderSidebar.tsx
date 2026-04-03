@@ -141,7 +141,7 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
           <div className="flex items-center">
             <button
               onClick={handleAddModule}
-              className="flex items-center gap-1 p-2 pr-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95"
+              className="flex items-center gap-1 p-2 pr-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:z-10"
               title="Buat Modul Baru"
             >
               <Plus className="w-4 h-4" />
@@ -152,8 +152,9 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
                 addToast({ type: 'info', message: 'Fitur template kursus segera hadir.' })
               }}
               disabled={!state.courseId}
-              className="flex items-center p-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-r-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95 border-l border-indigo-700/30 disabled:opacity-50"
+              className="flex items-center p-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-r-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95 border-l border-indigo-700/30 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:z-10"
               title="Import dari Template"
+              aria-label="Import dari Template"
             >
               <Import className="w-3.5 h-3.5" />
             </button>
@@ -161,7 +162,7 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
           {mobile.isMobile && !inlineMode && (
             <button
               onClick={mobile.closeSidebar}
-              className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+              className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
               aria-label="Tutup navigasi"
             >
               <X className="w-5 h-5" />
@@ -494,7 +495,7 @@ export function BuilderSidebar({ inlineMode = false }: BuilderSidebarProps) {
                                       ) : (
                                         <button
                                           onClick={() => setAddingLessonTo(mod.id)}
-                                          className="w-full mt-2 py-2 text-[10px] font-black text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm rounded-xl transition-all flex items-center justify-center gap-1.5 border border-dashed border-slate-200 hover:border-indigo-200 group/add"
+                                          className="w-full mt-2 py-2 text-[10px] font-black text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm rounded-xl transition-all flex items-center justify-center gap-1.5 border border-dashed border-slate-200 hover:border-indigo-200 group/add focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:border-transparent"
                                         >
                                           <Plus className="w-3.5 h-3.5 group-hover/add:rotate-90 transition-transform duration-300" />
                                           TAMBAH MATERI
