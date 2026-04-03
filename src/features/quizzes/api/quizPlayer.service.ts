@@ -151,7 +151,14 @@ export async function getStudentQuizAssignments(
 
   if (enrollmentError) throw enrollmentError
 
-  const classIds = (enrollments || []).map((item) => item.class_id).filter(Boolean)
+  // ⚡ Perf: consolidate multiple array traversals into a single pass to reduce O(N) operations.
+  const classIds: string[] = []
+  const _enrollments = enrollments || []
+  for (let i = 0; i < _enrollments.length; i++) {
+    const cid = _enrollments[i].class_id
+    if (cid) classIds.push(cid)
+  }
+
   if (classIds.length === 0) return []
 
   // Get quiz assignments for those classes
