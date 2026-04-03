@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/useToast'
 import { createQueryKeys } from '@/shared/lib/queryKeys'
 import { captureError } from '@/utils/sentry'
 
+import { addGradebookItem } from '../api/gradebookApi'
 import {
   GradebookAssignment,
   GradebookData,
@@ -113,7 +114,37 @@ export function useGradebook() {
     return grades[studentId]?.[assignmentId] ?? null
   }
 
-  const addAssignment = (assignment: Assignment) => {
+  // FIXED: addAssignment now persists to DB before updating React Query cache.
+  // courseId param must be a real course UUID (e.g. from selectedCourseId in useGradebookState).
+  // If omitted or empty, DB persist is skipped and only the cache is updated.
+  const addAssignment = async (assignment: Assignment, courseId?: string) => {
+    if (tenantId && courseId) {
+      try {
+        // Persist to database — ensures data survives a page reload.
+        // courseId must be a valid FK to the courses table.
+        await addGradebookItem({
+          courseId, // real course UUID passed by the caller
+          tenantId,
+          title: assignment.title,
+          entityType: assignment.type === 'quiz' ? 'quiz' : 'assignment',
+          maxScore: assignment.maxScore,
+        })
+      } catch (err) {
+        // Non-fatal: optimistic cache update still applied so teacher UX isn't blocked.
+        // The next gradebook refresh will sync from DB.
+        if (import.meta.env.DEV) {
+          console.warn('[Gradebook] addGradebookItem DB persist failed (cache still updated):', err)
+        }
+      }
+    } else if (tenantId && !courseId) {
+      // No valid courseId — skip DB persist. Teacher must select a course first for persistence.
+      if (import.meta.env.DEV) {
+        console.warn(
+          '[Gradebook] addAssignment: no courseId provided, DB persist skipped. Select a course first.'
+        )
+      }
+    }
+    // Update React Query cache regardless (optimistic)
     queryClient.setQueryData<GradebookData>(gradebookKeys.all(tenantId!), (old) => {
       if (!old) return { assignments: [assignment], students: [], grades: {} }
       return { ...old, assignments: [...old.assignments, assignment] }

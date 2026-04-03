@@ -11,6 +11,9 @@ export function RoleResolver() {
   // to land on /app/student → RoleGuard denies → /unauthorized).
   const { activeRole, loading } = useAuth()
   const navigate = useNavigate()
+  // SECURITY: Only use activeRole (per-tenant role). Never fall back to global role.
+  // Global role is highest privilege across all tenants, which can cause incorrect routing
+  // and privilege escalation when user has different roles across multiple tenants.
 
   useEffect(() => {
     if (!loading) {

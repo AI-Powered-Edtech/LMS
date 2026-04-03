@@ -12,7 +12,7 @@ import { captureError } from '@/utils/sentry'
 
 export function useAnalyticsPageState() {
   const addToast = useToast((s) => s.addToast)
-  const { activeTenant, role } = useAuth()
+  const { activeTenant, role, activeRole } = useAuth()
   const [courses, setCourses] = useState<Course[]>([])
   const [selectedCourseId, setSelectedCourseId] = useState<string>('')
 
@@ -174,6 +174,7 @@ export function useAnalyticsPageState() {
   return {
     activeTenant,
     role,
+    activeRole,
     courses,
     selectedCourseId,
     setSelectedCourseId,

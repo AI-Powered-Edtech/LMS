@@ -120,7 +120,15 @@ export async function deleteSurvey(id: string): Promise<void> {
 
 // ── Get Survey Results ─────────────────────────────────────────
 
-export async function getSurveyResults(surveyId: string): Promise<SurveyResultsData> {
+/**
+ * Ambil hasil survey dengan tenant isolation.
+ * FIXED: Tambahkan tenantId parameter dan filter .eq('tenant_id', tenantId)
+ *        ke query survey_responses untuk mencegah cross-tenant data leakage.
+ */
+export async function getSurveyResults(
+  surveyId: string,
+  tenantId: string
+): Promise<SurveyResultsData> {
   // Fetch survey detail
   const { data: survey, error: surveyError } = await supabase
     .from('satisfaction_surveys')
@@ -133,10 +141,12 @@ export async function getSurveyResults(surveyId: string): Promise<SurveyResultsD
   }
 
   // Fetch responses
+  // FIXED: Tambahkan tenant_id filter untuk memastikan hanya responses dari tenant ini
   const { data: responses, error: responsesError } = await supabase
     .from('survey_responses')
     .select('*')
     .eq('survey_id', surveyId)
+    .eq('tenant_id', tenantId) // FIXED: tenant isolation
 
   if (responsesError) {
     throw new Error('Gagal memuat respons survey.')

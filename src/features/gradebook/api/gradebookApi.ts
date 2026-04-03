@@ -134,6 +134,57 @@ export async function upsertGradebookEntry(
   return data as unknown as GradebookEntry
 }
 
+// ── Add gradebook item (column definition) ────────────────────────────────────
+
+// Sentinel UUID used as student_id for gradebook column-definition rows.
+// This UUID will never match a real user ID. It marks rows that represent
+// gradebook column definitions rather than actual student grades.
+// TODO (Phase 31): Migrate column definitions to a dedicated `gradebook_columns` table.
+const COLUMN_DEFINITION_SENTINEL = '00000000-0000-0000-0000-000000000001'
+
+/**
+ * Persists a new gradebook column (assignment/quiz/manual item) to the database.
+ * Creates a sentinel row in gradebook_entries to register the entity_type + entity_id
+ * combination. The sentinel student_id is a fixed UUID that never matches a real user.
+ *
+ * FIXED: Uses sentinel UUID instead of teacher's user ID to prevent phantom grade
+ * entries appearing for the teacher in student grade queries.
+ */
+export async function addGradebookItem(data: {
+  courseId: string
+  tenantId: string
+  title: string
+  entityType: 'assignment' | 'quiz' | 'manual'
+  maxScore: number
+}): Promise<{ id: string; title: string; entityType: string; maxScore: number }> {
+  const newEntityId = crypto.randomUUID()
+
+  const { data: result, error } = await supabase
+    .from('gradebook_entries')
+    .insert({
+      course_id: data.courseId,
+      tenant_id: data.tenantId,
+      // FIXED: Use sentinel UUID — never the calling teacher's user ID.
+      // This prevents phantom grade rows from appearing in student grade queries.
+      student_id: COLUMN_DEFINITION_SENTINEL,
+      entity_type: data.entityType,
+      entity_id: newEntityId,
+      score: 0,
+      max_score: data.maxScore,
+    })
+    .select('id, entity_type, entity_id, max_score')
+    .single()
+
+  if (error) throw error
+
+  return {
+    id: newEntityId,
+    title: data.title,
+    entityType: (result as Record<string, unknown>).entity_type as string,
+    maxScore: Number((result as Record<string, unknown>).max_score),
+  }
+}
+
 // ── Sync ─────────────────────────────────────────────────────────────────────
 
 /**

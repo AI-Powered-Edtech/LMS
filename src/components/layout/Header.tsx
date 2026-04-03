@@ -1,4 +1,4 @@
-import { Activity, Flame, LogOut, Moon, Star, Sun, UserCircle } from 'lucide-react'
+import { Activity, Flame, LogOut, Moon, Search, Star, Sun, UserCircle } from 'lucide-react'
 import { memo, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -12,11 +12,16 @@ import {
   NotificationBell as AppNotificationBell,
 } from '@/features/notifications'
 import { useStudentProgressData } from '@/features/progress/hooks/useStudentProgressQueries'
+import { GlobalSearchModal } from '@/features/search'
 import { NotificationBell as StruggleBell } from '@/features/struggle'
 import { cn } from '@/utils/cn'
 import { captureError } from '@/utils/sentry'
 
-export const Header = memo(function Header() {
+interface HeaderProps {
+  onMenuClick?: () => void
+}
+
+export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
   const { xp } = useStudentProgressData()
   const { data: xpProfile } = useStudentXPProfile()
 
@@ -33,6 +38,7 @@ export const Header = memo(function Header() {
   const { resolvedTheme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -50,6 +56,17 @@ export const Header = memo(function Header() {
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleEscapeKey)
     }
+  }, [])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setIsSearchOpen((prev) => !prev)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
   }, [])
 
   const handleLogout = async () => {
@@ -77,12 +94,41 @@ export const Header = memo(function Header() {
       className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4 md:px-8 transition-colors duration-300"
     >
       <div className="flex items-center gap-4 md:hidden">
+        {onMenuClick && (
+          <button
+            onClick={onMenuClick}
+            aria-label="Buka menu"
+            className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+          >
+            <svg
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        )}
         <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center">
           <span className="text-white font-bold text-lg">E</span>
         </div>
       </div>
 
-      <div className="flex-1 md:flex-none" />
+      {/* Global Search Trigger */}
+      <button
+        onClick={() => setIsSearchOpen(true)}
+        className="flex-1 md:flex-none flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-sm text-slate-500 dark:text-slate-400 max-w-xs"
+        aria-label="Buka pencarian global"
+      >
+        <Search className="w-4 h-4" />
+        <span className="hidden md:inline">Cari...</span>
+        <kbd className="hidden md:inline-flex items-center gap-0.5 ml-auto text-xs">
+          <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 font-mono">⌘K</span>
+        </kbd>
+      </button>
 
       <div className="flex items-center gap-4 sm:gap-6">
         {/* Streak Indicator */}
@@ -216,6 +262,7 @@ export const Header = memo(function Header() {
           )}
         </div>
       </div>
+      <GlobalSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>
   )
 })

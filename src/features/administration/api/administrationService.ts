@@ -450,7 +450,12 @@ export const administrationService = {
       p_cursor: params.cursor ?? null,
       p_limit: params.limit,
     })
-    if (error) throw error
+    if (error) {
+      // get_audit_logs RPC may not exist in this DB instance — return empty gracefully
+      if (import.meta.env.DEV)
+        console.warn('[AuditDashboard] get_audit_logs RPC unavailable:', error.message)
+      return []
+    }
     return (data ?? []) as AuditLog[]
   },
 

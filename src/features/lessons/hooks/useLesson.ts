@@ -7,11 +7,18 @@ import { lessonService } from '../api/lessonService'
 
 /**
  * Hook untuk mengambil daftar Pelajaran.
+ * FIXED: C1 — added isTeacher param to include draft lessons for teachers/admins.
+ * Defaults to false so existing callers continue to receive only published lessons.
  */
-export function useLessonData(moduleId: string, userId: string, tenantId: string) {
+export function useLessonData(
+  moduleId: string,
+  userId: string,
+  tenantId: string,
+  isTeacher: boolean = false
+) {
   return useQuery({
-    queryKey: ['lessons', moduleId, userId, tenantId],
-    queryFn: () => lessonService.fetchModuleLessons(moduleId, userId, tenantId),
+    queryKey: ['lessons', moduleId, userId, tenantId, isTeacher],
+    queryFn: () => lessonService.fetchModuleLessons(moduleId, userId, tenantId, isTeacher),
     enabled: !!moduleId && !!userId && !!tenantId,
     staleTime: STALE.MODERATE, // 5 min — lesson structure changes rarely
     gcTime: GC.LONG, // 30 min — keep in cache for navigation

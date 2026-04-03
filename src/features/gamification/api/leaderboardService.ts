@@ -18,7 +18,7 @@ export const leaderboardService = {
    * @param classId - The class ID
    * @param tenantId - The tenant ID for isolation
    */
-  async getLeaderboard(classId: string, tenantId: string): Promise<LeaderboardEntry[]> {
+  async getLeaderboard(_classId: string, tenantId: string): Promise<LeaderboardEntry[]> {
     // Try with class_id filter (migration 052+)
     let query = supabase
       .from('leaderboards')

@@ -135,12 +135,13 @@ const ModalTitleIdContext = createContext<string | undefined>(undefined)
 /* ─── ModalHeader ──────────────────────────────────────────── */
 
 export interface ModalHeaderProps {
-  title: string
+  title?: string
   onClose?: () => void
   className?: string
+  children?: React.ReactNode
 }
 
-export function ModalHeader({ title, onClose, className }: ModalHeaderProps) {
+export function ModalHeader({ title, onClose, className, children }: ModalHeaderProps) {
   const titleId = useContext(ModalTitleIdContext)
 
   return (
@@ -150,9 +151,14 @@ export function ModalHeader({ title, onClose, className }: ModalHeaderProps) {
         className
       )}
     >
-      <h2 id={titleId} className="text-lg font-bold text-slate-900 dark:text-white">
-        {title}
-      </h2>
+      {title ? (
+        <h2 id={titleId} className="text-lg font-bold text-slate-900 dark:text-white">
+          {title}
+        </h2>
+      ) : (
+        <div className="flex-1">{children}</div>
+      )}
+      {!title && children && <div className="flex-1">{children}</div>}
       {onClose && (
         <button
           type="button"

@@ -26,26 +26,47 @@ interface InnerProps {
   userId: string
 }
 
+const LS_ONBOARDING_UNAVAILABLE = 'edusync_onboarding_progress_unavailable'
+
 function OnboardingChecklistInner({ tenantId, userId }: InnerProps) {
   const [progress, setProgress] = useState<OnboardingProgress | null>(null)
   const [loading, setLoading] = useState(true)
   const [collapsed, setCollapsed] = useState(false)
-  const [dismissed, setDismissed] = useState(false)
+  // Pre-check localStorage to avoid redundant 404 requests when table is unavailable
+  const [dismissed, setDismissed] = useState(
+    () => localStorage.getItem(LS_ONBOARDING_UNAVAILABLE) === '1'
+  )
 
   const fetchProgress = useCallback(async () => {
+    // Skip fetch if already known to be unavailable
+    if (localStorage.getItem(LS_ONBOARDING_UNAVAILABLE) === '1') {
+      setLoading(false)
+      return
+    }
     setLoading(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('onboarding_progress')
       .select('id, tenant_id, user_id, steps_completed, completed_at')
       .eq('tenant_id', tenantId)
       .eq('user_id', userId)
       .maybeSingle()
 
+    // Table may not exist on all environments — dismiss checklist silently.
+    if (error) {
+      if (import.meta.env.DEV)
+        console.warn('[OnboardingChecklist] onboarding_progress unavailable:', error.message)
+      // Cache to prevent repeated 404 requests on subsequent page navigations
+      localStorage.setItem(LS_ONBOARDING_UNAVAILABLE, '1')
+      setDismissed(true)
+      setLoading(false)
+      return
+    }
+
     if (data) {
       setProgress(data as OnboardingProgress)
     } else {
       // Upsert a fresh record for this admin
-      const { data: created } = await supabase
+      const { data: created, error: insertError } = await supabase
         .from('onboarding_progress')
         .insert({
           tenant_id: tenantId,
@@ -55,7 +76,13 @@ function OnboardingChecklistInner({ tenantId, userId }: InnerProps) {
         })
         .select('id, tenant_id, user_id, steps_completed, completed_at')
         .single()
-      if (created) setProgress(created as OnboardingProgress)
+      if (insertError) {
+        if (import.meta.env.DEV)
+          console.warn('[OnboardingChecklist] insert failed:', insertError.message)
+        setDismissed(true)
+      } else if (created) {
+        setProgress(created as OnboardingProgress)
+      }
     }
     setLoading(false)
   }, [tenantId, userId])

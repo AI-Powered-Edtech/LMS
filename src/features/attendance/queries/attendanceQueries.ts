@@ -27,7 +27,8 @@ export function useClassStudents(classId: string | null) {
   const { tenantId } = useAuth()
   return useQuery({
     queryKey: [...attendanceKeys.all(tenantId!), 'class-students', classId],
-    queryFn: () => attendanceService.fetchClassStudents(classId!),
+    // FIXED: Pass tenantId for tenant scoping in enrollment query
+    queryFn: () => attendanceService.fetchClassStudents(classId!, tenantId!),
     enabled: !!tenantId && !!classId,
     staleTime: STALE.MODERATE,
     gcTime: GC.NORMAL,

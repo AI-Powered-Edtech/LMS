@@ -26,7 +26,7 @@ export function Analytics() {
   const navigate = useNavigate()
   const {
     activeTenant,
-    role,
+    activeRole,
     courses,
     selectedCourseId,
     setSelectedCourseId,
@@ -63,7 +63,7 @@ export function Analytics() {
 
         <div className="flex items-center gap-3">
           <select
-            value={selectedCourseId}
+            value={selectedCourseId ?? ''}
             onChange={(e) => setSelectedCourseId(e.target.value)}
             className="bg-white border text-sm border-slate-200 text-slate-700 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 p-2.5 shadow-sm"
           >
@@ -233,7 +233,7 @@ export function Analytics() {
         </>
       )}
 
-      {(role === 'teacher' || role === 'admin') && (
+      {(activeRole === 'teacher' || activeRole === 'admin') && (
         <div>
           <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">
             Pengaturan Deteksi

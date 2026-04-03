@@ -30,24 +30,26 @@ export function StudentCoursesList() {
     // NOTE: Only fetch courses the student is enrolled in via course_enrollments.
     // Students are enrolled automatically when they join a class (handle_student_joined_class trigger).
     // DO NOT fetch all published courses — that shows inaccessible content.
-    supabase
-      .from('course_enrollments')
-      .select('course_id, courses!inner(id, title, description, status)')
-      .eq('user_id', user.id)
-      .eq('tenant_id', tenantId)
-      .eq('status', 'ACTIVE') // enrollment_status enum: uppercase only
-      .then(({ data, error: err }) => {
+    ;(async () => {
+      try {
+        const { data, error: err } = await supabase
+          .from('course_enrollments')
+          .select('course_id, courses!inner(id, title, description, status)')
+          .eq('user_id', user.id)
+          .eq('tenant_id', tenantId)
+          .eq('status', 'ACTIVE') // enrollment_status enum: uppercase only
         if (err) throw err
         const enrolled = (data ?? [])
           .map((e) => (e as unknown as { courses: Course }).courses)
           .filter((c) => c.status === 'published')
         setCourses(enrolled)
-      })
-      .catch((err) => {
+      } catch (err) {
         if (import.meta.env.DEV) console.error('Failed to fetch enrolled courses:', err)
         setError('Gagal memuat daftar kursus. Silakan muat ulang halaman.')
-      })
-      .finally(() => setLoading(false))
+      } finally {
+        setLoading(false)
+      }
+    })()
   }, [tenantId, user?.id, retryCount])
 
   if (error) {

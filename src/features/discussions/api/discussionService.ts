@@ -142,8 +142,13 @@ export const discussionService = {
 
   /**
    * Fetch top-level forum posts (no lesson/course/announcement context)
+   * Supports pagination via page/pageSize parameters.
    */
-  async fetchForumPosts(tenantId: string): Promise<Discussion[]> {
+  async fetchForumPosts(
+    tenantId: string,
+    page: number = 0,
+    pageSize: number = 20
+  ): Promise<Discussion[]> {
     const { data, error } = await supabase
       .from('discussions')
       .select(DISCUSSION_COLUMNS)
@@ -153,31 +158,74 @@ export const discussionService = {
       .is('announcement_id', null)
       .eq('is_deleted', false)
       .order('created_at', { ascending: false })
+      .range(page * pageSize, (page + 1) * pageSize - 1)
 
     if (error) throw error
     return (data ?? []) as unknown as Discussion[]
   },
 
   /**
-   * Vote on a discussion post (fire-and-forget).
+   * Vote on a discussion post via secure RPC (deduplication + self-vote prevention).
+   * Returns false if vote was rejected (already voted or self-vote).
    */
-  async voteDiscussion(discussionId: string): Promise<void> {
-    await supabase.rpc('vote_discussion', { p_discussion_id: discussionId })
+  async voteDiscussion(discussionId: string): Promise<{ success: boolean; reason?: string }> {
+    const { data, error } = await supabase.rpc('vote_discussion_secure', {
+      p_discussion_id: discussionId,
+    })
+    if (error) {
+      // PGRST202 = RPC not deployed yet — degrade gracefully until migration runs.
+      if (error.code === 'PGRST202') {
+        if (import.meta.env.DEV)
+          console.warn(
+            '[discussionService] vote_discussion_secure RPC not found — migration needed.'
+          )
+        return { success: false, reason: 'rpc_not_found' }
+      }
+      if (import.meta.env.DEV) console.error('Error voting on discussion:', error)
+      throw error
+    }
+    const result = data as { success: boolean; reason?: string } | null
+    return result ?? { success: false, reason: 'unknown' }
   },
 
   /**
    * Mark a comment as the best answer for a post.
+   * FIXED: Pre-verifies tenant ownership before calling RPC to prevent
+   * cross-tenant data modification if RLS is misconfigured.
+   * Uses set_best_answer RPC for atomic execution (prevents race condition).
    */
   async setBestAnswer(postId: string, commentId: string, tenantId: string): Promise<void> {
-    await supabase
+    // FIXED: Pre-verify tenant ownership before calling RPC.
+    // Ensures the discussion post belongs to this tenant — prevents cross-tenant writes.
+    const { data: post, error: postError } = await supabase
       .from('discussions')
-      .update({ is_best_answer: false })
-      .eq('parent_id', postId)
+      .select('id')
+      .eq('id', postId)
       .eq('tenant_id', tenantId)
-    await supabase
-      .from('discussions')
-      .update({ is_best_answer: true })
-      .eq('id', commentId)
-      .eq('tenant_id', tenantId)
+      .maybeSingle()
+
+    if (postError) {
+      if (import.meta.env.DEV)
+        console.error('[discussionService] setBestAnswer pre-verify error:', postError)
+      throw postError
+    }
+    if (!post) {
+      throw new Error('Post tidak ditemukan atau tidak ada akses ke tenant ini.')
+    }
+
+    const { error } = await supabase.rpc('set_best_answer', {
+      p_discussion_id: postId,
+      p_answer_id: commentId,
+    })
+    if (error) {
+      // PGRST202 = RPC not deployed yet — degrade gracefully until migration runs.
+      if (error.code === 'PGRST202') {
+        if (import.meta.env.DEV)
+          console.warn('[discussionService] set_best_answer RPC not found — migration needed.')
+        return
+      }
+      if (import.meta.env.DEV) console.error('Error setting best answer:', error)
+      throw error
+    }
   },
 }

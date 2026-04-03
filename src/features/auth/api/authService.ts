@@ -1,4 +1,5 @@
 import { supabase } from '@/services/supabase/client'
+import { logDevError } from '@/utils/logDevError'
 import { captureError } from '@/utils/sentry'
 
 export interface InvitationInfo {
@@ -105,11 +106,11 @@ export const authService = {
       if (error) throw error
       return (data as RateLimitResult) ?? { allowed: true }
     } catch (err) {
-      // Fail-open: if Edge Function is unavailable (cold start, network error),
-      // we allow the request to prevent blocking legitimate users during outages.
-      // This is intentional — server-side rate limiting is defense-in-depth,
-      // not the primary security layer. Monitor via Sentry for repeated failures.
-      if (import.meta.env.DEV) console.warn('[Auth] Rate limit check failed:', err)
+      // SECURITY NOTE: Fail-open by design - server unavailability should not block login.
+      // Monitor this log in production. Server-side rate limiting is defense-in-depth,
+      // not the primary security layer. Client-side rate limiting (rateLimiter.ts) is
+      // the first line of defense and always runs regardless of Edge Function availability.
+      logDevError('auth', 'Rate limit check failed - fail-open:', err)
       captureError(err, { context: 'checkRateLimit', action, level: 'warning' })
       return { allowed: true }
     }

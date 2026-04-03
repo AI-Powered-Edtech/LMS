@@ -9,6 +9,21 @@ import { useStudentBadges } from '../queries/gamificationQueries'
 import type { BadgeDefinition, BadgeRarity } from '../types'
 import { RARITY_CONFIG } from '../types'
 
+/** Terjemahan fallback untuk nama badge yang belum ditranslasi di DB */
+const BADGE_NAME_ID: Record<string, string> = {
+  Scholar: 'Cendekiawan',
+  'Course Master': 'Ahli Kursus',
+  Unstoppable: 'Tak Terhentikan',
+  'On Fire': 'Membara',
+  'Sharp Shooter': 'Penembak Jitu',
+  'Speed Learner': 'Pembelajar Cepat',
+  Bookworm: 'Kutu Buku',
+}
+
+function translateBadgeName(name: string): string {
+  return BADGE_NAME_ID[name] ?? name
+}
+
 interface BadgeShowcaseProps {
   compact?: boolean
 }
@@ -79,7 +94,7 @@ function BadgeCard({
           isEarned ? 'text-slate-800 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'
         )}
       >
-        {badge.name}
+        {translateBadgeName(badge.name)}
       </h4>
 
       {!compact && (

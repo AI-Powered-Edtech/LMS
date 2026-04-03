@@ -106,23 +106,30 @@ Key docs:
 
 All Edge Functions live in `supabase/functions/`. Each is self-contained (no shared module). Use `Deno.serve`, `jsr:` imports, and the standard CORS/response helpers.
 
-| Function                  | Purpose                                         | Auth                          |
-| ------------------------- | ----------------------------------------------- | ----------------------------- |
-| `ai-grade-essay`          | AI essay grading via Groq                       | User JWT                      |
-| `ai-tutor`                | AI tutor chat                                   | User JWT                      |
-| `generate-ai-content`     | AI content generation                           | User JWT                      |
-| `generate-pdf`            | PDF certificate generation                      | User JWT                      |
-| `grade-quiz-attempt`      | Background quiz grading                         | Service role                  |
-| `health-check`            | System health status                            | None (public)                 |
-| `load-quiz-data`          | Load quiz for student                           | User JWT                      |
-| `process-progress-events` | Batch progress event processing                 | API key                       |
-| `progress-events`         | Enqueue progress events                         | User JWT                      |
-| `send-email-digest`       | Email digest sender                             | Service role                  |
-| `send-push`               | Push notification sender                        | User JWT                      |
-| `lti-jwks`                | Public JWKS for LTI platforms                   | None (public GET)             |
-| `lti-oidc-login`          | LTI OIDC login initiation                       | None (platform-initiated)     |
-| `lti-launch`              | LTI launch token validation + user provisioning | None (validates LTI id_token) |
-| `scorm-extract`           | SCORM ZIP upload, validation, extraction        | User JWT (teacher/admin)      |
+| Function                    | Purpose                                         | Auth                          |
+| --------------------------- | ----------------------------------------------- | ----------------------------- |
+| `ai-grade-essay`            | AI essay grading via Groq                       | User JWT                      |
+| `ai-tutor`                  | AI tutor chat                                   | User JWT                      |
+| `generate-ai-content`       | AI content generation                           | User JWT                      |
+| `generate-pdf`              | PDF certificate generation                      | User JWT                      |
+| `grade-quiz-attempt`        | Background quiz grading                         | Service role                  |
+| `health-check`              | System health status                            | None (public)                 |
+| `load-quiz-data`            | Load quiz for student                           | User JWT                      |
+| `process-progress-events`   | Batch progress event processing                 | API key                       |
+| `progress-events`           | Enqueue progress events                         | User JWT                      |
+| `send-email-digest`         | Email digest sender                             | Service role                  |
+| `send-push`                 | Push notification sender                        | User JWT                      |
+| `lti-jwks`                  | Public JWKS for LTI platforms                   | None (public GET)             |
+| `lti-oidc-login`            | LTI OIDC login initiation                       | None (platform-initiated)     |
+| `lti-launch`                | LTI launch token validation + user provisioning | None (validates LTI id_token) |
+| `scorm-extract`             | SCORM ZIP upload, validation, extraction        | User JWT (teacher/admin)      |
+| `generate-executive-report` | Executive report generation                     | Service role                  |
+| `generate-parent-report`    | Parent report generation                        | Service role                  |
+| `bulk-import-users`         | Bulk user import                                | Service role                  |
+| `check-rate-limit`          | Rate limiting check                             | Service role                  |
+| `send-parent-digest`        | Parent digest sending                           | Service role                  |
+| `send-parent-otp`           | Parent OTP sending                              | Service role                  |
+| `whatsapp-webhook`          | WhatsApp webhook handler                        | Service role                  |
 
 ### LTI/SCORM Environment Variables
 
@@ -149,7 +156,7 @@ All Edge Functions live in `supabase/functions/`. Each is self-contained (no sha
 | `student@edusync.dev` | `password123` | STUDENT |
 | `admin@edusync.dev`   | `password123` | ADMIN   |
 
-Dev app: `http://localhost:5173` (after `npm run dev`)
+Dev app: `http://localhost:5173` (after `pnpm dev`)
 
 ## Engineering Workflow
 

@@ -312,3 +312,43 @@ export const ParentRegisterPage = withErrorBoundary(
   ),
   'Daftar Orang Tua'
 )
+
+// ============================================================
+// MFA / 2FA pages
+// ============================================================
+
+export const MFASetupPage = withErrorBoundary(
+  lazy(() =>
+    import('../features/auth/components/MFASetupPage').then((m) => ({ default: m.MFASetupPage }))
+  ),
+  'Setup 2FA'
+)
+
+export const MFAVerifyPage = withErrorBoundary(
+  lazy(() =>
+    import('../features/auth/components/MFAVerifyPage').then((m) => ({ default: m.MFAVerifyPage }))
+  ),
+  'Verifikasi 2FA'
+)
+
+// ============================================================
+// Privacy / GDPR pages
+// ============================================================
+
+export const DataExportPage = withErrorBoundary(
+  lazy(() =>
+    import('../features/profile/components/DataExportPage').then((m) => ({
+      default: m.DataExportPage,
+    }))
+  ),
+  'Export Data'
+)
+
+export const AccountDeletionPage = withErrorBoundary(
+  lazy(() =>
+    import('../features/profile/components/AccountDeletionPage').then((m) => ({
+      default: m.AccountDeletionPage,
+    }))
+  ),
+  'Hapus Akun'
+)

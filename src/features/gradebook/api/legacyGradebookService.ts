@@ -59,18 +59,22 @@ export const gradebookService = {
         .eq('tenant_id', tenantId)
         .order('submitted_at', { ascending: false })
         .limit(1000),
-      supabase
-        .from('profiles')
-        .select('id, first_name, last_name, email, tenant_id')
-        .eq('tenant_id', tenantId)
-        .eq('is_active', true)
-        .limit(1000),
-      supabase
-        .from('quiz_attempts_v2')
-        .select('id, quiz_id, student_id, score, status, tenant_id')
-        .eq('tenant_id', tenantId)
-        .eq('status', 'GRADED')
-        .limit(1000),
+      // Server-side student filtering via RPC — avoids fetching non-student profiles
+      // and eliminates the PostgREST 400 error from !inner join on user_roles.
+      supabase.rpc('get_gradebook_students', { p_tenant_id: tenantId }),
+      // Graceful fallback: if quiz_attempts_v2 table does not exist, return empty array
+      (async () => {
+        try {
+          return await supabase
+            .from('quiz_attempts_v2')
+            .select('id, quiz_id, student_id, score, status, tenant_id')
+            .eq('tenant_id', tenantId)
+            .eq('status', 'GRADED')
+            .limit(1000)
+        } catch {
+          return { data: [] }
+        }
+      })(),
     ])
 
     const assignments: GradebookAssignment[] = (assignmentsData ?? []).map((a) => ({
@@ -98,11 +102,13 @@ export const gradebookService = {
       })
     }
 
-    const students: GradebookStudent[] = (profilesData ?? []).map((p) => ({
-      id: p.id,
-      name: `${p.first_name} ${p.last_name}`.trim() || p.email,
-      nis: p.email.split('@')[0],
-    }))
+    const students: GradebookStudent[] = (profilesData ?? []).map(
+      (p: { id: string; first_name: string; last_name: string; email: string }) => ({
+        id: p.id,
+        name: `${p.first_name} ${p.last_name}`.trim() || p.email,
+        nis: p.email.split('@')[0],
+      })
+    )
 
     // Merge quiz results into grades - quizzes appear as assignments in gradebook
     if (quizAttempts && quizAttempts.length > 0) {

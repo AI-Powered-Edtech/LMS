@@ -52,10 +52,21 @@ export async function fetchNotifications(
 
 /**
  * Mark a single notification as read
+ * FIXED: Added tenantId + userId filters to prevent cross-user/cross-tenant updates
  */
-export async function markNotificationRead(id: string): Promise<void> {
+export async function markNotificationRead(
+  id: string,
+  userId: string,
+  tenantId: string
+): Promise<void> {
   // Only update is_read — read_at column may not exist in baseline schema
-  const { error } = await supabase.from('notifications').update({ is_read: true }).eq('id', id)
+  // FIXED: Scoped to tenant_id + user_id so a user cannot mark another user's notification as read
+  const { error } = await supabase
+    .from('notifications')
+    .update({ is_read: true })
+    .eq('id', id)
+    .eq('tenant_id', tenantId)
+    .eq('user_id', userId)
 
   if (error) {
     logDevError('notifications', 'markNotificationRead error:', error)

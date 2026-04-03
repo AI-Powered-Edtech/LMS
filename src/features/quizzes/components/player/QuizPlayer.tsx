@@ -1,7 +1,7 @@
 // Quiz Player - Orchestrator component
 // Part of the Quiz Engine Refactor
 
-import { Eye, WifiOff } from 'lucide-react'
+import { Eye, Monitor, WifiOff } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
@@ -129,6 +129,17 @@ export function QuizPlayer({
     }
   }, [attemptId, attemptQuestions, initialAnswers, initialQuestionIndex])
 
+  // Print prevention: sembunyikan konten kuis saat print
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.id = 'quiz-print-prevention'
+    style.textContent = `@media print { .quiz-player-root { display: none !important; } }`
+    document.head.appendChild(style)
+    return () => {
+      document.getElementById('quiz-print-prevention')?.remove()
+    }
+  }, [])
+
   // ── Hooks composition ───────────────────────────────────
   const {
     timeLeft,
@@ -197,7 +208,7 @@ export function QuizPlayer({
   const saveStatus: SaveStatus = isSaving ? 'saving' : lastSaved ? 'saved' : 'idle'
   const { isOnline } = useNetworkStatus()
 
-  const { tabWarning } = useAntiCheat({ attemptId })
+  const { tabWarning, devToolsWarning } = useAntiCheat({ attemptId })
 
   useQuizHeartbeat({ attemptId, intervalMs: 30000 })
 
@@ -276,7 +287,7 @@ export function QuizPlayer({
   // Show skeleton while computing resume index
   if (isResuming) {
     return (
-      <div className="flex-1 w-full flex flex-col items-center px-4 md:px-6 lg:px-8">
+      <div className="quiz-player-root select-none flex-1 w-full flex flex-col items-center px-4 md:px-6 lg:px-8">
         <div className="w-full max-w-6xl space-y-6">
           {/* Header skeleton */}
           <div className="h-16 bg-slate-100 dark:bg-slate-700 rounded-2xl animate-pulse" />
@@ -302,7 +313,7 @@ export function QuizPlayer({
   const currentAnswer = answers[question.question_id]
 
   return (
-    <div className="flex-1 w-full flex flex-col items-center px-4 md:px-6 lg:px-8">
+    <div className="quiz-player-root select-none flex-1 w-full flex flex-col items-center px-4 md:px-6 lg:px-8">
       <div className="w-full max-w-6xl">
         {/* ── Floating Warnings ─────────────────────────── */}
         {tabWarning && !isPaused && (
@@ -315,6 +326,26 @@ export function QuizPlayer({
                 </p>
                 <p className="text-xs text-amber-600 dark:text-amber-400">
                   Aktivitas ini telah dicatat
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── DevTools Warning ──────────────────────────── */}
+        {devToolsWarning && !isPaused && (
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-3 px-5 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl shadow-lg">
+              <Monitor className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
+              <div>
+                <p className="font-bold text-red-800 dark:text-red-300 text-sm">
+                  Alat pengembang terdeteksi
+                </p>
+                <p className="text-xs text-red-600 dark:text-red-400">
+                  Aktivitas ini telah dicatat oleh sistem pengawas
+                </p>
+                <p className="text-xs text-red-500 dark:text-red-400 mt-0.5">
+                  Jika ini adalah kesalahan, tutup semua panel browser tambahan dan lanjutkan.
                 </p>
               </div>
             </div>

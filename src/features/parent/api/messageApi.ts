@@ -268,17 +268,27 @@ export async function createThread(params: CreateThreadParams): Promise<MessageT
 /**
  * Reset unread count untuk role tertentu (parent atau teacher).
  * Dipanggil saat user membuka thread.
+ * FIXED: Filter by userId (participant check) + tenantId (tenant isolation).
+ *        Mencegah user lain me-reset unread count milik orang lain, dan
+ *        mencegah cross-tenant thread manipulation.
  */
-export async function markThreadRead(threadId: string, role: 'parent' | 'teacher'): Promise<void> {
+export async function markThreadRead(
+  threadId: string,
+  role: 'parent' | 'teacher',
+  userId: string,
+  tenantId: string
+): Promise<void> {
   const field = role === 'parent' ? 'parent_unread_count' : 'teacher_unread_count'
+  const participantField = role === 'parent' ? 'parent_id' : 'teacher_id'
 
   const { error } = await supabase
     .from('parent_teacher_threads')
     .update({ [field]: 0 })
     .eq('id', threadId)
+    .eq(participantField, userId) // hanya participant yang boleh update
+    .eq('tenant_id', tenantId) // FIXED: tenant isolation
 
   if (error) {
     if (import.meta.env.DEV) console.error('[MessageApi] markThreadRead error:', error)
-    // Non-fatal: jangan throw, cukup log
   }
 }

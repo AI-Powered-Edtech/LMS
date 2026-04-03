@@ -65,6 +65,25 @@ export interface QuestionStatsWithQuestion extends QuestionStats {
   question_order: number
 }
 
+/**
+ * Live status row returned by get_quiz_live_status RPC.
+ * One row per student who has started/submitted the assignment.
+ */
+export interface QuizLiveStatus {
+  student_id: string
+  student_name: string
+  /** Values: 'in_progress' | 'submitted' | 'graded' | 'abandoned' */
+  status: string
+  answered_count: number
+  total_questions: number
+  last_heartbeat_at: string | null
+  score: number | null
+  is_suspicious: boolean
+  tab_switch_count: number
+  started_at: string
+  submitted_at: string | null
+}
+
 // --- Service ---
 
 export const quizAnalyticsService = {
@@ -187,6 +206,22 @@ export const quizAnalyticsService = {
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
+  },
+
+  /**
+   * Get live status of all students taking a quiz (teacher only).
+   * Polling-based — call every 10 seconds.
+   */
+  async getLiveStatus(assignmentId: string, tenantId: string): Promise<QuizLiveStatus[]> {
+    const { data, error } = await supabase.rpc('get_quiz_live_status', {
+      p_assignment_id: assignmentId,
+      p_tenant_id: tenantId,
+    })
+    if (error) {
+      logDevError('quizAnalytics', 'Error fetching live status:', error)
+      throw error
+    }
+    return (data ?? []) as QuizLiveStatus[]
   },
 }
 

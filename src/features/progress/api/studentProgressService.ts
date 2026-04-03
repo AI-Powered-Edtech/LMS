@@ -226,15 +226,38 @@ export const studentProgressService = {
   },
 
   /**
-   * Fetch upcoming assignments for a tenant (limited to 10).
+   * Fetch upcoming assignments for a specific student within a tenant.
+   * FIXED: Filter by student's enrolled class IDs to show only relevant assignments.
    */
-  async fetchAssignments(tenantId: string): Promise<AssignmentData[]> {
-    const { data } = await supabase
+  async fetchAssignments(tenantId: string, studentId?: string): Promise<AssignmentData[]> {
+    // FIXED: If studentId provided, filter assignments by classes the student is enrolled in
+    let enrolledClassIds: string[] | null = null
+
+    if (studentId) {
+      const { data: enrollments } = await supabase
+        .from('enrollments')
+        .select('class_id')
+        .eq('student_id', studentId)
+        .eq('tenant_id', tenantId)
+
+      if (enrollments && enrollments.length > 0) {
+        enrolledClassIds = enrollments.map((e) => e.class_id)
+      }
+    }
+
+    let query = supabase
       .from('assignments')
       .select('id, title, due_date, classes(name)')
       .eq('tenant_id', tenantId)
       .order('due_date', { ascending: true })
       .limit(10)
+
+    // FIXED: Restrict to enrolled classes only — prevents showing assignments from other classes
+    if (enrolledClassIds && enrolledClassIds.length > 0) {
+      query = query.in('class_id', enrolledClassIds)
+    }
+
+    const { data } = await query
 
     return (data ?? []).map((a) => ({
       id: a.id,

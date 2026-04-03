@@ -156,7 +156,8 @@ export function ScormPlayer({
         setPackageInfo(pkg as ScormPackage)
 
         // 2. Fetch existing runtime data (for resume)
-        const runtime = await lessonService.getScormRuntimeData(user.id, scormPackageId)
+        // FIXED: C2 — pass tenantId for tenant isolation
+        const runtime = await lessonService.getScormRuntimeData(user.id, scormPackageId, tenantId!)
 
         if (cancelled) return
 

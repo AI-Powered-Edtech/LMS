@@ -91,9 +91,14 @@ export function parseCSVLine(line: string): string[] {
 /**
  * Parse CSV content into structured questions.
  * First row is treated as a header and skipped.
+ * FIXED: Strip UTF-8 BOM (\uFEFF) that Excel/Windows CSV exports prepend.
+ *        Without stripping, the first header cell becomes "\uFEFFquestion_text"
+ *        which causes silent misparse of the entire first data row.
  */
 export function parseCSVQuestions(csvContent: string): ParseResult {
-  const lines = csvContent.split(/\r?\n/).filter((line) => line.trim() !== '')
+  // FIXED: Remove UTF-8 BOM if present (added by Excel, Windows Notepad, etc.)
+  const cleanedContent = csvContent.replace(/^\uFEFF/, '')
+  const lines = cleanedContent.split(/\r?\n/).filter((line) => line.trim() !== '')
   const errors: ParseError[] = []
   const questions: ParsedQuestion[] = []
 

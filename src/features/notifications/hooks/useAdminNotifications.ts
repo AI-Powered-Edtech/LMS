@@ -59,34 +59,36 @@ const NOTIFICATION_COLUMNS = `
 async function fetchAdminNotifications(
   userId: string,
   tenantId: string,
-  limit = 50
+  // NOTE: Limit raised from 50 → 200 because filtering happens client-side.
+  // With limit=50 and many non-admin notifications, admin ones could be missed entirely.
+  // TODO: Restore `.in('type', ADMIN_NOTIFICATION_TYPES)` DB-side filter once the
+  // notification_type DB enum includes all admin values, then reduce limit back to 50.
+  limit = 200
 ): Promise<Notification[]> {
+  // NOTE: Admin-specific enum values (sync_failure, system_alert, user_joined,
+  // moderation_report) may not yet be in the notification_type DB enum.
+  // Fetch all notifications for this user and filter client-side to avoid the
+  // "invalid input value for enum" 400 error.  When the DB enum is updated,
+  // move the `.in('type', ADMIN_NOTIFICATION_TYPES)` back to the query.
+  // KNOWN LIMITATION: If a user has >200 non-admin notifications, older admin ones
+  // may still not appear. Address by restoring the DB-side enum filter.
   const { data, error } = await supabase
     .from('notifications')
     .select(NOTIFICATION_COLUMNS)
     .eq('user_id', userId)
     .eq('tenant_id', tenantId)
-    .in('type', ADMIN_NOTIFICATION_TYPES)
     .order('created_at', { ascending: false })
     .limit(limit)
 
   if (error) {
-    // Admin-specific notification types (sync_failure, system_alert, user_joined,
-    // moderation_report) may not yet exist in the notification_type DB enum.
-    // Return empty array gracefully instead of crashing the admin layout.
-    if (error.code === '22P02') {
-      if (import.meta.env.DEV)
-        console.warn(
-          '[useAdminNotifications] Admin notification types not in DB enum yet — returning empty:',
-          error.message
-        )
-      return []
-    }
     if (import.meta.env.DEV) console.error('[useAdminNotifications] fetch error:', error)
     throw error
   }
 
-  return (data ?? []) as Notification[]
+  // Client-side filter: only surface admin notification types.
+  return (data ?? []).filter((n) =>
+    ADMIN_NOTIFICATION_TYPES.includes(n.type as AdminNotificationType)
+  ) as Notification[]
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────

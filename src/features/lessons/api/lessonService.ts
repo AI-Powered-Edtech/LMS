@@ -257,17 +257,22 @@ export const lessonService = {
 
   /**
    * Fetch all lessons in a module with the current user's progress.
+   * FIXED: C1 — added isTeacher parameter to hide draft lessons from students.
+   * When isTeacher=false (default), only published lessons are returned.
+   * Teachers and admins receive all lessons including drafts.
    */
   async fetchModuleLessons(
     moduleId: string,
     userId: string,
-    tenantId: string
+    tenantId: string,
+    isTeacher: boolean = false
   ): Promise<{
     lessons: Lesson[]
     progress: Record<string, LessonProgress>
   }> {
     // Fetch lessons
-    const { data: lessons, error: lessonsError } = await supabase
+    // FIXED: C1 — build query conditionally based on caller role
+    let query = supabase
       .from('lessons')
       .select(
         `
@@ -286,7 +291,13 @@ export const lessonService = {
       )
       .eq('module_id', moduleId)
       .eq('tenant_id', tenantId)
-      .order('order')
+
+    // Students only see published lessons; teachers/admins see all
+    if (!isTeacher) {
+      query = query.eq('is_published', true)
+    }
+
+    const { data: lessons, error: lessonsError } = await query.order('order')
 
     if (lessonsError) {
       if (import.meta.env.DEV) console.error('Error fetching module lessons:', lessonsError)
@@ -592,10 +603,13 @@ export const lessonService = {
 
   /**
    * Fetch existing SCORM runtime data for resume (user + package).
+   * FIXED: C2 — added tenantId parameter and .eq('tenant_id', tenantId) filter
+   * to enforce tenant isolation and prevent cross-tenant data leaks.
    */
   async getScormRuntimeData(
     userId: string,
-    scormPackageId: string
+    scormPackageId: string,
+    tenantId: string
   ): Promise<{
     cmi_data: Record<string, string> | null
     score_raw: number | null
@@ -608,6 +622,8 @@ export const lessonService = {
       .select('cmi_data, score_raw, lesson_status, total_time, suspend_data')
       .eq('user_id', userId)
       .eq('scorm_package_id', scormPackageId)
+      // FIXED: C2 — tenant isolation filter
+      .eq('tenant_id', tenantId)
       .maybeSingle()
 
     return data ?? null

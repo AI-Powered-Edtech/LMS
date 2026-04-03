@@ -11,7 +11,7 @@ import { useUndoableAction } from '@/hooks/useUndoableAction'
 import { captureError } from '@/utils/sentry'
 
 export function useClassManagementState() {
-  usePageTitle('Class Management')
+  usePageTitle('Manajemen Kelas')
   const addToast = useToast((s) => s.addToast)
   const navigate = useNavigate()
   const {

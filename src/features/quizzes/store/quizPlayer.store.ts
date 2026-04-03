@@ -9,15 +9,38 @@ import type { SubmitAnswer } from '../types/quizzes.types'
 // Store State
 // ============================================
 
+/**
+ * Zustand store untuk state quiz player yang perlu di-share lintas komponen.
+ *
+ * Catatan penting tentang state yang dikelola secara lokal:
+ * - Timer (countdown) dikelola oleh `useQuizTimer` hook secara lokal di `QuizPlayer.tsx`
+ *   dan TIDAK di-sync ke store ini.
+ * - Flagged questions di `QuizPlayer.tsx` menggunakan local `useState<Set<string>>`
+ *   dan TIDAK membaca dari store ini.
+ *
+ * Store ini tetap menjadi sumber kebenaran untuk `answers` dan `currentQuestion`
+ * yang diakses oleh komponen navigasi dan autosave.
+ */
 interface QuizPlayerState {
   // Answer state
   answers: Record<string, SubmitAnswer>
 
   // Navigation state
   currentQuestion: number
+
+  /**
+   * @deprecated Timer dikelola oleh `useQuizTimer` hook secara lokal di `QuizPlayer.tsx`.
+   * State ini TIDAK di-sync dengan timer aktual yang berjalan di UI.
+   * Jangan gunakan nilai ini untuk menampilkan countdown kepada pengguna.
+   * Gunakan `useQuizTimer` hook di dalam `QuizPlayer.tsx` sebagai gantinya.
+   */
   timeRemaining: number | null
 
-  // Flagged questions
+  /**
+   * @note `QuizPlayer.tsx` menggunakan local `useState<Set<string>>` untuk flagged state,
+   * bukan dari store ini. Store `flagged` tersedia untuk komponen lain di luar
+   * `QuizPlayer.tsx` yang mungkin perlu membaca/mengubah status flag soal.
+   */
   flagged: Set<string>
 
   // Actions

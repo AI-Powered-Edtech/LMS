@@ -234,6 +234,9 @@ export async function getUserAttempts(tenantId: string): Promise<QuizAttempt[]> 
   } = await supabase.auth.getSession()
   if (!session) throw new Error('Not authenticated')
 
+  // NOTE: Nested joins (quizzes, quiz_assignments) removed — FK relationships
+  // may not be registered in PostgREST schema cache on all environments,
+  // causing a 400 error. Fetch only flat columns to maximise compatibility.
   const { data, error } = await supabase
     .from('quiz_attempts_v2')
     .select(
@@ -245,25 +248,9 @@ export async function getUserAttempts(tenantId: string): Promise<QuizAttempt[]> 
       score,
       started_at,
       submitted_at,
-      time_spent_seconds,
-      question_manifest,
-      final_answers,
+      time_spent,
       tenant_id,
-      assignment_id,
-      quizzes (
-        title,
-        passing_score,
-        mode,
-        show_correct_answers
-      ),
-      quiz_assignments:assignment_id (
-        id,
-        class_id,
-        classes (
-          id,
-          name
-        )
-      )
+      assignment_id
     `
     )
     .eq('student_id', session.user.id)
@@ -271,6 +258,19 @@ export async function getUserAttempts(tenantId: string): Promise<QuizAttempt[]> 
     .order('started_at', { ascending: false })
     .limit(100)
 
-  if (error) throw error
+  if (error) {
+    // PGRST200 = PostgREST relationship not in schema cache (FK not registered).
+    // 42P01 = table/view does not exist.
+    // 42703 = column does not exist.
+    // These are schema-compatibility issues — degrade gracefully with an empty list.
+    if (error.code === 'PGRST200' || error.code === '42P01' || error.code === '42703') {
+      if (import.meta.env.DEV)
+        console.warn('[getUserAttempts] schema compat error — returning empty:', error.message)
+      return []
+    }
+    // All other errors (auth, permissions, network) should surface to the caller.
+    if (import.meta.env.DEV) console.error('[getUserAttempts] query error:', error.message)
+    throw error
+  }
   return (data || []) as unknown as QuizAttempt[]
 }

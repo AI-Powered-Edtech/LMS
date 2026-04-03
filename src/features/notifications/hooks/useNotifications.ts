@@ -54,6 +54,8 @@ export function useNotifications(): UseNotificationsReturn {
     // Realtime subscription below gives instant cache updates when events DO arrive,
     // eliminating the 60s lag for the happy path.
     refetchInterval: 60000, // Poll every minute as fallback for missed Realtime events
+    // FIXED: Stop polling when tab is in background — reduces unnecessary DB load
+    refetchIntervalInBackground: false,
   })
 
   // ─── Supabase Realtime Subscription ───────────────────────────────────────
@@ -110,7 +112,8 @@ export function useNotifications(): UseNotificationsReturn {
   // UX FIX: Optimistic updates give instant feedback before server confirms.
   // Without this, clicking "mark as read" has a visible delay waiting for refetch.
   const markReadMutation = useMutation({
-    mutationFn: (id: string) => notificationApi.markNotificationRead(id),
+    // FIXED: Pass userId + tenantId to enforce row-level ownership on UPDATE
+    mutationFn: (id: string) => notificationApi.markNotificationRead(id, user!.id, tenantId!),
     onMutate: async (id) => {
       // Cancel in-flight refetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey })
@@ -155,8 +158,21 @@ export function useNotifications(): UseNotificationsReturn {
     },
   })
 
+  // FIXED (E3): Use a separate count query with { count: 'exact', head: true } rather than
+  // relying on array.length, which under-reports when the list is paginated (limit=50 default).
+  // This ensures the badge count reflects ALL unread notifications, not just the loaded page.
+  const unreadCountQuery = useQuery({
+    queryKey: notificationKeys.unread(tenantId!, user!.id),
+    queryFn: () => notificationApi.fetchUnreadCount(user!.id, tenantId!),
+    enabled: !!tenantId && !!user,
+    staleTime: STALE.DYNAMIC,
+    refetchInterval: 60000,
+    refetchIntervalInBackground: false,
+  })
+
   const notifications = query.data ?? []
-  const unreadCount = notifications.filter((n) => !n.is_read).length
+  // FIXED: Use server-side count from dedicated query — not array length
+  const unreadCount = unreadCountQuery.data ?? notifications.filter((n) => !n.is_read).length
 
   return {
     notifications,

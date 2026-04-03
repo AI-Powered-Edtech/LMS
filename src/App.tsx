@@ -16,6 +16,7 @@ import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { ToastContainer } from './components/ui/Toast'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { SkipToContent } from './features/accessibility'
 import { setupPrefetchListeners } from './utils/prefetch'
 
 export default function App() {
@@ -38,13 +39,16 @@ export default function App() {
       <ErrorBoundary>
         <ThemeProvider>
           <AuthProvider>
+            <SkipToContent />
             <ToastContainer />
             <OfflineIndicator />
             <PWAUpdateToast />
             <PWAInstallBanner />
             <SessionManager />
             <Router>
-              <AppRoutes />
+              <main id="main-content" tabIndex={-1} className="outline-none">
+                <AppRoutes />
+              </main>
             </Router>
           </AuthProvider>
         </ThemeProvider>

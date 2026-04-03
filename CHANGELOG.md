@@ -1,5 +1,105 @@
 # EduSync LMS — Changelog
 
+## [2026-04-03] Phase 30+ — Fix Missing DB Tables & RPCs
+
+### Fixed
+
+- **DB Migration `20260403000017`**: Created consolidation migration that safely applies previously-defined-but-unapplied database objects using `IF NOT EXISTS` / `OR REPLACE` guards:
+  - **Tables created**: `teacher_onboarding_progress`, `onboarding_progress`, `ppdb_periods`, `ppdb_registrations`, `app_metrics`, `rate_limits`
+  - **RPCs created/replaced**: `get_audit_logs` _(new — no prior migration)_, `get_tenant_activity_counts`, `check_and_increment_rate_limit_v2`, `update_teacher_onboarding_updated_at`
+  - **RLS policies + triggers** applied for all new tables with tenant isolation
+  - **Resolves 404s** on: Teacher Onboarding Wizard, Admin Onboarding page, PPDB page, System Metrics dashboard
+  - **Resolves empty states** on: Audit Log dashboard (`get_audit_logs`), Analytics activity counts (`get_tenant_activity_counts`)
+- **`src/features/onboarding/api/onboardingService.ts`**: Fixed schema mismatch — service was using legacy row-per-step model (`step TEXT` column, `onConflict: 'user_id,step'`) incompatible with canonical JSONB schema (`steps_completed JSONB`, one row per user). Now:
+  - `getProgress()` queries `steps_completed` JSONB and transforms to backward-compatible `{ step, completed_at }[]`
+  - `completeStep()` and `upsert()` delegate to `complete_onboarding_step` RPC for atomic JSONB merge
+
+### Deployment Note
+
+- **`check-rate-limit` Edge Function** code is complete at `supabase/functions/check-rate-limit/index.ts`. Deploy with:
+  ```bash
+  supabase functions deploy check-rate-limit
+  ```
+  SQL dependencies (`rate_limits` table, `check_and_increment_rate_limit_v2` RPC) are now included in migration `20260403000017`.
+
+---
+
+## [Unreleased] — 2026-04-03
+
+### Quiz Engine — Production Hardening (100/100)
+
+#### Bug Fixes
+
+- **[CRITICAL]** Fix `grade-quiz-attempt`: hapus `question_bank!inner` JOIN yang menyebabkan soal langsung mendapat skor 0
+- **[CRITICAL]** Fix status case mismatch: normalize status `quiz_attempts_v2` ke lowercase, fix `record_cheating_signal` dan `record_quiz_heartbeat` RPC
+- **[HIGH]** Fix partition gap `quiz_attempts_v2`: buat partisi 2026-05 dan 2026-06 yang hilang (INSERT akan gagal tanpa partisi ini)
+- **[HIGH]** Fix `SELECT *` di `grade-quiz-attempt` Edge Function → kolom eksplisit
+- **[HIGH]** Fix N+1 UPDATE loop di grading worker → single bulk `upsert()`
+- Fix context menu prevention di `useAntiCheat` (sebelumnya hanya di-log, tidak di-prevent)
+
+#### New Features
+
+- **Anti-cheat**: DevTools detection via window size differential (polling 1 detik)
+- **Anti-cheat**: Keyboard shortcut blocking (F12, Ctrl+Shift+I/J/C, Ctrl+U, Ctrl+S)
+- **Anti-cheat**: Print/screenshot prevention via `@media print` CSS injection
+- **Anti-cheat**: Weighted severity scoring (sebelumnya hanya TAB_SWITCH + WINDOW_BLUR)
+- **Anti-cheat**: DevTools warning banner di QuizPlayer UI
+- **Grading Worker**: Exponential backoff retry (max 3x: 30s, 2m, 10m)
+- **Grading Worker**: Circuit breaker — return 503 jika 5+ failures dalam 1 menit
+- **Grading Worker**: Stuck item recovery — auto-release PROCESSING items > 2 menit
+- **Grading Worker**: TypeScript strict typing (hapus semua `any`)
+- **Grading Worker**: Handle ESSAY/SHORT_ANSWER — skip auto-grade, status `submitted`
+- **DB**: Kolom retry: `retry_count`, `next_retry_at`, `last_error`, `error_detail` di `quiz_submission_queue`
+- **DB**: RPC `v1_schedule_retry_submission` dan `v1_mark_dead_letter`
+- **DB**: RPC `get_quiz_live_status` untuk teacher live monitoring
+- **DB**: pg_cron job untuk auto-provision partisi bulanan
+- **Teacher**: Komponen `QuizLiveMonitor` — real-time student progress (polling 10 detik)
+
+#### Improvements
+
+- Zustand `quizPlayer.store`: tambah JSDoc untuk state yang dikelola lokal
+- Weighted anti-cheat severity: `DEVTOOLS_OPEN` = 5pts, `COPY_PASTE` = 3pts, `KEYBOARD_SHORTCUT_BLOCKED` = 3pts
+
+---
+
+## Security Hardening & Code Quality — Phase 30.1 (2026-04-03)
+
+Implementasi rekomendasi code review: hardening keamanan multi-tenant, perbaikan kualitas kode, dan peningkatan test coverage.
+
+### 🔒 Security
+
+- **`RoleGuard.tsx` / `RoleResolver.tsx`** — Hapus intermediate variable `effectiveRole` yang tidak diperlukan; kode kini langsung menggunakan `activeRole` tanpa indirection. Komentar keamanan diperketat.
+- **`DocumentManager.tsx`** — Upload dokumen kini meneruskan `tenantId` ke `documentApi.uploadDocument()` melalui `UploadModal` props. File tidak lagi disimpan di prefix `shared/` melainkan `{tenantId}/`.
+- **`documentApi.ts`** — `getCategoryCounts()` kini menerima parameter `tenantId` dan memfilter query per-tenant untuk mencegah kebocoran jumlah dokumen lintas-tenant.
+- **`discussionService.ts`** — `setBestAnswer()` kini melakukan pre-verification query untuk memastikan post milik tenant yang sedang aktif sebelum memanggil RPC. Ganti `_tenantId` (unused) menjadi `tenantId` (aktif digunakan).
+- **`messageApi.ts`** — `markThreadRead()` mendapat parameter ke-4 `tenantId` dan filter `.eq('tenant_id', tenantId)` pada UPDATE query untuk mencegah cross-tenant thread manipulation.
+- **`MessageTeacher.tsx` / `MessageThread.tsx` / `useMessages.ts`** — Semua call site `markThreadRead` diperbarui untuk meneruskan `tenantId` dari `useAuth()`.
+- **`gradebookApi.ts`** — `addGradebookItem()` kini menggunakan sentinel UUID `00000000-0000-0000-0000-000000000001` sebagai `student_id` alih-alih user ID guru, mencegah phantom grade entries di tabel `gradebook_entries`.
+- **`AuthContext.tsx`** — OAuth redirect di-hardcode ke `/#/auth/callback` untuk mencegah open redirect via `window.location.pathname`.
+- **`ai-tutor/index.ts`** — Tambah instruksi keamanan tidak-dapat-di-override di system prompt LLM; perluas regex `sanitizeUserInput` dengan 5 pola jailbreak tambahan (`forget instructions`, `act as`, `you are now a`, `pretend you are`, `roleplay as`).
+
+### ⚡ Performance
+
+- **`Calendar.tsx`** — Ganti `const { events } = useCalendarStore()` dengan Zustand selector `useCalendarStore(state => state.events)` untuk mencegah unnecessary re-render dan memperbaiki memoization `useMemo`.
+- **`analyticsQueries.ts`** — Parameter `days` pada `fetchActivityTimeline` kini di-cap ke range 1–365 untuk mencegah beban DB berlebih.
+
+### 🐛 Bug Fixes
+
+- **`attendanceService.ts`** — `fetchClassStudents()` kini menerima dan menerapkan filter `tenant_id` pada query `enrollments`.
+- **`notificationApi.ts`** — `markNotificationRead()` kini membutuhkan `userId` + `tenantId` untuk row-level ownership check.
+- **`parentApi.ts`** — `getChildGrades()` mendapat parameter `tenantId` dan filter `.eq('tenant_id', tenantId)`.
+- **`surveyApi.ts`** — `getSurveyResults()` mendapat parameter `tenantId` dan filter pada `survey_responses`.
+- **`lessonService.ts`** — `fetchModuleLessons()` mendapat parameter `isTeacher` untuk menyembunyikan draft lesson dari siswa.
+- **`ResetPassword.tsx`** — Password minimum 8 karakter; listener `onAuthStateChange` hanya menerima event `PASSWORD_RECOVERY`, bukan `SIGNED_IN` biasa.
+
+### 🧪 Tests
+
+- **`messageApi.test.ts`** — Update semua panggilan `markThreadRead` ke 4 argumen; tambah assertion `.eq('tenant_id', 'tenant-1')`.
+- **`discussionService.test.ts`** (baru) — 8 test case baru: 5 untuk `setBestAnswer` (tenant pre-verify, PGRST202, DB error), 3 untuk `voteDiscussion`.
+- **`gradebookApi.test.ts`** (baru) — 3 test case untuk `addGradebookItem` memverifikasi sentinel UUID, return value, dan error handling.
+
+---
+
 ## Security Audit Fixes (2026-03-29)
 
 ### 🔒 Security

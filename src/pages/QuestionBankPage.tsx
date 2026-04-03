@@ -7,6 +7,7 @@ import {
   QuestionBankItem,
   questionBankService,
 } from '@/features/question-bank/api/questionBankService'
+import { QuestionBankExportImport } from '@/features/question-bank/components/QuestionBankExportImport'
 import { QuestionBankSkeleton } from '@/features/question-bank/components/QuestionBankSkeleton'
 import { QuestionCard } from '@/features/question-bank/components/QuestionCard'
 import { QuestionEditor } from '@/features/question-bank/components/QuestionEditor'
@@ -109,6 +110,10 @@ export function QuestionBankPage() {
           <Plus className="w-5 h-5" />
           <span>Buat Soal Baru</span>
         </button>
+      </div>
+
+      <div className="mb-6">
+        <QuestionBankExportImport />
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm mb-6 p-4">

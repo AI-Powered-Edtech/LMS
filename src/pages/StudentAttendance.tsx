@@ -41,17 +41,19 @@ const STATUS_CONFIG = {
 
 export function StudentAttendance() {
   usePageTitle('Kehadiran Siswa')
-  const { user, tenantId, profile } = useAuth()
+  const { user, tenantId } = useAuth()
 
+  // FIXED: Use student_id instead of name matching to prevent data leak
+  // Query directly filters by student_id=auth.uid() via RLS + explicit eq filter
   const { data: records = [], isLoading } = useQuery({
     queryKey: ['student-attendance', user?.id, tenantId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('attendance_records')
-        .select(
-          'id, scan_date, present_count, absent_count, sick_count, permit_count, details, class_id, classes(name)'
-        )
+        .select('id, scan_date, status, class_id, classes(name)')
         .eq('tenant_id', tenantId!)
+        // FIXED: Filter by student_id directly — no fuzzy name matching
+        .eq('student_id', user!.id)
         .order('scan_date', { ascending: false })
         .limit(60)
       if (error) throw error
@@ -60,42 +62,31 @@ export function StudentAttendance() {
     enabled: !!tenantId && !!user,
   })
 
-  // Find this student's status in each record
-  const myName = profile ? `${profile.first_name} ${profile.last_name}`.toLowerCase() : ''
-
-  // Bolt: Combine mapping and counting into a single pass to improve performance (O(n) instead of O(4n))
+  // Records are already filtered by student_id in the query above.
+  // No name-based filtering — eliminates risk of leaking other students' data.
+  // NOTE: The old schema had class-level `present_count`/`absent_count` columns.
+  // The new per-student schema provides only `status` per record; class-aggregate
+  // fields have been removed from the type and mapped object to avoid confusion.
   const { myRecords, totalHadir, totalAlpha, totalSakit } = useMemo(() => {
     const recordsList = (records || []) as unknown as Array<
       Record<string, unknown> & {
         id: string
         scan_date: string
-        details?: Array<{ name: string; status: string }>
+        status: string
         classes?: { name: string } | { name: string }[]
-        present_count?: number
-        absent_count?: number
-        sick_count?: number
-        permit_count?: number
       }
     >
 
     return recordsList.reduce(
       (acc, r) => {
-        const details: { name: string; status: string }[] = r.details ?? []
-        const entry = details.find((d) => d.name?.toLowerCase().includes(myName.split(' ')[0]))
-        if (!entry) return acc
-        const status = entry.status
+        const status = r.status as string
+        if (!status) return acc
 
         acc.myRecords.push({
           id: r.id,
           date: r.scan_date,
           className: (Array.isArray(r.classes) ? r.classes[0]?.name : r.classes?.name) ?? 'Kelas',
           status,
-          present: r.present_count ?? 0,
-          total:
-            (r.present_count ?? 0) +
-            (r.absent_count ?? 0) +
-            (r.sick_count ?? 0) +
-            (r.permit_count ?? 0),
         })
 
         if (status === 'hadir') acc.totalHadir++
@@ -110,15 +101,13 @@ export function StudentAttendance() {
           date: string
           className: string
           status: string
-          present: number
-          total: number
         }>,
         totalHadir: 0,
         totalAlpha: 0,
         totalSakit: 0,
       }
     )
-  }, [records, myName])
+  }, [records])
 
   const pct = myRecords.length > 0 ? Math.round((totalHadir / myRecords.length) * 100) : 0
 

@@ -1,8 +1,9 @@
-import { Bell, Globe, Lock, LogOut, Monitor, User } from 'lucide-react'
+import { Accessibility, Bell, Globe, Lock, LogOut, Monitor, User } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { type Theme, useTheme } from '@/contexts/ThemeContext'
+import { FontSizeControl, HighContrastToggle, KeyboardShortcutHelp } from '@/features/accessibility'
 import { NotificationPreferencesPanel } from '@/features/notifications'
 import { profilePreferences } from '@/features/profile/api/profilePreferences'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -11,7 +12,13 @@ import { captureError } from '@/utils/sentry'
 
 import { AccountTab, AppearanceTab, SecurityTab } from './SettingsTabs'
 
-type SettingsTab = 'account' | 'notifications' | 'security' | 'appearance' | 'language'
+type SettingsTab =
+  | 'account'
+  | 'notifications'
+  | 'security'
+  | 'appearance'
+  | 'language'
+  | 'accessibility'
 
 const TABS: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
   { id: 'account', label: 'Akun & Profil', icon: User },
@@ -19,12 +26,16 @@ const TABS: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
   { id: 'security', label: 'Keamanan', icon: Lock },
   { id: 'appearance', label: 'Tampilan', icon: Monitor },
   { id: 'language', label: 'Bahasa & Wilayah', icon: Globe },
+  { id: 'accessibility', label: 'Aksesibilitas', icon: Accessibility },
 ]
 
+// FIXED: Added missing role labels for parent and principal
 const ROLE_LABELS: Record<string, string> = {
   teacher: 'Guru',
   student: 'Siswa',
   admin: 'Administrator',
+  parent: 'Orang Tua', // FIXED: add parent
+  principal: 'Kepala Sekolah', // FIXED: add principal
 }
 
 export function Settings() {
@@ -37,12 +48,15 @@ export function Settings() {
   const initLocale = user ? profilePreferences.getLocalePreferences(user.id) : null
   const [language, setLanguage] = useState(initLocale?.language ?? 'id')
   const [timezone, setTimezone] = useState(initLocale?.timezone ?? 'Asia/Jakarta')
+  // FIXED: Controlled date format state — persists on save instead of using uncontrolled defaultValue
+  const [dateFormat, setDateFormat] = useState(initLocale?.dateFormat ?? 'dd/mm/yyyy')
 
+  // FIXED: Include dateFormat in locale preferences persistence
   useEffect(() => {
     if (user) {
-      profilePreferences.updateLocalePreferences(user.id, { language, timezone })
+      profilePreferences.updateLocalePreferences(user.id, { language, timezone, dateFormat })
     }
-  }, [language, timezone, user])
+  }, [language, timezone, dateFormat, user])
 
   // NOTE: Profile editing and password changing are handled inside AccountTab and
   // SecurityTab components respectively — they own their own state. This page-level
@@ -136,6 +150,62 @@ export function Settings() {
             <AppearanceTab theme={theme as Theme} setTheme={setTheme} />
           )}
 
+          {activeTab === 'accessibility' && (
+            <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-slate-100 dark:border-slate-700">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Aksesibilitas</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                  Sesuaikan tampilan dan kontrol untuk pengalaman yang lebih nyaman.
+                </p>
+              </div>
+              <div className="p-6">
+                <section aria-labelledby="a11y-heading">
+                  <h2
+                    id="a11y-heading"
+                    className="text-base font-semibold text-slate-900 dark:text-white mb-4 sr-only"
+                  >
+                    Aksesibilitas
+                  </h2>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                          Mode Kontras Tinggi
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          Tingkatkan kontras untuk keterbacaan lebih baik
+                        </p>
+                      </div>
+                      <HighContrastToggle />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                          Ukuran Teks
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          Sesuaikan ukuran teks tampilan
+                        </p>
+                      </div>
+                      <FontSizeControl />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                          Pintasan Keyboard
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          Tekan Shift+? untuk melihat semua pintasan
+                        </p>
+                      </div>
+                      <KeyboardShortcutHelp />
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'language' && (
             <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
               <div className="p-6 border-b border-slate-100 dark:border-slate-700">
@@ -177,8 +247,10 @@ export function Settings() {
                   <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
                     Format Tanggal
                   </label>
+                  {/* FIXED: Controlled value+onChange replaces uncontrolled defaultValue */}
                   <select
-                    defaultValue="dd/mm/yyyy"
+                    value={dateFormat}
+                    onChange={(e) => setDateFormat(e.target.value)}
                     className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 dark:text-white"
                   >
                     <option value="dd/mm/yyyy">DD/MM/YYYY (31/12/2026)</option>

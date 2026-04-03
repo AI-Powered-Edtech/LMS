@@ -77,7 +77,8 @@ export function useChildDashboard(studentId: string | null) {
 
   const gradesQuery = useQuery({
     queryKey: parentKeys.grades(tenantId ?? '', studentId ?? ''),
-    queryFn: () => getChildGrades(studentId!),
+    // FIXED: Pass tenantId for tenant isolation in getChildGrades query
+    queryFn: () => getChildGrades(studentId!, tenantId!),
     enabled: !!tenantId && !!studentId,
     staleTime: STALE.MODERATE,
     refetchInterval: false,

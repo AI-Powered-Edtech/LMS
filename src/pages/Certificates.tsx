@@ -106,7 +106,9 @@ export function Certificates() {
 
   const handleShare = (platform: string, cert: Certificate) => {
     const text = `Saya baru saja mendapatkan sertifikat "${cert.course_title}" di EduSync! Lihat portofolio saya.`
-    const url = `https://edusync.app/verify/${cert.certificate_number}`
+    // FIXED: Use env var for certificate verification URL — fallback to current origin
+    const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin
+    const url = `${baseUrl}/verify/${cert.certificate_number}`
 
     let shareUrl = ''
     if (platform === 'linkedin') {
@@ -306,6 +308,7 @@ export function Certificates() {
             </div>
 
             <div className="w-full md:w-1/3 shrink-0 flex flex-col items-center justify-center bg-white/5 rounded-2xl p-6 border border-white/10 backdrop-blur-md">
+              {/* TODO: Implement actual QR code generation using qrcode library */}
               <QrCode className="w-32 h-32 text-white opacity-80 mb-4" />
               <div className="text-center">
                 <div className="text-xs text-slate-400 uppercase tracking-widest mb-1">

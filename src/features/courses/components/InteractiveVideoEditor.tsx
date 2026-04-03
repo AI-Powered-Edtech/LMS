@@ -1,4 +1,4 @@
-import { Check, Clock, FileText, Plus, Trash2, Upload } from 'lucide-react'
+import { Check, Clock, FileText, Plus, Trash2, Upload, VideoIcon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
 
@@ -10,6 +10,7 @@ import {
 } from '@/features/courses/services/videoCaptionService'
 import type { InteractiveEvent, InteractiveVideoMetadata } from '@/features/lessons/types'
 import { getTeacherQuizzes } from '@/features/quizzes/api/quizManager.service'
+import { type VideoAsset, VideoProcessingStatus, VideoUploader } from '@/features/video'
 
 interface InteractiveVideoEditorProps {
   metadata: InteractiveVideoMetadata
@@ -17,6 +18,8 @@ interface InteractiveVideoEditorProps {
   onClose: () => void
   lessonId?: string // optional — enables caption tab when provided
   blockId?: string // optional — for per-block caption scoping
+  /** Called when a video is uploaded so the parent can auto-fill the URL field */
+  onVideoUploaded?: (videoUrl: string, hlsUrl: string | null) => void
 }
 
 const LANGUAGE_OPTIONS = [
@@ -26,20 +29,26 @@ const LANGUAGE_OPTIONS = [
   { code: 'su', label: 'Basa Sunda' },
 ]
 
+type ActiveTab = 'upload' | 'events' | 'captions'
+
 export function InteractiveVideoEditor({
   metadata,
   onSave,
   onClose,
   lessonId,
   blockId,
+  onVideoUploaded,
 }: InteractiveVideoEditorProps) {
   const { tenantId } = useAuth()
   const [events, setEvents] = useState<InteractiveEvent[]>(metadata.interactiveEvents || [])
   const [quizzes, setQuizzes] = useState<{ id: string; title: string }[]>([])
   const [_loading, setLoading] = useState(true)
 
-  // Tab state — only relevant when lessonId is provided
-  const [activeTab, setActiveTab] = useState<'events' | 'captions'>('events')
+  // Tab state — 'upload' tab always first when lessonId is provided
+  const [activeTab, setActiveTab] = useState<ActiveTab>('upload')
+
+  // Upload state
+  const [uploadedAsset, setUploadedAsset] = useState<VideoAsset | null>(null)
 
   // Caption state
   const [captions, setCaptions] = useState<VideoCaption[]>([])
@@ -77,6 +86,15 @@ export function InteractiveVideoEditor({
       .catch((err) => console.error('Failed to load captions', err))
       .finally(() => setCaptionLoading(false))
   }, [lessonId, blockId])
+
+  // ─── Video upload handler ─────────────────────────────────────────────────
+
+  const handleVideoUploaded = (asset: VideoAsset) => {
+    setUploadedAsset(asset)
+    // Notify parent to auto-fill video URL field
+    const videoUrl = asset.hls_url ?? asset.mp4_url ?? ''
+    onVideoUploaded?.(videoUrl, asset.hls_url ?? null)
+  }
 
   // ─── Event handlers ───────────────────────────────────────────────────────
 
@@ -168,6 +186,11 @@ export function InteractiveVideoEditor({
   // ─── Tab config ───────────────────────────────────────────────────────────
 
   const tabItems = [
+    {
+      id: 'upload',
+      label: 'Unggah Video',
+      icon: <VideoIcon className="w-4 h-4" />,
+    },
     { id: 'events', label: 'Event Interaktif', icon: <Clock className="w-4 h-4" /> },
     {
       id: 'captions',
@@ -189,12 +212,37 @@ export function InteractiveVideoEditor({
           <Tabs
             tabs={tabItems}
             activeTab={activeTab}
-            onChange={(id) => setActiveTab(id as 'events' | 'captions')}
+            onChange={(id) => setActiveTab(id as ActiveTab)}
           />
         </div>
       )}
 
       <ModalBody className="space-y-4">
+        {/* ── Upload Video Tab ── */}
+        {activeTab === 'upload' && lessonId && (
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+              <VideoIcon className="w-5 h-5 text-blue-500 dark:text-blue-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-1">
+                  Unggah video langsung ke EduSync
+                </p>
+                <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+                  Video akan disimpan di Supabase Storage. Setelah selesai, URL video akan otomatis
+                  diisi ke kolom URL di atas.
+                </p>
+              </div>
+            </div>
+
+            <VideoUploader lessonId={lessonId} blockId={blockId} onUploaded={handleVideoUploaded} />
+
+            {/* Show processing status if upload resulted in an asset still being processed */}
+            {uploadedAsset && uploadedAsset.status === 'processing' && (
+              <VideoProcessingStatus asset={uploadedAsset} />
+            )}
+          </div>
+        )}
+
         {/* ── Events Tab ── */}
         {activeTab === 'events' && (
           <>

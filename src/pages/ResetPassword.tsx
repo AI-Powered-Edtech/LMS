@@ -1,6 +1,6 @@
 import { valibotResolver } from '@hookform/resolvers/valibot'
 import { Eye, EyeOff } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import * as v from 'valibot'
@@ -11,7 +11,8 @@ import { supabase } from '@/services/supabase/client'
 
 const resetPasswordSchema = v.pipe(
   v.object({
-    password: v.pipe(v.string(), v.minLength(6, 'Password minimal 6 karakter.')),
+    // FIXED: Minimum password length increased from 6 to 8 characters for stronger security
+    password: v.pipe(v.string(), v.minLength(8, 'Password minimal 8 karakter.')),
     confirmPassword: v.string(),
   }),
   v.forward(
@@ -32,6 +33,10 @@ export function ResetPassword() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [sessionReady, setSessionReady] = useState(false)
+  // FIXED: useRef tracks recovery state inside the auth listener to avoid stale closure.
+  // Reading `sessionReady` state inside a useEffect with [] deps always sees the initial
+  // value (false), so a subsequent SIGNED_IN event would incorrectly redirect to home.
+  const isRecoveryRef = useRef(false)
 
   const {
     register,
@@ -46,24 +51,32 @@ export function ResetPassword() {
 
   useEffect(() => {
     // Supabase auto-logs the user in when they click the recovery link.
-    // We listen for the PASSWORD_RECOVERY event to know we're ready.
+    // Only set sessionReady=true for PASSWORD_RECOVERY events.
+    // A regular SIGNED_IN session (normal login) should not unlock the reset form —
+    // that would allow any authenticated user to reach the reset page and change their
+    // password without going through the email recovery flow.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
+        // Only PASSWORD_RECOVERY events unlock the password reset form.
+        // Use the ref to prevent a subsequent SIGNED_IN event (e.g. after updateUser)
+        // from incorrectly redirecting when we ARE in recovery mode.
+        isRecoveryRef.current = true
         setSessionReady(true)
+      } else if (event === 'SIGNED_IN' && !isRecoveryRef.current) {
+        // Regular sign-in (not recovery) — redirect to home.
+        navigate('/')
       }
     })
 
-    // Also check if user already has an active session (e.g., page refresh)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setSessionReady(true)
-      }
-    })
+    // On page refresh after PASSWORD_RECOVERY, the session type may not re-fire.
+    // We do NOT auto-set sessionReady from getSession() alone because we cannot
+    // distinguish a recovery session from a regular session without the auth event.
+    // The user must re-click the email link if they refresh the page.
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [navigate])
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     setError('')
@@ -148,7 +161,7 @@ export function ResetPassword() {
                   type={showPassword ? 'text' : 'password'}
                   className="p-3 pr-10 w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
                   {...register('password')}
-                  placeholder="Minimal 6 karakter"
+                  placeholder="Minimal 8 karakter"
                   autoFocus
                 />
               </FormField>

@@ -23,17 +23,25 @@ export function useOnboardingProgress(tenantId: string, userId: string) {
   return useQuery({
     queryKey: onboardingKeys.progress(tenantId, userId),
     queryFn: async (): Promise<OnboardingProgress | null> => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('onboarding_progress')
         .select('id, tenant_id, user_id, steps_completed, completed_at')
         .eq('tenant_id', tenantId)
         .eq('user_id', userId)
         .maybeSingle()
+      // Table may not exist on all environments — return null gracefully.
+      if (error) {
+        if (import.meta.env.DEV)
+          console.warn('[onboardingQueries] onboarding_progress unavailable:', error.message)
+        return null
+      }
       return data as OnboardingProgress | null
     },
     enabled: !!tenantId && !!userId,
     staleTime: STALE.STATIC,
     gcTime: GC.LONG,
+    // Don't retry on 404 — table may not exist in all environments
+    retry: false,
   })
 }
 

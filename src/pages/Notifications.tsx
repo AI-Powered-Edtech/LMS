@@ -185,7 +185,8 @@ export function Notifications() {
   })
 
   const markReadMutation = useMutation({
-    mutationFn: (id: string) => markNotificationRead(id),
+    // FIXED: Pass userId + tenantId for row-level ownership check on UPDATE
+    mutationFn: (id: string) => markNotificationRead(id, user!.id, tenantId!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: notificationKeys.all(tenantId!) })
     },

@@ -155,7 +155,7 @@ function MessagesSkeleton() {
 
 export function MessageThread() {
   const { threadId } = useParams<{ threadId: string }>()
-  const { user } = useAuth()
+  const { user, tenantId } = useAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
@@ -183,8 +183,9 @@ export function MessageThread() {
 
   // ── Mark read saat buka thread ─────────────────────────────
   useEffect(() => {
-    if (threadId && currentThread?.parent_unread_count) {
-      markThreadRead(threadId, 'parent').then(() => {
+    if (threadId && currentThread?.parent_unread_count && user?.id) {
+      // FIXED: Pass userId so only the parent participant can reset their unread count
+      markThreadRead(threadId, 'parent', user.id, tenantId!).then(() => {
         queryClient.invalidateQueries({ queryKey: ['parent', 'threads', user?.id ?? ''] })
       })
     }

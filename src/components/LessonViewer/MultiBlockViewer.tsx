@@ -2,6 +2,7 @@ import { motion } from 'motion/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useOptionalLearningSession } from '@/features/analytics'
+import { videoCaptionService } from '@/features/courses/services/videoCaptionService'
 import { BLOCK_REGISTRY, isValidBlockType } from '@/features/lessons/blockRegistry'
 import type { Lesson } from '@/features/lessons/types'
 import { cn } from '@/utils/cn'
@@ -70,6 +71,39 @@ export function MultiBlockViewer({
     blocks.slice(0, 3).forEach((b) => initial.add(b.id))
     return initial
   })
+
+  const [captionsByBlock, setCaptionsByBlock] = useState<
+    Record<
+      string,
+      { id: string; file_url: string; language: string; label: string; is_default: boolean }[]
+    >
+  >({})
+
+  useEffect(() => {
+    if (!lesson.id) return
+    videoCaptionService
+      .getCaptions(lesson.id)
+      .then((data) => {
+        const grouped: Record<string, typeof data> = {}
+        for (const caption of data) {
+          const key = caption.block_id || 'global'
+          if (!grouped[key]) grouped[key] = []
+          grouped[key].push(caption)
+        }
+        const mapped: typeof captionsByBlock = {}
+        for (const [key, items] of Object.entries(grouped)) {
+          mapped[key] = items.map((c) => ({
+            id: c.id,
+            file_url: c.vtt_url,
+            language: c.language_code,
+            label: c.label,
+            is_default: c.is_default,
+          }))
+        }
+        setCaptionsByBlock(mapped)
+      })
+      .catch((err) => console.error('Failed to load captions', err))
+  }, [lesson.id])
 
   const markBlockComplete = useCallback(
     (blockId: string) => {
@@ -349,8 +383,6 @@ export function MultiBlockViewer({
                           }
                           const blockTotal = blocks.length
                           if (blockTotal === 0) return
-                          // H-12: Use completedSet.size (state) instead of completedIds.current.size (ref)
-                          // C-5: Cap at 100 instead of 99 so active block updates can reach 100%
                           const basePct = (completedCount / blockTotal) * 100
                           const blockPct = (pct / 100) * (1 / blockTotal) * 100
                           onProgressUpdate(Math.min(Math.round(basePct + blockPct), 100))
@@ -358,6 +390,11 @@ export function MultiBlockViewer({
                       : undefined
                   }
                   onStartViewing={onStartViewing}
+                  captions={
+                    block.type === 'video'
+                      ? (captionsByBlock[block.id] ?? captionsByBlock['global'])
+                      : undefined
+                  }
                 />
               ) : (
                 <BlockSkeleton type={block.type} />

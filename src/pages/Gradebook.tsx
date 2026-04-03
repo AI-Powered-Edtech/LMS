@@ -1,6 +1,7 @@
 import { ArrowLeft, BookOpen, ChevronDown, Download, Filter, Plus } from 'lucide-react'
 
 import { Breadcrumb, EmptyState } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
 import type { Course } from '@/features/courses/types'
 import { AddAssignmentModal } from '@/features/gradebook/components/AddAssignmentModal'
 import { GradebookMainTable } from '@/features/gradebook/components/GradebookMainTable'
@@ -13,11 +14,13 @@ import { cn } from '@/utils/cn'
 export function Gradebook() {
   const s = useGradebookState()
   const addToast = useToast((s) => s.addToast)
+  const { role } = useAuth()
+  const dashboardHref = role === 'admin' ? '/app/admin/dashboard' : '/app/teacher/dashboard'
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <Breadcrumb
-        items={[{ label: 'Dashboard', href: '/app/teacher/dashboard' }, { label: 'Nilai' }]}
+        items={[{ label: 'Dashboard', href: dashboardHref }, { label: 'Nilai' }]}
         className="mb-2"
       />
       {/* Gradebook per Kursus (data Supabase) */}

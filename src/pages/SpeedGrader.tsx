@@ -1,4 +1,4 @@
-import { AlertCircle, FileText, Save, Sparkles } from 'lucide-react'
+import { AlertCircle, FileText, Loader2, Save, Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
@@ -12,7 +12,6 @@ import type {
   SpeedGraderStudent,
 } from '@/features/gradebook/components/speedgrader'
 import {
-  DEFAULT_RUBRIC,
   DocumentViewer,
   GraderTopBar,
   RubricPanel,
@@ -40,7 +39,6 @@ export function SpeedGrader() {
     const idx = students.findIndex((s) => s.id.toString() === studentIdParam)
     return Math.max(0, idx)
   })
-  const [scores, setScores] = useState<Record<string, number>>({})
   const [feedback, setFeedback] = useState('')
   const [submissionText, setSubmissionText] = useState('')
   const [submissionId, setSubmissionId] = useState<string | null>(null)
@@ -53,7 +51,6 @@ export function SpeedGrader() {
   const documentRef = useRef<HTMLDivElement>(null)
 
   const currentStudent = students[currentStudentIdx]
-  const totalScore = Object.values(scores).reduce((a, b) => a + b, 0)
 
   // Load submission data when switching students
   /* eslint-disable react-hooks/exhaustive-deps */
@@ -88,7 +85,6 @@ export function SpeedGrader() {
         setSubmissionText(submission?.submission_text ?? '')
         setSubmissionId(submission?.id ?? null)
         const existingGrade = grades[currentStudent.id]?.[assignmentId]
-        setScores({})
         setFeedback(existingGrade?.feedback || '')
         setZoom(100)
         setActiveTool('pointer')
@@ -111,7 +107,7 @@ export function SpeedGrader() {
       if (!currentStudent || !assignmentId) return
       setSaveStatus('saving')
       try {
-        updateGrade(currentStudent.id, assignmentId, totalScore, status, feedback)
+        updateGrade(currentStudent.id, assignmentId, 0, status, feedback)
         if (feedback.trim()) await addComment(assignmentId, feedback)
         setSaveStatus('saved')
         setTimeout(() => setSaveStatus('idle'), 2000)
@@ -120,7 +116,7 @@ export function SpeedGrader() {
         console.error('Save failed:', error)
       }
     },
-    [currentStudent, assignmentId, totalScore, feedback, updateGrade, addComment]
+    [currentStudent, assignmentId, feedback, updateGrade, addComment]
   )
 
   if (!assignmentId) {
@@ -162,7 +158,7 @@ export function SpeedGrader() {
   const handleSaveAndNext = async (status: 'graded' | 'needs_revision' = 'graded') => {
     setSaveStatus('saving')
     try {
-      updateGrade(currentStudent.id, assignmentId, totalScore, status, feedback)
+      updateGrade(currentStudent.id, assignmentId, 0, status, feedback)
       if (feedback.trim()) await addComment(assignmentId, feedback)
       setSaveStatus('saved')
       setTimeout(() => {
@@ -176,12 +172,8 @@ export function SpeedGrader() {
   }
 
   const handleAIGrading = async () => {
-    if (Object.keys(scores).length > 0 || feedback.trim().length > 0) {
-      if (
-        !confirm(
-          'Apakah Anda yakin ingin menimpa nilai dan umpan balik yang sudah ada dengan hasil AI?'
-        )
-      )
+    if (feedback.trim().length > 0) {
+      if (!confirm('Apakah Anda yakin ingin menimpa umpan balik yang sudah ada dengan hasil AI?'))
         return
     }
     if (!submissionText?.trim()) {
@@ -198,22 +190,13 @@ export function SpeedGrader() {
       const aiResponse = await aiGraderService.gradeEssay({
         submissionId: `${assignmentId}-${currentStudent.id}`,
         essayText: submissionText,
-        rubric: DEFAULT_RUBRIC.map((r) => ({
-          criterion: r.criterion,
-          maxPoints: r.maxPoints,
-          description: r.description,
-        })),
+        rubric: [],
       })
 
-      const newScores: Record<string, number> = {}
       let aggregatedFeedback = aiResponse.overallFeedback ? aiResponse.overallFeedback + '\n\n' : ''
-      DEFAULT_RUBRIC.forEach((r) => {
-        if (aiResponse.scores[r.criterion] !== undefined)
-          newScores[r.id] = aiResponse.scores[r.criterion]
-        if (aiResponse.feedback[r.criterion] !== undefined)
-          aggregatedFeedback += `**${r.criterion}**: ${aiResponse.feedback[r.criterion]}\n`
+      Object.entries(aiResponse.feedback ?? {}).forEach(([criterion, fb]) => {
+        aggregatedFeedback += `**${criterion}**: ${fb}\n`
       })
-      setScores(newScores)
       setFeedback(aggregatedFeedback.trim())
     } catch (error: unknown) {
       if (import.meta.env.DEV) console.error('AI Grading failed:', error)
@@ -311,15 +294,13 @@ export function SpeedGrader() {
         >
           <RubricPanel
             currentStudent={speedGraderStudents[currentStudentIdx]}
-            rubric={DEFAULT_RUBRIC}
-            scores={scores}
             feedback={feedback}
-            totalScore={totalScore}
+            totalScore={0}
             isLoading={isLoading}
             isAIGrading={isAIGrading}
-            onScoreSelect={(criterionId, points) =>
-              setScores((prev) => ({ ...prev, [criterionId]: points }))
-            }
+            submissionId={submissionId}
+            assignmentId={assignmentId}
+            tenantId={tenantId}
             onFeedbackChange={setFeedback}
             onAIGrade={handleAIGrading}
             onSaveAndNext={handleSaveAndNext}
@@ -346,7 +327,11 @@ export function SpeedGrader() {
             disabled={isLoading}
             className="flex-1 min-h-[48px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-200 dark:shadow-none active:scale-95 disabled:opacity-50 text-sm"
           >
-            <Save className="w-5 h-5" />
+            {isLoading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Save className="w-5 h-5" />
+            )}
             Simpan &amp; Lanjut
           </button>
         </div>

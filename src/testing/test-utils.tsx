@@ -19,6 +19,7 @@ export const mockAuthValue = {
   profile: { full_name: 'Test Student' },
   role: 'student',
   tenantId: 'tenant-123',
+  hasRole: vi.fn((r: string) => r === 'student'),
   signOut: vi.fn(),
   signIn: vi.fn(),
   signInWithGoogle: vi.fn(),

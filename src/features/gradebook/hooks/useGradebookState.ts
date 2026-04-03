@@ -33,15 +33,21 @@ export function useGradebookState() {
     e.preventDefault()
     if (newAssignment.title && newAssignment.type && newAssignment.maxScore) {
       const id = `a${Date.now()}`
-      addAssignment({
-        id,
-        title: newAssignment.title,
-        type: newAssignment.type as Assignment['type'],
-        maxScore: Number(newAssignment.maxScore),
-        date:
-          newAssignment.date ||
-          new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
-      })
+      // FIXED: addAssignment is now async (persists to DB); fire-and-forget is intentional
+      // — the cache is updated optimistically so UI remains responsive.
+      // Pass selectedCourseId so addGradebookItem receives a real FK-valid course UUID.
+      void addAssignment(
+        {
+          id,
+          title: newAssignment.title,
+          type: newAssignment.type as Assignment['type'],
+          maxScore: Number(newAssignment.maxScore),
+          date:
+            newAssignment.date ||
+            new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+        },
+        selectedCourseId || undefined
+      )
       setIsAddModalOpen(false)
       setNewAssignment({
         title: '',

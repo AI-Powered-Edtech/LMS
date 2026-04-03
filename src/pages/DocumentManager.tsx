@@ -10,6 +10,7 @@
  */
 
 import {
+  AlertTriangle,
   Download,
   Eye,
   FileText,
@@ -143,9 +144,10 @@ interface UploadModalProps {
   open: boolean
   onClose: () => void
   onSuccess: () => void
+  tenantId: string
 }
 
-function UploadModal({ open, onClose, onSuccess }: UploadModalProps) {
+function UploadModal({ open, onClose, onSuccess, tenantId }: UploadModalProps) {
   const addToast = useToast((s) => s.addToast)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -215,6 +217,7 @@ function UploadModal({ open, onClose, onSuccess }: UploadModalProps) {
         description: description.trim() || undefined,
         category,
         visibility,
+        tenantId,
       })
       addToast({ type: 'success', message: 'Dokumen berhasil diunggah' })
       handleClose()
@@ -490,7 +493,7 @@ function DocumentRow({ doc, onDelete }: DocumentRowProps) {
 export function DocumentManager() {
   usePageTitle('Manajemen Dokumen')
 
-  const { hasRole } = useAuth()
+  const { hasRole, tenantId } = useAuth()
   const addToast = useToast((s) => s.addToast)
 
   // State
@@ -507,6 +510,9 @@ export function DocumentManager() {
   const [filter, setFilter] = useState<DocumentFilter>({ category: 'all' })
   const [searchInput, setSearchInput] = useState('')
   const [showUpload, setShowUpload] = useState(false)
+  // FIXED: Replace window.confirm with state-based confirmation modal
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const canManage = hasRole('admin') || hasRole('teacher')
 
@@ -516,7 +522,8 @@ export function DocumentManager() {
     try {
       const [docs, counts] = await Promise.all([
         documentApi.getDocuments(filter),
-        documentApi.getCategoryCounts(),
+        // FIXED: Pass tenantId to getCategoryCounts to prevent cross-tenant count leakage
+        documentApi.getCategoryCounts(tenantId ?? undefined),
       ])
       setDocuments(docs)
       setCategoryCounts(counts)
@@ -526,7 +533,7 @@ export function DocumentManager() {
     } finally {
       setLoading(false)
     }
-  }, [filter, addToast])
+  }, [filter, addToast, tenantId])
 
   useEffect(() => {
     void fetchData()
@@ -540,22 +547,26 @@ export function DocumentManager() {
     return () => clearTimeout(timer)
   }, [searchInput])
 
-  // Delete handler
-  const handleDelete = useCallback(
-    async (id: string) => {
-      if (!window.confirm('Yakin ingin menghapus dokumen ini?')) return
+  // FIXED: Delete handler — uses state-based confirmation modal instead of window.confirm
+  const handleDelete = useCallback((id: string) => {
+    setDeleteTarget(id)
+  }, [])
 
-      try {
-        await documentApi.deleteDocument(id)
-        addToast({ type: 'success', message: 'Dokumen berhasil dihapus' })
-        void fetchData()
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Gagal menghapus dokumen'
-        addToast({ type: 'error', message: msg })
-      }
-    },
-    [addToast, fetchData]
-  )
+  const confirmDelete = useCallback(async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await documentApi.deleteDocument(deleteTarget)
+      addToast({ type: 'success', message: 'Dokumen berhasil dihapus' })
+      void fetchData()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Gagal menghapus dokumen'
+      addToast({ type: 'error', message: msg })
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
+    }
+  }, [deleteTarget, addToast, fetchData])
 
   // Category filter click
   const handleCategoryClick = useCallback((cat: DocumentCategory) => {
@@ -672,7 +683,40 @@ export function DocumentManager() {
       </div>
 
       {/* Upload Modal */}
-      <UploadModal open={showUpload} onClose={() => setShowUpload(false)} onSuccess={fetchData} />
+      <UploadModal
+        open={showUpload}
+        onClose={() => setShowUpload(false)}
+        onSuccess={fetchData}
+        tenantId={tenantId!}
+      />
+
+      {/* FIXED: State-based Delete Confirmation Modal (replaces window.confirm) */}
+      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} size="sm">
+        <ModalHeader title="Konfirmasi Hapus" onClose={() => setDeleteTarget(null)} />
+        <ModalBody>
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-6 h-6 text-red-500 shrink-0 mt-0.5" />
+            <p className="text-sm text-slate-700 dark:text-slate-300">
+              Yakin ingin menghapus dokumen ini? Tindakan ini tidak dapat dibatalkan dan file akan
+              dihapus permanen dari server.
+            </p>
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="secondary" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+            Batal
+          </Button>
+          <Button
+            onClick={confirmDelete}
+            loading={deleting}
+            disabled={deleting}
+            className="bg-red-600 hover:bg-red-700 text-white"
+            icon={<Trash2 className="w-4 h-4" />}
+          >
+            Hapus Permanen
+          </Button>
+        </ModalFooter>
+      </Modal>
     </div>
   )
 }

@@ -172,7 +172,7 @@ function ThreadsSkeleton() {
 // ── Main Component ─────────────────────────────────────────────────────────
 
 export function MessageTeacher() {
-  const { user } = useAuth()
+  const { user, tenantId } = useAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
@@ -189,7 +189,8 @@ export function MessageTeacher() {
   })
 
   const { mutate: markRead } = useMutation({
-    mutationFn: (threadId: string) => markThreadRead(threadId, 'parent'),
+    // FIXED: Pass userId + tenantId for participant check and tenant isolation
+    mutationFn: (threadId: string) => markThreadRead(threadId, 'parent', user!.id, tenantId!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['parent', 'threads', user?.id ?? ''] })
     },

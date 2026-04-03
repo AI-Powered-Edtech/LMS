@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Course, courseService } from '@/features/courses'
 import { useInfiniteCoursesQuery } from '@/features/courses/queries/courseQueries'
 import { useDebounce } from '@/hooks/useDebounce'
+import { usePageTitle } from '@/hooks/usePageTitle'
 import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
@@ -31,17 +32,11 @@ function getCourseGradient(courseId: string | null | undefined, gradients: strin
 }
 
 export function Courses() {
+  usePageTitle('Kelola Materi')
   const navigate = useNavigate()
   const getPath = useRoleBasedPath()
   const { user, activeTenant } = useAuth()
   const addToast = useToast((s) => s.addToast)
-
-  useEffect(() => {
-    document.title = 'Kursus — EduSync'
-    return () => {
-      document.title = 'EduSync'
-    }
-  }, [])
 
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebounce(search, 300)

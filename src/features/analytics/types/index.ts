@@ -17,17 +17,18 @@ export type ActivityEventType =
 
 // Course stats row interface
 export interface CourseStatsRow {
-  id: string
+  id?: string
   tenant_id: string
   course_id: string
   total_enrolled: number
   active_students: number
   avg_progress: number
   avg_quiz_score: number
-  lesson_completion_rate: unknown
-  quiz_pass_rate: unknown
-  student_ranking: unknown
-  last_refreshed_at: string
+  lesson_completion_rate?: unknown
+  quiz_pass_rate?: unknown
+  student_ranking?: unknown
+  /** @deprecated Column removed from DB schema — kept optional for backward compat */
+  last_refreshed_at?: string
 }
 
 // Activity event row interface

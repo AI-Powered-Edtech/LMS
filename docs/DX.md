@@ -2,7 +2,7 @@
 
 > Pintu masuk tunggal untuk developer baru. Gunakan file ini untuk navigasi semua dokumentasi project.
 >
-> Last updated: 2026-03-29
+> Last updated: 2026-04-03
 
 ---
 
@@ -33,8 +33,8 @@
 | `docs/SETUP_GUIDE.md`         | Setup lengkap untuk Supabase project baru, seed, env vars    |
 | `docs/DEVELOPER_RUNBOOK.md`   | Daily workflows, debug recipes, known issues & fixes         |
 | `CONTRIBUTING.md`             | Contribution guide, code conventions, pre-merge checklist    |
-| `CHANGELOG.md`                | Riwayat semua perubahan per phase (Phase A → Phase 21)       |
-| `docs/ENGINEERING_ROADMAP.md` | Status semua phase, current: **Phase 21 ✅** (selesai semua) |
+| `CHANGELOG.md`                | Riwayat semua perubahan per phase (Phase A → Phase 30)       |
+| `docs/ENGINEERING_ROADMAP.md` | Status semua phase, current: **Phase 30 ✅** (selesai semua) |
 
 ---
 
@@ -55,17 +55,15 @@
 
 ### 🗄 Database
 
-| File                            | Deskripsi                                       |
-| ------------------------------- | ----------------------------------------------- |
-| `docs/DATABASE.md`              | Schema reference — tabel, kolom, RPC catalog    |
-| `docs/DATABASE_ARCHITECTURE.md` | Database architecture detail                    |
-| `docs/RLS_POLICIES.md`          | Row-Level Security policy catalog per tabel     |
-| `docs/MIGRATION_GUIDE.md`       | Workflow untuk membuat dan menerapkan migration |
-| `docs/MIGRATION_RESET_GUIDE.md` | Panduan reset database ke baseline              |
-| `docs/schema-erd.md`            | Entity-Relationship Diagram                     |
+| File                            | Deskripsi                                    |
+| ------------------------------- | -------------------------------------------- |
+| `docs/DATABASE.md`              | Schema reference — tabel, kolom, RPC catalog |
+| `docs/DATABASE_ARCHITECTURE.md` | Database architecture detail                 |
+| `docs/RLS_POLICIES.md`          | Row-Level Security policy catalog per tabel  |
+| `docs/schema-erd.md`            | Entity-Relationship Diagram                  |
 
-**Migrasi aktif:** `supabase/migrations/` (27 file, dimulai dari `000_baseline.sql`)
-**Arsip migrasi:** `supabase/migrations/_archive/` (105+ file individual, referensi saja)
+**Migrasi aktif:** `supabase/migrations/` (259+ file, dimulai dari `000_baseline.sql`)
+**Arsip migrasi:** `supabase/migrations/_archive/` (file individual, referensi saja)
 
 ---
 
@@ -101,32 +99,26 @@
 
 ### 🧪 Testing
 
-| File                   | Deskripsi                                                 |
-| ---------------------- | --------------------------------------------------------- |
-| `docs/TESTING.md`      | Test accounts, unit + E2E guide, coverage matrix 24 flows |
-| `docs/GAP_ANALYSIS.md` | Known test gaps dan rekomendasi                           |
-| `docs/PERFORMANCE.md`  | Performance targets, Lighthouse CI config                 |
+| File              | Deskripsi                                                 |
+| ----------------- | --------------------------------------------------------- |
+| `docs/TESTING.md` | Test accounts, unit + E2E guide, coverage matrix 24 flows |
 
 **Test files:**
 
 - Unit: `src/**/__tests__/*.test.ts(x)` — Vitest
-- E2E (legacy): `e2e/flows/*.spec.ts` — Playwright
-- E2E (comprehensive): `e2e/flows24/*.spec.ts` — Playwright (604 tests, 24 flows)
+- E2E: `e2e/flows24/*.spec.ts` — Playwright (24 flows + cross-cutting)
 
 ---
 
 ### 🚢 Operations & Deployment
 
-| File                        | Deskripsi                                     |
-| --------------------------- | --------------------------------------------- |
-| `docs/DEPLOYMENT.md`        | Deployment guide (Vercel / Netlify)           |
-| `docs/INFRA_SETUP.md`       | Infrastructure setup (Supabase, domains, DNS) |
-| `docs/DISASTER_RECOVERY.md` | RPO/RTO, PITR, rollback procedures            |
-| `docs/environments.md`      | Environment configuration (dev/staging/prod)  |
-| `docs/deploy-checklist.md`  | Pre-deploy checklist                          |
-| `docs/incident-runbook.md`  | Incident response runbook                     |
-| `docs/backup-recovery.md`   | Backup and recovery procedures                |
-| `DEPLOYMENT.md`             | Top-level deployment quick reference          |
+| File                        | Deskripsi                                    |
+| --------------------------- | -------------------------------------------- |
+| `docs/deploy-checklist.md`  | Pre-deploy checklist                         |
+| `docs/environments.md`      | Environment configuration (dev/staging/prod) |
+| `docs/upgrade-guide.md`     | Dependency upgrade strategy                  |
+| `docs/DISASTER_RECOVERY.md` | RPO/RTO, PITR, rollback procedures           |
+| `docs/incident-runbook.md`  | Incident response runbook                    |
 
 ---
 
@@ -149,9 +141,38 @@
 | File                          | Deskripsi                                             |
 | ----------------------------- | ----------------------------------------------------- |
 | `docs/ENGINEERING_ROADMAP.md` | Engineering phase roadmap                             |
-| `plans/`                      | 18 implementation plans per feature                   |
+| `plans/`                      | Implementation plans per feature                      |
 | `strategy/`                   | Business strategy docs (model, personas, competitive) |
 | `docs/adr/`                   | Architecture Decision Records                         |
+
+---
+
+## Archived Documentation
+
+File-file berikut telah dipindahkan ke `docs/_archive/` karena duplikat, outdated, atau sudah selesai:
+
+| File                               | Alasan                                                           |
+| ---------------------------------- | ---------------------------------------------------------------- |
+| `DATA_FLOW.md`                     | Boilerplate generik, sudah tercakup di ARCHITECTURE.md           |
+| `architecture/README.md`           | Konten sudah ada di ARCHITECTURE.md + SETUP_GUIDE.md             |
+| `security-audit.md`                | Snapshot `npm audit` satu waktu                                  |
+| `security-pentest.md`              | Outdated Phase 3 assessment, superseded oleh owasp-assessment.md |
+| `PERFORMANCE.md`                   | Template tanpa data aktual                                       |
+| `DEPLOYMENT.md`                    | 17 baris, target Puter.com sudah obsolete                        |
+| `INFRA_SETUP.md`                   | Overlap dengan environments.md + SETUP_GUIDE.md                  |
+| `GAP_ANALYSIS.md`                  | Phase-specific gap tracking, seharusnya GitHub issues            |
+| `PHASE22_GAP_ANALYSIS.md`          | Phase 22 sudah selesai                                           |
+| `features/ANALYTICS.md`            | Auto-generated boilerplate                                       |
+| `features/GAMIFICATION.md`         | Auto-generated boilerplate                                       |
+| `IMPLEMENTATION_PLAN_REMAINING.md` | Task-level items, seharusnya GitHub issues                       |
+| `audit-implementation-plan.md`     | Phase-specific, sudah diimplementasi                             |
+| `PR_CLEANUP_PLAN.md`               | Selesai, historis                                                |
+| `MODULE_CONSOLIDATION_PLAN.md`     | Analisis selesai, "no action needed"                             |
+| `TODO_BILLING.md`                  | TODO list, seharusnya GitHub issue                               |
+| `MD_AUDIT_REPORT_2026_FINAL.md`    | Meta-audit dokumentasi, self-referential                         |
+| `MIGRATION_GUIDE.md`               | Boilerplate repetitif per fitur                                  |
+| `MIGRATION_RESET_GUIDE.md`         | Self-declared outdated                                           |
+| `backup-recovery.md`               | Konten fully subsumed oleh DISASTER_RECOVERY.md                  |
 
 ---
 
@@ -228,7 +249,7 @@ src/features/{domain}/
 └── README.md       ← Feature documentation
 ```
 
-### 24 Feature Modules
+### 32 Feature Modules
 
 | Module            | Domain         | Deskripsi                                          |
 | ----------------- | -------------- | -------------------------------------------------- |
@@ -237,23 +258,31 @@ src/features/{domain}/
 | `analytics`       | Analytics      | Dashboard analitik komprehensif untuk guru & admin |
 | `announcements`   | Communication  | Sistem pengumuman sekolah                          |
 | `assignments`     | Assessment     | Manajemen tugas dari pembuatan hingga penilaian    |
+| `attendance`      | Academic       | Tracking kehadiran siswa                           |
+| `auth`            | Identity       | Alur autentikasi                                   |
 | `calendar`        | Academic       | Kalender akademik terintegrasi                     |
-| `classroom`       | Assessment     | Manajemen kelas virtual dan fisik                  |
+| `classroom`       | Academic       | Manajemen kelas virtual dan fisik                  |
 | `courses`         | Academic       | Course catalog dan course builder                  |
+| `creator`         | Content        | AI content generation                              |
 | `dashboards`      | Analytics      | Dashboard kustom dengan widget builder             |
 | `discussions`     | Communication  | Forum diskusi per kursus                           |
 | `gamification`    | Engagement     | XP, badges, level, streak, leaderboard             |
 | `gradebook`       | Assessment     | Buku nilai digital, SpeedGrader                    |
 | `guidance`        | Admin          | In-app walkthroughs, tooltips, banners             |
 | `lessons`         | Learning       | Lesson viewer, Smart Player, SCORM player          |
+| `lti`             | Integration    | LTI 1.3 integration                                |
 | `moderation`      | Admin          | Moderasi konten user-generated                     |
 | `notifications`   | Communication  | Notifikasi in-app + push notifications             |
 | `onboarding`      | Admin          | Wizard onboarding untuk pengguna baru              |
+| `parent`          | Parent         | Portal orang tua                                   |
+| `principal`       | Principal      | Dashboard eksekutif kepala sekolah                 |
+| `profile`         | Identity       | Manajemen profil pengguna                          |
 | `progress`        | Learning       | Progress tracking per kursus/modul/pelajaran       |
 | `question-bank`   | Assessment     | Bank soal yang bisa digunakan ulang                |
 | `quizzes`         | Assessment     | Quiz player, grading, anti-cheat, Zustand store    |
 | `recommendations` | Learning       | Engine rekomendasi konten                          |
 | `reports`         | Analytics      | Generator laporan akademik & keuangan              |
+| `settings`        | Identity       | Pengaturan pengguna                                |
 | `storage`         | Infrastructure | Manajemen file & media                             |
 | `struggle`        | Analytics      | Deteksi otomatis siswa yang kesulitan              |
 
@@ -371,25 +400,32 @@ useQuery({ staleTime: STALE.REALTIME }) // 0 — notifications
 
 ## Edge Functions
 
-15 Deno Edge Functions deployed ke Supabase (`supabase/functions/`):
+23 Deno Edge Functions deployed ke Supabase (`supabase/functions/`):
 
-| Function                  | Purpose                         | Auth                     |
-| ------------------------- | ------------------------------- | ------------------------ |
-| `ai-tutor`                | AI chat via Groq                | User JWT                 |
-| `ai-grade-essay`          | AI essay grading                | User JWT                 |
-| `generate-ai-content`     | AI content generation           | User JWT                 |
-| `generate-pdf`            | Certificate PDF generation      | User JWT                 |
-| `grade-quiz-attempt`      | Quiz grading pipeline           | Service role             |
-| `health-check`            | System health status            | Public                   |
-| `load-quiz-data`          | Load quiz data for player       | User JWT                 |
-| `process-progress-events` | Batch progress event processing | API key                  |
-| `progress-events`         | Enqueue progress events         | User JWT                 |
-| `send-email-digest`       | Email digest sender             | Service role             |
-| `send-push`               | Push notification sender        | User JWT                 |
-| `lti-jwks`                | Public JWKS for LTI             | Public                   |
-| `lti-oidc-login`          | LTI OIDC login initiation       | None (platform)          |
-| `lti-launch`              | LTI launch token validation     | None (LTI)               |
-| `scorm-extract`           | SCORM ZIP extraction            | User JWT (teacher/admin) |
+| Function                    | Purpose                         | Auth                     |
+| --------------------------- | ------------------------------- | ------------------------ |
+| `ai-tutor`                  | AI chat via Groq                | User JWT                 |
+| `ai-grade-essay`            | AI essay grading                | User JWT                 |
+| `generate-ai-content`       | AI content generation           | User JWT                 |
+| `generate-pdf`              | Certificate PDF generation      | User JWT                 |
+| `grade-quiz-attempt`        | Quiz grading pipeline           | Service role             |
+| `health-check`              | System health status            | Public                   |
+| `load-quiz-data`            | Load quiz data for player       | User JWT                 |
+| `process-progress-events`   | Batch progress event processing | API key                  |
+| `progress-events`           | Enqueue progress events         | User JWT                 |
+| `send-email-digest`         | Email digest sender             | Service role             |
+| `send-push`                 | Push notification sender        | User JWT                 |
+| `lti-jwks`                  | Public JWKS for LTI             | Public                   |
+| `lti-oidc-login`            | LTI OIDC login initiation       | None (platform)          |
+| `lti-launch`                | LTI launch token validation     | None (LTI)               |
+| `scorm-extract`             | SCORM ZIP extraction            | User JWT (teacher/admin) |
+| `generate-executive-report` | Executive report generation     | Service role             |
+| `generate-parent-report`    | Parent report generation        | Service role             |
+| `bulk-import-users`         | Bulk user import                | Service role             |
+| `check-rate-limit`          | Rate limiting check             | Service role             |
+| `send-parent-digest`        | Parent digest sending           | Service role             |
+| `send-parent-otp`           | Parent OTP sending              | Service role             |
+| `whatsapp-webhook`          | WhatsApp webhook handler        | Service role             |
 
 ---
 
@@ -407,8 +443,6 @@ useQuery({ staleTime: STALE.REALTIME }) // 0 — notifications
 | `has_role()` failure            | Gunakan query langsung ke `user_roles`, jangan `has_role()` di analytics RPC | `CLAUDE.md §SQL Gotchas`       |
 | LTI nonce RLS                   | `lti_nonces` hanya bisa diakses `service_role`                               | `CLAUDE.md §LTI/SCORM Gotchas` |
 | SCORM sticky states             | `completed`/`passed` tidak bisa di-revert                                    | `CLAUDE.md §LTI/SCORM Gotchas` |
-| `rpc_publish_course` gagal      | Gunakan `get_my_tenant_id()`, bukan JWT claim                                | `DEVELOPER_RUNBOOK.md §9`      |
-| `tenant_modules` warning        | Seed `840_tenant_modules_rls_and_seed.sql` belum diapply                     | `DEVELOPER_RUNBOOK.md §9`      |
 
 ---
 
@@ -426,7 +460,7 @@ useQuery({ staleTime: STALE.REALTIME }) // 0 — notifications
 | Shared schemas (Valibot) | `src/shared/schemas/`                                 |
 | Shared types             | `src/shared/types/`                                   |
 | UI primitives            | `src/components/ui/`                                  |
-| Feature modules          | `src/features/` (24 modules)                          |
+| Feature modules          | `src/features/` (32 modules)                          |
 | DB migrations            | `supabase/migrations/`                                |
 | Edge Functions           | `supabase/functions/`                                 |
 | App-wide utilities       | `src/utils/`                                          |

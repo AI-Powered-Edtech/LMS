@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useInteractiveVideoEvents } from '@/features/lessons/hooks/useInteractiveVideoEvents'
 import { QuizViewer } from '@/features/quizzes/components/QuizViewer'
+import { AdaptiveVideoPlayer } from '@/features/video'
 import { cn } from '@/utils/cn'
 
 interface Transcript {
@@ -20,6 +21,19 @@ interface VideoViewerProps {
   onProgressUpdate: (percentage: number, position: number) => void
   onCompletionMet: () => void
   onStartViewing: () => void
+}
+
+/**
+ * Detect whether a URL should be streamed via HLS.
+ * Returns the HLS URL if detected, or null for regular mp4/webm.
+ */
+function detectHlsUrl(url: string): string | null {
+  if (!url) return null
+  const lower = url.toLowerCase()
+  if (lower.includes('.m3u8') || lower.includes('/hls/') || lower.includes('/stream.mux.com/')) {
+    return url
+  }
+  return null
 }
 
 export function VideoViewer({
@@ -43,6 +57,18 @@ export function VideoViewer({
   isStalledRef.current = isStalled
   const [mediaError, setMediaError] = useState<string | null>(null)
   const hasCalledCompletion = useRef(false)
+
+  // Detect HLS vs plain mp4
+  const hlsUrl = detectHlsUrl(videoUrl)
+  const mp4Url = hlsUrl ? null : videoUrl
+
+  // Also check metadata for explicit hls_url override
+  const metaHlsUrl =
+    metadata && typeof (metadata as Record<string, unknown>).hls_url === 'string'
+      ? ((metadata as Record<string, unknown>).hls_url as string)
+      : null
+  const resolvedHlsUrl = metaHlsUrl || hlsUrl
+  const resolvedMp4Url = metaHlsUrl ? mp4Url || videoUrl : mp4Url
 
   // Interactive Video — shared hook
   const { activeEvent, loadedQuizzes, checkForEvent, handleEventComplete } =
@@ -177,11 +203,12 @@ export function VideoViewer({
               isCompleted && 'ring-2 ring-green-400/60 dark:ring-green-500/50'
             )}
           >
-            <video
-              ref={videoRef}
-              src={videoUrl}
+            {/* AdaptiveVideoPlayer handles HLS.js + Safari native HLS + MP4 fallback */}
+            <AdaptiveVideoPlayer
+              hlsUrl={resolvedHlsUrl}
+              mp4Url={resolvedMp4Url}
               controls={!activeEvent}
-              aria-label="Video pelajaran"
+              videoRef={videoRef}
               onTimeUpdate={handleTimeUpdate}
               onSeeking={handleSeeking}
               onPlay={handlePlay}
@@ -189,8 +216,9 @@ export function VideoViewer({
               onStalled={handleWaitingOrStalled}
               onError={handleMediaError}
               onCanPlay={handleCanPlay}
-              className="w-full h-full object-cover"
               controlsList="nodownload"
+              aria-label="Video pelajaran"
+              className="w-full h-full"
             />
 
             {/* Interactive Event Overlay */}
@@ -301,7 +329,7 @@ export function VideoViewer({
               <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base">
                 Tentang Video Ini
               </h3>
-              {/* TODO: Wire to discussion panel when ready */}
+              {/* NOTE: Diskusi lesson tersedia di tab Diskusi pada LessonViewer. Lihat DiscussionBoard component. */}
             </div>
             <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
               Pastikan Anda menonton hingga akhir agar sistem mencatat progres Anda secara otomatis.

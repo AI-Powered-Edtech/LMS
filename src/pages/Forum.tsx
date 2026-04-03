@@ -19,20 +19,25 @@ import { useStudentXPProfile } from '@/features/gamification/queries/gamificatio
 import { useSubmitReport } from '@/features/moderation/queries/moderationQueries'
 import { useDebounce } from '@/hooks/useDebounce'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { useToast } from '@/hooks/useToast'
 
 export function Forum() {
   usePageTitle('Forum')
   const { activeRole, user, tenantId, profile } = useAuth()
   const queryClient = useQueryClient()
   const submitReport = useSubmitReport()
+  const addToast = useToast((s) => s.addToast)
   // SECURITY FIX: Use activeRole (tenant-scoped) instead of global role
   const isTeacher = activeRole === 'teacher'
 
   const { data: xpProfile } = useStudentXPProfile(user?.id)
 
+  const [forumPage, setForumPage] = useState(0)
+  const PAGE_SIZE = 20
+
   const { data: rawDiscussions = [] } = useQuery({
-    queryKey: ['forum-posts', tenantId],
-    queryFn: () => discussionService.fetchForumPosts(tenantId!),
+    queryKey: ['forum-posts', tenantId, forumPage],
+    queryFn: () => discussionService.fetchForumPosts(tenantId!, forumPage, PAGE_SIZE),
     enabled: !!tenantId,
   })
 
@@ -113,6 +118,25 @@ export function Forum() {
     queryClient.invalidateQueries({ queryKey: ['forum-posts', tenantId] })
   }
 
+  const handleVote = async (postId: string) => {
+    const result = await discussionService.voteDiscussion(postId)
+    if (!result.success) {
+      if (result.reason === 'rpc_not_found') {
+        addToast({
+          type: 'warning',
+          message: 'Fitur voting sedang diperbarui',
+          description: 'Coba lagi beberapa saat.',
+        })
+      } else {
+        addToast({
+          type: 'error',
+          message: 'Gagal memberikan suara',
+          description: 'Silakan coba lagi.',
+        })
+      }
+    }
+  }
+
   // ⚡ Perf: Memoize filteredPosts — was recomputed on every render without useMemo
   const filteredPosts = useMemo(
     () =>
@@ -160,6 +184,7 @@ export function Forum() {
               isTeacher={isTeacher}
               onMarkBest={handleMarkBestAnswer}
               onReport={handleReport}
+              onVote={handleVote}
             />
           ))
         ) : (
@@ -170,6 +195,28 @@ export function Forum() {
           />
         )}
       </div>
+
+      {/* Pagination: load more / previous */}
+      {(forumPage > 0 || rawDiscussions.length === PAGE_SIZE) && (
+        <div className="flex items-center justify-center gap-3 pt-2">
+          {forumPage > 0 && (
+            <button
+              onClick={() => setForumPage((p) => p - 1)}
+              className="px-4 py-2 text-sm rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+            >
+              Sebelumnya
+            </button>
+          )}
+          {rawDiscussions.length === PAGE_SIZE && (
+            <button
+              onClick={() => setForumPage((p) => p + 1)}
+              className="px-4 py-2 text-sm rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+            >
+              Muat Lebih Banyak
+            </button>
+          )}
+        </div>
+      )}
 
       <ReportModal
         isOpen={reportModal.isOpen}

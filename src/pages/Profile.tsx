@@ -11,7 +11,6 @@ import {
   Trophy,
 } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useEffect } from 'react'
 
 import { OptimizedImage, useToast } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
@@ -33,13 +32,6 @@ export function Profile() {
   usePageTitle('Profil')
   const { user, role, activeRole, profile } = useAuth()
   const addToast = useToast((s) => s.addToast)
-
-  useEffect(() => {
-    document.title = 'Profil — EduSync'
-    return () => {
-      document.title = 'EduSync'
-    }
-  }, [])
   // SECURITY FIX: Use activeRole (tenant-scoped) instead of global role
   const isTeacher = activeRole === 'teacher'
 

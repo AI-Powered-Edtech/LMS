@@ -136,8 +136,9 @@ export function NotificationPreferencesPanel({
       <div className="overflow-x-auto">
         <table className="w-full text-sm" role="grid" aria-label="Pengaturan saluran notifikasi">
           <thead>
-            <tr className="border-b border-slate-100 dark:border-slate-800">
+            <tr role="row" className="border-b border-slate-100 dark:border-slate-800">
               <th
+                role="columnheader"
                 scope="col"
                 className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
               >
@@ -146,6 +147,7 @@ export function NotificationPreferencesPanel({
               {CHANNELS.map((ch) => (
                 <th
                   key={ch.key}
+                  role="columnheader"
                   scope="col"
                   className="px-3 py-3 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider min-w-[72px]"
                 >
@@ -161,15 +163,16 @@ export function NotificationPreferencesPanel({
             {PREF_TYPES.map((type) => (
               <tr
                 key={type}
+                role="row"
                 className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors"
               >
-                <td className="px-4 py-3">
+                <td role="gridcell" className="px-4 py-3">
                   <span className="text-sm font-medium text-slate-800 dark:text-slate-200">
                     {PREF_TYPE_LABELS[type]}
                   </span>
                 </td>
                 {CHANNELS.map((ch) => (
-                  <td key={ch.key} className="px-3 py-3 text-center">
+                  <td key={ch.key} role="gridcell" className="px-3 py-3 text-center">
                     <div className="flex justify-center">
                       <CellToggle
                         id={`pref-${type}-${ch.key}`}

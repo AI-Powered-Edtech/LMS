@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom'
 
 import { useViewerReducer } from '@/components/LessonViewer'
 import { useAuth } from '@/contexts/AuthContext'
+import { adaptivePathService } from '@/features/adaptive-paths'
 import { isLessonLocked, type Lesson, type LessonProgress, lessonService } from '@/features/lessons'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useToast } from '@/hooks/useToast'
@@ -65,12 +66,30 @@ export function useLessonViewerState() {
   // Throttle ref for handleVideoTimeUpdate (Fix H-11)
   const lastVideoUpdateRef = useRef(0)
 
+  // Adaptive navigation state
+  const [adaptiveNextLesson, setAdaptiveNextLesson] = useState<{
+    lessonId: string
+    reason: string | null
+  } | null>(null)
+
   // Computed navigation state
   const currentLessonIndex = moduleLessons.findIndex((l) => l.id === lessonId)
-  const nextLesson =
+  const sequentialNextLesson =
     currentLessonIndex >= 0 && currentLessonIndex < moduleLessons.length - 1
       ? moduleLessons[currentLessonIndex + 1]
       : null
+
+  // Prefer adaptive recommendation over sequential default when available
+  const adaptiveNextLessonNode = adaptiveNextLesson
+    ? (moduleLessons.find((l) => l.id === adaptiveNextLesson.lessonId) ?? null)
+    : null
+  const nextLesson = adaptiveNextLessonNode ?? sequentialNextLesson
+
+  // Expose the reason for adaptive navigation (null when using sequential nav)
+  const adaptiveReason: string | null = adaptiveNextLessonNode
+    ? (adaptiveNextLesson?.reason ?? null)
+    : null
+
   const prevLesson = currentLessonIndex > 0 ? (moduleLessons[currentLessonIndex - 1] ?? null) : null
   const isLastLesson = currentLessonIndex >= 0 && currentLessonIndex === moduleLessons.length - 1
   const completedLessonCount = moduleLessons.filter((l) => moduleProgress[l.id]?.completed).length
@@ -99,6 +118,8 @@ export function useLessonViewerState() {
       })
       setActiveTab('content')
       setMobileSidebarOpen(false)
+      // Clear adaptive state when navigating to a new lesson
+      setAdaptiveNextLesson(null)
     },
     [setSearchParams, moduleLessons, moduleProgress, role]
   )
@@ -166,6 +187,25 @@ export function useLessonViewerState() {
         moduleCompleteShownRef.current = moduleId
         setTimeout(() => setShowModuleComplete(true), 4200)
       }
+
+      // Evaluate adaptive next lesson after completion (non-critical, fire-and-forget)
+      if (user?.id && courseId && state.lesson?.id && tenantId) {
+        adaptivePathService
+          .evaluateNextLesson(user.id, courseId, state.lesson.id, tenantId)
+          .then((result) => {
+            if (result.is_adaptive && result.next_lesson_id) {
+              setAdaptiveNextLesson({
+                lessonId: result.next_lesson_id,
+                reason: result.reason,
+              })
+            }
+          })
+          .catch((err) => {
+            // Non-critical — adaptive evaluation failure should not break the lesson flow
+            if (import.meta.env.DEV)
+              console.warn('[Adaptive] evaluateNextLesson failed (non-critical):', err)
+          })
+      }
     } catch (err) {
       if (import.meta.env.DEV) console.error('Completion failed:', err)
       captureError(err, {
@@ -175,7 +215,7 @@ export function useLessonViewerState() {
       })
       addToast({ message: 'Gagal menandai selesai. Coba lagi.', type: 'error' })
     }
-  }, [state.lesson, state.status, tenantId, user?.id, actions, addToast, moduleId])
+  }, [state.lesson, state.status, tenantId, user?.id, courseId, actions, addToast, moduleId])
 
   const handleProgressUpdate = useCallback(
     (percentage: number, position?: number) => {
@@ -430,6 +470,9 @@ export function useLessonViewerState() {
     isLastLesson,
     completedLessonCount,
     completedBlockCount,
+
+    // Adaptive navigation
+    adaptiveReason,
 
     // UI state
     showCelebration,

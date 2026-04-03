@@ -9,6 +9,8 @@ export interface NotificationPreferences {
 export interface LocalePreferences {
   language: string
   timezone: string
+  // FIXED: Added dateFormat to persist date format preference
+  dateFormat?: string
 }
 
 export const profilePreferences = {

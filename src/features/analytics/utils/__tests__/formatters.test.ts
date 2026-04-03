@@ -12,16 +12,16 @@ import {
 describe('formatters', () => {
   describe('formatTime', () => {
     it('formats seconds less than 60', () => {
-      expect(formatTime(0)).toBe('0d')
-      expect(formatTime(45)).toBe('45d')
-      expect(formatTime(59)).toBe('59d')
+      expect(formatTime(0)).toBe('0 dtk')
+      expect(formatTime(45)).toBe('45 dtk')
+      expect(formatTime(59)).toBe('59 dtk')
     })
 
     it('formats minutes and seconds less than an hour', () => {
       expect(formatTime(60)).toBe('1m')
-      expect(formatTime(65)).toBe('1m 5d')
-      expect(formatTime(119)).toBe('1m 59d')
-      expect(formatTime(3599)).toBe('59m 59d')
+      expect(formatTime(65)).toBe('1m 5 dtk')
+      expect(formatTime(119)).toBe('1m 59 dtk')
+      expect(formatTime(3599)).toBe('59m 59 dtk')
     })
 
     it('formats hours and minutes', () => {

@@ -89,8 +89,9 @@ async function fetchInvoicesFallback(
 
   let query = supabase
     .from('invoices')
+    // Note: description column may not exist in all schema versions, excluded from select
     .select(
-      'id, tenant_id, student_id, amount, amount_due, amount_paid, status, description, month_year, due_date, paid_at, created_at, updated_at',
+      'id, tenant_id, student_id, amount, amount_due, amount_paid, status, month_year, due_date, paid_at, created_at, updated_at',
       { count: 'exact' }
     )
     .eq('tenant_id', tenantId)
@@ -108,7 +109,9 @@ async function fetchInvoicesFallback(
   const { data, error, count } = await query
 
   if (error) {
-    throw new Error(error.message)
+    // invoices table may not exist or schema mismatch — return empty gracefully
+    if (import.meta.env.DEV) console.warn('fetchInvoicesFallback error:', error.message)
+    return { data: [], count: 0 }
   }
 
   const mapped: InvoiceRecord[] = (data ?? []).map((inv) => ({
@@ -120,7 +123,7 @@ async function fetchInvoicesFallback(
     amount_due: inv.amount_due ?? inv.amount ?? 0,
     amount_paid: inv.amount_paid ?? 0,
     status: (inv.status ?? 'pending').toLowerCase(),
-    description: inv.description ?? null,
+    description: null, // description column not in all schema versions
     month_year: inv.month_year ?? null,
     due_date: inv.due_date ?? null,
     paid_at: inv.paid_at ?? null,

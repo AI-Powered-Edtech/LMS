@@ -125,17 +125,17 @@ export function BillingDashboard() {
           .from('tenant_subscriptions')
           .select(`id, status, current_period_end, plan_id`)
           .eq('tenant_id', tenantId)
-          .single()
+          .maybeSingle()
 
         // If no sub, that's fine (trial or free)
-        if (subErr && subErr.code !== 'PGRST116') throw subErr
+        if (subErr) throw subErr
 
         if (subData) {
           const { data: planData } = await supabase
             .from('billing_plans')
             .select('id, name, price')
             .eq('id', subData.plan_id)
-            .single()
+            .maybeSingle()
           setSubscription({ ...subData, plan: planData || { name: 'Unknown', price: 0 } })
         }
 

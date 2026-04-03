@@ -1,3 +1,4 @@
+import type { PathRule } from '@/features/adaptive-paths'
 import { DomainBlock } from '@/shared/types/blockTypes'
 import { DomainCourse } from '@/shared/types/courseTypes'
 import { DomainLesson } from '@/shared/types/lessonTypes'
@@ -23,6 +24,8 @@ export interface BuilderState {
   loadingBlocks: boolean
   pendingLessonId: string | null // tracks most recently requested lesson to guard against race conditions
   error: string | null
+  // Adaptive learning path rules (non-undoable — saved immediately to DB)
+  pathRules: PathRule[]
   // Undo/Redo history
   _history: UndoSnapshot[]
   _future: UndoSnapshot[]
@@ -53,6 +56,7 @@ export const initialBuilderState: BuilderState = {
   loadingBlocks: false,
   pendingLessonId: null,
   error: null,
+  pathRules: [],
   _history: [],
   _future: [],
 }
@@ -100,6 +104,11 @@ export type BuilderAction =
   | { type: 'REMOTE_SET_BLOCKS'; blocks: DomainBlock[] }
   | { type: 'UNDO' }
   | { type: 'REDO' }
+  // Adaptive learning path actions (non-undoable — saved immediately to DB)
+  | { type: 'ADD_PATH_RULE'; rule: PathRule }
+  | { type: 'UPDATE_PATH_RULE'; ruleId: string; data: Partial<PathRule> }
+  | { type: 'DELETE_PATH_RULE'; ruleId: string }
+  | { type: 'SET_LESSON_REMEDIAL'; lessonId: string; isRemedial: boolean }
 
 // ============================================================
 // Helpers
@@ -289,6 +298,33 @@ function coreReducer(state: BuilderState, action: BuilderAction): BuilderState {
       }
     case 'SET_SAVING':
       return { ...state, savingStatus: action.status }
+
+    // ── Adaptive learning path actions (non-undoable) ──────
+    case 'ADD_PATH_RULE':
+      return { ...state, pathRules: [...state.pathRules, action.rule] }
+    case 'UPDATE_PATH_RULE':
+      return {
+        ...state,
+        pathRules: state.pathRules.map((r) =>
+          r.id === action.ruleId ? { ...r, ...action.data } : r
+        ),
+      }
+    case 'DELETE_PATH_RULE':
+      return {
+        ...state,
+        pathRules: state.pathRules.filter((r) => r.id !== action.ruleId),
+      }
+    case 'SET_LESSON_REMEDIAL':
+      return {
+        ...state,
+        modules: state.modules.map((m) => ({
+          ...m,
+          lessons: m.lessons.map((l) =>
+            l.id === action.lessonId ? { ...l, is_remedial: action.isRemedial } : l
+          ),
+        })),
+      }
+
     default:
       return state
   }

@@ -123,7 +123,7 @@ export function Grades() {
             </h2>
             <div className="relative">
               <select
-                value={selectedCourseId}
+                value={selectedCourseId ?? ''}
                 onChange={(e) => setSelectedCourseId(e.target.value)}
                 className={cn(
                   'appearance-none pl-3 pr-9 py-2 rounded-xl text-sm font-medium',

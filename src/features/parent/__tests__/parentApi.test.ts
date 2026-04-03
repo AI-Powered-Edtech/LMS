@@ -137,7 +137,8 @@ describe('parentApi', () => {
       })
       mockFrom.mockReturnValue(chain)
 
-      const result = await getChildGrades('student-1')
+      // FIXED: getChildGrades now requires tenantId as 2nd param
+      const result = await getChildGrades('student-1', 'tenant-1')
 
       expect(mockFrom).toHaveBeenCalledWith('gradebook_entries')
       expect(chain.eq).toHaveBeenCalledWith('student_id', 'student-1')
@@ -154,7 +155,8 @@ describe('parentApi', () => {
       const chain = createChainMock({ data: [], error: null })
       mockFrom.mockReturnValue(chain)
 
-      const result = await getChildGrades('student-1')
+      // FIXED: pass tenantId
+      const result = await getChildGrades('student-1', 'tenant-1')
       expect(result).toEqual([])
     })
 
@@ -162,7 +164,8 @@ describe('parentApi', () => {
       const chain = createChainMock({ data: null, error: { message: 'DB error' } })
       mockFrom.mockReturnValue(chain)
 
-      const result = await getChildGrades('student-1')
+      // FIXED: pass tenantId
+      const result = await getChildGrades('student-1', 'tenant-1')
       expect(result).toEqual([])
     })
 
@@ -176,7 +179,8 @@ describe('parentApi', () => {
       })
       mockFrom.mockReturnValue(chain)
 
-      const result = await getChildGrades('student-1')
+      // FIXED: pass tenantId
+      const result = await getChildGrades('student-1', 'tenant-1')
       expect(result[0].trend).toBe('down')
     })
 
@@ -190,7 +194,8 @@ describe('parentApi', () => {
       })
       mockFrom.mockReturnValue(chain)
 
-      const result = await getChildGrades('student-1')
+      // FIXED: pass tenantId
+      const result = await getChildGrades('student-1', 'tenant-1')
       expect(result[0].trend).toBe('stable')
     })
 
@@ -204,7 +209,8 @@ describe('parentApi', () => {
       const chain = createChainMock({ data, error: null })
       mockFrom.mockReturnValue(chain)
 
-      const result = await getChildGrades('student-1')
+      // FIXED: pass tenantId
+      const result = await getChildGrades('student-1', 'tenant-1')
       expect(result.length).toBeLessThanOrEqual(6)
     })
   })

@@ -232,7 +232,7 @@ export function TeacherDashboard() {
                         navigate('/analytics')
                       }}
                     >
-                      Analytics
+                      Analitik
                     </Button>
                     <Button
                       variant="ghost"

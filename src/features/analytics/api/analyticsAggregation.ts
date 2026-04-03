@@ -101,12 +101,12 @@ export function aggregateTenantOverview(stats: CourseStatsRow[]): TenantAnalytic
   const avgQuizScore =
     stats.length > 0 ? stats.reduce((sum, s) => sum + (s.avg_quiz_score || 0), 0) / stats.length : 0
 
-  // Get most recent refresh timestamp
+  // Get most recent refresh timestamp (column may not exist in all environments)
   const lastRefreshedAt =
     stats.length > 0
       ? stats.reduce(
           (latest, s) => {
-            const current = s.last_refreshed_at
+            const current = s.last_refreshed_at ?? null
             return !latest || (current && new Date(current) > new Date(latest)) ? current : latest
           },
           null as string | null

@@ -19,8 +19,8 @@ export function StudentProgress() {
 
   useEffect(() => {
     async function loadProgress() {
-      if (!studentId) {
-        setError('ID Siswa tidak ditemukan')
+      if (!studentId || studentId === 'overview') {
+        // 'overview' is a nav placeholder — no real studentId selected yet
         setLoading(false)
         return
       }
@@ -49,6 +49,23 @@ export function StudentProgress() {
 
   if (loading) {
     return <ProgressSkeleton />
+  }
+
+  // No student selected yet (nav points to /overview as placeholder)
+  if (!studentId || studentId === 'overview') {
+    return (
+      <div className="flex-1 w-full flex flex-col items-center justify-center p-12 text-slate-500 dark:text-slate-400">
+        <TrendingUp className="w-12 h-12 mb-4 text-slate-300 dark:text-slate-600" />
+        <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">Progres Siswa</p>
+        <p className="text-sm text-center">
+          Pilih siswa dari halaman{' '}
+          <a href="#/app/admin/users" className="text-blue-600 dark:text-blue-400 underline">
+            Manajemen Pengguna
+          </a>{' '}
+          untuk melihat progres belajar mereka.
+        </p>
+      </div>
+    )
   }
 
   if (error || !data) {
@@ -200,8 +217,9 @@ export function StudentProgress() {
                     className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-100 dark:border-slate-700"
                   >
                     <div>
+                      {/* FIXED: Display quiz title if available, or shortened UUID instead of raw UUID */}
                       <p className="font-bold text-slate-800 dark:text-slate-200">
-                        Kuis: {attempt.quiz_id}
+                        Kuis: {'Kuis #' + attempt.quiz_id.slice(0, 8)}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
                         {new Date(attempt.created_at).toLocaleDateString('id-ID')}

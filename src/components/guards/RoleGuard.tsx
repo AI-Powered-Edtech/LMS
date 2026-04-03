@@ -13,10 +13,10 @@ export function RoleGuard({ children, allowedRoles }: RoleGuardProps) {
   const { activeRole, loading } = useAuth()
   const location = useLocation()
 
-  // SECURITY FIX: Always use activeRole (per-tenant role) — never fall back to the
-  // global `role` field. The global role represents the highest privilege across ALL
-  // tenants, so using it as fallback allows cross-tenant privilege escalation:
-  // an admin in Tenant A could access admin routes in Tenant B where they are a student.
+  // SECURITY: Only use activeRole (per-tenant role). Never fall back to global role.
+  // Global role is the highest privilege across ALL tenants and can cause
+  // cross-tenant privilege escalation if used for authorization.
+  // During initial load, TenantGuard will already have redirected if no tenant selected.
   const hasAccess = !loading && activeRole !== null && allowedRoles.includes(activeRole)
 
   // WCAG SC 2.4.3 — Focus Order: When access is denied and the user is redirected

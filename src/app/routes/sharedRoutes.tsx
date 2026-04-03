@@ -3,9 +3,11 @@ import { Route } from 'react-router-dom'
 import { AuthGuard } from '../../components/guards/AuthGuard'
 import { RoleGuard } from '../../components/guards/RoleGuard'
 import {
+  AccountDeletionPage,
   Announcements,
   Assignments,
   Calendar,
+  DataExportPage,
   Directory,
   EnrollPage,
   ForgotPassword,
@@ -14,6 +16,8 @@ import {
   InviteRedeem,
   Login,
   LtiCallback,
+  MFASetupPage,
+  MFAVerifyPage,
   NotFound,
   NotificationsPage,
   Offline,
@@ -144,6 +148,22 @@ export function PublicRoutes() {
           </S>
         }
       />
+      <Route
+        path="/setup-2fa"
+        element={
+          <S feature="Setup 2FA">
+            <MFASetupPage />
+          </S>
+        }
+      />
+      <Route
+        path="/verify-2fa"
+        element={
+          <S feature="Verifikasi 2FA">
+            <MFAVerifyPage />
+          </S>
+        }
+      />
     </>
   )
 }
@@ -153,7 +173,7 @@ export function PublicRoutes() {
  * Rendered inside the auth-protected layout.
  */
 export function SharedAuthRoutes() {
-  const allRoles = ['teacher', 'student', 'admin'] as const
+  const allRoles = ['teacher', 'student', 'admin', 'parent', 'principal'] as const
   const sharedPages = [
     { path: 'forum', element: <Forum /> },
     { path: 'profile', element: <Profile /> },
@@ -167,6 +187,8 @@ export function SharedAuthRoutes() {
     { path: 'directory', element: <Directory /> },
     { path: 'social-hub', element: <SocialHub /> },
     { path: 'notifications', element: <NotificationsPage /> },
+    { path: 'privacy/export-data', element: <DataExportPage /> },
+    { path: 'privacy/delete-account', element: <AccountDeletionPage /> },
   ] as const
 
   return (

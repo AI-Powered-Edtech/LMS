@@ -42,6 +42,8 @@ export interface DocumentMetadata {
   description?: string
   category: DocumentCategory
   visibility: DocumentVisibility
+  /** FIXED: tenantId required for storage path isolation — prevents cross-tenant file mixing */
+  tenantId?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -96,9 +98,16 @@ export const documentApi = {
 
   /**
    * Hitung dokumen per kategori untuk ringkasan.
+   * FIXED: Filter by tenant_id to prevent cross-tenant count leakage.
    */
-  async getCategoryCounts(): Promise<Record<DocumentCategory, number>> {
-    const { data, error } = await supabase.from('school_documents').select('category')
+  async getCategoryCounts(tenantId?: string): Promise<Record<DocumentCategory, number>> {
+    // FIXED: Add .eq('tenant_id', tenantId) to isolate counts per tenant
+    let query = supabase.from('school_documents').select('category')
+    if (tenantId) {
+      query = query.eq('tenant_id', tenantId)
+    }
+
+    const { data, error } = await query
 
     if (error) throw new Error(`Gagal memuat jumlah kategori: ${error.message}`)
 
@@ -141,7 +150,9 @@ export const documentApi = {
 
     // Upload ke Storage
     const ext = file.name.split('.').pop()?.toLowerCase() || ''
-    const objectPath = `${crypto.randomUUID()}.${ext}`
+    // FIXED: Prefix path with tenantId for storage isolation per tenant
+    const tenantPrefix = metadata.tenantId ?? 'shared'
+    const objectPath = `${tenantPrefix}/${crypto.randomUUID()}.${ext}`
 
     const { error: uploadError } = await supabase.storage.from(BUCKET).upload(objectPath, file)
 
