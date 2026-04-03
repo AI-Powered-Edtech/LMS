@@ -31,7 +31,7 @@ describe('getOptimizedImageUrl', () => {
       height: 600,
       resize: 'contain',
       quality: 90,
-      format: 'origin'
+      format: 'origin',
     })
 
     expect(result).toContain('/storage/v1/render/image/public/bucket/image.jpg')
