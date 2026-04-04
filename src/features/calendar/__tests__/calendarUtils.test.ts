@@ -5,23 +5,33 @@ import { getCountdown, getEventColor, getPriorityIcon } from '../utils/calendarU
 describe('calendarUtils', () => {
   describe('getEventColor', () => {
     it('harus mengembalikan warna merah untuk ujian', () => {
-      expect(getEventColor('exam')).toBe('bg-red-500 text-red-700 border-red-200')
+      expect(getEventColor('exam')).toBe(
+        'bg-red-500 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800'
+      )
     })
 
     it('harus mengembalikan warna oranye untuk tugas', () => {
-      expect(getEventColor('assignment')).toBe('bg-orange-500 text-orange-700 border-orange-200')
+      expect(getEventColor('assignment')).toBe(
+        'bg-orange-500 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800'
+      )
     })
 
     it('harus mengembalikan warna biru untuk kuis', () => {
-      expect(getEventColor('quiz')).toBe('bg-blue-500 text-blue-700 border-blue-200')
+      expect(getEventColor('quiz')).toBe(
+        'bg-blue-500 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800'
+      )
     })
 
     it('harus mengembalikan warna ungu untuk acara', () => {
-      expect(getEventColor('event')).toBe('bg-purple-500 text-purple-700 border-purple-200')
+      expect(getEventColor('event')).toBe(
+        'bg-purple-500 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800'
+      )
     })
 
     it('harus mengembalikan warna abu-abu sebagai default', () => {
-      expect(getEventColor('unknown')).toBe('bg-slate-500 text-slate-700 border-slate-200')
+      expect(getEventColor('unknown')).toBe(
+        'bg-slate-500 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'
+      )
     })
   })
 
