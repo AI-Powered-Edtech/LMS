@@ -135,8 +135,9 @@ const CommentItem = memo(function CommentItem({
             {isAdmin && !comment.is_deleted && (
               <button
                 onClick={() => onTogglePin(comment.id, !!comment.is_pinned)}
-                className="p-1 text-slate-400 hover:text-blue-600 rounded"
+                className="p-1 text-slate-400 hover:text-blue-600 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 title={comment.is_pinned ? 'Lepaskan sematan' : 'Sematkan'}
+                aria-label={comment.is_pinned ? 'Lepaskan sematan' : 'Sematkan'}
               >
                 <Pin
                   className={cn('w-4 h-4', comment.is_pinned && 'fill-blue-500 text-blue-500')}
@@ -147,7 +148,8 @@ const CommentItem = memo(function CommentItem({
               <div className="relative">
                 <button
                   onClick={() => onSetOpenMenuId(openMenuId === comment.id ? null : comment.id)}
-                  className="p-1 text-slate-400 hover:text-slate-600 rounded"
+                  className="p-1 text-slate-400 hover:text-slate-600 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                  aria-label="Opsi tambahan"
                 >
                   <MoreVertical className="w-4 h-4" />
                 </button>
