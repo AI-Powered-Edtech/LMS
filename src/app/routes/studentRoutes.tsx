@@ -1,4 +1,4 @@
-import { Outlet, Route } from 'react-router-dom'
+import { Navigate, Outlet, Route } from 'react-router-dom'
 
 import { CourseEnrollmentGuard } from '../../components/guards/CourseEnrollmentGuard'
 import { RoleGuard } from '../../components/guards/RoleGuard'
@@ -48,6 +48,8 @@ export function StudentRoutes() {
           </S>
         }
       />
+      <Route path="my-courses" element={<Navigate to="/app/student/courses" replace />} />
+      <Route path="classes" element={<Navigate to="/app/student/dashboard" replace />} />
       <Route
         path="courses"
         element={

@@ -71,7 +71,7 @@ export const Courses: React.FC = () => {
   }, [isModalOpen])
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, refetch } =
-    useInfiniteCoursesQuery(activeTenant?.id ?? '', debouncedSearch)
+    useInfiniteCoursesQuery(debouncedSearch)
 
   const courses = data?.pages.flatMap((p) => p.courses) ?? []
 

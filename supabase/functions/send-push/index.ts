@@ -36,9 +36,11 @@
 //     subscription disimpan di notification_preferences.push_subscription
 // =============================================================
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1'
+import { corsHeaders, handleCors } from '../_shared/cors.ts'
+import { jsonResponse, errorResponse } from '../_shared/response.ts'
+import { authenticate, type AuthResult } from '../_shared/auth.ts'
 
-// ── Types ─────────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 interface PushSubscriptionKeys {
   p256dh: string
@@ -73,15 +75,7 @@ interface SendPushResponse {
   timestamp: string
 }
 
-// ── CORS Headers ──────────────────────────────────────────────────────────
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('CORS_ORIGIN') ?? 'https://lms.edusync.dev',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────────
 
 /** Konversi base64url ke Uint8Array (diperlukan untuk SubtleCrypto) */
 function base64urlToUint8Array(base64url: string): Uint8Array {
@@ -160,100 +154,59 @@ async function encryptPayload(
   }
 }
 
-// ── Main Handler ──────────────────────────────────────────────────────────
+// ── Main Handler ────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req: Request): Promise<Response> => {
   // CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  const corsResponse = handleCors(req)
+  if (corsResponse) return corsResponse
 
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method tidak diizinkan' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    })
+    return errorResponse('Method tidak diizinkan', 405)
   }
 
-  // ── Autentikasi ──────────────────────────────────────────────────────────
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
+  // ── Autentikasi ────────────────────────────────────────────────────────────────
+  let supabase: AuthResult['supabase']
+  let user: AuthResult['user']
 
-  if (!supabaseUrl || !anonKey) {
-    return new Response(JSON.stringify({ error: 'Konfigurasi server tidak lengkap' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    })
+  try {
+    const authResult = await authenticate(req)
+    supabase = authResult.supabase
+    user = authResult.user
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : ''
+    if (msg === 'SUPABASE_CONFIG_MISSING') {
+      return errorResponse('Konfigurasi server tidak lengkap', 500)
+    }
+    return errorResponse('Autentikasi diperlukan', 401)
   }
 
-  // Buat client dengan JWT pengguna untuk verifikasi identitas
-  const authHeader = req.headers.get('Authorization')
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return new Response(JSON.stringify({ error: 'Autentikasi diperlukan' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    })
-  }
-
-  const supabase = createClient(supabaseUrl, anonKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-    global: {
-      headers: { Authorization: authHeader },
-    },
-  })
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return new Response(JSON.stringify({ error: 'Token tidak valid atau kadaluarsa' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    })
-  }
-
-  // ── Parse request body ───────────────────────────────────────────────────
+  // ── Parse request body ──────────────────────────────────────────────────────────
   let body: SendPushRequest
   try {
     body = (await req.json()) as SendPushRequest
   } catch {
-    return new Response(JSON.stringify({ error: 'Request body tidak valid (JSON diperlukan)' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    })
+    return errorResponse('Request body tidak valid (JSON diperlukan)', 400)
   }
 
   const { subscription, notification, user_id } = body
 
   // Validasi subscription
   if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
-    return new Response(
-      JSON.stringify({ error: 'Subscription tidak valid: endpoint dan keys diperlukan' }),
-      { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-    )
+    return errorResponse('Subscription tidak valid: endpoint dan keys diperlukan', 400)
   }
 
   // Validasi notification
   if (!notification?.title) {
-    return new Response(JSON.stringify({ error: 'Notification title diperlukan' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-    })
+    return errorResponse('Notification title diperlukan', 400)
   }
 
   // Keamanan: jika user_id diisi, pastikan cocok dengan JWT
   if (user_id && user_id !== user.id) {
-    return new Response(
-      JSON.stringify({ error: 'Akses ditolak: user_id tidak cocok dengan token' }),
-      { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-    )
+    return errorResponse('Akses ditolak: user_id tidak cocok dengan token', 403)
   }
 
-  // ── Verifikasi subscription milik user ini ──────────────────────────────
+  // ── Verifikasi subscription milik user ini ────────────────────────────────────
   // Cegah user mengirim push ke subscription orang lain
   const { data: prefData } = await supabase
     .from('notification_preferences')
@@ -262,25 +215,19 @@ Deno.serve(async (req: Request): Promise<Response> => {
     .maybeSingle()
 
   if (!prefData?.push_enabled) {
-    return new Response(
-      JSON.stringify({
-        success: false,
-        message: 'Push notifications tidak diaktifkan oleh pengguna ini',
-        timestamp: new Date().toISOString(),
-      } satisfies SendPushResponse),
-      { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-    )
+    return jsonResponse({
+      success: false,
+      message: 'Push notifications tidak diaktifkan oleh pengguna ini',
+      timestamp: new Date().toISOString(),
+    } satisfies SendPushResponse)
   }
 
   const storedEndpoint = (prefData?.push_subscription as PushSubscription | null)?.endpoint
   if (storedEndpoint && storedEndpoint !== subscription.endpoint) {
-    return new Response(
-      JSON.stringify({ error: 'Subscription endpoint tidak cocok dengan yang tersimpan' }),
-      { status: 403, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-    )
+    return errorResponse('Subscription endpoint tidak cocok dengan yang tersimpan', 403)
   }
 
-  // ── Cek VAPID keys ───────────────────────────────────────────────────────
+  // ── Cek VAPID keys ────────────────────────────────────────────────────────────
   const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY')
   const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY')
   const vapidSubject = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:admin@edusync.app'
@@ -294,17 +241,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
     )
     console.warn('[send-push] Notification:', JSON.stringify(notification))
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: 'Push disimulasikan (VAPID keys belum dikonfigurasi)',
-        timestamp: new Date().toISOString(),
-      } satisfies SendPushResponse),
-      { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-    )
+    return jsonResponse({
+      success: true,
+      message: 'Push disimulasikan (VAPID keys belum dikonfigurasi)',
+      timestamp: new Date().toISOString(),
+    } satisfies SendPushResponse)
   }
 
-  // ── Build & kirim Web Push request ──────────────────────────────────────
+  // ── Build & kirim Web Push request ────────────────────────────────────────────
   try {
     // Payload notifikasi (format sesuai Service Worker Notification API)
     const pushPayload = JSON.stringify({
@@ -357,14 +301,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
         .update({ push_subscription: null, push_enabled: false })
         .eq('user_id', user.id)
 
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: 'Subscription kadaluarsa dan telah dihapus',
-          timestamp: new Date().toISOString(),
-        } satisfies SendPushResponse),
-        { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-      )
+      return jsonResponse({
+        success: false,
+        message: 'Subscription kadaluarsa dan telah dihapus',
+        timestamp: new Date().toISOString(),
+      } satisfies SendPushResponse)
     }
 
     if (!pushResponse.ok) {
@@ -373,21 +314,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
       throw new Error(`Push service merespons ${pushResponse.status}`)
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: 'Push notification berhasil dikirim',
-        timestamp: new Date().toISOString(),
-      } satisfies SendPushResponse),
-      { status: 200, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-    )
+    return jsonResponse({
+      success: true,
+      message: 'Push notification berhasil dikirim',
+      timestamp: new Date().toISOString(),
+    } satisfies SendPushResponse)
   } catch (err) {
     console.error('[send-push] Error saat mengirim push:', err)
-    return new Response(
-      JSON.stringify({
-        error: 'Gagal mengirim push notification',
-      }),
-      { status: 500, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
-    )
+    return errorResponse('Gagal mengirim push notification', 500)
   }
 })

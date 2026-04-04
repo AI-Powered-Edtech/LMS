@@ -1,31 +1,12 @@
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.8'
 import { corsHeaders, handleCors } from '../_shared/cors.ts'
 import { jsonResponse, errorResponse } from '../_shared/response.ts'
+import { authenticate as sharedAuthenticate } from '../_shared/auth.ts'
 
 const LLM_TIMEOUT_MS = 15000 // 15s
 
 // Ensure the user is authenticated and is a teacher or admin
 async function authenticate(req: Request) {
-  const authHeader = req.headers.get('Authorization')
-  if (!authHeader) throw new Error('AUTH_MISSING')
-
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')
-  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('SUPABASE_CONFIG_MISSING')
-  }
-
-  const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-    global: { headers: { Authorization: authHeader } },
-  })
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabaseClient.auth.getUser()
-  if (userError || !user) throw new Error('AUTH_INVALID')
+  const { supabase: supabaseClient, user } = await sharedAuthenticate(req)
 
   // Get tenant_id from user metadata for multi-tenant isolation
   const tenantId = user.user_metadata?.tenant_id

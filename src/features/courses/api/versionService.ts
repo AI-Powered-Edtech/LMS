@@ -25,10 +25,20 @@ export interface VersionSnapshotModule {
 export type ImpactLevel = 'low' | 'medium' | 'high'
 
 export interface VersionDiff {
-  addedModules: VersionSnapshotModule[]
-  removedModules: VersionSnapshotModule[]
+  /** Modules present in the snapshot but absent in the current state — will be restored */
+  restoredModules: VersionSnapshotModule[]
+  /** Modules present in the current state but absent in the snapshot — will be lost */
+  lostModules: VersionSnapshotModule[]
   modifiedModuleTitles: Array<{ id: string; oldTitle: string; newTitle: string }>
+  /**
+   * Net lesson delta: lessons present in snapshot but not current (will be added back).
+   * NOTE: This is a net count across all modules, not a per-module breakdown.
+   */
   addedLessonCount: number
+  /**
+   * Net lesson delta: lessons present in current but not in snapshot (will be removed).
+   * NOTE: This is a net count across all modules, not a per-module breakdown.
+   */
   removedLessonCount: number
   impactLevel: ImpactLevel
 }
@@ -54,7 +64,7 @@ export const versionService = {
       throw error
     }
 
-    return data as CourseVersion[]
+    return (data ?? []) as CourseVersion[]
   },
 
   /**
@@ -131,6 +141,10 @@ export const versionService = {
  * (from builder state) and a historical version snapshot.
  *
  * Does NOT compare block-level content — only module and lesson presence.
+ *
+ * Lesson counts are net deltas across all modules (not per-module breakdowns).
+ * restoredModules = in snapshot but not in current (will come back on restore).
+ * lostModules     = in current but not in snapshot (will be dropped on restore).
  */
 export function computeVersionDiff(
   currentModules: VersionSnapshotModule[],
@@ -139,14 +153,14 @@ export function computeVersionDiff(
   const currentById = new Map(currentModules.map((m) => [m.id, m]))
   const snapshotById = new Map(snapshotModules.map((m) => [m.id, m]))
 
-  const addedModules: VersionSnapshotModule[] = []
-  const removedModules: VersionSnapshotModule[] = []
+  const restoredModules: VersionSnapshotModule[] = []
+  const lostModules: VersionSnapshotModule[] = []
   const modifiedModuleTitles: VersionDiff['modifiedModuleTitles'] = []
 
-  // Modules in snapshot but not in current → will be added back
+  // Modules in snapshot but not in current → will be added back (restored)
   for (const [id, mod] of snapshotById) {
     if (!currentById.has(id)) {
-      addedModules.push(mod)
+      restoredModules.push(mod)
     } else {
       const current = currentById.get(id)!
       if (current.title !== mod.title) {
@@ -155,14 +169,14 @@ export function computeVersionDiff(
     }
   }
 
-  // Modules in current but not in snapshot → will be removed
+  // Modules in current but not in snapshot → will be removed (lost)
   for (const [id, mod] of currentById) {
     if (!snapshotById.has(id)) {
-      removedModules.push(mod)
+      lostModules.push(mod)
     }
   }
 
-  // Lesson counts
+  // Lesson counts (net delta — not per-module)
   const currentLessonCount = currentModules.reduce((acc, m) => acc + m.lessons.length, 0)
   const snapshotLessonCount = snapshotModules.reduce((acc, m) => acc + m.lessons.length, 0)
   const removedLessonCount = Math.max(0, currentLessonCount - snapshotLessonCount)
@@ -170,13 +184,13 @@ export function computeVersionDiff(
 
   // Impact level heuristic
   let impactLevel: ImpactLevel = 'low'
-  if (removedModules.length > 0 || removedLessonCount > 3) {
-    impactLevel = removedModules.length > 1 || removedLessonCount > 8 ? 'high' : 'medium'
+  if (lostModules.length > 0 || removedLessonCount > 3) {
+    impactLevel = lostModules.length > 1 || removedLessonCount > 8 ? 'high' : 'medium'
   }
 
   return {
-    addedModules,
-    removedModules,
+    restoredModules,
+    lostModules,
     modifiedModuleTitles,
     addedLessonCount,
     removedLessonCount,

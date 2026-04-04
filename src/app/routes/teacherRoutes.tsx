@@ -1,4 +1,4 @@
-import { Outlet, Route } from 'react-router-dom'
+import { Navigate, Outlet, Route } from 'react-router-dom'
 
 import { CourseEnrollmentGuard } from '../../components/guards/CourseEnrollmentGuard'
 import { RoleGuard } from '../../components/guards/RoleGuard'
@@ -58,6 +58,11 @@ export function TeacherRoutes() {
             <TeacherDashboard />
           </S>
         }
+      />
+      <Route path="quizzes" element={<Navigate to="/app/teacher/quiz-manager" replace />} />
+      <Route
+        path="gradebook"
+        element={<Navigate to="/app/teacher/assignment-gradebook" replace />}
       />
       <Route
         path="teaching-hub"

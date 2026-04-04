@@ -18,6 +18,7 @@ const mockSaveBaselineMetrics = vi.fn()
 
 vi.mock('../api/executiveApi', () => ({
   getExecutiveOverview: (...args: unknown[]) => mockGetExecutiveOverview(...args),
+  getExecutiveOverviewCached: (...args: unknown[]) => mockGetExecutiveOverview(...args),
   getMonthlyTrend: (...args: unknown[]) => mockGetMonthlyTrend(...args),
   getROIMetrics: (...args: unknown[]) => mockGetROIMetrics(...args),
   getPrincipalSettings: (...args: unknown[]) => mockGetPrincipalSettings(...args),

@@ -2,13 +2,9 @@
 // Generates landscape A4 PDF certificates using pdf-lib
 
 import { PDFDocument, rgb, StandardFonts } from 'https://esm.sh/pdf-lib@1.17.1'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('CORS_ORIGIN') ?? 'https://lms.edusync.dev',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+import { corsHeaders, handleCors } from '../_shared/cors.ts'
+import { errorResponse } from '../_shared/response.ts'
+import { authenticate } from '../_shared/auth.ts'
 
 interface CertificateData {
   studentName: string
@@ -88,55 +84,27 @@ function drawBorder(page: ReturnType<PDFDocument['addPage']>, width: number, hei
 
 Deno.serve(async (req: Request) => {
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  const corsResponse = handleCors(req)
+  if (corsResponse) return corsResponse
 
   try {
     // ── Auth check ──
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Token autentikasi diperlukan' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
+    const { user } = await authenticate(req).catch(() => {
+      throw new Error('AUTH_FAILED')
     })
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Token tidak valid atau kedaluwarsa' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
+    void user // user available for future auditing if needed
 
     // ── Parse body ──
     const body: RequestBody = await req.json()
 
     if (body.type !== 'certificate') {
-      return new Response(
-        JSON.stringify({ error: 'Tipe dokumen tidak didukung. Gunakan "certificate".' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return errorResponse('Tipe dokumen tidak didukung. Gunakan "certificate".', 400)
     }
 
     const { studentName, courseTitle, completionDate, tenantName, certificateNumber } = body.data
 
     if (!studentName || !courseTitle || !completionDate || !tenantName || !certificateNumber) {
-      return new Response(JSON.stringify({ error: 'Semua field data sertifikat wajib diisi' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return errorResponse('Semua field data sertifikat wajib diisi', 400)
     }
 
     // ── Generate PDF ──
@@ -293,9 +261,10 @@ Deno.serve(async (req: Request) => {
     })
   } catch (err) {
     console.error('generate-pdf error:', err)
-    return new Response(JSON.stringify({ error: 'Gagal membuat PDF. Silakan coba lagi.' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    const message = err instanceof Error ? err.message : ''
+    if (message === 'AUTH_FAILED') {
+      return errorResponse('Token autentikasi tidak valid atau kedaluwarsa', 401)
+    }
+    return errorResponse('Gagal membuat PDF. Silakan coba lagi.', 500)
   }
 })

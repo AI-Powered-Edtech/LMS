@@ -3,6 +3,7 @@ import { type Dispatch, useCallback } from 'react'
 import { auditService } from '@/features/courses/api/builder/auditService'
 import { builderCourseService } from '@/features/courses/api/builder/courseService'
 import { useToast } from '@/hooks/useToast'
+import { captureError } from '@/utils/sentry'
 
 import type { BuilderAction, BuilderState } from './builderReducer'
 
@@ -69,11 +70,11 @@ export function useCourseActions(
       setSavingStatus('saved')
       addToast({ type: 'success', message: 'Kursus berhasil diterbitkan' })
       // Audit log (fire-and-forget)
-      auditService.logCourseAction(state.courseId, 'publish', {
+      void auditService.logCourseAction(state.courseId, 'publish', {
         module_count: state.modules.length,
       })
     } catch (error: unknown) {
-      if (import.meta.env.DEV) console.error('Failed to publish course:', error)
+      captureError(error, { context: 'publishCourse', courseId: state.courseId })
       setSavingStatus('error')
       addToast({
         type: 'error',
@@ -89,8 +90,9 @@ export function useCourseActions(
       await builderCourseService.draftCourse(state.courseId, tenantId)
       dispatch({ type: 'SET_COURSE_STATUS', status: 'draft' })
       setSavingStatus('saved')
+      addToast({ type: 'success', message: 'Kursus berhasil dikembalikan ke draf' })
       // Audit log (fire-and-forget)
-      auditService.logCourseAction(state.courseId, 'unpublish')
+      void auditService.logCourseAction(state.courseId, 'unpublish')
     } catch (err: unknown) {
       setSavingStatus('error')
       addToast({
@@ -111,7 +113,7 @@ export function useCourseActions(
       setSavingStatus('saved')
       addToast({ type: 'success', message: 'Kursus diajukan untuk review' })
       // Audit log (fire-and-forget)
-      auditService.logCourseAction(state.courseId, 'submit_review')
+      void auditService.logCourseAction(state.courseId, 'submit_review')
     } catch (err: unknown) {
       setSavingStatus('error')
       addToast({
@@ -132,7 +134,7 @@ export function useCourseActions(
       setSavingStatus('saved')
       addToast({ type: 'success', message: 'Kursus disetujui' })
       // Audit log (fire-and-forget)
-      auditService.logCourseAction(state.courseId, 'approve')
+      void auditService.logCourseAction(state.courseId, 'approve')
     } catch (err: unknown) {
       setSavingStatus('error')
       addToast({

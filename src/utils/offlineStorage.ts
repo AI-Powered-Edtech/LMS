@@ -205,11 +205,32 @@ export async function markSynced(id: string): Promise<void> {
 // Builder drafts
 // ---------------------------------------------------------------------------
 
-export async function saveBuilderDraft(courseId: string, state: unknown): Promise<void> {
+export interface BuilderDraft {
+  courseId: string
+  state: unknown
+  savedAt: number
+  /** ISO timestamp string saat draft terakhir kali berhasil disinkronkan ke server */
+  last_synced_at: string | null
+}
+
+export async function saveBuilderDraft(
+  courseId: string,
+  state: unknown,
+  lastSyncedAt?: string | null
+): Promise<void> {
   const db = await openDB()
   const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readwrite')
   const store = tx.objectStore(STORES.BUILDER_DRAFTS)
-  store.put({ courseId, state, savedAt: Date.now() })
+
+  // Preserve existing last_synced_at if not explicitly overridden
+  const existing = await wrapRequest<BuilderDraft | undefined>(store.get(courseId))
+  const draft: BuilderDraft = {
+    courseId,
+    state,
+    savedAt: Date.now(),
+    last_synced_at: lastSyncedAt !== undefined ? lastSyncedAt : (existing?.last_synced_at ?? null),
+  }
+  store.put(draft)
   await wrapTransaction(tx)
 }
 
@@ -217,10 +238,16 @@ export async function getBuilderDraft(courseId: string): Promise<unknown | null>
   const db = await openDB()
   const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readonly')
   const store = tx.objectStore(STORES.BUILDER_DRAFTS)
-  const result = await wrapRequest<
-    { courseId: string; state: unknown; savedAt: number } | undefined
-  >(store.get(courseId))
+  const result = await wrapRequest<BuilderDraft | undefined>(store.get(courseId))
   return result?.state ?? null
+}
+
+export async function getBuilderDraftRecord(courseId: string): Promise<BuilderDraft | null> {
+  const db = await openDB()
+  const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readonly')
+  const store = tx.objectStore(STORES.BUILDER_DRAFTS)
+  const result = await wrapRequest<BuilderDraft | undefined>(store.get(courseId))
+  return result ?? null
 }
 
 export async function deleteBuilderDraft(courseId: string): Promise<void> {

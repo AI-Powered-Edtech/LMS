@@ -10,9 +10,9 @@ import type { SatisfactionSurvey } from '../types'
 vi.mock('@/components/ui/Modal', () => ({
   Modal: ({ open, children }: { open: boolean; children: React.ReactNode }) =>
     open ? <div data-testid="modal">{children}</div> : null,
-  ModalHeader: ({ title, onClose }: { title: string; onClose: () => void }) => (
+  ModalHeader: ({ children, onClose }: { children: React.ReactNode; onClose: () => void }) => (
     <div data-testid="modal-header">
-      <h2>{title}</h2>
+      <h2>{children}</h2>
       <button onClick={onClose} data-testid="close-btn">
         Close
       </button>

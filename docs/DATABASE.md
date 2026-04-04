@@ -1,5 +1,21 @@
 # EduSync LMS — Database Reference
 
+## Migrations Added (2026-04-04)
+
+- `20260405000001_fix_get_my_children_rpc.sql` — Fixed get_my_children() FK names
+- `20260405000002_enable_messaging_realtime.sql` — Enabled Realtime for messaging tables
+- `20260405000003_activate_gamification_xp_v2.sql` — Activated XP v2 tables + RPCs
+- `20260405000004_activate_certificates.sql` — Activated certificates table + RPCs
+- `20260405000005_revoke_leaderboard_anon_grant.sql` — Security: revoked anon grants
+- `20260405000006_create_process_gamification_events.sql` — Created gamification cron function
+- `20260405000007_audit_log_composite_index.sql` — Performance indexes
+- `20260405000008_survey_aggregation_rpc.sql` — Survey aggregation RPC
+- `20260405000009_finance_record_payment.sql` — Finance payment RPCs
+- `20260405000010_principal_dashboard_mv.sql` — Principal materialized view
+- `20260405000011_parent_portal_performance_indexes.sql` — Parent portal indexes
+
+---
+
 PostgreSQL on Supabase. 259 migration files (000_baseline.sql through 20260403000014_calendar_events_persist.sql).
 
 ## Key Tables

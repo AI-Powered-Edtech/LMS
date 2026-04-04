@@ -22,13 +22,16 @@ const PAGE_SIZE = 12
 /**
  * Infinite-scrolling course list for CourseBrowser.
  * Uses courseKeys.infinite() for consistent cache invalidation.
+ * tenantId is read from useAuth() internally for a consistent API.
  */
-export function useInfiniteCoursesQuery(tenantId: string, search?: string) {
+export function useInfiniteCoursesQuery(search?: string) {
+  const { tenantId } = useAuth()
+
   return useInfiniteQuery({
-    queryKey: courseKeys.infinite(tenantId, search),
-    queryFn: ({ pageParam = 1 }) =>
+    queryKey: courseKeys.infinite(tenantId ?? '', search),
+    queryFn: ({ pageParam }) =>
       courseService.fetchCourses({
-        tenantId,
+        tenantId: tenantId!,
         page: pageParam as number,
         limit: PAGE_SIZE,
         search,

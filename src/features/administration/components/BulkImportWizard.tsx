@@ -48,6 +48,7 @@ const VALID_ROLES = ['siswa', 'guru', 'admin'] as const
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MAX_FILE_SIZE_MB = 5
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+const MAX_ROWS = 500
 
 const TEMPLATE_CSV = `email,nama_lengkap,peran,nis,nomor_hp
 siswa@sekolah.sch.id,Ahmad Rizki,siswa,12345,08123456789
@@ -123,6 +124,7 @@ export function BulkImportWizard({ onClose, onSuccess }: BulkImportWizardProps) 
   const [skipInvalid, setSkipInvalid] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [chunkStatus, setChunkStatus] = useState('')
   const [importResults, setImportResults] = useState<ImportResultRow[]>([])
   const [successCount, setSuccessCount] = useState(0)
   const [failedCount, setFailedCount] = useState(0)
@@ -197,6 +199,14 @@ export function BulkImportWizard({ onClose, onSuccess }: BulkImportWizardProps) 
           }
         })
 
+        const validParsedRows = rows.filter((r) => r._valid)
+        if (validParsedRows.length > MAX_ROWS) {
+          setFileError(
+            `Terlalu banyak baris valid (${validParsedRows.length}). Maksimum ${MAX_ROWS} baris per impor. Silakan bagi menjadi beberapa file.`
+          )
+          return
+        }
+
         setParsedRows(rows)
         setStep(3)
       },
@@ -236,6 +246,8 @@ export function BulkImportWizard({ onClose, onSuccess }: BulkImportWizardProps) 
 
   // ── Step 4: Proses ───────────────────────────────────────────────────────
 
+  const CHUNK_SIZE = 50
+
   const handleProcess = async () => {
     if (!tenantId) {
       addToast({ type: 'error', message: 'Tenant ID tidak ditemukan.' })
@@ -248,13 +260,14 @@ export function BulkImportWizard({ onClose, onSuccess }: BulkImportWizardProps) 
     }
 
     setIsProcessing(true)
+    setChunkStatus('')
     setStep(4)
     setProgress(10)
 
     try {
       // Buat import job di database
       const importJobId = await createImportJob(tenantId)
-      setProgress(20)
+      setProgress(15)
 
       const rows: BulkImportRow[] = rowsToProcess.map((r) => ({
         email: r.email,
@@ -264,19 +277,52 @@ export function BulkImportWizard({ onClose, onSuccess }: BulkImportWizardProps) 
         nomor_hp: r.nomor_hp,
       }))
 
-      setProgress(40)
+      // Bagi baris menjadi beberapa chunk
+      const chunks: BulkImportRow[][] = []
+      for (let i = 0; i < rows.length; i += CHUNK_SIZE) {
+        chunks.push(rows.slice(i, i + CHUNK_SIZE))
+      }
 
-      // Panggil Edge Function
-      const result = await runBulkImport(rows, tenantId, importJobId)
-      setProgress(90)
+      let totalSuccess = 0
+      let totalFailed = 0
+      const allErrors: RowError[] = []
 
-      // Bangun hasil per-row
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i]
+        setChunkStatus(
+          chunks.length > 1
+            ? `Memproses bagian ${i + 1} dari ${chunks.length}...`
+            : 'Memproses data...'
+        )
+        // Progress 15–90% dibagi rata antar chunk
+        const chunkProgress = Math.round(15 + ((i + 1) / chunks.length) * 75)
+        setProgress(chunkProgress)
+
+        const result = await runBulkImport(chunk, tenantId, importJobId)
+        totalSuccess += result.success
+        totalFailed += result.failed
+        allErrors.push(...(result.errors ?? []))
+      }
+
+      setProgress(95)
+      setChunkStatus('')
+
+      // Bangun hasil per-row (berdasarkan posisi lintas semua chunk)
       const errorMap = new Map<number, string>()
-      result.errors.forEach((e: RowError) => errorMap.set(e.row, e.reason))
+      // Errors dari server menggunakan nomor baris per-chunk; rekonstruksi ke indeks global
+      let offset = 0
+      for (let c = 0; c < chunks.length; c++) {
+        const chunkErrors = allErrors.filter(
+          (e) =>
+            e.row >= 1 && e.row <= (c === chunks.length - 1 ? rows.length - offset : CHUNK_SIZE)
+        )
+        chunkErrors.forEach((e) => errorMap.set(offset + e.row, e.reason))
+        offset += chunks[c].length
+      }
 
       const resultRows: ImportResultRow[] = rowsToProcess.map((r, idx) => {
-        const serverRow = idx + 1
-        const errReason = errorMap.get(serverRow)
+        const globalRow = idx + 1
+        const errReason = errorMap.get(globalRow)
         return {
           ...r,
           status: errReason ? 'gagal' : 'berhasil',
@@ -285,20 +331,23 @@ export function BulkImportWizard({ onClose, onSuccess }: BulkImportWizardProps) 
       })
 
       setImportResults(resultRows)
-      setSuccessCount(result.success)
-      setFailedCount(result.failed)
+      setSuccessCount(totalSuccess)
+      setFailedCount(totalFailed)
       setProgress(100)
 
-      if (result.status === 'completed') {
+      const overallStatus =
+        totalFailed === 0 ? 'completed' : totalSuccess === 0 ? 'failed' : 'partial'
+
+      if (overallStatus === 'completed') {
         addToast({
           type: 'success',
-          message: `Berhasil mengimpor ${result.success} pengguna.`,
+          message: `Berhasil mengimpor ${totalSuccess} pengguna.`,
         })
         onSuccess?.()
-      } else if (result.status === 'partial') {
+      } else if (overallStatus === 'partial') {
         addToast({
           type: 'warning',
-          message: `Impor selesai: ${result.success} berhasil, ${result.failed} gagal.`,
+          message: `Impor selesai: ${totalSuccess} berhasil, ${totalFailed} gagal.`,
         })
       } else {
         addToast({
@@ -312,6 +361,7 @@ export function BulkImportWizard({ onClose, onSuccess }: BulkImportWizardProps) 
         message: err instanceof Error ? err.message : 'Terjadi kesalahan saat memproses impor.',
       })
       setProgress(0)
+      setChunkStatus('')
       setStep(3)
     } finally {
       setIsProcessing(false)
@@ -356,6 +406,7 @@ export function BulkImportWizard({ onClose, onSuccess }: BulkImportWizardProps) 
     setSkipInvalid(true)
     setIsProcessing(false)
     setProgress(0)
+    setChunkStatus('')
     setImportResults([])
     setSuccessCount(0)
     setFailedCount(0)
@@ -519,6 +570,10 @@ export function BulkImportWizard({ onClose, onSuccess }: BulkImportWizardProps) 
                 <p className="text-sm text-slate-500 dark:text-slate-400">
                   Format: .csv — Maks. {MAX_FILE_SIZE_MB}MB
                 </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Maksimum 500 baris per file. Untuk lebih dari 500 pengguna, bagi menjadi beberapa
+                  file.
+                </p>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -681,9 +736,13 @@ export function BulkImportWizard({ onClose, onSuccess }: BulkImportWizardProps) 
               {isProcessing ? (
                 <div className="text-center py-8">
                   <Loader2 className="w-12 h-12 mx-auto mb-4 text-blue-600 animate-spin" />
-                  <p className="font-semibold text-slate-700 dark:text-slate-200 mb-4">
+                  <p className="font-semibold text-slate-700 dark:text-slate-200 mb-1">
                     Sedang memproses impor...
                   </p>
+                  {chunkStatus && (
+                    <p className="text-sm text-blue-600 dark:text-blue-400 mb-4">{chunkStatus}</p>
+                  )}
+                  {!chunkStatus && <div className="mb-4" />}
                   {/* Progress Bar */}
                   <div className="relative h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden max-w-sm mx-auto">
                     <div

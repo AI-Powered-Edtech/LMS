@@ -161,6 +161,7 @@ export function AITutorPanel({
     } catch (err) {
       if (import.meta.env.DEV) console.error('[AI Tutor] Unexpected error:', err)
       captureError(err, { context: 'AITutorPanel.handleSendQuestion', lessonId })
+      setError({ message: 'Terjadi kesalahan yang tidak terduga', code: 'UNKNOWN_ERROR' })
       const errorMessage: AITutorMessage = {
         id: generateMessageId(),
         role: 'assistant',
@@ -233,7 +234,7 @@ export function AITutorPanel({
           <div className="mb-4">
             <p className="text-xs text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-1">
               <Lightbulb className="w-3 h-3" />
-              Suggestions:
+              Saran Pertanyaan:
             </p>
             <div className="flex flex-wrap gap-2">
               {suggestedQuestions.map((q, idx) => (

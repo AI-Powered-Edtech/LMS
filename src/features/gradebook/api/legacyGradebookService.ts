@@ -36,9 +36,14 @@ export const gradebookService = {
   /**
    * Fetch complete gradebook data: assignments, students, and grade entries.
    * @param tenantId - Required for multi-tenant isolation (EduSync Constitution Rule #3)
+   * @param submissionsPage - Zero-indexed page for submissions (50 per page). Defaults to 0.
    */
-  async fetchGradebook(tenantId: string): Promise<GradebookData> {
+  async fetchGradebook(tenantId: string, submissionsPage = 0): Promise<GradebookData> {
     if (!tenantId) throw new Error('tenantId is required for fetchGradebook')
+
+    const SUBMISSIONS_PAGE_SIZE = 50
+    const submissionsFrom = submissionsPage * SUBMISSIONS_PAGE_SIZE
+    const submissionsTo = submissionsFrom + SUBMISSIONS_PAGE_SIZE - 1
 
     // PARALLELIZE ALL FOUR QUERIES to cut load time by ~75%
     const [
@@ -58,7 +63,7 @@ export const gradebookService = {
         .select('id, assignment_id, student_id, status, score, feedback')
         .eq('tenant_id', tenantId)
         .order('submitted_at', { ascending: false })
-        .limit(1000),
+        .range(submissionsFrom, submissionsTo),
       // Server-side student filtering via RPC — avoids fetching non-student profiles
       // and eliminates the PostgREST 400 error from !inner join on user_roles.
       supabase.rpc('get_gradebook_students', { p_tenant_id: tenantId }),
@@ -70,7 +75,7 @@ export const gradebookService = {
             .select('id, quiz_id, student_id, score, status, tenant_id')
             .eq('tenant_id', tenantId)
             .eq('status', 'GRADED')
-            .limit(1000)
+            .limit(500)
         } catch {
           return { data: [] }
         }

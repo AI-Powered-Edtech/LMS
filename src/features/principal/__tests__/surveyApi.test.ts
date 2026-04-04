@@ -1,10 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockFrom = vi.fn()
+const mockGetUser = vi.fn()
 
 vi.mock('@/services/supabase/client', () => ({
   supabase: {
     from: (...args: unknown[]) => mockFrom(...args),
+    auth: {
+      getUser: (...args: unknown[]) => mockGetUser(...args),
+    },
   },
 }))
 
@@ -52,7 +56,7 @@ describe('getSurveys', () => {
     const result = await getSurveys()
 
     expect(mockFrom).toHaveBeenCalledWith('satisfaction_surveys')
-    expect(mockSelect).toHaveBeenCalledWith('*')
+    expect(mockSelect).toHaveBeenCalledWith(expect.any(String))
     expect(mockOrder).toHaveBeenCalledWith('created_at', { ascending: false })
     expect(result).toEqual(mockSurveys)
   })
@@ -278,7 +282,9 @@ describe('getSurveyResults', () => {
       if (table === 'survey_responses') {
         return {
           select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockResolvedValue({ data: responses, error: null }),
+            eq: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue({ data: responses, error: null }),
+            }),
           }),
         }
       }
@@ -341,9 +347,11 @@ describe('getSurveyResults', () => {
       if (table === 'survey_responses') {
         return {
           select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockResolvedValue({
-              data: null,
-              error: { message: 'responses query failed' },
+            eq: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue({
+                data: null,
+                error: { message: 'responses query failed' },
+              }),
             }),
           }),
         }
@@ -361,7 +369,11 @@ describe('submitSurveyResponse', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('inserts response with survey_id and answers', async () => {
-    const mockInsert = vi.fn().mockResolvedValue({ error: null })
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
+
+    const mockSingle = vi.fn().mockResolvedValue({ error: null })
+    const mockSelectAfterInsert = vi.fn().mockReturnValue({ single: mockSingle })
+    const mockInsert = vi.fn().mockReturnValue({ select: mockSelectAfterInsert })
     mockFrom.mockReturnValue({ insert: mockInsert })
 
     const answers = { q1: 5, q2: true, q3: 'Nice' }
@@ -370,15 +382,18 @@ describe('submitSurveyResponse', () => {
     expect(mockFrom).toHaveBeenCalledWith('survey_responses')
     expect(mockInsert).toHaveBeenCalledWith({
       survey_id: 's1',
+      respondent_id: 'user-1',
       answers,
     })
   })
 
   it('throws error on insert failure', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
+
+    const mockSingle = vi.fn().mockResolvedValue({ error: { message: 'insert failed' } })
+    const mockSelectAfterInsert = vi.fn().mockReturnValue({ single: mockSingle })
     mockFrom.mockReturnValue({
-      insert: vi.fn().mockResolvedValue({
-        error: { message: 'insert failed' },
-      }),
+      insert: vi.fn().mockReturnValue({ select: mockSelectAfterInsert }),
     })
 
     await expect(submitSurveyResponse('s1', { q1: 5 })).rejects.toThrow(

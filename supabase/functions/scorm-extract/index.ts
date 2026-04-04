@@ -1,6 +1,9 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import JSZip from 'https://esm.sh/jszip@3.10.1'
+import { corsHeaders, handleCors } from '../_shared/cors.ts'
+import { jsonResponse, errorResponse } from '../_shared/response.ts'
+import { authenticate, type AuthResult } from '../_shared/auth.ts'
 
 // ==========================================================================
 // Edge Function: scorm-extract
@@ -18,26 +21,6 @@ import JSZip from 'https://esm.sh/jszip@3.10.1'
 // ==========================================================================
 
 const MAX_ZIP_SIZE = 100 * 1024 * 1024 // 100MB
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('CORS_ORIGIN') ?? 'https://lms.edusync.dev',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
-function jsonResponse(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  })
-}
-
-function errorResponse(message: string, status = 500) {
-  return new Response(JSON.stringify({ error: message }), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  })
-}
 
 /**
  * Parse imsmanifest.xml to extract SCORM version and entry point.
@@ -145,9 +128,8 @@ async function parseMultipartForm(req: Request): Promise<{
 
 Deno.serve(async (req: Request) => {
   // CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  const corsResponse = handleCors(req)
+  if (corsResponse) return corsResponse
 
   if (req.method !== 'POST') {
     return errorResponse('Metode tidak diizinkan', 405)
@@ -157,29 +139,21 @@ Deno.serve(async (req: Request) => {
 
   try {
     // 1. Auth — require teacher/admin
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) return errorResponse('Unauthorized', 401)
+    let user: AuthResult['user']
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-
-    // Verify user identity
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    })
-
-    const {
-      data: { user },
-      error: authError,
-    } = await userClient.auth.getUser()
-
-    if (authError || !user) return errorResponse('AUTH_INVALID', 401)
+    try {
+      const authResult = await authenticate(req)
+      user = authResult.user
+    } catch (e: unknown) {
+      return errorResponse('Unauthorized', 401)
+    }
 
     const tenantId = user.app_metadata?.tenant_id
     if (!tenantId) return errorResponse('TENANT_MISSING', 403)
 
     // Check role — must be teacher or admin
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const serviceClient = createClient(supabaseUrl, serviceKey, {
       auth: { persistSession: false },
     })

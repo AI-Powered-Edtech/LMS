@@ -1,5 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
-import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { corsHeaders, handleCors } from '../_shared/cors.ts'
+import { jsonResponse, errorResponse } from '../_shared/response.ts'
+import { authenticate, type AuthResult } from '../_shared/auth.ts'
 
 // ==========================================================================
 // Edge Function: load-quiz-data
@@ -11,50 +13,25 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 // banks using get_pool_questions_for_attempt() with the attempt_seed so
 // each student gets a deterministic but unique question set.
 
-const getCorsHeaders = () => ({
-  'Access-Control-Allow-Origin': Deno.env.get('CORS_ORIGIN') ?? 'https://lms.edusync.dev',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-})
-
-function jsonResponse(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...getCorsHeaders() },
-  })
-}
-
-function errorResponse(message: string, status = 500) {
-  return new Response(JSON.stringify({ error: message }), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...getCorsHeaders() },
-  })
-}
-
 Deno.serve(async (req: Request) => {
   // 1. CORS Preflight
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: getCorsHeaders() })
-  }
+  const corsResponse = handleCors(req)
+  if (corsResponse) return corsResponse
 
   try {
     // 2. Authentication & Tenant Verification
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) throw new Error('AUTH_MISSING')
+    let supabase: AuthResult['supabase']
+    let user: AuthResult['user']
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    // Use anon key for user context, ensuring RLS blocks cross-tenant reads
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
-
-    const supabase = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    })
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return errorResponse('AUTH_INVALID', 401)
+    try {
+      const authResult = await authenticate(req)
+      supabase = authResult.supabase
+      user = authResult.user
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : ''
+      if (msg === 'AUTH_MISSING') return errorResponse('Unauthorized', 401)
+      if (msg === 'AUTH_INVALID') return errorResponse('AUTH_INVALID', 401)
+      return errorResponse('AUTH_FAILED', 401)
     }
 
     const tenantId = user.app_metadata?.tenant_id as string | undefined
@@ -70,7 +47,7 @@ Deno.serve(async (req: Request) => {
       return errorResponse('INVALID_PAYLOAD', 400)
     }
 
-    // ── Phase 33A: Check if pool mode is active for this quiz ────────────────
+    // ── Phase 33A: Check if pool mode is active for this quiz ────────────────────────
     // Pool mode is active when quiz_pool_config rows exist for this quiz.
     // We do a lightweight count check before deciding which fetch path to use.
     const { count: poolConfigCount, error: poolCountError } = await supabase
@@ -86,7 +63,7 @@ Deno.serve(async (req: Request) => {
 
     const isPoolMode = (poolConfigCount ?? 0) > 0
 
-    // ── Path A: Pool mode — draw questions via server-side RPC ──────────────
+    // ── Path A: Pool mode — draw questions via server-side RPC ──────────────────────
     if (isPoolMode && attempt_seed) {
       const { data: poolData, error: poolError } = await supabase.rpc(
         'get_pool_questions_for_attempt',
@@ -132,7 +109,7 @@ Deno.serve(async (req: Request) => {
       })
     }
 
-    // ── Path B: Fixed quiz_questions (original behaviour) ────────────────────
+    // ── Path B: Fixed quiz_questions (original behaviour) ─────────────────────────
     // 4. Fetch the Data
     // We explicitly omit 'is_correct' or 'explanation' to guarantee they never leak to the client
     const { data: questionsData, error: dbError } = await supabase
@@ -207,8 +184,6 @@ Deno.serve(async (req: Request) => {
     })
   } catch (err: unknown) {
     console.error('LOAD_QUIZ_DATA_ERROR', err)
-    const message = err instanceof Error ? err.message : 'Unknown'
-    if (message === 'AUTH_MISSING') return errorResponse('Unauthorized', 401)
     return errorResponse('Internal Server Error', 500)
   }
 })

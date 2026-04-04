@@ -62,8 +62,8 @@ interface DiffPreviewProps {
 
 function DiffPreview({ diff, versionNumber, isRestoring, onConfirm, onCancel }: DiffPreviewProps) {
   const hasChanges =
-    diff.addedModules.length > 0 ||
-    diff.removedModules.length > 0 ||
+    diff.restoredModules.length > 0 ||
+    diff.lostModules.length > 0 ||
     diff.addedLessonCount > 0 ||
     diff.removedLessonCount > 0 ||
     diff.modifiedModuleTitles.length > 0
@@ -103,15 +103,15 @@ function DiffPreview({ diff, versionNumber, isRestoring, onConfirm, onCancel }: 
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {/* Added modules (restored from snapshot) */}
-          {diff.addedModules.length > 0 && (
+          {/* Restored modules (in snapshot but not in current) */}
+          {diff.restoredModules.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mb-1.5 flex items-center gap-1">
                 <PlusCircle className="w-3.5 h-3.5" />
-                Modul yang dikembalikan ({diff.addedModules.length})
+                Modul yang dikembalikan ({diff.restoredModules.length})
               </p>
               <div className="flex flex-col gap-1">
-                {diff.addedModules.map((m) => (
+                {diff.restoredModules.map((m) => (
                   <div
                     key={m.id}
                     className="flex justify-between items-center text-sm bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 rounded-lg px-3 py-1.5"
@@ -128,15 +128,15 @@ function DiffPreview({ diff, versionNumber, isRestoring, onConfirm, onCancel }: 
             </div>
           )}
 
-          {/* Removed modules (exist now but not in snapshot) */}
-          {diff.removedModules.length > 0 && (
+          {/* Lost modules (exist now but not in snapshot) */}
+          {diff.lostModules.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide mb-1.5 flex items-center gap-1">
                 <MinusCircle className="w-3.5 h-3.5" />
-                Modul yang akan dihapus ({diff.removedModules.length})
+                Modul yang akan dihapus ({diff.lostModules.length})
               </p>
               <div className="flex flex-col gap-1">
-                {diff.removedModules.map((m) => (
+                {diff.lostModules.map((m) => (
                   <div
                     key={m.id}
                     className="flex justify-between items-center text-sm bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30 rounded-lg px-3 py-1.5"
@@ -282,12 +282,17 @@ export function CourseVersionHistoryDrawer({
 
   const handleConfirmRestore = async () => {
     if (drawerView.type !== 'diff') return
-    await restoreVersionMutation.mutateAsync({
-      versionId: drawerView.versionId,
-      courseId,
-    })
-    setDrawerView({ type: 'list' })
-    onClose()
+    try {
+      await restoreVersionMutation.mutateAsync({
+        versionId: drawerView.versionId,
+        courseId,
+      })
+      setDrawerView({ type: 'list' })
+      onClose()
+    } catch {
+      // toast shown by onError — reset to list view but drawer stays open
+      setDrawerView({ type: 'list' })
+    }
   }
 
   const handleClose = () => {
@@ -459,7 +464,7 @@ export function CourseVersionHistoryDrawer({
                               className="mt-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 self-start text-left flex items-center gap-1.5"
                             >
                               <GitCompare className="w-3.5 h-3.5" />
-                              Pratinjau &amp; Restore ke versi ini
+                              Pratinjau & Restore ke versi ini
                             </button>
                           )}
                         </div>

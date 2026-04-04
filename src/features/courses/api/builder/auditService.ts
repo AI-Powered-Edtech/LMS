@@ -19,7 +19,7 @@ export interface CourseActionLog {
   id: string
   tenant_id: string
   course_id: string
-  user_id: string
+  user_id: string | null
   action_type: CourseActionType
   metadata: Record<string, unknown>
   created_at: string
@@ -33,19 +33,34 @@ export const auditService = {
   /**
    * Append an entry to the course_action_logs audit trail.
    * Fire-and-forget — failures are logged but do NOT block the triggering action.
+   *
+   * Uses getSession() (reads from memory) instead of getUser() (network call)
+   * to avoid an extra round-trip on every audit log write.
    */
   async logCourseAction(
     courseId: string,
     actionType: CourseActionType,
     metadata: Record<string, unknown> = {}
   ): Promise<void> {
+    // getSession() reads from memory — no network call
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+
+    // If no authenticated user, skip insert rather than writing an invalid UUID
+    if (!userId) {
+      logDevWarn(
+        'auditService',
+        `Skipping audit log for "${actionType}" — no authenticated session.`
+      )
+      return
+    }
+
     const { error } = await supabase.from('course_action_logs').insert({
       course_id: courseId,
       action_type: actionType,
       metadata,
       // tenant_id is set automatically by trigger auto_set_tenant_id_from_course
-      // user_id is inferred from auth.uid() enforced by RLS policy
-      user_id: (await supabase.auth.getUser()).data.user?.id ?? '',
+      user_id: userId,
     })
 
     if (error) {

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery } from '@tanstack/react-query'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/services/supabase/client'
@@ -34,66 +34,78 @@ const RELEVANT_EVENT_TYPES: TeacherActivityEventType[] = [
   'CLASS_JOINED',
 ]
 
-async function fetchTeacherActivity(
-  teacherId: string,
-  tenantId: string
-): Promise<TeacherActivityEvent[]> {
-  // Fetch the IDs of classes taught by this teacher
-  const { data: classes, error: classesError } = await supabase
-    .from('classes')
-    .select('id')
-    .eq('teacher_id', teacherId)
-    .eq('tenant_id', tenantId)
-
-  if (classesError) throw classesError
-
-  // If no classes found, return empty array
-  if (!classes || classes.length === 0) return []
-
-  const classIds = classes.map((c) => c.id)
-
-  // Fetch recent activity events for those classes, joined with student profiles
-  const { data, error } = await supabase
-    .from('activity_events')
-    .select(
-      `
-      id,
-      event_type,
-      user_id,
-      metadata,
-      created_at,
-      class_id,
-      profiles!activity_events_user_id_fkey (
-        full_name,
-        avatar_url
-      )
-    `
-    )
-    .eq('tenant_id', tenantId)
-    .in('class_id', classIds)
-    .in('event_type', RELEVANT_EVENT_TYPES)
-    .order('created_at', { ascending: false })
-    .limit(20)
-
-  if (error) throw error
-
-  // Supabase returns joined profiles as an array; normalise to single object or null
-  return (data ?? []).map((row) => ({
-    ...row,
-    profiles: Array.isArray(row.profiles) ? (row.profiles[0] ?? null) : (row.profiles ?? null),
-  })) as TeacherActivityEvent[]
-}
+const PAGE_SIZE = 20
 
 /**
  * Hook untuk mengambil aktivitas terbaru dari siswa di kelas yang diajar guru.
+ * Menggunakan cursor-based infinite scroll dengan `created_at` sebagai kursor.
  * Auto-refresh setiap 30 detik.
  */
 export function useTeacherActivity() {
   const { user, tenantId } = useAuth()
 
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: [...activityKeys.all(tenantId!), 'feed', user?.id],
-    queryFn: () => fetchTeacherActivity(user!.id, tenantId!),
+    queryFn: async ({ pageParam }) => {
+      // Fetch the IDs of classes taught by this teacher
+      const { data: classes, error: classesError } = await supabase
+        .from('classes')
+        .select('id')
+        .eq('teacher_id', user!.id)
+        .eq('tenant_id', tenantId!)
+
+      if (classesError) throw classesError
+
+      // If no classes found, return empty array
+      if (!classes || classes.length === 0) return []
+
+      const classIds = classes.map((c) => c.id)
+
+      // Fetch paginated activity events using cursor (created_at)
+      let query = supabase
+        .from('activity_events')
+        .select(
+          `
+          id,
+          event_type,
+          user_id,
+          metadata,
+          created_at,
+          class_id,
+          profiles!activity_events_user_id_fkey (
+            full_name,
+            avatar_url
+          )
+        `
+        )
+        .eq('tenant_id', tenantId!)
+        .in('class_id', classIds)
+        .in('event_type', RELEVANT_EVENT_TYPES)
+        .order('created_at', { ascending: false })
+        .limit(PAGE_SIZE)
+
+      // Apply cursor for pages after the first
+      if (pageParam) {
+        query = query.lt('created_at', pageParam)
+      }
+
+      const { data, error } = await query
+
+      if (error) throw error
+
+      // Supabase returns joined profiles as an array; normalise to single object or null
+      return (data ?? []).map((row) => ({
+        ...row,
+        profiles: Array.isArray(row.profiles) ? (row.profiles[0] ?? null) : (row.profiles ?? null),
+      })) as TeacherActivityEvent[]
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => {
+      // If fewer than PAGE_SIZE items returned, no more pages
+      if (lastPage.length < PAGE_SIZE) return undefined
+      // Use created_at of the last item as the next cursor
+      return lastPage[lastPage.length - 1].created_at
+    },
     enabled: !!user && !!tenantId,
     refetchInterval: 30_000,
     staleTime: 15_000,

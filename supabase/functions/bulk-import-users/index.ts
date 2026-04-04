@@ -113,6 +113,16 @@ Deno.serve(async (req: Request) => {
     })
   }
 
+  const MAX_ROWS = 500
+  if (rows.length > MAX_ROWS) {
+    return new Response(
+      JSON.stringify({
+        error: `Maksimum ${MAX_ROWS} baris per impor. Anda mengirim ${rows.length} baris.`,
+      }),
+      { status: 400, headers: { ...getCorsHeaders(), 'Content-Type': 'application/json' } }
+    )
+  }
+
   if (!tenantId || !importJobId) {
     return new Response(JSON.stringify({ error: 'tenantId dan importJobId wajib diisi' }), {
       status: 400,
@@ -138,11 +148,39 @@ Deno.serve(async (req: Request) => {
   }
 
   // 6. Proses setiap baris — satu baris gagal TIDAK menghentikan proses
+  const START_TIME = Date.now()
+  const MAX_DURATION_MS = 120_000 // 120 detik (aman di bawah batas 150 detik Supabase)
+
   let successRows = 0
   let failedRows = 0
   const errors: RowError[] = []
 
   for (let i = 0; i < rows.length; i++) {
+    // Periksa batas waktu sebelum memproses setiap baris
+    if (Date.now() - START_TIME > MAX_DURATION_MS) {
+      await serviceClient
+        .from('bulk_import_jobs')
+        .update({
+          status: 'partial',
+          success_rows: successRows,
+          failed_rows: failedRows,
+          completed_at: new Date().toISOString(),
+        })
+        .eq('id', importJobId)
+
+      return new Response(
+        JSON.stringify({
+          success: successRows,
+          failed: failedRows,
+          total: rows.length,
+          status: 'partial',
+          message: 'Batas waktu tercapai. Impor sebagian berhasil.',
+          errors,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json', ...getCorsHeaders() } }
+      )
+    }
+
     const row = rows[i]
     const rowNum = i + 1
 

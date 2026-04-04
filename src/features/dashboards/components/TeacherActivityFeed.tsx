@@ -177,7 +177,19 @@ function ActivityItem({ event }: { event: TeacherActivityEvent }) {
 // ─── Main Component ────────────────────────────────────────────
 
 export function TeacherActivityFeed() {
-  const { data: events, isLoading, isError, isFetching, refetch } = useTeacherActivity()
+  const {
+    data,
+    isLoading,
+    isError,
+    isFetching,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useTeacherActivity()
+
+  // Flatten all pages into a single list of activity events
+  const activities = data?.pages.flat() ?? []
 
   return (
     <div className="bg-neutral-50 dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700/60 shadow-sm overflow-hidden">
@@ -221,12 +233,24 @@ export function TeacherActivityFeed() {
               Coba Lagi
             </Button>
           </div>
-        ) : events && events.length > 0 ? (
-          <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
-            {events.map((event) => (
-              <ActivityItem key={event.id} event={event} />
-            ))}
-          </div>
+        ) : activities.length > 0 ? (
+          <>
+            <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
+              {activities.map((event) => (
+                <ActivityItem key={event.id} event={event} />
+              ))}
+            </div>
+            {/* Load more button */}
+            {hasNextPage && (
+              <button
+                onClick={() => void fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className="w-full py-2.5 text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 border-t border-neutral-100 dark:border-neutral-800 transition-colors disabled:opacity-50"
+              >
+                {isFetchingNextPage ? 'Memuat...' : 'Muat lebih banyak'}
+              </button>
+            )}
+          </>
         ) : (
           <div className="flex flex-col items-center justify-center gap-2 py-10 px-4 text-center">
             <BookOpen className="w-8 h-8 text-neutral-300 dark:text-neutral-600" />

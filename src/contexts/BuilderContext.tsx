@@ -24,7 +24,9 @@ import {
   useLessonActions,
   useModuleActions,
 } from '@/features/courses/builder'
+import { ConflictResolutionDialog } from '@/features/courses/builder/ConflictResolutionDialog'
 import { useBuilderChannel } from '@/features/courses/builder/useBuilderChannel'
+import type { ConflictDialogState } from '@/features/courses/builder/useBuilderOffline'
 import { useBuilderOffline } from '@/features/courses/builder/useBuilderOffline'
 import type { PresenceData } from '@/features/courses/builder/useBuilderPresence'
 import { useMobileBuilder } from '@/features/courses/builder/useMobileBuilder'
@@ -86,6 +88,10 @@ interface BuilderContextValue {
     hasPendingDraft: boolean
     saveNow: () => Promise<void>
     syncToServer: () => Promise<void>
+    conflictDialog: ConflictDialogState | null
+    handleConflictUseLocal: () => Promise<void>
+    handleConflictUseServer: () => void
+    dismissConflictDialog: () => void
   }
 }
 
@@ -258,7 +264,21 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     [stableValue, state]
   )
 
-  return <BuilderContext.Provider value={value}>{children}</BuilderContext.Provider>
+  return (
+    <BuilderContext.Provider value={value}>
+      {children}
+      {offline.conflictDialog && (
+        <ConflictResolutionDialog
+          isOpen={offline.conflictDialog.isOpen}
+          localUpdatedAt={offline.conflictDialog.localUpdatedAt}
+          serverUpdatedAt={offline.conflictDialog.serverUpdatedAt}
+          onUseLocal={offline.handleConflictUseLocal}
+          onUseServer={offline.handleConflictUseServer}
+          onClose={offline.dismissConflictDialog}
+        />
+      )}
+    </BuilderContext.Provider>
+  )
 }
 
 export function useBuilder() {

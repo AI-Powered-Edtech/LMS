@@ -1,5 +1,52 @@
 # EduSync LMS — Changelog
 
+## [Unreleased] — 2026-04-04
+
+### 🐛 Bug Fixes (Data Correctness)
+
+- **Parent Portal**: Fixed `attendance_records` query — was using non-existent `student_id` column, now correctly joins via `enrollments.enrollment_id`. Parent dashboard no longer shows child as perpetually absent.
+- **Parent Portal**: Fixed `lesson_progress` queries — `student_id` → `user_id`, `is_completed` → `completed` column names in `parentApi.ts`, `generate-parent-report`, and `send-parent-digest` Edge Functions.
+- **Parent Portal**: Fixed `get_my_children()` RPC — wrong FK names (`e.user_id` → `e.student_id`, `classrooms` → `classes`, `classroom_id` → `class_id`). Added DISTINCT to prevent duplicate child rows.
+- **Survey System**: Fixed `submitSurveyResponse()` — was not passing `respondent_id`, causing RLS rejection. Responses now correctly stored.
+- **AI Tutor**: Fixed English strings — `'Suggestions:'` → `'Saran Pertanyaan:'`, `'Unauthorized'` → `'Akses tidak diizinkan.'`, `'New Conversation'` → `'Percakapan Baru'`.
+
+### 🚀 New Features
+
+- **Gamification XP v2**: Activated archived gamification system — deployed `xp_transactions`, `student_xp_summary` tables + `get_leaderboard_v2()`, `get_student_xp_profile()`, `record_xp_transaction()` RPCs. Added `pg_advisory_xact_lock` for double-award prevention.
+- **Certificates**: Activated archived certificates system — deployed `certificates` table + `issue_certificate()`, `get_student_certificates()` RPCs. Wired `CertificateTemplateEditor` into teacher UI.
+- **Survey Respondent UI**: Teachers, students, and parents can now view and fill active surveys at `/app/{role}/survey/:surveyId`.
+- **Finance Write Operations**: Added "Tandai Lunas" button and "Tambah Tagihan" form to Finance Dashboard. `record_payment()` RPC with `pg_advisory_xact_lock` for atomic payment recording.
+- **Messaging Realtime**: Enabled Supabase Realtime for `parent_teacher_messages` and `parent_teacher_threads` — messages now delivered in real-time.
+- **Principal Dashboard Cache**: Created `mv_principal_overview` materialized view with 15-minute pg_cron refresh for faster executive metrics.
+- **Offline Mode Conflict Resolution**: Added conflict detection dialog when server version is newer than local draft. User can choose to keep local or server version instead of silent overwrite.
+
+### ⚡ Performance Improvements
+
+- **Parent Portal**: Added 7 covering indexes for attendance, gradebook, activity, lesson_progress, enrollments, assignments queries.
+- **Parent Digest Edge Function**: Eliminated O(P×C) serial N+1 loop — replaced with batch pre-fetch queries. 100 parents × 2 children: from ~1100 serial queries to ~8 batch queries.
+- **Audit Log**: Added composite index `admin_audit_logs(tenant_id, created_at DESC)`.
+- **Activity Feed**: Implemented cursor-based infinite scroll pagination via `useInfiniteQuery`.
+- **SpeedGrader**: Replaced `.limit(1000)` submission fetch with paginated 50-per-page queries.
+- **Principal Dashboard**: Added `get_principal_overview_cached()` RPC reading from materialized view with 5-minute React Query stale time.
+
+### 🔒 Security Improvements
+
+- **Leaderboard**: Revoked `recompute_leaderboard()` and `recompute_weekly_leaderboard()` from `anon` role. Only `authenticated` users can trigger recomputation.
+- **Gamification Cron**: Created `process_gamification_events()` function (was called by cron but never existed — silently failing every night).
+- **Messaging Rate Limiting**: Added client-side rate limiter (10 messages/60s) to `sendMessage()`.
+
+### 🧹 Cleanup
+
+- **Edge Functions**: Migrated `ai-grade-essay`, `generate-pdf`, `load-quiz-data`, `scorm-extract`, `send-push` to use `_shared/auth.ts`, `_shared/cors.ts`, `_shared/response.ts` — eliminated duplicated boilerplate.
+- **Survey API**: Replaced all `SELECT *` with explicit column lists. Added `.limit(500)` to responses query.
+- **Finance Navigation**: Removed "Segera" badge from Finance nav item.
+- **BillingDashboard**: Added pagination (20 per page) to invoices list.
+- **Messages**: Added `.limit(100)` to `getMessages()` query.
+- **Bulk Import**: Added 500-row MAX_ROWS guard, 50-row chunk processing, 120s timeout protection.
+- **AI Tutor**: Added retry logic (1x on 429/503/504) + fallback to `llama3-8b-8192` model. Added explicit error catch arms for Groq-specific errors. Fixed dark mode on typing indicator.
+
+---
+
 ## [Unreleased] — 2026-04-05 (Phase 31 — Courses Module Governance Overhaul)
 
 ### Feature: Course Release Panel
