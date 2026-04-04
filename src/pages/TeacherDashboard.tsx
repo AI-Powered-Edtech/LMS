@@ -11,7 +11,8 @@ import {
   Settings,
   Users,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { motion } from 'motion/react'
+import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Badge, Button, Card, EmptyState, SkeletonCard } from '@/components/ui'
@@ -33,12 +34,13 @@ export function TeacherDashboard() {
   const { assignments } = useAssignments()
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  async function handleRefreshData() {
+  // ⚡ Perf: stabilize refresh handler ref
+  const handleRefreshData = useCallback(async () => {
     setIsRefreshing(true)
     await queryClient.invalidateQueries({ queryKey: ['analytics', tenantId] })
     // Brief visual feedback before re-enabling
     setTimeout(() => setIsRefreshing(false), 1000)
-  }
+  }, [queryClient, tenantId])
 
   // Real pending grading count from assignments
   const pendingGradingCount = useMemo(
@@ -66,6 +68,21 @@ export function TeacherDashboard() {
 
   const userName = profile ? `${profile.first_name} ${profile.last_name}`.trim() || 'Guru' : 'Guru'
 
+  // ⚡ Perf: memoize teaching tools filter — navigationItems is static
+  const topTeachingTools = useMemo(
+    () =>
+      navigationItems
+        .filter((item) => item.location === 'teaching-hub' && item.roles.includes('teacher'))
+        .slice(0, 4),
+    []
+  )
+
+  // ⚡ Perf: stabilize navigate callback refs to prevent child re-renders
+  const navigateToCourses = useCallback(() => navigate('/app/teacher/courses'), [navigate])
+  const navigateToCreator = useCallback(() => navigate('/creator'), [navigate])
+  const navigateToTeachingHub = useCallback(() => navigate('/app/teacher/teaching-hub'), [navigate])
+  const navigateToClasses = useCallback(() => navigate('/app/teacher/classes'), [navigate])
+
   if (classroomsLoading) {
     return <DashboardSkeleton />
   }
@@ -92,16 +109,13 @@ export function TeacherDashboard() {
             >
               Perbarui Data
             </Button>
-            <Button
-              icon={<BookOpen className="w-4 h-4" />}
-              onClick={() => navigate('/app/teacher/courses')}
-            >
+            <Button icon={<BookOpen className="w-4 h-4" />} onClick={navigateToCourses}>
               Kelola Materi
             </Button>
             <Button
               variant="secondary"
               icon={<Plus className="w-4 h-4" />}
-              onClick={() => navigate('/creator')}
+              onClick={navigateToCreator}
             >
               Buat Tugas
             </Button>
@@ -255,7 +269,7 @@ export function TeacherDashboard() {
               icon={<Users className="w-12 h-12" />}
               title="Belum ada kelas"
               description="Buat kelas pertamamu untuk mulai mengajar."
-              action={{ label: 'Buat Kelas', onClick: () => navigate('/app/teacher/classes') }}
+              action={{ label: 'Buat Kelas', onClick: navigateToClasses }}
             />
           </Card>
         )}
@@ -268,44 +282,44 @@ export function TeacherDashboard() {
             <Settings className="w-5 h-5 text-blue-500" />
             Peralatan Mengajar
           </h2>
-          <Button variant="ghost" size="sm" onClick={() => navigate('/app/teacher/teaching-hub')}>
+          <Button variant="ghost" size="sm" onClick={navigateToTeachingHub}>
             Lihat Semua <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {navigationItems
-            .filter((item) => item.location === 'teaching-hub' && item.roles.includes('teacher'))
-            .slice(0, 4)
-            .map((tool) => {
-              const IconComponent = tool.icon
-              return (
-                <button
-                  key={tool.id}
-                  onClick={() => navigate(tool.path)}
-                  className="flex items-center gap-4 p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-blue-300 hover:shadow-md transition-all group"
+          {topTeachingTools.map((tool, idx) => {
+            const IconComponent = tool.icon
+            return (
+              <motion.button
+                key={tool.id}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: idx * 0.05 }}
+                onClick={() => navigate(tool.path)}
+                className="flex items-center gap-4 p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-blue-300 hover:shadow-md transition-all group"
+              >
+                <div
+                  className={cn(
+                    'w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110',
+                    tool.bg,
+                    tool.color
+                  )}
                 >
-                  <div
-                    className={cn(
-                      'w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110',
-                      tool.bg,
-                      tool.color
-                    )}
-                  >
-                    <IconComponent className="w-6 h-6" />
-                  </div>
-                  <div className="flex flex-col items-start">
-                    <span className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400">
-                      {tool.name}
+                  <IconComponent className="w-6 h-6" />
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400">
+                    {tool.name}
+                  </span>
+                  {tool.description && (
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium line-clamp-1">
+                      {tool.description}
                     </span>
-                    {tool.description && (
-                      <span className="text-xs text-slate-500 dark:text-slate-400 font-medium line-clamp-1">
-                        {tool.description}
-                      </span>
-                    )}
-                  </div>
-                </button>
-              )
-            })}
+                  )}
+                </div>
+              </motion.button>
+            )
+          })}
         </div>
       </div>
 
