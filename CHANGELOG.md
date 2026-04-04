@@ -1,5 +1,61 @@
 # EduSync LMS — Changelog
 
+## [Phase 38A] — 2026-05-05
+
+### ✨ Fitur Baru: AI Content Generator — Production Ready
+
+**Komponen yang diupdate:** `src/pages/Creator.tsx`, `src/features/creator/`
+
+#### Backend (Edge Function)
+
+- **`generate-ai-content`**: Ditulis ulang sepenuhnya — dari MOCK menjadi production-ready
+  - Integrasi real LLM: Groq `llama-3.1-70b-versatile` dengan prompt Bloom's Taxonomy (C1–C6)
+  - Ekstraksi teks file: PDF (BT/ET regex parser), DOCX (zip.js XML), TXT/CSV (decode langsung)
+  - Role security: student diblokir dengan HTTP 403
+  - Rate limiting: maks 20 generasi/jam per user via `ai_generation_logs`
+  - Persistence: hasil disimpan ke `ai_generated_content` table
+  - Audit logging: semua attempt (success/error/rate_limited) dicatat ke `ai_generation_logs`
+  - Timeout: 30s dengan AbortController
+  - Error handling: kode error spesifik (FILE_TOO_LARGE, INSUFFICIENT_CONTENT, AI_TIMEOUT, dll)
+
+#### Database
+
+- **Tabel baru**: `ai_generated_content` — menyimpan hasil generasi dengan RLS multi-tenant
+- **Tabel baru**: `ai_generation_logs` — append-only usage log (rate limit + metering)
+- **RPC baru**: `get_ai_generation_stats(p_tenant_id)` — statistik penggunaan per tenant
+
+#### Frontend (`src/features/creator/`)
+
+- **Tipe baru**: `types/index.ts` — `GeneratedQuizQuestion`, `GeneratedOpenQuestion`, `BloomLevel`, `BLOOM_LABELS`, `BLOOM_DESCRIPTIONS`
+- **Service baru**: `api/creatorService.ts` — 5 metode lengkap (generate, fetchHistory, markAsUsed, updateQuestions, deleteGeneration)
+- **Query hooks baru**: `queries/creatorQueries.ts` — 5 hooks React Query (`useGenerateAIContent`, `useAIContentHistory`, `useMarkContentUsed`, `useUpdateGenerationQuestions`, `useDeleteGeneration`)
+- **Komponen baru**: `components/EditQuestionModal.tsx` — editor modal (menggantikan window.prompt)
+- **Komponen baru**: `components/QuestionCard.tsx` — kartu soal dengan seleksi checkbox
+- **Komponen baru**: `components/HistoryPanel.tsx` — panel riwayat generasi
+
+#### UX Fixes (`src/pages/Creator.tsx`)
+
+- ✅ Ganti `window.prompt()` dengan `EditQuestionModal` (Modal component)
+- ✅ Ganti plain `async/await` dengan `useMutation` (pola codebase standard)
+- ✅ Tambah seleksi soal (checkbox per soal + "Pilih Semua" / "Batalkan Semua")
+- ✅ Tambah panel riwayat 20 generasi terakhir
+- ✅ Tombol hapus soal individual
+- ✅ Badge "Tersimpan" ketika hasil sudah di-persist ke DB
+- ✅ Deskripsi Bloom ditampilkan di bawah selector
+- ✅ File format description diperbaiki: menampilkan .txt, .csv
+- ✅ `navigate('/calendar')` diganti dengan `getPath()` (role-aware)
+- ✅ Progress steps timer pakai `useRef` (tidak ada memory leak)
+- ✅ `useMarkContentUsed` dipanggil saat konten ditambahkan ke kursus
+- ✅ "Tambahkan ke Kursus" menampilkan jumlah soal yang dipilih
+
+#### Security Fixes
+
+- ✅ Student role diblokir di `generate-ai-content` edge function
+- ✅ MIME type validation tetap ada di backend
+- ✅ Rate limiting mencegah abuse API LLM
+
+---
+
 ## [Unreleased] — 2026-04-04
 
 ### 🐛 Bug Fixes (Data Correctness)

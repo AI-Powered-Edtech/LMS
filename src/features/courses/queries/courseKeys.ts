@@ -21,9 +21,13 @@ export const courseKeys = {
   builder: (tenantId: string, courseId: string) =>
     [...base.all(tenantId), 'builder', courseId] as const,
 
-  // Infinite list key (for CourseBrowser pagination)
-  infinite: (tenantId: string, search?: string) =>
-    [...base.all(tenantId), 'infinite', search] as const,
+  // Infinite list key (for CourseBrowser pagination).
+  // Spreads search conditionally so undefined never appears as a key element.
+  infinite: (tenantId: string, search?: string): readonly string[] => [
+    ...base.all(tenantId),
+    'infinite',
+    ...(search ? [search] : []),
+  ],
 
   // Activity feed for a course (course_action_logs)
   activity: (tenantId: string, courseId: string) =>

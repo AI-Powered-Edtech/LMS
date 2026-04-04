@@ -30,8 +30,9 @@ import type { ConflictDialogState } from '@/features/courses/builder/useBuilderO
 import { useBuilderOffline } from '@/features/courses/builder/useBuilderOffline'
 import type { PresenceData } from '@/features/courses/builder/useBuilderPresence'
 import { useMobileBuilder } from '@/features/courses/builder/useMobileBuilder'
-import { DomainBlock } from '@/shared/types/blockTypes'
-import { DomainLesson } from '@/shared/types/lessonTypes'
+import type { DomainBlock } from '@/shared/types/blockTypes'
+import type { DomainLesson } from '@/shared/types/lessonTypes'
+import { logDevError } from '@/utils/logDevError'
 
 // ============================================================
 // Context Interface
@@ -150,16 +151,21 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
 
   // Offline support
   const addToast = useToast((s) => s.addToast)
-  const offline = useBuilderOffline(state.courseId, state, async () => {
+
+  // Stable sync callback — wrapped in useCallback to prevent useBuilderOffline
+  // from re-subscribing on every render when state or tenantId change.
+  const handleSync = useCallback(async () => {
     if (!state.courseId || !tenantId) return
     const result = await syncBuilderToServer(state, tenantId)
     if (result.success) {
       addToast({ type: 'success', message: 'Perubahan berhasil disinkronkan.' })
     } else {
-      console.error('[BuilderContext] sync failed:', result.error)
+      logDevError('BuilderContext', 'Sync failed:', result.error)
       addToast({ type: 'error', message: 'Gagal menyinkronkan ke server. Coba lagi.' })
     }
-  })
+  }, [state, tenantId, addToast])
+
+  const offline = useBuilderOffline(state.courseId, state, handleSync)
 
   // Ref to track activeLesson.id without causing callback re-creation
   const activeLessonIdRef = useRef<string | null>(null)
@@ -205,7 +211,8 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // Domain action hooks
-  const userName = profile ? `${profile.first_name} ${profile.last_name}`.trim() : 'Anonim'
+  // Guard empty string: `"".trim() === ""` would resolve to "" not "Anonim" without fallback
+  const userName = (profile ? `${profile.first_name} ${profile.last_name}`.trim() : '') || 'Anonim'
 
   const courseActions = useCourseActions(state, dispatch, tenantId, setSavingStatus)
   const moduleActions = useModuleActions(
@@ -238,12 +245,12 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
 
   // ⚡ Perf: Memoize actions object — the action hooks return stable useCallback refs,
   // so this only recreates when the hook instances change (effectively never).
+  // NOTE: ...lessonActions already includes updateLesson — no duplicate spread needed.
   const actions = useMemo(
     () => ({
       ...courseActions,
       ...moduleActions,
       ...lessonActions,
-      updateLesson: lessonActions.updateLesson,
       ...blockActions,
     }),
     [courseActions, moduleActions, lessonActions, blockActions]

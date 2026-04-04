@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/contexts/AuthContext'
+import { logDevWarn } from '@/utils/logDevError'
 
 import { ContentTemplate, templateService } from '../api/templateService'
 import { courseKeys } from './courseKeys'
@@ -9,7 +10,7 @@ export function useTemplates(type: 'course' | 'module' | 'lesson') {
   const { tenantId } = useAuth()
   return useQuery<ContentTemplate[]>({
     queryKey: ['content-templates', type, tenantId],
-    queryFn: () => templateService.fetchTemplates(type, tenantId!),
+    queryFn: () => templateService.fetchTemplates(type, tenantId ?? ''),
     enabled: !!type && !!tenantId,
   })
 }
@@ -29,9 +30,13 @@ export function useSaveTemplate() {
       title: string
       description: string
       sourceId: string
+      /** Pass tenantId in variables to avoid stale closure capture */
+      tenantId?: string
     }) => templateService.saveTemplate(type, title, description, sourceId),
-    onSuccess: (_, { type }) => {
-      queryClient.invalidateQueries({ queryKey: ['content-templates', type, tenantId] })
+    onSuccess: (_, variables) => {
+      // Use variables.tenantId (fresh at call time) instead of closure tenantId
+      const tid = variables.tenantId ?? tenantId
+      queryClient.invalidateQueries({ queryKey: ['content-templates', variables.type, tid] })
     },
   })
 }
@@ -52,15 +57,26 @@ export function useImportTemplate() {
       order?: number
       /** Optional courseId to narrow cache invalidation to the specific course */
       courseId?: string
+      /** Pass tenantId in variables to avoid stale closure capture */
+      tenantId?: string
     }) => templateService.importTemplate(templateId, targetId, order),
-    onSuccess: (_, { courseId }) => {
-      if (tenantId && courseId) {
+    onSuccess: (_, variables) => {
+      // Use variables.tenantId (fresh at call time); fall back to closure with warning
+      const tid = variables.tenantId ?? tenantId
+      if (!variables.tenantId && tenantId) {
+        logDevWarn(
+          'useImportTemplate',
+          'tenantId not passed in variables — using closure value (potential stale closure)'
+        )
+      }
+
+      if (tid && variables.courseId) {
         // Narrow invalidation: only the specific course's builder cache
-        queryClient.invalidateQueries({ queryKey: courseKeys.builder(tenantId, courseId) })
-        queryClient.invalidateQueries({ queryKey: courseKeys.detail(tenantId, courseId) })
-      } else if (tenantId) {
+        queryClient.invalidateQueries({ queryKey: courseKeys.builder(tid, variables.courseId) })
+        queryClient.invalidateQueries({ queryKey: courseKeys.detail(tid, variables.courseId) })
+      } else if (tid) {
         // Broader fallback if courseId not provided
-        queryClient.invalidateQueries({ queryKey: courseKeys.lists(tenantId) })
+        queryClient.invalidateQueries({ queryKey: courseKeys.lists(tid) })
       } else {
         // Ultimate fallback
         queryClient.invalidateQueries({ queryKey: ['courses'] })

@@ -14,6 +14,7 @@ export function useCourses(filters?: Omit<FetchCoursesOptions, 'tenantId'>) {
     queryKey: courseKeys.list(tenantId!, filters),
     queryFn: () => courseService.fetchCourses({ tenantId: tenantId!, ...filters }),
     enabled: !!tenantId,
+    staleTime: STALE.MODERATE,
   })
 }
 

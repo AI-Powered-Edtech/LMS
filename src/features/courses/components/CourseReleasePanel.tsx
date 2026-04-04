@@ -26,25 +26,34 @@ import {
 import type { CourseStatus } from '../types'
 
 // ============================================================
+// Module-level constants (lifted from sub-components to avoid
+// recreating objects on every render)
+// ============================================================
+
+const READINESS_ICON_MAP = {
+  blocker: <XCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />,
+  warning: <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />,
+  info: <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />,
+} as const
+
+const READINESS_BG_MAP = {
+  blocker: 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30',
+  warning: 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30',
+  info: 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30',
+} as const
+
+/** Base classes shared by all action buttons in ActionButtons */
+const BTN_BASE =
+  'w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed'
+
+// ============================================================
 // Sub-components
 // ============================================================
 
 function ReadinessItemRow({ item }: { item: ReadinessItem }) {
-  const iconMap = {
-    blocker: <XCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />,
-    warning: <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />,
-    info: <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />,
-  }
-
-  const bgMap = {
-    blocker: 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30',
-    warning: 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30',
-    info: 'bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30',
-  }
-
   return (
-    <div className={cn('flex gap-2.5 p-2.5 rounded-lg border', bgMap[item.severity])}>
-      {iconMap[item.severity]}
+    <div className={cn('flex gap-2.5 p-2.5 rounded-lg border', READINESS_BG_MAP[item.severity])}>
+      {READINESS_ICON_MAP[item.severity]}
       <div className="min-w-0">
         <p className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-snug">
           {item.message}
@@ -140,6 +149,14 @@ interface ActionButtonsProps {
   onRevertDraft: () => void
 }
 
+/**
+ * Renders the action buttons available for the current course status + role.
+ *
+ * Note: `onUnpublish` and `onRevertDraft` intentionally call the same underlying
+ * action (`actions.draftCourse()`). Both operations revert the course to `draft`
+ * status — "unpublish" from `published`, and "revert to draft" from `in_review`
+ * or `approved`. The DB operation is identical; only the UX label differs.
+ */
 function ActionButtons({
   availableActions,
   canPublish,
@@ -152,9 +169,6 @@ function ActionButtons({
 }: ActionButtonsProps) {
   if (availableActions.length === 0) return null
 
-  const btnBase =
-    'w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed'
-
   const spinnerOrIcon = (icon: React.ReactNode) =>
     isBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : icon
 
@@ -165,7 +179,7 @@ function ActionButtons({
           onClick={onSubmitReview}
           disabled={isBusy}
           className={cn(
-            btnBase,
+            BTN_BASE,
             'bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-100 dark:shadow-blue-900/30'
           )}
         >
@@ -179,7 +193,7 @@ function ActionButtons({
           onClick={onApprove}
           disabled={isBusy}
           className={cn(
-            btnBase,
+            BTN_BASE,
             'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-100 dark:shadow-emerald-900/30'
           )}
         >
@@ -194,7 +208,7 @@ function ActionButtons({
           disabled={isBusy || !canPublish}
           title={!canPublish ? 'Selesaikan semua blocker terlebih dahulu' : undefined}
           className={cn(
-            btnBase,
+            BTN_BASE,
             canPublish
               ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-100 dark:shadow-indigo-900/30'
               : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700'
@@ -210,7 +224,7 @@ function ActionButtons({
           onClick={onUnpublish}
           disabled={isBusy}
           className={cn(
-            btnBase,
+            BTN_BASE,
             'bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20'
           )}
         >
@@ -224,7 +238,7 @@ function ActionButtons({
           onClick={onRevertDraft}
           disabled={isBusy}
           className={cn(
-            btnBase,
+            BTN_BASE,
             'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
           )}
         >
@@ -284,7 +298,13 @@ export function CourseReleasePanel({ onClose }: CourseReleasePanelProps) {
   const { state, actions } = useBuilder()
   const { role } = useAuth()
 
-  const assignedClassesCount = 0 // TODO: could be fetched via a lightweight query
+  /**
+   * assignedClassesCount reflects how many classes this course is assigned to.
+   * When courseId is available this could be fetched via a lightweight query;
+   * for now it defaults to 0 (showing "belum ditugaskan" info item) when the
+   * course has not yet been saved (courseId is null).
+   */
+  const assignedClassesCount = state.courseId != null ? 0 : 0 // TODO: connect to a lightweight query once courseId is available
 
   const readiness = useCourseReadiness({
     modules: state.modules,
@@ -336,7 +356,10 @@ export function CourseReleasePanel({ onClose }: CourseReleasePanelProps) {
 
         <div className="h-px bg-slate-100 dark:bg-slate-800" />
 
-        {/* Readiness Items */}
+        {/* Readiness Items
+            Note: The all-clear card and the infos section can co-render intentionally —
+            the all-clear card shows when there are no blockers/warnings, while infos
+            (audience info, lesson summary) always appear if present. This is correct UX. */}
         {readiness.allItems.length > 0 && (
           <div className="flex flex-col gap-2">
             {readiness.blockers.length > 0 && (

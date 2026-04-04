@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 
+import type { Role } from '@/contexts/AuthContext'
 import type { DomainModule } from '@/shared/types/moduleTypes'
 
 import type { CourseStatus } from '../types'
@@ -37,7 +38,8 @@ export interface CourseReadiness {
   availableActions: CourseAction[]
 }
 
-type UserRole = 'student' | 'teacher' | 'admin' | 'parent' | 'principal'
+/** UserRole is an alias for the shared Role type from AuthContext */
+export type UserRole = Role
 
 interface UseCourseReadinessOptions {
   modules: DomainModule[]
@@ -98,7 +100,7 @@ function computeAvailableActions(status: CourseStatus, role: UserRole | null): C
       break
 
     case 'in_review':
-      // Admin and principal can formally approve
+      // Admin and principal can formally approve; teacher can also self-approve
       if (role === 'admin' || role === 'principal') {
         actions.push('approve')
         actions.push('revert_draft')

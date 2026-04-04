@@ -19,8 +19,19 @@ export function useBuilderChannel(
   courseId: string | null,
   userId: string | null,
   dispatch: React.Dispatch<BuilderAction>,
+  /**
+   * Called when the channel successfully (re)connects after a prior disconnection.
+   * MUST be wrapped in `useCallback` at the call site — a new function reference
+   * on every render will cause the effect to re-run and trigger a reconnect loop.
+   */
   onReconnect?: () => void,
-  /** Set of userIds known to be authorized collaborators (from collaboratorService) */
+  /**
+   * Set of userIds known to be authorized collaborators (from collaboratorService).
+   *
+   * Note: A new `Set` instance is required to trigger a re-run of this effect.
+   * Mutating an existing Set (e.g. set.add(id)) will NOT trigger the effect
+   * because React compares the reference, not the contents.
+   */
   authorizedUserIds?: Set<string>
 ) {
   const channelRef = useRef<RealtimeChannel | null>(null)
@@ -96,8 +107,11 @@ export function useBuilderChannel(
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
             setChannelStatus('connected')
+            // Only fire onReconnect for actual reconnects, not the initial connect
+            if (onReconnect && reconnectAttemptRef.current > 0) {
+              onReconnect()
+            }
             reconnectAttemptRef.current = 0
-            if (onReconnect) onReconnect()
           } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
             setChannelStatus('disconnected')
             if (mountedRef.current) {
