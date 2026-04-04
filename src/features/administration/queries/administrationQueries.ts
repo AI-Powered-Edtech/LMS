@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import { createQueryKeys } from '@/shared/lib/queryKeys'
 import { GC, STALE } from '@/utils/queryConstants'
-import { captureError } from '@/utils/sentry'
 
 import { administrationService } from '../api/administrationService'
 
@@ -55,9 +54,6 @@ export function useToggleTenantModule() {
       administrationService.toggleTenantModule(moduleId, isEnabled),
     onSuccess: () => {
       if (tenantId) queryClient.invalidateQueries({ queryKey: adminKeys.modules(tenantId) })
-    },
-    onError: (err) => {
-      captureError(err, { context: 'useToggleTenantModule' })
     },
   })
 }
