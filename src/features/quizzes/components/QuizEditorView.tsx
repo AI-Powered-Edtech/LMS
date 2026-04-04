@@ -244,7 +244,7 @@ export function QuizEditorView({
             {isPublished && (
               <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 mt-0.5">
                 <CheckCircle className="w-3 h-3" />
-                Published
+                Diterbitkan
               </span>
             )}
           </div>
@@ -275,7 +275,7 @@ export function QuizEditorView({
                 : 'text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm'
             )}
           >
-            {isPublished ? 'Kembalikan ke Draft' : 'Publish Kuis'}
+            {isPublished ? 'Kembalikan ke Draft' : 'Terbitkan Kuis'}
           </button>
         </div>
       </div>
@@ -597,7 +597,7 @@ export function QuizEditorView({
 
         {isPublished && (
           <p className="text-xs text-center text-slate-400 pb-2">
-            Kuis sudah dipublish. Kembalikan ke Draft untuk mengedit soal.
+            Kuis sudah diterbitkan. Kembalikan ke Draft untuk mengedit soal.
           </p>
         )}
       </div>

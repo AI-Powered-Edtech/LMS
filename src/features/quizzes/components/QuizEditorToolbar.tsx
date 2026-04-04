@@ -43,7 +43,7 @@ export function QuizEditorToolbar({
               ) : (
                 <AlertTriangle className="w-3.5 h-3.5" />
               )}
-              {isPublished ? 'Terbit' : 'Draft'}
+              {isPublished ? 'Diterbitkan' : 'Draft'}
             </div>
           </div>
         </div>
