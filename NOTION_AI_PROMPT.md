@@ -30,6 +30,14 @@ Kamu coding agent di codebase EduSync LMS. Aturan:
 
 **Stack:** React 19, Vite 6, TypeScript 5.8, Tailwind v4, Supabase, React Router v7 (hash), React Query v5, pnpm
 
+**Lokasi file penting:**
+
+- `CLAUDE.md` (aturan lengkap) → halaman [root] di sub-page C-C atau C-D
+- `__build_errors__` (TypeScript/ESLint errors) → halaman utama EduSync (code block di bawah sub-pages)
+- `__command__` (trigger PR) → halaman utama EduSync
+- `CHANGELOG.md` → TIDAK ada di Notion (terlalu besar, diedit lokal)
+- `GAP_ANALYSIS` → TIDAK ada di Notion
+
 **Task:** [TASK]
 
 **Halaman:** Buka [HALAMAN] dan kerjakan di situ. Jangan load halaman lain kecuali perlu.
