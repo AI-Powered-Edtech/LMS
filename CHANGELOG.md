@@ -1,5 +1,65 @@
 # EduSync LMS — Changelog
 
+## [Unreleased] — 2026-04-04 — PR Batch Merge (Waves 1–4)
+
+### ✨ Features
+
+- **Courses: Infinite Scroll** — Replaces manual useState/useEffect fetch with `useInfiniteQuery` + IntersectionObserver sentinel (PAGE_SIZE=12, 200px preload). Debounced search (300ms). [PR-M6]
+- **Course Builder: Undo/Redo** — History stack in `builderReducer.ts` for all builder actions. [PR-M8]
+- **Course Builder: General Settings Tab** — Tenant-isolated settings in `CourseSettingsModal.tsx`. [PR-M8]
+- **Course Builder: SCORM Block Editor** — Drag-and-drop SCORM package upload with validation and preview (`ScormBlockEditor.tsx`). [PR-M8]
+- **Group Assignments Service** — New `groupAssignments.ts` with `getGroupAssignments`, `submitGroupAssignment`, `gradeGroupSubmission` — fully tenant-isolated. [PR-F2]
+
+### 🐛 Bug Fixes
+
+- **React useMemo invalidation** — Memoize `completedAttempts`, `filteredQuizzes`, `classes` derivations in `Quiz.tsx` to prevent reference churn cascading into child re-renders. [PR-M1]
+- **Auth: proactive JWT refresh** — Adjusted refresh interval and vi.stubEnv test fix in useLoginState. [PR-F2]
+- **groupAssignments import paths** — Fixed `@/src/` → `@/` Vite alias prefix in new service. [PR-F2]
+
+### ♿ Accessibility
+
+- **Course Builder aria-labels** — Icon-only buttons in BuilderSidebar, BuilderTopBar, AssignCourseModal, QuizReviewScreen labeled in Bahasa Indonesia. [PR-F3]
+- **NotificationCenter** — `focus-visible:ring-2` keyboard rings + `aria-label="Tandai sudah dibaca"` on mark-read buttons. [PR-F3]
+- **Analytics & Courses** — aria-labels on all icon-only filter/action buttons. [PR-F3]
+
+### ⚡ Performance
+
+- **Dashboard memoization** — `useCallback`/`useMemo` across `TeacherAnalyticsDashboard`, `Dashboard`, `Dashboards`, `TeacherDashboard` — stabilizes callback refs, prevents prop-triggered re-renders. [PR-M5]
+- **Gradebook/Quiz** — `collaboratorService.ts` extracted from courseBuilderService with explicit columns, no SELECT \*. [PR-M8]
+
+### 🏗️ Architecture & Refactor
+
+- **Stale-time tiering** — All React Query `staleTime`/`cacheTime` magic numbers replaced with `STALE.*` and `GC.*` constants from `src/utils/queryConstants.ts`. New query modules: `administrationQueries.ts`, `onboardingQueries.ts`. [PR-M7]
+- **collaboratorService** — Extracted from `courseBuilderService.ts`; explicit column selection, RLS-safe. [PR-M8]
+- **lessonService code health** — Removed redundant `import.meta.env.DEV` guards (Vite tree-shakes these in production). [PR-M4]
+
+### 🧪 Tests
+
+- **Image utility** — 5 Vitest cases for `getOptimizedImageUrl` (`src/utils/__tests__/image.test.ts`). [PR-M2]
+- **Calendar utilities** — 16 Vitest cases across `getEventColor`, `getPriorityIcon`, `getCountdown` with dark-mode variant assertions (`src/features/calendar/__tests__/calendarUtils.test.ts`). [PR-M3]
+
+### 🛠️ DX / Infrastructure
+
+- **Lighthouse CI** — `lighthouserc.json` with assertions (perf ≥0.7, a11y ≥0.9, FCP <3s, LCP <4s). `pnpm perf:lighthouse` script. [PR-F1]
+- **data-testid anchors** — `navbar`, `course-grid`, `dashboard-main`, `gradebook-table` for reliable E2E and Lighthouse targeting. [PR-F1]
+
+### 🔴 Rejected PRs (38 branches — not merged, stale branches deleted)
+
+- All `sentinel-fix-*` branches (9): already absorbed into main
+- All `bolt-optimize-gradebook-*` branches (5): already absorbed into main
+- `fix-group-tasks-chat`: 494-file divergence — rejected
+- `palette/aria-label-kembali`: deletes codeql.yml — rejected
+- `palette-form-validation-a11y`: author-acknowledged PR rejection
+- `bolt-perf-quiz-gradebook-calculations`: self-marked obsolete
+- `jules-optimize-gradebook-search`: no source changes (benchmark artifacts only)
+- `testing/calendar-utils-getcountdown`: marked obsolete
+- 7 redundant-dev-check duplicates: acknowledged closures
+- `bolt-perf-quiz-loop`, `bolt-parallelize-quiz-questions`: CI workflow deletions — rejected
+- `test/coverage-metrics-util`, `scout-test-coverage`: 50+ file prod-code diffs — rejected
+- `palette/a11y-notification-center`: 41-file service diff — rejected
+
+---
+
 ## [Phase 38A] — 2026-05-05
 
 ### ✨ Fitur Baru: AI Content Generator — Production Ready
