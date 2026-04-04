@@ -1,5 +1,15 @@
 import { test, expect, Page } from '@playwright/test'
-import { loginAsStudent, gotoAndWait, clickWithRetry, waitForContent } from '../helpers'
+import { loginAsStudent, gotoAndWait } from '../helpers'
+
+async function clickWithRetry(page: Page, selector: string) {
+  const locator = page.locator(selector).first()
+  await locator.waitFor({ state: 'visible' })
+  await locator.click()
+}
+
+async function waitForContent(page: Page, selector: string) {
+  await page.waitForSelector(selector, { state: 'visible', timeout: 10000 })
+}
 
 /**
  * COMPREHENSIVE FLOW ANALYSIS — Quiz Attempt Module
