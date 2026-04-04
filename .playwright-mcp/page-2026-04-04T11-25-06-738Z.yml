@@ -1,0 +1,125 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [active] [ref=e4]:
+        - link "Lewati ke konten utama" [ref=e160] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e161]:
+            - status [ref=e162]: 'Halaman dimuat: Modul Kuis | EduSync LMS'
+            - link "Langsung ke konten utama" [ref=e163] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e164]:
+                - complementary [ref=e165]:
+                    - generic [ref=e166]:
+                        - generic [ref=e168]: E
+                        - heading "EduSync" [level=1] [ref=e169]
+                    - navigation "Menu utama" [ref=e170]:
+                        - link "Ruang Belajar" [ref=e171] [cursor=pointer]:
+                            - /url: '#/app/student/dashboard'
+                            - img [ref=e172]
+                            - text: Ruang Belajar
+                        - link "Sosial & Info" [ref=e175] [cursor=pointer]:
+                            - /url: '#/social-hub'
+                            - img [ref=e176]
+                            - text: Sosial & Info
+                        - link "Gamifikasi" [ref=e181] [cursor=pointer]:
+                            - /url: '#/gamification-hub'
+                            - img [ref=e182]
+                            - text: Gamifikasi
+                        - link "Pengaturan" [ref=e184] [cursor=pointer]:
+                            - /url: '#/settings'
+                            - img [ref=e185]
+                            - text: Pengaturan
+                    - button "Keluar" [ref=e189]:
+                        - img [ref=e190]
+                        - text: Keluar
+                - generic [ref=e193]:
+                    - generic [ref=e194]:
+                        - button "Buka pencarian global" [ref=e195]:
+                            - img [ref=e196]
+                            - generic [ref=e199]: Cari...
+                            - generic [ref=e201]: ⌘K
+                        - generic [ref=e202]:
+                            - generic [ref=e203]:
+                                - img [ref=e204]
+                                - generic [ref=e206]: '1'
+                            - generic [ref=e207]:
+                                - generic "Level 1 — Pemula" [ref=e208]: Lv 1
+                                - generic [ref=e209]:
+                                    - img [ref=e210]
+                                    - text: 50 XP
+                                - 'progressbar "XP progres: 50%" [ref=e212]'
+                            - button "Ubah mode gelap" [ref=e214]:
+                                - img [ref=e215]
+                            - button "Notifikasi" [ref=e218]:
+                                - img [ref=e219]
+                            - button "Menu profil" [ref=e223]:
+                                - img "Foto profil pengguna" [ref=e225]
+                    - main [ref=e226]:
+                        - generic [ref=e228]:
+                            - generic [ref=e230]:
+                                - heading "Kuis & Evaluasi" [level=1] [ref=e231]
+                                - paragraph [ref=e232]: Uji pemahaman Anda dengan kuis interaktif
+                            - generic [ref=e233]:
+                                - generic [ref=e234]:
+                                    - img [ref=e236]
+                                    - generic [ref=e239]:
+                                        - paragraph [ref=e240]: '2'
+                                        - paragraph [ref=e241]: Total Kuis
+                                - generic [ref=e242]:
+                                    - img [ref=e244]
+                                    - generic [ref=e247]:
+                                        - paragraph [ref=e248]: '0'
+                                        - paragraph [ref=e249]: Selesai
+                                - generic [ref=e250]:
+                                    - img [ref=e252]
+                                    - generic [ref=e258]:
+                                        - paragraph [ref=e259]: 0%
+                                        - paragraph [ref=e260]: Rata-rata
+                                - generic [ref=e261]:
+                                    - img [ref=e263]
+                                    - generic [ref=e265]:
+                                        - paragraph [ref=e266]: '0'
+                                        - paragraph [ref=e267]: Poin Total
+                            - generic [ref=e269]:
+                                - generic [ref=e270]:
+                                    - img [ref=e271]
+                                    - textbox "Cari kuis" [ref=e274]:
+                                        - /placeholder: Cari kuis...
+                                - combobox [ref=e275]:
+                                    - option "Semua Kelas" [selected]
+                                    - option "b ing"
+                            - tablist [ref=e276]:
+                                - tab "Tersedia" [selected] [ref=e277]
+                                - tab "Selesai" [ref=e278]
+                            - generic [ref=e279]:
+                                - generic [ref=e281]:
+                                    - generic [ref=e282]:
+                                        - generic [ref=e284]: Selesai
+                                        - img [ref=e286]
+                                    - heading "bb" [level=3] [ref=e290]
+                                    - generic [ref=e291]:
+                                        - generic [ref=e292]: b ing
+                                        - generic [ref=e293]: 0 Soal • 15 Menit
+                                    - paragraph [ref=e294]: sssak
+                                    - generic [ref=e297]: 'Percobaan: 3 / 3'
+                                    - button "Selesai" [disabled] [ref=e298]:
+                                        - img [ref=e299]
+                                        - text: Selesai
+                                - generic [ref=e302]:
+                                    - generic [ref=e303]:
+                                        - generic [ref=e305]: Selesai
+                                        - img [ref=e307]
+                                    - heading "E2E Test Quiz" [level=3] [ref=e311]
+                                    - generic [ref=e312]:
+                                        - generic [ref=e313]: b ing
+                                        - generic [ref=e314]: 0 Soal • 10 Menit
+                                    - paragraph [ref=e315]: Kuis untuk pengujian E2E otomatis
+                                    - generic [ref=e318]: 'Percobaan: 2 / 2'
+                                    - button "Selesai" [disabled] [ref=e319]:
+                                        - img [ref=e320]
+                                        - text: Selesai
+    - generic [ref=e61]:
+        - img [ref=e63]
+        - button "Open Tanstack query devtools" [ref=e111] [cursor=pointer]:
+            - img [ref=e112]

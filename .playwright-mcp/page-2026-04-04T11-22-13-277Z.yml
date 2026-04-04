@@ -1,0 +1,67 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e16] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [active] [ref=e17]:
+        - link "Lewati ke konten utama" [ref=e18] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e19]:
+            - status [ref=e20]: 'Halaman dimuat: Pilih Ruang Kerja | EduSync LMS'
+            - link "Langsung ke konten utama" [ref=e21] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e22]:
+                - complementary [ref=e23]:
+                    - generic [ref=e24]:
+                        - generic [ref=e26]: E
+                        - heading "EduSync" [level=1] [ref=e27]
+                    - 'button "Pilih kelas aktif: Kelas QA Updated" [ref=e30]':
+                        - generic [ref=e31]:
+                            - generic [ref=e32]: Kelas Aktif
+                            - generic [ref=e33]: Kelas QA Updated
+                        - img [ref=e34]
+                    - navigation "Menu utama" [ref=e36]:
+                        - link "Pusat Mengajar" [ref=e37] [cursor=pointer]:
+                            - /url: '#/app/teacher/dashboard'
+                            - img [ref=e38]
+                            - text: Pusat Mengajar
+                        - link "Sosial & Info" [ref=e41] [cursor=pointer]:
+                            - /url: '#/social-hub'
+                            - img [ref=e42]
+                            - text: Sosial & Info
+                        - link "Pengaturan" [ref=e47] [cursor=pointer]:
+                            - /url: '#/settings'
+                            - img [ref=e48]
+                            - text: Pengaturan
+                    - button "Keluar" [ref=e52]:
+                        - img [ref=e53]
+                        - text: Keluar
+                - generic [ref=e56]:
+                    - generic [ref=e57]:
+                        - button "Buka pencarian global" [ref=e58]:
+                            - img [ref=e59]
+                            - generic [ref=e62]: Cari...
+                            - generic [ref=e64]: ⌘K
+                        - generic [ref=e65]:
+                            - generic [ref=e66]:
+                                - img [ref=e67]
+                                - text: Guru
+                            - button "Ubah mode gelap" [ref=e69]:
+                                - img [ref=e70]
+                            - button "Notifikasi deteksi kesulitan siswa" [ref=e73]:
+                                - img [ref=e74]
+                                - generic [ref=e77]: '1'
+                            - button "Notifikasi" [ref=e79]:
+                                - img [ref=e80]
+                            - button "Menu profil" [ref=e84]:
+                                - img "Foto profil pengguna" [ref=e86]
+                    - main [ref=e87]:
+                        - generic [ref=e202]:
+                            - complementary [ref=e203]:
+                                - generic [ref=e204]:
+                                    - generic [ref=e206]: E
+                                    - heading "EduSync" [level=1] [ref=e207]
+                                - navigation [ref=e208]
+                            - main [ref=e236]
+    - generic [ref=e102]:
+        - img [ref=e104]
+        - button "Open Tanstack query devtools" [ref=e152] [cursor=pointer]:
+            - img [ref=e153]

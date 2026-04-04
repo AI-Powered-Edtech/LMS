@@ -1,0 +1,196 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [active] [ref=e4]:
+        - link "Lewati ke konten utama" [ref=e61] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e62]:
+            - status [ref=e63]: 'Halaman dimuat: Kursus — EduSync'
+            - link "Langsung ke konten utama" [ref=e64] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e65]:
+                - complementary "Menu admin" [ref=e66]:
+                    - generic [ref=e67]:
+                        - generic [ref=e69]: E
+                        - generic [ref=e70]:
+                            - heading "EduSync" [level=1] [ref=e71]
+                            - text: Admin
+                    - navigation "Navigasi admin" [ref=e72]:
+                        - generic [ref=e73]:
+                            - button "Utama" [expanded] [ref=e74]:
+                                - text: Utama
+                                - img [ref=e75]
+                            - list "Grup navigasi Utama" [ref=e77]:
+                                - generic [ref=e78]:
+                                    - listitem "Dasbor" [ref=e79] [cursor=pointer]:
+                                        - img [ref=e80]
+                                        - generic [ref=e85]: Dasbor
+                                    - listitem "Admin Hub" [ref=e86] [cursor=pointer]:
+                                        - img [ref=e87]
+                                        - generic [ref=e89]: Admin Hub
+                        - generic [ref=e90]:
+                            - button "Pengguna & Kelas" [expanded] [ref=e91]:
+                                - text: Pengguna & Kelas
+                                - img [ref=e92]
+                            - list "Grup navigasi Pengguna & Kelas" [ref=e94]:
+                                - generic [ref=e95]:
+                                    - listitem "Pengguna" [ref=e96] [cursor=pointer]:
+                                        - img [ref=e97]
+                                        - generic [ref=e102]: Pengguna
+                                    - listitem "Kelas" [ref=e103] [cursor=pointer]:
+                                        - img [ref=e104]
+                                        - generic [ref=e109]: Kelas
+                                    - listitem "Kursus" [ref=e110] [cursor=pointer]:
+                                        - img [ref=e111]
+                                        - generic [ref=e113]: Kursus
+                        - generic [ref=e114]:
+                            - button "Akademik" [expanded] [ref=e115]:
+                                - text: Akademik
+                                - img [ref=e116]
+                            - list "Grup navigasi Akademik" [ref=e118]:
+                                - generic [ref=e119]:
+                                    - listitem "Buku Nilai" [ref=e120] [cursor=pointer]:
+                                        - img [ref=e121]
+                                        - generic [ref=e124]: Buku Nilai
+                                    - listitem "Analitik" [ref=e125] [cursor=pointer]:
+                                        - img [ref=e126]
+                                        - generic [ref=e128]: Analitik
+                                    - listitem "Progres Siswa" [ref=e129] [cursor=pointer]:
+                                        - img [ref=e130]
+                                        - generic [ref=e133]: Progres Siswa
+                        - generic [ref=e134]:
+                            - button "Administrasi" [expanded] [ref=e135]:
+                                - text: Administrasi
+                                - img [ref=e136]
+                            - list "Grup navigasi Administrasi" [ref=e138]:
+                                - generic [ref=e139]:
+                                    - listitem "Administrasi" [ref=e140] [cursor=pointer]:
+                                        - img [ref=e141]
+                                        - generic [ref=e144]: Administrasi
+                                    - listitem "Audit" [ref=e145] [cursor=pointer]:
+                                        - img [ref=e146]
+                                        - generic [ref=e148]: Audit
+                                    - listitem "Moderasi" [ref=e149] [cursor=pointer]:
+                                        - img [ref=e150]
+                                        - generic [ref=e152]: Moderasi
+                        - generic [ref=e153]:
+                            - button "Keuangan" [ref=e154]:
+                                - text: Keuangan
+                                - img [ref=e155]
+                            - list "Grup navigasi Keuangan":
+                                - generic [ref=e157]:
+                                    - listitem "Tagihan" [ref=e158] [cursor=pointer]:
+                                        - img [ref=e159]
+                                        - generic [ref=e161]: Tagihan
+                                    - listitem "Keuangan" [ref=e162] [cursor=pointer]:
+                                        - img [ref=e163]
+                                        - generic [ref=e165]: Keuangan
+                        - generic [ref=e166]:
+                            - button "Sistem" [ref=e167]:
+                                - text: Sistem
+                                - img [ref=e168]
+                            - list "Grup navigasi Sistem":
+                                - generic [ref=e170]:
+                                    - listitem "Kesehatan Sistem" [ref=e171] [cursor=pointer]:
+                                        - img [ref=e172]
+                                        - generic [ref=e174]: Kesehatan Sistem
+                                    - listitem "Integrasi LTI" [ref=e175] [cursor=pointer]:
+                                        - img [ref=e176]
+                                        - generic [ref=e178]: Integrasi LTI
+                                        - generic [ref=e179]: Segera
+                                    - listitem "Pengaturan" [ref=e180] [cursor=pointer]:
+                                        - img [ref=e181]
+                                        - generic [ref=e184]: Pengaturan
+                    - button "Keluar" [ref=e186]:
+                        - img [ref=e187]
+                        - text: Keluar
+                - generic [ref=e190]:
+                    - generic [ref=e191]:
+                        - button "Buka pencarian global" [ref=e192]:
+                            - img [ref=e193]
+                            - generic [ref=e196]: Cari...
+                            - generic [ref=e198]: ⌘K
+                        - generic [ref=e199]:
+                            - generic [ref=e200]:
+                                - img [ref=e201]
+                                - text: Administrator
+                            - button "Ubah mode gelap" [ref=e203]:
+                                - img [ref=e204]
+                            - button "Notifikasi deteksi kesulitan siswa" [ref=e207]:
+                                - img [ref=e208]
+                            - button "Notifikasi admin" [ref=e212]:
+                                - img [ref=e213]
+                            - button "Notifikasi" [ref=e217]:
+                                - img [ref=e218]
+                            - button "Menu profil" [ref=e222]:
+                                - img "Foto profil pengguna" [ref=e224]
+                    - main [ref=e225]:
+                        - generic [ref=e1329]:
+                            - generic [ref=e1330]:
+                                - generic [ref=e1331]:
+                                    - heading "Kelola Materi" [level=1] [ref=e1332]
+                                    - paragraph [ref=e1333]: Susun kurikulum, modul pembelajaran, dan kuis interaktif untuk siswa Anda.
+                                - button "Buat Materi Baru" [ref=e1334]:
+                                    - img [ref=e1336]
+                                    - generic [ref=e1337]: Buat Materi Baru
+                            - generic [ref=e1338]:
+                                - generic [ref=e1339]:
+                                    - img [ref=e1341]
+                                    - img [ref=e1345]
+                                - heading "Mulai Petualangan Anda" [level=2] [ref=e1348]
+                                - paragraph [ref=e1349]: Anda belum memiliki materi. Mari buat materi pertama yang menginspirasi siswa Anda!
+                                - button "Buat Materi Pertama" [ref=e1350]
+            - generic [ref=e657]:
+                - generic [ref=e658]:
+                    - heading "Penyiapan Akun" [level=3] [ref=e659]
+                    - generic [ref=e660]:
+                        - button "Sembunyikan daftar" [ref=e661]:
+                            - img [ref=e662]
+                        - button "Tutup sementara" [ref=e664]:
+                            - img [ref=e665]
+                - generic [ref=e668]:
+                    - generic [ref=e669]:
+                        - generic [ref=e670]: 0 dari 5 selesai
+                        - generic [ref=e671]: 0%
+                    - 'progressbar "Onboarding: 0 dari 5 selesai" [ref=e672]'
+                - list [ref=e673]:
+                    - listitem [ref=e674]:
+                        - button "Selesaikan \"Buat kursus pertama\"" [ref=e675]:
+                            - img [ref=e676]
+                        - generic [ref=e678]:
+                            - link "Buat kursus pertama" [ref=e679] [cursor=pointer]:
+                                - /url: /#/app/teacher/course-builder
+                            - paragraph [ref=e680]: Mulai dengan membuat konten pembelajaran
+                    - listitem [ref=e681]:
+                        - button "Selesaikan \"Undang guru\"" [ref=e682]:
+                            - img [ref=e683]
+                        - generic [ref=e685]:
+                            - link "Undang guru" [ref=e686] [cursor=pointer]:
+                                - /url: /#/app/admin/users
+                            - paragraph [ref=e687]: Tambahkan anggota tim pengajar
+                    - listitem [ref=e688]:
+                        - button "Selesaikan \"Undang siswa\"" [ref=e689]:
+                            - img [ref=e690]
+                        - generic [ref=e692]:
+                            - link "Undang siswa" [ref=e693] [cursor=pointer]:
+                                - /url: /#/app/admin/users
+                            - paragraph [ref=e694]: Daftarkan siswa ke platform
+                    - listitem [ref=e695]:
+                        - button "Selesaikan \"Atur skala penilaian\"" [ref=e696]:
+                            - img [ref=e697]
+                        - generic [ref=e699]:
+                            - link "Atur skala penilaian" [ref=e700] [cursor=pointer]:
+                                - /url: /#/app/admin/settings
+                            - paragraph [ref=e701]: Konfigurasi sistem nilai
+                    - listitem [ref=e702]:
+                        - button "Selesaikan \"Aktifkan gamifikasi\"" [ref=e703]:
+                            - img [ref=e704]
+                        - generic [ref=e706]:
+                            - link "Aktifkan gamifikasi" [ref=e707] [cursor=pointer]:
+                                - /url: /#/app/admin/settings
+                            - paragraph [ref=e708]: Motivasi siswa dengan poin dan lencana
+                - button "Tutup sementara" [ref=e710]
+    - generic [ref=e232]:
+        - img [ref=e234]
+        - button "Open Tanstack query devtools" [ref=e282] [cursor=pointer]:
+            - img [ref=e283]

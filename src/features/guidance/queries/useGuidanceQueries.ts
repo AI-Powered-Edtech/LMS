@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { createQueryKeys } from '@/src/lib/queryKeys'
-import { useAuth } from '@/src/contexts/AuthContext'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { useAuth } from '@/contexts/AuthContext'
 import { guidanceService } from '../api/guidanceService'
 import type { ApplicableGuide, LearningGuide } from '../types'
 import { DEFAULT_GUIDES } from '../data/defaultGuides'
-import { STALE, GC } from '@/src/utils/queryConstants'
+import { STALE, GC } from '@/utils/queryConstants'
 
 const base = createQueryKeys('guidance')
 

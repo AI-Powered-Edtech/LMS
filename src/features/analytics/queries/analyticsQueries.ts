@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { createQueryKeys } from '@/src/lib/queryKeys'
-import { useAuth } from '@/src/contexts/AuthContext'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { useAuth } from '@/contexts/AuthContext'
 import { analyticsService } from '../api/analyticsService'
 import { TeacherAnalyticsData, AnalyticsError } from '../types'
-import { STALE } from '@/src/utils/queryConstants'
+import { STALE } from '@/utils/queryConstants'
 
 const base = createQueryKeys('analytics')
 const analyticsKeys = {

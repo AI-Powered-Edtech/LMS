@@ -1,0 +1,151 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e16] [cursor=pointer]:
+        - /url: '#main-content'
+    - banner "Install EduSync sebagai aplikasi" [ref=e17]:
+        - generic [ref=e18]:
+            - img [ref=e20]
+            - generic [ref=e23]:
+                - paragraph [ref=e24]: Install EduSync
+                - paragraph [ref=e25]: Akses lebih cepat langsung dari layar utama
+            - generic [ref=e26]:
+                - button "Install" [ref=e27]
+                - button "Nanti saja" [ref=e28]:
+                    - img [ref=e29]
+    - main [active] [ref=e32]:
+        - link "Lewati ke konten utama" [ref=e216] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e217]:
+            - status [ref=e218]
+            - link "Langsung ke konten utama" [ref=e219] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e220]:
+                - complementary "Menu admin" [ref=e221]:
+                    - generic [ref=e222]:
+                        - generic [ref=e224]: E
+                        - generic [ref=e225]:
+                            - heading "EduSync" [level=1] [ref=e226]
+                            - text: Admin
+                    - navigation "Navigasi admin" [ref=e227]:
+                        - generic [ref=e228]:
+                            - button "Utama" [expanded] [ref=e229]:
+                                - text: Utama
+                                - img [ref=e230]
+                            - list "Grup navigasi Utama" [ref=e232]:
+                                - generic [ref=e233]:
+                                    - listitem "Dasbor" [ref=e234] [cursor=pointer]:
+                                        - img [ref=e235]
+                                        - generic [ref=e240]: Dasbor
+                                    - listitem "Admin Hub" [ref=e241] [cursor=pointer]:
+                                        - img [ref=e242]
+                                        - generic [ref=e244]: Admin Hub
+                        - generic [ref=e245]:
+                            - button "Pengguna & Kelas" [expanded] [ref=e246]:
+                                - text: Pengguna & Kelas
+                                - img [ref=e247]
+                            - list "Grup navigasi Pengguna & Kelas" [ref=e249]:
+                                - generic [ref=e250]:
+                                    - listitem "Pengguna" [ref=e251] [cursor=pointer]:
+                                        - img [ref=e252]
+                                        - generic [ref=e257]: Pengguna
+                                    - listitem "Kelas" [ref=e258] [cursor=pointer]:
+                                        - img [ref=e259]
+                                        - generic [ref=e264]: Kelas
+                                    - listitem "Kursus" [ref=e265] [cursor=pointer]:
+                                        - img [ref=e266]
+                                        - generic [ref=e268]: Kursus
+                        - generic [ref=e269]:
+                            - button "Akademik" [expanded] [ref=e270]:
+                                - text: Akademik
+                                - img [ref=e271]
+                            - list "Grup navigasi Akademik" [ref=e273]:
+                                - generic [ref=e274]:
+                                    - listitem "Buku Nilai" [ref=e275] [cursor=pointer]:
+                                        - img [ref=e276]
+                                        - generic [ref=e279]: Buku Nilai
+                                    - listitem "Analitik" [ref=e280] [cursor=pointer]:
+                                        - img [ref=e281]
+                                        - generic [ref=e283]: Analitik
+                                    - listitem "Progres Siswa" [ref=e284] [cursor=pointer]:
+                                        - img [ref=e285]
+                                        - generic [ref=e288]: Progres Siswa
+                        - generic [ref=e289]:
+                            - button "Administrasi" [expanded] [ref=e290]:
+                                - text: Administrasi
+                                - img [ref=e291]
+                            - list "Grup navigasi Administrasi" [ref=e293]:
+                                - generic [ref=e294]:
+                                    - listitem "Administrasi" [ref=e295] [cursor=pointer]:
+                                        - img [ref=e296]
+                                        - generic [ref=e299]: Administrasi
+                                    - listitem "Audit" [ref=e300] [cursor=pointer]:
+                                        - img [ref=e301]
+                                        - generic [ref=e303]: Audit
+                                    - listitem "Moderasi" [ref=e304] [cursor=pointer]:
+                                        - img [ref=e305]
+                                        - generic [ref=e307]: Moderasi
+                        - generic [ref=e308]:
+                            - button "Keuangan" [ref=e309]:
+                                - text: Keuangan
+                                - img [ref=e310]
+                            - list "Grup navigasi Keuangan":
+                                - generic [ref=e312]:
+                                    - listitem "Tagihan" [ref=e313] [cursor=pointer]:
+                                        - img [ref=e314]
+                                        - generic [ref=e316]: Tagihan
+                                    - listitem "Keuangan" [ref=e317] [cursor=pointer]:
+                                        - img [ref=e318]
+                                        - generic [ref=e320]: Keuangan
+                                        - generic [ref=e321]: Segera
+                        - generic [ref=e322]:
+                            - button "Sistem" [ref=e323]:
+                                - text: Sistem
+                                - img [ref=e324]
+                            - list "Grup navigasi Sistem":
+                                - generic [ref=e326]:
+                                    - listitem "Kesehatan Sistem" [ref=e327] [cursor=pointer]:
+                                        - img [ref=e328]
+                                        - generic [ref=e330]: Kesehatan Sistem
+                                    - listitem "Integrasi LTI" [ref=e331] [cursor=pointer]:
+                                        - img [ref=e332]
+                                        - generic [ref=e334]: Integrasi LTI
+                                        - generic [ref=e335]: Segera
+                                    - listitem "Pengaturan" [ref=e336] [cursor=pointer]:
+                                        - img [ref=e337]
+                                        - generic [ref=e340]: Pengaturan
+                    - button "Keluar" [ref=e342]:
+                        - img [ref=e343]
+                        - text: Keluar
+                - generic [ref=e346]:
+                    - generic [ref=e347]:
+                        - button "Buka pencarian global" [ref=e348]:
+                            - img [ref=e349]
+                            - generic [ref=e352]: Cari...
+                            - generic [ref=e354]: ⌘K
+                        - generic [ref=e355]:
+                            - generic [ref=e356]:
+                                - img [ref=e357]
+                                - text: Administrator
+                            - button "Ubah mode gelap" [ref=e359]:
+                                - img [ref=e360]
+                            - button "Notifikasi deteksi kesulitan siswa" [ref=e363]:
+                                - img [ref=e364]
+                            - button "Notifikasi admin" [ref=e368]:
+                                - img [ref=e369]
+                            - button "Notifikasi" [ref=e373]:
+                                - img [ref=e374]
+                            - button "Menu profil" [ref=e378]:
+                                - generic:
+                                    - status
+                                    - img "Foto profil pengguna"
+                    - main [ref=e379]:
+                        - generic [ref=e382]:
+                            - complementary [ref=e383]:
+                                - generic [ref=e384]:
+                                    - generic [ref=e386]: E
+                                    - heading "EduSync" [level=1] [ref=e387]
+                                - navigation [ref=e388]
+                            - main [ref=e416]
+    - generic [ref=e78]:
+        - img [ref=e80]
+        - button "Open Tanstack query devtools" [ref=e128] [cursor=pointer]:
+            - img [ref=e129]

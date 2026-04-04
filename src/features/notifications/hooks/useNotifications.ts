@@ -4,12 +4,12 @@
 
 import { useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
-import { useToast } from '@/src/hooks/useToast'
+import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/services/supabase/client'
+import { useToast } from '@/hooks/useToast'
 import * as notificationApi from '../api/notificationApi'
 import type { Notification, NotificationPreferences } from '../types'
-import { STALE } from '@/src/utils/queryConstants'
+import { STALE } from '@/utils/queryConstants'
 
 // ─── Query Keys ──────────────────────────────────────────────────────────────
 

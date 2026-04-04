@@ -1,0 +1,13 @@
+{
+  "patterns": ["test-file.ts"],
+  "important_files": ["test-file.ts", "tsconfig.json", "LMS", "package.json"],
+  "recent_fixes": [
+    "Read the file package.json and tell me the project name",
+    "List the files in the current directory",
+    "tes\n<system-reminder>\n# Plan Mode - System Reminder\n\nCRITICAL: Plan mode ACTIVE - you are in READ-ON",
+    "deepdive ke codebase saya dan rate bayngkan anda Senior level SQA\n<system-reminder>\n# Plan Mode - Sy",
+    "Write hello() function in test-file.ts",
+    "Find auth related files in this project"
+  ],
+  "last_updated": "2026-03-26T16:57:54.996Z"
+}

@@ -1,0 +1,117 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [active] [ref=e4]:
+        - link "Lewati ke konten utama" [ref=e160] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e161]:
+            - status [ref=e162]: 'Halaman dimuat: EduSync LMS'
+            - link "Langsung ke konten utama" [ref=e163] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e164]:
+                - complementary [ref=e165]:
+                    - generic [ref=e166]:
+                        - generic [ref=e168]: E
+                        - heading "EduSync" [level=1] [ref=e169]
+                    - navigation "Menu utama" [ref=e170]:
+                        - link "Ruang Belajar" [ref=e171] [cursor=pointer]:
+                            - /url: '#/app/student/dashboard'
+                            - img [ref=e172]
+                            - text: Ruang Belajar
+                        - link "Sosial & Info" [ref=e175] [cursor=pointer]:
+                            - /url: '#/social-hub'
+                            - img [ref=e176]
+                            - text: Sosial & Info
+                        - link "Gamifikasi" [ref=e181] [cursor=pointer]:
+                            - /url: '#/gamification-hub'
+                            - img [ref=e182]
+                            - text: Gamifikasi
+                        - link "Pengaturan" [ref=e184] [cursor=pointer]:
+                            - /url: '#/settings'
+                            - img [ref=e185]
+                            - text: Pengaturan
+                    - button "Keluar" [ref=e189]:
+                        - img [ref=e190]
+                        - text: Keluar
+                - generic [ref=e193]:
+                    - generic [ref=e194]:
+                        - button "Buka pencarian global" [ref=e195]:
+                            - img [ref=e196]
+                            - generic [ref=e199]: Cari...
+                            - generic [ref=e201]: ⌘K
+                        - generic [ref=e202]:
+                            - generic [ref=e203]:
+                                - img [ref=e204]
+                                - generic [ref=e206]: '1'
+                            - generic [ref=e207]:
+                                - generic "Level 1 — Pemula" [ref=e208]: Lv 1
+                                - generic [ref=e209]:
+                                    - img [ref=e210]
+                                    - text: 50 XP
+                                - 'progressbar "XP progres: 50%" [ref=e212]'
+                            - button "Ubah mode gelap" [ref=e214]:
+                                - img [ref=e215]
+                            - button "Notifikasi" [ref=e218]:
+                                - img [ref=e219]
+                            - button "Menu profil" [ref=e223]:
+                                - img "Foto profil pengguna" [ref=e225]
+                    - main [ref=e226]:
+                        - generic [ref=e228]:
+                            - generic [ref=e229]:
+                                - heading "Prestasi & Permainan" [level=1] [ref=e230]
+                                - paragraph [ref=e231]: Lihat pencapaian, sertifikat, dan mainkan kuis.
+                            - generic [ref=e232]:
+                                - generic [ref=e233]:
+                                    - generic [ref=e234]:
+                                        - generic [ref=e235]: Level 1
+                                        - generic [ref=e236]: Pemula
+                                    - paragraph [ref=e237]: 50 XP
+                                    - generic [ref=e239]:
+                                        - generic [ref=e240]: Progres ke Level 2
+                                        - generic [ref=e241]: 50%
+                                - generic [ref=e244]:
+                                    - generic [ref=e245]:
+                                        - generic [ref=e246]: 🔥
+                                        - generic [ref=e247]: Streak Harian
+                                    - paragraph [ref=e248]: 1 hari
+                                    - paragraph [ref=e249]: 'Rekor terlama: 1 hari'
+                                - generic [ref=e250]:
+                                    - generic [ref=e251]:
+                                        - generic [ref=e252]: ⚡
+                                        - generic [ref=e253]: Aktivitas Terbaru
+                                    - generic [ref=e254]:
+                                        - generic [ref=e255]:
+                                            - generic [ref=e256]: Materi selesai
+                                            - generic [ref=e257]: +5 XP
+                                        - generic [ref=e258]:
+                                            - generic [ref=e259]: Materi selesai
+                                            - generic [ref=e260]: +10 XP
+                                        - generic [ref=e261]:
+                                            - generic [ref=e262]: Materi selesai
+                                            - generic [ref=e263]: +10 XP
+                            - generic [ref=e264]:
+                                - generic [ref=e265]:
+                                    - generic:
+                                        - heading [level=1]
+                                        - paragraph
+                                - generic [ref=e266]:
+                                    - link "Papan Peringkat Peringkat siswa, XP, dan liga gamifikasi." [ref=e268] [cursor=pointer]:
+                                        - /url: '#/leaderboard'
+                                        - generic [ref=e270]:
+                                            - generic [ref=e271]:
+                                                - img [ref=e273]
+                                                - img [ref=e281]
+                                            - heading "Papan Peringkat" [level=3] [ref=e284]
+                                            - paragraph [ref=e285]: Peringkat siswa, XP, dan liga gamifikasi.
+                                    - link "Sertifikat Galeri sertifikat kelulusan dan pencapaian." [ref=e287] [cursor=pointer]:
+                                        - /url: '#/certificates'
+                                        - generic [ref=e289]:
+                                            - generic [ref=e290]:
+                                                - img [ref=e292]
+                                                - img [ref=e296]
+                                            - heading "Sertifikat" [level=3] [ref=e299]
+                                            - paragraph [ref=e300]: Galeri sertifikat kelulusan dan pencapaian.
+    - generic [ref=e61]:
+        - img [ref=e63]
+        - button "Open Tanstack query devtools" [ref=e111] [cursor=pointer]:
+            - img [ref=e112]

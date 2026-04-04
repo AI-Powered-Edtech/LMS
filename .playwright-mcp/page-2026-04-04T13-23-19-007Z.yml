@@ -1,0 +1,69 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [active] [ref=e4]:
+        - link "Lewati ke konten utama" [ref=e5] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e6]:
+            - status [ref=e7]: 'Halaman dimuat: Lesson Viewer | EduSync LMS'
+            - link "Langsung ke konten utama" [ref=e8] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e9]:
+                - complementary [ref=e619]:
+                    - generic [ref=e620]:
+                        - generic [ref=e622]: E
+                        - heading "EduSync" [level=1] [ref=e623]
+                    - navigation "Menu utama" [ref=e624]:
+                        - link "Ruang Belajar" [ref=e625] [cursor=pointer]:
+                            - /url: '#/app/student/dashboard'
+                            - img [ref=e626]
+                            - text: Ruang Belajar
+                        - link "Sosial & Info" [ref=e629] [cursor=pointer]:
+                            - /url: '#/social-hub'
+                            - img [ref=e630]
+                            - text: Sosial & Info
+                        - link "Gamifikasi" [ref=e635] [cursor=pointer]:
+                            - /url: '#/gamification-hub'
+                            - img [ref=e636]
+                            - text: Gamifikasi
+                        - link "Pengaturan" [ref=e638] [cursor=pointer]:
+                            - /url: '#/settings'
+                            - img [ref=e639]
+                            - text: Pengaturan
+                    - button "Keluar" [ref=e643]:
+                        - img [ref=e644]
+                        - text: Keluar
+                - generic [ref=e38]:
+                    - generic [ref=e647]:
+                        - button "Buka pencarian global" [ref=e648]:
+                            - img [ref=e649]
+                            - generic [ref=e652]: Cari...
+                            - generic [ref=e654]: ⌘K
+                        - generic [ref=e655]:
+                            - generic [ref=e656]:
+                                - img [ref=e657]
+                                - generic [ref=e659]: '1'
+                            - generic [ref=e660]:
+                                - generic "Level 1 — Pemula" [ref=e661]: Lv 1
+                                - generic [ref=e662]:
+                                    - img [ref=e663]
+                                    - text: 50 XP
+                                - 'progressbar "XP progres: 50%" [ref=e665]'
+                            - button "Ubah mode gelap" [ref=e667]:
+                                - img [ref=e668]
+                            - button "Notifikasi" [ref=e671]:
+                                - img [ref=e672]
+                            - button "Menu profil" [ref=e676]:
+                                - img "Foto profil pengguna" [ref=e678]
+                    - main [ref=e71]:
+                        - generic [ref=e895]:
+                            - complementary [ref=e896]:
+                                - generic [ref=e897]:
+                                    - generic [ref=e899]: E
+                                    - heading "EduSync" [level=1] [ref=e900]
+                                - navigation [ref=e901]
+                            - main [ref=e929]
+    - generic [ref=e520]:
+        - img [ref=e522]
+        - button "Open Tanstack query devtools" [ref=e570] [cursor=pointer]:
+            - img [ref=e571]

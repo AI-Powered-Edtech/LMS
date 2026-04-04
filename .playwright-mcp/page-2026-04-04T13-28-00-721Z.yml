@@ -1,0 +1,67 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [active] [ref=e4]:
+        - link "Lewati ke konten utama" [ref=e1661] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e1662]:
+            - status [ref=e1663]: 'Halaman dimuat: Pembuat Kursus | EduSync LMS'
+            - link "Langsung ke konten utama" [ref=e1664] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e1665]:
+                - complementary [ref=e1666]:
+                    - generic [ref=e1667]:
+                        - generic [ref=e1669]: E
+                        - heading "EduSync" [level=1] [ref=e1670]
+                    - 'button "Pilih kelas aktif: Kelas QA Updated" [ref=e1775]':
+                        - generic [ref=e1674]:
+                            - generic [ref=e1675]: Kelas Aktif
+                            - generic [ref=e1676]: Kelas QA Updated
+                        - img [ref=e1677]
+                    - navigation "Menu utama" [ref=e1679]:
+                        - link "Pusat Mengajar" [ref=e1680] [cursor=pointer]:
+                            - /url: '#/app/teacher/dashboard'
+                            - img [ref=e1681]
+                            - text: Pusat Mengajar
+                        - link "Sosial & Info" [ref=e1684] [cursor=pointer]:
+                            - /url: '#/social-hub'
+                            - img [ref=e1685]
+                            - text: Sosial & Info
+                        - link "Pengaturan" [ref=e1690] [cursor=pointer]:
+                            - /url: '#/settings'
+                            - img [ref=e1691]
+                            - text: Pengaturan
+                    - button "Keluar" [ref=e1695]:
+                        - img [ref=e1696]
+                        - text: Keluar
+                - generic [ref=e1699]:
+                    - generic [ref=e1700]:
+                        - button "Buka pencarian global" [ref=e1701]:
+                            - img [ref=e1702]
+                            - generic [ref=e1705]: Cari...
+                            - generic [ref=e1707]: ⌘K
+                        - generic [ref=e1708]:
+                            - generic [ref=e1709]:
+                                - img [ref=e1710]
+                                - text: Guru
+                            - button "Ubah mode gelap" [ref=e1712]:
+                                - img [ref=e1713]
+                            - button "Notifikasi deteksi kesulitan siswa" [ref=e1716]:
+                                - img [ref=e1717]
+                                - generic [ref=e1776]: '1'
+                            - button "Notifikasi" [ref=e1721]:
+                                - img [ref=e1722]
+                            - button "Menu profil" [ref=e1726]:
+                                - img "Foto profil pengguna" [ref=e1728]
+                    - main [ref=e1729]:
+                        - generic [ref=e2077]:
+                            - img [ref=e2079]
+                            - heading "Materi Belum Dipilih" [level=2] [ref=e2081]
+                            - paragraph [ref=e2082]: Silakan pilih kelas atau materi yang ingin Anda buat dan edit melalui halaman Kelola Materi.
+                            - button "Kembali ke Kelola Materi" [ref=e2083]
+            - button "Buka bantuan halaman ini" [ref=e2070]:
+                - img [ref=e2072]
+    - generic [ref=e232]:
+        - img [ref=e234]
+        - button "Open Tanstack query devtools" [ref=e282] [cursor=pointer]:
+            - img [ref=e283]

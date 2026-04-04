@@ -1,0 +1,329 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [active] [ref=e4]:
+        - link "Lewati ke konten utama" [ref=e326] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e327]:
+            - status [ref=e328]: 'Halaman dimuat: Tidak Ditemukan | EduSync LMS'
+            - link "Langsung ke konten utama" [ref=e329] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e330]:
+                - complementary [ref=e331]:
+                    - generic [ref=e332]:
+                        - generic [ref=e334]: E
+                        - heading "EduSync" [level=1] [ref=e335]
+                    - navigation "Menu utama" [ref=e336]:
+                        - link "Ruang Belajar" [ref=e337] [cursor=pointer]:
+                            - /url: '#/app/student/dashboard'
+                            - img [ref=e338]
+                            - text: Ruang Belajar
+                        - link "Sosial & Info" [ref=e341] [cursor=pointer]:
+                            - /url: '#/social-hub'
+                            - img [ref=e342]
+                            - text: Sosial & Info
+                        - link "Gamifikasi" [ref=e347] [cursor=pointer]:
+                            - /url: '#/gamification-hub'
+                            - img [ref=e348]
+                            - text: Gamifikasi
+                        - link "Pengaturan" [ref=e350] [cursor=pointer]:
+                            - /url: '#/settings'
+                            - img [ref=e351]
+                            - text: Pengaturan
+                    - button "Keluar" [ref=e355]:
+                        - img [ref=e356]
+                        - text: Keluar
+                - generic [ref=e359]:
+                    - generic [ref=e360]:
+                        - button "Buka pencarian global" [ref=e361]:
+                            - img [ref=e362]
+                            - generic [ref=e365]: Cari...
+                            - generic [ref=e367]: ⌘K
+                        - generic [ref=e368]:
+                            - generic [ref=e369]:
+                                - img [ref=e370]
+                                - generic [ref=e372]: '1'
+                            - generic [ref=e373]:
+                                - generic "Level 1 — Pemula" [ref=e374]: Lv 1
+                                - generic [ref=e375]:
+                                    - img [ref=e376]
+                                    - text: 50 XP
+                                - 'progressbar "XP progres: 50%" [ref=e449]'
+                            - button "Ubah mode gelap" [ref=e379]:
+                                - img [ref=e380]
+                            - button "Notifikasi" [ref=e383]:
+                                - img [ref=e384]
+                            - button "Menu profil" [ref=e388]:
+                                - img "Foto profil pengguna" [ref=e390]
+                    - main [ref=e391]:
+                        - generic [ref=e990]:
+                            - generic [ref=e994]:
+                                - paragraph [ref=e995]: 🌙 Selamat malam
+                                - heading "Student!" [level=1] [ref=e996]
+                                - paragraph [ref=e997]: Siap untuk melanjutkan petualangan belajarmu hari ini?
+                            - generic [ref=e999]:
+                                - generic [ref=e1000]:
+                                    - generic [ref=e1001]:
+                                        - img [ref=e1002]
+                                        - generic [ref=e1004]: '1'
+                                    - generic [ref=e1006]:
+                                        - generic [ref=e1007]: Lv 1
+                                        - progressbar "XP Level 1" [ref=e1008]
+                                        - generic [ref=e1010]: 50 XP
+                                - paragraph [ref=e1011]: Bagus! Terus kumpulkan XP dan raih level berikutnya.
+                            - generic [ref=e1012]:
+                                - generic [ref=e1013]:
+                                    - heading "Kelas Saya" [level=2] [ref=e1014]:
+                                        - img [ref=e1015]
+                                        - text: Kelas Saya
+                                    - button "Gabung Kelas" [ref=e1020]:
+                                        - img [ref=e1021]
+                                        - text: Gabung Kelas
+                                - generic [ref=e1023] [cursor=pointer]:
+                                    - heading "b ing" [level=3] [ref=e1024]
+                                    - paragraph [ref=e1025]:
+                                        - img [ref=e1026]
+                                        - text: Guru
+                            - generic [ref=e1029]:
+                                - generic [ref=e1030]:
+                                    - heading "Tugas Mendekati Deadline" [level=2] [ref=e1031]:
+                                        - img [ref=e1032]
+                                        - text: Tugas Mendekati Deadline
+                                    - link "Lihat Semua" [ref=e1034] [cursor=pointer]:
+                                        - /url: '#/assignments'
+                                - generic [ref=e1035]:
+                                    - generic [ref=e1036]:
+                                        - status [ref=e1037]
+                                        - status [ref=e1039]
+                                    - generic [ref=e1040]:
+                                        - status [ref=e1041]
+                                        - status [ref=e1043]
+                            - generic [ref=e1044]:
+                                - heading "Pencapaian Terbaru" [level=2] [ref=e1046]:
+                                    - img [ref=e1047]
+                                    - text: Pencapaian Terbaru
+                                - generic [ref=e1053]:
+                                    - generic [ref=e1054]:
+                                        - generic [ref=e1055]:
+                                            - generic [ref=e1056]: 🌟
+                                            - img [ref=e1059]
+                                        - heading "Cendekiawan" [level=4] [ref=e1062]
+                                    - generic [ref=e1063]:
+                                        - generic [ref=e1064]:
+                                            - generic [ref=e1065]: 🏆
+                                            - img [ref=e1068]
+                                        - heading "Ahli Kursus" [level=4] [ref=e1071]
+                                    - generic [ref=e1072]:
+                                        - generic [ref=e1073]:
+                                            - generic [ref=e1074]: 💪
+                                            - img [ref=e1077]
+                                        - heading "Tak Terhentikan" [level=4] [ref=e1080]
+                                    - generic [ref=e1081]:
+                                        - generic [ref=e1082]:
+                                            - generic [ref=e1083]: 🔥
+                                            - img [ref=e1086]
+                                        - heading "Membara" [level=4] [ref=e1089]
+                                    - generic [ref=e1090]:
+                                        - generic [ref=e1091]:
+                                            - generic [ref=e1092]: 🎯
+                                            - img [ref=e1095]
+                                        - heading "Penembak Jitu" [level=4] [ref=e1098]
+                                    - generic [ref=e1099]:
+                                        - generic [ref=e1100]:
+                                            - generic [ref=e1101]: ⚡
+                                            - img [ref=e1104]
+                                        - heading "Pembelajar Cepat" [level=4] [ref=e1107]
+                                    - generic [ref=e1108]:
+                                        - generic [ref=e1109]:
+                                            - generic [ref=e1110]: 📚
+                                            - img [ref=e1113]
+                                        - heading "Kutu Buku" [level=4] [ref=e1116]
+                                    - generic [ref=e1117]:
+                                        - generic [ref=e1118]:
+                                            - generic [ref=e1119]: 🔥
+                                            - img [ref=e1122]
+                                        - heading "Semangat Awal" [level=4] [ref=e1125]
+                            - generic [ref=e1126]:
+                                - heading "Lanjutkan Belajar" [level=2] [ref=e1128]:
+                                    - img [ref=e1129]
+                                    - text: Lanjutkan Belajar
+                                - generic [ref=e1131]:
+                                    - generic [ref=e1133] [cursor=pointer]:
+                                        - generic [ref=e1134]:
+                                            - img [ref=e1135]
+                                            - generic [ref=e1137]:
+                                                - generic [ref=e1138]: Lanjutkan
+                                                - img [ref=e1139]
+                                        - heading "!QA Test Course Flow 5" [level=3] [ref=e1141]
+                                        - generic [ref=e1142]:
+                                            - 'progressbar "Progres kursus: 0%" [ref=e1143]'
+                                            - paragraph [ref=e1144]: Mulai Belajar
+                                        - generic [ref=e1145]:
+                                            - generic [ref=e1146]: AKTIF
+                                            - img [ref=e1147]
+                                    - generic [ref=e1150] [cursor=pointer]:
+                                        - generic [ref=e1151]:
+                                            - img [ref=e1152]
+                                            - generic [ref=e1154]:
+                                                - generic [ref=e1155]: Lanjutkan
+                                                - img [ref=e1156]
+                                        - heading "matematika" [level=3] [ref=e1158]
+                                        - generic [ref=e1159]:
+                                            - 'progressbar "Progres kursus: 0%" [ref=e1160]'
+                                            - paragraph [ref=e1161]: Mulai Belajar
+                                        - generic [ref=e1162]:
+                                            - generic [ref=e1163]: AKTIF
+                                            - img [ref=e1164]
+                                    - generic [ref=e1167] [cursor=pointer]:
+                                        - generic [ref=e1168]:
+                                            - img [ref=e1169]
+                                            - generic [ref=e1171]:
+                                                - generic [ref=e1172]: Lanjutkan
+                                                - img [ref=e1173]
+                                        - heading "QA Test Course - Matematika Dasar" [level=3] [ref=e1175]
+                                        - generic [ref=e1176]:
+                                            - 'progressbar "Progres kursus: 0%" [ref=e1177]'
+                                            - paragraph [ref=e1178]: Mulai Belajar
+                                        - generic [ref=e1179]:
+                                            - generic [ref=e1180]: AKTIF
+                                            - img [ref=e1181]
+                                    - generic [ref=e1184] [cursor=pointer]:
+                                        - generic [ref=e1185]:
+                                            - img [ref=e1186]
+                                            - generic [ref=e1188]:
+                                                - generic [ref=e1189]: Lanjutkan
+                                                - img [ref=e1190]
+                                        - heading "Matematika Kelas 10" [level=3] [ref=e1192]
+                                        - generic [ref=e1193]:
+                                            - 'progressbar "Progres kursus: 0%" [ref=e1194]'
+                                            - paragraph [ref=e1195]: Mulai Belajar
+                                        - generic [ref=e1196]:
+                                            - generic [ref=e1197]: AKTIF
+                                            - img [ref=e1198]
+                            - generic [ref=e1200]:
+                                - heading "Direkomendasikan untuk kamu" [level=2] [ref=e1201]:
+                                    - img [ref=e1202]
+                                    - text: Direkomendasikan untuk kamu
+                                - 'article "Lanjut Kursus: Ayo lanjut belajar! Mulai dari yang ringan" [ref=e1205]':
+                                    - generic [ref=e1206]: 🎯
+                                    - generic [ref=e1207]:
+                                        - generic [ref=e1208]:
+                                            - generic [ref=e1209]: Lanjut Kursus
+                                            - generic [ref=e1210]: 75% cocok
+                                        - paragraph [ref=e1211]: Ayo lanjut belajar! Mulai dari yang ringan
+                                        - generic [ref=e1212]:
+                                            - 'button "Mulai: Lanjut Kursus: Ayo lanjut belajar! Mulai dari yang ringan" [ref=e1213]': Mulai
+                                            - 'button "Nanti: Lanjut Kursus: Ayo lanjut belajar! Mulai dari yang ringan" [ref=e1214]': Nanti
+                            - generic [ref=e1216]:
+                                - generic [ref=e1217]:
+                                    - heading "Cuplikan Papan Peringkat" [level=2] [ref=e1218]:
+                                        - img [ref=e1219]
+                                        - text: Cuplikan Papan Peringkat
+                                    - link "Lihat Peringkat" [ref=e1225] [cursor=pointer]:
+                                        - /url: '#/app/student/leaderboard'
+                                - generic [ref=e1226]:
+                                    - img [ref=e1228]
+                                    - heading "122 XP" [level=3] [ref=e1230]
+                                    - 'progressbar "XP progres: 22%" [ref=e1231]'
+                                    - paragraph [ref=e1233]:
+                                        - text: Butuh
+                                        - strong [ref=e1234]: 78 XP
+                                        - text: lagi untuk naik peringkat
+                            - generic [ref=e1236]:
+                                - generic [ref=e1238]:
+                                    - heading "Ruang Belajar (Hub)" [level=1] [ref=e1239]
+                                    - paragraph [ref=e1240]: Akses cepat ke semua fitur pembelajaran Anda.
+                                - generic [ref=e1241]:
+                                    - link "Smart Player Video & artikel dengan auto-completion tracking." [ref=e1243] [cursor=pointer]:
+                                        - /url: '#/lesson'
+                                        - generic [ref=e1245]:
+                                            - generic [ref=e1246]:
+                                                - img [ref=e1248]
+                                                - img [ref=e1252]
+                                            - heading "Smart Player" [level=3] [ref=e1255]
+                                            - paragraph [ref=e1256]: Video & artikel dengan auto-completion tracking.
+                                    - link "Kuis Kerjakan kuis dan ujian online." [ref=e1258] [cursor=pointer]:
+                                        - /url: '#/quiz'
+                                        - generic [ref=e1260]:
+                                            - generic [ref=e1261]:
+                                                - img [ref=e1263]
+                                                - img [ref=e1267]
+                                            - heading "Kuis" [level=3] [ref=e1270]
+                                            - paragraph [ref=e1271]: Kerjakan kuis dan ujian online.
+                                    - link "Pusat Tugas 2 Kumpulkan dan kelola tugas harian." [ref=e1273] [cursor=pointer]:
+                                        - /url: '#/assignments'
+                                        - generic [ref=e1275]:
+                                            - generic [ref=e1276]:
+                                                - img [ref=e1278]
+                                                - img [ref=e1281]
+                                            - generic [ref=e1283]:
+                                                - heading "Pusat Tugas" [level=3] [ref=e1284]
+                                                - generic [ref=e1285]: '2'
+                                            - paragraph [ref=e1286]: Kumpulkan dan kelola tugas harian.
+                                    - link "Tugas Kelompok Kolaborasi tugas kelompok." [ref=e1288] [cursor=pointer]:
+                                        - /url: '#/group-assignment'
+                                        - generic [ref=e1290]:
+                                            - generic [ref=e1291]:
+                                                - img [ref=e1293]
+                                                - img [ref=e1299]
+                                            - heading "Tugas Kelompok" [level=3] [ref=e1302]
+                                            - paragraph [ref=e1303]: Kolaborasi tugas kelompok.
+                                    - link "Nilai Saya Lihat nilai tugas dan simulasi proyeksi nilai akhir." [ref=e1305] [cursor=pointer]:
+                                        - /url: '#/grades'
+                                        - generic [ref=e1307]:
+                                            - generic [ref=e1308]:
+                                                - img [ref=e1310]
+                                                - img [ref=e1317]
+                                            - heading "Nilai Saya" [level=3] [ref=e1320]
+                                            - paragraph [ref=e1321]: Lihat nilai tugas dan simulasi proyeksi nilai akhir.
+                                    - link "Kehadiran Rekap kehadiran berdasarkan data absensi guru." [ref=e1323] [cursor=pointer]:
+                                        - /url: '#/attendance'
+                                        - generic [ref=e1325]:
+                                            - generic [ref=e1326]:
+                                                - img [ref=e1328]
+                                                - img [ref=e1331]
+                                            - heading "Kehadiran" [level=3] [ref=e1334]
+                                            - paragraph [ref=e1335]: Rekap kehadiran berdasarkan data absensi guru.
+                                    - link "Peer Review Nilai dan berikan umpan balik tugas sesama siswa." [ref=e1337] [cursor=pointer]:
+                                        - /url: '#/app/student/peer-reviews'
+                                        - generic [ref=e1339]:
+                                            - generic [ref=e1340]:
+                                                - img [ref=e1342]
+                                                - img [ref=e1347]
+                                            - heading "Peer Review" [level=3] [ref=e1350]
+                                            - paragraph [ref=e1351]: Nilai dan berikan umpan balik tugas sesama siswa.
+                            - generic [ref=e1352]:
+                                - generic [ref=e1353]:
+                                    - heading "Progres XP" [level=3] [ref=e1355]
+                                    - generic [ref=e1356]:
+                                        - img [ref=e1358]
+                                        - generic [ref=e1364]:
+                                            - generic [ref=e1365]:
+                                                - generic [ref=e1366]: Target Harian
+                                                - generic [ref=e1367]: 22/50 XP
+                                            - 'progressbar "Target harian: 22/50 XP" [ref=e1368]'
+                                    - generic [ref=e1370]:
+                                        - generic [ref=e1372]: Kam
+                                        - generic [ref=e1374]: Jum
+                                        - generic [ref=e1376]: Sab
+                                        - generic [ref=e1378]: Min
+                                        - generic [ref=e1380]: Sen
+                                        - generic [ref=e1382]: Sel
+                                        - generic [ref=e1384]: Rab
+                                - generic [ref=e1385]:
+                                    - heading "Pencapaian" [level=3] [ref=e1387]
+                                    - generic [ref=e1388]:
+                                        - img [ref=e1390]
+                                        - heading "Belum ada pencapaian" [level=3] [ref=e1392]
+                                - generic [ref=e1393]:
+                                    - heading "Progres Kuis" [level=3] [ref=e1394]
+                                    - generic [ref=e1395]:
+                                        - img [ref=e1397]
+                                        - heading "Belum ada riwayat kuis" [level=3] [ref=e1400]
+                                        - button "Mulai Kuis" [ref=e1401]
+            - button "Buka bantuan halaman ini" [ref=e1402]:
+                - img [ref=e1404]
+    - generic [ref=e132]:
+        - img [ref=e134]
+        - button "Open Tanstack query devtools" [ref=e182] [cursor=pointer]:
+            - img [ref=e183]

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { reportService } from '../api/reportService'
-import { STALE, GC } from '@/src/utils/queryConstants'
+import { STALE, GC } from '@/utils/queryConstants'
 
 const REPORT_KEYS = {
   all: ['scheduled_reports'] as const,

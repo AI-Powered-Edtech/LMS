@@ -1,0 +1,114 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [active] [ref=e4]:
+        - link "Lewati ke konten utama" [ref=e61] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e62]:
+            - status [ref=e63]: 'Halaman dimuat: Pengaturan | EduSync LMS'
+            - link "Langsung ke konten utama" [ref=e64] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e65]:
+                - complementary [ref=e66]:
+                    - generic [ref=e67]:
+                        - generic [ref=e69]: E
+                        - heading "EduSync" [level=1] [ref=e70]
+                    - 'button "Pilih kelas aktif: Kelas QA Updated" [ref=e73]':
+                        - generic [ref=e74]:
+                            - generic [ref=e75]: Kelas Aktif
+                            - generic [ref=e76]: Kelas QA Updated
+                        - img [ref=e77]
+                    - navigation "Menu utama" [ref=e79]:
+                        - link "Pusat Mengajar" [ref=e80] [cursor=pointer]:
+                            - /url: '#/app/teacher/dashboard'
+                            - img [ref=e81]
+                            - text: Pusat Mengajar
+                        - link "Sosial & Info" [ref=e84] [cursor=pointer]:
+                            - /url: '#/social-hub'
+                            - img [ref=e85]
+                            - text: Sosial & Info
+                        - link "Pengaturan" [ref=e90] [cursor=pointer]:
+                            - /url: '#/settings'
+                            - img [ref=e91]
+                            - text: Pengaturan
+                    - button "Keluar" [ref=e95]:
+                        - img [ref=e96]
+                        - text: Keluar
+                - generic [ref=e99]:
+                    - generic [ref=e100]:
+                        - button "Buka pencarian global" [ref=e101]:
+                            - img [ref=e102]
+                            - generic [ref=e105]: Cari...
+                            - generic [ref=e107]: ⌘K
+                        - generic [ref=e108]:
+                            - generic [ref=e109]:
+                                - img [ref=e110]
+                                - text: Guru
+                            - button "Ubah mode gelap" [ref=e112]:
+                                - img [ref=e113]
+                            - button "Notifikasi deteksi kesulitan siswa" [ref=e116]:
+                                - img [ref=e117]
+                                - generic [ref=e120]: '1'
+                            - button "Notifikasi" [ref=e122]:
+                                - img [ref=e123]
+                            - button "Menu profil" [ref=e127]:
+                                - img "Foto profil pengguna" [ref=e129]
+                    - main [ref=e130]:
+                        - generic [ref=e602]:
+                            - generic [ref=e603]:
+                                - heading "Pengaturan" [level=1] [ref=e604]
+                                - paragraph [ref=e605]: Kelola preferensi akun, notifikasi, dan tampilan aplikasi.
+                            - generic [ref=e606]:
+                                - tablist [ref=e607]:
+                                    - tab "Akun & Profil" [selected] [ref=e608]:
+                                        - img [ref=e609]
+                                        - text: Akun & Profil
+                                    - tab "Notifikasi" [ref=e612]:
+                                        - img [ref=e613]
+                                        - text: Notifikasi
+                                    - tab "Keamanan" [ref=e616]:
+                                        - img [ref=e617]
+                                        - text: Keamanan
+                                    - tab "Tampilan" [ref=e620]:
+                                        - img [ref=e621]
+                                        - text: Tampilan
+                                    - tab "Bahasa & Wilayah" [ref=e623]:
+                                        - img [ref=e624]
+                                        - text: Bahasa & Wilayah
+                                    - tab "Aksesibilitas" [ref=e627]:
+                                        - img [ref=e628]
+                                        - text: Aksesibilitas
+                                - generic [ref=e634]:
+                                    - generic [ref=e635]:
+                                        - generic [ref=e636]:
+                                            - heading "Informasi Akun" [level=2] [ref=e637]
+                                            - paragraph [ref=e638]: Perbarui informasi dasar akun Anda.
+                                        - generic [ref=e639]:
+                                            - generic [ref=e640]:
+                                                - img "Avatar" [ref=e643]
+                                                - button "Ubah Foto" [disabled] [ref=e644]:
+                                                    - img [ref=e645]
+                                                    - text: Ubah Foto
+                                            - generic [ref=e648]:
+                                                - generic [ref=e649]:
+                                                    - text: Nama Lengkap
+                                                    - textbox "Nama Lengkap" [ref=e650]: Teacher Dev
+                                                - generic [ref=e651]:
+                                                    - text: Email
+                                                    - textbox [disabled] [ref=e652]: teacher@edusync.dev
+                                                - generic [ref=e653]:
+                                                    - text: Peran Akun
+                                                    - textbox [disabled] [ref=e654]: Guru
+                                            - button "Simpan Perubahan" [ref=e656]:
+                                                - img [ref=e657]
+                                                - text: Simpan Perubahan
+                                    - generic [ref=e662]:
+                                        - heading "Zona Berbahaya" [level=2] [ref=e663]
+                                        - paragraph [ref=e664]: Tindakan di bawah ini tidak dapat dibatalkan.
+                                        - button "Keluar Akun" [ref=e665]:
+                                            - img [ref=e666]
+                                            - text: Keluar Akun
+    - generic [ref=e278]:
+        - img [ref=e280]
+        - button "Open Tanstack query devtools" [ref=e328] [cursor=pointer]:
+            - img [ref=e329]

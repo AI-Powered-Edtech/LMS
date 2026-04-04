@@ -1,0 +1,20 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [ref=e4]:
+        - generic [ref=e150]:
+            - generic [ref=e151]:
+                - heading "Pilih Ruang Kerja" [level=1] [ref=e152]
+                - paragraph [ref=e153]: Pilih organisasi sekolah untuk melanjutkan
+            - 'button "EduSync Dev Tenant Peran: admin" [ref=e155]':
+                - generic [ref=e156]:
+                    - heading "EduSync Dev Tenant" [level=3] [ref=e157]
+                    - paragraph [ref=e158]: 'Peran: admin'
+                - img [ref=e160]
+            - button "Keluar dari akun" [ref=e163]:
+                - img [ref=e164]
+                - generic [ref=e167]: Keluar dari akun
+    - generic [ref=e50]:
+        - img [ref=e52]
+        - button "Open Tanstack query devtools" [ref=e100] [cursor=pointer]:
+            - img [ref=e101]

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/src/services/supabase/client'
-import { createQueryKeys } from '@/src/lib/queryKeys'
-import { STALE, GC } from '@/src/utils/queryConstants'
+import { supabase } from '@/services/supabase/client'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { STALE, GC } from '@/utils/queryConstants'
 import type { OnboardingProgress } from '../types'
 
 const base = createQueryKeys('onboarding')

@@ -1,0 +1,91 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - banner "Install EduSync sebagai aplikasi" [ref=e4]:
+        - generic [ref=e5]:
+            - img [ref=e7]
+            - generic [ref=e10]:
+                - paragraph [ref=e11]: Install EduSync
+                - paragraph [ref=e12]: Akses lebih cepat langsung dari layar utama
+            - generic [ref=e13]:
+                - button "Install" [ref=e14]
+                - button "Nanti saja" [ref=e15]:
+                    - img [ref=e16]
+    - main [active] [ref=e19]:
+        - link "Lewati ke konten utama" [ref=e239] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e240]:
+            - status [ref=e241]: 'Halaman dimuat: Pilih Ruang Kerja | EduSync LMS'
+            - link "Langsung ke konten utama" [ref=e242] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e243]:
+                - dialog "Onboarding" [ref=e244]:
+                    - generic [ref=e245]:
+                        - button "Tutup" [ref=e246]:
+                            - img [ref=e247]
+                        - generic [ref=e250]:
+                            - img [ref=e252]
+                            - heading "Selamat Datang, Guru!" [level=2] [ref=e255]
+                            - paragraph [ref=e256]: Kelola kelas dan pantau perkembangan siswa dengan bantuan AI.
+                        - generic [ref=e257]:
+                            - button "Lewati" [ref=e263]
+                            - button "Lanjut" [ref=e264]:
+                                - text: Lanjut
+                                - img [ref=e265]
+                - complementary [ref=e267]:
+                    - generic [ref=e268]:
+                        - generic [ref=e270]: E
+                        - heading "EduSync" [level=1] [ref=e271]
+                    - 'button "Pilih kelas aktif: Kelas QA Updated" [ref=e274]':
+                        - generic [ref=e275]:
+                            - generic [ref=e276]: Kelas Aktif
+                            - generic [ref=e277]: Kelas QA Updated
+                        - img [ref=e278]
+                    - navigation "Menu utama" [ref=e280]:
+                        - link "Pusat Mengajar" [ref=e281] [cursor=pointer]:
+                            - /url: '#/app/teacher/dashboard'
+                            - img [ref=e282]
+                            - text: Pusat Mengajar
+                        - link "Sosial & Info" [ref=e285] [cursor=pointer]:
+                            - /url: '#/social-hub'
+                            - img [ref=e286]
+                            - text: Sosial & Info
+                        - link "Pengaturan" [ref=e291] [cursor=pointer]:
+                            - /url: '#/settings'
+                            - img [ref=e292]
+                            - text: Pengaturan
+                    - button "Keluar" [ref=e296]:
+                        - img [ref=e297]
+                        - text: Keluar
+                - generic [ref=e300]:
+                    - generic [ref=e301]:
+                        - button "Buka pencarian global" [ref=e302]:
+                            - img [ref=e303]
+                            - generic [ref=e306]: Cari...
+                            - generic [ref=e308]: ⌘K
+                        - generic [ref=e309]:
+                            - generic [ref=e310]:
+                                - img [ref=e311]
+                                - text: Guru
+                            - button "Ubah mode gelap" [ref=e313]:
+                                - img [ref=e314]
+                            - button "Notifikasi deteksi kesulitan siswa" [ref=e317]:
+                                - img [ref=e318]
+                                - generic [ref=e321]: '1'
+                            - button "Notifikasi" [ref=e323]:
+                                - img [ref=e324]
+                            - button "Menu profil" [ref=e328]:
+                                - img "Foto profil pengguna" [ref=e330]
+                    - main [ref=e331]:
+                        - generic [ref=e334]:
+                            - img [ref=e336]
+                            - heading "404" [level=1] [ref=e339]
+                            - heading "Halaman tidak ditemukan" [level=2] [ref=e340]
+                            - paragraph [ref=e341]: Halaman yang Anda cari tidak ada atau telah dipindahkan.
+                            - button "Kembali ke Dashboard" [ref=e342]:
+                                - img [ref=e343]
+                                - text: Kembali ke Dashboard
+    - generic [ref=e65]:
+        - img [ref=e67]
+        - button "Open Tanstack query devtools" [ref=e115] [cursor=pointer]:
+            - img [ref=e116]

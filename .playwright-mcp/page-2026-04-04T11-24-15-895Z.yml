@@ -1,0 +1,70 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [active] [ref=e4]:
+        - link "Lewati ke konten utama" [ref=e326] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e327]:
+            - status [ref=e328]: 'Halaman dimuat: Dasbor | EduSync LMS'
+            - link "Langsung ke konten utama" [ref=e329] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e330]:
+                - complementary [ref=e331]:
+                    - generic [ref=e332]:
+                        - generic [ref=e334]: E
+                        - heading "EduSync" [level=1] [ref=e335]
+                    - navigation "Menu utama" [ref=e336]:
+                        - link "Ruang Belajar" [ref=e337] [cursor=pointer]:
+                            - /url: '#/app/student/dashboard'
+                            - img [ref=e338]
+                            - text: Ruang Belajar
+                        - link "Sosial & Info" [ref=e341] [cursor=pointer]:
+                            - /url: '#/social-hub'
+                            - img [ref=e342]
+                            - text: Sosial & Info
+                        - link "Gamifikasi" [ref=e347] [cursor=pointer]:
+                            - /url: '#/gamification-hub'
+                            - img [ref=e348]
+                            - text: Gamifikasi
+                        - link "Pengaturan" [ref=e350] [cursor=pointer]:
+                            - /url: '#/settings'
+                            - img [ref=e351]
+                            - text: Pengaturan
+                    - button "Keluar" [ref=e355]:
+                        - img [ref=e356]
+                        - text: Keluar
+                - generic [ref=e359]:
+                    - generic [ref=e360]:
+                        - button "Buka pencarian global" [ref=e361]:
+                            - img [ref=e362]
+                            - generic [ref=e365]: Cari...
+                            - generic [ref=e367]: ⌘K
+                        - generic [ref=e368]:
+                            - generic [ref=e369]:
+                                - img [ref=e370]
+                                - generic [ref=e372]: '1'
+                            - generic [ref=e373]:
+                                - generic "Level 1 — Pemula" [ref=e374]: Lv 1
+                                - generic [ref=e375]:
+                                    - img [ref=e376]
+                                    - text: 50 XP
+                                - 'progressbar "XP progres: 50%" [ref=e449]'
+                            - button "Ubah mode gelap" [ref=e379]:
+                                - img [ref=e380]
+                            - button "Notifikasi" [ref=e383]:
+                                - img [ref=e384]
+                            - button "Menu profil" [ref=e388]:
+                                - img "Foto profil pengguna" [ref=e390]
+                    - main [ref=e391]:
+                        - generic [ref=e919]:
+                            - img [ref=e921]
+                            - heading "404" [level=1] [ref=e924]
+                            - heading "Halaman tidak ditemukan" [level=2] [ref=e925]
+                            - paragraph [ref=e926]: Halaman yang Anda cari tidak ada atau telah dipindahkan.
+                            - button "Kembali ke Dashboard" [ref=e927]:
+                                - img [ref=e928]
+                                - text: Kembali ke Dashboard
+    - generic [ref=e132]:
+        - img [ref=e134]
+        - button "Open Tanstack query devtools" [ref=e182] [cursor=pointer]:
+            - img [ref=e183]

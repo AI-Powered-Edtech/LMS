@@ -1,0 +1,30 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e16] [cursor=pointer]:
+        - /url: '#main-content'
+    - banner "Install EduSync sebagai aplikasi" [ref=e17]:
+        - generic [ref=e18]:
+            - img [ref=e20]
+            - generic [ref=e23]:
+                - paragraph [ref=e24]: Install EduSync
+                - paragraph [ref=e25]: Akses lebih cepat langsung dari layar utama
+            - generic [ref=e26]:
+                - button "Install" [ref=e27]
+                - button "Nanti saja" [ref=e28]:
+                    - img [ref=e29]
+    - main [ref=e32]:
+        - generic [ref=e197]:
+            - generic [ref=e198]:
+                - img [ref=e200]
+                - heading "Akses Ditolak" [active] [level=1] [ref=e204]
+                - paragraph [ref=e205]: Anda tidak memiliki izin untuk mengakses halaman ini.
+            - generic [ref=e206]:
+                - button "Kembali" [ref=e207]:
+                    - img [ref=e208]
+                    - generic [ref=e210]: Kembali
+                - button "Ke Dashboard Saya" [ref=e211]:
+                    - img [ref=e212]
+                    - generic [ref=e215]: Ke Dashboard Saya
+    - generic [ref=e78]:
+        - img [ref=e80]
+        - button "Open Tanstack query devtools" [ref=e128] [cursor=pointer]:
+            - img [ref=e129]

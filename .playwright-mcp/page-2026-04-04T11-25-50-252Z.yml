@@ -1,0 +1,56 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e16] [cursor=pointer]:
+        - /url: '#main-content'
+    - banner "Install EduSync sebagai aplikasi" [ref=e17]:
+        - generic [ref=e18]:
+            - img [ref=e20]
+            - generic [ref=e23]:
+                - paragraph [ref=e24]: Install EduSync
+                - paragraph [ref=e25]: Akses lebih cepat langsung dari layar utama
+            - generic [ref=e26]:
+                - button "Install" [ref=e27]
+                - button "Nanti saja" [ref=e28]:
+                    - img [ref=e29]
+    - main [ref=e32]:
+        - generic [ref=e34]:
+            - generic [ref=e35]:
+                - generic [ref=e36]: 📚
+                - heading "EduSync" [level=1] [ref=e37]
+                - paragraph [ref=e38]: Sistem Manajemen Pembelajaran
+            - generic [ref=e39]:
+                - generic [ref=e40]:
+                    - button "Masuk" [pressed] [ref=e41]
+                    - button "Daftar" [ref=e42]
+                - button "Lanjutkan dengan Google" [ref=e43]:
+                    - img [ref=e44]
+                    - text: Lanjutkan dengan Google
+                - generic [ref=e51]: atau dengan email
+                - generic [ref=e53]:
+                    - generic [ref=e54]:
+                        - generic [ref=e55]: Email
+                        - textbox "Email" [ref=e56]:
+                            - /placeholder: kamu@email.com
+                    - generic [ref=e57]:
+                        - generic [ref=e58]:
+                            - generic [ref=e59]: Kata Sandi
+                            - textbox "Kata Sandi" [ref=e60]:
+                                - /placeholder: ••••••••
+                        - button "Tampilkan kata sandi" [ref=e61]:
+                            - img [ref=e62]
+                    - link "Lupa Kata Sandi?" [ref=e66] [cursor=pointer]:
+                        - /url: '#/forgot-password'
+                    - button "Masuk" [ref=e67]
+            - link "👨‍👩‍👧 Daftar sebagai Orang Tua Siswa→" [ref=e69] [cursor=pointer]:
+                - /url: '#/register-parent'
+                - generic [ref=e70]: 👨‍👩‍👧
+                - generic [ref=e71]: Daftar sebagai Orang Tua Siswa→
+            - generic [ref=e72]:
+                - paragraph [ref=e73]: Dev Quick Login
+                - generic [ref=e74]:
+                    - button "🎓 student" [ref=e75]
+                    - button "👩‍🏫 teacher" [ref=e76]
+                    - button "🛡️ admin" [ref=e77]
+    - generic [ref=e78]:
+        - img [ref=e80]
+        - button "Open Tanstack query devtools" [ref=e128] [cursor=pointer]:
+            - img [ref=e129]

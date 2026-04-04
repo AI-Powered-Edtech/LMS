@@ -1,0 +1,30 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e16] [cursor=pointer]:
+        - /url: '#main-content'
+    - banner "Install EduSync sebagai aplikasi" [ref=e17]:
+        - generic [ref=e18]:
+            - img [ref=e20]
+            - generic [ref=e23]:
+                - paragraph [ref=e24]: Install EduSync
+                - paragraph [ref=e25]: Akses lebih cepat langsung dari layar utama
+            - generic [ref=e26]:
+                - button "Install" [ref=e27]
+                - button "Nanti saja" [ref=e28]:
+                    - img [ref=e29]
+    - main [ref=e32]:
+        - generic [ref=e178]:
+            - generic [ref=e179]:
+                - heading "Pilih Ruang Kerja" [level=1] [ref=e180]
+                - paragraph [ref=e181]: Pilih organisasi sekolah untuk melanjutkan
+            - 'button "EduSync Dev Tenant Peran: admin" [ref=e183]':
+                - generic [ref=e184]:
+                    - heading "EduSync Dev Tenant" [level=3] [ref=e185]
+                    - paragraph [ref=e186]: 'Peran: admin'
+                - img [ref=e188]
+            - button "Keluar dari akun" [ref=e191]:
+                - img [ref=e192]
+                - generic [ref=e195]: Keluar dari akun
+    - generic [ref=e78]:
+        - img [ref=e80]
+        - button "Open Tanstack query devtools" [ref=e128] [cursor=pointer]:
+            - img [ref=e129]

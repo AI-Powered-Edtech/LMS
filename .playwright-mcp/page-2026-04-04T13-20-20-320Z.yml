@@ -1,0 +1,160 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [active] [ref=e4]:
+        - link "Lewati ke konten utama" [ref=e224] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e225]:
+            - status [ref=e226]: 'Halaman dimuat: Kursus — EduSync'
+            - link "Langsung ke konten utama" [ref=e227] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e228]:
+                - complementary [ref=e229]:
+                    - generic [ref=e230]:
+                        - generic [ref=e232]: E
+                        - heading "EduSync" [level=1] [ref=e233]
+                    - 'button "Pilih kelas aktif: Kelas QA Updated" [ref=e236]':
+                        - generic [ref=e237]:
+                            - generic [ref=e238]: Kelas Aktif
+                            - generic [ref=e239]: Kelas QA Updated
+                        - img [ref=e240]
+                    - navigation "Menu utama" [ref=e242]:
+                        - link "Pusat Mengajar" [ref=e243] [cursor=pointer]:
+                            - /url: '#/app/teacher/dashboard'
+                            - img [ref=e244]
+                            - text: Pusat Mengajar
+                        - link "Sosial & Info" [ref=e247] [cursor=pointer]:
+                            - /url: '#/social-hub'
+                            - img [ref=e248]
+                            - text: Sosial & Info
+                        - link "Pengaturan" [ref=e253] [cursor=pointer]:
+                            - /url: '#/settings'
+                            - img [ref=e254]
+                            - text: Pengaturan
+                    - button "Keluar" [ref=e258]:
+                        - img [ref=e259]
+                        - text: Keluar
+                - generic [ref=e262]:
+                    - generic [ref=e263]:
+                        - button "Buka pencarian global" [ref=e264]:
+                            - img [ref=e265]
+                            - generic [ref=e268]: Cari...
+                            - generic [ref=e270]: ⌘K
+                        - generic [ref=e271]:
+                            - generic [ref=e272]:
+                                - img [ref=e273]
+                                - text: Guru
+                            - button "Ubah mode gelap" [ref=e275]:
+                                - img [ref=e276]
+                            - button "Notifikasi deteksi kesulitan siswa" [ref=e279]:
+                                - img [ref=e280]
+                                - generic [ref=e283]: '1'
+                            - button "Notifikasi" [ref=e285]:
+                                - img [ref=e286]
+                            - button "Menu profil" [ref=e290]:
+                                - img "Foto profil pengguna" [ref=e292]
+                    - main [ref=e293]:
+                        - generic [ref=e483]:
+                            - generic [ref=e484]:
+                                - generic [ref=e485]:
+                                    - heading "Kelola Materi" [level=1] [ref=e486]
+                                    - paragraph [ref=e487]: Susun kurikulum, modul pembelajaran, dan kuis interaktif untuk siswa Anda.
+                                - button "Buat Materi Baru" [ref=e488]:
+                                    - img [ref=e490]
+                                    - generic [ref=e491]: Buat Materi Baru
+                            - generic [ref=e492]:
+                                - img
+                                - searchbox "Cari materi" [ref=e493]
+                            - generic [ref=e494]:
+                                - button "Buka kursus !QA Test Course Flow 5" [ref=e495] [cursor=pointer]:
+                                    - heading "!QA Test Course Flow 5" [level=3] [ref=e499]
+                                    - generic [ref=e500]:
+                                        - paragraph [ref=e501]: Testing course builder flow.
+                                        - generic [ref=e502]:
+                                            - generic [ref=e503]:
+                                                - img [ref=e504]
+                                                - generic [ref=e507]: 24 Mar 2026
+                                            - generic [ref=e508]:
+                                                - button "Tugaskan ke Kelas" [ref=e509]:
+                                                    - img [ref=e510]
+                                                - generic [ref=e515]:
+                                                    - text: Edit Materi
+                                                    - generic [ref=e516]: →
+                                - button "Buka kursus matematika" [ref=e517] [cursor=pointer]:
+                                    - heading "matematika" [level=3] [ref=e521]
+                                    - generic [ref=e522]:
+                                        - paragraph [ref=e523]: Tidak ada deskripsi
+                                        - generic [ref=e524]:
+                                            - generic [ref=e525]:
+                                                - img [ref=e526]
+                                                - generic [ref=e529]: 23 Mar 2026
+                                            - generic [ref=e530]:
+                                                - button "Tugaskan ke Kelas" [ref=e531]:
+                                                    - img [ref=e532]
+                                                - generic [ref=e537]:
+                                                    - text: Edit Materi
+                                                    - generic [ref=e538]: →
+                                - button "Buka kursus QA Test Course - Matematika Dasar" [ref=e539] [cursor=pointer]:
+                                    - heading "QA Test Course - Matematika Dasar" [level=3] [ref=e543]
+                                    - generic [ref=e544]:
+                                        - paragraph [ref=e545]: Kursus untuk testing QA
+                                        - generic [ref=e546]:
+                                            - generic [ref=e547]:
+                                                - img [ref=e548]
+                                                - generic [ref=e551]: 23 Mar 2026
+                                            - generic [ref=e552]:
+                                                - button "Tugaskan ke Kelas" [ref=e553]:
+                                                    - img [ref=e554]
+                                                - generic [ref=e559]:
+                                                    - text: Edit Materi
+                                                    - generic [ref=e560]: →
+                                - button "Buka kursus Matematika Kelas 10" [ref=e561] [cursor=pointer]:
+                                    - heading "Matematika Kelas 10" [level=3] [ref=e565]
+                                    - generic [ref=e566]:
+                                        - paragraph [ref=e567]: Kursus aljabar dasar untuk siswa kelas 10 SMA
+                                        - generic [ref=e569]: b ing
+                                        - generic [ref=e570]:
+                                            - generic [ref=e571]:
+                                                - img [ref=e572]
+                                                - generic [ref=e575]: 21 Mar 2026
+                                            - generic [ref=e576]:
+                                                - button "Tugaskan ke Kelas" [ref=e577]:
+                                                    - img [ref=e578]
+                                                - generic [ref=e583]:
+                                                    - text: Edit Materi
+                                                    - generic [ref=e584]: →
+                                - 'button "Buka kursus E2E Test Course: Smart Player" [ref=e585] [cursor=pointer]':
+                                    - 'heading "E2E Test Course: Smart Player" [level=3] [ref=e589]'
+                                    - generic [ref=e590]:
+                                        - paragraph [ref=e591]: Course untuk testing Smart Player E2E flows - lesson, quiz, analytics, struggle detection
+                                        - generic [ref=e593]: b ing
+                                        - generic [ref=e594]:
+                                            - generic [ref=e595]:
+                                                - img [ref=e596]
+                                                - generic [ref=e599]: 20 Mar 2026
+                                            - generic [ref=e600]:
+                                                - button "Tugaskan ke Kelas" [ref=e601]:
+                                                    - img [ref=e602]
+                                                - generic [ref=e607]:
+                                                    - text: Edit Materi
+                                                    - generic [ref=e608]: →
+                                - button "Buka kursus sd" [ref=e609] [cursor=pointer]:
+                                    - heading "sd" [level=3] [ref=e613]
+                                    - generic [ref=e614]:
+                                        - paragraph [ref=e615]: sdd
+                                        - generic [ref=e617]: b ing
+                                        - generic [ref=e618]:
+                                            - generic [ref=e619]:
+                                                - img [ref=e620]
+                                                - generic [ref=e623]: 21 Mar 2026
+                                            - generic [ref=e624]:
+                                                - button "Tugaskan ke Kelas" [ref=e625]:
+                                                    - img [ref=e626]
+                                                - generic [ref=e631]:
+                                                    - text: Edit Materi
+                                                    - generic [ref=e632]: →
+                                - paragraph [ref=e634]: Semua 6 kursus ditampilkan
+    - generic [ref=e106]:
+        - img [ref=e108]
+        - button "Open Tanstack query devtools" [ref=e156] [cursor=pointer]:
+            - img [ref=e157]

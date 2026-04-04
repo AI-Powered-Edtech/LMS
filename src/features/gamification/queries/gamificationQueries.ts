@@ -6,12 +6,12 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { createQueryKeys } from '@/src/lib/queryKeys'
-import { useAuth } from '@/src/contexts/AuthContext'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { useAuth } from '@/contexts/AuthContext'
 import { gamificationService } from '../api/gamificationService'
-import { cachedQuery, CacheKeys } from '@/src/utils/cache'
+import { cachedQuery, CacheKeys } from '@/utils/cache'
 import type { LeaderboardSortBy, LeaderboardPeriod } from '../types'
-import { STALE, GC } from '@/src/utils/queryConstants'
+import { STALE, GC } from '@/utils/queryConstants'
 
 // Create query keys with tenant scoping
 const base = createQueryKeys('gamification')

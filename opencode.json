@@ -1,0 +1,22 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "notion": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Notion AI",
+      "options": {
+        "baseURL": "http://127.0.0.1:3456/v1",
+        "apiKey": "notion"
+      },
+      "models": {
+        "notion-ai": {
+          "name": "Notion AI (Claude Opus 4.6)",
+          "limit": {
+            "context": 200000,
+            "output": 64000
+          }
+        }
+      }
+    }
+  }
+}

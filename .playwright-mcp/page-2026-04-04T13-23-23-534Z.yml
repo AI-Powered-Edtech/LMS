@@ -1,0 +1,163 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [active] [ref=e4]:
+        - link "Lewati ke konten utama" [ref=e5] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e6]:
+            - status [ref=e7]: 'Halaman dimuat: Modul Kuis | EduSync LMS'
+            - link "Langsung ke konten utama" [ref=e8] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e9]:
+                - complementary [ref=e619]:
+                    - generic [ref=e620]:
+                        - generic [ref=e622]: E
+                        - heading "EduSync" [level=1] [ref=e623]
+                    - navigation "Menu utama" [ref=e624]:
+                        - link "Ruang Belajar" [ref=e625] [cursor=pointer]:
+                            - /url: '#/app/student/dashboard'
+                            - img [ref=e626]
+                            - text: Ruang Belajar
+                        - link "Sosial & Info" [ref=e629] [cursor=pointer]:
+                            - /url: '#/social-hub'
+                            - img [ref=e630]
+                            - text: Sosial & Info
+                        - link "Gamifikasi" [ref=e635] [cursor=pointer]:
+                            - /url: '#/gamification-hub'
+                            - img [ref=e636]
+                            - text: Gamifikasi
+                        - link "Pengaturan" [ref=e638] [cursor=pointer]:
+                            - /url: '#/settings'
+                            - img [ref=e639]
+                            - text: Pengaturan
+                    - button "Keluar" [ref=e643]:
+                        - img [ref=e644]
+                        - text: Keluar
+                - generic [ref=e38]:
+                    - generic [ref=e647]:
+                        - button "Buka pencarian global" [ref=e648]:
+                            - img [ref=e649]
+                            - generic [ref=e652]: Cari...
+                            - generic [ref=e654]: ⌘K
+                        - generic [ref=e655]:
+                            - generic [ref=e656]:
+                                - img [ref=e657]
+                                - generic [ref=e659]: '1'
+                            - generic [ref=e660]:
+                                - generic "Level 1 — Pemula" [ref=e661]: Lv 1
+                                - generic [ref=e662]:
+                                    - img [ref=e663]
+                                    - text: 50 XP
+                                - 'progressbar "XP progres: 50%" [ref=e665]'
+                            - button "Ubah mode gelap" [ref=e667]:
+                                - img [ref=e668]
+                            - button "Notifikasi" [ref=e671]:
+                                - img [ref=e672]
+                            - button "Menu profil" [ref=e676]:
+                                - img "Foto profil pengguna" [ref=e678]
+                    - main [ref=e71]:
+                        - generic [ref=e952]:
+                            - generic [ref=e953]:
+                                - generic [ref=e954]:
+                                    - heading "Nilai Kursus Saya" [level=2] [ref=e955]:
+                                        - img [ref=e956]
+                                        - text: Nilai Kursus Saya
+                                    - generic [ref=e958]:
+                                        - combobox [ref=e959]:
+                                            - option "-- Pilih Kursus --" [selected]
+                                            - option "!QA Test Course Flow 5"
+                                            - option "matematika"
+                                            - option "QA Test Course - Matematika Dasar"
+                                            - option "Matematika Kelas 10"
+                                            - 'option "E2E Test Course: Smart Player"'
+                                            - option "sd"
+                                        - img
+                                - paragraph [ref=e961]: Pilih kursus untuk melihat nilai kamu
+                            - generic [ref=e962]:
+                                - heading "Simulasi Nilai (What-If Grades)" [level=1] [ref=e963]:
+                                    - img [ref=e964]
+                                    - text: Simulasi Nilai (What-If Grades)
+                                - paragraph [ref=e970]: Masukkan nilai "andaikan" untuk melihat proyeksi nilai akhirmu.
+                            - generic [ref=e971]:
+                                - generic [ref=e972]:
+                                    - paragraph [ref=e973]: Nilai Saat Ini
+                                    - generic [ref=e974]:
+                                        - generic [ref=e975]: '0.0'
+                                        - generic [ref=e976]: / 100
+                                - generic [ref=e977]:
+                                    - paragraph [ref=e979]: Proyeksi Nilai Akhir
+                                    - generic [ref=e980]:
+                                        - generic [ref=e981]: '0.0'
+                                        - generic [ref=e982]: / 100
+                                - generic [ref=e983]:
+                                    - generic [ref=e984]:
+                                        - paragraph [ref=e985]: Target Nilai
+                                        - img [ref=e986]
+                                    - generic [ref=e990]:
+                                        - spinbutton [ref=e991]: '90'
+                                        - generic [ref=e992]: / 100
+                                    - paragraph [ref=e993]: Kurang 90.0 poin lagi.
+                            - generic [ref=e994]:
+                                - generic [ref=e995]:
+                                    - img [ref=e997]
+                                    - generic [ref=e999]:
+                                        - heading "Semua Tugas" [level=2] [ref=e1000]
+                                        - paragraph [ref=e1001]: 'Bobot total: 100%'
+                                - generic [ref=e1002]:
+                                    - generic [ref=e1003]:
+                                        - generic [ref=e1004]:
+                                            - heading "Ujian Tengah Semester" [level=3] [ref=e1005]
+                                            - paragraph [ref=e1006]: 'Pelajaran · Bobot: 30%'
+                                        - generic [ref=e1008]:
+                                            - generic [ref=e1009]:
+                                                - img [ref=e1010]
+                                                - text: What-If Score
+                                            - generic [ref=e1012]:
+                                                - generic [ref=e1013]: Belum dinilai
+                                                - spinbutton [ref=e1014]
+                                                - generic [ref=e1015]: / 100
+                                    - generic [ref=e1016]:
+                                        - generic [ref=e1017]:
+                                            - heading "Tugas Kelompok" [level=3] [ref=e1018]
+                                            - paragraph [ref=e1019]: 'Pelajaran · Bobot: 20%'
+                                        - generic [ref=e1021]:
+                                            - generic [ref=e1022]:
+                                                - img [ref=e1023]
+                                                - text: What-If Score
+                                            - generic [ref=e1025]:
+                                                - generic [ref=e1026]: Belum dinilai
+                                                - spinbutton [ref=e1027]
+                                                - generic [ref=e1028]: / 100
+                                    - generic [ref=e1029]:
+                                        - generic [ref=e1030]:
+                                            - heading "Kuis" [level=3] [ref=e1031]
+                                            - paragraph [ref=e1032]: 'Pelajaran · Bobot: 10%'
+                                        - generic [ref=e1034]:
+                                            - generic [ref=e1035]:
+                                                - img [ref=e1036]
+                                                - text: What-If Score
+                                            - generic [ref=e1038]:
+                                                - generic [ref=e1039]: Belum dinilai
+                                                - spinbutton [ref=e1040]
+                                                - generic [ref=e1041]: / 100
+                                    - generic [ref=e1042]:
+                                        - generic [ref=e1043]:
+                                            - heading "Ujian Akhir Semester" [level=3] [ref=e1044]
+                                            - paragraph [ref=e1045]: 'Pelajaran · Bobot: 40%'
+                                        - generic [ref=e1047]:
+                                            - generic [ref=e1048]:
+                                                - img [ref=e1049]
+                                                - text: What-If Score
+                                            - generic [ref=e1051]:
+                                                - generic [ref=e1052]: Belum dinilai
+                                                - spinbutton [ref=e1053]
+                                                - generic [ref=e1054]: / 100
+                                - generic [ref=e1055]:
+                                    - generic [ref=e1056]:
+                                        - paragraph [ref=e1057]: Total Proyeksi Nilai Akhir
+                                        - paragraph [ref=e1058]: Gabungan nilai asli dan skor What-If
+                                    - generic [ref=e1059]: 0.0/ 100
+    - generic [ref=e520]:
+        - img [ref=e522]
+        - button "Open Tanstack query devtools" [ref=e570] [cursor=pointer]:
+            - img [ref=e571]

@@ -1,0 +1,182 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [active] [ref=e4]:
+        - link "Lewati ke konten utama" [ref=e2406] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e2407]:
+            - status [ref=e2408]
+            - link "Langsung ke konten utama" [ref=e2409] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e2410]:
+                - complementary [ref=e2411]:
+                    - generic [ref=e2412]:
+                        - generic [ref=e2414]: E
+                        - heading "EduSync" [level=1] [ref=e2415]
+                    - 'button "Pilih kelas aktif: Kelas QA Updated" [ref=e2418]':
+                        - generic [ref=e2419]:
+                            - generic [ref=e2420]: Kelas Aktif
+                            - generic [ref=e2421]: Kelas QA Updated
+                        - img [ref=e2422]
+                    - navigation "Menu utama" [ref=e2424]:
+                        - link "Pusat Mengajar" [ref=e2425] [cursor=pointer]:
+                            - /url: '#/app/teacher/dashboard'
+                            - img [ref=e2426]
+                            - text: Pusat Mengajar
+                        - link "Sosial & Info" [ref=e2429] [cursor=pointer]:
+                            - /url: '#/social-hub'
+                            - img [ref=e2430]
+                            - text: Sosial & Info
+                        - link "Pengaturan" [ref=e2435] [cursor=pointer]:
+                            - /url: '#/settings'
+                            - img [ref=e2436]
+                            - text: Pengaturan
+                    - button "Keluar" [ref=e2440]:
+                        - img [ref=e2441]
+                        - text: Keluar
+                - generic [ref=e2444]:
+                    - generic [ref=e2445]:
+                        - button "Buka pencarian global" [ref=e2446]:
+                            - img [ref=e2447]
+                            - generic [ref=e2450]: Cari...
+                            - generic [ref=e2452]: ⌘K
+                        - generic [ref=e2453]:
+                            - generic [ref=e2454]:
+                                - img [ref=e2455]
+                                - text: Guru
+                            - button "Ubah mode gelap" [ref=e2457]:
+                                - img [ref=e2458]
+                            - button "Notifikasi deteksi kesulitan siswa" [ref=e2461]:
+                                - img [ref=e2462]
+                                - generic [ref=e2465]: '1'
+                            - button "Notifikasi" [ref=e2467]:
+                                - img [ref=e2468]
+                            - button "Menu profil" [ref=e2472]:
+                                - generic [ref=e2473]:
+                                    - status [ref=e2474]
+                                    - img "Foto profil pengguna" [ref=e2475]
+                    - main [ref=e2476]:
+                        - generic [ref=e2478]:
+                            - generic [ref=e2480]:
+                                - generic [ref=e2481]:
+                                    - heading "Selamat Datang, Teacher Dev!" [level=1] [ref=e2482]
+                                    - paragraph [ref=e2483]: Berikut adalah ringkasan kelas dan tugas Anda hari ini.
+                                - generic [ref=e2484]:
+                                    - button "Perbarui Data" [ref=e2485]:
+                                        - img [ref=e2486]
+                                        - text: Perbarui Data
+                                    - button "Kelola Materi" [ref=e2491]:
+                                        - img [ref=e2492]
+                                        - text: Kelola Materi
+                                    - button "Buat Tugas" [ref=e2494]:
+                                        - img [ref=e2495]
+                                        - text: Buat Tugas
+                            - generic [ref=e2496]:
+                                - heading "Kelas Aktif" [level=2] [ref=e2498]:
+                                    - img [ref=e2499]
+                                    - text: Kelas Aktif
+                                - generic [ref=e2501]:
+                                    - generic [ref=e2503] [cursor=pointer]:
+                                        - generic [ref=e2504]:
+                                            - generic [ref=e2505]:
+                                                - generic [ref=e2506]:
+                                                    - heading "Kelas QA Updated" [level=3] [ref=e2507]
+                                                    - paragraph [ref=e2508]: 0 Siswa
+                                                - generic [ref=e2509]: KE
+                                            - generic [ref=e2510]:
+                                                - generic [ref=e2511]:
+                                                    - paragraph [ref=e2512]: Siswa
+                                                    - paragraph [ref=e2513]: '0'
+                                                - generic [ref=e2514]:
+                                                    - paragraph [ref=e2515]: Status
+                                                    - generic [ref=e2516]: Aktif
+                                        - generic [ref=e2517]:
+                                            - button "Analitik" [ref=e2518]:
+                                                - img [ref=e2519]
+                                                - text: Analitik
+                                            - button "Kelola Kelas" [ref=e2521]:
+                                                - text: Kelola Kelas
+                                                - img [ref=e2522]
+                                    - generic [ref=e2525] [cursor=pointer]:
+                                        - generic [ref=e2526]:
+                                            - generic [ref=e2527]:
+                                                - generic [ref=e2528]:
+                                                    - heading "matematika" [level=3] [ref=e2529]
+                                                    - paragraph [ref=e2530]: 0 Siswa
+                                                - generic [ref=e2531]: MA
+                                            - generic [ref=e2532]:
+                                                - generic [ref=e2533]:
+                                                    - paragraph [ref=e2534]: Siswa
+                                                    - paragraph [ref=e2535]: '0'
+                                                - generic [ref=e2536]:
+                                                    - paragraph [ref=e2537]: Status
+                                                    - generic [ref=e2538]: Aktif
+                                        - generic [ref=e2539]:
+                                            - button "Analitik" [ref=e2540]:
+                                                - img [ref=e2541]
+                                                - text: Analitik
+                                            - button "Kelola Kelas" [ref=e2543]:
+                                                - text: Kelola Kelas
+                                                - img [ref=e2544]
+                                    - generic [ref=e2547] [cursor=pointer]:
+                                        - generic [ref=e2548]:
+                                            - generic [ref=e2549]:
+                                                - generic [ref=e2550]:
+                                                    - heading "b ing" [level=3] [ref=e2551]
+                                                    - paragraph [ref=e2552]: 0 Siswa
+                                                - generic [ref=e2553]: B
+                                            - generic [ref=e2554]:
+                                                - generic [ref=e2555]:
+                                                    - paragraph [ref=e2556]: Siswa
+                                                    - paragraph [ref=e2557]: '0'
+                                                - generic [ref=e2558]:
+                                                    - paragraph [ref=e2559]: Status
+                                                    - generic [ref=e2560]: Aktif
+                                        - generic [ref=e2561]:
+                                            - button "Analitik" [ref=e2562]:
+                                                - img [ref=e2563]
+                                                - text: Analitik
+                                            - button "Kelola Kelas" [ref=e2565]:
+                                                - text: Kelola Kelas
+                                                - img [ref=e2566]
+                            - generic [ref=e2568]:
+                                - generic [ref=e2569]:
+                                    - heading "Peralatan Mengajar" [level=2] [ref=e2570]:
+                                        - img [ref=e2571]
+                                        - text: Peralatan Mengajar
+                                    - button "Lihat Semua" [ref=e2574]:
+                                        - text: Lihat Semua
+                                        - img [ref=e2575]
+                                - generic [ref=e2577]:
+                                    - button "Manajemen Materi Atur modul, materi, dan alur belajar siswa." [ref=e2578]:
+                                        - img [ref=e2580]
+                                        - generic [ref=e2585]:
+                                            - generic [ref=e2586]: Manajemen Materi
+                                            - generic [ref=e2587]: Atur modul, materi, dan alur belajar siswa.
+                                    - button "Buku Nilai Sistem pencatatan dan rekap nilai siswa." [ref=e2588]:
+                                        - img [ref=e2590]
+                                        - generic [ref=e2593]:
+                                            - generic [ref=e2594]: Buku Nilai
+                                            - generic [ref=e2595]: Sistem pencatatan dan rekap nilai siswa.
+                                    - button "Buku Nilai Kuis Rekap nilai dan statistik kuis otomatis." [ref=e2596]:
+                                        - img [ref=e2598]
+                                        - generic [ref=e2601]:
+                                            - generic [ref=e2602]: Buku Nilai Kuis
+                                            - generic [ref=e2603]: Rekap nilai dan statistik kuis otomatis.
+                                    - button "Manajemen Kuis Buat, kelola, dan publish kuis untuk kelas." [ref=e2604]:
+                                        - img [ref=e2606]
+                                        - generic [ref=e2609]:
+                                            - generic [ref=e2610]: Manajemen Kuis
+                                            - generic [ref=e2611]: Buat, kelola, dan publish kuis untuk kelas.
+                            - generic [ref=e2612]:
+                                - heading "Aktivitas Terbaru" [level=2] [ref=e2613]:
+                                    - img [ref=e2614]
+                                    - text: Aktivitas Terbaru
+                                - generic [ref=e2617]:
+                                    - img [ref=e2619]
+                                    - heading "Belum ada aktivitas terbaru" [level=3] [ref=e2622]
+                                    - paragraph [ref=e2623]: Aktivitas siswa akan muncul di sini saat mereka menyelesaikan tugas dan kuis.
+    - generic [ref=e232]:
+        - img [ref=e234]
+        - button "Open Tanstack query devtools" [ref=e282] [cursor=pointer]:
+            - img [ref=e283]

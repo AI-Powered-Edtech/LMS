@@ -1,0 +1,101 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [active] [ref=e4]:
+        - link "Lewati ke konten utama" [ref=e5] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e6]:
+            - status [ref=e7]: 'Halaman dimuat: Dasbor | EduSync LMS'
+            - link "Langsung ke konten utama" [ref=e8] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e9]:
+                - complementary [ref=e619]:
+                    - generic [ref=e620]:
+                        - generic [ref=e622]: E
+                        - heading "EduSync" [level=1] [ref=e623]
+                    - navigation "Menu utama" [ref=e624]:
+                        - link "Ruang Belajar" [ref=e625] [cursor=pointer]:
+                            - /url: '#/app/student/dashboard'
+                            - img [ref=e626]
+                            - text: Ruang Belajar
+                        - link "Sosial & Info" [ref=e629] [cursor=pointer]:
+                            - /url: '#/social-hub'
+                            - img [ref=e630]
+                            - text: Sosial & Info
+                        - link "Gamifikasi" [ref=e635] [cursor=pointer]:
+                            - /url: '#/gamification-hub'
+                            - img [ref=e636]
+                            - text: Gamifikasi
+                        - link "Pengaturan" [ref=e638] [cursor=pointer]:
+                            - /url: '#/settings'
+                            - img [ref=e639]
+                            - text: Pengaturan
+                    - button "Keluar" [ref=e643]:
+                        - img [ref=e644]
+                        - text: Keluar
+                - generic [ref=e38]:
+                    - generic [ref=e647]:
+                        - button "Buka pencarian global" [ref=e648]:
+                            - img [ref=e649]
+                            - generic [ref=e652]: Cari...
+                            - generic [ref=e654]: ⌘K
+                        - generic [ref=e655]:
+                            - generic [ref=e656]:
+                                - img [ref=e657]
+                                - generic [ref=e659]: '1'
+                            - generic [ref=e660]:
+                                - generic "Level 1 — Pemula" [ref=e661]: Lv 1
+                                - generic [ref=e662]:
+                                    - img [ref=e663]
+                                    - text: 50 XP
+                                - 'progressbar "XP progres: 50%" [ref=e665]'
+                            - button "Ubah mode gelap" [ref=e667]:
+                                - img [ref=e668]
+                            - button "Notifikasi" [ref=e671]:
+                                - img [ref=e672]
+                            - button "Menu profil" [ref=e676]:
+                                - img "Foto profil pengguna" [ref=e678]
+                    - main [ref=e71]:
+                        - generic [ref=e681]:
+                            - generic [ref=e682]:
+                                - heading "Pilih Materi / Kursus" [level=1] [ref=e683]
+                                - paragraph [ref=e684]: Jelajahi dan pilih materi yang tersedia untuk Anda pelajari.
+                            - generic [ref=e685]:
+                                - button "!QA Test Course Flow 5 Testing course builder flow. Diterbitkan Mulai Belajar" [ref=e686] [cursor=pointer]:
+                                    - generic [ref=e687]:
+                                        - generic [ref=e688]:
+                                            - img [ref=e690]
+                                            - heading "!QA Test Course Flow 5" [level=3] [ref=e693]
+                                        - paragraph [ref=e694]: Testing course builder flow.
+                                        - generic [ref=e696]: Diterbitkan
+                                    - button "Mulai Belajar" [ref=e698]
+                                - button "sd sdd Diterbitkan Mulai Belajar" [ref=e699] [cursor=pointer]:
+                                    - generic [ref=e700]:
+                                        - generic [ref=e701]:
+                                            - img [ref=e703]
+                                            - heading "sd" [level=3] [ref=e706]
+                                        - paragraph [ref=e707]: sdd
+                                        - generic [ref=e709]: Diterbitkan
+                                    - button "Mulai Belajar" [ref=e711]
+                                - button "QA Test Course - Matematika Dasar Kursus untuk testing QA Diterbitkan Mulai Belajar" [ref=e712] [cursor=pointer]:
+                                    - generic [ref=e713]:
+                                        - generic [ref=e714]:
+                                            - img [ref=e716]
+                                            - heading "QA Test Course - Matematika Dasar" [level=3] [ref=e719]
+                                        - paragraph [ref=e720]: Kursus untuk testing QA
+                                        - generic [ref=e722]: Diterbitkan
+                                    - button "Mulai Belajar" [ref=e724]
+                                - button "Matematika Kelas 10 Kursus aljabar dasar untuk siswa kelas 10 SMA Diterbitkan Mulai Belajar" [ref=e725] [cursor=pointer]:
+                                    - generic [ref=e726]:
+                                        - generic [ref=e727]:
+                                            - img [ref=e729]
+                                            - heading "Matematika Kelas 10" [level=3] [ref=e732]
+                                        - paragraph [ref=e733]: Kursus aljabar dasar untuk siswa kelas 10 SMA
+                                        - generic [ref=e735]: Diterbitkan
+                                    - button "Mulai Belajar" [ref=e737]
+            - button "Buka bantuan halaman ini" [ref=e738]:
+                - img [ref=e740]
+    - generic [ref=e520]:
+        - img [ref=e522]
+        - button "Open Tanstack query devtools" [ref=e570] [cursor=pointer]:
+            - img [ref=e571]

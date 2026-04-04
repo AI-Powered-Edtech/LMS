@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { recommendationService } from '../api/recommendationService'
-import { STALE, GC } from '@/src/utils/queryConstants'
+import { STALE, GC } from '@/utils/queryConstants'
 
 const RECOMMENDATION_KEYS = {
   user: (userId: string) => ['recommendations', userId] as const,

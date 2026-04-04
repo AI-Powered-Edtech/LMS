@@ -1,0 +1,15 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [active] [ref=e4]:
+        - generic [ref=e302]:
+            - complementary [ref=e303]:
+                - generic [ref=e304]:
+                    - generic [ref=e306]: E
+                    - heading "EduSync" [level=1] [ref=e307]
+                - navigation [ref=e308]
+            - main [ref=e336]
+    - generic [ref=e61]:
+        - img [ref=e63]
+        - button "Open Tanstack query devtools" [ref=e111] [cursor=pointer]:
+            - img [ref=e112]

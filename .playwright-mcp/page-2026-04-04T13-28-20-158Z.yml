@@ -1,0 +1,122 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [active] [ref=e4]:
+        - link "Lewati ke konten utama" [ref=e1661] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e1662]:
+            - status [ref=e1663]: 'Halaman dimuat: Buku Nilai Kuis | EduSync LMS'
+            - link "Langsung ke konten utama" [ref=e1664] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e1665]:
+                - complementary [ref=e1666]:
+                    - generic [ref=e1667]:
+                        - generic [ref=e1669]: E
+                        - heading "EduSync" [level=1] [ref=e1670]
+                    - 'button "Pilih kelas aktif: Kelas QA Updated" [ref=e1775]':
+                        - generic [ref=e1674]:
+                            - generic [ref=e1675]: Kelas Aktif
+                            - generic [ref=e1676]: Kelas QA Updated
+                        - img [ref=e1677]
+                    - navigation "Menu utama" [ref=e1679]:
+                        - link "Pusat Mengajar" [ref=e1680] [cursor=pointer]:
+                            - /url: '#/app/teacher/dashboard'
+                            - img [ref=e1681]
+                            - text: Pusat Mengajar
+                        - link "Sosial & Info" [ref=e1684] [cursor=pointer]:
+                            - /url: '#/social-hub'
+                            - img [ref=e1685]
+                            - text: Sosial & Info
+                        - link "Pengaturan" [ref=e1690] [cursor=pointer]:
+                            - /url: '#/settings'
+                            - img [ref=e1691]
+                            - text: Pengaturan
+                    - button "Keluar" [ref=e1695]:
+                        - img [ref=e1696]
+                        - text: Keluar
+                - generic [ref=e1699]:
+                    - generic [ref=e1700]:
+                        - button "Buka pencarian global" [ref=e1701]:
+                            - img [ref=e1702]
+                            - generic [ref=e1705]: Cari...
+                            - generic [ref=e1707]: ⌘K
+                        - generic [ref=e1708]:
+                            - generic [ref=e1709]:
+                                - img [ref=e1710]
+                                - text: Guru
+                            - button "Ubah mode gelap" [ref=e1712]:
+                                - img [ref=e1713]
+                            - button "Notifikasi deteksi kesulitan siswa" [ref=e1716]:
+                                - img [ref=e1717]
+                                - generic [ref=e1776]: '1'
+                            - button "Notifikasi" [ref=e1721]:
+                                - img [ref=e1722]
+                            - button "Menu profil" [ref=e1726]:
+                                - img "Foto profil pengguna" [ref=e1728]
+                    - main [ref=e1729]:
+                        - generic [ref=e2344]:
+                            - generic [ref=e2345]:
+                                - generic [ref=e2346]:
+                                    - heading "Mesin Analitik Pembelajaran" [level=1] [ref=e2347]
+                                    - paragraph [ref=e2348]: Pantau perkembangan komprehensif siswa menggunakan data teragregasi.
+                                - generic [ref=e2349]:
+                                    - combobox [ref=e2350]:
+                                        - option "!QA Test Course Flow 5" [selected]
+                                        - option "matematika"
+                                        - option "QA Test Course - Matematika Dasar"
+                                        - option "Matematika Kelas 10"
+                                        - 'option "E2E Test Course: Smart Player"'
+                                        - option "sd"
+                                    - button "Perbarui" [disabled] [ref=e2351]:
+                                        - img [ref=e2352]
+                                        - text: Perbarui
+                                    - button "Detail Analitik" [disabled] [ref=e2357]:
+                                        - img [ref=e2358]
+                                        - text: Detail Analitik
+                                    - button "AI Insight" [ref=e2360]:
+                                        - img [ref=e2361]
+                                        - text: AI Insight
+                            - generic [ref=e2364]:
+                                - img [ref=e2365]
+                                - paragraph [ref=e2367]: Pilih kursus untuk melihat data analitik.
+                            - generic [ref=e2368]:
+                                - heading "Pengaturan Deteksi" [level=2] [ref=e2369]
+                                - generic [ref=e2370]:
+                                    - generic [ref=e2371]:
+                                        - heading "Pengaturan Deteksi Kesulitan" [level=3] [ref=e2372]
+                                        - paragraph [ref=e2373]: Konfigurasi ambang batas dan notifikasi sistem deteksi kesulitan siswa.
+                                    - generic [ref=e2374]:
+                                        - generic [ref=e2375]: Ambang Batas Perhatian (Skor 3)
+                                        - slider [ref=e2376]: '3'
+                                        - generic [ref=e2377]:
+                                            - generic [ref=e2378]: '1'
+                                            - generic [ref=e2379]: '4'
+                                    - generic [ref=e2380]:
+                                        - generic [ref=e2381]: Ambang Batas Darurat (Skor 5)
+                                        - slider [ref=e2382]: '5'
+                                        - generic [ref=e2383]:
+                                            - generic [ref=e2384]: '3'
+                                            - generic [ref=e2385]: '9'
+                                    - generic [ref=e2386]:
+                                        - generic [ref=e2387]:
+                                            - paragraph [ref=e2388]: Notifikasi ke Guru
+                                            - paragraph [ref=e2389]: Kirim alert ke guru ketika siswa terdeteksi kesulitan.
+                                        - switch [checked] [ref=e2390] [cursor=pointer]
+                                    - generic [ref=e2391]:
+                                        - generic [ref=e2392]:
+                                            - paragraph [ref=e2393]: Prompt Bantuan ke Siswa
+                                            - paragraph [ref=e2394]: Tampilkan prompt bantuan saat siswa sedang belajar.
+                                        - switch [checked] [ref=e2395] [cursor=pointer]
+                                    - generic [ref=e2396]:
+                                        - generic [ref=e2397]: Cooldown Notifikasi (jam)
+                                        - paragraph [ref=e2398]: Minimal jeda antara dua alert untuk siswa yang sama pada pelajaran yang sama.
+                                        - spinbutton [ref=e2399]: '24'
+                                    - button "Simpan" [ref=e2401]:
+                                        - img [ref=e2402]
+                                        - text: Simpan
+            - button "Buka bantuan halaman ini" [ref=e2338]:
+                - img [ref=e2340]
+    - generic [ref=e232]:
+        - img [ref=e234]
+        - button "Open Tanstack query devtools" [ref=e282] [cursor=pointer]:
+            - img [ref=e283]

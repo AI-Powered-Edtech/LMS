@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '@/src/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
 import {
   fetchGradebookEntries,
   fetchGradebookSettings,
@@ -8,7 +8,7 @@ import {
   upsertGradebookSettings,
 } from '../api/gradebookApi'
 import type { GradebookEntry, GradebookSettings } from '../types'
-import { STALE } from '@/src/utils/queryConstants'
+import { STALE } from '@/utils/queryConstants'
 
 // ── Query keys ───────────────────────────────────────────────────────────────
 

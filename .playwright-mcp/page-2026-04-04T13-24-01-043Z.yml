@@ -1,0 +1,46 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [ref=e4]:
+        - generic [ref=e836]:
+            - generic [ref=e837]:
+                - generic [ref=e838]: 📚
+                - heading "EduSync" [level=1] [ref=e839]
+                - paragraph [ref=e840]: Sistem Manajemen Pembelajaran
+            - generic [ref=e841]:
+                - generic [ref=e842]:
+                    - button "Masuk" [pressed] [ref=e843]
+                    - button "Daftar" [ref=e844]
+                - button "Lanjutkan dengan Google" [ref=e845]:
+                    - img [ref=e846]
+                    - text: Lanjutkan dengan Google
+                - generic [ref=e853]: atau dengan email
+                - generic [ref=e855]:
+                    - generic [ref=e856]:
+                        - generic [ref=e857]: Email
+                        - textbox "Email" [ref=e858]:
+                            - /placeholder: kamu@email.com
+                    - generic [ref=e859]:
+                        - generic [ref=e860]:
+                            - generic [ref=e861]: Kata Sandi
+                            - textbox "Kata Sandi" [ref=e862]:
+                                - /placeholder: ••••••••
+                        - button "Tampilkan kata sandi" [ref=e863]:
+                            - img [ref=e864]
+                    - link "Lupa Kata Sandi?" [ref=e868] [cursor=pointer]:
+                        - /url: '#/forgot-password'
+                    - button "Masuk" [ref=e869]
+            - link "👨‍👩‍👧 Daftar sebagai Orang Tua Siswa→" [ref=e871] [cursor=pointer]:
+                - /url: '#/register-parent'
+                - generic [ref=e872]: 👨‍👩‍👧
+                - generic [ref=e873]: Daftar sebagai Orang Tua Siswa→
+            - generic [ref=e874]:
+                - paragraph [ref=e875]: Dev Quick Login
+                - generic [ref=e876]:
+                    - button "🎓 student" [ref=e877]
+                    - button "👩‍🏫 teacher" [ref=e878]
+                    - button "🛡️ admin" [ref=e879]
+    - generic [ref=e61]:
+        - img [ref=e63]
+        - button "Open Tanstack query devtools" [ref=e111] [cursor=pointer]:
+            - img [ref=e112]

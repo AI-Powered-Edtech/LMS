@@ -1,0 +1,107 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e3] [cursor=pointer]:
+        - /url: '#main-content'
+    - main [active] [ref=e4]:
+        - link "Lewati ke konten utama" [ref=e61] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e62]:
+            - status [ref=e63]: 'Halaman dimuat: Forum | EduSync LMS'
+            - link "Langsung ke konten utama" [ref=e64] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e65]:
+                - complementary [ref=e66]:
+                    - generic [ref=e67]:
+                        - generic [ref=e69]: E
+                        - heading "EduSync" [level=1] [ref=e70]
+                    - 'button "Pilih kelas aktif: Kelas QA Updated" [ref=e73]':
+                        - generic [ref=e74]:
+                            - generic [ref=e75]: Kelas Aktif
+                            - generic [ref=e76]: Kelas QA Updated
+                        - img [ref=e77]
+                    - navigation "Menu utama" [ref=e79]:
+                        - link "Pusat Mengajar" [ref=e80] [cursor=pointer]:
+                            - /url: '#/app/teacher/dashboard'
+                            - img [ref=e81]
+                            - text: Pusat Mengajar
+                        - link "Sosial & Info" [ref=e84] [cursor=pointer]:
+                            - /url: '#/social-hub'
+                            - img [ref=e85]
+                            - text: Sosial & Info
+                        - link "Pengaturan" [ref=e90] [cursor=pointer]:
+                            - /url: '#/settings'
+                            - img [ref=e91]
+                            - text: Pengaturan
+                    - button "Keluar" [ref=e95]:
+                        - img [ref=e96]
+                        - text: Keluar
+                - generic [ref=e99]:
+                    - generic [ref=e100]:
+                        - button "Buka pencarian global" [ref=e101]:
+                            - img [ref=e102]
+                            - generic [ref=e105]: Cari...
+                            - generic [ref=e107]: ⌘K
+                        - generic [ref=e108]:
+                            - generic [ref=e109]:
+                                - img [ref=e110]
+                                - text: Guru
+                            - button "Ubah mode gelap" [ref=e112]:
+                                - img [ref=e113]
+                            - button "Notifikasi deteksi kesulitan siswa" [ref=e116]:
+                                - img [ref=e117]
+                                - generic [ref=e120]: '1'
+                            - button "Notifikasi" [ref=e122]:
+                                - img [ref=e123]
+                            - button "Menu profil" [ref=e127]:
+                                - img "Foto profil pengguna" [ref=e129]
+                    - main [ref=e130]:
+                        - generic [ref=e428]:
+                            - generic [ref=e429]:
+                                - generic [ref=e430]:
+                                    - heading "Ruang Diskusi Beta" [level=1] [ref=e431]:
+                                        - text: Ruang Diskusi
+                                        - generic [ref=e432]: Beta
+                                    - paragraph [ref=e433]: Tanya, jawab, dan belajar bersama komunitas. Dapatkan Knowledge Points (KP)!
+                                - generic [ref=e434]:
+                                    - generic [ref=e435]:
+                                        - generic [ref=e436]: '0'
+                                        - generic [ref=e437]: KP Saya
+                                    - generic [ref=e439]: Aktif
+                            - generic [ref=e440]:
+                                - generic [ref=e441]:
+                                    - img [ref=e442]
+                                    - textbox "Cari pertanyaan atau kata kunci..." [ref=e445]
+                                - generic [ref=e446]:
+                                    - button "Semua" [ref=e447]
+                                    - button "Matematika" [ref=e448]
+                                    - button "Fisika" [ref=e449]
+                                    - button "Kimia" [ref=e450]
+                                    - button "Biologi" [ref=e451]
+                                    - button "Pemrograman" [ref=e452]
+                                    - button "Umum" [ref=e453]
+                            - generic [ref=e458]:
+                                - textbox "Judul pertanyaan..." [ref=e460]
+                                - 'textbox "Jelaskan pertanyaanmu secara detail... (Mendukung Markdown & LaTeX: $$x^2$$)" [ref=e461]'
+                                - generic [ref=e462]:
+                                    - generic [ref=e463]:
+                                        - combobox [ref=e464]:
+                                            - option "Matematika"
+                                            - option "Fisika"
+                                            - option "Kimia"
+                                            - option "Biologi"
+                                            - option "Pemrograman"
+                                            - option "Umum" [selected]
+                                        - generic [ref=e465] [cursor=pointer]:
+                                            - checkbox "Tanya Anonim" [ref=e466]
+                                            - img [ref=e467]
+                                            - text: Tanya Anonim
+                                    - button "Posting Pertanyaan" [disabled] [ref=e472]:
+                                        - img [ref=e473]
+                                        - text: Posting Pertanyaan
+                            - generic [ref=e477]:
+                                - img [ref=e479]
+                                - heading "Belum ada diskusi" [level=3] [ref=e481]
+                                - paragraph [ref=e482]: Jadilah yang pertama membuka diskusi di forum ini.
+    - generic [ref=e278]:
+        - img [ref=e280]
+        - button "Open Tanstack query devtools" [ref=e328] [cursor=pointer]:
+            - img [ref=e329]

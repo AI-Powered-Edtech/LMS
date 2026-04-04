@@ -1,0 +1,438 @@
+- generic [ref=e2]:
+    - link "Langsung ke konten utama" [ref=e16] [cursor=pointer]:
+        - /url: '#main-content'
+    - banner "Install EduSync sebagai aplikasi" [ref=e17]:
+        - generic [ref=e18]:
+            - img [ref=e20]
+            - generic [ref=e23]:
+                - paragraph [ref=e24]: Install EduSync
+                - paragraph [ref=e25]: Akses lebih cepat langsung dari layar utama
+            - generic [ref=e26]:
+                - button "Install" [ref=e27]
+                - button "Nanti saja" [ref=e28]:
+                    - img [ref=e29]
+    - main [active] [ref=e32]:
+        - link "Lewati ke konten utama" [ref=e437] [cursor=pointer]:
+            - /url: '#main-content'
+        - generic [ref=e438]:
+            - status [ref=e439]: 'Halaman dimuat: Dasbor Administrasi | EduSync LMS'
+            - link "Langsung ke konten utama" [ref=e440] [cursor=pointer]:
+                - /url: '#main-content'
+            - generic [ref=e441]:
+                - complementary "Menu admin" [ref=e442]:
+                    - generic [ref=e443]:
+                        - generic [ref=e445]: E
+                        - generic [ref=e446]:
+                            - heading "EduSync" [level=1] [ref=e447]
+                            - text: Admin
+                    - navigation "Navigasi admin" [ref=e448]:
+                        - generic [ref=e449]:
+                            - button "Utama" [expanded] [ref=e450]:
+                                - text: Utama
+                                - img [ref=e451]
+                            - list "Grup navigasi Utama" [ref=e453]:
+                                - generic [ref=e454]:
+                                    - listitem "Dasbor" [ref=e455] [cursor=pointer]:
+                                        - img [ref=e456]
+                                        - generic [ref=e461]: Dasbor
+                                    - listitem "Admin Hub" [ref=e462] [cursor=pointer]:
+                                        - img [ref=e463]
+                                        - generic [ref=e465]: Admin Hub
+                        - generic [ref=e466]:
+                            - button "Pengguna & Kelas" [expanded] [ref=e467]:
+                                - text: Pengguna & Kelas
+                                - img [ref=e468]
+                            - list "Grup navigasi Pengguna & Kelas" [ref=e470]:
+                                - generic [ref=e471]:
+                                    - listitem "Pengguna" [ref=e472] [cursor=pointer]:
+                                        - img [ref=e473]
+                                        - generic [ref=e478]: Pengguna
+                                    - listitem "Kelas" [ref=e479] [cursor=pointer]:
+                                        - img [ref=e480]
+                                        - generic [ref=e485]: Kelas
+                                    - listitem "Kursus" [ref=e486] [cursor=pointer]:
+                                        - img [ref=e487]
+                                        - generic [ref=e489]: Kursus
+                        - generic [ref=e490]:
+                            - button "Akademik" [expanded] [ref=e491]:
+                                - text: Akademik
+                                - img [ref=e492]
+                            - list "Grup navigasi Akademik" [ref=e494]:
+                                - generic [ref=e495]:
+                                    - listitem "Buku Nilai" [ref=e496] [cursor=pointer]:
+                                        - img [ref=e497]
+                                        - generic [ref=e500]: Buku Nilai
+                                    - listitem "Analitik" [ref=e501] [cursor=pointer]:
+                                        - img [ref=e502]
+                                        - generic [ref=e504]: Analitik
+                                    - listitem "Progres Siswa" [ref=e505] [cursor=pointer]:
+                                        - img [ref=e506]
+                                        - generic [ref=e509]: Progres Siswa
+                        - generic [ref=e510]:
+                            - button "Administrasi" [expanded] [ref=e511]:
+                                - text: Administrasi
+                                - img [ref=e512]
+                            - list "Grup navigasi Administrasi" [ref=e514]:
+                                - generic [ref=e515]:
+                                    - listitem "Administrasi" [ref=e516] [cursor=pointer]:
+                                        - img [ref=e517]
+                                        - generic [ref=e520]: Administrasi
+                                    - listitem "Audit" [ref=e521] [cursor=pointer]:
+                                        - img [ref=e522]
+                                        - generic [ref=e524]: Audit
+                                    - listitem "Moderasi" [ref=e525] [cursor=pointer]:
+                                        - img [ref=e526]
+                                        - generic [ref=e528]: Moderasi
+                        - generic [ref=e529]:
+                            - button "Keuangan" [ref=e530]:
+                                - text: Keuangan
+                                - img [ref=e531]
+                            - list "Grup navigasi Keuangan":
+                                - generic [ref=e533]:
+                                    - listitem "Tagihan" [ref=e534] [cursor=pointer]:
+                                        - img [ref=e535]
+                                        - generic [ref=e537]: Tagihan
+                                    - listitem "Keuangan" [ref=e538] [cursor=pointer]:
+                                        - img [ref=e539]
+                                        - generic [ref=e541]: Keuangan
+                                        - generic [ref=e542]: Segera
+                        - generic [ref=e543]:
+                            - button "Sistem" [ref=e544]:
+                                - text: Sistem
+                                - img [ref=e545]
+                            - list "Grup navigasi Sistem":
+                                - generic [ref=e547]:
+                                    - listitem "Kesehatan Sistem" [ref=e548] [cursor=pointer]:
+                                        - img [ref=e549]
+                                        - generic [ref=e551]: Kesehatan Sistem
+                                    - listitem "Integrasi LTI" [ref=e552] [cursor=pointer]:
+                                        - img [ref=e553]
+                                        - generic [ref=e555]: Integrasi LTI
+                                        - generic [ref=e556]: Segera
+                                    - listitem "Pengaturan" [ref=e557] [cursor=pointer]:
+                                        - img [ref=e558]
+                                        - generic [ref=e561]: Pengaturan
+                    - button "Keluar" [ref=e563]:
+                        - img [ref=e564]
+                        - text: Keluar
+                - generic [ref=e567]:
+                    - generic [ref=e568]:
+                        - button "Buka pencarian global" [ref=e569]:
+                            - img [ref=e570]
+                            - generic [ref=e573]: Cari...
+                            - generic [ref=e575]: ⌘K
+                        - generic [ref=e576]:
+                            - generic [ref=e577]:
+                                - img [ref=e578]
+                                - text: Administrator
+                            - button "Ubah mode gelap" [ref=e580]:
+                                - img [ref=e581]
+                            - button "Notifikasi deteksi kesulitan siswa" [ref=e584]:
+                                - img [ref=e585]
+                            - button "Notifikasi admin" [ref=e589]:
+                                - img [ref=e590]
+                            - button "Notifikasi" [ref=e594]:
+                                - img [ref=e595]
+                            - button "Menu profil" [ref=e599]:
+                                - img "Foto profil pengguna" [ref=e602]
+                    - main [ref=e603]:
+                        - generic [ref=e605]:
+                            - generic [ref=e606]:
+                                - generic [ref=e607]:
+                                    - heading "Administrasi Terpusat" [level=1] [ref=e608]:
+                                        - img [ref=e609]
+                                        - text: Administrasi Terpusat
+                                    - paragraph [ref=e613]: Kelola sinkronisasi data dengan PDDIKTI/Dapodik dan pengaturan sistem sekolah.
+                                - generic [ref=e614]:
+                                    - generic [ref=e615]:
+                                        - img [ref=e616]
+                                        - generic [ref=e618]: Sistem Online
+                                    - button "Sinkronisasi Data" [ref=e619]:
+                                        - img [ref=e620]
+                                        - text: Sinkronisasi Data
+                            - generic [ref=e626]:
+                                - generic [ref=e627]:
+                                    - img [ref=e629]
+                                    - generic [ref=e634]:
+                                        - heading "Manajemen Fitur" [level=2] [ref=e635]
+                                        - paragraph [ref=e636]: Kelola modul sekolah dan fitur lanjutan dalam satu tempat.
+                                - generic [ref=e637]:
+                                    - button "Modul Sekolah" [ref=e638]:
+                                        - img [ref=e639]
+                                        - text: Modul Sekolah
+                                    - button "Fitur Lanjutan" [ref=e644]:
+                                        - img [ref=e645]
+                                        - text: Fitur Lanjutan
+                                - generic [ref=e648]:
+                                    - generic [ref=e714]:
+                                        - generic [ref=e715]:
+                                            - heading "Buku Nilai" [level=4] [ref=e716]
+                                            - paragraph [ref=e717]: Sistem pencatatan dan rekap nilai siswa untuk guru.
+                                            - generic [ref=e718]:
+                                                - generic [ref=e719]: Inti
+                                                - generic [ref=e720]: Guru
+                                        - switch "Nonaktifkan modul Buku Nilai" [checked] [disabled] [ref=e721]:
+                                            - img [ref=e722]
+                                    - generic [ref=e725]:
+                                        - generic [ref=e726]:
+                                            - heading "Kuis Online" [level=4] [ref=e727]
+                                            - paragraph [ref=e728]: Platform ujian dan kuis interaktif untuk siswa.
+                                            - generic [ref=e729]:
+                                                - generic [ref=e730]: Inti
+                                                - generic [ref=e731]: Siswa
+                                        - switch "Nonaktifkan modul Kuis Online" [checked] [disabled] [ref=e732]:
+                                            - img [ref=e733]
+                                    - generic [ref=e736]:
+                                        - generic [ref=e737]:
+                                            - heading "Pusat Tugas" [level=4] [ref=e738]
+                                            - paragraph [ref=e739]: Manajemen pengumpulan dan penilaian tugas.
+                                            - generic [ref=e740]:
+                                                - generic [ref=e741]: Inti
+                                                - generic [ref=e742]: Guru
+                                                - generic [ref=e743]: Siswa
+                                        - switch "Nonaktifkan modul Pusat Tugas" [checked] [disabled] [ref=e744]:
+                                            - img [ref=e745]
+                                    - generic [ref=e748]:
+                                        - generic [ref=e749]:
+                                            - heading "Jadwal & Kalender" [level=4] [ref=e750]
+                                            - paragraph [ref=e751]: Jadwal pelajaran dan agenda akademik sekolah.
+                                            - generic [ref=e752]:
+                                                - generic [ref=e753]: Guru
+                                                - generic [ref=e754]: Siswa
+                                        - switch "Nonaktifkan modul Jadwal & Kalender" [checked] [ref=e755]:
+                                            - img [ref=e756]
+                                    - generic [ref=e759]:
+                                        - generic [ref=e760]:
+                                            - heading "Pengumuman" [level=4] [ref=e761]
+                                            - paragraph [ref=e762]: Papan informasi dan berita sekolah.
+                                            - generic [ref=e763]:
+                                                - generic [ref=e764]: Guru
+                                                - generic [ref=e765]: Siswa
+                                        - switch "Nonaktifkan modul Pengumuman" [checked] [ref=e766]:
+                                            - img [ref=e767]
+                                    - generic [ref=e770]:
+                                        - generic [ref=e771]:
+                                            - heading "Direktori Menu" [level=4] [ref=e772]
+                                            - paragraph [ref=e773]: Akses cepat ke semua fitur dalam satu halaman.
+                                            - generic [ref=e774]:
+                                                - generic [ref=e775]: Guru
+                                                - generic [ref=e776]: Siswa
+                                        - switch "Nonaktifkan modul Direktori Menu" [checked] [ref=e777]:
+                                            - img [ref=e778]
+                                    - generic [ref=e781]:
+                                        - generic [ref=e782]:
+                                            - heading "AI Creator" [level=4] [ref=e783]
+                                            - paragraph [ref=e784]: Buat kuis & materi otomatis dari dokumen/video.
+                                            - generic [ref=e786]: Guru
+                                        - switch "Nonaktifkan modul AI Creator" [checked] [ref=e787]:
+                                            - img [ref=e788]
+                                    - generic [ref=e791]:
+                                        - generic [ref=e792]:
+                                            - heading "Dasbor Analitik" [level=4] [ref=e793]
+                                            - paragraph [ref=e794]: Visualisasi data & prediksi risiko siswa.
+                                            - generic [ref=e796]: Guru
+                                        - switch "Nonaktifkan modul Dasbor Analitik" [checked] [ref=e797]:
+                                            - img [ref=e798]
+                                    - generic [ref=e801]:
+                                        - generic [ref=e802]:
+                                            - heading "Scan Absensi" [level=4] [ref=e803]
+                                            - paragraph [ref=e804]: Scan otomatis buku absensi siswa menggunakan AI.
+                                            - generic [ref=e806]: Guru
+                                        - switch "Nonaktifkan modul Scan Absensi" [checked] [ref=e807]:
+                                            - img [ref=e808]
+                                    - generic [ref=e811]:
+                                        - generic [ref=e812]:
+                                            - heading "Surat & Dokumen" [level=4] [ref=e813]
+                                            - paragraph [ref=e814]: Smart editor & approval surat berjenjang.
+                                            - generic [ref=e816]: Guru
+                                        - switch "Nonaktifkan modul Surat & Dokumen" [checked] [ref=e817]:
+                                            - img [ref=e818]
+                                    - generic [ref=e821]:
+                                        - generic [ref=e822]:
+                                            - heading "SpeedGrader" [level=4] [ref=e823]
+                                            - paragraph [ref=e824]: Penilaian esai dengan matriks rubrik transparan.
+                                            - generic [ref=e826]: Guru
+                                        - switch "Nonaktifkan modul SpeedGrader" [checked] [ref=e827]:
+                                            - img [ref=e828]
+                                    - generic [ref=e831]:
+                                        - generic [ref=e832]:
+                                            - heading "Tugas Kelompok" [level=4] [ref=e833]
+                                            - paragraph [ref=e834]: Kolaborasi tugas kelompok dengan sinkronisasi Google Classroom.
+                                            - generic [ref=e835]:
+                                                - generic [ref=e836]: Guru
+                                                - generic [ref=e837]: Siswa
+                                        - switch "Nonaktifkan modul Tugas Kelompok" [checked] [ref=e838]:
+                                            - img [ref=e839]
+                                    - generic [ref=e842]:
+                                        - generic [ref=e843]:
+                                            - heading "Forum Diskusi" [level=4] [ref=e844]
+                                            - paragraph [ref=e845]: Ruang tanya jawab dan kolaborasi sosial.
+                                            - generic [ref=e846]:
+                                                - generic [ref=e847]: Guru
+                                                - generic [ref=e848]: Siswa
+                                        - switch "Nonaktifkan modul Forum Diskusi" [checked] [ref=e849]:
+                                            - img [ref=e850]
+                            - generic [ref=e652]:
+                                - generic [ref=e653]:
+                                    - generic [ref=e654]:
+                                        - generic [ref=e655]:
+                                            - img [ref=e657]
+                                            - generic [ref=e661]:
+                                                - heading "Status Integrasi PDDIKTI" [level=3] [ref=e662]
+                                                - paragraph [ref=e663]: Terhubung ke server pusat Kemendikbud
+                                        - generic [ref=e664]: Terhubung
+                                    - generic [ref=e665]:
+                                        - generic [ref=e666]:
+                                            - paragraph [ref=e667]: Token API
+                                            - paragraph [ref=e668]: ••••••••••••••••
+                                        - generic [ref=e669]:
+                                            - paragraph [ref=e670]: Terakhir Sinkronisasi
+                                            - paragraph [ref=e671]: Baru saja
+                                        - generic [ref=e672]:
+                                            - paragraph [ref=e673]: Versi Aplikasi
+                                            - paragraph [ref=e674]: v2.4.0 (Build 20260301)
+                                        - generic [ref=e675]:
+                                            - paragraph [ref=e676]: Server Status
+                                            - paragraph [ref=e677]:
+                                                - img [ref=e678]
+                                                - text: Operational (99.9% Uptime)
+                                - generic [ref=e681]:
+                                    - heading "Aksi Cepat" [level=3] [ref=e682]
+                                    - generic [ref=e683]:
+                                        - button "Konfigurasi Sekolah" [ref=e684]:
+                                            - img [ref=e685]
+                                            - generic [ref=e688]: Konfigurasi Sekolah
+                                        - button "Manajemen Akun Staf" [ref=e689]:
+                                            - img [ref=e690]
+                                            - generic [ref=e695]: Manajemen Akun Staf
+                                        - button "Laporan Log Audit" [ref=e696]:
+                                            - img [ref=e697]
+                                            - generic [ref=e700]: Laporan Log Audit
+                                        - button "Cadangan Basis Data" [ref=e701]:
+                                            - img [ref=e702]
+                                            - generic [ref=e706]: Cadangan Basis Data
+                            - generic [ref=e707]:
+                                - heading "Riwayat Sinkronisasi Data" [level=3] [ref=e709]
+                                - table "Riwayat sinkronisasi data" [ref=e853]:
+                                    - rowgroup [ref=e854]:
+                                        - row "Jenis Data Status Terakhir Sinkronisasi Jumlah Record Aksi" [ref=e855]:
+                                            - columnheader "Jenis Data" [ref=e856]
+                                            - columnheader "Status" [ref=e857]
+                                            - columnheader "Terakhir Sinkronisasi" [ref=e858]
+                                            - columnheader "Jumlah Record" [ref=e859]
+                                            - columnheader "Aksi" [ref=e860]
+                                    - rowgroup [ref=e861]:
+                                        - row "Data Siswa Berhasil Baru saja - Sinkronkan" [ref=e862]:
+                                            - cell "Data Siswa" [ref=e863]:
+                                                - img [ref=e864]
+                                                - text: Data Siswa
+                                            - cell "Berhasil" [ref=e867]:
+                                                - generic [ref=e868]:
+                                                    - img [ref=e869]
+                                                    - text: Berhasil
+                                            - cell "Baru saja" [ref=e872]
+                                            - cell "-" [ref=e873]
+                                            - cell "Sinkronkan" [ref=e874]:
+                                                - button "Sinkronkan" [ref=e875]
+                                        - row "Data Guru & Staf Berhasil Baru saja - Sinkronkan" [ref=e876]:
+                                            - cell "Data Guru & Staf" [ref=e877]:
+                                                - img [ref=e878]
+                                                - text: Data Guru & Staf
+                                            - cell "Berhasil" [ref=e883]:
+                                                - generic [ref=e884]:
+                                                    - img [ref=e885]
+                                                    - text: Berhasil
+                                            - cell "Baru saja" [ref=e888]
+                                            - cell "-" [ref=e889]
+                                            - cell "Sinkronkan" [ref=e890]:
+                                                - button "Sinkronkan" [ref=e891]
+                                        - row "Data Kelas & Jadwal Peringatan Baru saja - Sinkronkan" [ref=e892]:
+                                            - cell "Data Kelas & Jadwal" [ref=e893]:
+                                                - img [ref=e894]
+                                                - text: Data Kelas & Jadwal
+                                            - cell "Peringatan" [ref=e898]:
+                                                - generic [ref=e899]:
+                                                    - img [ref=e900]
+                                                    - text: Peringatan
+                                            - cell "Baru saja" [ref=e902]
+                                            - cell "-" [ref=e903]
+                                            - cell "Sinkronkan" [ref=e904]:
+                                                - button "Sinkronkan" [ref=e905]
+                                        - row "Nilai & Rapor Berhasil Baru saja - Sinkronkan" [ref=e906]:
+                                            - cell "Nilai & Rapor" [ref=e907]:
+                                                - img [ref=e908]
+                                                - text: Nilai & Rapor
+                                            - cell "Berhasil" [ref=e912]:
+                                                - generic [ref=e913]:
+                                                    - img [ref=e914]
+                                                    - text: Berhasil
+                                            - cell "Baru saja" [ref=e917]
+                                            - cell "-" [ref=e918]
+                                            - cell "Sinkronkan" [ref=e919]:
+                                                - button "Sinkronkan" [ref=e920]
+                                        - row "Keuangan & SPP Berhasil Baru saja - Sinkronkan" [ref=e921]:
+                                            - cell "Keuangan & SPP" [ref=e922]:
+                                                - img [ref=e923]
+                                                - text: Keuangan & SPP
+                                            - cell "Berhasil" [ref=e927]:
+                                                - generic [ref=e928]:
+                                                    - img [ref=e929]
+                                                    - text: Berhasil
+                                            - cell "Baru saja" [ref=e932]
+                                            - cell "-" [ref=e933]
+                                            - cell "Sinkronkan" [ref=e934]:
+                                                - button "Sinkronkan" [ref=e935]
+            - generic [ref=e936]:
+                - generic [ref=e937]:
+                    - heading "Penyiapan Akun" [level=3] [ref=e938]
+                    - generic [ref=e939]:
+                        - button "Sembunyikan daftar" [ref=e940]:
+                            - img [ref=e941]
+                        - button "Tutup sementara" [ref=e943]:
+                            - img [ref=e944]
+                - generic [ref=e947]:
+                    - generic [ref=e948]:
+                        - generic [ref=e949]: 0 dari 5 selesai
+                        - generic [ref=e950]: 0%
+                    - 'progressbar "Onboarding: 0 dari 5 selesai" [ref=e951]'
+                - list [ref=e952]:
+                    - listitem [ref=e953]:
+                        - button "Selesaikan \"Buat kursus pertama\"" [ref=e954]:
+                            - img [ref=e955]
+                        - generic [ref=e957]:
+                            - link "Buat kursus pertama" [ref=e958] [cursor=pointer]:
+                                - /url: /#/app/teacher/course-builder
+                            - paragraph [ref=e959]: Mulai dengan membuat konten pembelajaran
+                    - listitem [ref=e960]:
+                        - button "Selesaikan \"Undang guru\"" [ref=e961]:
+                            - img [ref=e962]
+                        - generic [ref=e964]:
+                            - link "Undang guru" [ref=e965] [cursor=pointer]:
+                                - /url: /#/app/admin/users
+                            - paragraph [ref=e966]: Tambahkan anggota tim pengajar
+                    - listitem [ref=e967]:
+                        - button "Selesaikan \"Undang siswa\"" [ref=e968]:
+                            - img [ref=e969]
+                        - generic [ref=e971]:
+                            - link "Undang siswa" [ref=e972] [cursor=pointer]:
+                                - /url: /#/app/admin/users
+                            - paragraph [ref=e973]: Daftarkan siswa ke platform
+                    - listitem [ref=e974]:
+                        - button "Selesaikan \"Atur skala penilaian\"" [ref=e975]:
+                            - img [ref=e976]
+                        - generic [ref=e978]:
+                            - link "Atur skala penilaian" [ref=e979] [cursor=pointer]:
+                                - /url: /#/app/admin/settings
+                            - paragraph [ref=e980]: Konfigurasi sistem nilai
+                    - listitem [ref=e981]:
+                        - button "Selesaikan \"Aktifkan gamifikasi\"" [ref=e982]:
+                            - img [ref=e983]
+                        - generic [ref=e985]:
+                            - link "Aktifkan gamifikasi" [ref=e986] [cursor=pointer]:
+                                - /url: /#/app/admin/settings
+                            - paragraph [ref=e987]: Motivasi siswa dengan poin dan lencana
+                - button "Tutup sementara" [ref=e989]
+    - generic [ref=e78]:
+        - img [ref=e80]
+        - button "Open Tanstack query devtools" [ref=e128] [cursor=pointer]:
+            - img [ref=e129]

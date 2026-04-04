@@ -8,7 +8,7 @@
 
 import { useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { createQueryKeys } from '@/src/lib/queryKeys'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { leaderboardService } from '../api/leaderboardService'
 
