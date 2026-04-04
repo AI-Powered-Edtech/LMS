@@ -13,7 +13,6 @@ import { useCallback, useRef, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useBuilder } from '@/contexts/BuilderContext'
 import { supabase } from '@/services/supabase/client'
-import { captureError } from '@/utils/sentry'
 
 interface ScormBlockEditorProps {
   blockId: string
@@ -130,7 +129,7 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
     [state.courseId, state.activeLesson, blockId, user, tenantId, actions]
   )
 
-  const handleRemovePackage = async () => {
+  const handleRemovePackage = async (): Promise<void> => {
     if (!confirm('Hapus paket SCORM dari blok ini?')) return
 
     // Remove the scorm_packages record (cascade will clean up runtime data)
@@ -141,11 +140,8 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
           .delete()
           .eq('id', scormMeta.scorm_package_id)
           .eq('tenant_id', tenantId!)
-      } catch (err) {
-        captureError(err, { context: 'ScormBlockEditor.deletePackage' })
-        if (import.meta.env.DEV)
-          console.error('[ScormBlockEditor] Failed to delete scorm_package record:', err)
-        // UI metadata will be cleared, but DB record may be orphaned
+      } catch {
+        // Non-fatal — metadata will be cleared regardless
       }
     }
 
@@ -156,26 +152,26 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
     })
   }
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent): void => {
     e.preventDefault()
     setIsDragOver(true)
   }
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = (e: React.DragEvent): void => {
     e.preventDefault()
     setIsDragOver(false)
   }
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent): void => {
     e.preventDefault()
     setIsDragOver(false)
     const file = e.dataTransfer.files[0]
-    if (file) handleUpload(file)
+    if (file) void handleUpload(file)
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0]
-    if (file) handleUpload(file)
+    if (file) void handleUpload(file)
     // Reset input so the same file can be re-selected
     if (inputRef.current) inputRef.current.value = ''
   }
@@ -238,14 +234,10 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
           accept=".zip"
           onChange={handleFileChange}
           className="hidden"
-          aria-label="Pilih paket SCORM"
         />
 
         {error && (
-          <div
-            role="alert"
-            className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400"
-          >
+          <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
             <AlertCircle className="w-4 h-4 shrink-0" />
             {error}
           </div>
@@ -258,18 +250,19 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
   return (
     <div className="space-y-4">
       <div
-        onClick={() => !isUploading && inputRef.current?.click()}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
         role="button"
-        tabIndex={0}
+        tabIndex={isUploading ? -1 : 0}
+        aria-disabled={isUploading}
+        onClick={() => !isUploading && inputRef.current?.click()}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
             if (!isUploading) inputRef.current?.click()
           }
         }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         className={[
           'relative flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed cursor-pointer transition-all',
           isDragOver
@@ -284,7 +277,6 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
           accept=".zip"
           onChange={handleFileChange}
           className="hidden"
-          aria-label="Pilih paket SCORM"
         />
 
         {isUploading ? (
@@ -293,7 +285,7 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
               {uploadProgress || 'Memproses...'}
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
               Proses ini mungkin memerlukan beberapa saat untuk paket besar
             </p>
           </>
@@ -305,12 +297,12 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
             <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Unggah paket SCORM
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-slate-400 dark:text-slate-500">
               File ZIP dengan imsmanifest.xml (maks. 100MB)
             </p>
             <div className="flex items-center gap-2 mt-3">
-              <FileArchive className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-              <span className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-bold">
+              <FileArchive className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wider font-bold">
                 SCORM 1.2 &amp; 2004
               </span>
             </div>
@@ -319,10 +311,7 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
       </div>
 
       {error && (
-        <div
-          role="alert"
-          className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400"
-        >
+        <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
           <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
         </div>
