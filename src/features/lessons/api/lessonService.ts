@@ -489,8 +489,9 @@ export const lessonService = {
           sessionStorage.removeItem(key)
         } catch (err) {
           // Leave failed beacon for next attempt — don't block the rest of the queue
-          if (import.meta.env.DEV)
+          if (import.meta.env.DEV) {
             console.warn('[lessonService] Beacon replay failed, will retry:', err)
+          }
         }
       }
       // ── END beacon replay ────────────────────────────────────────────────────
