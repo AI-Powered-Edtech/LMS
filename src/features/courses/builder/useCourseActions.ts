@@ -1,5 +1,6 @@
 import { type Dispatch, useCallback } from 'react'
 
+import { auditService } from '@/features/courses/api/builder/auditService'
 import { builderCourseService } from '@/features/courses/api/builder/courseService'
 import { useToast } from '@/hooks/useToast'
 
@@ -67,6 +68,10 @@ export function useCourseActions(
       dispatch({ type: 'SET_COURSE_STATUS', status: 'published' })
       setSavingStatus('saved')
       addToast({ type: 'success', message: 'Kursus berhasil diterbitkan' })
+      // Audit log (fire-and-forget)
+      auditService.logCourseAction(state.courseId, 'publish', {
+        module_count: state.modules.length,
+      })
     } catch (error: unknown) {
       if (import.meta.env.DEV) console.error('Failed to publish course:', error)
       setSavingStatus('error')
@@ -84,6 +89,8 @@ export function useCourseActions(
       await builderCourseService.draftCourse(state.courseId, tenantId)
       dispatch({ type: 'SET_COURSE_STATUS', status: 'draft' })
       setSavingStatus('saved')
+      // Audit log (fire-and-forget)
+      auditService.logCourseAction(state.courseId, 'unpublish')
     } catch (err: unknown) {
       setSavingStatus('error')
       addToast({
@@ -103,6 +110,8 @@ export function useCourseActions(
       dispatch({ type: 'SET_COURSE_STATUS', status: 'in_review' })
       setSavingStatus('saved')
       addToast({ type: 'success', message: 'Kursus diajukan untuk review' })
+      // Audit log (fire-and-forget)
+      auditService.logCourseAction(state.courseId, 'submit_review')
     } catch (err: unknown) {
       setSavingStatus('error')
       addToast({
@@ -122,6 +131,8 @@ export function useCourseActions(
       dispatch({ type: 'SET_COURSE_STATUS', status: 'approved' })
       setSavingStatus('saved')
       addToast({ type: 'success', message: 'Kursus disetujui' })
+      // Audit log (fire-and-forget)
+      auditService.logCourseAction(state.courseId, 'approve')
     } catch (err: unknown) {
       setSavingStatus('error')
       addToast({

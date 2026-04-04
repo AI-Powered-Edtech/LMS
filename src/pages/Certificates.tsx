@@ -3,6 +3,7 @@ import {
   Award,
   Calendar as CalendarIcon,
   CheckCircle,
+  Clock,
   Download,
   FileText,
   ImageIcon,
@@ -10,7 +11,6 @@ import {
   Linkedin,
   Loader2,
   MessageCircle,
-  Plus,
   QrCode,
   Search,
   Settings,
@@ -24,6 +24,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { EmptyState, SkeletonCard } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
+import { CertificateTemplateList } from '@/features/certificates'
 import type { Certificate } from '@/features/gamification'
 import { useStudentCertificates } from '@/features/gamification'
 import { certificateService } from '@/features/gamification/api/certificateService'
@@ -34,7 +35,7 @@ import { useToast } from '@/hooks/useToast'
 export function Certificates() {
   const addToast = useToast((s) => s.addToast)
   usePageTitle('Sertifikat')
-  const { activeRole, profile } = useAuth()
+  const { activeRole, profile, tenantId } = useAuth()
   // SECURITY FIX: Use activeRole (tenant-scoped) instead of global role
   const isTeacher = activeRole === 'teacher'
   const navigate = useNavigate()
@@ -129,6 +130,7 @@ export function Certificates() {
   if (isTeacher) {
     return (
       <div className="max-w-6xl mx-auto space-y-8 p-4 md:p-8">
+        {/* ── Page Header ─────────────────────────────────────────── */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
@@ -138,70 +140,58 @@ export function Certificates() {
               Desain template dan terbitkan sertifikat untuk siswa Anda.
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate('/app/teacher/settings')}
-              className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl font-bold flex items-center gap-2 transition-colors"
-            >
-              <Settings className="w-4 h-4" /> Pengaturan
-            </button>
-            <button
-              onClick={() =>
-                addToast({ message: 'Fitur pembuat template akan segera hadir.', type: 'info' })
-              }
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center gap-2 transition-colors shadow-sm"
-            >
-              <Plus className="w-4 h-4" /> Buat Template Baru
-            </button>
+          <button
+            onClick={() => navigate('/app/teacher/settings')}
+            className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl font-bold flex items-center gap-2 transition-colors self-start md:self-auto"
+          >
+            <Settings className="w-4 h-4" /> Pengaturan
+          </button>
+        </div>
+
+        {/* ── Penerbitan Massal — Coming Soon Card ─────────────────── */}
+        <div className="flex items-start gap-4 rounded-2xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-700/40 dark:bg-amber-900/10">
+          <div className="shrink-0 w-10 h-10 bg-amber-100 dark:bg-amber-800/30 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center">
+            <Clock className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Users className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <h2 className="text-sm font-bold text-amber-800 dark:text-amber-300">
+                Penerbitan Massal (Bulk Issuance)
+              </h2>
+            </div>
+            <p className="text-sm text-amber-700 dark:text-amber-400">
+              Penerbitan massal akan segera hadir — fitur ini memungkinkan Anda menerbitkan
+              sertifikat secara otomatis untuk seluruh siswa yang telah memenuhi KKM atau
+              menyelesaikan modul dalam satu kelas.
+            </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mb-4">
-              <LayoutTemplate className="w-6 h-6" />
+        {/* ── Template Sertifikat ──────────────────────────────────── */}
+        <section className="bg-white dark:bg-slate-800/60 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center shrink-0">
+              <LayoutTemplate className="w-5 h-5" />
             </div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-              Pembuat Template
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
-              Desain layout sertifikat dengan fitur drag-and-drop. Atur posisi logo, teks dinamis
-              (Nama, Nilai), dan tanda tangan digital.
-            </p>
-            <button
-              onClick={() =>
-                addToast({ message: 'Editor visual sertifikat akan segera hadir.', type: 'info' })
-              }
-              className="w-full py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors border border-indigo-200"
-            >
-              Buka Editor Visual
-            </button>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                Template Sertifikat
+              </h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Kelola tampilan sertifikat yang diterbitkan untuk kursus Anda
+              </p>
+            </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-4">
-              <Users className="w-6 h-6" />
+          {tenantId ? (
+            <CertificateTemplateList tenantId={tenantId} />
+          ) : (
+            <div className="flex items-center justify-center py-10 text-slate-400 dark:text-slate-500 text-sm">
+              Memuat data tenant...
             </div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-              Penerbitan Massal (Bulk Issuance)
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
-              Terbitkan sertifikat secara otomatis untuk seluruh siswa dalam satu kelas yang telah
-              memenuhi KKM atau menyelesaikan modul.
-            </p>
-            <button
-              onClick={() =>
-                addToast({
-                  message: 'Penerbitan massal sertifikat akan segera hadir.',
-                  type: 'info',
-                })
-              }
-              className="w-full py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors border border-emerald-200"
-            >
-              Pilih Kelas & Terbitkan
-            </button>
-          </div>
-        </div>
+          )}
+        </section>
       </div>
     )
   }

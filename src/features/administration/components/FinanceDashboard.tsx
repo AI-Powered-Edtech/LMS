@@ -8,6 +8,7 @@
  *  4. Quick Actions   — tombol aksi cepat
  */
 
+import { useQueryClient } from '@tanstack/react-query'
 import {
   AlertCircle,
   Bell,
@@ -21,7 +22,7 @@ import {
   TrendingUp,
   Wallet,
 } from 'lucide-react'
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import {
   Bar,
   BarChart,
@@ -33,6 +34,8 @@ import {
   YAxis,
 } from 'recharts'
 
+import { useToast } from '@/hooks/useToast'
+import { supabase } from '@/services/supabase/client'
 import { cn } from '@/utils/cn'
 
 import { useFinanceData } from '../hooks/useFinanceData'
@@ -167,7 +170,7 @@ function OverviewCard({ icon, iconBg, label, value, subLabel, loading }: Overvie
 function TableRowSkeleton() {
   return (
     <tr className="border-b border-slate-100 dark:border-slate-700">
-      {Array.from({ length: 6 }).map((_, i) => (
+      {Array.from({ length: 7 }).map((_, i) => (
         <td key={i} className="px-4 py-3">
           <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
         </td>
@@ -183,7 +186,7 @@ function TableRowSkeleton() {
 function EmptyFinance() {
   return (
     <tr>
-      <td colSpan={6} className="text-center py-16">
+      <td colSpan={7} className="text-center py-16">
         <div className="flex flex-col items-center gap-3 text-slate-400 dark:text-slate-500">
           <Wallet className="w-12 h-12 opacity-40" />
           <p className="font-medium text-slate-600 dark:text-slate-400">Belum ada data tagihan</p>
@@ -195,38 +198,222 @@ function EmptyFinance() {
 }
 
 // ---------------------------------------------------------------------------
-// Add Invoice Modal (simple stub — placeholder)
+// Add Invoice Modal — real form
 // ---------------------------------------------------------------------------
 
 interface AddInvoiceModalProps {
   onClose: () => void
+  onSuccess: () => void
 }
 
-function AddInvoiceModal({ onClose }: AddInvoiceModalProps) {
+interface StudentOption {
+  id: string
+  full_name: string | null
+  email: string
+}
+
+function AddInvoiceModal({ onClose, onSuccess }: AddInvoiceModalProps) {
+  const addToast = useToast((s) => s.addToast)
+
+  const [studentId, setStudentId] = useState('')
+  const [amount, setAmount] = useState('')
+  const [description, setDescription] = useState('SPP Bulanan')
+  const [dueDate, setDueDate] = useState('')
+  const [monthYear, setMonthYear] = useState(() => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [students, setStudents] = useState<StudentOption[]>([])
+  const [studentsLoading, setStudentsLoading] = useState(true)
+
+  // Load student list from profiles
+  useEffect(() => {
+    let cancelled = false
+    async function loadStudents() {
+      setStudentsLoading(true)
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+        if (!user) return
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('tenant_id')
+          .eq('id', user.id)
+          .single()
+
+        if (!profile?.tenant_id) return
+
+        // Load users with student role via user_roles join
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .eq('tenant_id', profile.tenant_id)
+          .order('full_name', { ascending: true })
+          .limit(200)
+
+        if (!cancelled && data) {
+          setStudents(data as StudentOption[])
+        }
+      } finally {
+        if (!cancelled) setStudentsLoading(false)
+      }
+    }
+    void loadStudents()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!studentId || !amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+      addToast({ message: 'Mohon isi ID siswa dan jumlah tagihan yang valid', type: 'error' })
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const { error } = await supabase.rpc('create_invoice', {
+        p_student_id: studentId,
+        p_amount: Number(amount),
+        p_description: description || 'SPP Bulanan',
+        p_due_date: dueDate || null,
+        p_month_year: monthYear || null,
+      })
+      if (error) throw error
+      addToast({ message: 'Tagihan berhasil dibuat', type: 'success' })
+      onSuccess()
+      onClose()
+    } catch (err) {
+      addToast({
+        message: 'Gagal membuat tagihan: ' + (err as Error).message,
+        type: 'error',
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 w-full max-w-md p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
             Tambah Tagihan Manual
           </h2>
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            aria-label="Tutup"
           >
             ✕
           </button>
         </div>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-          Fitur tambah tagihan manual sedang dalam pengembangan. Silakan gunakan Supabase Dashboard
-          untuk input data sementara.
-        </p>
-        <button
-          onClick={onClose}
-          className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors"
-        >
-          Tutup
-        </button>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Pilih Siswa */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Siswa <span className="text-red-500">*</span>
+            </label>
+            {studentsLoading ? (
+              <div className="h-10 bg-slate-100 dark:bg-slate-700 rounded-xl animate-pulse" />
+            ) : (
+              <select
+                value={studentId}
+                onChange={(e) => setStudentId(e.target.value)}
+                required
+                className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+              >
+                <option value="">-- Pilih siswa --</option>
+                {students.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.full_name ?? s.email}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {/* Jumlah */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Jumlah (Rp) <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              min="1"
+              step="1000"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+              placeholder="Contoh: 500000"
+              className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+            />
+          </div>
+
+          {/* Keterangan */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Keterangan
+            </label>
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Keterangan tagihan"
+              className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+            />
+          </div>
+
+          {/* Bulan/Tahun dan Jatuh Tempo */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Bulan/Tahun
+              </label>
+              <input
+                type="month"
+                value={monthYear}
+                onChange={(e) => setMonthYear(e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Tgl. Jatuh Tempo
+              </label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-xl font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+              {isSubmitting ? 'Menyimpan...' : 'Simpan Tagihan'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )
@@ -331,6 +518,11 @@ export function FinanceDashboard() {
   const [searchInput, setSearchInput] = useState('')
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [reminderModalOpen, setReminderModalOpen] = useState(false)
+  const [isMarkingPaid, setIsMarkingPaid] = useState(false)
+
+  // ─── Hooks ─────────────────────────────────────────────────────────────────
+  const queryClient = useQueryClient()
+  const addToast = useToast((s) => s.addToast)
 
   // ─── Data ──────────────────────────────────────────────────────────────────
   const {
@@ -357,6 +549,29 @@ export function FinanceDashboard() {
   // ─── Export CSV ────────────────────────────────────────────────────────────
   function handleExport() {
     exportFinanceToCSV(invoices)
+  }
+
+  // ─── Tandai Lunas ──────────────────────────────────────────────────────────
+  async function handleMarkAsPaid(invoiceId: string, amount: number) {
+    if (!confirm('Tandai tagihan ini sebagai sudah dibayar?')) return
+    setIsMarkingPaid(true)
+    try {
+      const { error } = await supabase.rpc('record_payment', {
+        p_invoice_id: invoiceId,
+        p_amount: amount,
+        p_method: 'transfer',
+      })
+      if (error) throw error
+      await queryClient.invalidateQueries({ queryKey: ['finance'] })
+      addToast({ message: 'Tagihan berhasil ditandai lunas', type: 'success' })
+    } catch (err) {
+      addToast({
+        message: 'Gagal menandai tagihan: ' + (err as Error).message,
+        type: 'error',
+      })
+    } finally {
+      setIsMarkingPaid(false)
+    }
   }
 
   // ─── Unpaid count for reminder ─────────────────────────────────────────────
@@ -511,6 +726,9 @@ export function FinanceDashboard() {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                   Tgl. Bayar
                 </th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                  Aksi
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -552,6 +770,23 @@ export function FinanceDashboard() {
                     </td>
                     <td className="px-4 py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap text-xs">
                       {inv.paid_at ? formatDate(inv.paid_at) : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() =>
+                          handleMarkAsPaid(inv.id, inv.amount_due ?? inv.amount_paid ?? 0)
+                        }
+                        disabled={
+                          inv.status === 'paid' ||
+                          (inv.status as string).toLowerCase() === 'lunas' ||
+                          isMarkingPaid
+                        }
+                        className="text-xs px-2 py-1 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-700 dark:hover:bg-green-600 transition-colors whitespace-nowrap"
+                      >
+                        {inv.status === 'paid' || (inv.status as string).toLowerCase() === 'lunas'
+                          ? 'Lunas ✓'
+                          : 'Tandai Lunas'}
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -723,7 +958,12 @@ export function FinanceDashboard() {
       </div>
 
       {/* ── Modals ──────────────────────────────────────────────────────────── */}
-      {addModalOpen && <AddInvoiceModal onClose={() => setAddModalOpen(false)} />}
+      {addModalOpen && (
+        <AddInvoiceModal
+          onClose={() => setAddModalOpen(false)}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ['finance'] })}
+        />
+      )}
       {reminderModalOpen && (
         <SendReminderModal unpaidCount={unpaidCount} onClose={() => setReminderModalOpen(false)} />
       )}

@@ -53,8 +53,15 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
       setLoading(true)
 
       try {
-        const enrolled = await courseService.checkEnrollment(courseId, user.id, tenantId)
-        setIsEnrolled(enrolled)
+        const result = await courseService.checkEnrollment(courseId, user.id, tenantId)
+
+        if (result.errorType === 'access_error') {
+          // Distinguish a real access/network error from "not enrolled"
+          setError('Gagal memverifikasi status pendaftaran. Periksa koneksi internet Anda.')
+          setIsEnrolled(false)
+        } else {
+          setIsEnrolled(result.enrolled)
+        }
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Enrollment verification failed:', err)
         const msg = err instanceof Error ? err.message : 'Gagal memverifikasi status pendaftaran'

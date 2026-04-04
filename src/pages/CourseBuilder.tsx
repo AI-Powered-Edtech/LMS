@@ -1,9 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { BuilderSidebar, BuilderTopBar, LessonBlockEditor } from '@/components/CourseBuilder'
 import { useAuth } from '@/contexts/AuthContext'
 import { BuilderProvider, useBuilder } from '@/contexts/BuilderContext'
+import { CourseReleasePanel } from '@/features/courses/components/CourseReleasePanel'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 /**
@@ -16,9 +17,12 @@ function CourseBuilderPage() {
   const { role } = useAuth()
   const courseId = searchParams.get('courseId')
   const { state, actions } = useBuilder()
+  const [releasePanelOpen, setReleasePanelOpen] = useState(false)
 
+  const toggleReleasePanel = () => setReleasePanelOpen((prev) => !prev)
+
+  // Auto-load course from URL param
   useEffect(() => {
-    // Prevent infinite loop if `actions` object changes on every render or if already loading
     if (courseId && !state.courseId && !state.loadingCourse && !state.error) {
       actions.loadCourse(courseId)
     }
@@ -100,15 +104,19 @@ function CourseBuilderPage() {
         Langsung ke konten
       </a>
       <header>
-        <BuilderTopBar />
+        <BuilderTopBar
+          releasePanelOpen={releasePanelOpen}
+          onToggleReleasePanel={toggleReleasePanel}
+        />
       </header>
-      <div className="flex flex-1 min-h-0 overflow-x-auto">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         <nav aria-label="Struktur kursus">
           <BuilderSidebar />
         </nav>
-        <main id="builder-main" aria-label="Editor konten">
+        <main id="builder-main" aria-label="Editor konten" className="flex-1 min-w-0 overflow-auto">
           <LessonBlockEditor />
         </main>
+        {releasePanelOpen && <CourseReleasePanel onClose={() => setReleasePanelOpen(false)} />}
       </div>
     </div>
   )

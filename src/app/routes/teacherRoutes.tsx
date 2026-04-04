@@ -24,6 +24,7 @@ import {
   SpeedGrader,
   StruggleDashboard,
   StudentProgress,
+  SurveyRespondPage,
   TeacherDashboard,
   TeachingHub,
 } from '../lazyPages'
@@ -226,6 +227,14 @@ export function TeacherRoutes() {
               <LessonViewer />
             </S>
           </CourseEnrollmentGuard>
+        }
+      />
+      <Route
+        path="survey/:surveyId"
+        element={
+          <S feature="Isi Survei">
+            <SurveyRespondPage />
+          </S>
         }
       />
       <Route

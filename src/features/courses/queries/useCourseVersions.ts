@@ -5,31 +5,36 @@ import { useToast } from '@/hooks/useToast'
 import { captureError } from '@/utils/sentry'
 
 import { CourseVersion, versionService } from '../api/versionService'
+import { courseKeys } from './courseKeys'
 
 /**
- * Hook to fetch course version history
+ * Hook to fetch course version history.
+ * Uses courseKeys.versions() for tenant-scoped cache isolation.
  */
 export function useCourseVersions(courseId: string) {
   const { tenantId } = useAuth()
   return useQuery<CourseVersion[]>({
-    queryKey: ['course-versions', courseId],
+    queryKey: courseKeys.versions(tenantId!, courseId),
     queryFn: () => versionService.fetchCourseVersions(courseId, tenantId!),
     enabled: !!courseId && !!tenantId,
   })
 }
 
 /**
- * Hook to save a new course version (checkpoint)
+ * Hook to save a new course version (checkpoint).
  */
 export function useSaveVersion() {
   const queryClient = useQueryClient()
+  const { tenantId } = useAuth()
 
   return useMutation({
     mutationFn: ({ courseId, message }: { courseId: string; message: string }) =>
       versionService.saveCourseVersion(courseId, message),
     onSuccess: (_, { courseId }) => {
-      // Invalidate the versions list to fetch the newly created version
-      queryClient.invalidateQueries({ queryKey: ['course-versions', courseId] })
+      // Tenant-scoped invalidation via courseKeys.versions
+      if (tenantId) {
+        queryClient.invalidateQueries({ queryKey: courseKeys.versions(tenantId, courseId) })
+      }
     },
     onError: (err) => {
       captureError(err, { context: 'useSaveVersion' })
@@ -42,21 +47,33 @@ export function useSaveVersion() {
 }
 
 /**
- * Hook to restore a course to a previous version
+ * Hook to restore a course to a previous version.
+ * Narrow invalidation: only the affected course's builder/detail keys,
+ * not a broad ['courses'] blast that refetches all tenants' data.
  */
 export function useRestoreVersion() {
   const queryClient = useQueryClient()
+  const { tenantId } = useAuth()
 
   return useMutation({
-    mutationFn: (versionId: string) => versionService.restoreCourseVersion(versionId),
-    onSuccess: () => {
-      // Invalidate the course details and modules since the structure changed
-      queryClient.invalidateQueries({ queryKey: ['courses'] })
-      queryClient.invalidateQueries({ queryKey: ['course-modules'] })
-      queryClient.invalidateQueries({ queryKey: ['lessons'] })
+    // courseId tidak dipakai di mutationFn body, tapi diperlukan di onSuccess via variables
+    mutationFn: ({ versionId }: { versionId: string; courseId: string }) =>
+      versionService.restoreCourseVersion(versionId),
+    onSuccess: (_, { courseId }) => {
+      if (tenantId) {
+        // Invalidate only the specific course's builder and detail cache
+        queryClient.invalidateQueries({ queryKey: courseKeys.builder(tenantId, courseId) })
+        queryClient.invalidateQueries({ queryKey: courseKeys.detail(tenantId, courseId) })
+        queryClient.invalidateQueries({ queryKey: courseKeys.versions(tenantId, courseId) })
+      } else {
+        // Safe fallback — should not normally happen
+        queryClient.invalidateQueries({ queryKey: ['courses'] })
+        queryClient.invalidateQueries({ queryKey: ['course-modules'] })
+        queryClient.invalidateQueries({ queryKey: ['lessons'] })
+      }
     },
     onError: (err, variables) => {
-      captureError(err, { context: 'useRestoreVersion', versionId: variables })
+      captureError(err, { context: 'useRestoreVersion', versionId: variables.versionId })
       useToast.getState().addToast({
         type: 'error',
         message: 'Gagal memulihkan versi kursus.',

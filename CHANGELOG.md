@@ -1,8 +1,91 @@
 # EduSync LMS — Changelog
 
+## [Unreleased] — 2026-04-05 (Phase 31 — Courses Module Governance Overhaul)
+
+### Feature: Course Release Panel
+
+- **CourseReleasePanel** — Right sidebar di Course Builder memberikan readiness checklist (blockers, warnings, infos), skor kesiapan 0–100%, visualisasi lifecycle status (draft → in_review → approved → published), dan action buttons contextual berdasarkan status + role. Panel dapat dibuka via tombol "Rilis" di TopBar.
+- **useCourseReadiness hook** — Mengkomputasi blockers, warnings, infos, readinessScore, canPublish, dan availableActions dari builder state + role. Mendukung semua role (teacher self-approve, admin/principal approve).
+- **Tombol "Rilis" di BuilderTopBar** — Menggantikan tombol "Publikasi" langsung dengan tombol yang membuka Release Panel. Badge merah menampilkan jumlah blocker aktif.
+
+### Feature: Version Diff Preview
+
+- **CourseVersionHistoryDrawer** — Restore versi kini 2-step: klik "Pratinjau & Restore" → tampil diff preview (modul ditambahkan/dihapus, pelajaran ±, impact badge Rendah/Sedang/Tinggi) → konfirmasi. Mencegah restore "tak terduga" dengan satu klik.
+- **versionService** — Tambah `fetchVersionSnapshot()` untuk mengambil data modul dari `course_versions.snapshot` JSONB, dan `computeVersionDiff()` pure function untuk perbandingan structural.
+
+### Security: Collaboration Hardening (Production Ready)
+
+- **rpc_check_builder_access** — Server-authoritative RPC yang memverifikasi apakah `auth.uid()` adalah creator atau collaborator sah sebelum user join channel builder. Migration: `20260504000001_course_governance.sql`.
+- **useBuilderChannel** — Sebelum subscribe, memanggil `rpc_check_builder_access`. Jika unauthorized, channel tidak di-subscribe dan status diset `'unauthorized'`. Defense-in-depth: broadcast juga difilter berdasarkan `authorizedUserIds` dari collaborator list.
+- **BuilderContext** — Fetch collaborators saat course dimuat dan pass sebagai `authorizedUserIds` ke `useBuilderChannel` untuk client-side filtering.
+- **course_action_logs table** — Audit trail append-only untuk action governance sensitif (publish, unpublish, submit_review, approve, restore_version, add/remove collaborator, archive). RLS: read = tenant member, insert = authenticated + own user_id.
+- **auditService** — `logCourseAction()` (fire-and-forget), `fetchCourseActivityFeed()`, `checkBuilderAccess()`. Integrated ke `useCourseActions` untuk semua status transitions.
+
+### Fix: Query Key Unification
+
+- **courseKeys.ts** — Extend dengan sub-keys: `versions()`, `collaborators()`, `builder()`, `infinite()`, `activity()`.
+- **Eliminasi 3 dialek cache** — `useCourseData` → `courseKeys.list()`, `useInfiniteCoursesQuery` → `courseKeys.infinite()`, `useCourseMutation` → invalidate `courseKeys.lists()` (tenant-scoped bukan global).
+- **useRestoreVersion** — Narrow invalidation dari blast `['courses', 'course-modules', 'lessons']` ke `courseKeys.builder()` + `courseKeys.detail()` per course.
+- **useTemplates** — Invalidation di `useImportTemplate` dipersempit ke `courseKeys.builder(tenantId, courseId)` jika `courseId` tersedia.
+
+### Fix: Enrollment Error Differentiation
+
+- **courseService.checkEnrollment()** — Return type diubah dari `boolean` ke discriminated union: `{ enrolled: boolean; errorType: null | 'access_error' }`. Membedakan "truly not enrolled" dari "network/RLS/auth error".
+- **CourseEnrollmentGuard** — Menampilkan pesan error berbeda jika `errorType === 'access_error'` dibanding silent redirect ke daftar kursus.
+
+### Feature: Template First-Class Path
+
+- **LessonBlockEditor empty state** — Ketika tidak ada modul, tampilkan dua CTA: "Mulai dari Template" (buka TemplateModal modul) dan "Buat dari Awal" (addModule).
+- **BuilderSidebar** — Fix: `SaveTemplateModal` dan `TemplateModal` untuk modul sekarang benar-benar di-render (sebelumnya state-nya ada tapi modal tidak pernah ditampilkan).
+
+### Database
+
+- **Migration 20260504000001_course_governance.sql** — `rpc_check_builder_access` function + `course_action_logs` table (RLS enabled, append-only, trigger auto-set tenant_id dari courses).
+
+---
+
+## [Unreleased] — 2026-04-05
+
+### Bug Fixes (Sprint 0 — Data Correctness)
+
+- **[CRITICAL] Fix Parent Portal attendance selalu menampilkan "absen"** — `attendance_records` tidak memiliki kolom `student_id` (hanya `enrollment_id`). Query di tiga tempat di-fix ke pendekatan dua-langkah: (1) ambil `enrollment_id[]` dari `enrollments` by `student_id`, (2) query `attendance_records.in('enrollment_id', [...])`. File yang di-fix: `src/features/parent/api/parentApi.ts:getChildAttendance()`, `src/features/parent/api/reportApi.ts:getAvailableReportMonths()`, `supabase/functions/generate-parent-report/index.ts`.
+
+### Database (Sprint 1 — Deploy Gamification dari Archive)
+
+- **Deploy Achievement System (Phase 37A)** — Migration `20260504000002_gamification_achievements.sql` mendeploy tabel `badge_definitions`, `student_badges`, `certificates` dan RPCs `get_student_badges`, `check_badge_eligibility`, `issue_certificate`, `get_student_certificates` dari `_archive/821_achievements.sql`. Termasuk 8 system badge defaults. pg_cron `check-badge-eligibility` dijadwalkan dengan graceful fallback.
+- **Deploy XP & Leaderboard v2 (Phase 37B)** — Migration `20260504000003_gamification_xp_streaks.sql` mendeploy tabel `xp_transactions`, `student_xp_summary`, `xp_processing_state` dan RPCs `compute_level`, `xp_for_level`, `record_xp_transaction`, `update_streak`, `get_leaderboard_v2`, `get_student_xp_profile`, `process_xp_awards` dari `_archive/822_streaks_xp.sql`. pg_cron `badge-xp-streak-processor` menggantikan badge-only job.
+
 ## [Unreleased] — 2026-04-04
 
 ### Security
+
+- **[CRITICAL] Fix Parent OTP plaintext leak** — `request_parent_otp()` SQL function sebelumnya mengembalikan `dev_otp` (OTP plaintext) ke `anon` role di semua environment. Migration baru (`20260404100000`) memastikan fungsi tidak pernah mengembalikan OTP plaintext; hash SHA-256 (pgcrypto) digunakan untuk verifikasi. `verify_parent_otp()` diperbarui agar kompatibel dengan client code yang ada.
+- **Fix MFA QR code secret exposure** — `startMFAEnrollment()` sebelumnya mengirim TOTP secret ke `api.qrserver.com` (third-party). QR code kini di-generate sepenuhnya di browser menggunakan library `qrcode` — secret tidak pernah meninggalkan browser.
+- **Improve rate limit fail-closed behavior** — `authService.checkRateLimit()` kini membedakan antara HTTP error dari Edge Function (fail-closed: block request) dan network/DNS failure (fail-semi-open: allow dengan Sentry alert). Sebelumnya semua error menghasilkan fail-open.
+- **CSP hardening** — Sinkronisasi CSP antara `index.html` meta tag dan `vite.config.ts`; tambah `frame-ancestors 'none'`, `base-uri 'self'`, `form-action 'self'`; hapus `fonts.gstatic.com` duplikat dari `img-src`; hapus `api.qrserver.com` dan `chart.googleapis.com` (tidak digunakan lagi). Buat `public/_headers` untuk production hosting (Netlify/Cloudflare Pages) dengan CSP tanpa `unsafe-eval`.
+
+### Architecture
+
+- **Merge StudentLayout + TeacherLayout → AppShell** — Kedua komponen identik 98% dikonsolidasi ke `src/components/layout/AppShell.tsx` (eliminasi ~140 baris duplikasi). `StudentLayout` dan `TeacherLayout` menjadi thin re-export.
+- **Extract ClassroomSwitcher** — Logika classroom picker (~80 baris duplikat) diekstrak dari `Sidebar.tsx` dan `MobileSidebar.tsx` ke `src/features/classroom/components/ClassroomSwitcher.tsx` dengan prop `variant` untuk perbedaan visual.
+- **Update navigation paths ke canonical** — `navigationItems` dan `adminNavGroups` di `navigation.ts` diperbarui dari legacy paths (`/teacher-dashboard`, `/admin-hub`, `/billing`, `/gradebook`, dsb) ke canonical `/app/*` paths. Mengurangi dependensi pada `legacyRedirects.tsx`.
+- **Extract syncToServer dari BuilderContext** — Inline sync callback (48 baris) dipindah ke `src/features/courses/api/builder/builderSyncService.ts`, memisahkan business logic dari state orchestration.
+
+### Performance
+
+- **Role-aware Header** — `Header.tsx` sebelumnya selalu memanggil `useStudentXPProfile()` dan `useStudentProgressData()` untuk semua role. Computation XP dipindah ke `src/features/gamification/hooks/useHeaderXPData.ts`; teacher dan admin tidak lagi membayar query student-specific. Badge role yang relevan ditampilkan per-role.
+
+### Testing
+
+- **Sync test-utils.tsx dengan AuthContextType** — `mockAuthValue` disinkronkan dengan interface aktual: hapus 5 stale fields (`updatePassword`, `resetPasswordForEmail`, `initialized`, `tenantData`, `switchTenant`), tambah 9 missing fields (`session`, `memberships`, `activeTenant`, `setActiveTenant`, `activeRole`, `roles`, `permissions`, `emailVerified`, `sessionExpired`). Fix module-level shared QueryClient dengan factory function per-test untuk isolasi state.
+
+### Dependencies
+
+- Add `qrcode` + `@types/qrcode` untuk browser-side QR code generation (menggantikan external service)
+
+---
+
+### Security (lanjutan)
 
 - Fix stored XSS via react-markdown — sanitize all markdown rendering with DOMPurify (sentinel/xss-fix-react-markdown)
 - Fix XSS in forum post context link URL (sentinel-xss-forum-context-link)

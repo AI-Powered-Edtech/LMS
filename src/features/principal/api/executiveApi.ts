@@ -17,6 +17,46 @@ import type {
 // ── Executive Overview ─────────────────────────────────────────
 
 /**
+ * Tries the cached materialized view first (get_principal_overview_cached),
+ * then falls back to the real-time RPC (get_executive_overview) on any error.
+ *
+ * The cached path is significantly faster (~1 ms vs ~200 ms) because it reads
+ * from mv_principal_overview which is refreshed every 15 minutes by pg_cron.
+ *
+ * The returned shape is identical to ExecutiveOverview so callers need no changes.
+ * An extra `from_cache` boolean is included for debug / staleness indicators.
+ */
+export async function getExecutiveOverviewCached(
+  tenantId: string
+): Promise<ExecutiveOverview & { from_cache: boolean }> {
+  const { data: cached, error: cachedError } = await supabase.rpc('get_principal_overview_cached', {
+    p_tenant_id: tenantId,
+  })
+
+  if (!cachedError && cached && (cached as unknown[]).length > 0) {
+    const row = (cached as Record<string, unknown>[])[0]
+    return {
+      total_students: Number(row.total_students ?? 0),
+      active_students: Number(row.active_students ?? 0),
+      total_teachers: Number(row.total_teachers ?? 0),
+      active_teachers: Number(row.active_teachers ?? 0),
+      total_courses: Number(row.total_courses ?? 0),
+      avg_quiz_score: Number(row.avg_quiz_score ?? 0),
+      adoption_rate: Number(row.adoption_rate ?? 0),
+      from_cache: true,
+    }
+  }
+
+  if (import.meta.env.DEV && cachedError) {
+    console.warn('[Principal] get_principal_overview_cached miss — falling back:', cachedError)
+  }
+
+  // Fallback to real-time RPC
+  const realtime = await getExecutiveOverview(tenantId)
+  return { ...realtime, from_cache: false }
+}
+
+/**
  * Calls the get_executive_overview() RPC created in Wave 3.
  */
 export async function getExecutiveOverview(tenantId: string): Promise<ExecutiveOverview> {

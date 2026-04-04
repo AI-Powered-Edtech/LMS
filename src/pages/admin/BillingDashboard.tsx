@@ -103,6 +103,8 @@ export function BillingDashboard() {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [page, setPage] = useState(0)
+  const PAGE_SIZE = 20
 
   // ⚡ Perf: Debounce search input to avoid re-filtering on every keystroke
   const debouncedSearch = useDebounce(searchQuery, 300)
@@ -118,6 +120,7 @@ export function BillingDashboard() {
           .select('id, amount_due, amount_paid, status, due_date, created_at')
           .eq('tenant_id', tenantId)
           .order('created_at', { ascending: false })
+          .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
 
         if (invErr) throw invErr
 
@@ -147,7 +150,7 @@ export function BillingDashboard() {
       }
     }
     fetchData()
-  }, [tenantId, addToast])
+  }, [tenantId, addToast, page, PAGE_SIZE])
 
   // ⚡ Perf: Memoize filteredInvoices — was recomputed on every render without useMemo
   const filteredInvoices = useMemo(
@@ -361,6 +364,27 @@ export function BillingDashboard() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-700">
+          <p className="text-sm text-slate-500 dark:text-slate-400">Halaman {page + 1}</p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Sebelumnya
+            </button>
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              disabled={invoices.length < PAGE_SIZE}
+              className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Berikutnya
+            </button>
+          </div>
         </div>
       </div>
     </div>

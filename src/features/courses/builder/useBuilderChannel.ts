@@ -1,11 +1,13 @@
 import { type RealtimeChannel } from '@supabase/supabase-js'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { auditService } from '@/features/courses/api/builder/auditService'
 import { supabase } from '@/services/supabase/client'
+import { logDevWarn } from '@/utils/logDevError'
 
 import type { BuilderAction } from './builderReducer'
 
-export type ChannelStatus = 'connecting' | 'connected' | 'disconnected'
+export type ChannelStatus = 'connecting' | 'connected' | 'disconnected' | 'unauthorized'
 
 export interface BroadcastPayload {
   action: BuilderAction
@@ -17,7 +19,9 @@ export function useBuilderChannel(
   courseId: string | null,
   userId: string | null,
   dispatch: React.Dispatch<BuilderAction>,
-  onReconnect?: () => void
+  onReconnect?: () => void,
+  /** Set of userIds known to be authorized collaborators (from collaboratorService) */
+  authorizedUserIds?: Set<string>
 ) {
   const channelRef = useRef<RealtimeChannel | null>(null)
   const [channelStatus, setChannelStatus] = useState<ChannelStatus>('disconnected')
@@ -25,15 +29,34 @@ export function useBuilderChannel(
   const reconnectAttemptRef = useRef(0)
   // Track whether the effect is still mounted to avoid operating on a torn-down channel
   const mountedRef = useRef(false)
+  // Cache the server-side access check result to avoid repeated RPC calls on reconnect
+  const accessCheckedRef = useRef<boolean | null>(null)
 
-  // Subscribe to channel when courseId is available
   useEffect(() => {
     if (!courseId || !userId) return
 
     mountedRef.current = true
     reconnectAttemptRef.current = 0
+    accessCheckedRef.current = null // reset on courseId change
 
-    const subscribe = () => {
+    const subscribe = async () => {
+      // ── Server-side access check (one-time per courseId) ──
+      if (accessCheckedRef.current === null) {
+        const authorized = await auditService.checkBuilderAccess(courseId)
+        if (!mountedRef.current) return // component unmounted during the check
+
+        if (!authorized) {
+          logDevWarn(
+            'useBuilderChannel',
+            `User ${userId} is NOT authorized to join builder channel for course ${courseId}. Aborting subscription.`
+          )
+          setChannelStatus('unauthorized')
+          return
+        }
+
+        accessCheckedRef.current = true
+      }
+
       // Remove any stale channel before creating a new one
       if (channelRef.current) {
         channelRef.current.unsubscribe()
@@ -47,7 +70,22 @@ export function useBuilderChannel(
       channel
         .on('broadcast', { event: 'builder_action' }, (payload) => {
           const data = payload.payload as BroadcastPayload
-          if (data.userId === userId) return // ignore own broadcasts
+
+          // Ignore own broadcasts
+          if (data.userId === userId) return
+
+          // Client-side collaborator guard (defense-in-depth):
+          // Reject broadcasts from users not in the known collaborator set.
+          // The primary guard is the server-side channel access check above.
+          if (authorizedUserIds && authorizedUserIds.size > 0) {
+            if (!authorizedUserIds.has(data.userId)) {
+              logDevWarn(
+                'useBuilderChannel',
+                `Rejected broadcast from unauthorized sender: ${data.userId}`
+              )
+              return
+            }
+          }
 
           // Map to REMOTE_* action types
           const remoteAction = mapToRemoteAction(data.action)
@@ -58,12 +96,10 @@ export function useBuilderChannel(
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
             setChannelStatus('connected')
-            // Successful connection — reset backoff counter and notify caller
             reconnectAttemptRef.current = 0
             if (onReconnect) onReconnect()
           } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
             setChannelStatus('disconnected')
-            // Schedule a reconnection attempt with exponential backoff
             if (mountedRef.current) {
               scheduleReconnect()
             }
@@ -77,7 +113,7 @@ export function useBuilderChannel(
 
     const scheduleReconnect = () => {
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
-      const delay = Math.min(1000 * Math.pow(2, reconnectAttemptRef.current), 30000) // max 30 s
+      const delay = Math.min(1000 * Math.pow(2, reconnectAttemptRef.current), 30000)
       reconnectTimerRef.current = setTimeout(() => {
         if (!mountedRef.current) return
         reconnectAttemptRef.current += 1
@@ -99,19 +135,22 @@ export function useBuilderChannel(
       }
       setChannelStatus('disconnected')
     }
-  }, [courseId, userId, dispatch, onReconnect])
+  }, [courseId, userId, dispatch, onReconnect, authorizedUserIds])
 
   // Broadcast an action to other clients
   const broadcast = useCallback(
     (action: BuilderAction, userName: string) => {
       if (!channelRef.current || !userId) return
+      // Don't broadcast if not authorized
+      if (channelStatus === 'unauthorized') return
+
       channelRef.current.send({
         type: 'broadcast',
         event: 'builder_action',
         payload: { action, userId, userName } satisfies BroadcastPayload,
       })
     },
-    [userId]
+    [userId, channelStatus]
   )
 
   return { channelRef, channelStatus, broadcast }

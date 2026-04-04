@@ -114,10 +114,12 @@ export async function getChildGrades(studentId: string): Promise<ChildGradeSumma
 /**
  * Mengambil data kehadiran minggu ini (Senin-Jumat) untuk satu siswa.
  * weekStart: ISO date string (Senin minggu ini, format YYYY-MM-DD).
+ * tenantId: ID tenant untuk memfilter enrollments dengan benar.
  */
 export async function getChildAttendance(
   studentId: string,
-  weekStart: string
+  weekStart: string,
+  tenantId: string
 ): Promise<AttendanceDay[]> {
   // Hitung Jumat (weekStart + 4 hari)
   const startDate = new Date(weekStart)
@@ -125,10 +127,23 @@ export async function getChildAttendance(
   endDate.setDate(startDate.getDate() + 4)
   const endStr = endDate.toISOString().split('T')[0]
 
+  // attendance_records tidak memiliki kolom student_id — harus join via enrollment_id
+  const { data: enrollments } = await supabase
+    .from('enrollments')
+    .select('id')
+    .eq('student_id', studentId)
+    .eq('tenant_id', tenantId)
+
+  const enrollmentIds = (enrollments ?? []).map((e: Record<string, unknown>) => e.id as string)
+
+  if (enrollmentIds.length === 0) {
+    return generateWeekSlots(weekStart)
+  }
+
   const { data, error } = await supabase
     .from('attendance_records')
     .select('date, status')
-    .eq('student_id', studentId)
+    .in('enrollment_id', enrollmentIds)
     .gte('date', weekStart)
     .lte('date', endStr)
     .order('date', { ascending: true })

@@ -1,7 +1,10 @@
+import QRCode from 'qrcode'
+
 import { supabase } from '@/services/supabase/client'
 import { captureError } from '@/utils/sentry'
 
 export interface MFAEnrollResult {
+  /** data:image/png;base64,... — generated entirely client-side, no external service */
   qrCodeUrl: string
   secret: string
   factorId: string
@@ -28,7 +31,14 @@ export async function startMFAEnrollment(): Promise<MFAEnrollResult | null> {
 
     if (error) throw error
 
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data.totp.qr_code)}`
+    // SECURITY: Generate QR code entirely in the browser using the 'qrcode' library.
+    // The TOTP secret NEVER leaves the browser — no external service is called.
+    // Previously this used https://api.qrserver.com which exposed the secret to a third party.
+    const qrCodeUrl = await QRCode.toDataURL(data.totp.qr_code, {
+      width: 200,
+      margin: 2,
+      color: { dark: '#000000', light: '#ffffff' },
+    })
 
     return {
       qrCodeUrl,

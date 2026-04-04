@@ -225,10 +225,9 @@ describe('parentApi', () => {
       })
       mockFrom.mockReturnValue(chain)
 
-      const result = await getChildAttendance('student-1', '2026-03-30')
+      const result = await getChildAttendance('student-1', '2026-03-30', 'tenant-1')
 
-      expect(mockFrom).toHaveBeenCalledWith('attendance_records')
-      expect(chain.eq).toHaveBeenCalledWith('student_id', 'student-1')
+      expect(mockFrom).toHaveBeenCalledWith('enrollments')
       expect(chain.gte).toHaveBeenCalledWith('date', '2026-03-30')
       // endStr = weekStart + 4 days = 2026-04-03
       expect(chain.lte).toHaveBeenCalledWith('date', '2026-04-03')
@@ -239,7 +238,7 @@ describe('parentApi', () => {
       const chain = createChainMock({ data: null, error: { message: 'DB error' } })
       mockFrom.mockReturnValue(chain)
 
-      const result = await getChildAttendance('student-1', '2026-03-30')
+      const result = await getChildAttendance('student-1', '2026-03-30', 'tenant-1')
       expect(result).toHaveLength(5)
     })
 
@@ -255,7 +254,7 @@ describe('parentApi', () => {
       mockFrom.mockReturnValue(chain)
 
       // Gunakan tanggal di masa lalu agar tidak dianggap future day
-      const result = await getChildAttendance('student-1', '2025-01-06')
+      const result = await getChildAttendance('student-1', '2025-01-06', 'tenant-1')
 
       // Cari slot yang sesuai dengan tanggal yang dimasukkan
       const jan6 = result.find((d) => d.date === '2025-01-06')

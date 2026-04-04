@@ -6,6 +6,7 @@ import { lazy } from 'react'
 import { Outlet, Route } from 'react-router-dom'
 
 import { RoleGuard } from '../../components/guards/RoleGuard'
+import { SurveyRespondPage } from '../lazyPages'
 import { S } from './utils'
 
 // Lazy imports
@@ -122,6 +123,16 @@ export function ParentRoutes() {
         element={
           <S feature="Pengaturan Notifikasi">
             <DigestSettings />
+          </S>
+        }
+      />
+
+      {/* Halaman isi survei */}
+      <Route
+        path="survey/:surveyId"
+        element={
+          <S feature="Isi Survei">
+            <SurveyRespondPage />
           </S>
         }
       />

@@ -8,6 +8,7 @@ import {
 import {
   ArrowDown,
   ArrowUp,
+  BookCopy,
   File,
   FileText,
   GripVertical,
@@ -16,6 +17,7 @@ import {
   Loader2,
   Package,
   Plus,
+  Sparkles,
   Trash2,
   Type,
   Video,
@@ -25,6 +27,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useBuilder } from '@/contexts/BuilderContext'
+import { TemplateModal } from '@/features/courses/components/TemplateModal'
 import { QuizBlockEditor } from '@/features/quizzes/components/QuizBlockEditor'
 import { cn } from '@/utils/cn'
 
@@ -40,6 +43,7 @@ export function LessonBlockEditor() {
   const { state, actions, presence, mobile } = useBuilder()
   const [showAddMenu, setShowAddMenu] = useState(false)
   const [deletingBlockId, setDeletingBlockId] = useState<string | null>(null)
+  const [templateModalOpen, setTemplateModalOpen] = useState(false)
 
   // FIX 1: Local title state with debounced API call
   // Derive the current lesson title from state.modules (activeLesson in state only holds id+blocks)
@@ -83,24 +87,72 @@ export function LessonBlockEditor() {
   }, [])
 
   if (!state.activeLesson) {
+    const hasNoModules = state.modules.length === 0
+
     return (
-      <main
-        id="builder-main"
-        aria-label="Editor konten"
-        className="flex-1 flex items-center justify-center bg-slate-50/50 dark:bg-slate-900/50 p-6"
-      >
-        <div className="text-center max-w-sm p-12 bg-white dark:bg-slate-800 rounded-[32px] shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 border border-slate-100/80 dark:border-slate-700/80">
-          <div className="w-24 h-24 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 rounded-[32px] flex items-center justify-center mx-auto mb-8 shadow-inner">
-            <FileText className="w-12 h-12" />
+      <>
+        <main
+          id="builder-main"
+          aria-label="Editor konten"
+          className="flex-1 flex items-center justify-center bg-slate-50/50 dark:bg-slate-900/50 p-6"
+        >
+          <div className="text-center max-w-sm p-12 bg-white dark:bg-slate-800 rounded-[32px] shadow-xl shadow-slate-200/50 dark:shadow-slate-900/50 border border-slate-100/80 dark:border-slate-700/80">
+            {hasNoModules ? (
+              <>
+                <div className="w-24 h-24 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 rounded-[32px] flex items-center justify-center mx-auto mb-8 shadow-inner">
+                  <Sparkles className="w-12 h-12" />
+                </div>
+                <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-3 tracking-tight">
+                  Mulai Membuat Kursus
+                </h3>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed mb-8">
+                  Buat dari awal atau percepat proses dengan menggunakan template yang sudah
+                  tersedia.
+                </p>
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={() => setTemplateModalOpen(true)}
+                    disabled={!state.courseId}
+                    className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-200 dark:shadow-indigo-900/30 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <BookCopy className="w-5 h-5" />
+                    Mulai dari Template
+                  </button>
+                  <button
+                    onClick={() => actions.addModule('Modul Baru')}
+                    className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-bold rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-600 transition-all hover:shadow-sm"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Buat dari Awal
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-24 h-24 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 rounded-[32px] flex items-center justify-center mx-auto mb-8 shadow-inner">
+                  <FileText className="w-12 h-12" />
+                </div>
+                <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-4 tracking-tight">
+                  Mulai Menyusun
+                </h3>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-[280px] mx-auto">
+                  Pilih satu materi dari daftar kurikulum untuk mulai mengisi konten pembelajaran.
+                </p>
+              </>
+            )}
           </div>
-          <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-4 tracking-tight">
-            Mulai Menyusun
-          </h3>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-[280px] mx-auto">
-            Pilih satu materi dari daftar kurikulum untuk mulai mengisi konten pembelajaran.
-          </p>
-        </div>
-      </main>
+        </main>
+
+        {/* Template selection modal (course-level) */}
+        {state.courseId && (
+          <TemplateModal
+            isOpen={templateModalOpen}
+            onClose={() => setTemplateModalOpen(false)}
+            type="module"
+            targetId={state.courseId}
+          />
+        )}
+      </>
     )
   }
 

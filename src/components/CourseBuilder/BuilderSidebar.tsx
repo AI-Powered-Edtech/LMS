@@ -17,23 +17,36 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
 import { useBuilder } from '@/contexts/BuilderContext'
+import { SaveTemplateModal } from '@/features/courses/components/SaveTemplateModal'
+import { TemplateModal } from '@/features/courses/components/TemplateModal'
 import { cn } from '@/utils/cn'
 import { translateLessonType } from '@/utils/statusTranslations'
+
+interface TemplateModalConfig {
+  isOpen: boolean
+  type: 'course' | 'module' | 'lesson'
+  targetId: string
+}
+
+interface SaveTemplateConfig {
+  isOpen: boolean
+  type: 'course' | 'module' | 'lesson'
+  sourceId: string
+  defaultTitle: string
+}
 
 export function BuilderSidebar() {
   const { state, actions } = useBuilder()
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const [addingLessonTo, setAddingLessonTo] = useState<string | null>(null)
-  const [_templateModalConfig, setTemplateModalConfig] = useState<any>({
+  const [templateModalConfig, setTemplateModalConfig] = useState<TemplateModalConfig>({
     isOpen: false,
-    type: '',
+    type: 'module',
     targetId: '',
-    sourceId: '',
-    defaultTitle: '',
   })
-  const [_saveTemplateConfig, setSaveTemplateConfig] = useState<any>({
+  const [saveTemplateConfig, setSaveTemplateConfig] = useState<SaveTemplateConfig>({
     isOpen: false,
-    type: '',
+    type: 'module',
     sourceId: '',
     defaultTitle: '',
   })
@@ -516,6 +529,23 @@ export function BuilderSidebar() {
           )}
         </AnimatePresence>
       </nav>
+
+      {/* Template import modal (for module-level templates) */}
+      <TemplateModal
+        isOpen={templateModalConfig.isOpen}
+        onClose={() => setTemplateModalConfig((c) => ({ ...c, isOpen: false }))}
+        type={templateModalConfig.type}
+        targetId={templateModalConfig.targetId}
+      />
+
+      {/* Save as template modal (for module-level save) */}
+      <SaveTemplateModal
+        isOpen={saveTemplateConfig.isOpen}
+        onClose={() => setSaveTemplateConfig((c) => ({ ...c, isOpen: false }))}
+        type={saveTemplateConfig.type}
+        sourceId={saveTemplateConfig.sourceId}
+        defaultTitle={saveTemplateConfig.defaultTitle}
+      />
     </>
   )
 }

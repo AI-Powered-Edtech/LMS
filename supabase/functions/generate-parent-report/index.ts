@@ -214,20 +214,29 @@ Deno.serve(async (req: Request) => {
         .lte('created_at', `${monthEnd}T23:59:59`)
         .order('created_at', { ascending: false }),
 
-      // 3. Kehadiran bulan ini
-      supabase
-        .from('attendance_records')
-        .select('date, status')
-        .eq('student_id', studentId)
-        .eq('tenant_id', tenantId)
-        .gte('date', monthStart)
-        .lte('date', monthEnd),
+      // 3. Kehadiran bulan ini — join via enrollment_id (attendance_records tidak punya student_id)
+      (async () => {
+        const { data: enrData } = await supabase
+          .from('enrollments')
+          .select('id')
+          .eq('student_id', studentId)
+          .eq('tenant_id', tenantId)
+          .eq('status', 'active')
+        const enrIds = (enrData ?? []).map((e: { id: string }) => e.id)
+        if (enrIds.length === 0) return { data: [], error: null }
+        return supabase
+          .from('attendance_records')
+          .select('date, status')
+          .in('enrollment_id', enrIds)
+          .gte('date', monthStart)
+          .lte('date', monthEnd)
+      })(),
 
-      // 4. Lesson completions bulan ini
+      // 4. Lesson completions bulan ini — lesson_progress menggunakan user_id dan total_time_spent
       supabase
         .from('lesson_progress')
-        .select('id, completed_at, time_spent_seconds')
-        .eq('student_id', studentId)
+        .select('id, completed_at, total_time_spent')
+        .eq('user_id', studentId)
         .eq('tenant_id', tenantId)
         .eq('completed', true)
         .gte('completed_at', `${monthStart}T00:00:00`)
@@ -387,8 +396,9 @@ Deno.serve(async (req: Request) => {
         : []
 
     const lessonsCompleted = lessonsRaw.length
+    // total_time_spent disimpan dalam detik di tabel lesson_progress
     const totalStudyTimeSeconds = lessonsRaw.reduce(
-      (sum, row) => sum + Number(row.time_spent_seconds ?? 0),
+      (sum, row) => sum + Number(row.total_time_spent ?? 0),
       0
     )
     const totalStudyTimeMinutes = Math.round(totalStudyTimeSeconds / 60)

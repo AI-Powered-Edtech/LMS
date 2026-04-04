@@ -6,12 +6,11 @@ import { OptimizedImage } from '@/components/ui'
 import { Role, useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
 import { LevelBadge } from '@/features/gamification/components/LevelBadge'
-import { useStudentXPProfile } from '@/features/gamification/queries/gamificationQueries'
+import { useHeaderXPData } from '@/features/gamification/hooks/useHeaderXPData'
 import {
   AdminNotificationBell,
   NotificationBell as AppNotificationBell,
 } from '@/features/notifications'
-import { useStudentProgressData } from '@/features/progress/hooks/useStudentProgressQueries'
 import { GlobalSearchModal } from '@/features/search'
 import { NotificationBell as StruggleBell } from '@/features/struggle'
 import { cn } from '@/utils/cn'
@@ -22,17 +21,9 @@ interface HeaderProps {
 }
 
 export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
-  const { xp } = useStudentProgressData()
-  const { data: xpProfile } = useStudentXPProfile()
-
-  const streak = xpProfile?.streak_current ?? 0
-  const hasLoggedInToday = streak > 0
-  const totalXp = (xpProfile?.total_xp || 0) > 0 ? xpProfile!.total_xp : xp
-  const level = (xpProfile?.total_xp || 0) > 0 ? xpProfile!.level : 1
-  const xpCurrent = xpProfile?.xp_current_level ?? 0
-  const xpNext = xpProfile?.xp_next_level ?? 100
-  const xpNeeded = xpNext - xpCurrent
-  const progress = xpNeeded > 0 ? Math.min(((totalXp - xpCurrent) / xpNeeded) * 100, 100) : 100
+  // PERF: XP data di-fetch hanya untuk student (dihandle oleh useHeaderXPData).
+  // Teacher dan admin tidak membayar query student-specific.
+  const { streak, hasLoggedInToday, totalXp, level, progress } = useHeaderXPData()
 
   const { role, profile, signOut, user } = useAuth()
   const { resolvedTheme, toggleTheme } = useTheme()
@@ -88,6 +79,8 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
     principal: 'Kepala Sekolah',
   }
 
+  const isStudent = role === 'student'
+
   return (
     <header
       data-testid="navbar"
@@ -131,35 +124,31 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
       </button>
 
       <div className="flex items-center gap-4 sm:gap-6">
-        {/* Streak Indicator */}
-        <div className="flex items-center gap-2">
-          <Flame
-            className={cn(
-              'w-6 h-6 transition-all duration-300',
-              hasLoggedInToday
-                ? 'text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]'
-                : 'text-slate-300 dark:text-slate-600 fill-slate-300 dark:fill-slate-600'
-            )}
-          />
-          <span
-            className={cn(
-              'font-bold',
-              hasLoggedInToday ? 'text-orange-600' : 'text-slate-400 dark:text-slate-500'
-            )}
-          >
-            {streak}
-          </span>
-        </div>
-
-        {/* Stats/Metrics */}
-        <div className="flex items-center gap-3">
-          {role === 'teacher' ? (
-            <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-lg font-bold text-sm border border-blue-200/50 dark:border-blue-700/30">
-              <Activity className="w-4 h-4" />
-              Guru
+        {/* Role-aware Stats Area — hanya student yang menampilkan XP/streak */}
+        {isStudent ? (
+          <>
+            {/* Streak Indicator — student only */}
+            <div className="flex items-center gap-2">
+              <Flame
+                className={cn(
+                  'w-6 h-6 transition-all duration-300',
+                  hasLoggedInToday
+                    ? 'text-orange-500 fill-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]'
+                    : 'text-slate-300 dark:text-slate-600 fill-slate-300 dark:fill-slate-600'
+                )}
+              />
+              <span
+                className={cn(
+                  'font-bold',
+                  hasLoggedInToday ? 'text-orange-600' : 'text-slate-400 dark:text-slate-500'
+                )}
+              >
+                {streak}
+              </span>
             </div>
-          ) : (
-            <>
+
+            {/* XP Stats — student only */}
+            <div className="flex items-center gap-3">
               <LevelBadge level={level} size="sm" />
               <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 text-yellow-700 dark:text-yellow-500 px-2.5 py-1 rounded-lg font-bold text-sm border border-yellow-200/50 dark:border-yellow-700/30">
                 <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
@@ -178,9 +167,15 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
                   style={{ width: `${progress}%` }}
                 />
               </div>
-            </>
-          )}
-        </div>
+            </div>
+          </>
+        ) : (
+          /* Role badge untuk non-student (teacher, admin) */
+          <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-lg font-bold text-sm border border-blue-200/50 dark:border-blue-700/30">
+            <Activity className="w-4 h-4" />
+            {roleLabels[role]}
+          </div>
+        )}
 
         {/* Dark Mode Toggle */}
         <button

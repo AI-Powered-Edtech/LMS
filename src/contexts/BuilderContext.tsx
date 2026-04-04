@@ -7,14 +7,13 @@ import {
   useMemo,
   useReducer,
   useRef,
+  useState,
 } from 'react'
 
 import { useToast } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
-import { builderBlockService } from '@/features/courses/api/builder/blockService'
-import { builderLessonService } from '@/features/courses/api/builder/lessonService'
-import { builderModuleService } from '@/features/courses/api/builder/moduleService'
-import { courseService } from '@/features/courses/api/courseService'
+import { syncBuilderToServer } from '@/features/courses/api/builder/builderSyncService'
+import { collaboratorService } from '@/features/courses/api/builder/collaboratorService'
 import {
   builderReducer,
   type BuilderState,
@@ -105,8 +104,35 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   // Mobile responsive state
   const mobile = useMobileBuilder()
 
+  // Authorized collaborator IDs for server-authoritative channel guard
+  const [authorizedUserIds, setAuthorizedUserIds] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    if (!state.courseId || !tenantId) {
+      setAuthorizedUserIds(new Set())
+      return
+    }
+
+    collaboratorService
+      .fetchCollaborators(state.courseId, tenantId)
+      .then((collaborators) => {
+        const ids = new Set(collaborators.map((c) => c.user_id))
+        setAuthorizedUserIds(ids)
+      })
+      .catch(() => {
+        // Non-fatal — fall back to empty set (server RPC check is the primary guard)
+        setAuthorizedUserIds(new Set())
+      })
+  }, [state.courseId, tenantId])
+
   // Realtime channel for collaborative editing
-  const { channelRef, broadcast } = useBuilderChannel(state.courseId, user?.id ?? null, dispatch)
+  const { channelRef, broadcast } = useBuilderChannel(
+    state.courseId,
+    user?.id ?? null,
+    dispatch,
+    undefined,
+    authorizedUserIds
+  )
 
   // Presence tracking (who else is editing)
   const presence = useBuilderPresence(
@@ -120,51 +146,11 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   const addToast = useToast((s) => s.addToast)
   const offline = useBuilderOffline(state.courseId, state, async () => {
     if (!state.courseId || !tenantId) return
-    try {
-      // 1. Sync course metadata
-      await courseService.updateCourse(
-        state.courseId,
-        { title: state.courseTitle, description: state.courseDescription },
-        tenantId
-      )
-
-      // 2. Sync module titles (for existing modules that were edited offline)
-      await Promise.allSettled(
-        state.modules.map((mod) =>
-          builderModuleService.updateModule(mod.id, tenantId, { title: mod.title })
-        )
-      )
-
-      // 3. Sync lesson data (for existing lessons that were edited offline)
-      await Promise.allSettled(
-        state.modules.flatMap((mod) =>
-          mod.lessons.map((lesson) =>
-            builderLessonService.updateLesson(lesson.id, tenantId, {
-              title: lesson.title,
-              isPublished: lesson.isPublished,
-              durationMinutes: lesson.durationMinutes,
-            })
-          )
-        )
-      )
-
-      // 4. Sync block data for active lesson (if any)
-      if (state.activeLesson) {
-        await Promise.allSettled(
-          state.activeLesson.blocks.map((block) =>
-            builderBlockService.updateBlock(block.id, tenantId, {
-              title: block.title,
-              content: block.content,
-              url: block.url,
-              metadata: block.metadata,
-            })
-          )
-        )
-      }
-
+    const result = await syncBuilderToServer(state, tenantId)
+    if (result.success) {
       addToast({ type: 'success', message: 'Perubahan berhasil disinkronkan.' })
-    } catch (e) {
-      console.error(e)
+    } else {
+      console.error('[BuilderContext] sync failed:', result.error)
       addToast({ type: 'error', message: 'Gagal menyinkronkan ke server. Coba lagi.' })
     }
   })

@@ -10,7 +10,7 @@ import { STALE } from '@/utils/queryConstants'
 
 import {
   getBaselineMetrics,
-  getExecutiveOverview,
+  getExecutiveOverviewCached,
   getMonthlyTrend,
   getPrincipalSettings,
   getROIMetrics,
@@ -51,7 +51,9 @@ export function useExecutiveOverview() {
 
   return useQuery({
     queryKey: principalKeys.overview(tenantId ?? ''),
-    queryFn: () => getExecutiveOverview(tenantId!),
+    // Uses the cached MV path (get_principal_overview_cached) with automatic
+    // fallback to the real-time RPC when the MV is unavailable.
+    queryFn: () => getExecutiveOverviewCached(tenantId!),
     enabled: !!tenantId,
     staleTime: STALE.MODERATE,
   })

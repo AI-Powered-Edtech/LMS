@@ -8,15 +8,23 @@ import { sentryVitePlugin } from '@sentry/vite-plugin'
 import compression from 'vite-plugin-compression2'
 
 const isDev = process.env.NODE_ENV !== 'production'
+
+// Production: no unsafe-eval (Vite/React don't need it at runtime).
+// Development: unsafe-eval needed for Vite HMR source maps.
 const scriptSrc = isDev
   ? "'self' 'unsafe-inline' 'unsafe-eval' https://js.sentry-cdn.com"
   : "'self' https://js.sentry-cdn.com"
 
+// NOTE: api.qrserver.com and chart.googleapis.com are intentionally NOT included.
+// MFA QR codes are now generated client-side (qrcode library — no external calls).
+// Class join QR codes use chart.googleapis.com but that is a non-secret URL — if
+// that service is re-enabled, add it to img-src. For now both are removed.
 const cspDirectives = [
   "default-src 'self'",
   `script-src ${scriptSrc}`,
-  // 'unsafe-inline' kept: React inline style props (style={{}}) render as style attributes, which require unsafe-inline.
+  // 'unsafe-inline' kept: React inline style props (style={{}}) and Tailwind generate inline styles.
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  // fonts.gstatic.com is only in font-src, NOT duplicated in img-src
   "img-src 'self' data: blob: https://*.supabase.co https://*.cloudfront.net https://api.dicebear.com",
   "font-src 'self' https://fonts.gstatic.com",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://sentry.io https://*.vercel.app",

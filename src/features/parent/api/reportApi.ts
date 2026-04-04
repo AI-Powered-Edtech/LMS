@@ -68,10 +68,11 @@ export async function getAvailableReportMonths(
   tenantId: string
 ): Promise<AvailableReportMonth[]> {
   // Ambil tanggal completion pelajaran per bulan
+  // lesson_progress menggunakan user_id (bukan student_id)
   const { data: lessonData, error: lessonError } = await supabase
     .from('lesson_progress')
     .select('completed_at')
-    .eq('student_id', studentId)
+    .eq('user_id', studentId)
     .eq('tenant_id', tenantId)
     .eq('completed', true)
     .not('completed_at', 'is', null)
@@ -84,13 +85,28 @@ export async function getAvailableReportMonths(
   }
 
   // Ambil juga dari attendance_records sebagai fallback
-  const { data: attendanceData, error: attendanceError } = await supabase
-    .from('attendance_records')
-    .select('date')
+  // attendance_records tidak memiliki student_id — join via enrollment_id
+  const { data: enrollments } = await supabase
+    .from('enrollments')
+    .select('id')
     .eq('student_id', studentId)
     .eq('tenant_id', tenantId)
-    .order('date', { ascending: false })
-    .limit(200)
+
+  const enrollmentIds = (enrollments ?? []).map((e: Record<string, unknown>) => e.id as string)
+
+  let attendanceData: Record<string, unknown>[] = []
+  let attendanceError: unknown = null
+
+  if (enrollmentIds.length > 0) {
+    const { data: attData, error: attError } = await supabase
+      .from('attendance_records')
+      .select('date')
+      .in('enrollment_id', enrollmentIds)
+      .order('date', { ascending: false })
+      .limit(200)
+    attendanceData = (attData ?? []) as Record<string, unknown>[]
+    attendanceError = attError
+  }
 
   if (attendanceError) {
     if (import.meta.env.DEV)

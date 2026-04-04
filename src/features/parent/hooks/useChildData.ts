@@ -85,7 +85,7 @@ export function useChildDashboard(studentId: string | null) {
 
   const attendanceQuery = useQuery({
     queryKey: parentKeys.attendance(tenantId ?? '', studentId ?? '', weekStart),
-    queryFn: () => getChildAttendance(studentId!, weekStart),
+    queryFn: () => getChildAttendance(studentId!, weekStart, tenantId!),
     enabled: !!tenantId && !!studentId,
     staleTime: STALE.MODERATE,
     refetchInterval: false,

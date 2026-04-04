@@ -361,3 +361,12 @@ export const PeerReviews = withErrorBoundary(
   lazy(() => import('../pages/PeerReviews').then((m) => ({ default: m.PeerReviews }))),
   'Peer Review'
 )
+
+// ============================================================
+// Survey Respondent
+// ============================================================
+
+export const SurveyRespondPage = withErrorBoundary(
+  lazy(() => import('../pages/SurveyRespond').then((m) => ({ default: m.SurveyRespondPage }))),
+  'Isi Survei'
+)

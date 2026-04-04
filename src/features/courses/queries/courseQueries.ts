@@ -19,9 +19,13 @@ export function useCourses(filters?: Omit<FetchCoursesOptions, 'tenantId'>) {
 
 const PAGE_SIZE = 12
 
+/**
+ * Infinite-scrolling course list for CourseBrowser.
+ * Uses courseKeys.infinite() for consistent cache invalidation.
+ */
 export function useInfiniteCoursesQuery(tenantId: string, search?: string) {
   return useInfiniteQuery({
-    queryKey: ['courses', 'infinite', tenantId, search],
+    queryKey: courseKeys.infinite(tenantId, search),
     queryFn: ({ pageParam = 1 }) =>
       courseService.fetchCourses({
         tenantId,

@@ -91,7 +91,16 @@ export const authService = {
 
   /**
    * Server-side rate limit check via Edge Function.
-   * Fails open (returns allowed=true) if the function is unavailable.
+   *
+   * Fail behavior (defense-in-depth tiered):
+   * - HTTP error from Edge Function (4xx/5xx): fail-CLOSED — block the request.
+   *   The Edge Function itself returns allowed:false on 503 (fail-closed by design),
+   *   so FunctionsHttpError = server intentionally blocking → respect it.
+   * - Network unreachable (ECONNREFUSED, DNS failure, timeout): fail-semi-open — allow
+   *   but capture to Sentry so ops can investigate infrastructure issues.
+   *
+   * Client-side rate limiting (rateLimiter.ts) always runs first and is the
+   * primary defense regardless of Edge Function availability.
    */
   async checkRateLimit(
     action: string,
@@ -103,14 +112,27 @@ export const authService = {
       const { data, error } = await supabase.functions.invoke('check-rate-limit', {
         body: { action, key, maxAttempts, windowMs },
       })
-      if (error) throw error
+
+      // FunctionsHttpError: Edge Function returned an HTTP error status (4xx/5xx).
+      // This includes 503 from the fail-closed Edge Function. Respect it — block the request.
+      if (error) {
+        const isHttpError =
+          error.name === 'FunctionsHttpError' || (error instanceof Error && 'status' in error)
+        if (isHttpError) {
+          logDevError('auth', 'Rate limit HTTP error - fail-closed:', error)
+          captureError(error, { context: 'checkRateLimit', action, level: 'warning' })
+          return { allowed: false, retryAfterMs: 5000 }
+        }
+        // Non-HTTP error: fall through to catch (network/DNS/timeout)
+        throw error
+      }
+
       return (data as RateLimitResult) ?? { allowed: true }
     } catch (err) {
-      // SECURITY NOTE: Fail-open by design - server unavailability should not block login.
-      // Monitor this log in production. Server-side rate limiting is defense-in-depth,
-      // not the primary security layer. Client-side rate limiting (rateLimiter.ts) is
-      // the first line of defense and always runs regardless of Edge Function availability.
-      logDevError('auth', 'Rate limit check failed - fail-open:', err)
+      // Network/infrastructure failure — Edge Function unreachable entirely.
+      // Fail-semi-open: allow to prevent total login lockout during infra outages.
+      // Sentry alert ensures this is never silently ignored in production.
+      logDevError('auth', 'Rate limit unreachable (network error) - fail-semi-open:', err)
       captureError(err, { context: 'checkRateLimit', action, level: 'warning' })
       return { allowed: true }
     }

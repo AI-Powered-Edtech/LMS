@@ -235,8 +235,22 @@ export const courseService = {
 
   /**
    * Checks if a user is enrolled in a specific course.
+   *
+   * Returns a discriminated union to distinguish between:
+   *  - `{ enrolled: true, errorType: null }` — user is actively enrolled
+   *  - `{ enrolled: false, errorType: null }` — user is genuinely not enrolled
+   *  - `{ enrolled: false, errorType: 'access_error' }` — network/RLS/auth error;
+   *     should NOT be treated the same as "not enrolled" in the UI.
    */
-  async checkEnrollment(courseId: string, userId: string, tenantId: string) {
+  async checkEnrollment(
+    courseId: string,
+    userId: string,
+    tenantId: string
+  ): Promise<
+    | { enrolled: true; errorType: null }
+    | { enrolled: false; errorType: null }
+    | { enrolled: false; errorType: 'access_error' }
+  > {
     const { data, error } = await supabase
       .from('course_enrollments')
       .select('id')
@@ -248,9 +262,9 @@ export const courseService = {
 
     if (error) {
       logDevError('courseService', 'Error checking course enrollment:', error)
-      return false
+      return { enrolled: false, errorType: 'access_error' }
     }
 
-    return !!data
+    return { enrolled: !!data, errorType: null }
   },
 }

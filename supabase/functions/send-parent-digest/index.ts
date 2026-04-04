@@ -7,11 +7,13 @@
 //
 // Process:
 //   1. Fetch semua parent yang digest_enabled = true
-//   2. Untuk setiap parent: fetch child data (grades, attendance, assignments)
-//   3. Generate digest message
-//   4. Simpan ke notifications table sebagai in-app notification
-//   5. Kirim via WhatsApp jika channel = 'whatsapp'
-//   6. Kirim via email jika channel = 'email' (placeholder)
+//   2. Batch-fetch semua parent-child links sekaligus
+//   3. Batch-fetch semua activity data untuk semua siswa sekaligus
+//   4. Build lookup maps di memori, proses per-parent tanpa query tambahan
+//   5. Generate digest message
+//   6. Simpan ke notifications table sebagai in-app notification
+//   7. Kirim via WhatsApp jika channel = 'whatsapp'
+//   8. Kirim via email jika channel = 'email' (placeholder)
 // =============================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1'
@@ -96,69 +98,159 @@ function generateDigestBody(childName: string, data: DigestData): string {
   return lines.join('\n')
 }
 
-// ── Fetch Child Activity Data ──────────────────────────────────────────────
+// ── Batch Activity Data Maps ───────────────────────────────────────────────
 
-async function fetchChildActivity(
+interface BatchActivityMaps {
+  // student_id → count of lessons completed today
+  lessonsByStudent: Map<string, number>
+  // student_id → count of assignments submitted today
+  submissionsByStudent: Map<string, number>
+  // enrollment_id → attendance status string
+  attendanceByEnrollment: Map<string, string>
+  // student_id → list of enrollment IDs
+  enrollmentsByStudent: Map<string, string[]>
+  // tenant_id → count of overdue assignments (shared across all students in tenant)
+  overdueByTenant: Map<string, number>
+}
+
+async function fetchBatchActivityData(
   supabase: ReturnType<typeof createClient>,
-  studentId: string,
-  tenantId: string,
+  studentIds: string[],
+  tenantIds: string[],
   dateStr: string
-): Promise<DigestData> {
+): Promise<BatchActivityMaps> {
   const dayStart = `${dateStr}T00:00:00+07:00`
   const dayEnd = `${dateStr}T23:59:59+07:00`
-
-  // Pelajaran diselesaikan hari ini
-  const { count: lessonsCompleted } = await supabase
-    .from('lesson_progress')
-    .select('id', { count: 'exact', head: true })
-    .eq('student_id', studentId)
-    .eq('tenant_id', tenantId)
-    .eq('is_completed', true)
-    .gte('completed_at', dayStart)
-    .lte('completed_at', dayEnd)
-
-  // Tugas dikumpulkan hari ini
-  const { count: assignmentsSubmitted } = await supabase
-    .from('assignment_submissions')
-    .select('id', { count: 'exact', head: true })
-    .eq('student_id', studentId)
-    .eq('tenant_id', tenantId)
-    .in('status', ['submitted', 'graded'])
-    .gte('submitted_at', dayStart)
-    .lte('submitted_at', dayEnd)
-
-  // Tugas hampir tenggat (dalam 3 hari ke depan, belum dikumpulkan)
   const threeDaysLater = new Date()
   threeDaysLater.setDate(threeDaysLater.getDate() + 3)
 
-  const { count: overdueAssignments } = await supabase
-    .from('assignments')
-    .select('id', { count: 'exact', head: true })
-    .eq('tenant_id', tenantId)
-    .eq('is_published', true)
-    .lte('due_date', threeDaysLater.toISOString())
-    .gte('due_date', new Date().toISOString())
+  // Run all batch queries in parallel
+  const [lessonsResult, submissionsResult, enrollmentsResult, overdueResults] = await Promise.all([
+    // Batch: lessons completed today for all students
+    supabase
+      .from('lesson_progress')
+      .select('user_id')
+      .in('user_id', studentIds)
+      .in('tenant_id', tenantIds)
+      .eq('completed', true)
+      .gte('completed_at', dayStart)
+      .lte('completed_at', dayEnd)
+      .limit(5000),
 
-  // Kehadiran hari ini
-  const { data: attendance } = await supabase
-    .from('attendance_records')
-    .select('status')
-    .eq('student_id', studentId)
-    .eq('date', dateStr)
-    .maybeSingle()
+    // Batch: assignment submissions today for all students
+    supabase
+      .from('assignment_submissions')
+      .select('student_id')
+      .in('student_id', studentIds)
+      .in('tenant_id', tenantIds)
+      .in('status', ['submitted', 'graded'])
+      .gte('submitted_at', dayStart)
+      .lte('submitted_at', dayEnd)
+      .limit(5000),
 
-  let attendanceStatus: DigestData['attendanceStatus'] = 'tidak_ada_data'
-  if (attendance) {
-    const s = (attendance.status as string).toLowerCase()
-    attendanceStatus = s === 'hadir' || s === 'present' ? 'hadir' : 'absen'
+    // Batch: enrollments for all students (needed for attendance lookup)
+    supabase
+      .from('enrollments')
+      .select('id, student_id, tenant_id')
+      .in('student_id', studentIds)
+      .in('tenant_id', tenantIds)
+      .limit(10000),
+
+    // Batch: overdue assignments per tenant (one query per unique tenant)
+    Promise.all(
+      tenantIds.map(async (tenantId) => {
+        const { count } = await supabase
+          .from('assignments')
+          .select('id', { count: 'exact', head: true })
+          .eq('tenant_id', tenantId)
+          .eq('is_published', true)
+          .lte('due_date', threeDaysLater.toISOString())
+          .gte('due_date', new Date().toISOString())
+        return { tenantId, count: count ?? 0 }
+      })
+    ),
+  ])
+
+  // Build enrollment lookup maps
+  const enrollmentsByStudent = new Map<string, string[]>()
+  const allEnrollmentIds: string[] = []
+
+  for (const enr of enrollmentsResult.data ?? []) {
+    const list = enrollmentsByStudent.get(enr.student_id) ?? []
+    list.push(enr.id)
+    enrollmentsByStudent.set(enr.student_id, list)
+    allEnrollmentIds.push(enr.id)
+  }
+
+  // Batch: attendance for all enrollment IDs at once
+  let attendanceByEnrollment = new Map<string, string>()
+  if (allEnrollmentIds.length > 0) {
+    const { data: attendanceRows } = await supabase
+      .from('attendance_records')
+      .select('enrollment_id, status')
+      .in('enrollment_id', allEnrollmentIds)
+      .eq('date', dateStr)
+      .limit(10000)
+
+    for (const row of attendanceRows ?? []) {
+      // Keep first record per enrollment (matches original .maybeSingle() behaviour)
+      if (!attendanceByEnrollment.has(row.enrollment_id)) {
+        attendanceByEnrollment.set(row.enrollment_id, row.status as string)
+      }
+    }
+  }
+
+  // Build lessons-completed-per-student map
+  const lessonsByStudent = new Map<string, number>()
+  for (const lp of lessonsResult.data ?? []) {
+    lessonsByStudent.set(lp.user_id, (lessonsByStudent.get(lp.user_id) ?? 0) + 1)
+  }
+
+  // Build submissions-per-student map
+  const submissionsByStudent = new Map<string, number>()
+  for (const sub of submissionsResult.data ?? []) {
+    submissionsByStudent.set(sub.student_id, (submissionsByStudent.get(sub.student_id) ?? 0) + 1)
+  }
+
+  // Build overdue-per-tenant map
+  const overdueByTenant = new Map<string, number>()
+  for (const { tenantId, count } of overdueResults) {
+    overdueByTenant.set(tenantId, count)
   }
 
   return {
-    lessonsCompleted: lessonsCompleted ?? 0,
-    assignmentsSubmitted: assignmentsSubmitted ?? 0,
-    overdueAssignments: overdueAssignments ?? 0,
-    attendanceStatus,
+    lessonsByStudent,
+    submissionsByStudent,
+    attendanceByEnrollment,
+    enrollmentsByStudent,
+    overdueByTenant,
   }
+}
+
+// ── Resolve DigestData from in-memory maps ────────────────────────────────
+
+function resolveChildActivity(
+  studentId: string,
+  tenantId: string,
+  maps: BatchActivityMaps
+): DigestData {
+  const lessonsCompleted = maps.lessonsByStudent.get(studentId) ?? 0
+  const assignmentsSubmitted = maps.submissionsByStudent.get(studentId) ?? 0
+  const overdueAssignments = maps.overdueByTenant.get(tenantId) ?? 0
+
+  // Resolve attendance via enrollment IDs
+  let attendanceStatus: DigestData['attendanceStatus'] = 'tidak_ada_data'
+  const enrIds = maps.enrollmentsByStudent.get(studentId) ?? []
+  for (const enrId of enrIds) {
+    const rawStatus = maps.attendanceByEnrollment.get(enrId)
+    if (rawStatus !== undefined) {
+      const s = rawStatus.toLowerCase()
+      attendanceStatus = s === 'hadir' || s === 'present' ? 'hadir' : 'absen'
+      break
+    }
+  }
+
+  return { lessonsCompleted, assignmentsSubmitted, overdueAssignments, attendanceStatus }
 }
 
 // ── Main Handler ──────────────────────────────────────────────────────────
@@ -240,22 +332,67 @@ Deno.serve(async (req: Request): Promise<Response> => {
       )
     }
 
-    // Proses setiap parent
-    for (const setting of digestSettings as DigestSetting[]) {
+    const typedSettings = digestSettings as DigestSetting[]
+
+    // ── Sprint 3.3: Batch pre-fetch — eliminates N+1 query pattern ─────────
+
+    // Step 1: Collect all parent IDs and unique tenant IDs
+    const parentIds = typedSettings.map((s) => s.parent_id)
+    const uniqueTenantIds = [...new Set(typedSettings.map((s) => s.tenant_id))]
+
+    // Step 2: Batch-fetch ALL parent-child links for all parents at once
+    const { data: allLinks } = await supabase
+      .from('student_parent_links')
+      .select('parent_id, student_id, tenant_id, profiles!student_id(full_name)')
+      .in('parent_id', parentIds)
+      .in('tenant_id', uniqueTenantIds)
+
+    if (!allLinks || allLinks.length === 0) {
+      // No children found for any parent — skip all
+      result.skipped = typedSettings.length
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      })
+    }
+
+    // Step 3: Collect all unique student IDs
+    const uniqueStudentIds = [...new Set(allLinks.map((l) => l.student_id as string))]
+
+    // Step 4: Batch-fetch ALL activity data for all students at once
+    const activityMaps = await fetchBatchActivityData(
+      supabase,
+      uniqueStudentIds,
+      uniqueTenantIds,
+      todayStr
+    )
+
+    // Step 5: Batch-fetch all parent profiles for WhatsApp sending
+    const { data: parentProfiles } = await supabase
+      .from('profiles')
+      .select('id, phone')
+      .in('id', parentIds)
+
+    const phoneByParent = new Map<string, string | null>()
+    for (const p of parentProfiles ?? []) {
+      phoneByParent.set(p.id as string, p.phone as string | null)
+    }
+
+    // ── Step 6: Process each parent from in-memory data (no DB queries in loop) ──
+
+    for (const setting of typedSettings) {
       try {
-        // Fetch anak-anak dari parent ini
-        const { data: children } = await supabase
-          .from('student_parent_links')
-          .select('student_id, profiles!student_id(full_name)')
-          .eq('parent_id', setting.parent_id)
-          .eq('tenant_id', setting.tenant_id)
+        // Filter children for this parent from the pre-fetched links
+        const children = allLinks.filter(
+          (l) => l.parent_id === setting.parent_id && l.tenant_id === setting.tenant_id
+        )
 
         if (!children || children.length === 0) {
           result.skipped++
           continue
         }
 
-        // Generate digest untuk setiap anak
+        // Generate digest for each child using in-memory maps
         const notificationParts: string[] = []
 
         for (const link of children as Record<string, unknown>[]) {
@@ -263,12 +400,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
           const profileData = link.profiles as { full_name: string } | null
           const childName = profileData?.full_name?.split(' ')[0] ?? 'Anak'
 
-          const activityData = await fetchChildActivity(
-            supabase,
-            studentId,
-            setting.tenant_id,
-            todayStr
-          )
+          // Resolve activity from in-memory maps — zero DB queries
+          const activityData = resolveChildActivity(studentId, setting.tenant_id, activityMaps)
 
           const digestBody = generateDigestBody(childName, activityData)
           notificationParts.push(`Laporan ${childName}:\n${digestBody}`)
@@ -307,14 +440,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
         // ── Kirim via WhatsApp jika channel === 'whatsapp' ──────────
         if (setting.channel === 'whatsapp') {
-          // Fetch nomor HP parent dari profiles
-          const { data: parentProfile } = await supabase
-            .from('profiles')
-            .select('phone')
-            .eq('id', setting.parent_id)
-            .maybeSingle()
-
-          const parentPhone = parentProfile?.phone as string | null
+          // Use pre-fetched phone number — no DB query needed
+          const parentPhone = phoneByParent.get(setting.parent_id) ?? null
 
           if (parentPhone) {
             const waMessage = `📊 ${title}\n\n${fullBody}\n\n` + `— EduSync LMS`

@@ -7,6 +7,7 @@
 // ==========================================================================
 
 import { supabase } from '@/services/supabase/client'
+import { messageRateLimiter } from '@/utils/rateLimiter'
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -107,6 +108,7 @@ export async function getMessages(threadId: string): Promise<ThreadMessage[]> {
        sender:sender_id ( full_name, avatar_url )`
     )
     .eq('thread_id', threadId)
+    .limit(100)
     .order('created_at', { ascending: true })
 
   if (error) {
@@ -139,6 +141,12 @@ export async function getMessages(threadId: string): Promise<ThreadMessage[]> {
  * Trigger DB otomatis update last_message_at dan unread_count.
  */
 export async function sendMessage(threadId: string, content: string): Promise<ThreadMessage> {
+  const rateLimitResult = messageRateLimiter.check(threadId)
+  if (!rateLimitResult.allowed) {
+    const waitSeconds = Math.ceil((rateLimitResult.retryAfterMs ?? 60000) / 1000)
+    throw new Error(`Terlalu banyak pesan. Coba lagi dalam ${waitSeconds} detik.`)
+  }
+
   const { data, error } = await supabase
     .from('parent_teacher_messages')
     .insert({

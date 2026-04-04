@@ -15,6 +15,7 @@ import {
   QuizModule,
   StudentAttendance,
   StudentClassPage,
+  SurveyRespondPage,
 } from '../lazyPages'
 import { S } from './utils'
 
@@ -136,6 +137,14 @@ export function StudentRoutes() {
         element={
           <S feature="Peer Review">
             <PeerReviews />
+          </S>
+        }
+      />
+      <Route
+        path="survey/:surveyId"
+        element={
+          <S feature="Isi Survei">
+            <SurveyRespondPage />
           </S>
         }
       />

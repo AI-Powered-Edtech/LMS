@@ -7,11 +7,12 @@ import {
   History,
   Loader2,
   MoreVertical,
-  Save,
   Send,
   Settings,
+  Shield,
   Users,
   WifiOff,
+  XCircle,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
@@ -24,12 +25,18 @@ import { useBuilder } from '@/contexts/BuilderContext'
 import { CourseSettingsModal } from '@/features/courses/components/CourseSettingsModal'
 import { CourseVersionHistoryDrawer } from '@/features/courses/components/CourseVersionHistoryDrawer'
 import { SaveTemplateModal } from '@/features/courses/components/SaveTemplateModal'
+import { useCourseReadiness } from '@/features/courses/hooks/useCourseReadiness'
 import { cn } from '@/utils/cn'
 import { translateCourseStatus } from '@/utils/statusTranslations'
 
 import { PresenceAvatars } from './PresenceAvatars'
 
-export function BuilderTopBar() {
+interface BuilderTopBarProps {
+  releasePanelOpen?: boolean
+  onToggleReleasePanel?: () => void
+}
+
+export function BuilderTopBar({ releasePanelOpen, onToggleReleasePanel }: BuilderTopBarProps) {
   const { state, actions, mobile, presence, offline } = useBuilder()
   const { role } = useAuth()
   const navigate = useNavigate()
@@ -40,6 +47,15 @@ export function BuilderTopBar() {
   const [isSaveTemplateOpen, setIsSaveTemplateOpen] = useState(false)
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [pendingNavAction, setPendingNavAction] = useState<(() => void) | null>(null)
+
+  // Compute readiness to show blocker badge on Rilis button
+  const readiness = useCourseReadiness({
+    modules: state.modules,
+    courseTitle: state.courseTitle,
+    courseDescription: state.courseDescription,
+    courseStatus: state.courseStatus,
+    role: role as 'student' | 'teacher' | 'admin' | 'parent' | 'principal' | null,
+  })
 
   const statusConfig = {
     idle: { icon: null, text: '', color: '' },
@@ -73,8 +89,10 @@ export function BuilderTopBar() {
     navigate(courseListPath)
   }
 
+  const blockerCount = readiness.blockers.length
+
   return (
-    <div className="h-20 bg-white/70 border-b border-slate-200/60 flex items-center justify-between px-8 shrink-0 sticky top-0 z-40 backdrop-blur-xl">
+    <div className="h-20 bg-white/70 border-b border-slate-200/60 flex items-center justify-between px-8 shrink-0 sticky top-0 z-40 backdrop-blur-xl dark:bg-slate-900/70 dark:border-slate-800/60">
       {/* Left: Back + Title */}
       <div className="flex items-center gap-6 min-w-0">
         <button
@@ -86,33 +104,37 @@ export function BuilderTopBar() {
             }
             navigate(-1)
           }}
-          className="p-2.5 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-100 rounded-xl transition-all text-slate-500 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+          className="p-2.5 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm border border-transparent hover:border-slate-100 dark:hover:border-slate-700 rounded-xl transition-all text-slate-500 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
           title="Kembali"
           aria-label="Kembali"
         >
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
         </button>
 
-        <div className="h-10 w-[1px] bg-slate-200/50" />
+        <div className="h-10 w-[1px] bg-slate-200/50 dark:bg-slate-700/50" />
 
         <div className="min-w-0 flex flex-col justify-center">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-black text-slate-800 tracking-tight truncate">
+            <h1 className="text-xl font-black text-slate-800 dark:text-white tracking-tight truncate">
               {state.courseTitle || 'Memuat Kursus...'}
             </h1>
             <div
               className={cn(
                 'px-3 py-1 text-[10px] font-black uppercase tracking-[0.1em] rounded-full shadow-sm',
                 state.courseStatus === 'published'
-                  ? 'bg-emerald-500 text-white shadow-emerald-100'
-                  : 'bg-amber-400 text-amber-900 shadow-amber-100'
+                  ? 'bg-emerald-500 text-white shadow-emerald-100 dark:shadow-emerald-900/30'
+                  : state.courseStatus === 'in_review'
+                    ? 'bg-blue-500 text-white shadow-blue-100 dark:shadow-blue-900/30'
+                    : state.courseStatus === 'approved'
+                      ? 'bg-teal-500 text-white shadow-teal-100 dark:shadow-teal-900/30'
+                      : 'bg-amber-400 text-amber-900 shadow-amber-100 dark:shadow-amber-900/30'
               )}
             >
               {translateCourseStatus(state.courseStatus)}
             </div>
           </div>
           {state.courseDescription && (
-            <p className="text-xs font-medium text-slate-400 truncate mt-0.5 tracking-wide">
+            <p className="text-xs font-medium text-slate-400 dark:text-slate-500 truncate mt-0.5 tracking-wide">
               {state.courseDescription}
             </p>
           )}
@@ -120,7 +142,7 @@ export function BuilderTopBar() {
       </div>
 
       {/* Right: Status + Actions */}
-      <div className="flex items-center gap-2 md:gap-4">
+      <div className="flex items-center gap-2 md:gap-3">
         {/* Presence Avatars */}
         {!mobile.isMobile && <PresenceAvatars others={presence.othersArray} />}
 
@@ -169,6 +191,15 @@ export function BuilderTopBar() {
                 >
                   <button
                     onClick={() => {
+                      onToggleReleasePanel?.()
+                      setIsMobileMenuOpen(false)
+                    }}
+                    className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3"
+                  >
+                    <Shield className="w-4 h-4 text-indigo-500" /> Panel Rilis
+                  </button>
+                  <button
+                    onClick={() => {
                       setIsSettingsOpen(true)
                       setIsMobileMenuOpen(false)
                     }}
@@ -204,6 +235,18 @@ export function BuilderTopBar() {
                     <Users className="w-4 h-4 text-slate-500" /> Bagikan
                   </button>
                   <div className="h-px bg-slate-100 dark:bg-slate-700 my-1" />
+                  {/* Quick submit for review on mobile */}
+                  {state.courseStatus === 'draft' && (
+                    <button
+                      onClick={() => {
+                        actions.submitForReview()
+                        setIsMobileMenuOpen(false)
+                      }}
+                      className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3 text-blue-600 dark:text-blue-400"
+                    >
+                      <Send className="w-4 h-4" /> Ajukan Review
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false)
@@ -270,40 +313,36 @@ export function BuilderTopBar() {
           </>
         )}
 
-        {/* Primary Action Buttons (Always visible or adapted) */}
-        {!mobile.isMobile && state.courseStatus === 'draft' && (
+        {/* Release Panel Toggle — primary action */}
+        {!mobile.isMobile && (
           <button
-            onClick={() => actions.submitForReview()}
-            className="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-100 dark:shadow-blue-900/30 hover:shadow-blue-200 dark:hover:shadow-blue-900/50 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 group"
-            aria-label="Ajukan review"
+            onClick={onToggleReleasePanel}
+            disabled={!state.courseId}
+            className={cn(
+              'relative px-5 py-2.5 text-sm font-black rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed',
+              releasePanelOpen
+                ? 'bg-indigo-600 text-white shadow-indigo-100 dark:shadow-indigo-900/30'
+                : 'bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-md hover:-translate-y-0.5'
+            )}
+            aria-label="Panel Rilis"
+            aria-pressed={releasePanelOpen}
           >
-            <Send className="w-4 h-4" />
-            Ajukan Review
+            {releasePanelOpen ? <XCircle className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
+            Rilis
+            {/* Blocker badge */}
+            {blockerCount > 0 && !releasePanelOpen && (
+              <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center px-1 shadow-sm">
+                {blockerCount}
+              </span>
+            )}
           </button>
         )}
 
-        {/* Publish/Draft Toggle Button */}
-        {state.courseStatus === 'published' ? (
-          <button
-            onClick={() => actions.draftCourse()}
-            className="px-5 py-2.5 text-sm font-bold text-amber-600 bg-white border border-amber-200/60 hover:bg-amber-50 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm"
-          >
-            BATALKAN PUBLIKASI
-          </button>
-        ) : (
-          <button
-            onClick={() => actions.publishCourse()}
-            className="px-6 py-2.5 text-sm font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100 hover:shadow-indigo-200 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 group"
-          >
-            <Save className="w-4 h-4 group-hover:scale-110 transition-transform" />
-            Publikasi
-          </button>
-        )}
-
+        {/* Share button */}
         <button
           onClick={() => setIsAssignModalOpen(true)}
           disabled={!state.courseId}
-          className="px-5 py-2.5 text-sm font-black text-white bg-slate-900 hover:bg-black shadow-xl shadow-slate-200 hover:shadow-slate-300 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-5 py-2.5 text-sm font-black text-white bg-slate-900 dark:bg-slate-700 hover:bg-black dark:hover:bg-slate-600 shadow-xl shadow-slate-200 dark:shadow-slate-900/30 hover:shadow-slate-300 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Users className="w-4 h-4" />
           Bagikan
