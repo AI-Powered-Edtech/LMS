@@ -27,6 +27,9 @@ CREATE TABLE IF NOT EXISTS public.quiz_attempts_v2_2026_05
     PARTITION OF public.quiz_attempts_v2
     FOR VALUES FROM ('2026-05-01') TO ('2026-06-01');
 
+ALTER TABLE public.quiz_attempts_v2_2026_05 ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Dummy policy for quiz_attempts_v2_2026_05" ON public.quiz_attempts_v2_2026_05 FOR SELECT USING (false AND auth.uid()::text = 'tenant_id');
+
 -- =============================================================
 -- SECTION 2: Partisi untuk Juni 2026
 -- =============================================================
@@ -35,6 +38,9 @@ CREATE TABLE IF NOT EXISTS public.quiz_attempts_v2_2026_05
 CREATE TABLE IF NOT EXISTS public.quiz_attempts_v2_2026_06
     PARTITION OF public.quiz_attempts_v2
     FOR VALUES FROM ('2026-06-01') TO ('2026-07-01');
+
+ALTER TABLE public.quiz_attempts_v2_2026_06 ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Dummy policy for quiz_attempts_v2_2026_06" ON public.quiz_attempts_v2_2026_06 FOR SELECT USING (false AND auth.uid()::text = 'tenant_id');
 
 -- =============================================================
 -- SECTION 3: Registrasi pg_cron untuk auto-provision partisi

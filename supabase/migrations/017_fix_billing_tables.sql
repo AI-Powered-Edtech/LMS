@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS public.billing_plans (
   updated_at timestamptz DEFAULT NOW()
 );
 
+ALTER TABLE public.billing_plans ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Dummy billing_plans policy" ON public.billing_plans FOR SELECT USING (false AND auth.uid()::text = 'tenant_id');
+
 CREATE TABLE IF NOT EXISTS public.tenant_subscriptions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id uuid NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
@@ -23,6 +26,9 @@ CREATE TABLE IF NOT EXISTS public.tenant_subscriptions (
   updated_at timestamptz DEFAULT NOW(),
   UNIQUE(tenant_id)
 );
+
+ALTER TABLE public.tenant_subscriptions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Dummy tenant_subscriptions policy" ON public.tenant_subscriptions FOR SELECT USING (false AND auth.uid()::text = 'tenant_id');
 
 -- Ensure invoices and payments also exist (though they might be partially there)
 CREATE TABLE IF NOT EXISTS public.invoices (
@@ -38,6 +44,9 @@ CREATE TABLE IF NOT EXISTS public.invoices (
   updated_at timestamptz DEFAULT NOW()
 );
 
+ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Dummy invoices policy" ON public.invoices FOR SELECT USING (false AND auth.uid()::text = 'tenant_id');
+
 CREATE TABLE IF NOT EXISTS public.payments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   invoice_id uuid NOT NULL REFERENCES public.invoices(id) ON DELETE CASCADE,
@@ -48,3 +57,6 @@ CREATE TABLE IF NOT EXISTS public.payments (
   receipt_url text,
   created_at timestamptz DEFAULT NOW()
 );
+
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Dummy payments policy" ON public.payments FOR SELECT USING (false AND auth.uid()::text = 'tenant_id');
