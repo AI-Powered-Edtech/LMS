@@ -16,7 +16,9 @@ describe('getOptimizedImageUrl', () => {
     const originalUrl = 'https://abc.supabase.co/storage/v1/object/public/bucket/image.png'
     const optimizedUrl = getOptimizedImageUrl(originalUrl)
 
-    expect(optimizedUrl).toBe('https://abc.supabase.co/storage/v1/render/image/public/bucket/image.png?resize=cover&quality=80&format=webp')
+    expect(optimizedUrl).toBe(
+      'https://abc.supabase.co/storage/v1/render/image/public/bucket/image.png?resize=cover&quality=80&format=webp'
+    )
   })
 
   it('applies custom width, height, resize, and quality parameters', () => {
@@ -25,18 +27,22 @@ describe('getOptimizedImageUrl', () => {
       width: 100,
       height: 200,
       resize: 'contain',
-      quality: 90
+      quality: 90,
     })
 
-    expect(optimizedUrl).toBe('https://abc.supabase.co/storage/v1/render/image/public/bucket/image.png?width=100&height=200&resize=contain&quality=90&format=webp')
+    expect(optimizedUrl).toBe(
+      'https://abc.supabase.co/storage/v1/render/image/public/bucket/image.png?width=100&height=200&resize=contain&quality=90&format=webp'
+    )
   })
 
   it('skips format parameter when format is "origin"', () => {
     const originalUrl = 'https://abc.supabase.co/storage/v1/object/public/bucket/image.png'
     const optimizedUrl = getOptimizedImageUrl(originalUrl, {
-      format: 'origin'
+      format: 'origin',
     })
 
-    expect(optimizedUrl).toBe('https://abc.supabase.co/storage/v1/render/image/public/bucket/image.png?resize=cover&quality=80')
+    expect(optimizedUrl).toBe(
+      'https://abc.supabase.co/storage/v1/render/image/public/bucket/image.png?resize=cover&quality=80'
+    )
   })
 })
