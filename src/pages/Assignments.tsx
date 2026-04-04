@@ -23,6 +23,7 @@ import { useGradebook } from '@/features/gradebook/hooks/useGradebookQueries'
 import { useSendNotification } from '@/features/notifications'
 import { useDebounce } from '@/hooks/useDebounce'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { sanitizeUrl } from '@/utils/sanitize'
 import { translateLessonType } from '@/utils/statusTranslations'
 
 export function Assignments() {
@@ -289,7 +290,7 @@ export function Assignments() {
                       {activeAssignment.attachments.map((att) => (
                         <a
                           key={att.id}
-                          href={att.url}
+                          href={sanitizeUrl(att.url)}
                           className="flex items-center gap-3 p-3 pr-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-blue-300 dark:hover:border-blue-600 transition-colors group"
                         >
                           <div className="w-10 h-10 bg-white dark:bg-slate-700 rounded-lg flex items-center justify-center text-red-500 shadow-sm">
