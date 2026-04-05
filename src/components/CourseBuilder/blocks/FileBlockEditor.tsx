@@ -179,14 +179,14 @@ export function FileBlockEditor({ blockId }: FileBlockEditorProps) {
     setIsDragOver(false)
     const file = e.dataTransfer.files[0]
     if (file) {
-      handleFile(file)
+      void handleFile(file)
     }
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      handleFile(file)
+      void handleFile(file)
     }
   }
 

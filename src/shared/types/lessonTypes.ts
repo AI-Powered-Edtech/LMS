@@ -8,4 +8,5 @@ export interface DomainLesson {
   durationMinutes: number | null
   passingScore: number | null
   tenantId: string
+  is_remedial?: boolean
 }

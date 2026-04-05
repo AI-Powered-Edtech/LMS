@@ -10,7 +10,7 @@
 // - Input pesan dengan kirim button
 // ==========================================================================
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
@@ -19,7 +19,8 @@ import { supabase } from '@/services/supabase/client'
 import { cn } from '@/utils/cn'
 
 import type { MessageThread as MessageThreadType, ThreadMessage } from '../api/messageApi'
-import { getMessages, getThreads, markThreadRead, sendMessage } from '../api/messageApi'
+import { markThreadRead, sendMessage } from '../api/messageApi'
+import { useParentThreads, useThreadMessages } from '../queries/useParentMessages'
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
@@ -82,6 +83,8 @@ function MessageBubble({ message, isMine }: { message: ThreadMessage; isMine: bo
               src={message.sender_avatar}
               alt={message.sender_name}
               className="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
           ) : (
             getInitials(message.sender_name ?? 'G')
@@ -165,20 +168,10 @@ export function MessageThread() {
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   // ── Queries ────────────────────────────────────────────────
-  const { data: messages, isLoading: messagesLoading } = useQuery({
-    queryKey: ['parent', 'messages', threadId ?? ''],
-    queryFn: () => getMessages(threadId!),
-    enabled: !!threadId,
-    refetchInterval: false,
-  })
+  const { data: messages, isLoading: messagesLoading } = useThreadMessages(threadId ?? undefined)
 
   // Fetch thread info (untuk header)
-  const { data: threads } = useQuery({
-    queryKey: ['parent', 'threads', user?.id ?? ''],
-    queryFn: () => getThreads(user!.id),
-    enabled: !!user?.id,
-  })
-
+  const { data: threads } = useParentThreads()
   const currentThread: MessageThreadType | undefined = threads?.find((t) => t.id === threadId)
 
   // ── Mark read saat buka thread ─────────────────────────────

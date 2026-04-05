@@ -117,6 +117,8 @@ export function HotspotEditor({ data, onChange }: HotspotEditorProps) {
               alt="Hotspot preview"
               className="w-full h-auto block pointer-events-none"
               draggable={false}
+              loading="lazy"
+              decoding="async"
             />
 
             {regions.map((region) => (

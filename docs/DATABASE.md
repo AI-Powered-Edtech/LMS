@@ -197,6 +197,34 @@ Migration: `20260505000001_ai_content_generator.sql` (initial), `20260506000001_
 
 ---
 
+### New in Phase 39B (Semester Management)
+
+| Tabel / Perubahan | Detail                                                                                             | Added     |
+| ----------------- | -------------------------------------------------------------------------------------------------- | --------- |
+| `semesters`       | Semester periods per tenant: name, academic year, start/end dates, status (active/closed/archived) | Phase 39B |
+
+### `semesters`
+
+Menyimpan data semester akademik per tenant. Digunakan untuk pengelompokan kursus, promosi siswa, dan pembuatan rapor.
+
+| Kolom           | Tipe          | Keterangan                                                   |
+| --------------- | ------------- | ------------------------------------------------------------ |
+| `id`            | uuid PK       | Auto-generated                                               |
+| `tenant_id`     | uuid NOT NULL | FK → tenants.id, auto-set via `auto_set_tenant_id()` trigger |
+| `name`          | text NOT NULL | Nama semester (misal: "Semester 1 2025/2026")                |
+| `academic_year` | text NOT NULL | Tahun ajaran (misal: "2025/2026")                            |
+| `start_date`    | date NOT NULL | Tanggal mulai semester                                       |
+| `end_date`      | date NOT NULL | Tanggal selesai semester                                     |
+| `status`        | text NOT NULL | `'active'` / `'closed'` / `'archived'`                       |
+| `created_by`    | uuid NOT NULL | FK → auth.users.id                                           |
+| `created_at`    | timestamptz   | Waktu pembuatan                                              |
+| `updated_at`    | timestamptz   | Waktu update terakhir                                        |
+
+RLS: SELECT/INSERT/UPDATE/DELETE scoped ke `tenant_id = get_my_tenant_id()`. Hanya admin/principal yang dapat membuat dan menutup semester.
+Migration: `20260507000001_semester_management.sql`
+
+---
+
 ## RPC Reference
 
 ### New in Phase 26–37
@@ -217,6 +245,14 @@ Migration: `20260505000001_ai_content_generator.sql` (initial), `20260506000001_
 | `get_leaderboard_v2(p_course_id, p_sort_by, p_period, p_limit)`                   | Sortable/filterable leaderboard (xp\|streak, all_time\|weekly\|monthly) | Phase 37B |
 | `get_student_xp_profile(p_user_id)`                                               | Full XP profile: total_xp, level, progress, streak, recent_xp JSONB     | Phase 37B |
 | `process_xp_awards()`                                                             | Cron batch: award XP for lessons/quizzes/assignments since watermark    | Phase 37B |
+
+### New in Phase 39B
+
+| RPC                                                                            | Purpose                                                                                 | Added     |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- | --------- |
+| `clone_course_to_semester(p_course_id, p_target_semester_id)`                  | Kloning kursus (modul, pelajaran, kuis) ke semester target; returns new course_id       | Phase 39B |
+| `promote_students_to_next_class(p_semester_id, p_class_id, p_target_class_id)` | Bulk promosi siswa yang lulus ke kelas berikutnya; returns count promoted               | Phase 39B |
+| `generate_semester_report_card(p_semester_id, p_student_id)`                   | Generate rapor digital per siswa: nilai per mata pelajaran, kehadiran, XP, catatan guru | Phase 39B |
 
 ## Important Column Gotchas
 

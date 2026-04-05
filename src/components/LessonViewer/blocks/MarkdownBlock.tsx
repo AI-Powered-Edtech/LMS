@@ -16,7 +16,7 @@ interface MarkdownBlockProps {
 export function MarkdownBlock({ content, className }: MarkdownBlockProps) {
   // Lazy-load KaTeX CSS for math rendering
   useEffect(() => {
-    import('katex/dist/katex.min.css')
+    void import('katex/dist/katex.min.css')
   }, [])
 
   if (!content?.trim()) {

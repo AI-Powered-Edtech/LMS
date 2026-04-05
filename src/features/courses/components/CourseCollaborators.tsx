@@ -3,10 +3,14 @@ import { Plus, Search, Shield, Trash2, User } from 'lucide-react'
 import { useState } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
+import {
+  type Collaborator,
+  collaboratorService,
+} from '@/features/course-builder/api/collaboratorService'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useToast } from '@/hooks/useToast'
 
-import { type Collaborator, collaboratorService } from '../api/builder/collaboratorService'
+import { courseKeys } from '../queries/courseKeys'
 
 export function CourseCollaborators({ courseId }: { courseId: string }) {
   const { tenantId } = useAuth()
@@ -17,13 +21,13 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
   const [selectedRole, setSelectedRole] = useState<Collaborator['role']>('reviewer')
 
   const { data: collaborators, isLoading } = useQuery({
-    queryKey: ['course-collaborators', courseId],
+    queryKey: courseKeys.collaborators(tenantId!, courseId),
     queryFn: () => collaboratorService.fetchCollaborators(courseId, tenantId!),
     enabled: !!courseId && !!tenantId,
   })
 
   const { data: searchResults } = useQuery({
-    queryKey: ['teachers-search', debouncedSearch],
+    queryKey: ['teachers-search', tenantId, debouncedSearch],
     queryFn: () => collaboratorService.searchUsers(debouncedSearch, tenantId!),
     enabled: !!debouncedSearch && !!tenantId,
   })
@@ -32,7 +36,7 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
     mutationFn: (userId: string) =>
       collaboratorService.addCollaborator(courseId, userId, selectedRole, tenantId!),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course-collaborators', courseId] })
+      queryClient.invalidateQueries({ queryKey: courseKeys.collaborators(tenantId!, courseId) })
       addToast({ type: 'success', message: 'Kolaborator ditambahkan' })
       setSearch('')
     },
@@ -44,7 +48,7 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
   const removeCollabMut = useMutation({
     mutationFn: (id: string) => collaboratorService.removeCollaborator(id, tenantId!),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course-collaborators', courseId] })
+      queryClient.invalidateQueries({ queryKey: courseKeys.collaborators(tenantId!, courseId) })
       addToast({ type: 'success', message: 'Kolaborator dihapus' })
     },
   })

@@ -178,6 +178,20 @@ export const StruggleDashboard = withErrorBoundary(
   lazy(() => import('../pages/StruggleDashboard').then((m) => ({ default: m.StruggleDashboard }))),
   'Deteksi Kesulitan Belajar'
 )
+export const AdaptivePathsPage = withErrorBoundary(
+  lazy(() => import('../pages/AdaptivePaths').then((m) => ({ default: m.AdaptivePaths }))),
+  'Jalur Adaptif'
+)
+export const PlagiarismDashboard = withErrorBoundary(
+  lazy(() =>
+    import('../pages/PlagiarismDashboard').then((m) => ({ default: m.PlagiarismDashboard }))
+  ),
+  'Laporan Plagiarisme'
+)
+export const LtiManagement = withErrorBoundary(
+  lazy(() => import('../pages/admin/LtiManagement').then((m) => ({ default: m.LtiManagement }))),
+  'Pengaturan LTI'
+)
 
 // ============================================================
 // Shared pages (all roles)
@@ -299,7 +313,13 @@ export const FeatureFlagsPage = withErrorBoundary(
   lazy(() => import('../pages/admin/FeatureFlags')),
   'Pengaturan Fitur'
 )
+export const SemesterPage = withErrorBoundary(
+  lazy(() => import('../pages/admin/SemesterPage')),
+  'Manajemen Semester'
+)
 
+// ============================================================
+// Parent pages
 // ============================================================
 // Parent pages
 // ============================================================

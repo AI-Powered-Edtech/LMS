@@ -1,91 +1,93 @@
-# Course — Feature Module
+# courses — Feature Module
 
-Pembuatan dan pengelolaan kursus dengan modul dan materi pembelajaran
+Pengelolaan katalog kursus, rilis, kolaborator, versi, dan template. Fitur ini bertanggung jawab atas **course management** (list, detail, settings, governance) saja.
+
+> **Catatan:** Fitur **builder/editor** kursus telah dipindahkan ke modul terpisah di [`src/features/course-builder/`](../course-builder/README.md).
 
 ## Arsitektur
 
 ```
 src/features/courses/
-├── api/           # Supabase service layer
-├── queries/       # React Query hooks & query keys
-├── hooks/         # Custom React hooks
-├── types/         # TypeScript interfaces
-├── components/    # React components (dark mode + skeleton)
-└── __tests__/     # Unit tests (vitest)
+├── api/
+│   ├── courseService.ts        # Supabase CRUD kursus (list, detail, create, update)
+│   ├── templateService.ts      # Import/export content template
+│   └── versionService.ts       # Version history, snapshot, restore, diff
+├── queries/
+│   ├── courseKeys.ts           # React Query key factory (tenant-scoped)
+│   ├── courseQueries.ts        # useCourses, useInfiniteCoursesQuery
+│   ├── useCourseEnrollmentCount.ts
+│   ├── useCourseVersions.ts    # useCourseVersions, useSaveVersion, useRestoreVersion
+│   └── useTemplates.ts
+├── hooks/
+│   ├── useCourse.ts
+│   ├── useCourseReadiness.ts   # Readiness engine: score, blockers, warnings, actions
+│   └── useCourseSettings.ts    # React Query hook untuk CourseSettingsModal
+├── types/
+│   └── index.ts                # Course, CourseInsert, CourseUpdate, CourseStatus
+├── components/
+│   ├── CourseCollaborators.tsx
+│   ├── CourseReleasePanel.tsx
+│   ├── CourseSettingsModal.tsx
+│   ├── CourseVersionHistoryDrawer.tsx
+│   ├── InteractiveVideoEditor.tsx
+│   ├── MobileCourseBuilderNav.tsx
+│   ├── SaveTemplateModal.tsx
+│   └── TemplateModal.tsx
+├── services/
+│   └── videoCaptionService.ts
+└── __tests__/
+    ├── courseService.test.ts
+    ├── collaboratorService.test.ts
+    ├── useCourseReadiness.test.ts
+    └── versionService.test.ts
 ```
 
-## File yang Ada
+## Query Keys
 
-```
-│   __tests__/courseBuilderService.test.ts
-│   __tests__/courseService.test.ts
-│   api/builder/blockService.ts
-│   api/builder/courseService.ts
-│   api/builder/lessonService.ts
-│   api/builder/moduleService.ts
-│   api/courseBuilderService.ts
-│   api/courseService.ts
-│   components/CourseCard.tsx
-│   components/CourseDetailView.tsx
-│   components/CourseEmptyState.tsx
-│   components/CourseFilterBar.tsx
-│   components/CourseForm.tsx
-│   components/CourseModal.tsx
-│   components/CoursePageHeader.tsx
-│   components/CourseSkeleton.tsx
-│   components/CourseStats.tsx
-│   components/CourseTable.tsx
-│   hooks/useCourse.ts
-│   index.ts
-│   queries/courseKeys.ts
-│   queries/courseQueries.ts
-│   types/index.ts
-```
+Semua query key di modul ini ter-scope ke `tenantId` via `courseKeys`:
 
-## Komponen Utama
+| Key                                              | Factory                             |
+| ------------------------------------------------ | ----------------------------------- |
+| `courseKeys.all(tenantId)`                       | Base scope semua course queries     |
+| `courseKeys.detail(tenantId, courseId)`          | Detail satu course                  |
+| `courseKeys.collaborators(tenantId, courseId)`   | Daftar kolaborator                  |
+| `courseKeys.versions(tenantId, courseId)`        | Version history                     |
+| `courseKeys.builder(tenantId, courseId)`         | Builder structure (modules+lessons) |
+| `courseKeys.enrollmentCount(tenantId, courseId)` | Jumlah kelas yang di-assign         |
+| `courseKeys.activity(tenantId, courseId)`        | Activity feed                       |
+| `courseKeys.infinite(tenantId, search?)`         | Infinite list (CourseBrowser)       |
 
-- **CourseSkeleton** — Loading skeleton untuk halaman Kursus
-- **CourseCard** — Kartu untuk menampilkan item Kursus
-- **CourseTable** — Tabel data dengan sorting dan pagination
-- **CourseStats** — Kartu statistik dan metrik
-- **CoursePageHeader** — Header halaman dengan judul dan aksi
-- **CourseEmptyState** — Tampilan saat tidak ada data
-- **CourseFilterBar** — Bar pencarian dan filter
-- **CourseModal** — Dialog modal untuk create/edit
-- **CourseForm** — Form input data Kursus
-- **CourseDetailView** — Detail view informasi lengkap
+## Readiness Engine
 
-## API / Service
+`useCourseReadiness()` menerima state builder dan mengembalikan:
 
-| Fungsi                           | Deskripsi                          |
-| -------------------------------- | ---------------------------------- |
-| `courseService.getAll(tenantId)` | Ambil semua data Kursus per tenant |
-| `courseService.upsert(payload)`  | Buat atau update data Kursus       |
+- `readinessScore` (0–100)
+- `blockers` — hal yang mencegah publish
+- `warnings` — hal yang disarankan sebelum publish
+- `infos` — informasi kontekstual
+- `availableActions` — aksi yang tersedia berdasarkan role × status
 
-## Database
+### Scoring
 
-- `courses` — Tabel utama Kursus
-
-## Penggunaan
-
-```tsx
-import { useCourseData } from '@/src/features/courses'
-
-function MyComponent() {
-  const { data, isLoading } = useCourseData(tenantId)
-  if (isLoading) return <CourseSkeleton />
-  return <CourseTable data={data} columns={[...]} />
-}
-```
+| Kriteria                  | Poin          |
+| ------------------------- | ------------- |
+| Has modules               | +30           |
+| Has lessons               | +30           |
+| Has published lessons     | +25           |
+| Has description           | +10           |
+| No empty modules          | +5            |
+| Has thumbnail             | +5            |
+| Has lesson duration       | +5            |
+| **Total (capped at 100)** | 110 max → 100 |
 
 ## Testing
 
 ```bash
-npx vitest run src/features/courses
+pnpm vitest run src/features/courses
 ```
 
 ## Dokumentasi Terkait
 
 - [DATABASE.md](../../docs/DATABASE.md)
 - [ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
-- [SECURITY.md](../../docs/SECURITY.md)
+- [course-builder README](../course-builder/README.md)

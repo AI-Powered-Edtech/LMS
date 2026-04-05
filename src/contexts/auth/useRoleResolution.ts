@@ -273,7 +273,9 @@ export function useRoleResolution(user: User | null): UseRoleResolutionResult {
         .range(0, PAGE_SIZE - 1)
 
       if (rolesErr) {
-        console.error('Failed to fetch user roles:', rolesErr)
+        if (import.meta.env.DEV) {
+          console.error('Failed to fetch user roles:', rolesErr)
+        }
       }
 
       if (rolesData) {

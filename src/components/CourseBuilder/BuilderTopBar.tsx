@@ -234,7 +234,7 @@ export function BuilderTopBar({ releasePanelOpen, onToggleReleasePanel }: Builde
                   {state.courseStatus === 'draft' && (
                     <button
                       onClick={() => {
-                        actions.submitForReview()
+                        void actions.submitForReview()
                         setIsMobileMenuOpen(false)
                       }}
                       className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3 text-blue-600 dark:text-blue-400"

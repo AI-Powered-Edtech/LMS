@@ -32,4 +32,8 @@ export const courseKeys = {
   // Activity feed for a course (course_action_logs)
   activity: (tenantId: string, courseId: string) =>
     [...base.all(tenantId), 'activity', courseId] as const,
+
+  // Enrollment count (course_classes join table)
+  enrollmentCount: (tenantId: string, courseId: string) =>
+    [...base.all(tenantId), 'enrollment-count', courseId] as const,
 }

@@ -1,14 +1,14 @@
 import { LogOut, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { ClassroomSwitcher } from '@/features/classroom/components/ClassroomSwitcher'
 import { ModuleId, useModuleConfig } from '@/hooks/useModuleConfig'
+import { useSignOut } from '@/hooks/useSignOut'
 import { navigationItems } from '@/shared/config/navigation'
 import { cn } from '@/utils/cn'
-import { captureError } from '@/utils/sentry'
 
 interface MobileSidebarProps {
   isOpen: boolean
@@ -17,8 +17,8 @@ interface MobileSidebarProps {
 
 export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   const location = useLocation()
-  const navigate = useNavigate()
-  const { role, signOut } = useAuth()
+  const { role } = useAuth()
+  const handleSignOut = useSignOut()
   const { isModuleEnabled } = useModuleConfig()
 
   // Close sidebar on route change
@@ -124,14 +124,7 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
             {/* Footer */}
             <div className="p-spacing-md border-t border-neutral-200 dark:border-neutral-800">
               <button
-                onClick={async () => {
-                  try {
-                    await signOut()
-                    navigate('/login')
-                  } catch (e) {
-                    captureError(e)
-                  }
-                }}
+                onClick={() => void handleSignOut()}
                 className="w-full flex items-center justify-center gap-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-danger-600 font-semibold py-3 px-4 rounded-lg transition-all text-sm"
               >
                 <LogOut className="w-4 h-4" />

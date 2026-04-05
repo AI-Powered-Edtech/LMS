@@ -34,22 +34,23 @@ const DigestSettings = lazy(() =>
   }))
 )
 
-// Placeholder untuk halaman yang belum diimplementasi
-function ComingSoonPage({ title, icon }: { title: string; icon: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-4 py-16 px-4 text-center">
-      <span className="text-5xl" aria-hidden="true">
-        {icon}
-      </span>
-      <div>
-        <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-2">{title}</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-          Fitur ini sedang disiapkan dan akan segera tersedia.
-        </p>
-      </div>
-    </div>
-  )
-}
+const GradesDetailPage = lazy(() =>
+  import('../../features/parent/components/GradesDetailPage').then((m) => ({
+    default: m.GradesDetailPage,
+  }))
+)
+
+const AttendanceDetailPage = lazy(() =>
+  import('../../features/parent/components/AttendanceDetailPage').then((m) => ({
+    default: m.AttendanceDetailPage,
+  }))
+)
+
+const MonthlyReportPage = lazy(() =>
+  import('../../features/parent/components/MonthlyReportPage').then((m) => ({
+    default: m.MonthlyReportPage,
+  }))
+)
 
 /**
  * All /app/parent/* routes (authenticated, role=parent atau admin).
@@ -77,22 +78,22 @@ export function ParentRoutes() {
         }
       />
 
-      {/* Halaman Nilai — placeholder, akan diimplementasi wave berikutnya */}
+      {/* Halaman Nilai */}
       <Route
         path="nilai"
         element={
           <S feature="Nilai Anak">
-            <ComingSoonPage title="Nilai Lengkap" icon="📊" />
+            <GradesDetailPage />
           </S>
         }
       />
 
-      {/* Halaman Kehadiran — placeholder */}
+      {/* Halaman Kehadiran */}
       <Route
         path="kehadiran"
         element={
           <S feature="Kehadiran Anak">
-            <ComingSoonPage title="Riwayat Kehadiran" icon="📅" />
+            <AttendanceDetailPage />
           </S>
         }
       />
@@ -133,6 +134,16 @@ export function ParentRoutes() {
         element={
           <S feature="Isi Survei">
             <SurveyRespondPage />
+          </S>
+        }
+      />
+
+      {/* Halaman Laporan Bulanan */}
+      <Route
+        path="laporan"
+        element={
+          <S feature="Laporan Bulanan">
+            <MonthlyReportPage />
           </S>
         }
       />

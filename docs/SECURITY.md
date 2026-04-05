@@ -86,12 +86,12 @@ Five additional issues were found and fixed in earlier migrations:
 
 CSP enforcement was upgraded from report-only mode to full enforcement. The CSP header is configured in the deployment layer (Vercel/Netlify) and restricts:
 
-- **script-src**: `'self'` only (no inline scripts, no `eval`)
+- **script-src**: `'self'` + hash whitelist untuk bootstrap inline script di `index.html` (`sha256-x/9hVp5TO5UrwLMwucD8LV0zwMOxpHfL/s387u9JehI=`), tanpa `unsafe-inline`
 - **style-src**: `'self'` plus `'unsafe-inline'` (required by Tailwind's runtime)
 - **connect-src**: `'self'` plus Supabase API endpoints and Sentry DSN
 - **img-src**: `'self'`, `data:`, and Supabase storage bucket domains
 - **frame-src**: `'self'` (SCORM iframes load from same origin via storage)
-- **default-src**: `'none'` (deny by default)
+- **default-src**: `'self'`
 
 Previously CSP was in `Content-Security-Policy-Report-Only` mode. The upgrade to enforcement blocks XSS and data exfiltration vectors.
 

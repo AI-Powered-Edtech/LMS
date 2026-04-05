@@ -186,6 +186,8 @@ function TimelineEventItem({
                 src={event.imageUrl}
                 alt={event.title}
                 className="rounded-lg w-full h-auto max-h-48 object-cover border border-slate-200 dark:border-slate-700 mt-2"
+                loading="lazy"
+                decoding="async"
               />
             )}
           </motion.div>

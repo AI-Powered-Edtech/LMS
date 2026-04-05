@@ -16,19 +16,19 @@ import {
   ToggleLeft,
   ToggleRight,
 } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { EmptyState } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import {
-  administrationService,
-  type TenantModuleConfig,
-} from '@/features/administration/api/administrationService'
-import { featureFlagService } from '@/features/administration/api/featureFlagService'
+  useFeatureFlags,
+  useSaveFeatureFlags,
+  useTenantModules,
+  useToggleTenantModule,
+} from '@/features/administration/queries/featureFlagQueries'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
 import { type FeatureFlag } from '@/utils/featureFlags'
-import { captureError } from '@/utils/sentry'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -58,62 +58,46 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
   const { tenantId } = useAuth()
 
   const [activeTab, setActiveTab] = useState<TabId>(defaultTab)
-
-  // ── Module state ──────────────────────────────────────────────────────────
-  const [modules, setModules] = useState<TenantModuleConfig[]>([])
-  const [modulesLoading, setModulesLoading] = useState(true)
-  const [modulesError, setModulesError] = useState<string | null>(null)
-
-  // ── Feature flags state ───────────────────────────────────────────────────
-  const [flags, setFlags] = useState<FlagDraft[]>([])
-  const [flagsLoading, setFlagsLoading] = useState(false)
-  const [flagsError, setFlagsError] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
 
-  // ── Fetch modules ─────────────────────────────────────────────────────────
-  const fetchModules = useCallback(async () => {
-    setModulesLoading(true)
-    setModulesError(null)
-    try {
-      const data = await administrationService.getTenantModules()
-      setModules(data.length > 0 ? data : administrationService.getDefaultModules())
-    } catch (error) {
-      captureError(error, { context: 'FeatureManagement.fetchModules' })
-      setModulesError('Gagal memuat konfigurasi modul. Menggunakan default.')
-      setModules(administrationService.getDefaultModules())
-    } finally {
-      setModulesLoading(false)
-    }
-  }, [])
+  // ── Module queries ────────────────────────────────────────────────────────
+  const { data: modules = [], isLoading: modulesLoading, error: modulesError } = useTenantModules()
+  const { mutate: toggleModule } = useToggleTenantModule()
 
-  // ── Fetch flags ───────────────────────────────────────────────────────────
-  const fetchFlags = useCallback(async () => {
-    if (!tenantId) return
-    setFlagsLoading(true)
-    setFlagsError(null)
-    try {
-      const data = await featureFlagService.fetchFlags(tenantId)
-      setFlags(data.map((f: FeatureFlag) => ({ ...f, dirty: false })))
-    } catch (error) {
-      captureError(error, { context: 'FeatureManagement.fetchFlags' })
-      setFlagsError('Gagal memuat fitur flags. Coba muat ulang halaman.')
-    } finally {
-      setFlagsLoading(false)
-    }
-  }, [tenantId])
+  // ── Feature flags queries ─────────────────────────────────────────────────
+  const { data: flagsData = [], isLoading: flagsLoading, refetch: refetchFlags } = useFeatureFlags()
+  const { mutate: saveFlags, isPending: saving } = useSaveFeatureFlags()
 
-  // ── Initial load ──────────────────────────────────────────────────────────
+  // Local draft state for flags
+  const [flags, setFlags] = useState<FlagDraft[]>([])
+
+  // Sync server data into local draft state without overwriting unsaved edits.
   useEffect(() => {
-    fetchModules()
-  }, [fetchModules])
+    if (flagsData.length === 0) return
 
-  // Load flags lazily when tab is first opened
-  useEffect(() => {
-    if (activeTab === 'flags' && flags.length === 0 && !flagsLoading) {
-      fetchFlags()
-    }
-  }, [activeTab, flags.length, flagsLoading, fetchFlags])
+    setFlags((prev) => {
+      if (prev.length === 0) {
+        return flagsData.map((f: FeatureFlag) => ({ ...f, dirty: false }))
+      }
+
+      const serverFlagsByName = new Map(flagsData.map((f) => [f.flag_name, f] as const))
+      const merged = flagsData.map((serverFlag) => {
+        const localDraft = prev.find((f) => f.flag_name === serverFlag.flag_name)
+        if (!localDraft) return { ...serverFlag, dirty: false }
+        return localDraft.dirty ? localDraft : { ...serverFlag, dirty: false }
+      })
+
+      // Keep dirty drafts that might disappear from server response
+      // (e.g. transient refetch race) to avoid data loss in UI.
+      for (const localDraft of prev) {
+        if (localDraft.dirty && !serverFlagsByName.has(localDraft.flag_name)) {
+          merged.push(localDraft)
+        }
+      }
+
+      return merged
+    })
+  }, [flagsData])
 
   // ── Module handlers ───────────────────────────────────────────────────────
   const handleToggleModule = async (moduleId: string) => {
@@ -121,21 +105,14 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
     if (!mod) return
     const newEnabled = !mod.isEnabled
 
-    // Optimistic update
-    setModules((prev) =>
-      prev.map((m) => (m.moduleId === moduleId ? { ...m, isEnabled: newEnabled } : m))
+    toggleModule(
+      { moduleId, isEnabled: newEnabled },
+      {
+        onError: () => {
+          addToast({ type: 'error', message: 'Gagal mengubah status modul. Silakan coba lagi.' })
+        },
+      }
     )
-
-    try {
-      await administrationService.toggleTenantModule(moduleId, newEnabled)
-    } catch (error) {
-      captureError(error, { context: 'FeatureManagement.toggleModule' })
-      // Revert on error
-      setModules((prev) =>
-        prev.map((m) => (m.moduleId === moduleId ? { ...m, isEnabled: !newEnabled } : m))
-      )
-      addToast({ type: 'error', message: 'Gagal mengubah status modul. Silakan coba lagi.' })
-    }
   }
 
   // ── Flag handlers ─────────────────────────────────────────────────────────
@@ -155,33 +132,28 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
     )
   }
 
-  const handleSaveFlags = async () => {
+  const handleSaveFlags = () => {
     const dirty = flags.filter((f) => f.dirty)
     if (dirty.length === 0 || !tenantId) return
 
-    setSaving(true)
-    setFlagsError(null)
-    setSaveSuccess(false)
-
-    try {
-      await featureFlagService.saveFlags(
-        tenantId,
-        dirty.map((f) => ({
-          flag_name: f.flag_name,
-          enabled: f.enabled,
-          rollout_percentage: f.rollout_percentage,
-        }))
-      )
-      setFlags((prev) => prev.map((f) => ({ ...f, dirty: false })))
-      setSaveSuccess(true)
-      setTimeout(() => setSaveSuccess(false), 3000)
-      addToast({ type: 'success', message: 'Perubahan fitur berhasil disimpan.' })
-    } catch (error) {
-      captureError(error, { context: 'FeatureManagement.saveFlags' })
-      setFlagsError('Gagal menyimpan perubahan. Coba lagi.')
-    } finally {
-      setSaving(false)
-    }
+    saveFlags(
+      dirty.map((f) => ({
+        flag_name: f.flag_name,
+        enabled: f.enabled,
+        rollout_percentage: f.rollout_percentage,
+      })),
+      {
+        onSuccess: () => {
+          setFlags((prev) => prev.map((f) => ({ ...f, dirty: false })))
+          setSaveSuccess(true)
+          setTimeout(() => setSaveSuccess(false), 3000)
+          addToast({ type: 'success', message: 'Perubahan fitur berhasil disimpan.' })
+        },
+        onError: () => {
+          addToast({ type: 'error', message: 'Gagal menyimpan perubahan. Coba lagi.' })
+        },
+      }
+    )
   }
 
   const hasDirtyFlags = flags.some((f) => f.dirty)
@@ -235,17 +207,22 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
         </button>
       </div>
 
+      {/* Error banner for module fetch failures */}
+      {modulesError && activeTab === 'modules' && (
+        <div className="flex items-start gap-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400">
+          <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <p className="font-semibold">Gagal memuat modul sekolah</p>
+            <p className="text-xs mt-1">
+              Periksa koneksi internet dan pastikan database telah dimigrasi.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ── Tab: Modul Sekolah ─────────────────────────────────────────────── */}
       {activeTab === 'modules' && (
         <div className="bg-neutral-50 dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-sm p-6">
-          {/* Error state */}
-          {modulesError && (
-            <div className="mb-4 p-3 bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-400 rounded-lg border border-warning-200 dark:border-warning-800 text-sm flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              {modulesError}
-            </div>
-          )}
-
           {/* Loading state */}
           {modulesLoading ? (
             <div className="flex items-center justify-center py-12">
@@ -330,7 +307,7 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
             <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
-                onClick={fetchFlags}
+                onClick={() => refetchFlags()}
                 disabled={flagsLoading}
                 aria-label="Muat ulang"
                 className={cn(
@@ -369,14 +346,6 @@ export function FeatureManagement({ defaultTab = 'modules' }: FeatureManagementP
           {saveSuccess && (
             <div className="flex items-center gap-2 px-4 py-3 bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-800 rounded-xl text-sm text-green-700 dark:text-green-300">
               Perubahan berhasil disimpan.
-            </div>
-          )}
-
-          {/* Error banner */}
-          {flagsError && (
-            <div className="flex items-center gap-2 px-4 py-3 bg-danger-50 dark:bg-danger-950/50 border border-danger-200 dark:border-danger-800 rounded-xl text-sm text-danger-700 dark:text-danger-300">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              {flagsError}
             </div>
           )}
 

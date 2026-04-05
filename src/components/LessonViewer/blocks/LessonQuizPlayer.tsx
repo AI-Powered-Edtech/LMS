@@ -140,7 +140,7 @@ export function LessonQuizPlayer({
 
   const handleRetry = useCallback(() => {
     setState({ phase: 'idle' })
-    handleStart()
+    void handleStart()
   }, [handleStart])
 
   // Show completed state if already done

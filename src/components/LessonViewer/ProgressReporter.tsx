@@ -56,7 +56,7 @@ export function ProgressReporter({
   // Uses enabledRef to gate sends without resetting the 5-second timer on every status change.
   useEffect(() => {
     intervalRef.current = setInterval(() => {
-      if (enabledRef.current) sendUpdate()
+      if (enabledRef.current) void sendUpdate()
     }, 5000)
 
     return () => {
@@ -67,7 +67,7 @@ export function ProgressReporter({
   // Handle online and beforeunload events
   useEffect(() => {
     const handleOnline = () => {
-      lessonService.processOfflineQueue(tenantId)
+      void lessonService.processOfflineQueue(tenantId)
     }
 
     // C-6: beforeunload async ops are abandoned by the browser.
@@ -94,7 +94,7 @@ export function ProgressReporter({
           // sessionStorage write failed (private mode, quota exceeded) — ignore
         }
         // Also attempt the async path (may or may not complete)
-        lessonService.queueProgressUpdate(lessonId, tenantId, s, pct, pos)
+        void lessonService.queueProgressUpdate(lessonId, tenantId, s, pct, pos)
       }
     }
 
@@ -115,7 +115,7 @@ export function ProgressReporter({
     return () => {
       if (latestRef.current.progressPercentage > lastSent.current.percentage) {
         // Use captured lessonId (from when the effect was set up), not the current one
-        lessonService.queueProgressUpdate(
+        void lessonService.queueProgressUpdate(
           capturedLessonId,
           tenantId,
           latestRef.current.status,

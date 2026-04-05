@@ -6,6 +6,13 @@ Manajemen tenant, konfigurasi modul sekolah, sinkronisasi data. Digunakan oleh a
 
 Modul ini merupakan bagian dari arsitektur feature-module EduSync LMS, terletak di `src/features/administration/`. Setiap feature module memiliki struktur standar: api/, queries/, hooks/, types/, components/, dan **tests**/.
 
+## Update Stabilitas (2026-04-05)
+
+- `FeatureManagement`: inisialisasi `setFlags` dipindahkan ke `useEffect` untuk menghindari state update di render.
+- `FeatureManagement`: merge data refetch dengan draft lokal kini aman, perubahan `dirty` tidak tertimpa.
+- `BulkImportWizard`: blok render `step === 3` duplikat dihapus, alur step upload/preview divalidasi kembali.
+- `FinanceDashboard`: perbaikan format import `lucide-react` (`Loader2, TrendingUp`) agar konsisten formatter.
+
 ## Domain
 
 **Admin** — Modul ini termasuk dalam domain Admin bersama dengan feature terkait lainnya.

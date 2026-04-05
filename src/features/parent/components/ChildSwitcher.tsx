@@ -63,6 +63,8 @@ export function ChildSwitcher({ children: childList, selectedId, onSelect }: Chi
                   src={child.student_avatar}
                   alt={child.student_name}
                   className="w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
               ) : (
                 getInitials(child.student_name)

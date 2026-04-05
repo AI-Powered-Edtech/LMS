@@ -23,6 +23,7 @@ import {
   type ReadinessItem,
   useCourseReadiness,
 } from '../hooks/useCourseReadiness'
+import { useCourseEnrollmentCount } from '../queries/useCourseEnrollmentCount'
 import type { CourseStatus } from '../types'
 
 // ============================================================
@@ -298,13 +299,7 @@ export function CourseReleasePanel({ onClose }: CourseReleasePanelProps) {
   const { state, actions } = useBuilder()
   const { role } = useAuth()
 
-  /**
-   * assignedClassesCount reflects how many classes this course is assigned to.
-   * When courseId is available this could be fetched via a lightweight query;
-   * for now it defaults to 0 (showing "belum ditugaskan" info item) when the
-   * course has not yet been saved (courseId is null).
-   */
-  const assignedClassesCount = state.courseId != null ? 0 : 0 // TODO: connect to a lightweight query once courseId is available
+  const { data: assignedClassesCount = 0 } = useCourseEnrollmentCount(state.courseId)
 
   const readiness = useCourseReadiness({
     modules: state.modules,
@@ -429,7 +424,7 @@ export function CourseReleasePanel({ onClose }: CourseReleasePanelProps) {
             availableActions={readiness.availableActions}
             canPublish={readiness.canPublish}
             isBusy={isBusy}
-            onSubmitReview={() => actions.submitForReview()}
+            onSubmitReview={() => void actions.submitForReview()}
             onApprove={() => actions.approveCourse()}
             onPublish={() => actions.publishCourse()}
             onUnpublish={() => actions.draftCourse()}

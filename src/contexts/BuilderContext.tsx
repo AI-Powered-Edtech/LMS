@@ -11,7 +11,6 @@ import {
 
 import { useToast } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
-import { syncBuilderToServer } from '@/features/courses/api/builder/builderSyncService'
 import {
   builderReducer,
   type BuilderState,
@@ -20,11 +19,12 @@ import {
   useCourseActions,
   useLessonActions,
   useModuleActions,
-} from '@/features/courses/builder'
-import { ConflictResolutionDialog } from '@/features/courses/builder/ConflictResolutionDialog'
-import type { ConflictDialogState } from '@/features/courses/builder/useBuilderOffline'
-import { useBuilderOffline } from '@/features/courses/builder/useBuilderOffline'
-import { useMobileBuilder } from '@/features/courses/builder/useMobileBuilder'
+} from '@/features/course-builder'
+import { syncBuilderToServer } from '@/features/course-builder/api/builderSyncService'
+import { ConflictResolutionDialog } from '@/features/course-builder/ConflictResolutionDialog'
+import type { ConflictDialogState } from '@/features/course-builder/useBuilderOffline'
+import { useBuilderOffline } from '@/features/course-builder/useBuilderOffline'
+import { useMobileBuilder } from '@/features/course-builder/useMobileBuilder'
 import type { DomainBlock } from '@/shared/types/blockTypes'
 import type { DomainLesson } from '@/shared/types/lessonTypes'
 import { logDevError } from '@/utils/logDevError'
