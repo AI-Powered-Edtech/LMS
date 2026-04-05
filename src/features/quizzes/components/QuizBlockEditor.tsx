@@ -33,10 +33,9 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
           explanation: 'options' in q ? (q.explanation ?? '') : '',
           options:
             'options' in q && Array.isArray(q.options)
-              ? q.options.map((o, idx) => ({
-                  text: typeof o === 'string' ? o : (o as { text: string }).text,
-                  is_correct: idx === (q.answer as number),
-                }))
+              ? (q as { options: Array<{ text: string; is_correct: boolean }> }).options.map(
+                  (o) => ({ text: o.text, is_correct: o.is_correct })
+                )
               : [],
         })),
       ],

@@ -1,10 +1,12 @@
 /**
  * Save AI-generated questions to the question_bank table.
  * Uses questionBankService.createQuestion() via the existing RPC.
+ * Processes in chunks of 3 for bounded concurrency.
  */
 import { questionBankService } from '@/features/question-bank/api/questionBankService'
 
-import type { AssignmentType, GeneratedQuestion, GeneratedQuizQuestion } from '../types'
+import type { AssignmentType, GeneratedQuestion } from '../types'
+import { isQuizQuestion } from '../types'
 
 const BLOOM_TO_DIFFICULTY: Record<string, number> = {
   C1: 1,
@@ -15,10 +17,6 @@ const BLOOM_TO_DIFFICULTY: Record<string, number> = {
   C6: 5,
 }
 
-function isQuizQuestion(q: GeneratedQuestion): q is GeneratedQuizQuestion {
-  return 'options' in q && Array.isArray((q as GeneratedQuizQuestion).options)
-}
-
 export interface SaveToBankResult {
   saved: number
   failed: number
@@ -27,6 +25,7 @@ export interface SaveToBankResult {
 
 /**
  * Save a batch of AI-generated questions to the question_bank.
+ * Processes in bounded chunks of 3 concurrent requests.
  * Returns a result object with counts of saved/failed items.
  */
 export async function saveQuestionsToBank(
@@ -36,36 +35,49 @@ export async function saveQuestionsToBank(
 ): Promise<SaveToBankResult> {
   const result: SaveToBankResult = { saved: 0, failed: 0, errors: [] }
   const difficultyLevel = BLOOM_TO_DIFFICULTY[bloomLevel] ?? 3
+  const CHUNK_SIZE = 3
 
-  for (const q of questions) {
-    try {
-      const questionType =
-        assignmentType === 'quiz' ? 'MCQ' : assignmentType === 'writing' ? 'ESSAY' : 'SHORT_ANSWER'
+  // Build all request payloads up-front
+  const requests = questions.map((q) => {
+    const questionType =
+      assignmentType === 'quiz' ? 'MCQ' : assignmentType === 'writing' ? 'ESSAY' : 'SHORT_ANSWER'
 
-      const options =
-        questionType === 'MCQ' && isQuizQuestion(q)
-          ? q.options.map((optText, i) => ({
-              option_text: optText,
-              is_correct: i === q.answer,
-              order_index: i,
-            }))
-          : []
+    // AIQuizQuestion: options is Array<{text, is_correct}> — each option carries its own correctness
+    const narrowedQ = isQuizQuestion(q) ? q : null
+    const options =
+      questionType === 'MCQ' && narrowedQ
+        ? narrowedQ.options.map((opt, i) => ({
+            option_text: opt.text,
+            is_correct: opt.is_correct,
+            order_index: i,
+          }))
+        : []
 
-      const explanation = isQuizQuestion(q) ? q.explanation : undefined
+    const explanation = narrowedQ ? narrowedQ.explanation : undefined
 
-      await questionBankService.createQuestion({
-        type: questionType as 'MCQ' | 'TRUE_FALSE' | 'MULTIPLE_SELECT' | 'SHORT_ANSWER' | 'ESSAY',
-        text: q.text,
-        explanation,
-        difficulty_level: difficultyLevel,
-        options,
-        tags: [bloomLevel, assignmentType, 'ai-generated'],
-      })
+    return {
+      type: questionType as 'MCQ' | 'TRUE_FALSE' | 'MULTIPLE_SELECT' | 'SHORT_ANSWER' | 'ESSAY',
+      text: q.text,
+      explanation,
+      difficulty_level: difficultyLevel,
+      options,
+      tags: [bloomLevel, assignmentType, 'ai-generated'],
+    }
+  })
 
-      result.saved++
-    } catch (e) {
-      result.failed++
-      result.errors.push(e instanceof Error ? e.message : String(e))
+  // Process in chunks of CHUNK_SIZE for bounded concurrency
+  for (let i = 0; i < requests.length; i += CHUNK_SIZE) {
+    const chunk = requests.slice(i, i + CHUNK_SIZE)
+    const settled = await Promise.allSettled(
+      chunk.map((req) => questionBankService.createQuestion(req))
+    )
+    for (const s of settled) {
+      if (s.status === 'fulfilled') {
+        result.saved++
+      } else {
+        result.failed++
+        result.errors.push(s.reason instanceof Error ? s.reason.message : String(s.reason))
+      }
     }
   }
 

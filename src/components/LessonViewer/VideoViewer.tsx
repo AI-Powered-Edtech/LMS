@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useInteractiveVideoEvents } from '@/features/lessons/hooks/useInteractiveVideoEvents'
 import { QuizViewer } from '@/features/quizzes/components/QuizViewer'
-import { AdaptiveVideoPlayer } from '@/features/video'
+import { AdaptiveVideoPlayer, type CaptionTrack } from '@/features/video'
 import { cn } from '@/utils/cn'
 
 interface Transcript {
@@ -21,6 +21,8 @@ interface VideoViewerProps {
   onProgressUpdate: (percentage: number, position: number) => void
   onCompletionMet: () => void
   onStartViewing: () => void
+  /** WebVTT caption tracks to display on the video */
+  captions?: CaptionTrack[]
 }
 
 /**
@@ -45,6 +47,7 @@ export function VideoViewer({
   onProgressUpdate,
   onCompletionMet,
   onStartViewing,
+  captions,
 }: VideoViewerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [currentTime, setCurrentTime] = useState(0)
@@ -219,6 +222,7 @@ export function VideoViewer({
               controlsList="nodownload"
               aria-label="Video pelajaran"
               className="w-full h-full"
+              captions={captions}
             />
 
             {/* Interactive Event Overlay */}
@@ -357,6 +361,11 @@ export function VideoViewer({
             <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
               <FileText className="w-4 h-4 text-blue-500 dark:text-blue-400" />
               Transkrip Interaktif
+              {captions && captions.length > 0 && (
+                <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-medium">
+                  CC
+                </span>
+              )}
             </h3>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">

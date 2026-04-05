@@ -133,27 +133,39 @@ PostgreSQL on Supabase. 259 migration files (000_baseline.sql through 2026040300
 | `ai_generated_content`        | Hasil generasi AI dari fitur Creator (persistence, RLS multi-tenant)              | Phase 38A |
 | `ai_generation_logs`          | Append-only usage log untuk rate limiting dan analytics (insert via service role) | Phase 38A |
 
+### New in Phase 39A
+
+| Tabel / Perubahan      | Detail                                                                                                | Added     |
+| ---------------------- | ----------------------------------------------------------------------------------------------------- | --------- |
+| `ai_generated_content` | Kolom baru: `source_type` (file/lesson), `lesson_id` (FK), `subject`, `grade_level`, `curriculum_ref` | Phase 39A |
+| `ai_generation_logs`   | Kolom baru: `source_type`, `lesson_id` (FK → lessons)                                                 | Phase 39A |
+
 ### `ai_generated_content`
 
 Menyimpan hasil generasi AI dari fitur Creator. Diinsert oleh edge function `generate-ai-content`.
 
-| Kolom             | Tipe          | Keterangan                               |
-| ----------------- | ------------- | ---------------------------------------- |
-| `id`              | uuid PK       | Auto-generated                           |
-| `tenant_id`       | uuid NOT NULL | FK → tenants.id, auto-set via trigger    |
-| `created_by`      | uuid NOT NULL | FK → auth.users.id                       |
-| `file_name`       | text          | Nama file yang diunggah                  |
-| `file_type`       | text          | MIME type file sumber                    |
-| `assignment_type` | text          | `quiz` / `reading` / `writing`           |
-| `bloom_level`     | text          | C1–C6 (Taksonomi Bloom)                  |
-| `question_count`  | integer       | Jumlah soal yang dihasilkan (1–50)       |
-| `summary`         | text          | Rangkuman materi dari AI                 |
-| `questions`       | jsonb         | Array soal yang dihasilkan               |
-| `used_at`         | timestamptz   | Di-set saat konten ditambahkan ke kursus |
-| `created_at`      | timestamptz   | Waktu generasi                           |
+| Kolom             | Tipe                         | Keterangan                                      |
+| ----------------- | ---------------------------- | ----------------------------------------------- |
+| `id`              | uuid PK                      | Auto-generated                                  |
+| `tenant_id`       | uuid NOT NULL                | FK → tenants.id, auto-set via trigger           |
+| `created_by`      | uuid NOT NULL                | FK → auth.users.id                              |
+| `source_type`     | text NOT NULL DEFAULT 'file' | `'file'` atau `'lesson'` — asal sumber generasi |
+| `lesson_id`       | uuid                         | FK → lessons.id ON DELETE SET NULL (nullable)   |
+| `file_name`       | text                         | Nama file yang diunggah                         |
+| `file_type`       | text                         | MIME type file sumber                           |
+| `assignment_type` | text                         | `quiz` / `reading` / `writing`                  |
+| `bloom_level`     | text                         | C1–C6 (Taksonomi Bloom)                         |
+| `question_count`  | integer                      | Jumlah soal yang dihasilkan (1–50)              |
+| `subject`         | text                         | Mata pelajaran (curriculum alignment), nullable |
+| `grade_level`     | text                         | Kelas target (curriculum alignment), nullable   |
+| `curriculum_ref`  | text                         | Referensi CP/Kurikulum Merdeka, nullable        |
+| `summary`         | text                         | Rangkuman materi dari AI                        |
+| `questions`       | jsonb                        | Array soal yang dihasilkan                      |
+| `used_at`         | timestamptz                  | Di-set saat konten ditambahkan ke kursus        |
+| `created_at`      | timestamptz                  | Waktu generasi                                  |
 
 RLS: SELECT (tenant), INSERT/UPDATE/DELETE (created_by = auth.uid())
-Migration: `20260505000001_ai_content_generator.sql`
+Migration: `20260505000001_ai_content_generator.sql` (initial), `20260506000001_ai_authoring_unification.sql` (Phase 39A columns)
 
 ---
 
@@ -161,25 +173,27 @@ Migration: `20260505000001_ai_content_generator.sql`
 
 Append-only usage log untuk rate limiting dan analytics. Diinsert oleh edge function via service role.
 
-| Kolom             | Tipe          | Keterangan                              |
-| ----------------- | ------------- | --------------------------------------- |
-| `id`              | uuid PK       | Auto-generated                          |
-| `tenant_id`       | uuid NOT NULL | FK → tenants.id                         |
-| `user_id`         | uuid NOT NULL | FK → auth.users.id                      |
-| `generation_id`   | uuid          | FK → ai_generated_content.id (nullable) |
-| `assignment_type` | text          | Jenis tugas yang diminta                |
-| `bloom_level`     | text          | Level Bloom yang dipilih                |
-| `question_count`  | integer       | Jumlah soal yang diminta                |
-| `file_name`       | text          | Nama file sumber                        |
-| `file_size_bytes` | integer       | Ukuran file dalam bytes                 |
-| `processing_ms`   | integer       | Total waktu proses (ms)                 |
-| `model`           | text          | Model LLM yang digunakan                |
-| `status`          | text          | `success` / `error` / `rate_limited`    |
-| `error_message`   | text          | Pesan error (nullable)                  |
-| `created_at`      | timestamptz   | Waktu log                               |
+| Kolom             | Tipe          | Keterangan                                     |
+| ----------------- | ------------- | ---------------------------------------------- |
+| `id`              | uuid PK       | Auto-generated                                 |
+| `tenant_id`       | uuid NOT NULL | FK → tenants.id                                |
+| `user_id`         | uuid NOT NULL | FK → auth.users.id                             |
+| `generation_id`   | uuid          | FK → ai_generated_content.id (nullable)        |
+| `source_type`     | text          | `'file'` atau `'lesson'` (Phase 39A), nullable |
+| `lesson_id`       | uuid          | FK → lessons.id (Phase 39A), nullable          |
+| `assignment_type` | text          | Jenis tugas yang diminta                       |
+| `bloom_level`     | text          | Level Bloom yang dipilih                       |
+| `question_count`  | integer       | Jumlah soal yang diminta                       |
+| `file_name`       | text          | Nama file sumber                               |
+| `file_size_bytes` | integer       | Ukuran file dalam bytes                        |
+| `processing_ms`   | integer       | Total waktu proses (ms)                        |
+| `model`           | text          | Model LLM yang digunakan                       |
+| `status`          | text          | `success` / `error` / `rate_limited`           |
+| `error_message`   | text          | Pesan error (nullable)                         |
+| `created_at`      | timestamptz   | Waktu log                                      |
 
 RLS: SELECT (tenant isolation). INSERT/UPDATE/DELETE via service role saja.
-Migration: `20260505000001_ai_content_generator.sql`
+Migration: `20260505000001_ai_content_generator.sql` (initial), `20260506000001_ai_authoring_unification.sql` (Phase 39A columns)
 
 ---
 

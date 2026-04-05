@@ -46,14 +46,16 @@ export function exportQuestionsToCSV(
     rows = questions.map((q, i) => {
       if (isQuizQuestion(q)) {
         const opts = q.options
-        const correctLetter = ['A', 'B', 'C', 'D'][q.answer] ?? ''
+        const optTexts = opts.map((o) => o.text)
+        const correctIdx = opts.findIndex((o) => o.is_correct)
+        const correctLetter = ['A', 'B', 'C', 'D'][correctIdx] ?? ''
         return [
           String(i + 1),
           q.text,
-          opts[0] ?? '',
-          opts[1] ?? '',
-          opts[2] ?? '',
-          opts[3] ?? '',
+          optTexts[0] ?? '',
+          optTexts[1] ?? '',
+          optTexts[2] ?? '',
+          optTexts[3] ?? '',
           correctLetter,
           q.explanation ?? '',
           q.bloomLevel ?? '',

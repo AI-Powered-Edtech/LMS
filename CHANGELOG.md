@@ -1,5 +1,66 @@
 # EduSync LMS — Changelog
 
+## [Audit Fix — P0/P1/P3] — 2026-04-05
+
+### Added
+
+- **`CaptionTrack` interface** (`src/features/video/components/AdaptiveVideoPlayer.tsx`) — exported type for WebVTT caption tracks with `src`, `srcLang`, `label`, `kind`, `default` fields
+- **`<track>` rendering** in `AdaptiveVideoPlayer` — renders WebVTT caption elements inside `<video>` for WCAG 1.2.2 Level A compliance
+- **Caption support in `VideoViewer`** (`src/components/LessonViewer/VideoViewer.tsx`) — accepts `captions?: CaptionTrack[]` prop, passes to player, shows CC badge in transcript panel header when captions are available
+- **Caption support in `VideoBlock`** (`src/components/LessonViewer/blocks/VideoBlock.tsx`) — maps `VideoCaption[]` to `CaptionTrack[]` and passes to `AdaptiveVideoPlayer`; works for both HLS and MP4 playback
+- **Helper text in `PasswordChangeForm`** — "Minimal 12 karakter untuk keamanan optimal." shown below password input
+- **`CaptionTrack` export** in `src/features/video/index.ts`
+
+### Changed
+
+- **Password strength logic** (`src/features/profile/components/PasswordChangeForm.tsx`) — removed hardcoded mandatory uppercase+number prerequisite; now uses pure score-based system (NIST-aligned); 16+ char passwords need 2-of-4 criteria for medium, 3-of-4 for strong; updated weak message and validate() error text
+- **`videoCaptionService.getCaptions`** — changed `SELECT *` to explicit column list per project coding standards
+- **`VideoCaption` interface** in `BlockRenderer.tsx` and `MultiBlockViewer.tsx` — updated field names to match DB schema: `file_url` → `vtt_url`, `language` → `language_code`; removed duplicate interface declaration in `BlockRenderer.tsx`; removed incorrect field remapping in `MultiBlockViewer.tsx`
+
+### Fixed
+
+- **Empty catch blocks** in `scripts/score-features.js` — both `grepCount` and `countDocRefs` functions now log errors via `console.error` instead of silently swallowing them (P3)
+- **WCAG 1.2.2 Level A compliance** — WebVTT captions now render via native `<track>` elements on direct video playback (P0)
+
+### Notes — Already Implemented (Not Changed)
+
+The following items from the audit plan were already implemented in prior sessions:
+
+- P0: `lesson_video_captions` DB migration, `videoCaptionService.ts`, `InteractiveVideoEditor` caption upload UI
+- P1: `InteractiveVideoEditor` already uses `Modal.tsx` (focus trap, ARIA, body scroll lock)
+- P2: `bundlesize2` already in `devDependencies`, script already updated
+- P2: Dark mode FOLT prevention already in `index.html` inline script and `ThemeContext` lazy init
+
+## [Phase 39A] — 2026-04-05
+
+### Added
+
+- **`src/features/ai-authoring/`** — New unified AI authoring domain, combining `creator` and `ai-quiz-gen` into a single source of truth
+- `AIQuizGeneratorPanel` enhanced: curriculum alignment (subject/grade/CP reference), history access, save provenance badge, React Query state management
+- `HistoryPanel` unified: shows both file-sourced and lesson-sourced generations with source type badges and curriculum metadata
+- `QuestionCard` unified: handles both quiz (is_correct per option) and open/essay question formats
+- `EditQuestionModal` unified: context-aware editing for MCQ, TRUE_FALSE, MULTIPLE_SELECT, SHORT_ANSWER, OPEN
+- Curriculum alignment fields added to `Creator.tsx` (collapsible, optional: subject, grade level, curriculum reference)
+- `generate-quiz-from-content` Edge Function: now saves to `ai_generated_content`, logs to `ai_generation_logs`, supports curriculum params, returns `generation_id`
+- `generate-ai-content` Edge Function: supports curriculum params (subject, grade_level, curriculum_ref)
+
+### Changed
+
+- `creator` and `ai-quiz-gen` modules converted to thin re-export wrappers over `ai-authoring`
+- `useAIQuizGen` hook now wraps `useGenerateFromLesson` (React Query useMutation) instead of manual `useState`
+- `aiQuizGenService.generateQuestions` now uses `supabase.functions.invoke` instead of raw `fetch`
+
+### Fixed
+
+- Render-side effect anti-pattern in `AIQuizGeneratorPanel` (auto-select logic moved to `useEffect`)
+
+### Database
+
+- Migration `20260506000001_ai_authoring_unification.sql`: added `source_type`, `lesson_id`, `subject`, `grade_level`, `curriculum_ref` to `ai_generated_content` and `source_type`, `lesson_id` to `ai_generation_logs`
+- One-time data migration: normalized old creator question format (index-based answer) to canonical format (is_correct per option)
+
+---
+
 ## [Sprint 38C — WebSocket Removal + Group Assignments + UX Quality] — 2026-04-04
 
 ### 🔧 Sprint A — Critical Fixes

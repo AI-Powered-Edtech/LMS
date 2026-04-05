@@ -22,6 +22,7 @@ export {
 } from './queries/videoQueries'
 
 // ─── Components ──────────────────────────────────────────────────────────────
+export type { CaptionTrack } from './components/AdaptiveVideoPlayer'
 export { AdaptiveVideoPlayer } from './components/AdaptiveVideoPlayer'
 export { VideoProcessingStatus } from './components/VideoProcessingStatus'
 export { VideoUploader } from './components/VideoUploader'

@@ -2,6 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 
 import { cn } from '@/utils/cn'
 
+/** WebVTT caption track descriptor */
+export interface CaptionTrack {
+  src: string
+  srclang: string
+  label: string
+  default?: boolean
+}
+
 interface AdaptiveVideoPlayerProps {
   hlsUrl?: string | null
   mp4Url?: string | null
@@ -21,6 +29,8 @@ interface AdaptiveVideoPlayerProps {
   videoRef?: React.RefObject<HTMLVideoElement | null>
   controlsList?: string
   'aria-label'?: string
+  /** Optional WebVTT caption tracks */
+  captions?: CaptionTrack[]
 }
 
 /**
@@ -48,6 +58,7 @@ export function AdaptiveVideoPlayer({
   videoRef: externalRef,
   controlsList,
   'aria-label': ariaLabel,
+  captions,
 }: AdaptiveVideoPlayerProps) {
   const internalRef = useRef<HTMLVideoElement>(null)
   const videoRef = externalRef ?? internalRef
@@ -147,7 +158,18 @@ export function AdaptiveVideoPlayer({
         className="w-full h-full object-cover"
         controlsList={controlsList}
         aria-label={ariaLabel ?? 'Video pelajaran'}
-      />
+      >
+        {captions?.map((track) => (
+          <track
+            key={track.srclang}
+            kind="captions"
+            src={track.src}
+            srcLang={track.srclang}
+            label={track.label}
+            default={track.default}
+          />
+        ))}
+      </video>
 
       {/* Quality selector — only visible on hover when multiple levels available */}
       {qualities.length > 1 && (

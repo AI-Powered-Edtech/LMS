@@ -2,6 +2,7 @@ import {
   BookOpen,
   Calendar as CalendarIcon,
   CheckSquare,
+  ChevronDown,
   Clock,
   Database,
   Download,
@@ -19,6 +20,7 @@ import { useToast } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import { useAddCalendarEvent } from '@/features/calendar/hooks/useCalendarQueries'
 import {
+  type AIGeneratedContent,
   type AssignmentType,
   BLOOM_DESCRIPTIONS,
   BLOOM_LABELS,
@@ -111,6 +113,10 @@ export function Creator() {
   const [assignmentType, setAssignmentType] = useState<AssignmentType>('quiz')
   const [questionCount, setQuestionCount] = useState(10)
   const [difficulty, setDifficulty] = useState<BloomLevel>('C3')
+  const [curriculumExpanded, setCurriculumExpanded] = useState(false)
+  const [subject, setSubject] = useState('')
+  const [gradeLevel, setGradeLevel] = useState('')
+  const [curriculumRef, setCurriculumRef] = useState('')
   const [dueDateStr, setDueDateStr] = useState<string>(() => {
     const d = new Date()
     d.setDate(d.getDate() + 3)
@@ -123,6 +129,8 @@ export function Creator() {
   const [resultSummary, setResultSummary] = useState<string>('')
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([])
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [resultFileName, setResultFileName] = useState<string>('')
+  const [resultGeneratedAt, setResultGeneratedAt] = useState<string | null>(null)
 
   // UI state
   const [activeStep, setActiveStep] = useState(0)
@@ -218,14 +226,19 @@ export function Creator() {
     formData.append('assignmentType', assignmentType)
     formData.append('questionCount', questionCount.toString())
     formData.append('difficulty', difficulty)
+    if (subject.trim()) formData.append('subject', subject.trim())
+    if (gradeLevel.trim()) formData.append('gradeLevel', gradeLevel.trim())
+    if (curriculumRef.trim()) formData.append('curriculumRef', curriculumRef.trim())
 
     generateMutation.mutate(formData, {
       onSuccess: (data) => {
-        setResultId(data.id)
+        setResultId(data.generation_id)
         setResultType(data.type as AssignmentType)
         setResultSummary(data.summary)
         setQuestions(data.questions)
         setSelectedIds(new Set(data.questions.map((q) => q.id)))
+        setResultFileName(file?.name ?? '')
+        setResultGeneratedAt(new Date().toISOString())
       },
       onError: (error) => {
         addToast({
@@ -335,6 +348,8 @@ export function Creator() {
     setSelectedIds(new Set())
     setResultId(null)
     setResultSummary('')
+    setResultFileName('')
+    setResultGeneratedAt(null)
     generateMutation.reset()
   }
 
@@ -372,17 +387,14 @@ export function Creator() {
     }
   }
 
-  const handleLoadFromHistory = (content: {
-    id: string | null
-    type: AssignmentType
-    summary: string
-    questions: GeneratedQuestion[]
-  }) => {
+  const handleLoadFromHistory = (content: AIGeneratedContent) => {
     setResultId(content.id)
-    setResultType(content.type)
-    setResultSummary(content.summary)
+    setResultType(content.assignment_type as AssignmentType)
+    setResultSummary(content.summary ?? '')
     setQuestions(content.questions)
     setSelectedIds(new Set(content.questions.map((q) => q.id)))
+    setResultFileName(content.file_name ?? '')
+    setResultGeneratedAt(null)
   }
 
   // ─── Render ───────────────────────────────────────────────────────────────
@@ -588,6 +600,71 @@ export function Creator() {
                   </div>
                 </div>
 
+                {/* Curriculum Alignment (optional) */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setCurriculumExpanded((p) => !p)}
+                    className="flex items-center gap-2 w-full text-left font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    aria-expanded={curriculumExpanded}
+                  >
+                    <ChevronDown
+                      className={cn(
+                        'w-4 h-4 transition-transform text-slate-400',
+                        curriculumExpanded && 'rotate-180'
+                      )}
+                    />
+                    Penyelarasan Kurikulum
+                    <span className="ml-auto text-xs font-normal text-slate-400 dark:text-slate-500">
+                      opsional
+                    </span>
+                  </button>
+
+                  {curriculumExpanded && (
+                    <div className="mt-3 space-y-3 pl-1">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                          Mata Pelajaran
+                        </label>
+                        <input
+                          type="text"
+                          value={subject}
+                          onChange={(e) => setSubject(e.target.value)}
+                          placeholder="mis. Matematika, Bahasa Indonesia"
+                          className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          disabled={generateMutation.isPending}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                          Kelas / Tingkat
+                        </label>
+                        <input
+                          type="text"
+                          value={gradeLevel}
+                          onChange={(e) => setGradeLevel(e.target.value)}
+                          placeholder="mis. VII, 10, SD Kelas 5"
+                          className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          disabled={generateMutation.isPending}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                          Referensi Kurikulum
+                        </label>
+                        <input
+                          type="text"
+                          value={curriculumRef}
+                          onChange={(e) => setCurriculumRef(e.target.value)}
+                          placeholder="mis. CP Fase D, Kurikulum Merdeka"
+                          className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          disabled={generateMutation.isPending}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Generate Button */}
                 <button
                   type="button"
@@ -620,159 +697,184 @@ export function Creator() {
 
       {/* ── Result Phase ── */}
       {hasResult && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8"
-        >
-          {/* Left: Summary */}
-          <div className="md:col-span-1 bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">
-                {resultType === 'reading'
-                  ? 'Teks Bacaan'
-                  : resultType === 'writing'
-                    ? 'Konteks Topik'
-                    : 'Rangkuman Materi'}
-              </h2>
-              {resultId && (
-                <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-full border border-emerald-100 dark:border-emerald-800">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                  Tersimpan
-                </span>
-              )}
-            </div>
-            <div className="flex-1 overflow-y-auto pr-1 text-sm text-slate-600 dark:text-slate-400 leading-relaxed min-h-32">
-              {resultSummary || (
-                <span className="text-slate-400 dark:text-slate-500 italic">
-                  Tidak ada rangkuman.
-                </span>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={handleReset}
-              className="mt-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-            >
-              ← Buat Baru
-            </button>
+        <>
+          {/* Provenance Bar */}
+          <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+            <span className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
+              <FileText className="w-3.5 h-3.5 text-slate-400" />
+              {resultFileName || 'Dokumen tidak diketahui'}
+            </span>
+            <span className="text-slate-300 dark:text-slate-600">·</span>
+            <span className="px-2 py-0.5 rounded-full bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 font-medium border border-violet-100 dark:border-violet-800">
+              {BLOOM_LABELS[difficulty] ?? difficulty}
+            </span>
+            <span className="text-slate-300 dark:text-slate-600">·</span>
+            <span>
+              Dibuat{' '}
+              {resultGeneratedAt
+                ? new Date(resultGeneratedAt).toLocaleString('id-ID', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : '—'}
+            </span>
           </div>
-
-          {/* Right: Questions */}
-          <div className="md:col-span-2 bg-slate-100 dark:bg-slate-900 p-4 md:p-6 rounded-3xl border border-slate-200 dark:border-slate-700 flex flex-col min-h-[500px]">
-            {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-              <div className="flex items-center gap-3">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8"
+          >
+            {/* Left: Summary */}
+            <div className="md:col-span-1 bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col">
+              <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">
-                  {resultType === 'writing' ? 'Daftar Topik' : 'Daftar Soal'} ({questions.length})
+                  {resultType === 'reading'
+                    ? 'Teks Bacaan'
+                    : resultType === 'writing'
+                      ? 'Konteks Topik'
+                      : 'Rangkuman Materi'}
                 </h2>
-                {/* Select all toggle */}
-                <button
-                  type="button"
-                  onClick={handleSelectAll}
-                  className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                  title={allSelected ? 'Batalkan semua' : 'Pilih semua'}
-                >
-                  {allSelected ? (
-                    <CheckSquare className="w-4 h-4" />
-                  ) : (
-                    <Square className="w-4 h-4" />
-                  )}
-                  {allSelected ? 'Batalkan Semua' : 'Pilih Semua'}
-                </button>
-                {selectedCount > 0 && selectedCount < questions.length && (
-                  <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                    {selectedCount} dipilih
+                {resultId && (
+                  <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-full border border-emerald-100 dark:border-emerald-800">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                    Tersimpan
                   </span>
                 )}
               </div>
-
-              <div className="flex gap-2 w-full sm:w-auto items-center">
-                <input
-                  type="date"
-                  value={dueDateStr}
-                  onChange={(e) => setDueDateStr(e.target.value)}
-                  min={new Date().toISOString().slice(0, 10)}
-                  className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  title="Tanggal tenggat"
-                />
-                <button
-                  type="button"
-                  onClick={handleExportCSV}
-                  disabled={selectedCount === 0}
-                  className="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shrink-0 disabled:opacity-40"
-                >
-                  <Download className="w-4 h-4" />
-                  CSV
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveToBank}
-                  disabled={selectedCount === 0 || isSavingToBank}
-                  className="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shrink-0 disabled:opacity-40"
-                >
-                  <Database className="w-4 h-4" />
-                  {isSavingToBank ? 'Menyimpan...' : 'Bank Soal'}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveToCalendar}
-                  className="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shrink-0"
-                >
-                  <CalendarIcon className="w-4 h-4" />
-                  Jadwalkan
-                </button>
-                <button
-                  type="button"
-                  onClick={handleAddToCourse}
-                  disabled={selectedCount === 0 && questions.length === 0}
-                  className={cn(
-                    'px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95 shrink-0',
-                    selectedCount > 0 || questions.length > 0
-                      ? 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white shadow-md shadow-blue-200 dark:shadow-blue-900'
-                      : 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
-                  )}
-                >
-                  <BookOpen className="w-4 h-4" />
-                  Tambahkan ke Kursus
-                  {selectedCount > 0 && selectedCount < questions.length && (
-                    <span className="ml-0.5">({selectedCount})</span>
-                  )}
-                </button>
+              <div className="flex-1 overflow-y-auto pr-1 text-sm text-slate-600 dark:text-slate-400 leading-relaxed min-h-32">
+                {resultSummary || (
+                  <span className="text-slate-400 dark:text-slate-500 italic">
+                    Tidak ada rangkuman.
+                  </span>
+                )}
               </div>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="mt-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                ← Buat Baru
+              </button>
             </div>
 
-            {/* Question list */}
-            <div className="flex-1 overflow-y-auto space-y-3 pr-1">
-              {questions.map((q, i) => (
-                <QuestionCard
-                  key={q.id}
-                  question={q}
-                  index={i}
-                  questionType={resultType}
-                  selected={selectedIds.has(q.id)}
-                  onToggleSelect={handleToggleSelect}
-                  onEdit={handleEditQuestion}
-                  onDelete={handleDeleteQuestion}
-                />
-              ))}
-              {questions.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-32 text-center">
-                  <p className="text-slate-500 dark:text-slate-400 text-sm">
-                    Semua soal telah dihapus.
-                  </p>
+            {/* Right: Questions */}
+            <div className="md:col-span-2 bg-slate-100 dark:bg-slate-900 p-4 md:p-6 rounded-3xl border border-slate-200 dark:border-slate-700 flex flex-col min-h-[500px]">
+              {/* Toolbar */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">
+                    {resultType === 'writing' ? 'Daftar Topik' : 'Daftar Soal'} ({questions.length})
+                  </h2>
+                  {/* Select all toggle */}
                   <button
                     type="button"
-                    onClick={handleReset}
-                    className="mt-3 text-sm text-blue-600 dark:text-blue-400 font-medium hover:underline"
+                    onClick={handleSelectAll}
+                    className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    title={allSelected ? 'Batalkan semua' : 'Pilih semua'}
                   >
-                    Buat ulang
+                    {allSelected ? (
+                      <CheckSquare className="w-4 h-4" />
+                    ) : (
+                      <Square className="w-4 h-4" />
+                    )}
+                    {allSelected ? 'Batalkan Semua' : 'Pilih Semua'}
+                  </button>
+                  {selectedCount > 0 && selectedCount < questions.length && (
+                    <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                      {selectedCount} dipilih
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex gap-2 w-full sm:w-auto items-center">
+                  <input
+                    type="date"
+                    value={dueDateStr}
+                    onChange={(e) => setDueDateStr(e.target.value)}
+                    min={new Date().toISOString().slice(0, 10)}
+                    className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    title="Tanggal tenggat"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleExportCSV}
+                    disabled={selectedCount === 0}
+                    className="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shrink-0 disabled:opacity-40"
+                  >
+                    <Download className="w-4 h-4" />
+                    CSV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveToBank}
+                    disabled={selectedCount === 0 || isSavingToBank}
+                    className="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shrink-0 disabled:opacity-40"
+                  >
+                    <Database className="w-4 h-4" />
+                    {isSavingToBank ? 'Menyimpan...' : 'Bank Soal'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveToCalendar}
+                    className="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shrink-0"
+                  >
+                    <CalendarIcon className="w-4 h-4" />
+                    Jadwalkan
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddToCourse}
+                    disabled={selectedCount === 0 && questions.length === 0}
+                    className={cn(
+                      'px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all active:scale-95 shrink-0',
+                      selectedCount > 0 || questions.length > 0
+                        ? 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white shadow-md shadow-blue-200 dark:shadow-blue-900'
+                        : 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
+                    )}
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    Tambahkan ke Kursus
+                    {selectedCount > 0 && selectedCount < questions.length && (
+                      <span className="ml-0.5">({selectedCount})</span>
+                    )}
                   </button>
                 </div>
-              )}
+              </div>
+
+              {/* Question list */}
+              <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+                {questions.map((q, i) => (
+                  <QuestionCard
+                    key={q.id}
+                    question={q}
+                    index={i}
+                    selected={selectedIds.has(q.id)}
+                    onToggleSelect={handleToggleSelect}
+                    onEdit={handleEditQuestion}
+                    onDelete={handleDeleteQuestion}
+                  />
+                ))}
+                {questions.length === 0 && (
+                  <div className="flex flex-col items-center justify-center h-32 text-center">
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">
+                      Semua soal telah dihapus.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className="mt-3 text-sm text-blue-600 dark:text-blue-400 font-medium hover:underline"
+                    >
+                      Buat ulang
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </>
       )}
 
       {/* ── Loading Overlay ── */}
@@ -812,7 +914,6 @@ export function Creator() {
           setEditingQuestion(null)
         }}
         question={editingQuestion}
-        questionType={resultType}
         onSave={handleSaveEdit}
       />
 
