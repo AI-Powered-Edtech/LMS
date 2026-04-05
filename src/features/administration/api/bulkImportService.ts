@@ -14,7 +14,7 @@ export interface RowError {
   reason: string
 }
 
-export interface BulkImportResult {
+interface BulkImportResult {
   success: number
   failed: number
   total: number

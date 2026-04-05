@@ -18,7 +18,7 @@ import { builderBlockService } from './blockService'
 import { builderLessonService } from './lessonService'
 import { builderModuleService } from './moduleService'
 
-export interface BuilderSyncResult {
+interface BuilderSyncResult {
   success: boolean
   error?: unknown
 }
