@@ -12,9 +12,7 @@ export function useLessonActions(
   state: BuilderState,
   dispatch: Dispatch<BuilderAction>,
   tenantId: string | null,
-  setSavingStatus: (status: BuilderState['savingStatus']) => void,
-  broadcast?: (action: BuilderAction, userName: string) => void,
-  userName?: string
+  setSavingStatus: (status: BuilderState['savingStatus']) => void
 ) {
   const addToast = useToast((s) => s.addToast)
 
@@ -24,7 +22,6 @@ export function useLessonActions(
       try {
         const lesson = await builderLessonService.createLesson(moduleId, type, title, tenantId)
         dispatch({ type: 'ADD_LESSON', moduleId, lesson })
-        broadcast?.({ type: 'ADD_LESSON', moduleId, lesson }, userName ?? '')
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Failed to add lesson:', err)
         addToast({
@@ -35,7 +32,7 @@ export function useLessonActions(
         })
       }
     },
-    [tenantId, dispatch, addToast, broadcast, userName]
+    [tenantId, dispatch, addToast]
   )
 
   const updateLesson = useCallback(
@@ -49,7 +46,6 @@ export function useLessonActions(
       try {
         await builderLessonService.updateLesson(lessonId, tenantId, data)
         setSavingStatus('saved')
-        broadcast?.({ type: 'UPDATE_LESSON', lessonId, data }, userName ?? '')
       } catch (err: unknown) {
         // Rollback to previous state
         if (prevLesson) {
@@ -64,7 +60,7 @@ export function useLessonActions(
         })
       }
     },
-    [state.modules, tenantId, dispatch, setSavingStatus, broadcast, userName, addToast]
+    [state.modules, tenantId, dispatch, setSavingStatus, addToast]
   )
 
   const deleteLesson = useCallback(
@@ -77,7 +73,6 @@ export function useLessonActions(
       dispatch({ type: 'DELETE_LESSON', lessonId })
       try {
         await builderLessonService.deleteLesson(lessonId, tenantId)
-        broadcast?.({ type: 'DELETE_LESSON', lessonId }, userName ?? '')
       } catch (err: unknown) {
         // Rollback: restore modules to pre-delete state
         dispatch({ type: 'SET_MODULES', modules: previousModules })
@@ -90,7 +85,7 @@ export function useLessonActions(
         })
       }
     },
-    [state.modules, tenantId, dispatch, addToast, broadcast, userName]
+    [state.modules, tenantId, dispatch, addToast]
   )
 
   const reorderLessons = useCallback(
@@ -115,7 +110,6 @@ export function useLessonActions(
       if (targetMod && tenantId) {
         try {
           await builderLessonService.reorderLessons(targetMod.id, lessonIds, tenantId)
-          broadcast?.({ type: 'SET_MODULES', modules: updatedModules }, userName ?? '')
         } catch (error: unknown) {
           if (import.meta.env.DEV) console.error('Failed to reorder lessons', error)
           dispatch({ type: 'SET_MODULES', modules: previousModules })
@@ -128,7 +122,7 @@ export function useLessonActions(
         }
       }
     },
-    [state.modules, tenantId, dispatch, addToast, broadcast, userName]
+    [state.modules, tenantId, dispatch, addToast]
   )
 
   const selectLesson = useCallback(

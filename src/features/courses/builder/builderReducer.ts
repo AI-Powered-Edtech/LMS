@@ -374,6 +374,6 @@ export function builderReducer(state: BuilderState, action: BuilderAction): Buil
     }
   }
 
-  // Non-undoable actions (including REMOTE_*) pass through without touching history
+  // Non-undoable actions pass through without touching history
   return coreReducer(state, action)
 }

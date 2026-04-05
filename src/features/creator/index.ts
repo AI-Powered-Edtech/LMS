@@ -9,6 +9,8 @@ export {
   useMarkContentUsed,
   useUpdateGenerationQuestions,
 } from './queries/creatorQueries'
+export type { PendingQuizData } from './store/creatorBridge.store'
+export { useCreatorBridgeStore } from './store/creatorBridge.store'
 export type {
   AIGeneratedContent,
   AssignmentType,

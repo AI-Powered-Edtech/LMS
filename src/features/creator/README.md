@@ -1,98 +1,88 @@
 # Creator — Feature Module
 
-AI Content Generator untuk kursus, modul, dan pelajaran dari dokumen yang diunggah.
+AI Content Generator untuk kursus dan kuis dari dokumen yang diunggah. Production-ready.
 
 ## Status
 
-**Production-Ready** — Phase 38A selesai (2026-05-05)
+**Production-Ready — Phase 38B** (2026-04-04)
 
 ## Arsitektur
 
 ```
 src/features/creator/
 ├── api/
-│   └── creatorService.ts      # Supabase calls: generate, history, markUsed, delete
+│   ├── creatorService.ts           # generate-ai-content Edge Function wrapper
+│   └── questionBankIntegration.ts  # Simpan soal ke question_bank
 ├── components/
-│   ├── EditQuestionModal.tsx   # Modal editor untuk soal (menggantikan window.prompt)
-│   ├── HistoryPanel.tsx        # Slide-in panel riwayat generasi
-│   └── QuestionCard.tsx        # Card soal dengan checkbox seleksi + edit/hapus
+│   ├── AIImportBanner.tsx          # Banner di CourseBuilder (bridge store)
+│   ├── EditQuestionModal.tsx       # Modal edit soal (ganti window.prompt)
+│   ├── HistoryPanel.tsx            # Slide-in riwayat 20 generasi terbaru
+│   ├── QuestionCard.tsx            # Card soal + checkbox + edit/hapus
+│   └── UsageQuotaBar.tsx           # Bar kuota penggunaan AI per jam
 ├── queries/
-│   └── creatorQueries.ts       # React Query hooks (useMutation + useQuery)
+│   └── creatorQueries.ts           # React Query hooks (5 mutations + 1 query)
+├── store/
+│   └── creatorBridge.store.ts      # Zustand bridge: Creator → CourseBuilder
 ├── types/
-│   └── index.ts                # TypeScript interfaces + Bloom constants
-├── index.ts                    # Barrel export
-└── README.md
+│   └── index.ts                    # TS interfaces + Bloom constants
+├── utils/
+│   └── exportToCSV.ts              # Export soal ke CSV (Excel-compatible)
+└── index.ts                        # Barrel export
 ```
 
-## Key Files
+## Edge Function
 
-| File                               | Purpose                                                                                                                                             |
-| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `api/creatorService.ts`            | 5 metode: `generateAIContent`, `fetchHistory`, `markAsUsed`, `updateQuestions`, `deleteGeneration`                                                  |
-| `queries/creatorQueries.ts`        | `useGenerateAIContent` (useMutation), `useAIContentHistory` (useQuery), `useMarkContentUsed`, `useUpdateGenerationQuestions`, `useDeleteGeneration` |
-| `components/EditQuestionModal.tsx` | Modal full-featured untuk edit soal PG (4 opsi + pilih jawaban benar) dan soal terbuka                                                              |
-| `components/QuestionCard.tsx`      | Kartu soal dengan checkbox seleksi, tombol edit/hapus, preview opsi berwarna                                                                        |
-| `components/HistoryPanel.tsx`      | Panel slide-in menampilkan 20 riwayat generasi terbaru                                                                                              |
+| Function                     | Purpose                      | Auth                | LLM                |
+| ---------------------------- | ---------------------------- | ------------------- | ------------------ |
+| `generate-ai-content`        | Generate konten dari file    | JWT (teacher/admin) | Groq llama-3.1-70b |
+| `generate-quiz-from-content` | Generate dari lesson content | JWT (teacher/admin) | Groq llama-3.1-70b |
 
-## Edge Functions
+## Database
 
-| Function                     | Purpose                          | Auth                          | LLM                          |
-| ---------------------------- | -------------------------------- | ----------------------------- | ---------------------------- |
-| `generate-ai-content`        | Generate konten dari file upload | User JWT (teacher/admin only) | Groq llama-3.1-70b-versatile |
-| `generate-quiz-from-content` | Generate soal dari konten lesson | User JWT (teacher/admin only) | Groq llama-3.1-70b-versatile |
-
-## Database Tables
-
-| Tabel                  | Purpose                                                  |
-| ---------------------- | -------------------------------------------------------- |
-| `ai_generated_content` | Menyimpan hasil generasi AI (persistence)                |
-| `ai_generation_logs`   | Append-only log untuk rate limiting, metering, analytics |
+| Tabel                  | Purpose                                |
+| ---------------------- | -------------------------------------- |
+| `ai_generated_content` | Hasil generasi AI — persisted per-user |
+| `ai_generation_logs`   | Usage log untuk rate limiting (20/jam) |
 
 ## Flow Generasi
 
 ```
-1. Upload file (.pdf/.docx/.txt/.csv, maks 10MB)
-2. Konfigurasi: Jenis Tugas + Jumlah Soal + Level Bloom (C1–C6)
-3. Edge Function: generate-ai-content
-   ├── Auth JWT + role check (student diblokir)
-   ├── Rate limit: maks 20 generasi/jam per user
-   ├── Ekstraksi teks: PDF (BT/ET regex), DOCX (zip.js XML), TXT/CSV (decode)
-   ├── Groq API: prompt Bloom-aware + JSON response format
+1. Upload file (.pdf/.docx/.txt/.csv ≤ 10MB)
+2. Konfigurasi: Jenis Tugas + Jumlah Soal + Bloom Level (C1–C6)
+3. [Optional] Lihat kuota: UsageQuotaBar (20 generasi/jam)
+4. Edge Function: generate-ai-content
+   ├── Auth + role check (student/parent/principal → 403)
+   ├── Rate limit: 20 success/jam via ai_generation_logs
+   ├── Text extraction: PDF(BT/ET regex), DOCX(zip.js), TXT/CSV(decode)
+   ├── Groq API: prompt Bloom-aware, json_object format, 30s timeout
    ├── Simpan ke ai_generated_content
    └── Log ke ai_generation_logs
-4. Result: soal + summary + badge "Tersimpan"
-5. Aksi: Edit soal, Hapus soal, Pilih subset, Jadwalkan, Tambahkan ke Kursus
+5. Result phase:
+   ├── Checkbox seleksi per soal
+   ├── Pilih Semua / Batalkan Semua
+   ├── Edit soal (EditQuestionModal — full modal, bukan window.prompt)
+   ├── Hapus soal
+   └── Aksi: CSV, Bank Soal, Jadwalkan, Tambahkan ke Kursus
+6. CourseBuilder integration via Zustand bridge (AIImportBanner)
 ```
 
-## Rate Limiting
+## Hooks
 
-- **Limit**: 20 generasi berhasil per jam per user
-- **Implementasi**: Count pada tabel `ai_generation_logs` (status='success', created_at > NOW()-1h)
-- **Response**: HTTP 429 + pesan user-friendly
+| Hook                           | Type        | Purpose                          |
+| ------------------------------ | ----------- | -------------------------------- |
+| `useGenerateAIContent`         | useMutation | Generate AI content dari file    |
+| `useMarkContentUsed`           | useMutation | Set used_at pada hasil tersimpan |
+| `useDeleteGeneration`          | useMutation | Hapus dari riwayat               |
+| `useUpdateGenerationQuestions` | useMutation | Update soal yang sudah diedit    |
+| `useAIContentHistory`          | useQuery    | Fetch 20 riwayat terbaru (lazy)  |
 
-## File Extraction
+## Security
 
-| Format         | Metode Ekstraksi                              |
-| -------------- | --------------------------------------------- |
-| `.txt`, `.csv` | TextDecoder UTF-8 langsung                    |
-| `.pdf`         | Regex BT/ET block parser + plaintext fallback |
-| `.docx`        | zip.js → word/document.xml → strip XML tags   |
-| `.mp4`         | Tidak didukung (ditolak dengan pesan jelas)   |
-
-## Bloom's Taxonomy Integration
-
-Level C1–C6 dikirim ke LLM sebagai bagian dari prompt, dengan deskripsi bahasa Indonesia:
-
-- C1: Mengingat (fakta, definisi)
-- C2: Memahami (menjelaskan dengan kata sendiri)
-- C3: Mengaplikasikan (menerapkan pada situasi baru)
-- C4: Menganalisis (menguraikan, membandingkan)
-- C5: Mengevaluasi (menilai, mengkritisi)
-- C6: Mencipta (merancang, bersintesis)
-
-## Pages
-
-- `src/pages/Creator.tsx` — Halaman utama AI Generator (teacher/admin)
+- ✅ Role check: hanya `teacher` + `admin`
+- ✅ Rate limiting: 20 generasi/jam per user
+- ✅ File validation: MIME + ukuran di client + server
+- ✅ Tenant isolation: semua query scoped ke tenant_id
+- ✅ `tenant_id` tidak dikembalikan ke client dalam response
 
 ## Routes
 

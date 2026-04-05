@@ -1,4 +1,4 @@
-import { CheckCircle2, CheckSquare, Clock, MoreVertical, Plus } from 'lucide-react'
+import { CheckCircle2, CheckSquare, Clock, Plus, Trash2 } from 'lucide-react'
 
 import { EmptyState } from '@/components/ui'
 import { cn } from '@/utils/cn'
@@ -11,6 +11,7 @@ interface Props {
   onToggleStatus: (id: string, currentStatus: string) => void
   onTaskTitleChange: (title: string) => void
   onAddTask: () => void
+  onDeleteTask?: (id: string, title: string) => void
 }
 
 export function GroupTasksTab({
@@ -19,6 +20,7 @@ export function GroupTasksTab({
   onToggleStatus,
   onTaskTitleChange,
   onAddTask,
+  onDeleteTask,
 }: Props) {
   const completedCount = tasks.filter((t) => t.status === 'done').length
 
@@ -85,13 +87,16 @@ export function GroupTasksTab({
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                aria-label="Opsi sub-tugas"
-                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-              >
-                <MoreVertical className="w-4 h-4" />
-              </button>
+              {onDeleteTask && (
+                <button
+                  type="button"
+                  aria-label={`Hapus tugas: ${task.title}`}
+                  onClick={() => onDeleteTask(task.id, task.title)}
+                  className="p-2 text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
             </div>
           ))
         )}

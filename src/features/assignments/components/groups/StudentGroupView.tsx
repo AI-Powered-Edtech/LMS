@@ -5,10 +5,12 @@ import { Link } from 'react-router-dom'
 
 import { useToast } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
+import { useUndoableAction } from '@/hooks/useUndoableAction'
 import { cn } from '@/utils/cn'
 
 import {
   useCreateGroupTask,
+  useDeleteGroupTask,
   useGroupMessages,
   useGroupTasks,
   useSendGroupMessage,
@@ -41,8 +43,28 @@ export function StudentGroupView({ assignmentId }: Props) {
 
   const createGroupTask = useCreateGroupTask(groupId ?? '')
   const updateTaskStatus = useUpdateGroupTaskStatus(groupId ?? '')
+  const deleteGroupTask = useDeleteGroupTask(groupId ?? '')
   const sendGroupMessage = useSendGroupMessage(groupId ?? '')
   const submitMutation = useSubmitGroupAssignment(assignmentId)
+
+  const { execute: executeDeleteTask } = useUndoableAction({
+    message: 'Tugas akan dihapus.',
+    delay: 5000,
+    onExecute: async () => {
+      if (!pendingDeleteTaskId) return
+      deleteGroupTask.mutate(pendingDeleteTaskId, {
+        onError: () => addToast({ type: 'error', message: 'Gagal menghapus tugas.' }),
+      })
+      setPendingDeleteTaskId(null)
+    },
+  })
+
+  const [pendingDeleteTaskId, setPendingDeleteTaskId] = useState<string | null>(null)
+
+  const handleDeleteTask = (id: string, _title: string) => {
+    setPendingDeleteTaskId(id)
+    executeDeleteTask()
+  }
 
   const handleSendMessage = () => {
     if (!newMessage.trim() || !groupId) return
@@ -249,6 +271,7 @@ export function StudentGroupView({ assignmentId }: Props) {
                 onToggleStatus={toggleTaskStatus}
                 onTaskTitleChange={setNewTaskTitle}
                 onAddTask={handleAddTask}
+                onDeleteTask={handleDeleteTask}
               />
             )}
 

@@ -23,6 +23,7 @@ import { DashboardSkeleton } from '@/features/dashboards/components/DashboardSke
 import { TeacherOnboardingWizard, TeacherWelcome } from '@/features/onboarding'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { navigationItems } from '@/shared/config/navigation'
+import { staggerContainer, staggerItem } from '@/utils/animations'
 import { cn } from '@/utils/cn'
 
 export function TeacherDashboard() {
@@ -199,9 +200,14 @@ export function TeacherDashboard() {
             ))}
           </div>
         ) : classrooms.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="show"
+          >
             {classrooms.map((classroom) => (
-              <div key={classroom.id}>
+              <motion.div key={classroom.id} variants={staggerItem}>
                 <Card padding="none" hover className="overflow-hidden flex flex-col">
                   <div className="p-6 border-b border-slate-100 dark:border-slate-700">
                     <div className="flex justify-between items-start mb-4">
@@ -260,9 +266,9 @@ export function TeacherDashboard() {
                     </Button>
                   </div>
                 </Card>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : (
           <Card>
             <EmptyState

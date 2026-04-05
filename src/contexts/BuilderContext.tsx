@@ -7,28 +7,23 @@ import {
   useMemo,
   useReducer,
   useRef,
-  useState,
 } from 'react'
 
 import { useToast } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import { syncBuilderToServer } from '@/features/courses/api/builder/builderSyncService'
-import { collaboratorService } from '@/features/courses/api/builder/collaboratorService'
 import {
   builderReducer,
   type BuilderState,
   initialBuilderState,
   useBlockActions,
-  useBuilderPresence,
   useCourseActions,
   useLessonActions,
   useModuleActions,
 } from '@/features/courses/builder'
 import { ConflictResolutionDialog } from '@/features/courses/builder/ConflictResolutionDialog'
-import { useBuilderChannel } from '@/features/courses/builder/useBuilderChannel'
 import type { ConflictDialogState } from '@/features/courses/builder/useBuilderOffline'
 import { useBuilderOffline } from '@/features/courses/builder/useBuilderOffline'
-import type { PresenceData } from '@/features/courses/builder/useBuilderPresence'
 import { useMobileBuilder } from '@/features/courses/builder/useMobileBuilder'
 import type { DomainBlock } from '@/shared/types/blockTypes'
 import type { DomainLesson } from '@/shared/types/lessonTypes'
@@ -76,12 +71,6 @@ interface BuilderContextValue {
     closeSidebar: () => void
     openSidebar: () => void
   }
-  presence: {
-    others: Map<string, PresenceData>
-    updateActiveBlock: (blockId: string | null) => void
-    getBlockLocker: (blockId: string) => PresenceData | null
-    othersArray: PresenceData[]
-  }
   offline: {
     isOnline: boolean
     isDirty: boolean
@@ -103,51 +92,13 @@ const BuilderContext = createContext<BuilderContextValue | null>(null)
 // ============================================================
 
 export function BuilderProvider({ children }: { children: ReactNode }) {
-  const { tenantId, user, profile } = useAuth()
+  const { tenantId } = useAuth()
   const [state, dispatch] = useReducer(builderReducer, initialBuilderState)
   const saveTimerRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
   const savedStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Mobile responsive state
   const mobile = useMobileBuilder()
-
-  // Authorized collaborator IDs for server-authoritative channel guard
-  const [authorizedUserIds, setAuthorizedUserIds] = useState<Set<string>>(new Set())
-
-  useEffect(() => {
-    if (!state.courseId || !tenantId) {
-      setAuthorizedUserIds(new Set())
-      return
-    }
-
-    collaboratorService
-      .fetchCollaborators(state.courseId, tenantId)
-      .then((collaborators) => {
-        const ids = new Set(collaborators.map((c) => c.user_id))
-        setAuthorizedUserIds(ids)
-      })
-      .catch(() => {
-        // Non-fatal — fall back to empty set (server RPC check is the primary guard)
-        setAuthorizedUserIds(new Set())
-      })
-  }, [state.courseId, tenantId])
-
-  // Realtime channel for collaborative editing
-  const { channelRef, broadcast } = useBuilderChannel(
-    state.courseId,
-    user?.id ?? null,
-    dispatch,
-    undefined,
-    authorizedUserIds
-  )
-
-  // Presence tracking (who else is editing)
-  const presence = useBuilderPresence(
-    channelRef,
-    user?.id ?? null,
-    profile ? `${profile.first_name} ${profile.last_name}`.trim() : 'Anonim',
-    profile?.avatar_url ?? null
-  )
 
   // Offline support
   const addToast = useToast((s) => s.addToast)
@@ -211,36 +162,16 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // Domain action hooks
-  // Guard empty string: `"".trim() === ""` would resolve to "" not "Anonim" without fallback
-  const userName = (profile ? `${profile.first_name} ${profile.last_name}`.trim() : '') || 'Anonim'
-
   const courseActions = useCourseActions(state, dispatch, tenantId, setSavingStatus)
-  const moduleActions = useModuleActions(
-    state,
-    dispatch,
-    tenantId,
-    setSavingStatus,
-    broadcast,
-    userName
-  )
-  const lessonActions = useLessonActions(
-    state,
-    dispatch,
-    tenantId,
-    setSavingStatus,
-    broadcast,
-    userName
-  )
+  const moduleActions = useModuleActions(state, dispatch, tenantId, setSavingStatus)
+  const lessonActions = useLessonActions(state, dispatch, tenantId, setSavingStatus)
   const blockActions = useBlockActions(
     state,
     dispatch,
     tenantId,
     setSavingStatus,
     activeLessonIdRef,
-    saveTimerRef,
-    broadcast,
-    userName,
-    presence.getBlockLocker
+    saveTimerRef
   )
 
   // ⚡ Perf: Memoize actions object — the action hooks return stable useCallback refs,
@@ -256,15 +187,12 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     [courseActions, moduleActions, lessonActions, blockActions]
   )
 
-  // ⚡ Perf: Split memoization so stable parts (actions, mobile, presence, offline)
+  // ⚡ Perf: Split memoization so stable parts (actions, mobile, offline)
   // don't get a new reference every time volatile `state` changes (e.g. on every
   // keystroke). The stableValue memo only recreates when those rarely-changing
   // values actually change; the outer value memo still updates whenever state
   // changes (expected), but preserves the stable inner references.
-  const stableValue = useMemo(
-    () => ({ actions, mobile, presence, offline }),
-    [actions, mobile, presence, offline]
-  )
+  const stableValue = useMemo(() => ({ actions, mobile, offline }), [actions, mobile, offline])
 
   const value: BuilderContextValue = useMemo(
     () => ({ ...stableValue, state }),

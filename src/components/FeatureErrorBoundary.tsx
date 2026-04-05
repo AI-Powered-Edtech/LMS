@@ -28,6 +28,21 @@ function isChunkLoadError(error?: Error): boolean {
 }
 
 /**
+ * Detect context/provider errors — typically thrown when a component is
+ * rendered outside its required React context provider.
+ */
+function isContextError(error?: Error): boolean {
+  if (!error) return false
+  const msg = error.message.toLowerCase()
+  return (
+    (msg.includes('must be used within') && msg.includes('provider')) ||
+    (msg.includes('cannot read properties of null') &&
+      (msg.includes('usecontext') || msg.includes('use'))) ||
+    (msg.includes('cannot read properties of undefined') && msg.includes('use'))
+  )
+}
+
+/**
  * Detect authentication/session-related errors from error message patterns.
  * Since this is a class component (can't use hooks), we inspect the error object.
  */
@@ -113,7 +128,31 @@ export class FeatureErrorBoundary extends Component<Props, State> {
         )
       }
 
-      // 3. Auth/session error — prompt user to re-login
+      // Context/provider error — component mounted outside required provider
+      if (isContextError(this.state.error)) {
+        return (
+          <div className="flex flex-col items-center justify-center p-8 text-center min-h-[300px] bg-violet-50 dark:bg-violet-950/20 rounded-2xl border border-violet-100 dark:border-violet-900/30 h-full w-full">
+            <div className="w-16 h-16 bg-violet-100 dark:bg-violet-900/30 rounded-2xl flex items-center justify-center mb-4 text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-800">
+              <AlertTriangle className="w-8 h-8" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">
+              Komponen tidak dapat dimuat
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-sm">
+              Komponen ini dimuat di luar context yang diperlukan. Coba muat ulang halaman.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="flex items-center gap-2 px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-medium rounded-xl transition-all focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2"
+            >
+              <RefreshCcw className="w-4 h-4" />
+              Muat Ulang Halaman
+            </button>
+          </div>
+        )
+      }
+
+      // Auth/session error — prompt user to re-login
       if (isAuthError(this.state.error)) {
         return (
           <div className="flex flex-col items-center justify-center p-8 text-center min-h-[300px] bg-amber-50 dark:bg-amber-950/20 rounded-2xl border border-amber-100 dark:border-amber-900/30 transition-colors duration-300 h-full w-full">

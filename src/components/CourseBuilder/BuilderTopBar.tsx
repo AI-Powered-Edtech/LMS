@@ -29,15 +29,13 @@ import { useCourseReadiness } from '@/features/courses/hooks/useCourseReadiness'
 import { cn } from '@/utils/cn'
 import { translateCourseStatus } from '@/utils/statusTranslations'
 
-import { PresenceAvatars } from './PresenceAvatars'
-
 interface BuilderTopBarProps {
   releasePanelOpen?: boolean
   onToggleReleasePanel?: () => void
 }
 
 export function BuilderTopBar({ releasePanelOpen, onToggleReleasePanel }: BuilderTopBarProps) {
-  const { state, actions, mobile, presence, offline } = useBuilder()
+  const { state, actions, mobile, offline } = useBuilder()
   const { role } = useAuth()
   const navigate = useNavigate()
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
@@ -143,9 +141,6 @@ export function BuilderTopBar({ releasePanelOpen, onToggleReleasePanel }: Builde
 
       {/* Right: Status + Actions */}
       <div className="flex items-center gap-2 md:gap-3">
-        {/* Presence Avatars */}
-        {!mobile.isMobile && <PresenceAvatars others={presence.othersArray} />}
-
         {/* Offline / Save Status */}
         <div aria-live="polite" aria-atomic="true">
           {!offline.isOnline ? (

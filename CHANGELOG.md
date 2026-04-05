@@ -1,5 +1,107 @@
 # EduSync LMS — Changelog
 
+## [Sprint 38C — WebSocket Removal + Group Assignments + UX Quality] — 2026-04-04
+
+### 🔧 Sprint A — Critical Fixes
+
+#### Group Assignments — Teacher Group Creation Wired
+
+- `TeacherGroupView.tsx`: "Buat Kelompok Baru" button now opens `CreateGroupModal` (previously toast stub)
+- `TeacherGroupView.tsx`: "Pantau" button per group now opens `GroupMonitorModal` (shows tasks, members, chat)
+- New: `GroupMonitorModal.tsx` — teacher monitoring modal with tasks + messages + member list
+- `TeacherGroupView.tsx`: Group settings `onSave` now calls `useUpdateGroupSettings` mutation (previously toast stub)
+- New hook: `useUpdateGroupSettings(assignmentId)` in `useGroupAssignments.ts`
+- New hook: `useDeleteGroupTask(groupId)` in `useGroupAssignments.ts` using `groupAssignmentTaskService`
+
+#### WebSocket → Polling Migration (7 channels removed)
+
+Per project rule: "gunakan polling, bukan WebSocket untuk fitur realtime"
+
+- `useNotifications.ts` — removed Supabase Realtime subscription; `refetchInterval: 60_000` retained
+- `useAdminNotifications.ts` — removed Realtime subscription; 60s polling retained
+- `useMessages.ts` — removed both `useThreads` + `useMessages` subscriptions; added `refetchInterval: 15_000` to `useMessages` (was `false`)
+- `MessageThread.tsx` — removed duplicate subscription (already covered by `useMessages`)
+- `discussionQueries.ts` — removed Realtime subscription; 30s polling retained
+- `classroomService.ts` — deleted dead `subscribeToChanges()` method (was never called)
+- `useClassroomsQuery.ts` — added `refetchInterval: 30_000` to `useClassroomsQuery`
+
+#### Collaborative Editing Removed (Course Builder)
+
+Per project rule: "gunakan polling, bukan WebSocket" — broadcast/Presence channels cannot be polled
+
+- Deleted: `useBuilderChannel.ts`, `useBuilderPresence.ts`, `PresenceAvatars.tsx`, `CollaboratorCursor.tsx`
+- `BuilderContext.tsx` — removed collaboratorService, channel/presence hooks, broadcast args, presence from context value
+- `builderReducer.ts` — removed all `REMOTE_*` action types and their reducer cases
+- `useModuleActions.ts`, `useLessonActions.ts`, `useBlockActions.ts` — removed `broadcast?`, `userName?`, `getBlockLocker?` params
+- `LessonBlockEditor.tsx` — removed block locking UI (presence.getBlockLocker, CollaboratorCursor overlay)
+- `BuilderTopBar.tsx` — removed PresenceAvatars render
+
+### ✨ Sprint B — Quality
+
+- `TeacherDashboard.tsx` — applied `staggerContainer`/`staggerItem` animations to classroom cards grid
+- `FeatureErrorBoundary.tsx` — added `isContextError()` classifier for `useContext`/Provider errors with dedicated Indonesian error UI
+- `GroupTasksTab.tsx` — added `onDeleteTask` prop with `Trash2` delete button (hover-visible)
+- `StudentGroupView.tsx` — wired `useUndoableAction` (5s delay + "Batal" toast) to group task deletion
+
+### 📋 Sprint C — Stub Completion
+
+- `TeacherGroupView.tsx` + `GroupSettingsTab.tsx` — settings save wired to `update_group_settings` RPC
+- `TeacherGroupView.tsx` — "Pantau" button per group opens `GroupMonitorModal` (see Sprint A above)
+
+---
+
+## [Phase 38B] — 2026-04-04
+
+### 🚀 AI Content Generator — Production Ready (Complete Implementation)
+
+#### Database
+
+- **Migration applied to production**: `20260505000001_ai_content_generator.sql`
+- Tables: `ai_generated_content` (results persistence) + `ai_generation_logs` (rate limiting + analytics)
+- RPC: `get_ai_generation_stats(p_tenant_id)` untuk admin analytics
+
+#### Edge Function (`generate-ai-content`) — From MOCK to Production
+
+- **Real Groq LLM**: `llama-3.1-70b-versatile`, temperature 0.4, 30s timeout, `json_object` format
+- **File extraction**: PDF (BT/ET regex + plaintext fallback), DOCX (zip.js), TXT/CSV (TextDecoder)
+- **Role security**: Hanya `teacher` + `admin` — student/parent/principal → 403
+- **Rate limiting**: 20 generasi/jam per user via `ai_generation_logs`
+- **Persistence**: Setiap generasi disimpan ke `ai_generated_content`
+- **Audit logging**: All attempts (success/error/rate_limited) dicatat ke `ai_generation_logs`
+- **UUID question IDs**: `crypto.randomUUID()` — bukan lagi sequential `q_N`
+- **Security**: `tenant_id` tidak dikembalikan di response body
+
+#### Frontend Fixes (Phase 38B bugs)
+
+- ✅ `creatorQueries.ts`: Gunakan `ai_generated_content` (bukan `creator_history`)
+- ✅ `Creator.tsx`: Replace deprecated `useAddCalendarEvent` → `usePersistCalendarEvent`
+- ✅ `Creator.tsx`: Fix `user!.id` non-null assertion → guard `if (!user) return`
+- ✅ `Creator.tsx`: `VALID_TYPES` dipindah ke module-level import dari types
+- ✅ `Creator.tsx`: Fix `handleAddToCourse` disabled: `selectedCount === 0` (bukan complex logic)
+- ✅ `Creator.tsx`: `handleLoadFromHistory` memanggil `generateMutation.reset()` lebih dulu
+- ✅ `Creator.tsx`: Cancel button di loading overlay
+- ✅ `HistoryPanel.tsx`: Lazy fetch (hanya query setelah panel pertama kali dibuka)
+- ✅ `HistoryPanel.tsx`: Label "topik" vs "soal" sesuai `assignment_type`
+- ✅ `QuestionCard.tsx`: `correctIdx` dihitung sekali sebelum `.map()` (O(N) bukan O(N²))
+- ✅ `EditQuestionModal.tsx`: Pad options ke 4 items; disable save jika ada option kosong
+- ✅ `types/index.ts`: `BLOOM_LABELS: Record<BloomLevel, string>` — type-safe
+- ✅ `types/index.ts`: `GeneratedContent.id: string | null`
+
+#### Phase 4 — CourseBuilder Integration
+
+- 🆕 `creatorBridge.store.ts`: Zustand store untuk bridge data antar halaman
+- 🆕 `AIImportBanner.tsx`: Banner animasi di CourseBuilder ketika soal AI siap
+- 🔧 `Creator.tsx`: `handleAddToCourse` set bridge store → navigate (bukan router state)
+- 🔧 `QuizBlockEditor.tsx`: Consume bridge store, map GeneratedQuestion → quiz format
+
+#### Phase 5 — Enhancements
+
+- 🆕 `exportToCSV.ts`: Export soal ke CSV dengan BOM untuk Excel compatibility
+- 🆕 `questionBankIntegration.ts`: Simpan soal ke `question_bank` via existing RPC
+- 🆕 `UsageQuotaBar.tsx`: Bar kuota AI realtime (polling 60s), warna berubah di threshold 15/18
+- 🔧 `Creator.tsx`: Tombol CSV + Bank Soal di result phase toolbar
+- 🔧 `Creator.tsx`: UsageQuotaBar di config phase
+
 ## [Unreleased] — 2026-04-04 — PR Batch Merge (Waves 1–4)
 
 ### ✨ Features

@@ -3,6 +3,8 @@ import {
   Calendar as CalendarIcon,
   CheckSquare,
   Clock,
+  Database,
+  Download,
   FileText,
   Settings,
   Sparkles,
@@ -25,9 +27,13 @@ import {
   useGenerateAIContent,
   useMarkContentUsed,
 } from '@/features/creator'
+import { saveQuestionsToBank } from '@/features/creator/api/questionBankIntegration'
 import { EditQuestionModal } from '@/features/creator/components/EditQuestionModal'
 import { HistoryPanel } from '@/features/creator/components/HistoryPanel'
 import { QuestionCard } from '@/features/creator/components/QuestionCard'
+import { UsageQuotaBar } from '@/features/creator/components/UsageQuotaBar'
+import { useCreatorBridgeStore } from '@/features/creator/store/creatorBridge.store'
+import { exportQuestionsToCSV } from '@/features/creator/utils/exportToCSV'
 import { useSendNotification } from '@/features/notifications'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
@@ -123,6 +129,7 @@ export function Creator() {
   const [showHistory, setShowHistory] = useState(false)
   const [editingQuestion, setEditingQuestion] = useState<GeneratedQuestion | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [isSavingToBank, setIsSavingToBank] = useState(false)
 
   const hasResult = questions.length > 0
   const selectedCount = selectedIds.size
@@ -284,17 +291,17 @@ export function Creator() {
       markUsedMutation.mutate(resultId)
     }
 
-    navigate(getPath('/app/teacher/course-builder', '/app/admin/course-builder'), {
-      state: {
-        action: resultType === 'quiz' ? 'add-quiz' : 'add-assignment',
-        quizData: {
-          title: file?.name.replace(/\.[^/.]+$/, '') || 'Konten Buatan AI',
-          type: resultType,
-          questions: selectedQs,
-          summary: resultSummary,
-        },
-      },
+    // Set bridge store — CourseBuilder will read this
+    useCreatorBridgeStore.getState().setPendingQuiz({
+      title: file?.name.replace(/\.[^/.]+$/, '') || 'Konten Buatan AI',
+      type: resultType,
+      questions: selectedQs,
+      summary: resultSummary,
+      bloomLevel: difficulty,
+      questionCount: selectedQs.length,
     })
+
+    navigate(getPath('/app/teacher/course-builder', '/app/admin/course-builder'))
   }
 
   const handleSaveToCalendar = () => {
@@ -329,6 +336,40 @@ export function Creator() {
     setResultId(null)
     setResultSummary('')
     generateMutation.reset()
+  }
+
+  const handleExportCSV = () => {
+    const selectedQs = getSelectedQuestions()
+    if (selectedQs.length === 0) {
+      addToast({ type: 'error', message: 'Pilih minimal 1 soal untuk diekspor.' })
+      return
+    }
+    exportQuestionsToCSV(selectedQs, resultType, file?.name.replace(/\.[^/.]+$/, '') || 'soal_ai')
+    addToast({ type: 'success', message: `${selectedQs.length} soal berhasil diekspor ke CSV.` })
+  }
+
+  const handleSaveToBank = async () => {
+    const selectedQs = getSelectedQuestions()
+    if (selectedQs.length === 0) {
+      addToast({ type: 'error', message: 'Pilih minimal 1 soal untuk disimpan.' })
+      return
+    }
+    setIsSavingToBank(true)
+    try {
+      const result = await saveQuestionsToBank(selectedQs, resultType, difficulty)
+      if (result.saved > 0) {
+        addToast({
+          type: 'success',
+          message: `${result.saved} soal berhasil disimpan ke Bank Soal.${result.failed > 0 ? ` (${result.failed} gagal)` : ''}`,
+        })
+      } else {
+        addToast({ type: 'error', message: 'Gagal menyimpan soal ke Bank Soal.' })
+      }
+    } catch {
+      addToast({ type: 'error', message: 'Gagal menyimpan soal ke Bank Soal.' })
+    } finally {
+      setIsSavingToBank(false)
+    }
   }
 
   const handleLoadFromHistory = (content: {
@@ -383,193 +424,198 @@ export function Creator() {
 
       {/* ── Upload + Config Phase ── */}
       {!hasResult && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Upload Area */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
-              <UploadCloud className="w-6 h-6 text-blue-500" />
-              Unggah Materi
-            </h2>
+        <>
+          <UsageQuotaBar />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Upload Area */}
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
+              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                <UploadCloud className="w-6 h-6 text-blue-500" />
+                Unggah Materi
+              </h2>
 
-            <div
-              role="presentation"
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              className={cn(
-                'h-64 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-6 text-center transition-all duration-200',
-                isDragging
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 scale-[1.02]'
-                  : 'border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800',
-                file && 'border-green-500 bg-green-50 dark:bg-green-900/20'
-              )}
-            >
-              {file ? (
-                <>
-                  <FileText className="w-12 h-12 text-green-500 mb-4" />
-                  <p className="font-bold text-slate-700 dark:text-slate-200 truncate max-w-full px-2">
-                    {file.name}
-                  </p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setFile(null)}
-                    className="mt-4 text-sm text-red-500 font-medium hover:underline"
-                  >
-                    Hapus File
-                  </button>
-                </>
-              ) : (
-                <>
-                  <UploadCloud
-                    className={cn(
-                      'w-12 h-12 mb-4 transition-colors',
-                      isDragging ? 'text-blue-500' : 'text-slate-400'
-                    )}
-                  />
-                  <p className="font-bold text-slate-700 dark:text-slate-200">
-                    Tarik & Lepas file di sini
-                  </p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-                    Mendukung .pdf, .docx, .txt, .csv (Maks 10MB)
-                  </p>
-                  <input
-                    type="file"
-                    className="hidden"
-                    ref={fileInputRef}
-                    accept=".pdf,.docx,.txt,.csv,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/csv"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0]
-                      if (f) validateAndSetFile(f)
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="mt-6 px-6 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 shadow-sm"
-                  >
-                    Pilih File
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Configuration Area */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
-              <Settings className="w-6 h-6 text-slate-500" />
-              Konfigurasi AI
-            </h2>
-
-            <div className="space-y-7">
-              {/* Assignment Type */}
-              <div>
-                <label className="font-bold text-slate-700 dark:text-slate-200 block mb-3">
-                  Jenis Tugas
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {ASSIGNMENT_TYPES.map((type) => (
-                    <button
-                      key={type.id}
-                      type="button"
-                      onClick={() => setAssignmentType(type.id)}
-                      className={cn(
-                        'px-4 py-3 rounded-xl border text-sm font-medium text-center transition-all',
-                        assignmentType === type.id
-                          ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm'
-                          : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 text-slate-600 dark:text-slate-400'
-                      )}
-                    >
-                      {type.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Question Count */}
-              <div>
-                <div className="flex justify-between mb-2">
-                  <label className="font-bold text-slate-700 dark:text-slate-200">
-                    {assignmentType === 'writing' ? 'Jumlah Topik' : 'Jumlah Soal'}
-                  </label>
-                  <span className="font-bold text-blue-600 dark:text-blue-400">
-                    {assignmentType === 'writing' ? Math.min(questionCount, 3) : questionCount}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max={assignmentType === 'writing' ? '3' : '50'}
-                  value={assignmentType === 'writing' ? Math.min(questionCount, 3) : questionCount}
-                  onChange={(e) => setQuestionCount(Number(e.target.value))}
-                  className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                />
-                {assignmentType === 'writing' && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Tugas menulis dibatasi maksimal 3 topik.
-                  </p>
-                )}
-              </div>
-
-              {/* Bloom's Level */}
-              <div>
-                <label className="font-bold text-slate-700 dark:text-slate-200 block mb-1">
-                  Tingkat Kesulitan (Taksonomi Bloom)
-                </label>
-                {difficulty && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-                    {BLOOM_DESCRIPTIONS[difficulty]}
-                  </p>
-                )}
-                <div className="grid grid-cols-2 gap-2">
-                  {BLOOM_LEVELS.map((level) => (
-                    <button
-                      key={level}
-                      type="button"
-                      onClick={() => setDifficulty(level)}
-                      className={cn(
-                        'px-4 py-2.5 rounded-xl border text-sm font-medium text-left transition-all',
-                        difficulty === level
-                          ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm'
-                          : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 text-slate-600 dark:text-slate-400'
-                      )}
-                    >
-                      {BLOOM_LABELS[level]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Generate Button */}
-              <button
-                type="button"
-                onClick={handleGenerate}
-                disabled={!file || generateMutation.isPending}
+              <div
+                role="presentation"
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
                 className={cn(
-                  'w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg',
-                  !file || generateMutation.isPending
-                    ? 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed shadow-none'
-                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 active:scale-95 shadow-blue-200 dark:shadow-blue-900'
+                  'h-64 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-6 text-center transition-all duration-200',
+                  isDragging
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 scale-[1.02]'
+                    : 'border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800',
+                  file && 'border-green-500 bg-green-50 dark:bg-green-900/20'
                 )}
               >
-                {generateMutation.isPending ? (
+                {file ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Memproses dokumen...
+                    <FileText className="w-12 h-12 text-green-500 mb-4" />
+                    <p className="font-bold text-slate-700 dark:text-slate-200 truncate max-w-full px-2">
+                      {file.name}
+                    </p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setFile(null)}
+                      className="mt-4 text-sm text-red-500 font-medium hover:underline"
+                    >
+                      Hapus File
+                    </button>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-5 h-5" />
-                    Buat dengan AI
+                    <UploadCloud
+                      className={cn(
+                        'w-12 h-12 mb-4 transition-colors',
+                        isDragging ? 'text-blue-500' : 'text-slate-400'
+                      )}
+                    />
+                    <p className="font-bold text-slate-700 dark:text-slate-200">
+                      Tarik & Lepas file di sini
+                    </p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                      Mendukung .pdf, .docx, .txt, .csv (Maks 10MB)
+                    </p>
+                    <input
+                      type="file"
+                      className="hidden"
+                      ref={fileInputRef}
+                      accept=".pdf,.docx,.txt,.csv,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/csv"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        if (f) validateAndSetFile(f)
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="mt-6 px-6 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 shadow-sm"
+                    >
+                      Pilih File
+                    </button>
                   </>
                 )}
-              </button>
+              </div>
+            </div>
+
+            {/* Configuration Area */}
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
+              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center gap-2">
+                <Settings className="w-6 h-6 text-slate-500" />
+                Konfigurasi AI
+              </h2>
+
+              <div className="space-y-7">
+                {/* Assignment Type */}
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-slate-200 block mb-3">
+                    Jenis Tugas
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {ASSIGNMENT_TYPES.map((type) => (
+                      <button
+                        key={type.id}
+                        type="button"
+                        onClick={() => setAssignmentType(type.id)}
+                        className={cn(
+                          'px-4 py-3 rounded-xl border text-sm font-medium text-center transition-all',
+                          assignmentType === type.id
+                            ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm'
+                            : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 text-slate-600 dark:text-slate-400'
+                        )}
+                      >
+                        {type.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Question Count */}
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <label className="font-bold text-slate-700 dark:text-slate-200">
+                      {assignmentType === 'writing' ? 'Jumlah Topik' : 'Jumlah Soal'}
+                    </label>
+                    <span className="font-bold text-blue-600 dark:text-blue-400">
+                      {assignmentType === 'writing' ? Math.min(questionCount, 3) : questionCount}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max={assignmentType === 'writing' ? '3' : '50'}
+                    value={
+                      assignmentType === 'writing' ? Math.min(questionCount, 3) : questionCount
+                    }
+                    onChange={(e) => setQuestionCount(Number(e.target.value))}
+                    className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  />
+                  {assignmentType === 'writing' && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Tugas menulis dibatasi maksimal 3 topik.
+                    </p>
+                  )}
+                </div>
+
+                {/* Bloom's Level */}
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-slate-200 block mb-1">
+                    Tingkat Kesulitan (Taksonomi Bloom)
+                  </label>
+                  {difficulty && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                      {BLOOM_DESCRIPTIONS[difficulty]}
+                    </p>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    {BLOOM_LEVELS.map((level) => (
+                      <button
+                        key={level}
+                        type="button"
+                        onClick={() => setDifficulty(level)}
+                        className={cn(
+                          'px-4 py-2.5 rounded-xl border text-sm font-medium text-left transition-all',
+                          difficulty === level
+                            ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm'
+                            : 'border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 text-slate-600 dark:text-slate-400'
+                        )}
+                      >
+                        {BLOOM_LABELS[level]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Generate Button */}
+                <button
+                  type="button"
+                  onClick={handleGenerate}
+                  disabled={!file || generateMutation.isPending}
+                  className={cn(
+                    'w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-lg',
+                    !file || generateMutation.isPending
+                      ? 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed shadow-none'
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:opacity-90 active:scale-95 shadow-blue-200 dark:shadow-blue-900'
+                  )}
+                >
+                  {generateMutation.isPending ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Memproses dokumen...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      Buat dengan AI
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* ── Result Phase ── */}
@@ -650,6 +696,24 @@ export function Creator() {
                   className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   title="Tanggal tenggat"
                 />
+                <button
+                  type="button"
+                  onClick={handleExportCSV}
+                  disabled={selectedCount === 0}
+                  className="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shrink-0 disabled:opacity-40"
+                >
+                  <Download className="w-4 h-4" />
+                  CSV
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveToBank}
+                  disabled={selectedCount === 0 || isSavingToBank}
+                  className="px-3 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors shrink-0 disabled:opacity-40"
+                >
+                  <Database className="w-4 h-4" />
+                  {isSavingToBank ? 'Menyimpan...' : 'Bank Soal'}
+                </button>
                 <button
                   type="button"
                   onClick={handleSaveToCalendar}

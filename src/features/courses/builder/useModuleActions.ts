@@ -10,9 +10,7 @@ export function useModuleActions(
   state: BuilderState,
   dispatch: Dispatch<BuilderAction>,
   tenantId: string | null,
-  setSavingStatus: (status: BuilderState['savingStatus']) => void,
-  broadcast?: (action: BuilderAction, userName: string) => void,
-  userName?: string
+  setSavingStatus: (status: BuilderState['savingStatus']) => void
 ) {
   const addToast = useToast((s) => s.addToast)
 
@@ -22,7 +20,6 @@ export function useModuleActions(
       try {
         const mod = await builderModuleService.createModule(state.courseId, title, tenantId)
         dispatch({ type: 'ADD_MODULE', module: mod })
-        broadcast?.({ type: 'ADD_MODULE', module: mod }, userName ?? '')
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Failed to add module:', err)
         addToast({
@@ -33,7 +30,7 @@ export function useModuleActions(
         })
       }
     },
-    [state.courseId, tenantId, dispatch, addToast, broadcast, userName]
+    [state.courseId, tenantId, dispatch, addToast]
   )
 
   const updateModule = useCallback(
@@ -46,7 +43,6 @@ export function useModuleActions(
       try {
         await builderModuleService.updateModule(moduleId, tenantId, data)
         setSavingStatus('saved')
-        broadcast?.({ type: 'UPDATE_MODULE', moduleId, data }, userName ?? '')
       } catch (err: unknown) {
         if (prevModule) {
           dispatch({ type: 'UPDATE_MODULE', moduleId, data: { title: prevModule.title } })
@@ -60,7 +56,7 @@ export function useModuleActions(
         })
       }
     },
-    [state.modules, tenantId, dispatch, setSavingStatus, broadcast, userName, addToast]
+    [state.modules, tenantId, dispatch, setSavingStatus, addToast]
   )
 
   const deleteModule = useCallback(
@@ -69,7 +65,6 @@ export function useModuleActions(
       dispatch({ type: 'DELETE_MODULE', moduleId })
       try {
         await builderModuleService.deleteModule(moduleId, tenantId)
-        broadcast?.({ type: 'DELETE_MODULE', moduleId }, userName ?? '')
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Failed to delete module:', err)
         addToast({
@@ -80,7 +75,7 @@ export function useModuleActions(
         })
       }
     },
-    [tenantId, dispatch, addToast, broadcast, userName]
+    [tenantId, dispatch, addToast]
   )
 
   const reorderModules = useCallback(
@@ -100,7 +95,6 @@ export function useModuleActions(
 
       try {
         await builderModuleService.reorderModules(state.courseId, moduleIds, tenantId)
-        broadcast?.({ type: 'SET_MODULES', modules: reordered }, userName ?? '')
       } catch (error: unknown) {
         if (import.meta.env.DEV) console.error('Failed to reorder modules', error)
         dispatch({ type: 'SET_MODULES', modules: previousModules })
@@ -112,7 +106,7 @@ export function useModuleActions(
         })
       }
     },
-    [state.modules, state.courseId, tenantId, dispatch, addToast, broadcast, userName]
+    [state.modules, state.courseId, tenantId, dispatch, addToast]
   )
 
   return { addModule, updateModule, deleteModule, reorderModules }

@@ -2,16 +2,20 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
+import { captureError } from '@/utils/sentry'
 
 import {
   CreateGroupInput,
   CreateGroupTaskInput,
   groupAssignmentService,
+  groupAssignmentTaskService,
   GroupMessage,
+  GroupSettings as ServiceGroupSettings,
   GroupTask,
   StudentGroupData,
   TeacherGroupEntry,
 } from '../api/groupAssignmentService'
+import type { GroupSettings as UIGroupSettings } from '../components/groups/GroupSettingsTab'
 
 // ============================================================
 // Query keys
@@ -123,6 +127,23 @@ export function useUpdateGroupTaskStatus(groupId: string) {
   })
 }
 
+export function useDeleteGroupTask(groupId: string) {
+  const { tenantId } = useAuth()
+  const queryClient = useQueryClient()
+
+  return useMutation<void, Error, string>({
+    mutationFn: (taskId) => groupAssignmentTaskService.deleteGroupTask(taskId, tenantId!),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: groupAssignmentKeys.groupTasks(groupId),
+      })
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useDeleteGroupTask' })
+    },
+  })
+}
+
 export function useGroupMessages(groupId: string | undefined) {
   const { tenantId } = useAuth()
   const queryClient = useQueryClient()
@@ -207,6 +228,26 @@ export function useGradeGroupSubmission(assignmentId: string) {
       void queryClient.invalidateQueries({
         queryKey: groupAssignmentKeys.teacherGroups(assignmentId),
       })
+    },
+  })
+}
+
+/**
+ * Mutation for a teacher to update group settings for an assignment.
+ * Maps UI GroupSettings (camelCase) → service GroupSettings (snake_case).
+ */
+export function useUpdateGroupSettings(assignmentId: string) {
+  return useMutation<void, Error, UIGroupSettings>({
+    mutationFn: (uiSettings) => {
+      const serviceSettings: ServiceGroupSettings = {
+        method: uiSettings.method as ServiceGroupSettings['method'],
+        doc_collaboration: uiSettings.docCollab as ServiceGroupSettings['doc_collaboration'],
+        peer_review_required: uiSettings.peerReview,
+      }
+      return groupAssignmentService.updateGroupSettings(assignmentId, serviceSettings)
+    },
+    onError: (err) => {
+      captureError(err, { context: 'useUpdateGroupSettings' })
     },
   })
 }
