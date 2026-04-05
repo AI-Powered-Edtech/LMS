@@ -127,6 +127,7 @@ export function BuilderSidebar() {
               onClick={handleAddModule}
               className="flex items-center gap-1 p-2 pr-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95"
               title="Buat Modul Baru"
+              aria-label="Buat Modul Baru"
             >
               <Plus className="w-4 h-4" />
               <span className="text-xs font-bold">Modul</span>
@@ -140,6 +141,7 @@ export function BuilderSidebar() {
               disabled={!state.courseId}
               className="flex items-center p-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-r-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95 border-l border-indigo-700/30 disabled:opacity-50"
               title="Import dari Template"
+              aria-label="Import dari Template"
             >
               <Import className="w-3.5 h-3.5" />
             </button>
