@@ -156,6 +156,7 @@ export function PPDBDetailModal({ registration, onClose, onStatusChange }: PPDBD
                   >
                     <FileText className="w-4 h-4" />
                     {key}
+                    <span className="sr-only">(buka di tab baru)</span>
                   </a>
                 ))}
               </div>
