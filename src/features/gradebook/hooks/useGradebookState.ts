@@ -94,18 +94,9 @@ export function useGradebookState() {
         lowestStudent: '-',
       }
     }
-    // ⚡ Perf: Consolidate multiple chained array iterations into a single pass
-    let sum = 0
-    let best = averages[0]
-    let worst = averages[0]
-
-    for (let i = 0; i < averages.length; i++) {
-      const current = averages[i]
-      sum += current.avg
-      if (current.avg > best.avg) best = current
-      if (current.avg < worst.avg) worst = current
-    }
-
+    const sum = averages.reduce((a, b) => a + b.avg, 0)
+    const best = averages.reduce((a, b) => (b.avg > a.avg ? b : a))
+    const worst = averages.reduce((a, b) => (b.avg < a.avg ? b : a))
     return {
       classAverage: Math.round(sum / averages.length),
       highestScore: best.avg,
