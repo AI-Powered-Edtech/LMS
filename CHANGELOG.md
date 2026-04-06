@@ -40,6 +40,7 @@
 
 ### Fixed
 
+- **XSS in assignment attachment URLs** — Assignment attachment URLs sekarang divalidasi dan disanitasi untuk mencegah Cross-Site Scripting (XSS) attacks. (`Assignments.tsx`)
 - **Notifications security hardening** — `sendNotification` tidak lagi fallback ke direct `INSERT` ketika RPC `create_notification` tidak tersedia (`PGRST202`); sekarang fail-hard agar server-side authorization tidak terlewati.
 - **FeatureManagement draft sync** — inisialisasi state flags dipindahkan ke `useEffect`, dan merge data refetch vs draft lokal kini menjaga item `dirty` agar tidak tertimpa.
 - **BulkImportWizard step flow** — blok render `step === 3` yang duplikat dihapus; alur upload/preview dirapikan menjadi satu render path untuk step 2/3.
