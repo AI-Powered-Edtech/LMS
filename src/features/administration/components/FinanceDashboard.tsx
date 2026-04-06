@@ -66,9 +66,7 @@ function ChartTooltip({ active, payload, label, isDark }: ChartTooltipProps) {
     <div
       className={cn(
         'rounded-xl border px-4 py-3 shadow-lg text-sm',
-        isDark
-          ? 'bg-slate-800 border-slate-700 text-slate-100'
-          : 'bg-white border-slate-200 text-slate-900'
+        'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100'
       )}
     >
       <p className="font-semibold mb-2">{label}</p>
