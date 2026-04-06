@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Modal, ModalBody, ModalFooter } from '@/components/ui/Modal'
 import { cn } from '@/utils/cn'
+import { sanitizeUrl } from '@/utils/sanitize'
 
 /* ─── Types ──────────────────────────────────────────────────────── */
 
@@ -251,7 +252,7 @@ function OfficePreview({
       </div>
       {url && (
         <a
-          href={url}
+          href={sanitizeUrl(url)}
           target="_blank"
           rel="noopener noreferrer"
           className={cn(
@@ -297,7 +298,7 @@ function OtherPreview({
       </div>
       {url && (
         <a
-          href={url}
+          href={sanitizeUrl(url)}
           download={fileName}
           className={cn(
             'inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors',
@@ -435,7 +436,7 @@ export function FilePreviewModal({
         </Button>
         {resolvedUrl && (
           <a
-            href={resolvedUrl}
+            href={sanitizeUrl(resolvedUrl)}
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
