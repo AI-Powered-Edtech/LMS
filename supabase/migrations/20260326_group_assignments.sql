@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS group_submissions (
 
 ALTER TABLE group_submissions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "tenant_isolation" ON group_submissions;
 CREATE POLICY "tenant_isolation" ON group_submissions
   USING (tenant_id = (SELECT get_my_tenant_id()));
 
