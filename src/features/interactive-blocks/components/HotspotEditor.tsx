@@ -239,7 +239,7 @@ export function HotspotEditor({ data, onChange }: HotspotEditorProps) {
           }`}
         >
           <span
-            className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform mt-0.5 ${
+            className={`inline-block h-4 w-4 rounded-full bg-white dark:bg-slate-600 shadow transition-transform mt-0.5 ${
               data?.revealMode === 'hover' ? 'translate-x-4' : 'translate-x-0.5'
             }`}
           />
