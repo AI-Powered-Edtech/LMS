@@ -90,7 +90,7 @@ describe('offlineUploadQueue', () => {
       transaction: vi.fn(() => tx),
     }
 
-    vi.mocked(openDB).mockResolvedValue(db as unknown as ReturnType<typeof openDB>)
+    vi.mocked(openDB).mockResolvedValue(db as unknown as IDBDatabase)
 
     return { db, tx, objectStore, request }
   }

@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from 'motion/react'
+import type { Transition } from 'motion/react'
 import { useId, useRef } from 'react'
 
 import { cn } from '@/utils/cn'
@@ -81,7 +82,7 @@ export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
               <motion.span
                 layoutId={`tab-indicator-${layoutId}`}
                 className="absolute inset-0 bg-white dark:bg-slate-700 rounded-lg shadow-sm"
-                transition={tabTransition as any}
+                transition={tabTransition as Transition}
               />
             )}
             <span className="relative z-[1] flex items-center gap-2">

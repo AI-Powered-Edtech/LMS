@@ -24,8 +24,8 @@ describe('metrics', () => {
 
   describe('trackMetric', () => {
     it('should return early and do nothing if in DEV mode', async () => {
-      vi.stubEnv('DEV', 'true')
-      vi.stubEnv('PROD', '')
+      vi.stubEnv('DEV', true)
+      vi.stubEnv('PROD', false)
 
       await trackMetric('page.load_time_ms', 100)
 
@@ -34,8 +34,8 @@ describe('metrics', () => {
     })
 
     it('should insert into supabase app_metrics in PROD mode', async () => {
-      vi.stubEnv('DEV', '')
-      vi.stubEnv('PROD', 'true')
+      vi.stubEnv('DEV', false)
+      vi.stubEnv('PROD', true)
 
       await trackMetric('page.load_time_ms', 100)
 
@@ -48,8 +48,8 @@ describe('metrics', () => {
     })
 
     it('should insert into supabase app_metrics with metadata in PROD mode', async () => {
-      vi.stubEnv('DEV', '')
-      vi.stubEnv('PROD', 'true')
+      vi.stubEnv('DEV', false)
+      vi.stubEnv('PROD', true)
 
       await trackMetric('error.rate', 1, { errorCode: '404' })
 
@@ -62,8 +62,8 @@ describe('metrics', () => {
     })
 
     it('should silently catch and ignore errors from supabase in PROD mode', async () => {
-      vi.stubEnv('DEV', '')
-      vi.stubEnv('PROD', 'true')
+      vi.stubEnv('DEV', false)
+      vi.stubEnv('PROD', true)
 
       mockInsert.mockRejectedValue(new Error('Supabase error'))
 
@@ -81,8 +81,8 @@ describe('metrics', () => {
 
   describe('measureAsync', () => {
     it('should return the result of the async function', async () => {
-      vi.stubEnv('DEV', '')
-      vi.stubEnv('PROD', 'true')
+      vi.stubEnv('DEV', false)
+      vi.stubEnv('PROD', true)
 
       const result = await measureAsync('api.response_time_ms', async () => {
         return 'success'
@@ -92,8 +92,8 @@ describe('metrics', () => {
     })
 
     it('should measure and track the duration of the async function', async () => {
-      vi.stubEnv('DEV', '')
-      vi.stubEnv('PROD', 'true')
+      vi.stubEnv('DEV', false)
+      vi.stubEnv('PROD', true)
 
       const originalPerformanceNow = performance.now
 
