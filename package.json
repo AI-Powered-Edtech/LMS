@@ -103,7 +103,7 @@
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "fake-indexeddb": "^6.2.5",
     "husky": "^9.1.7",
-    "jest-axe": "^9.0.0",
+    "jest-axe": "^10.0.0",
     "jsdom": "^29.0.0",
     "knip": "^6.1.0",
     "lint-staged": "^16.4.0",
