@@ -4,9 +4,9 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 // ==========================================================================
 // Edge Function: bulk-import-users
 // ==========================================================================
-// Memproses bulk import pengguna dari CSV yang sudah diparse di frontend.
+// Memproses bulk import pengguna secara asynchronous.
 // Input:  { rows: ImportRow[], tenantId: string, importJobId: string }
-// Output: { success: number, failed: number, errors: RowError[] }
+// Output: { success: 0, failed: 0, total, status: 'processing' }
 // Auth:   Hanya ADMIN yang boleh memanggil endpoint ini (cek JWT role).
 // ==========================================================================
 
@@ -21,12 +21,6 @@ interface ImportRow {
   role: string // 'siswa' | 'guru' | 'admin' (lowercase dari CSV)
   nis?: string
   nomor_hp?: string
-}
-
-interface RowError {
-  row: number
-  email: string
-  reason: string
 }
 
 interface BulkImportPayload {
@@ -113,7 +107,7 @@ Deno.serve(async (req: Request) => {
     })
   }
 
-  const MAX_ROWS = 500
+  const MAX_ROWS = 10_000
   if (rows.length > MAX_ROWS) {
     return new Response(
       JSON.stringify({
@@ -147,109 +141,67 @@ Deno.serve(async (req: Request) => {
     )
   }
 
-  // 6. Proses setiap baris — satu baris gagal TIDAK menghentikan proses
-  const START_TIME = Date.now()
-  const MAX_DURATION_MS = 120_000 // 120 detik (aman di bawah batas 150 detik Supabase)
+  // 6. Simpan antrean baris mentah ke bulk_import_job_rows, lalu worker SQL memprosesnya
+  const normalizedRows = rows.map((row, index) => ({
+    job_id: importJobId,
+    tenant_id: tenantId,
+    row_number: index + 1,
+    email: row.email?.toLowerCase().trim() ?? '',
+    full_name: row.full_name?.trim() ?? '',
+    role: ROLE_MAP[row.role?.toLowerCase().trim()]?.toLowerCase() ?? row.role?.toLowerCase().trim(),
+    nis: row.nis?.trim() || null,
+    nomor_hp: row.nomor_hp?.trim() || null,
+    status: 'pending',
+  }))
 
-  let successRows = 0
-  let failedRows = 0
-  const errors: RowError[] = []
+  const { error: queueError } = await serviceClient
+    .from('bulk_import_job_rows')
+    .insert(normalizedRows)
 
-  for (let i = 0; i < rows.length; i++) {
-    // Periksa batas waktu sebelum memproses setiap baris
-    if (Date.now() - START_TIME > MAX_DURATION_MS) {
-      await serviceClient
-        .from('bulk_import_jobs')
-        .update({
-          status: 'partial',
-          success_rows: successRows,
-          failed_rows: failedRows,
-          completed_at: new Date().toISOString(),
-        })
-        .eq('id', importJobId)
-
-      return new Response(
-        JSON.stringify({
-          success: successRows,
-          failed: failedRows,
-          total: rows.length,
-          status: 'partial',
-          message: 'Batas waktu tercapai. Impor sebagian berhasil.',
-          errors,
-        }),
-        { status: 200, headers: { 'Content-Type': 'application/json', ...getCorsHeaders() } }
-      )
-    }
-
-    const row = rows[i]
-    const rowNum = i + 1
-
-    try {
-      // Validasi email
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!row.email || !emailRegex.test(row.email.trim())) {
-        throw new Error(`Email tidak valid: "${row.email}"`)
-      }
-
-      // Validasi role
-      const normalizedRole = row.role?.toLowerCase().trim()
-      const internalRole = ROLE_MAP[normalizedRole]
-      if (!internalRole) {
-        throw new Error(`Peran tidak dikenal: "${row.role}". Gunakan: siswa, guru, atau admin`)
-      }
-
-      const email = row.email.toLowerCase().trim()
-
-      // Buat invitation di tenant_invitations
-      // (Mengikuti pola yang sama dengan InviteUserModal)
-      const { error: insertError } = await serviceClient.from('tenant_invitations').insert({
-        tenant_id: tenantId,
-        email,
-        role: internalRole,
-        invited_by: user.id,
+  if (queueError) {
+    await serviceClient
+      .from('bulk_import_jobs')
+      .update({
+        status: 'failed',
+        failed_rows: rows.length,
+        error_details: [{ row: 0, email: '', reason: queueError.message }],
+        completed_at: new Date().toISOString(),
       })
+      .eq('id', importJobId)
 
-      if (insertError) {
-        // Duplikat email (unique constraint violation)
-        if (insertError.code === '23505') {
-          throw new Error('Email sudah terdaftar atau sudah diundang sebelumnya')
-        }
-        throw new Error(insertError.message)
-      }
-
-      successRows++
-    } catch (err: unknown) {
-      failedRows++
-      errors.push({
-        row: rowNum,
-        email: row.email ?? '',
-        reason: err instanceof Error ? err.message : 'Kesalahan tidak diketahui',
-      })
-    }
+    return new Response(JSON.stringify({ error: queueError.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...getCorsHeaders() },
+    })
   }
-
-  // 7. Update bulk_import_jobs dengan hasil akhir
-  const finalStatus = failedRows === 0 ? 'completed' : successRows === 0 ? 'failed' : 'partial'
 
   await serviceClient
     .from('bulk_import_jobs')
     .update({
-      status: finalStatus,
-      success_rows: successRows,
-      failed_rows: failedRows,
-      error_details: errors.length > 0 ? errors : null,
-      completed_at: new Date().toISOString(),
+      status: 'processing',
+      total_rows: rows.length,
+      success_rows: 0,
+      failed_rows: 0,
+      error_details: null,
+      started_at: new Date().toISOString(),
+      processed_at: null,
+      completed_at: null,
     })
     .eq('id', importJobId)
 
-  // 8. Return hasil detail
+  // 7. Trigger satu batch worker agar progres awal terlihat lebih cepat
+  await serviceClient.rpc('process_bulk_import_jobs', {
+    p_batch_size: 500,
+  })
+
+  // 8. Return ack cepat; frontend akan melakukan polling status job
   return new Response(
     JSON.stringify({
-      success: successRows,
-      failed: failedRows,
+      success: 0,
+      failed: 0,
       total: rows.length,
-      status: finalStatus,
-      errors,
+      status: 'processing',
+      importJobId,
     }),
     {
       status: 200,

@@ -150,7 +150,7 @@ async function processOperation(
           .update({
             answers: payload.answers,
             completed_at: new Date().toISOString(),
-            submitted_late: payload.submitted_late ?? false,
+            submitted_late: payload.submitted_late ?? true,
           })
           .eq('id', payload.attemptId)
         result = { error }

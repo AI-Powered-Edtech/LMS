@@ -5,8 +5,6 @@ import { createClient, SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 // Edge Function: ai-tutor (Embedding-Free / Groq Switch)
 // ==========================================================================
 
-const MAX_REQUESTS_PER_MINUTE = 20
-const MAX_REQUESTS_PER_DAY = 200
 const LLM_TIMEOUT_MS = 15_000
 const MAX_CONTEXT_CHARS = 10000
 const MAX_HISTORY_MESSAGES = 10
@@ -111,50 +109,32 @@ async function authenticate(req: Request) {
   if (!tenantId) throw new Error('TENANT_MISSING')
 
   logStage('auth', performance.now() - start, { user_id: user.id })
-  return { user, tenantId }
+  return { user, tenantId, userClient }
 }
 
 // ─── Step 2: Rate Limit ───
 async function checkRateLimit(supabase: SupabaseClient, userId: string, tenantId: string) {
   const start = performance.now()
-  const { data: rateData } = await supabase
-    .from('ai_tutor_rate_limits')
-    .select('request_count, window_start, daily_count, daily_window_start')
-    .eq('user_id', userId)
-    .maybeSingle()
+  const { data, error } = await supabase.rpc('check_ai_tutor_rate_limit', {
+    p_user_id: userId,
+    p_tenant_id: tenantId,
+  })
 
-  const now = Date.now()
-  if (rateData) {
-    const windowAge = now - new Date(rateData.window_start).getTime()
-    const dailyWindowAge = now - new Date(rateData.daily_window_start).getTime()
+  if (error) {
+    console.error('rate_limit_rpc_error', error)
+    throw new Error('RATE_LIMIT_CHECK_FAILED')
+  }
 
-    const isNewDay = dailyWindowAge > 86_400_000
-    const isNewMinute = windowAge > 60_000
-
-    let { request_count, daily_count } = rateData
-    if (isNewDay) daily_count = 0
-    if (isNewMinute) request_count = 0
-
-    if (daily_count >= MAX_REQUESTS_PER_DAY) throw new Error('RATE_LIMIT_DAILY')
-    if (request_count >= MAX_REQUESTS_PER_MINUTE) {
-      const retryAfter = Math.ceil((60_000 - windowAge) / 1000)
-      throw { message: 'RATE_LIMIT_MINUTE', retryAfter }
+  if (!data?.allowed) {
+    if (data?.reason === 'minute_limit') {
+      const minuteLimitError: Error & { retryAfter?: number } = new Error('RATE_LIMIT_MINUTE')
+      minuteLimitError.retryAfter = Number(data.retry_after ?? 60)
+      throw minuteLimitError
     }
 
-    await supabase
-      .from('ai_tutor_rate_limits')
-      .update({
-        request_count: request_count + 1,
-        window_start: isNewMinute ? new Date().toISOString() : rateData.window_start,
-        daily_count: daily_count + 1,
-        daily_window_start: isNewDay ? new Date().toISOString() : rateData.daily_window_start,
-      })
-      .eq('user_id', userId)
-  } else {
-    await supabase
-      .from('ai_tutor_rate_limits')
-      .insert({ tenant_id: tenantId, user_id: userId, request_count: 1, daily_count: 1 })
+    throw new Error('RATE_LIMIT_DAILY')
   }
+
   logStage('rate_limit', performance.now() - start)
 }
 
@@ -516,6 +496,47 @@ async function callGroqWithRetry(messages: any[], model: string) {
   }
 }
 
+function buildGroundedFallback(
+  context: TutorContext,
+  difficulty: StudentDifficulty,
+  question: string
+): string {
+  const lessonTitle = context.lesson?.title || 'materi ini'
+  const summaryCandidates = [
+    context.lesson?.summary,
+    context.lesson?.content_summary,
+    context.resources?.[0]?.content_summary,
+    context.search_results?.[0]?.content_summary,
+    context.resources?.[0]?.content,
+  ]
+
+  const summary = summaryCandidates.find(
+    (value) => typeof value === 'string' && value.trim().length > 0
+  )
+
+  const guidance =
+    difficulty.level === 'struggling'
+      ? 'Mulai dari konsep paling dasar, lalu cocokkan dengan bagian materi yang sedang Anda baca.'
+      : difficulty.level === 'mastering'
+        ? 'Coba hubungkan pertanyaan ini dengan tujuan pembelajaran dan contoh penerapan di materi.'
+        : 'Fokus pada inti konsep, lalu cek kembali contoh atau latihan yang terkait.'
+
+  const trimmedQuestion = question.trim().replace(/\s+/g, ' ')
+
+  return [
+    `Saya belum bisa menghubungi model AI saat ini, tetapi saya tetap bisa membantu berdasarkan konteks pelajaran "${lessonTitle}".`,
+    summary
+      ? `Ringkasan materi yang relevan: ${String(summary).slice(0, 420)}`
+      : 'Ringkasan materi lengkap tidak tersedia pada konteks saat ini.',
+    `Pertanyaan Anda: "${trimmedQuestion.slice(0, 220)}"`,
+    guidance,
+    'Langkah berikutnya:',
+    '1. Baca kembali bagian materi yang paling terkait dengan pertanyaan Anda.',
+    '2. Tulis ulang inti konsep dengan kata-kata Anda sendiri.',
+    '3. Jika masih bingung, ajukan pertanyaan yang lebih spesifik tentang istilah atau langkah yang belum jelas.',
+  ].join('\n')
+}
+
 // ─── Step 8: Non-blocking Interaction Log ───
 function logInteractionAsync(supabase: SupabaseClient, data: any) {
   const start = performance.now()
@@ -544,7 +565,7 @@ Deno.serve(async (req: Request) => {
   })
 
   try {
-    const { user, tenantId } = await authenticate(req)
+    const { user, tenantId, userClient } = await authenticate(req)
     const { lessonId, question: rawQuestion, sessionId } = await parseRequest(req)
 
     // SECURITY: Sanitize user input before adding to LLM messages
@@ -559,7 +580,7 @@ Deno.serve(async (req: Request) => {
       })
     }
 
-    await checkRateLimit(serviceClient, user.id, tenantId)
+    await checkRateLimit(userClient, user.id, tenantId)
 
     // 1. Session Management
     const session = await getOrCreateSession(serviceClient, user.id, lessonId, tenantId, sessionId)
@@ -580,8 +601,21 @@ Deno.serve(async (req: Request) => {
     let result: Awaited<ReturnType<typeof callGroq>>
     try {
       result = await callGroqWithRetry(messages, PRIMARY_MODEL)
-    } catch {
-      result = await callGroqWithRetry(messages, FALLBACK_MODEL)
+    } catch (primaryError) {
+      try {
+        result = await callGroqWithRetry(messages, FALLBACK_MODEL)
+      } catch (fallbackError) {
+        console.error('ai_tutor_llm_fallback_error', {
+          primary: primaryError,
+          fallback: fallbackError,
+        })
+        result = {
+          text: buildGroundedFallback(context, difficulty, question),
+          model: 'grounded-fallback',
+          tokenCountPrompt: 0,
+          tokenCountResponse: 0,
+        }
+      }
     }
 
     // 4. Persistence (User and AI messages)
@@ -629,6 +663,11 @@ Deno.serve(async (req: Request) => {
       return errorResponse('AI tidak memberikan respons. Coba lagi.', 502)
     if (err.message === 'GROQ_CONFIG_MISSING')
       return errorResponse('Konfigurasi AI tidak tersedia. Hubungi administrator.', 500)
+    if (err.message === 'RATE_LIMIT_CHECK_FAILED')
+      return errorResponse(
+        'Sistem pembatasan permintaan sedang bermasalah. Coba lagi sebentar.',
+        503
+      )
 
     return errorResponse('Terjadi kesalahan pada sistem tutor. Silakan coba lagi.')
   }

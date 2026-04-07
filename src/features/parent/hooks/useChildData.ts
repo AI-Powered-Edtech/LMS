@@ -17,9 +17,8 @@ import {
   getChildGrades,
   getChildPendingAssignments,
   getMyChildren,
+  getParentDashboardSnapshot,
 } from '../api/parentApi'
-import type { ChildDashboardData } from '../types'
-
 // ── Query Keys ─────────────────────────────────────────────────
 
 const base = createQueryKeys('parent')
@@ -148,37 +147,46 @@ export function useChildDashboard(studentId: string | null) {
  * studentId bersifat opsional; default ke anak pertama.
  */
 export function useParentDashboard(selectedStudentId: string | null) {
-  const childrenQuery = useChildren()
-  const childDashboard = useChildDashboard(selectedStudentId)
+  const { tenantId, user } = useAuth()
 
-  // Cari info anak yang dipilih dari list
+  const snapshotQuery = useQuery({
+    queryKey: [...parentKeys.all(tenantId ?? ''), 'dashboard-snapshot'],
+    queryFn: () => getParentDashboardSnapshot(tenantId!, user!.id),
+    enabled: !!tenantId && !!user,
+    staleTime: STALE.MODERATE,
+    refetchInterval: false,
+  })
+
+  const enrichedChildren = useMemo(() => {
+    return (snapshotQuery.data ?? []).map((item) => {
+      const trafficLight = calculateTrafficLight({
+        pendingAssignments: item.pending_assignments,
+        attendance: item.attendance_this_week,
+        grades: item.grades,
+      })
+
+      return {
+        ...item,
+        traffic_light: trafficLight.status,
+        traffic_light_reason: trafficLight.reason,
+      }
+    })
+  }, [snapshotQuery.data])
+
+  const children = enrichedChildren.map((item) => item.child)
   const selectedChild =
-    childrenQuery.data?.find((c) => c.student_id === selectedStudentId) ??
-    childrenQuery.data?.[0] ??
-    null
+    children.find((child) => child.student_id === selectedStudentId) ?? children[0] ?? null
 
-  const dashboardData: ChildDashboardData | null = useMemo(() => {
-    if (!selectedChild || childDashboard.isLoading) return null
-    if (!childDashboard.trafficLight) return null
-
-    return {
-      child: selectedChild,
-      traffic_light: childDashboard.trafficLight.status,
-      traffic_light_reason: childDashboard.trafficLight.reason,
-      grades: childDashboard.grades,
-      attendance_this_week: childDashboard.attendance,
-      pending_assignments: childDashboard.pendingAssignments,
-      recent_achievements: childDashboard.achievements,
-    }
-  }, [selectedChild, childDashboard])
+  const dashboardData =
+    enrichedChildren.find((item) => item.child.student_id === selectedChild?.student_id) ?? null
 
   return {
-    children: childrenQuery.data ?? [],
-    childrenLoading: childrenQuery.isLoading,
+    children,
+    childrenLoading: snapshotQuery.isLoading,
     selectedChild,
     dashboardData,
-    isLoading: childrenQuery.isLoading || childDashboard.isLoading,
-    error: childrenQuery.error ?? childDashboard.error,
-    refetchAll: childDashboard.refetchAll,
+    isLoading: snapshotQuery.isLoading,
+    error: snapshotQuery.error,
+    refetchAll: snapshotQuery.refetch,
   }
 }

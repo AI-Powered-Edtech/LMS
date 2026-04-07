@@ -5,6 +5,7 @@ import { Download, Loader2, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { Card } from '@/components/ui/Card'
+import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
 
@@ -25,6 +26,7 @@ interface SurveyResultsDashboardProps {
 // ---------------------------------------------------------------------------
 
 export function SurveyResultsDashboard({ surveyId, className }: SurveyResultsDashboardProps) {
+  const { tenantId } = useAuth()
   const [data, setData] = useState<SurveyAnalyticsResult | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -37,7 +39,11 @@ export function SurveyResultsDashboard({ surveyId, className }: SurveyResultsDas
       setIsLoading(true)
       setError(null)
       try {
-        const result = await surveyAnalyticsService.getSurveyResults(surveyId)
+        if (!tenantId) {
+          throw new Error('Tenant tidak ditemukan.')
+        }
+
+        const result = await surveyAnalyticsService.getSurveyResults(tenantId, surveyId)
         if (!cancelled) setData(result)
       } catch (err) {
         if (!cancelled) {
@@ -48,11 +54,11 @@ export function SurveyResultsDashboard({ surveyId, className }: SurveyResultsDas
       }
     }
 
-    load()
+    void load()
     return () => {
       cancelled = true
     }
-  }, [surveyId])
+  }, [surveyId, tenantId])
 
   const handleExport = () => {
     if (!data) return
