@@ -78,7 +78,7 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
       }
     }
 
-    verifyEnrollment()
+    void verifyEnrollment()
     return () => clearTimeout(authTimeoutId)
   }, [courseId, user, effectiveRole, tenantId, authLoading, retryCount])
 

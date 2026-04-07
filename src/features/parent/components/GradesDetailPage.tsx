@@ -3,29 +3,16 @@
 // Menggantikan ComingSoonPage di /app/parent/nilai
 // ==========================================================================
 
-import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { Card } from '@/components/ui/Card'
 import { Skeleton, SkeletonCard } from '@/components/ui/Skeleton'
-import { useAuth } from '@/contexts/AuthContext'
-import { createQueryKeys } from '@/shared/lib/queryKeys'
 import { cn } from '@/utils/cn'
-import { STALE } from '@/utils/queryConstants'
 
-import { getChildGrades, getMyChildren } from '../api/parentApi'
+import { useChildGrades } from '../queries/useChildGrades'
+import { useParentChildren } from '../queries/useParentChildren'
 import type { ChildGradeSummary, ChildInfo } from '../types'
-
-// ── Query Keys ──────────────────────────────────────────────────
-
-const base = createQueryKeys('parent-grades')
-
-const gradePageKeys = {
-  children: (tenantId: string) => [...base.all(tenantId), 'children'] as const,
-  grades: (tenantId: string, studentId: string) =>
-    [...base.all(tenantId), 'grades', studentId] as const,
-}
 
 // ── Helper Components ───────────────────────────────────────────
 
@@ -251,29 +238,14 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
 // ── Main Component ──────────────────────────────────────────────
 
 export function GradesDetailPage() {
-  const { tenantId } = useAuth()
   const [selectedStudentId, setSelectedStudentId] = useState<string>('')
 
-  // Fetch children
-  const childrenQuery = useQuery({
-    queryKey: gradePageKeys.children(tenantId ?? ''),
-    queryFn: () => getMyChildren(),
-    enabled: !!tenantId,
-    staleTime: STALE.MODERATE,
-  })
-
+  const childrenQuery = useParentChildren()
   const children = childrenQuery.data ?? []
   const effectiveStudentId =
     selectedStudentId || (children.length > 0 ? children[0].student_id : '')
 
-  // Fetch grades
-  const gradesQuery = useQuery({
-    queryKey: gradePageKeys.grades(tenantId ?? '', effectiveStudentId),
-    queryFn: () => getChildGrades(effectiveStudentId),
-    enabled: !!tenantId && !!effectiveStudentId,
-    staleTime: STALE.MODERATE,
-  })
-
+  const gradesQuery = useChildGrades(effectiveStudentId)
   const grades = gradesQuery.data ?? []
 
   // Loading children

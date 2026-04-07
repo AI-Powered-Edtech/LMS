@@ -16,6 +16,9 @@ validateEnv()
 // Initialise Sentry before rendering so errors during boot are captured
 initSentry()
 
+// Guard to prevent double-firing auth redirects from concurrent request failures
+let authRedirectPending = false
+
 // Global handler for unhandled promise rejections
 window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
   const reason = event.reason
@@ -30,7 +33,7 @@ window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => 
     console.error('[Unhandled Rejection]', reason)
   }
 
-  // 1. Chunk / dynamic import failure → prompt reload
+  // 1. Chunk / dynamic import failure → dismissable toast with reload action
   if (
     message.includes('Failed to fetch dynamically imported module') ||
     message.includes('Loading chunk') ||
@@ -39,18 +42,22 @@ window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => 
   ) {
     useToast.getState().addToast({
       type: 'warning',
-      message: 'Perbarui halaman untuk mendapatkan versi terbaru',
-      description: 'Klik untuk memuat ulang',
+      message: 'Versi baru tersedia',
+      description: 'Klik "Muat Ulang" untuk mendapatkan versi terbaru',
+      action: { label: 'Muat Ulang', onClick: () => window.location.reload() },
+      duration: Infinity,
     })
-    // Auto-reload after a brief delay so the toast is visible
-    setTimeout(() => window.location.reload(), 2000)
     return
   }
 
-  // 2. Auth errors (401/403 or JWT-related) → redirect to login
+  // 2. Auth errors (401/403 or JWT-related) → redirect to login (guarded)
   const status = (reason as { status?: number })?.status
-  if (status === 401 || status === 403 || message.includes('JWT')) {
+  if ((status === 401 || status === 403 || message.includes('JWT')) && !authRedirectPending) {
+    authRedirectPending = true
     window.location.hash = '#/login'
+    setTimeout(() => {
+      authRedirectPending = false
+    }, 2000)
     return
   }
 

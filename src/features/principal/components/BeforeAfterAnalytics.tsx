@@ -25,8 +25,7 @@ import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/components/ui/Moda
 import { Spinner } from '@/components/ui/Spinner'
 import { useTheme } from '@/contexts/ThemeContext'
 
-import { useBaselineMetrics } from '../hooks/useExecutiveData'
-import { useExecutiveData } from '../hooks/useExecutiveData'
+import { useBaselineMetrics, useExecutiveData } from '../hooks/useExecutiveData'
 import type { SchoolBaselineMetrics } from '../types'
 
 // ── Formatters ─────────────────────────────────────────────────

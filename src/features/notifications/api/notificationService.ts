@@ -73,25 +73,9 @@ export async function markAllAsRead(userId: string, tenantId: string): Promise<v
 
 /**
  * Send a notification manually (System)
- * FIXED: Use RPC `create_notification` instead of direct INSERT to enforce server-side
- * role checks and avoid requiring INSERT privilege on `notifications` for authenticated role.
- * The RPC is SECURITY DEFINER and validates the caller's role before inserting.
- *
- * TODO (migration): If `create_notification` RPC does not exist yet, create:
- *   CREATE OR REPLACE FUNCTION public.create_notification(
- *     p_user_id UUID, p_tenant_id UUID, p_title TEXT, p_message TEXT, p_type TEXT
- *   ) RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
- *   BEGIN
- *     -- Only TEACHER/ADMIN can create notifications for other users
- *     IF NOT EXISTS (SELECT 1 FROM public.user_roles ur
- *       WHERE ur.user_id = auth.uid() AND ur.tenant_id = p_tenant_id
- *         AND UPPER(ur.role::text) IN ('TEACHER','ADMIN')) THEN
- *       RAISE EXCEPTION 'Unauthorized' USING ERRCODE = 'P0001';
- *     END IF;
- *     INSERT INTO public.notifications(tenant_id, user_id, title, message, type)
- *     VALUES (p_tenant_id, p_user_id, p_title, p_message, p_type);
- *   END;
- *   $$;
+ * Uses RPC `create_notification` (defined in migration 003_notifications.sql).
+ * The RPC is SECURITY DEFINER and respects notification_preferences (skips disabled types).
+ * Fails hard if the RPC is unavailable to avoid bypassing server-side checks.
  */
 export async function sendNotification(
   userId: string,
@@ -100,7 +84,6 @@ export async function sendNotification(
   type: string = 'system',
   tenantId: string
 ): Promise<void> {
-  // FIXED: Use RPC instead of direct INSERT — server-side role check enforced
   const { error } = await supabase.rpc('create_notification', {
     p_user_id: userId,
     p_tenant_id: tenantId,
@@ -110,29 +93,15 @@ export async function sendNotification(
   })
 
   if (error) {
-    // PGRST202 = RPC function not found (migration not yet deployed).
-    // Fall back to direct INSERT so notification creation does not fail hard
-    // while the migration is pending. Remove this fallback once
-    // create_notification is confirmed deployed on all environments.
     if (error.code === 'PGRST202') {
       if (import.meta.env.DEV)
         console.warn(
-          '[notificationService] create_notification RPC not found — falling back to direct INSERT. Run the pending migration to restore server-side role checks.',
+          '[notificationService] create_notification RPC not found. Jalankan migrasi notification RPC sebelum mengirim notifikasi.',
           error
         )
-      const { error: insertError } = await supabase.from('notifications').insert({
-        user_id: userId,
-        tenant_id: tenantId,
-        title,
-        message,
-        type,
-      })
-      if (insertError) {
-        if (import.meta.env.DEV)
-          console.error('[notificationService] Fallback INSERT failed:', insertError)
-        throw insertError
-      }
-      return
+      throw new Error(
+        'Fungsi create_notification belum tersedia di database. Deploy migrasi yang relevan terlebih dahulu.'
+      )
     }
     if (import.meta.env.DEV)
       console.error('Error sending notification via RPC (create_notification):', error)

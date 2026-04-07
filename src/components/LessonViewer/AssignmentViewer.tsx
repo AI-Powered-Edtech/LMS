@@ -73,7 +73,7 @@ export function AssignmentViewer({
         setIsLoading(false)
       }
     }
-    loadSubmission()
+    void loadSubmission()
   }, [assignmentId, user?.id, tenantId])
 
   const handleSubmit = async () => {

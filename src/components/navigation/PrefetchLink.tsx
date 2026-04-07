@@ -33,7 +33,7 @@ export function PrefetchLink({ prefetchQuery, onMouseEnter, ...props }: Prefetch
   const handleMouseEnter = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>) => {
       if (prefetchQuery) {
-        queryClient.prefetchQuery(prefetchQuery)
+        void queryClient.prefetchQuery(prefetchQuery)
       }
       onMouseEnter?.(e)
     },

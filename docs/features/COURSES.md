@@ -6,6 +6,11 @@ Core learning module. Pembuatan kursus dengan course builder, pengelolaan modul,
 
 Modul ini merupakan bagian dari arsitektur feature-module EduSync LMS, terletak di `src/features/courses/`. Setiap feature module memiliki struktur standar: api/, queries/, hooks/, types/, components/, dan **tests**/.
 
+## Update Stabilitas (2026-04-05)
+
+- Fallback invalidation di `useTemplates` dan `useCourseVersions` tidak lagi menggunakan tenant key kosong (`''`).
+- Saat tenant context tidak tersedia, invalidasi cache memakai `predicate` pada scope query `courses`.
+
 ## Domain
 
 **Academic** — Modul ini termasuk dalam domain Academic bersama dengan feature terkait lainnya.

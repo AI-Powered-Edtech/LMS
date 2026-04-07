@@ -158,7 +158,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
             </div>
 
             <div style={styles.field}>
-              <label style={styles.label}>Peran</label>
+              <p style={styles.label}>Peran</p>
               <div style={styles.roleGrid}>
                 {(['STUDENT', 'TEACHER', 'ADMIN'] as InviteRole[]).map((r) => (
                   <button

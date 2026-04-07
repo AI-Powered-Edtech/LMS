@@ -1,7 +1,8 @@
-import { Outlet, Route } from 'react-router-dom'
+import { Navigate, Outlet, Route } from 'react-router-dom'
 
 import { RoleGuard } from '../../components/guards/RoleGuard'
 import {
+  AdaptivePathsPage,
   AdminAnalyticsDashboard,
   AdministrationDashboard,
   AssignmentGradebook,
@@ -16,13 +17,16 @@ import {
   FeatureFlagsPage,
   FinanceDashboard,
   Gradebook,
+  LtiManagement,
   ModerationDashboard,
   NotFound,
+  PlagiarismDashboard,
   PPDBDashboard,
   QuestionBankPage,
   QuizGradebook,
   QuizManager,
   ScanAttendance,
+  SemesterPage,
   SpeedGrader,
   StruggleDashboard,
   StudentProgress,
@@ -148,6 +152,8 @@ export function AdminRoutes() {
           </S>
         }
       />
+      <Route path="ai-quiz-gen" element={<Navigate to="/app/admin/creator" replace />} />
+      <Route path="ai-generator" element={<Navigate to="/app/admin/creator" replace />} />
       <Route
         path="courses"
         element={
@@ -253,10 +259,42 @@ export function AdminRoutes() {
         }
       />
       <Route
+        path="semester"
+        element={
+          <S>
+            <SemesterPage />
+          </S>
+        }
+      />
+      <Route
         path="struggle"
         element={
           <S feature="Deteksi Kesulitan">
             <StruggleDashboard />
+          </S>
+        }
+      />
+      <Route
+        path="lti"
+        element={
+          <S feature="Pengaturan LTI">
+            <LtiManagement />
+          </S>
+        }
+      />
+      <Route
+        path="adaptive-paths"
+        element={
+          <S feature="Jalur Adaptif">
+            <AdaptivePathsPage />
+          </S>
+        }
+      />
+      <Route
+        path="plagiarism"
+        element={
+          <S feature="Laporan Plagiarisme">
+            <PlagiarismDashboard />
           </S>
         }
       />

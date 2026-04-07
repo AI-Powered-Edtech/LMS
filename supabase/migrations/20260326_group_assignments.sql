@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS assignment_groups (
 
 ALTER TABLE assignment_groups ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "tenant_isolation" ON assignment_groups;
 CREATE POLICY "tenant_isolation" ON assignment_groups
   USING (tenant_id = (SELECT get_my_tenant_id()));
 
@@ -42,6 +43,7 @@ CREATE TABLE IF NOT EXISTS assignment_group_members (
 
 ALTER TABLE assignment_group_members ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "tenant_isolation" ON assignment_group_members;
 CREATE POLICY "tenant_isolation" ON assignment_group_members
   USING (tenant_id = (SELECT get_my_tenant_id()));
 
@@ -69,6 +71,7 @@ CREATE TABLE IF NOT EXISTS group_submissions (
 
 ALTER TABLE group_submissions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "tenant_isolation" ON group_submissions;
 CREATE POLICY "tenant_isolation" ON group_submissions
   USING (tenant_id = (SELECT get_my_tenant_id()));
 

@@ -81,7 +81,14 @@ export function HotspotBlock({ data, blockId, lessonId }: HotspotBlockProps) {
 
       {/* Image container */}
       <div className="relative inline-block w-full select-none rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
-        <img src={data.imageUrl} alt="Hotspot" className="w-full h-auto block" draggable={false} />
+        <img
+          src={data.imageUrl}
+          alt="Hotspot"
+          className="w-full h-auto block"
+          draggable={false}
+          loading="lazy"
+          decoding="async"
+        />
 
         {/* Hotspot regions */}
         {(data.regions ?? []).map((region) => {

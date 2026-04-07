@@ -138,20 +138,14 @@ export async function upsertGradebookEntry(
 // ── Add gradebook item (column definition) ────────────────────────────────────
 
 // Sentinel UUID used as student_id for gradebook column-definition rows.
-// This UUID will never match a real user ID. It marks rows that represent
-// gradebook column definitions rather than actual student grades.
-// TODO (Phase 31): Migrate column definitions to a dedicated `gradebook_columns` table.
+// Kept for backward compatibility with existing sentinel rows in gradebook_entries.
 const COLUMN_DEFINITION_SENTINEL = '00000000-0000-0000-0000-000000000001'
 
 /**
  * Persists a new gradebook column (assignment/quiz/manual item) to the database.
- * Creates a sentinel row in gradebook_entries to register the entity_type + entity_id
- * combination. The sentinel student_id is a fixed UUID that never matches a real user.
- *
- * FIXED: Uses sentinel UUID instead of teacher's user ID to prevent phantom grade
- * entries appearing for the teacher in student grade queries.
- *
- * NOTE: Requires migration: ALTER TABLE gradebook_entries ADD COLUMN IF NOT EXISTS title TEXT;
+ * Writes to the dedicated `gradebook_columns` table (Phase 31).
+ * Also creates a sentinel row in gradebook_entries for backward compatibility
+ * with components that derive columns from entries.
  */
 export async function addGradebookItem(data: {
   courseId: string
@@ -162,19 +156,57 @@ export async function addGradebookItem(data: {
 }): Promise<{ id: string; title: string; entityType: string; maxScore: number }> {
   const newEntityId = crypto.randomUUID()
 
+  // Determine the next order value for this course
+  const { data: existingColumns } = await supabase
+    .from('gradebook_columns')
+    .select('order')
+    .eq('course_id', data.courseId)
+    .eq('tenant_id', data.tenantId)
+    .order('order', { ascending: false })
+    .limit(1)
+
+  const latestOrderRaw =
+    existingColumns && existingColumns.length > 0
+      ? (existingColumns[0] as Record<string, unknown>).order
+      : null
+  const latestOrder =
+    typeof latestOrderRaw === 'number'
+      ? latestOrderRaw
+      : typeof latestOrderRaw === 'string'
+        ? Number(latestOrderRaw)
+        : Number.NaN
+  const nextOrder = Number.isFinite(latestOrder) ? latestOrder + 1 : 0
+
+  // Insert into the dedicated gradebook_columns table
+  const { error: columnError } = await supabase.from('gradebook_columns').insert({
+    course_id: data.courseId,
+    tenant_id: data.tenantId,
+    name: data.title,
+    type: data.entityType,
+    weight: 1.0,
+    order: nextOrder,
+  })
+
+  if (columnError && import.meta.env.DEV) {
+    console.warn(
+      '[Gradebook] gradebook_columns insert failed (falling back to sentinel):',
+      columnError
+    )
+  }
+
+  // Also create a sentinel row in gradebook_entries for backward compatibility
+  // with components that derive columns from entries (GradebookTable.buildColumns).
   const { data: result, error } = await supabase
     .from('gradebook_entries')
     .insert({
       course_id: data.courseId,
       tenant_id: data.tenantId,
-      // FIXED: Use sentinel UUID — never the calling teacher's user ID.
-      // This prevents phantom grade rows from appearing in student grade queries.
       student_id: COLUMN_DEFINITION_SENTINEL,
       entity_type: data.entityType,
       entity_id: newEntityId,
       score: 0,
       max_score: data.maxScore,
-      title: data.title, // Requires migration: ADD COLUMN IF NOT EXISTS title TEXT
+      title: data.title,
     })
     .select('id, entity_type, entity_id, max_score')
     .single()
@@ -187,6 +219,62 @@ export async function addGradebookItem(data: {
     entityType: (result as Record<string, unknown>).entity_type as string,
     maxScore: Number((result as Record<string, unknown>).max_score),
   }
+}
+
+// ── Column definitions ────────────────────────────────────────────────────────
+
+/**
+ * Fetches column definitions for a course from the gradebook_columns table.
+ * Falls back to deriving columns from sentinel entries if the table is empty.
+ */
+export async function fetchGradebookColumns(
+  courseId: string,
+  tenantId: string
+): Promise<GradebookColumn[]> {
+  // Try the dedicated table first
+  const { data, error } = await supabase
+    .from('gradebook_columns')
+    .select('id, name, type, weight, order, created_at')
+    .eq('course_id', courseId)
+    .eq('tenant_id', tenantId)
+    .order('order', { ascending: true })
+
+  if (error) throw error
+
+  if (data && data.length > 0) {
+    return (data as Record<string, unknown>[]).map((row) => ({
+      id: row.id as string,
+      title: row.name as string,
+      type: row.type as 'quiz' | 'assignment',
+      max_score: 0, // max_score comes from entries; columns just define structure
+    }))
+  }
+
+  // Fallback: derive from sentinel entries (backward compat)
+  const { data: entries, error: entriesError } = await supabase
+    .from('gradebook_entries')
+    .select('entity_type, entity_id, title, max_score')
+    .eq('course_id', courseId)
+    .eq('tenant_id', tenantId)
+    .eq('student_id', COLUMN_DEFINITION_SENTINEL)
+    .order('created_at', { ascending: true })
+
+  if (entriesError) throw entriesError
+
+  const seen = new Map<string, GradebookColumn>()
+  for (const row of entries ?? []) {
+    const r = row as Record<string, unknown>
+    const colId = r.entity_id as string
+    if (colId && !seen.has(colId)) {
+      seen.set(colId, {
+        id: colId,
+        title: (r.title as string) ?? colId,
+        type: (r.entity_type as 'quiz' | 'assignment') ?? 'assignment',
+        max_score: Number(r.max_score ?? 0),
+      })
+    }
+  }
+  return Array.from(seen.values())
 }
 
 // ── Sync ─────────────────────────────────────────────────────────────────────

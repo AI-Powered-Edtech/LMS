@@ -483,4 +483,45 @@ export const administrationService = {
     }
     return data ?? []
   },
+
+  // ── Finance: Invoice helpers ────────────────────────────────────────────────
+
+  /**
+   * Mengambil daftar profil siswa dalam satu tenant untuk pilihan invoice.
+   */
+  async fetchStudentsForInvoice(
+    tenantId: string
+  ): Promise<Array<{ id: string; full_name: string | null; email: string }>> {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .eq('tenant_id', tenantId)
+      .order('full_name', { ascending: true })
+      .limit(200)
+    if (error) {
+      if (import.meta.env.DEV) console.warn('[Finance] fetchStudentsForInvoice error:', error)
+      return []
+    }
+    return (data ?? []) as Array<{ id: string; full_name: string | null; email: string }>
+  },
+
+  /**
+   * Membuat tagihan baru via RPC create_invoice.
+   */
+  async createInvoice(params: {
+    student_id: string
+    amount: number
+    description: string
+    due_date: string | null
+    month_year: string | null
+  }): Promise<void> {
+    const { error } = await supabase.rpc('create_invoice', {
+      p_student_id: params.student_id,
+      p_amount: params.amount,
+      p_description: params.description,
+      p_due_date: params.due_date,
+      p_month_year: params.month_year,
+    })
+    if (error) throw error
+  },
 }

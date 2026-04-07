@@ -39,6 +39,26 @@ export const plagiarismService = {
   },
 
   /**
+   * Fetches all plagiarism checks for a tenant, ordered by most recent first.
+   * Returns an empty array if none found or on error.
+   */
+  async getAllChecks(tenantId: string, limit = 50): Promise<PlagiarismCheck[]> {
+    const { data, error } = await supabase
+      .from('plagiarism_checks')
+      .select(PLAGIARISM_COLUMNS)
+      .eq('tenant_id', tenantId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      logDevError('plagiarismService', 'Error fetching all checks:', error)
+      return []
+    }
+
+    return (data ?? []) as PlagiarismCheck[]
+  },
+
+  /**
    * Fetches the latest plagiarism check result for a given submission.
    * Returns null if no check has been run yet.
    */

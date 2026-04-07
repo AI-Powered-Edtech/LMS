@@ -1,11 +1,11 @@
 import { CheckCircle, GitBranch, Loader2, Settings, Users, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { PathRuleList } from '@/features/adaptive-paths'
-import { courseService } from '@/features/courses/api/courseService'
 
+import { useCourseSettings } from '../hooks/useCourseSettings'
 import { CourseCollaborators } from './CourseCollaborators'
 
 interface CourseSettingsModalProps {
@@ -16,113 +16,10 @@ interface CourseSettingsModalProps {
 
 // ── General Settings Tab ────────────────────────────────────
 
-interface CourseGeneralData {
-  title: string
-  description: string
-  subject: string
-  level: string
-}
-
 function GeneralSettingsTab({ courseId }: { courseId: string }) {
-  const { tenantId } = useAuth()
-  const [data, setData] = useState<CourseGeneralData>({
-    title: '',
-    description: '',
-    subject: '',
-    level: '',
-  })
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { data, isLoading, isSaving, isSaved, error, updateField } = useCourseSettings(courseId)
 
-  // Fetch course data on mount
-  useEffect(() => {
-    if (!courseId || !tenantId) return
-
-    let cancelled = false
-
-    async function fetchCourse() {
-      setLoading(true)
-      try {
-        const course = await courseService.getCourseById(courseId, tenantId!)
-
-        if (cancelled) return
-
-        setData({
-          title: course.title || '',
-          description: course.description || '',
-          subject: course.subject || '',
-          level: course.level || '',
-        })
-      } catch {
-        if (cancelled) return
-        setError('Gagal memuat data kursus.')
-      }
-      setLoading(false)
-    }
-
-    fetchCourse()
-
-    return () => {
-      cancelled = true
-    }
-  }, [courseId, tenantId])
-
-  // Cleanup timers on unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
-      if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
-    }
-  }, [])
-
-  // Debounced save
-  const debouncedSave = useCallback(
-    (updatedData: CourseGeneralData) => {
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
-      if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
-
-      saveTimerRef.current = setTimeout(async () => {
-        if (!courseId || !tenantId) return
-
-        setSaving(true)
-        setSaved(false)
-        setError(null)
-
-        try {
-          await courseService.updateCourse(
-            courseId,
-            {
-              title: updatedData.title,
-              description: updatedData.description || null,
-              subject: updatedData.subject || null,
-              level: updatedData.level || null,
-            },
-            tenantId
-          )
-
-          setSaving(false)
-          setSaved(true)
-          savedTimerRef.current = setTimeout(() => setSaved(false), 3000)
-        } catch {
-          setSaving(false)
-          setError('Gagal menyimpan perubahan.')
-        }
-      }, 800)
-    },
-    [courseId, tenantId]
-  )
-
-  const handleChange = (field: keyof CourseGeneralData, value: string) => {
-    const updated = { ...data, [field]: value }
-    setData(updated)
-    debouncedSave(updated)
-  }
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
@@ -142,13 +39,13 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
         </h3>
         <div className="flex items-center gap-2 text-xs font-bold">
           <div aria-live="polite" aria-atomic="true">
-            {saving && (
+            {isSaving && (
               <span className="flex items-center gap-1.5 text-amber-500">
                 <Loader2 className="w-3 h-3 animate-spin" />
                 Menyimpan...
               </span>
             )}
-            {saved && (
+            {isSaved && (
               <span className="flex items-center gap-1.5 text-emerald-500">
                 <CheckCircle className="w-3 h-3" />
                 Tersimpan
@@ -170,7 +67,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
           id="settings-title"
           type="text"
           value={data.title}
-          onChange={(e) => handleChange('title', e.target.value)}
+          onChange={(e) => updateField('title', e.target.value)}
           className={inputClass}
           placeholder="Masukkan judul kursus..."
         />
@@ -187,7 +84,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
         <textarea
           id="settings-description"
           value={data.description}
-          onChange={(e) => handleChange('description', e.target.value)}
+          onChange={(e) => updateField('description', e.target.value)}
           rows={4}
           className={`${inputClass} resize-none`}
           placeholder="Deskripsi singkat tentang kursus ini..."
@@ -207,7 +104,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
             id="settings-subject"
             type="text"
             value={data.subject}
-            onChange={(e) => handleChange('subject', e.target.value)}
+            onChange={(e) => updateField('subject', e.target.value)}
             className={inputClass}
             placeholder="Contoh: Matematika"
           />
@@ -222,7 +119,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
           <select
             id="settings-level"
             value={data.level}
-            onChange={(e) => handleChange('level', e.target.value)}
+            onChange={(e) => updateField('level', e.target.value)}
             className={inputClass}
           >
             <option value="">Pilih tingkat...</option>

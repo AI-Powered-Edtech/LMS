@@ -70,7 +70,7 @@ export function prefetchRoute(path: string): void {
  * Call once after initial render (e.g. in App.tsx useEffect).
  */
 export function setupPrefetchListeners(): () => void {
-  const handler = (event: Event) => {
+  const handler = (event: Event): void => {
     const target = event.target
     // event.target can be a Text node or other non-Element — guard before calling .closest()
     if (!(target instanceof Element)) return

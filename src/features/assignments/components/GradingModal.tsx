@@ -117,6 +117,7 @@ export function GradingModal({
                     <span className="text-sm font-bold text-slate-600 dark:text-slate-400">
                       Buka File Lampiran
                     </span>
+                    <span className="sr-only">(buka di tab baru)</span>
                   </a>
                 )}
               </div>

@@ -31,6 +31,8 @@ export type AdminNotificationType =
   | 'user_joined'
 
 export interface Notification {
+  /** Arbitrary metadata for batching and enrichment */
+  metadata?: Record<string, unknown>
   id: string
   tenant_id: string
   user_id: string

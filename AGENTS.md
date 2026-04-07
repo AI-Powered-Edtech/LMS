@@ -98,9 +98,9 @@
 | Skema bersama (Valibot) | `src/shared/schemas/`                                   |
 | Tipe bersama            | `src/shared/types/`                                     |
 | Primitif UI             | `src/components/ui/`                                    |
-| Modul fitur             | `src/features/` (32 modul)                              |
+| Modul fitur             | `src/features/` (48 modul)                              |
 | Migrasi DB              | `supabase/migrations/`                                  |
-| Edge Functions          | `supabase/functions/` (23 fungsi)                       |
+| Edge Functions          | `supabase/functions/` (26 fungsi)                       |
 | Utilitas aplikasi luas  | `src/utils/`                                            |
 | Dokumentasi             | `docs/` (lihat `docs/DX.md` untuk peta lengkap)         |
 
@@ -154,6 +154,46 @@ Setelah **APAPUN task signifikan**:
 5.  Update `docs/DATABASE.md` jika ada perubahan skema
 
 Referensi: `CLAUDE.md §Documentation Policy`
+
+## Component Registry Policy
+
+Simpan registry komponen di `COMPONENT_REGISTRY.md`. Dokumen ini wajib di-update setiap ada perubahan signifikan.
+
+### Aturan Wajib
+
+1.  **Setelah task signifikan** —Update entri yang relevan di `COMPONENT_REGISTRY.md`:
+    - Untuk feature module baru → row baru di Feature Registry
+    - Untuk Edge Function baru → row baru di Function Registry
+    - Untuk shared hook baru → row baru di Logic Registry (Shared Hooks)
+    - Set Last Updated: tanggal saat ini (YYYY-MM-DD)
+    - Set Codebase Version: git hash saat ini
+
+2.  **Jangan lakukan** —Buat entri baru untuk:
+    - Perubahan minor (bug fix, refactor kecil)
+    - Update kolom tabel tanpa menambah fitur baru
+    - Perubahan hanya di components dalam satu feature
+
+3.  **Threshold "signifikan"**:
+    - Feature module baru (folder baru di `src/features/`)
+    - Edge Function baru (file baru di `supabase/functions/`)
+    - Shared hook baru (file baru di `src/hooks/`)
+    - UI primitive baru (komponen baru di `src/components/ui/`)
+    - Zustand store baru
+    - Context provider baru
+
+### Auto-Update Git Hash
+
+Untuk update semua git hash di dokumen secara cepat:
+
+```bash
+# Get current hash
+git rev-parse --short HEAD
+
+# Replace in COMPONENT_REGISTRY.md
+sed -i 's/ff4edf1/<NEW_HASH>/g' COMPONENT_REGISTRY.md
+```
+
+Referensi: `COMPONENT_REGISTRY.md` untuk prosedur lengkap
 
 ---
 

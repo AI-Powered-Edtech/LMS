@@ -68,6 +68,8 @@ function ThreadItem({ thread, onClick }: { thread: MessageThread; onClick: () =>
               src={thread.teacher_avatar}
               alt={teacherName}
               className="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
           ) : (
             initials

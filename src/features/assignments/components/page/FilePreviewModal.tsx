@@ -153,6 +153,8 @@ function ImagePreview({ url, fileName }: { url: string; fileName: string }) {
             setLoading(false)
             setError(true)
           }}
+          loading="lazy"
+          decoding="async"
         />
       )}
     </div>
@@ -260,6 +262,7 @@ function OfficePreview({
         >
           <ExternalLink className="w-4 h-4" />
           Buka di Tab Baru
+          <span className="sr-only">(buka di tab baru)</span>
         </a>
       )}
     </div>
@@ -444,6 +447,7 @@ export function FilePreviewModal({
           >
             <ExternalLink className="w-4 h-4" />
             Buka di Tab Baru
+            <span className="sr-only">(buka di tab baru)</span>
           </a>
         )}
       </ModalFooter>

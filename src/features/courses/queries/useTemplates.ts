@@ -78,10 +78,11 @@ export function useImportTemplate() {
         // Broader fallback if courseId not provided
         queryClient.invalidateQueries({ queryKey: courseKeys.lists(tid) })
       } else {
-        // Ultimate fallback
-        queryClient.invalidateQueries({ queryKey: ['courses'] })
-        queryClient.invalidateQueries({ queryKey: ['course-modules'] })
-        queryClient.invalidateQueries({ queryKey: ['lessons'] })
+        // Ultimate fallback when tenant context is unavailable:
+        // invalidate all courses-scope queries without fabricating empty tenantId.
+        queryClient.invalidateQueries({
+          predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === 'courses',
+        })
       }
     },
   })

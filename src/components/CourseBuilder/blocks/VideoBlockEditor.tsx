@@ -22,7 +22,7 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
 
   const handleSaveInteractiveMetadata = (newMetadata: InteractiveVideoMetadata) => {
     actions.updateBlock(blockId, { metadata: newMetadata as Record<string, unknown> })
-    actions.saveBlock(blockId)
+    void actions.saveBlock(blockId)
   }
 
   return (
@@ -40,7 +40,7 @@ export function VideoBlockEditor({ blockId }: VideoBlockEditorProps) {
               actions.updateBlock(blockId, { url: e.target.value })
             }}
             onBlur={() => {
-              actions.saveBlock(blockId)
+              void actions.saveBlock(blockId)
             }}
             className="w-full pl-11 pr-4 py-3 border border-slate-200/60 dark:border-slate-700/60 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-indigo-50 dark:focus:ring-indigo-900/30 focus:border-indigo-300 dark:focus:border-indigo-600 outline-none transition-all bg-slate-50/50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-900 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-white shadow-inner"
           />

@@ -1,5 +1,6 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, BookOpen } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import {
@@ -14,7 +15,9 @@ import { LearningPathRecommendation } from '@/features/ai-recommendations'
 import { courseService } from '@/features/courses'
 import { lessonService } from '@/features/lessons/api/lessonService'
 import { LessonSkeleton } from '@/features/lessons/components/LessonSkeleton'
+import { createQueryKeys } from '@/shared/lib/queryKeys'
 import { cn } from '@/utils/cn'
+import { STALE } from '@/utils/queryConstants'
 
 // ============================================================
 // Types
@@ -25,6 +28,65 @@ interface CourseData {
   title: string
   description: string | null
   created_by: string
+}
+
+interface ModuleRow {
+  id: string
+  title: string
+  order: number
+  lessons: Array<{
+    id: string
+    title: string
+    type: string
+    order: number
+    duration_minutes?: number
+  }>
+}
+
+// ============================================================
+// Query Keys
+// ============================================================
+
+const base = createQueryKeys('course-browser')
+
+const courseBrowserKeys = {
+  courseData: (tenantId: string, courseId?: string) =>
+    [...base.all(tenantId), 'course-data', courseId ?? 'all'] as const,
+  modulesWithLessons: (courseId: string, tenantId: string) =>
+    [...base.all(tenantId), 'modules', courseId] as const,
+  teacherName: (teacherId: string, tenantId: string) =>
+    [...base.all(tenantId), 'teacher-name', teacherId] as const,
+  completedLessons: (userId: string, tenantId: string, lessonIds: string[]) =>
+    [...base.all(tenantId), 'completed', userId, lessonIds] as const,
+}
+
+// ============================================================
+// Query Functions
+// ============================================================
+
+async function fetchCourseData(tenantId: string, courseId?: string) {
+  const { courses: coursesData } = await courseService.fetchCourses({
+    tenantId,
+    limit: 100,
+    ids: courseId ? [courseId] : undefined,
+  })
+  const published = (coursesData || []).filter((c) => c.status === 'published')
+  if (!published.length) return null
+  const active = published[0]
+  return {
+    id: active.id,
+    title: active.title,
+    description: active.description,
+    created_by: active.created_by,
+  } as CourseData
+}
+
+async function fetchModulesWithLessons(courseId: string, tenantId: string) {
+  return courseService.getCourseModulesWithLessons(courseId, tenantId) as unknown as ModuleRow[]
+}
+
+async function fetchTeacherName(teacherId: string, tenantId: string) {
+  return courseService.getTeacherName(teacherId, tenantId)
 }
 
 // ============================================================
@@ -41,170 +103,123 @@ export function CourseBrowser({
   courseId?: string
 }) {
   const { user, role } = useAuth()
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [, setSearchParams] = useSearchParams()
-  const [loading, setLoading] = useState(true)
-  const [, setModulesLoading] = useState(true)
-  const [fetchError, setFetchError] = useState<string | null>(null)
-  const [retryCount, setRetryCount] = useState(0)
-  const [course, setCourse] = useState<CourseData | null>(null)
-  const [modules, setModules] = useState<ModuleWithProgress[]>([])
-  const [totalLessons, setTotalLessons] = useState(0)
-  const [completedLessons, setCompletedLessons] = useState(0)
-  const [totalDuration, setTotalDuration] = useState(0)
-  const [instructorName, setInstructorName] = useState<string | undefined>()
-  const [nextIncompleteModuleId, setNextIncompleteModuleId] = useState<string | undefined>()
 
-  useEffect(() => {
-    if (!user?.id) return
-    let isMounted = true
-    setLoading(true)
-    setModulesLoading(true)
-    setFetchError(null)
-    setCourse(null)
-    setModules([])
+  // Phase 1: Fetch course
+  const courseQuery = useQuery({
+    queryKey: courseBrowserKeys.courseData(tenantId, courseId),
+    queryFn: () => fetchCourseData(tenantId, courseId),
+    enabled: !!user?.id && !!tenantId,
+    staleTime: STALE.MODERATE,
+  })
 
-    interface ModuleRow {
-      id: string
-      title: string
-      order: number
-      lessons: Array<{
-        id: string
-        title: string
-        type: string
-        order: number
-        duration_minutes?: number
-      }>
-    }
+  const course = courseQuery.data ?? null
 
-    void (async () => {
-      try {
-        // Phase 1: fetch course → show header immediately
-        const { courses: coursesData } = await courseService.fetchCourses({
-          tenantId,
-          limit: 100,
-          ids: courseId ? [courseId] : undefined,
-        })
+  // Phase 2: Fetch modules + instructor name (after course is loaded)
+  const modulesQuery = useQuery({
+    queryKey: courseBrowserKeys.modulesWithLessons(course?.id ?? '', tenantId),
+    queryFn: () => fetchModulesWithLessons(course!.id, tenantId),
+    enabled: !!course?.id,
+    staleTime: STALE.MODERATE,
+  })
 
-        if (!isMounted) return
+  const teacherQuery = useQuery({
+    queryKey: courseBrowserKeys.teacherName(course?.created_by ?? '', tenantId),
+    queryFn: () => fetchTeacherName(course!.created_by, tenantId),
+    enabled: !!course?.created_by,
+    staleTime: STALE.MODERATE,
+  })
 
-        const publishedCourses = (coursesData || []).filter((c) => c.status === 'published')
+  // Phase 3: Extract all lesson IDs from modules
+  const allLessonIds = useMemo(() => {
+    if (!modulesQuery.data) return []
+    return modulesQuery.data.flatMap((m) => (m.lessons || []).map((l) => l.id))
+  }, [modulesQuery.data])
 
-        if (!publishedCourses.length) {
-          setLoading(false)
-          setModulesLoading(false)
-          return
+  // Phase 4: Fetch completed lesson IDs
+  const completedQuery = useQuery({
+    queryKey: courseBrowserKeys.completedLessons(user?.id ?? '', tenantId, allLessonIds),
+    queryFn: async () => {
+      if (!user?.id || allLessonIds.length === 0) return new Set<string>()
+      return lessonService.getCompletedLessonIds(user.id, allLessonIds)
+    },
+    enabled: !!user?.id && allLessonIds.length > 0,
+    staleTime: STALE.MODERATE,
+  })
+
+  // Compute modules with progress
+  const { modules, totalLessons, completedLessons, totalDuration, nextIncompleteModuleId } =
+    useMemo(() => {
+      const modulesData = modulesQuery.data ?? []
+      const completedSet = completedQuery.data ?? new Set<string>()
+
+      let totalL = 0
+      let completedL = 0
+      let totalDur = 0
+      let nextIncompleteId: string | undefined
+
+      const modulesWithProgress: ModuleWithProgress[] = modulesData.map((m) => {
+        const lessons = m.lessons || []
+        const completedCount = lessons.filter((l) => completedSet.has(l.id)).length
+        const duration = lessons.reduce((s, l) => s + (l.duration_minutes || 5), 0)
+        totalL += lessons.length
+        completedL += completedCount
+        totalDur += duration
+        if (!nextIncompleteId && completedCount < lessons.length) {
+          nextIncompleteId = m.id
         }
-
-        const activeCourse = publishedCourses[0]
-        setCourse({
-          id: activeCourse.id,
-          title: activeCourse.title,
-          description: activeCourse.description,
-          created_by: activeCourse.created_by,
-        })
-        setLoading(false) // ← unblock render: course header shows now
-
-        // Phase 2: fetch modules + instructor in parallel
-        const [modulesData, teacherName] = await Promise.all([
-          courseService.getCourseModulesWithLessons(activeCourse.id, tenantId),
-          courseService.getTeacherName(activeCourse.created_by, tenantId),
-        ])
-
-        if (!isMounted) return
-
-        if (teacherName) setInstructorName(teacherName)
-
-        if (!modulesData.length) {
-          setModulesLoading(false)
-          return
+        return {
+          id: m.id,
+          title: m.title,
+          order: m.order,
+          lessonCount: lessons.length,
+          completedLessons: completedCount,
+          durationMinutes: duration,
         }
+      })
 
-        // Phase 3: show modules without progress first, then fetch progress
-        const allLessonIds = (modulesData as Array<{ lessons?: Array<{ id: string }> }>).flatMap(
-          (m) => (m.lessons || []).map((l) => l.id)
-        )
-
-        // Show modules immediately (without progress marks)
-        let totalL = 0,
-          totalDur = 0
-        const modulesNoProgress: ModuleWithProgress[] = (modulesData as unknown as ModuleRow[]).map(
-          (m) => {
-            const lessons = m.lessons || []
-            const duration = lessons.reduce((s, l) => s + (l.duration_minutes || 5), 0)
-            totalL += lessons.length
-            totalDur += duration
-            return {
-              id: m.id,
-              title: m.title,
-              order: m.order,
-              lessonCount: lessons.length,
-              completedLessons: 0,
-              durationMinutes: duration,
-            }
-          }
-        )
-
-        if (!isMounted) return
-
-        setModules(modulesNoProgress)
-        setTotalLessons(totalL)
-        setTotalDuration(totalDur)
-        setModulesLoading(false) // ← modules visible now
-
-        // Phase 4: fetch progress and update modules
-        const completedSet = await lessonService.getCompletedLessonIds(user.id, allLessonIds)
-
-        if (!isMounted) return
-
-        let completedL = 0
-        let nextIncompleteId: string | undefined
-        const modulesWithProgress: ModuleWithProgress[] = (
-          modulesData as unknown as ModuleRow[]
-        ).map((m) => {
-          const lessons = m.lessons || []
-          const completedCount = lessons.filter((l) => completedSet.has(l.id)).length
-          const duration = lessons.reduce((s, l) => s + (l.duration_minutes || 5), 0)
-          completedL += completedCount
-          if (!nextIncompleteId && completedCount < lessons.length) {
-            nextIncompleteId = m.id
-          }
-          return {
-            id: m.id,
-            title: m.title,
-            order: m.order,
-            lessonCount: lessons.length,
-            completedLessons: completedCount,
-            durationMinutes: duration,
-          }
-        })
-        setModules(modulesWithProgress)
-        setCompletedLessons(completedL)
-        if (nextIncompleteId) setNextIncompleteModuleId(nextIncompleteId)
-      } catch (err) {
-        if (!isMounted) return
-        if (import.meta.env.DEV) console.error('[CourseBrowser] fetch failed:', err)
-        setFetchError('Gagal memuat materi. Periksa koneksi internet kamu dan coba lagi.')
-        setLoading(false)
-        setModulesLoading(false)
+      return {
+        modules: modulesWithProgress,
+        totalLessons: totalL,
+        completedLessons: completedL,
+        totalDuration: totalDur,
+        nextIncompleteModuleId: nextIncompleteId,
       }
-    })()
+    }, [modulesQuery.data, completedQuery.data])
 
-    return () => {
-      isMounted = false
-    }
-  }, [tenantId, courseId, user?.id, retryCount])
+  const instructorName = teacherQuery.data ?? undefined
 
   const handleContinueLearning = useCallback(() => {
     if (nextIncompleteModuleId) {
       onSelectModule(nextIncompleteModuleId)
     } else if (modules.length > 0) {
-      // All complete or no progress — go to first module
       onSelectModule(modules[0].id)
     }
   }, [nextIncompleteModuleId, modules, onSelectModule])
 
-  if (loading) {
+  const handleRetryLoad = useCallback(async () => {
+    await queryClient.invalidateQueries({
+      predicate: (query) =>
+        Array.isArray(query.queryKey) &&
+        query.queryKey[0] === 'course-browser' &&
+        query.queryKey[1] === tenantId,
+    })
+
+    await Promise.all([
+      courseQuery.refetch(),
+      modulesQuery.refetch(),
+      teacherQuery.refetch(),
+      completedQuery.refetch(),
+    ])
+  }, [queryClient, tenantId, courseQuery, modulesQuery, teacherQuery, completedQuery])
+
+  const isLoading = courseQuery.isLoading || modulesQuery.isLoading
+  const fetchError =
+    courseQuery.error || modulesQuery.error || teacherQuery.error || completedQuery.error
+
+  if (isLoading) {
     return <LessonSkeleton />
   }
 
@@ -218,9 +233,11 @@ export function CourseBrowser({
           <h2 className="text-xl font-bold text-slate-700 dark:text-slate-100 mb-2">
             Gagal Memuat Materi
           </h2>
-          <p className="text-slate-400 dark:text-slate-500 text-sm mb-5">{fetchError}</p>
+          <p className="text-slate-400 dark:text-slate-500 text-sm mb-5">
+            Gagal memuat materi. Periksa koneksi internet kamu dan coba lagi.
+          </p>
           <button
-            onClick={() => setRetryCount((c) => c + 1)}
+            onClick={handleRetryLoad}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-colors"
           >
             Coba Lagi

@@ -307,7 +307,7 @@ function exportResultsCSV(
 
 // ── Props ──────────────────────────────────────────────────────
 
-interface SurveyResultsProps {
+export interface SurveyResultsProps {
   survey: SatisfactionSurvey
   onClose: () => void
 }

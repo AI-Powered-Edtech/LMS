@@ -109,6 +109,42 @@ export async function getChildGrades(studentId: string): Promise<ChildGradeSumma
   return result.slice(0, 6)
 }
 
+// ── Monthly Attendance ──────────────────────────────────────────
+
+/**
+ * Mengambil data kehadiran bulanan untuk satu siswa.
+ */
+export async function getMonthlyAttendance(
+  studentId: string,
+  year: number,
+  month: number
+): Promise<AttendanceDay[]> {
+  const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0]
+  const endDate = new Date(year, month, 0).toISOString().split('T')[0]
+
+  const { data, error } = await supabase
+    .from('attendance_records')
+    .select('date, status')
+    .eq('student_id', studentId)
+    .gte('date', startDate)
+    .lte('date', endDate)
+    .order('date', { ascending: true })
+
+  if (error) {
+    if (import.meta.env.DEV) console.error('[Parent] getMonthlyAttendance error:', error)
+    return []
+  }
+
+  return ((data ?? []) as Record<string, unknown>[]).map((row) => {
+    const rawStatus = (row.status as string)?.toLowerCase()
+    let status: AttendanceDay['status'] = 'alpha'
+    if (rawStatus === 'hadir' || rawStatus === 'present') status = 'hadir'
+    else if (rawStatus === 'sakit' || rawStatus === 'sick') status = 'sakit'
+    else if (rawStatus === 'izin' || rawStatus === 'excused') status = 'izin'
+    return { date: row.date as string, status }
+  })
+}
+
 // ── Child Attendance ───────────────────────────────────────────
 
 /**

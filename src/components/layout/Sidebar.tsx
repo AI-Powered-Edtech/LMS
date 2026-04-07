@@ -1,18 +1,18 @@
 import { LogOut } from 'lucide-react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { ClassroomSwitcher } from '@/features/classroom/components/ClassroomSwitcher'
 import { useArrowNavigation } from '@/hooks/useArrowNavigation'
 import { ModuleId, useModuleConfig } from '@/hooks/useModuleConfig'
+import { useSignOut } from '@/hooks/useSignOut'
 import { navigationItems } from '@/shared/config/navigation'
 import { cn } from '@/utils/cn'
-import { captureError } from '@/utils/sentry'
 
 export function Sidebar() {
   const location = useLocation()
-  const navigate = useNavigate()
-  const { role, signOut } = useAuth()
+  const { role } = useAuth()
+  const handleSignOut = useSignOut()
   const { isModuleEnabled } = useModuleConfig()
   const { containerRef, handleKeyDown } = useArrowNavigation()
 
@@ -84,16 +84,7 @@ export function Sidebar() {
         <button
           type="button"
           data-testid="sidebar-signout-button"
-          onClick={async () => {
-            try {
-              await signOut()
-            } catch (e) {
-              if (import.meta.env.DEV) console.error('[Sidebar] signOut error:', e)
-              captureError(e, { context: 'Sidebar.signOut' })
-            } finally {
-              navigate('/login')
-            }
-          }}
+          onClick={() => void handleSignOut()}
           className="w-full flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-400 hover:text-red-600 font-semibold py-3 px-4 rounded-xl transition-all duration-200 text-sm group"
         >
           <LogOut className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
