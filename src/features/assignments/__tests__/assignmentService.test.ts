@@ -24,6 +24,11 @@ const baseAssignment = {
   status: 'draft' as const,
   late_penalty_percent: 10,
   due_date: null,
+  available_from: null,
+  allow_text_submission: true,
+  allow_file_submission: true,
+  allow_link_submission: false,
+  reminder_enabled: false,
   created_by: 'teacher-1',
 }
 

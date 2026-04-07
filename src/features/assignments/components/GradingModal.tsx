@@ -12,7 +12,6 @@ interface GradingModalProps {
   assignment: Assignment | null
   tenantId: string | null
   onClose: () => void
-  onUpdateSubmission: (updated: any) => void
 }
 
 function getStudentName(submission: AssignmentSubmission): string {
@@ -22,16 +21,10 @@ function getStudentName(submission: AssignmentSubmission): string {
   return submission.user_profiles?.full_name || 'Siswa'
 }
 
-export function GradingModal({
-  submission,
-  assignment,
-  tenantId,
-  onClose,
-  onUpdateSubmission,
-}: GradingModalProps) {
+export function GradingModal({ submission, assignment, tenantId, onClose }: GradingModalProps) {
   const { addToast } = useToast()
   const [score, setScore] = useState(submission?.score || 0)
-  const [feedback, setFeedback] = useState(submission?.feedback || '')
+  const [feedback, setFeedback] = useState('')
   const [isSubmittingGrade, setIsSubmittingGrade] = useState(false)
 
   const handleSaveGrade = useCallback(async () => {
@@ -41,14 +34,8 @@ export function GradingModal({
       const { data: user } = await supabase.auth.getUser()
       const teacherId = user.user?.id
       if (!teacherId) throw new Error('User not authenticated')
-      const result = await assignmentService.gradeSubmission(
-        submission.id,
-        tenantId!,
-        teacherId,
-        score,
-        feedback
-      )
-      onUpdateSubmission(result) // Note: result is now the grade, not submission
+      await assignmentService.gradeSubmission(submission.id, tenantId!, teacherId, score, feedback)
+      // Note: grading is now separate, no submission update
       onClose()
     } catch (err) {
       addToast({
@@ -58,11 +45,11 @@ export function GradingModal({
     } finally {
       setIsSubmittingGrade(false)
     }
-  }, [submission, score, feedback, tenantId, onClose, onUpdateSubmission])
+  }, [submission, score, feedback, tenantId, onClose])
 
   const handleOpen = useCallback(() => {
     setScore(submission?.score || 0)
-    setFeedback(submission?.feedback || '')
+    setFeedback('')
   }, [submission])
 
   return (

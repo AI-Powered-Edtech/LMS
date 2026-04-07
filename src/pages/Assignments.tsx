@@ -178,6 +178,11 @@ export function Assignments() {
         status: 'published',
         late_penalty_percent: 10,
         due_date: data.due_date,
+        available_from: data.available_from || null,
+        allow_text_submission: data.allow_text_submission,
+        allow_file_submission: data.allow_file_submission,
+        allow_link_submission: data.allow_link_submission,
+        reminder_enabled: data.reminder_enabled,
         created_by: user!.id,
       })
 

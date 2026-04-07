@@ -13,6 +13,11 @@ export interface Assignment {
   status: 'draft' | 'published' | 'archived'
   late_penalty_percent: number
   due_date: string | null
+  available_from: string | null
+  allow_text_submission: boolean
+  allow_file_submission: boolean
+  allow_link_submission: boolean
+  reminder_enabled: boolean
   created_by: string | null
   created_at: string
   updated_at: string
@@ -29,6 +34,10 @@ export interface AssignmentSubmission {
   score: number | null
   is_late: boolean
   late_penalty_applied: boolean
+  link_url: string | null
+  late_penalty_percent: number
+  raw_score: number | null
+  client_request_id: string | null
   user_profiles?:
     | {
         full_name: string
@@ -39,10 +48,10 @@ export interface AssignmentSubmission {
 
 // Explicit columns for assignment queries (no SELECT *)
 const ASSIGNMENT_COLUMNS =
-  'id, tenant_id, course_id, class_id, title, description, max_points, rubric, status, late_penalty_percent, due_date, created_by, created_at, updated_at'
+  'id, tenant_id, course_id, class_id, title, description, max_points, rubric, status, late_penalty_percent, due_date, available_from, allow_text_submission, allow_file_submission, allow_link_submission, reminder_enabled, created_by, created_at, updated_at'
 
 const SUBMISSION_COLUMNS =
-  'id, tenant_id, assignment_id, student_id, submission_content, submitted_at, is_late, late_penalty_applied'
+  'id, tenant_id, assignment_id, student_id, submission_content, submitted_at, is_late, late_penalty_applied, status, score, link_url, late_penalty_percent, raw_score, client_request_id'
 
 export type CreateAssignmentInput = Pick<
   Assignment,
@@ -56,6 +65,11 @@ export type CreateAssignmentInput = Pick<
   | 'status'
   | 'late_penalty_percent'
   | 'due_date'
+  | 'available_from'
+  | 'allow_text_submission'
+  | 'allow_file_submission'
+  | 'allow_link_submission'
+  | 'reminder_enabled'
   | 'created_by'
 >
 
@@ -96,7 +110,7 @@ export const assignmentService = {
       throw error
     }
 
-    return data as AssignmentSubmission
+    return { ...data, status: 'submitted', score: null } as AssignmentSubmission
   },
 
   /**
@@ -127,6 +141,7 @@ export const assignmentService = {
   async gradeSubmission(
     submissionId: string,
     _tenantId: string,
+    teacherId: string,
     score: number,
     feedback: string,
     rubricScores?: any
@@ -135,7 +150,7 @@ export const assignmentService = {
       .from('assignment_grades')
       .insert({
         submission_id: submissionId,
-        teacher_id: '', // TODO: get current user
+        teacher_id: teacherId,
         rubric_scores: rubricScores || {},
         total_score: score,
         feedback_text: feedback,

@@ -59,10 +59,6 @@ export function AssignmentGradebook() {
     }
   }, [])
 
-  const handleUpdateSubmission = useCallback((updated: AssignmentSubmission) => {
-    setSubmissions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
-  }, [])
-
   const submissionColumns = useMemo(
     () => [
       {
@@ -231,7 +227,6 @@ export function AssignmentGradebook() {
         assignment={selectedAssignment}
         tenantId={tenantId}
         onClose={() => setGradingSubmission(null)}
-        onUpdateSubmission={handleUpdateSubmission}
       />
     </div>
   )
