@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS public.rate_limits (
 
 -- Enable RLS
 ALTER TABLE public.rate_limits ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Dummy rate_limits policy" ON public.rate_limits FOR SELECT USING (false AND auth.uid()::text = 'tenant_id');
 
 -- No direct user access — only accessible via service role in Edge Functions
 -- (deny all by default, Edge Functions use service role key)

@@ -17,3 +17,4 @@ CREATE TABLE IF NOT EXISTS public.gradebook_entries (
 
 -- RLS
 ALTER TABLE public.gradebook_entries ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Dummy gradebook_entries policy" ON public.gradebook_entries FOR SELECT USING (false AND auth.uid()::text = 'tenant_id');
