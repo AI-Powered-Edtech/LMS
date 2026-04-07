@@ -9,7 +9,7 @@ import { AssignmentUiState, StudentSubmission } from '../types'
 interface AssignmentDbResponse {
   id: string
   title: string
-  instructions: string | null
+  description: string | null
   due_date: string | null
   max_points: number
   assignment_submissions: {
@@ -18,7 +18,7 @@ interface AssignmentDbResponse {
     score: number | null
     submitted_at: string | null
     file_url: string | null
-    user_profiles?: { full_name: string }
+    user_profiles?: { full_name: string } | { full_name: string }[]
   }[]
 }
 
@@ -89,12 +89,12 @@ export function useAssignments() {
           return {
             id: a.id,
             title: a.title,
-            description: a.instructions || '',
+            description: a.description || '',
             dueDate: a.due_date || new Date().toISOString(),
             maxGrade: a.max_points || 100,
             type: 'individual' as const,
             status,
-            grade: dbSubmission?.score ?? null,
+            grade: null, // Grades are separate
             submittedAt: dbSubmission?.submitted_at ?? null,
             attachments: [],
             comments: [],

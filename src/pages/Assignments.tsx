@@ -115,14 +115,21 @@ export function Assignments() {
       if (selectedFile) {
         fileUrl = await assignmentService.uploadSubmissionFile(selectedFile, tenantId, id, user.id)
       }
-      await assignmentService.submitAssignment({
-        tenant_id: tenantId,
-        assignment_id: id,
-        student_id: user.id,
-        submission_text: null,
-        file_url: fileUrl,
-        attempt_number: 1,
-      })
+      const submissionContent = selectedFile
+        ? {
+            type: 'file',
+            file_urls: [
+              {
+                name: selectedFile.name,
+                url: fileUrl,
+                size_bytes: selectedFile.size,
+                mime_type: selectedFile.type,
+              },
+            ],
+            content: '',
+          }
+        : { type: 'text', content: '', file_urls: [] }
+      await assignmentService.submitAssignment(id, user.id, tenantId, submissionContent)
       await refetch()
       setSelectedFiles((prev) => ({ ...prev, [id]: null }))
     } catch (error) {
@@ -163,12 +170,13 @@ export function Assignments() {
       const newAssignment = await assignmentService.createAssignment({
         tenant_id: tenantId!,
         course_id: null,
-        lesson_id: null,
+        class_id: null,
         title: data.title,
-        instructions: data.description ?? null,
+        description: data.description ?? null,
         max_points: data.max_score,
-        max_attempts: 1,
-        is_published: true,
+        rubric: {},
+        status: 'published',
+        late_penalty_percent: 10,
         due_date: data.due_date,
         created_by: user!.id,
       })

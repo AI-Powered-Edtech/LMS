@@ -1,13 +1,4 @@
-import {
-  ArrowLeft,
-  Award,
-  CheckCircle,
-  Clock,
-  FileText,
-  Loader2,
-  Search,
-  Users,
-} from 'lucide-react'
+import { ArrowLeft, Award, Clock, FileText, Loader2, Search, Users } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { EmptyState } from '@/components/ui'
@@ -109,40 +100,20 @@ export function AssignmentGradebook() {
       {
         key: 'status',
         header: 'Status',
-        render: (sub: AssignmentSubmission) => (
+        render: (_sub: AssignmentSubmission) => (
           <span
             className={cn(
-              'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest',
-              sub.status === 'graded'
-                ? 'bg-emerald-100 text-emerald-700'
-                : 'bg-blue-100 text-blue-700'
+              'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest bg-blue-100 text-blue-700'
             )}
           >
-            {sub.status === 'graded' ? (
-              <>
-                <CheckCircle className="w-2.5 h-2.5" /> Dinilai
-              </>
-            ) : (
-              <>
-                <Clock className="w-2.5 h-2.5" /> Sedang Diperiksa
-              </>
-            )}
+            <Clock className="w-2.5 h-2.5" /> Sedang Diperiksa
           </span>
         ),
       },
       {
         key: 'score',
         header: 'Nilai',
-        render: (sub: AssignmentSubmission) => (
-          <span
-            className={cn(
-              'font-bold',
-              sub.status === 'graded' ? 'text-emerald-600' : 'text-slate-300'
-            )}
-          >
-            {sub.status === 'graded' ? `${sub.score}/${selectedAssignment?.max_points}` : '-'}
-          </span>
-        ),
+        render: (_sub: AssignmentSubmission) => <span className="font-bold text-slate-300">-</span>,
       },
       {
         key: 'actions',

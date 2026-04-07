@@ -6405,7 +6405,28 @@ CREATE TABLE IF NOT EXISTS "public"."assignment_submissions" (
 ALTER TABLE "public"."assignment_submissions" OWNER TO "postgres";
 
 
+ALTER TABLE "public"."assignment_submissions" ADD COLUMN "link_url" text NULL;
+
+
+ALTER TABLE "public"."assignment_submissions" ADD COLUMN "is_late" boolean NOT NULL DEFAULT false;
+
+
+ALTER TABLE "public"."assignment_submissions" ADD COLUMN "late_penalty_percent" integer NOT NULL DEFAULT 0;
+
+
+ALTER TABLE "public"."assignment_submissions" ADD COLUMN "raw_score" numeric NULL;
+
+
+ALTER TABLE "public"."assignment_submissions" ADD COLUMN "client_request_id" text NULL;
+
+
 COMMENT ON COLUMN "public"."assignment_submissions"."attempt_number" IS 'The attempt count for this specific assignment by the student.';
+
+
+COMMENT ON COLUMN "public"."assignment_submissions"."score" IS 'Effective score after applying late penalty (if applicable).';
+
+
+COMMENT ON COLUMN "public"."assignment_submissions"."raw_score" IS 'Raw score before applying any late penalty.';
 
 
 
@@ -6430,6 +6451,27 @@ CREATE TABLE IF NOT EXISTS "public"."assignments" (
 
 
 ALTER TABLE "public"."assignments" OWNER TO "postgres";
+
+
+ALTER TABLE "public"."assignments" ADD COLUMN "available_from" timestamp with time zone NULL;
+
+
+ALTER TABLE "public"."assignments" ADD COLUMN "late_penalty_percent" integer NOT NULL DEFAULT 0;
+
+
+ALTER TABLE "public"."assignments" ADD COLUMN "allow_text_submission" boolean NOT NULL DEFAULT true;
+
+
+ALTER TABLE "public"."assignments" ADD COLUMN "allow_file_submission" boolean NOT NULL DEFAULT true;
+
+
+ALTER TABLE "public"."assignments" ADD COLUMN "allow_link_submission" boolean NOT NULL DEFAULT false;
+
+
+ALTER TABLE "public"."assignments" ADD COLUMN "reminder_enabled" boolean NOT NULL DEFAULT true;
+
+
+ALTER TABLE "public"."assignments" ADD CONSTRAINT "assignments_late_penalty_percent_check" CHECK (("late_penalty_percent" >= 0 AND "late_penalty_percent" <= 100));
 
 
 COMMENT ON COLUMN "public"."assignments"."max_attempts" IS 'Maximum number of times a student can submit this assignment.';
@@ -7101,6 +7143,22 @@ ALTER TABLE "public"."quiz_assignments" OWNER TO "postgres";
 
 
 COMMENT ON TABLE "public"."quiz_assignments" IS 'Junction table linking quizzes to classes with per-class scheduling and status.';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."assignment_rate_limits" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "tenant_id" "uuid" NOT NULL,
+    "request_count" integer DEFAULT 0 NOT NULL,
+    "window_start" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "reset_at" timestamp with time zone NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."assignment_rate_limits" OWNER TO "postgres";
 
 
 
@@ -7813,6 +7871,16 @@ ALTER TABLE ONLY "public"."analytics_rate_limits"
 
 
 
+ALTER TABLE ONLY "public"."assignment_rate_limits"
+    ADD CONSTRAINT "assignment_rate_limits_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."assignment_rate_limits"
+    ADD CONSTRAINT "assignment_rate_limits_user_id_key" UNIQUE ("user_id");
+
+
+
 ALTER TABLE ONLY "public"."announcement_rsvps"
     ADD CONSTRAINT "announcement_rsvps_announcement_id_user_id_key" UNIQUE ("announcement_id", "user_id");
 
@@ -8492,6 +8560,18 @@ CREATE INDEX "idx_assignments_tenant" ON "public"."assignments" USING "btree" ("
 
 
 CREATE INDEX "idx_assignments_tenant_id" ON "public"."assignments" USING "btree" ("tenant_id");
+
+
+
+CREATE INDEX "idx_assignment_rate_limits_user" ON "public"."assignment_rate_limits" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "idx_assignment_rate_limits_tenant" ON "public"."assignment_rate_limits" USING "btree" ("tenant_id");
+
+
+
+CREATE INDEX "idx_assignment_rate_limits_reset" ON "public"."assignment_rate_limits" USING "btree" ("reset_at");
 
 
 
@@ -9839,47 +9919,499 @@ ALTER INDEX "public"."idx_v2_tenant_student" ATTACH PARTITION "public"."quiz_att
 
 
 
-ALTER INDEX "public"."idx_qa_v2_assignment_student_status" ATTACH PARTITION "public"."quiz_attempts_v2_historic_assignment_id_student_id_status_idx";
+CREATE OR REPLACE FUNCTION "public"."check_assignment_rate_limit"("p_user_id" "uuid", "p_limit" integer DEFAULT 10, "p_window" interval DEFAULT '01:00:00'::interval) RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+DECLARE
+    v_tenant_id uuid;
+    v_record record;
+BEGIN
+    -- Get tenant
+    v_tenant_id := get_my_tenant_id();
+    IF v_tenant_id IS NULL THEN
+        RAISE EXCEPTION 'Tenant not found';
+    END IF;
+
+    SELECT * INTO v_record FROM public.assignment_rate_limits WHERE user_id = p_user_id AND tenant_id = v_tenant_id;
+
+    IF v_record IS NULL THEN
+        INSERT INTO public.assignment_rate_limits (user_id, tenant_id, request_count, window_start, reset_at)
+        VALUES (p_user_id, v_tenant_id, 1, now(), now() + p_window);
+        RETURN true;
+    END IF;
+
+    -- Reset if window passed
+    IF now() > v_record.reset_at THEN
+        UPDATE public.assignment_rate_limits
+        SET
+            request_count = 1,
+            window_start = now(),
+            reset_at = now() + p_window
+        WHERE user_id = p_user_id AND tenant_id = v_tenant_id;
+        RETURN true;
+    END IF;
+
+    -- Check limit
+    IF v_record.request_count >= p_limit THEN
+        RETURN false;
+    END IF;
+
+    -- Increment
+    UPDATE public.assignment_rate_limits
+    SET request_count = request_count + 1
+    WHERE user_id = p_user_id AND tenant_id = v_tenant_id;
+
+    RETURN true;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."check_assignment_rate_limit"("p_user_id" "uuid", "p_limit" integer, "p_window" interval) OWNER TO "postgres";
 
 
 
-ALTER INDEX "public"."idx_qa_v2_assignment_submitted" ATTACH PARTITION "public"."quiz_attempts_v2_historic_assignment_id_submitted_at_idx";
+CREATE OR REPLACE FUNCTION "public"."submit_assignment_attempt"("p_assignment_id" "uuid", "p_content" "text", "p_submission_text" "text", "p_file_url" "text", "p_link_url" "text", "p_client_request_id" "text") RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+DECLARE
+    v_tenant_id uuid;
+    v_user_id uuid;
+    v_assignment record;
+    v_existing_submission record;
+    v_attempt_number integer;
+    v_is_late boolean := false;
+    v_late_penalty_percent integer := 0;
+    v_due_date timestamptz;
+BEGIN
+    -- Security: Get tenant and user
+    v_tenant_id := get_my_tenant_id();
+    v_user_id := auth.uid();
+    IF v_tenant_id IS NULL OR v_user_id IS NULL THEN
+        RAISE EXCEPTION 'Authentication required';
+    END IF;
+
+    -- Rate limiting check
+    IF NOT check_assignment_rate_limit(v_user_id) THEN
+        RAISE EXCEPTION 'Rate limit exceeded for assignment submissions';
+    END IF;
+
+    -- Get assignment details
+    SELECT * INTO v_assignment FROM public.assignments
+    WHERE id = p_assignment_id AND tenant_id = v_tenant_id;
+
+    IF v_assignment.id IS NULL THEN
+        RAISE EXCEPTION 'Assignment not found';
+    END IF;
+
+    -- Check if user is enrolled in the class
+    IF NOT EXISTS (
+        SELECT 1 FROM public.enrollments e
+        JOIN public.classes c ON c.id = e.class_id
+        WHERE e.student_id = v_user_id AND e.class_id = v_assignment.class_id
+          AND e.status = 'ACTIVE' AND e.tenant_id = v_tenant_id
+    ) THEN
+        RAISE EXCEPTION 'Not enrolled in this class';
+    END IF;
+
+    -- Check if assignment is published
+    IF NOT v_assignment.is_published THEN
+        RAISE EXCEPTION 'Assignment is not published';
+    END IF;
+
+    -- Check availability
+    IF v_assignment.available_from IS NOT NULL AND now() < v_assignment.available_from THEN
+        RAISE EXCEPTION 'Assignment is not yet available';
+    END IF;
+
+    -- Idempotency check
+    IF p_client_request_id IS NOT NULL THEN
+        SELECT * INTO v_existing_submission FROM public.assignment_submissions
+        WHERE assignment_id = p_assignment_id AND student_id = v_user_id
+          AND client_request_id = p_client_request_id AND tenant_id = v_tenant_id;
+
+        IF v_existing_submission.id IS NOT NULL THEN
+            RETURN jsonb_build_object(
+                'success', true,
+                'submission_id', v_existing_submission.id,
+                'message', 'Submission already exists (idempotent)'
+            );
+        END IF;
+    END IF;
+
+    -- Get current attempt number
+    SELECT COALESCE(MAX(attempt_number), 0) + 1 INTO v_attempt_number
+    FROM public.assignment_submissions
+    WHERE assignment_id = p_assignment_id AND student_id = v_user_id AND tenant_id = v_tenant_id;
+
+    -- Check max attempts
+    IF v_attempt_number > v_assignment.max_attempts THEN
+        RAISE EXCEPTION 'Maximum attempts exceeded';
+    END IF;
+
+    -- Late submission detection
+    v_due_date := v_assignment.due_date;
+    IF v_due_date IS NOT NULL AND now() > v_due_date THEN
+        v_is_late := true;
+        v_late_penalty_percent := v_assignment.late_penalty_percent;
+    END IF;
+
+    -- Insert submission
+    INSERT INTO public.assignment_submissions (
+        assignment_id, student_id, tenant_id, content, submission_text,
+        file_url, link_url, status, attempt_number, is_late,
+        late_penalty_percent, client_request_id, submitted_at
+    ) VALUES (
+        p_assignment_id, v_user_id, v_tenant_id, p_content, p_submission_text,
+        p_file_url, p_link_url, 'SUBMITTED', v_attempt_number, v_is_late,
+        v_late_penalty_percent, p_client_request_id, now()
+    ) RETURNING id INTO v_existing_submission;
+
+    -- Award XP for submission
+    PERFORM public.add_user_points(v_user_id, 10);
+
+    -- Log activity
+    PERFORM public.create_activity_event(
+        v_tenant_id, v_user_id, 'ASSIGNMENT_SUBMITTED',
+        'assignment', p_assignment_id, v_assignment.class_id, v_assignment.course_id,
+        jsonb_build_object('attempt_number', v_attempt_number, 'is_late', v_is_late)
+    );
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'submission_id', v_existing_submission.id,
+        'attempt_number', v_attempt_number,
+        'is_late', v_is_late,
+        'late_penalty_percent', v_late_penalty_percent
+    );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."submit_assignment_attempt"("p_assignment_id" "uuid", "p_content" "text", "p_submission_text" "text", "p_file_url" "text", "p_link_url" "text", "p_client_request_id" "text") OWNER TO "postgres";
 
 
 
-ALTER INDEX "public"."idx_v2_assignment_submitted" ATTACH PARTITION "public"."quiz_attempts_v2_historic_assignment_id_submitted_at_idx1";
+CREATE OR REPLACE FUNCTION "public"."get_assignment_submission_bundle"("p_assignment_id" "uuid") RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+DECLARE
+    v_tenant_id uuid;
+    v_user_id uuid;
+    v_assignment record;
+    v_submissions jsonb;
+BEGIN
+    -- Security: Get tenant and user
+    v_tenant_id := get_my_tenant_id();
+    v_user_id := auth.uid();
+    IF v_tenant_id IS NULL OR v_user_id IS NULL THEN
+        RAISE EXCEPTION 'Authentication required';
+    END IF;
+
+    -- Get assignment details
+    SELECT * INTO v_assignment FROM public.assignments
+    WHERE id = p_assignment_id AND tenant_id = v_tenant_id;
+
+    IF v_assignment.id IS NULL THEN
+        RAISE EXCEPTION 'Assignment not found';
+    END IF;
+
+    -- Check permissions: teacher of class or admin
+    IF NOT public.has_role('ADMIN') AND NOT EXISTS (
+        SELECT 1 FROM public.classes
+        WHERE id = v_assignment.class_id AND teacher_id = v_user_id AND tenant_id = v_tenant_id
+    ) THEN
+        RAISE EXCEPTION 'Unauthorized';
+    END IF;
+
+    -- Get all submissions for this assignment
+    SELECT COALESCE(jsonb_agg(
+        jsonb_build_object(
+            'id', s.id,
+            'student_id', s.student_id,
+            'student_name', p.full_name,
+            'attempt_number', s.attempt_number,
+            'status', s.status,
+            'score', s.score,
+            'raw_score', s.raw_score,
+            'is_late', s.is_late,
+            'late_penalty_percent', s.late_penalty_percent,
+            'submitted_at', s.submitted_at,
+            'graded_at', s.graded_at,
+            'feedback', s.feedback,
+            'submission_text', s.submission_text,
+            'file_url', s.file_url,
+            'link_url', s.link_url
+        )
+    ), '[]'::jsonb) INTO v_submissions
+    FROM public.assignment_submissions s
+    JOIN public.profiles p ON p.id = s.student_id
+    WHERE s.assignment_id = p_assignment_id AND s.tenant_id = v_tenant_id
+    ORDER BY s.submitted_at DESC;
+
+    RETURN jsonb_build_object(
+        'assignment', jsonb_build_object(
+            'id', v_assignment.id,
+            'title', v_assignment.title,
+            'description', v_assignment.description,
+            'due_date', v_assignment.due_date,
+            'max_attempts', v_assignment.max_attempts,
+            'max_points', v_assignment.max_points,
+            'late_penalty_percent', v_assignment.late_penalty_percent
+        ),
+        'submissions', v_submissions
+    );
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_assignment_submission_bundle"("p_assignment_id" "uuid") OWNER TO "postgres";
 
 
 
-ALTER INDEX "public"."idx_v2_expires_in_progress" ATTACH PARTITION "public"."quiz_attempts_v2_historic_expires_at_idx";
+CREATE OR REPLACE FUNCTION "public"."get_assignment_grading_queue"("p_class_id" "uuid", "p_limit" integer DEFAULT 50) RETURNS TABLE("submission_id" "uuid", "assignment_id" "uuid", "assignment_title" "text", "student_id" "uuid", "student_name" "text", "attempt_number" integer, "submitted_at" timestamp with time zone, "is_late" boolean, "status" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+DECLARE
+    v_tenant_id uuid;
+    v_user_id uuid;
+BEGIN
+    -- Security: Get tenant and user
+    v_tenant_id := get_my_tenant_id();
+    v_user_id := auth.uid();
+    IF v_tenant_id IS NULL OR v_user_id IS NULL THEN
+        RAISE EXCEPTION 'Authentication required';
+    END IF;
+
+    -- Check permissions: teacher of class or admin
+    IF NOT public.has_role('ADMIN') AND NOT EXISTS (
+        SELECT 1 FROM public.classes
+        WHERE id = p_class_id AND teacher_id = v_user_id AND tenant_id = v_tenant_id
+    ) THEN
+        RAISE EXCEPTION 'Unauthorized';
+    END IF;
+
+    RETURN QUERY
+    SELECT
+        s.id as submission_id,
+        s.assignment_id,
+        a.title as assignment_title,
+        s.student_id,
+        p.full_name as student_name,
+        s.attempt_number,
+        s.submitted_at,
+        s.is_late,
+        s.status::text
+    FROM public.assignment_submissions s
+    JOIN public.assignments a ON a.id = s.assignment_id
+    JOIN public.profiles p ON p.id = s.student_id
+    WHERE a.class_id = p_class_id
+      AND a.tenant_id = v_tenant_id
+      AND s.tenant_id = v_tenant_id
+      AND s.status = 'SUBMITTED'
+    ORDER BY s.submitted_at ASC
+    LIMIT p_limit;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_assignment_grading_queue"("p_class_id" "uuid", "p_limit" integer) OWNER TO "postgres";
 
 
 
-ALTER INDEX "public"."idx_v2_heartbeat_in_progress" ATTACH PARTITION "public"."quiz_attempts_v2_historic_last_heartbeat_at_idx";
+CREATE OR REPLACE FUNCTION "public"."get_assignment_analytics"("p_assignment_id" "uuid") RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+DECLARE
+    v_tenant_id uuid;
+    v_user_id uuid;
+    v_assignment record;
+    v_stats jsonb;
+BEGIN
+    -- Security: Get tenant and user
+    v_tenant_id := get_my_tenant_id();
+    v_user_id := auth.uid();
+    IF v_tenant_id IS NULL OR v_user_id IS NULL THEN
+        RAISE EXCEPTION 'Authentication required';
+    END IF;
+
+    -- Get assignment details
+    SELECT * INTO v_assignment FROM public.assignments
+    WHERE id = p_assignment_id AND tenant_id = v_tenant_id;
+
+    IF v_assignment.id IS NULL THEN
+        RAISE EXCEPTION 'Assignment not found';
+    END IF;
+
+    -- Check permissions: teacher of class or admin
+    IF NOT public.has_role('ADMIN') AND NOT EXISTS (
+        SELECT 1 FROM public.classes
+        WHERE id = v_assignment.class_id AND teacher_id = v_user_id AND tenant_id = v_tenant_id
+    ) THEN
+        RAISE EXCEPTION 'Unauthorized';
+    END IF;
+
+    -- Calculate analytics
+    SELECT jsonb_build_object(
+        'total_submissions', COUNT(*),
+        'unique_students', COUNT(DISTINCT student_id),
+        'avg_attempts', ROUND(AVG(attempt_number)::numeric, 2),
+        'late_submissions', COUNT(*) FILTER (WHERE is_late = true),
+        'graded_submissions', COUNT(*) FILTER (WHERE status = 'GRADED'),
+        'avg_score', ROUND(AVG(score)::numeric, 2),
+        'avg_raw_score', ROUND(AVG(raw_score)::numeric, 2),
+        'max_score', MAX(score),
+        'min_score', MIN(score),
+        'score_distribution', (
+            SELECT jsonb_object_agg(
+                CASE
+                    WHEN score >= 90 THEN '90-100'
+                    WHEN score >= 80 THEN '80-89'
+                    WHEN score >= 70 THEN '70-79'
+                    WHEN score >= 60 THEN '60-69'
+                    ELSE '0-59'
+                END,
+                cnt
+            )
+            FROM (
+                SELECT
+                    CASE
+                        WHEN score >= 90 THEN '90-100'
+                        WHEN score >= 80 THEN '80-89'
+                        WHEN score >= 70 THEN '70-79'
+                        WHEN score >= 60 THEN '60-69'
+                        ELSE '0-59'
+                    END as range,
+                    COUNT(*) as cnt
+                FROM public.assignment_submissions
+                WHERE assignment_id = p_assignment_id AND tenant_id = v_tenant_id
+                  AND status = 'GRADED' AND score IS NOT NULL
+                GROUP BY range
+            ) d
+        ),
+        'submission_timeline', (
+            SELECT jsonb_agg(
+                jsonb_build_object(
+                    'date', DATE(submitted_at),
+                    'count', cnt
+                )
+            )
+            FROM (
+                SELECT DATE(submitted_at) as date, COUNT(*) as cnt
+                FROM public.assignment_submissions
+                WHERE assignment_id = p_assignment_id AND tenant_id = v_tenant_id
+                GROUP BY DATE(submitted_at)
+                ORDER BY DATE(submitted_at)
+            ) t
+        )
+    ) INTO v_stats
+    FROM public.assignment_submissions
+    WHERE assignment_id = p_assignment_id AND tenant_id = v_tenant_id;
+
+    RETURN v_stats;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."get_assignment_analytics"("p_assignment_id" "uuid") OWNER TO "postgres";
 
 
 
-ALTER INDEX "public"."quiz_attempts_v2_pkey" ATTACH PARTITION "public"."quiz_attempts_v2_historic_pkey";
+CREATE OR REPLACE FUNCTION "public"."send_assignment_reminders"("p_assignment_id" "uuid") RETURNS "jsonb"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+DECLARE
+    v_tenant_id uuid;
+    v_user_id uuid;
+    v_assignment record;
+    v_reminder_count integer := 0;
+    v_hours_until_due integer;
+BEGIN
+    -- Security: Get tenant and user
+    v_tenant_id := get_my_tenant_id();
+    v_user_id := auth.uid();
+    IF v_tenant_id IS NULL OR v_user_id IS NULL THEN
+        RAISE EXCEPTION 'Authentication required';
+    END IF;
+
+    -- Get assignment details
+    SELECT * INTO v_assignment FROM public.assignments
+    WHERE id = p_assignment_id AND tenant_id = v_tenant_id;
+
+    IF v_assignment.id IS NULL THEN
+        RAISE EXCEPTION 'Assignment not found';
+    END IF;
+
+    -- Check permissions: teacher of class or admin
+    IF NOT public.has_role('ADMIN') AND NOT EXISTS (
+        SELECT 1 FROM public.classes
+        WHERE id = v_assignment.class_id AND teacher_id = v_user_id AND tenant_id = v_tenant_id
+    ) THEN
+        RAISE EXCEPTION 'Unauthorized';
+    END IF;
+
+    -- Check if reminders are enabled
+    IF NOT v_assignment.reminder_enabled THEN
+        RETURN jsonb_build_object('success', false, 'message', 'Reminders are disabled for this assignment');
+    END IF;
+
+    -- Calculate hours until due
+    IF v_assignment.due_date IS NOT NULL THEN
+        v_hours_until_due := EXTRACT(EPOCH FROM (v_assignment.due_date - now())) / 3600;
+    ELSE
+        v_hours_until_due := NULL;
+    END IF;
+
+    -- Send reminders to students who haven't submitted
+    INSERT INTO public.notifications (
+        tenant_id, user_id, actor_id, title, message, type, entity_id, link
+    )
+    SELECT
+        v_tenant_id,
+        e.student_id,
+        v_user_id,
+        'Assignment Reminder: ' || v_assignment.title,
+        CASE
+            WHEN v_hours_until_due IS NOT NULL AND v_hours_until_due > 0 THEN
+                'Assignment "' || v_assignment.title || '" is due in ' ||
+                ROUND(v_hours_until_due::numeric, 1) || ' hours. Please submit before the deadline.'
+            WHEN v_hours_until_due IS NOT NULL AND v_hours_until_due <= 0 THEN
+                'Assignment "' || v_assignment.title || '" is overdue. Please submit as soon as possible.'
+            ELSE
+                'Assignment "' || v_assignment.title || '" is available for submission.'
+        END,
+        'ASSIGNMENT',
+        p_assignment_id,
+        '/learning/' || v_assignment.course_id
+    FROM public.enrollments e
+    WHERE e.class_id = v_assignment.class_id
+      AND e.status = 'ACTIVE'
+      AND e.tenant_id = v_tenant_id
+      AND NOT EXISTS (
+          SELECT 1 FROM public.assignment_submissions s
+          WHERE s.assignment_id = p_assignment_id
+            AND s.student_id = e.student_id
+            AND s.tenant_id = v_tenant_id
+            AND s.status IN ('SUBMITTED', 'GRADED')
+      );
+
+    GET DIAGNOSTICS v_reminder_count = ROW_COUNT;
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'reminders_sent', v_reminder_count,
+        'assignment_id', p_assignment_id
+    );
+END;
+$$;
 
 
-
-ALTER INDEX "public"."idx_v2_quiz_status_score" ATTACH PARTITION "public"."quiz_attempts_v2_historic_quiz_id_status_score_idx";
-
-
-
-ALTER INDEX "public"."idx_qa_v2_quiz_student_status" ATTACH PARTITION "public"."quiz_attempts_v2_historic_quiz_id_student_id_status_idx";
-
-
-
-ALTER INDEX "public"."idx_quiz_attempts_v2_student_quiz" ATTACH PARTITION "public"."quiz_attempts_v2_historic_student_id_quiz_id_status_idx";
-
-
-
-ALTER INDEX "public"."idx_v2_student_active_status" ATTACH PARTITION "public"."quiz_attempts_v2_historic_student_id_quiz_id_status_idx1";
-
-
-
-ALTER INDEX "public"."idx_v2_tenant_student" ATTACH PARTITION "public"."quiz_attempts_v2_historic_tenant_id_student_id_idx";
+ALTER FUNCTION "public"."send_assignment_reminders"("p_assignment_id" "uuid") OWNER TO "postgres";
 
 
 
@@ -10015,6 +10547,10 @@ CREATE OR REPLACE TRIGGER "set_assignments_updated_at" BEFORE UPDATE ON "public"
 
 
 
+CREATE OR REPLACE TRIGGER "set_assignment_rate_limits_updated_at" BEFORE UPDATE ON "public"."assignment_rate_limits" FOR EACH ROW EXECUTE FUNCTION "public"."handle_updated_at"();
+
+
+
 CREATE OR REPLACE TRIGGER "set_course_insights_updated_at" BEFORE UPDATE ON "public"."course_insights" FOR EACH ROW EXECUTE FUNCTION "public"."set_updated_at"();
 
 
@@ -10040,6 +10576,10 @@ CREATE OR REPLACE TRIGGER "set_tenant_id_assignment_submissions" BEFORE INSERT O
 
 
 CREATE OR REPLACE TRIGGER "set_tenant_id_assignments" BEFORE INSERT ON "public"."assignments" FOR EACH ROW EXECUTE FUNCTION "public"."auto_set_tenant_id"();
+
+
+
+CREATE OR REPLACE TRIGGER "set_tenant_id_assignment_rate_limits" BEFORE INSERT ON "public"."assignment_rate_limits" FOR EACH ROW EXECUTE FUNCTION "public"."auto_set_tenant_id"();
 
 
 
@@ -10371,6 +10911,16 @@ ALTER TABLE ONLY "public"."analytics_rate_limits"
 
 ALTER TABLE ONLY "public"."analytics_rate_limits"
     ADD CONSTRAINT "analytics_rate_limits_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."assignment_rate_limits"
+    ADD CONSTRAINT "assignment_rate_limits_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "public"."tenants"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."assignment_rate_limits"
+    ADD CONSTRAINT "assignment_rate_limits_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
 
 

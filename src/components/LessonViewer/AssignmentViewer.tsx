@@ -1,12 +1,4 @@
-import {
-  AlertTriangle,
-  Award,
-  Calendar,
-  CheckCircle,
-  Loader2,
-  MessageSquare,
-  Send,
-} from 'lucide-react'
+import { AlertTriangle, Award, Calendar, CheckCircle, Loader2, Send } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 
@@ -63,8 +55,8 @@ export function AssignmentViewer({
         if (data && data.assignment_submissions?.length > 0) {
           const sub = data.assignment_submissions[0]
           setSubmission(sub)
-          setSubmissionText(sub.submission_text || '')
-          setAttemptCount(sub.attempt_number || 1)
+          setSubmissionText(sub.submission_content?.content || '')
+          setAttemptCount(1) // No attempt_number in new schema
         }
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Error loading submission:', err)
@@ -81,20 +73,15 @@ export function AssignmentViewer({
     setIsSubmitting(true)
     setError(null)
     try {
-      const submissionData: Omit<
-        AssignmentSubmission,
-        'id' | 'submitted_at' | 'graded_at' | 'score' | 'feedback' | 'status'
-      > = {
-        assignment_id: assignmentId,
-        student_id: user.id,
-        tenant_id: tenantId!,
-        submission_text: submissionText,
-        file_url: null,
-        attempt_number: attemptCount + 1,
-      }
-      const result = await assignmentService.submitAssignment(submissionData)
+      const submissionContent = { type: 'text', content: submissionText, file_urls: [] }
+      const result = await assignmentService.submitAssignment(
+        assignmentId,
+        user.id,
+        tenantId!,
+        submissionContent
+      )
       setSubmission(result)
-      setAttemptCount(result.attempt_number || attemptCount + 1)
+      setAttemptCount(attemptCount + 1)
       onCompletionMet()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Kesalahan tidak diketahui')
@@ -112,8 +99,8 @@ export function AssignmentViewer({
     )
   }
 
-  const isSubmitted = submission?.status === 'submitted'
-  const isGraded = submission?.status === 'graded'
+  const isSubmitted = !!submission
+  const isGraded = false // Grades are separate in new schema
   const canEdit = !isSubmitted && !isGraded && !isCompleted
 
   // Handle unpublished assignments for students
@@ -154,11 +141,7 @@ export function AssignmentViewer({
                 <p className="font-bold text-sm">
                   {isGraded ? 'Tugas Telah Dinilai' : 'Tugas Telah Dikirim'}
                 </p>
-                <p className="text-xs opacity-80">
-                  {isGraded
-                    ? `Nilai: ${submission.score} / ${maxPoints}`
-                    : 'Guru akan segera memeriksa pekerjaan Anda.'}
-                </p>
+                <p className="text-xs opacity-80">Guru akan segera memeriksa pekerjaan Anda.</p>
               </div>
             </motion.div>
           )}
@@ -205,19 +188,6 @@ export function AssignmentViewer({
             </div>
           </div>
         </div>
-
-        {/* Feedback Section (If Graded) */}
-        {isGraded && submission.feedback && (
-          <div className="bg-emerald-50/50 border border-emerald-100 rounded-3xl p-8">
-            <div className="flex items-center gap-2 text-emerald-800 font-bold mb-3">
-              <MessageSquare className="w-5 h-5" />
-              Umpan Balik Guru
-            </div>
-            <div className="text-emerald-900 text-sm leading-relaxed bg-white/60 p-4 rounded-2xl border border-emerald-100/50">
-              {submission.feedback}
-            </div>
-          </div>
-        )}
 
         {/* Submission Area */}
         <div className="space-y-4">

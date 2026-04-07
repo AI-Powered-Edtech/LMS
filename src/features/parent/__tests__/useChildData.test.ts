@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
 vi.mock('@/contexts/AuthContext', () => ({
-  useAuth: vi.fn(() => ({ tenantId: 'tenant-1' })),
+  useAuth: vi.fn(() => ({ tenantId: 'tenant-1', user: { id: 'parent-1' } })),
 }))
 
 vi.mock('../api/parentApi', () => ({
@@ -16,6 +16,7 @@ vi.mock('../api/parentApi', () => ({
   getChildPendingAssignments: vi.fn(),
   getChildAchievements: vi.fn(),
   calculateTrafficLight: vi.fn(),
+  getParentDashboardSnapshot: vi.fn(),
 }))
 
 import {
@@ -25,6 +26,7 @@ import {
   getChildGrades,
   getChildPendingAssignments,
   getMyChildren,
+  getParentDashboardSnapshot,
 } from '../api/parentApi'
 import { useChildDashboard, useChildren, useParentDashboard } from '../hooks/useChildData'
 
@@ -34,6 +36,7 @@ const mockGetChildAttendance = vi.mocked(getChildAttendance)
 const mockGetChildPendingAssignments = vi.mocked(getChildPendingAssignments)
 const mockGetChildAchievements = vi.mocked(getChildAchievements)
 const mockCalculateTrafficLight = vi.mocked(calculateTrafficLight)
+const mockGetParentDashboardSnapshot = vi.mocked(getParentDashboardSnapshot)
 
 // ── Test Utilities ──────────────────────────────────────────────────────────
 
@@ -85,6 +88,22 @@ describe('useChildData hooks', () => {
     mockGetChildPendingAssignments.mockResolvedValue([])
     mockGetChildAchievements.mockResolvedValue(['Meraih badge "Rajin"'])
     mockCalculateTrafficLight.mockReturnValue({ status: 'green', reason: 'Semua baik' })
+    mockGetParentDashboardSnapshot.mockResolvedValue([
+      {
+        child: MOCK_CHILDREN[0],
+        grades: [],
+        attendance_this_week: [],
+        pending_assignments: [],
+        recent_achievements: [],
+      },
+      {
+        child: MOCK_CHILDREN[1],
+        grades: [],
+        attendance_this_week: [],
+        pending_assignments: [],
+        recent_achievements: [],
+      },
+    ] as any)
   })
 
   // ── useChildren ───────────────────────────────────────────────

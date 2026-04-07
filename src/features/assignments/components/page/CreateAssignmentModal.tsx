@@ -1,5 +1,5 @@
 import { valibotResolver } from '@hookform/resolvers/valibot'
-import { ClipboardList, FileText, FileUp, Link as LinkIcon, Paperclip, X } from 'lucide-react'
+import { ClipboardList, FileText, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { type Resolver, useForm } from 'react-hook-form'
@@ -50,6 +50,13 @@ export function CreateAssignmentModal({
       description: '',
       due_date: '',
       max_score: 100,
+      available_from: '',
+      max_attempts: 1,
+      late_penalty_percent: 0,
+      allow_text_submission: true,
+      allow_file_submission: true,
+      allow_link_submission: false,
+      reminder_enabled: true,
     },
   })
 
@@ -110,9 +117,6 @@ export function CreateAssignmentModal({
                   <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                     Buat Tugas Baru
                   </h2>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Tugas akan disinkronkan dengan Google Classroom
-                  </p>
                 </div>
               </div>
               <button
@@ -244,36 +248,122 @@ export function CreateAssignmentModal({
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className="space-y-1.5">
+                      <label
+                        htmlFor="ca-available-from"
+                        className="text-sm font-bold text-slate-700 dark:text-slate-300"
+                      >
+                        Tersedia Dari (Opsional)
+                      </label>
+                      <input
+                        id="ca-available-from"
+                        type="datetime-local"
+                        {...register('available_from')}
+                        className={INPUT_CLS}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label
+                        htmlFor="ca-max-attempts"
+                        className="text-sm font-bold text-slate-700 dark:text-slate-300"
+                      >
+                        Maksimal Percobaan
+                      </label>
+                      <input
+                        id="ca-max-attempts"
+                        type="number"
+                        {...register('max_attempts', { valueAsNumber: true })}
+                        aria-invalid={!!errors.max_attempts}
+                        aria-describedby={errors.max_attempts ? 'ca-max-attempts-error' : undefined}
+                        className={INPUT_CLS}
+                      />
+                      {errors.max_attempts && (
+                        <p id="ca-max-attempts-error" className="text-xs text-red-500 mt-1">
+                          {errors.max_attempts.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label
+                        htmlFor="ca-late-penalty"
+                        className="text-sm font-bold text-slate-700 dark:text-slate-300"
+                      >
+                        Penalti Terlambat (%)
+                      </label>
+                      <input
+                        id="ca-late-penalty"
+                        type="number"
+                        min="0"
+                        max="100"
+                        {...register('late_penalty_percent', { valueAsNumber: true })}
+                        aria-invalid={!!errors.late_penalty_percent}
+                        aria-describedby={
+                          errors.late_penalty_percent ? 'ca-late-penalty-error' : undefined
+                        }
+                        className={INPUT_CLS}
+                      />
+                      {errors.late_penalty_percent && (
+                        <p id="ca-late-penalty-error" className="text-xs text-red-500 mt-1">
+                          {errors.late_penalty_percent.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-700">
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                      Lampiran &amp; Integrasi GCR
+                      Jenis Pengumpulan
                     </label>
-                    <div className="flex flex-wrap gap-3">
-                      <button
-                        type="button"
-                        disabled
-                        title="Fitur segera hadir"
-                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 text-sm font-bold rounded-xl cursor-not-allowed opacity-60"
-                      >
-                        <FileUp className="w-4 h-4" /> Google Drive
-                      </button>
-                      <button
-                        type="button"
-                        disabled
-                        title="Fitur segera hadir"
-                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 text-sm font-bold rounded-xl cursor-not-allowed opacity-60"
-                      >
-                        <LinkIcon className="w-4 h-4" /> Link
-                      </button>
-                      <button
-                        type="button"
-                        disabled
-                        title="Fitur segera hadir"
-                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 text-sm font-bold rounded-xl cursor-not-allowed opacity-60"
-                      >
-                        <Paperclip className="w-4 h-4" /> Upload File
-                      </button>
+                    <div className="flex flex-wrap gap-4">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          {...register('allow_text_submission')}
+                          className="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600"
+                        />
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                          Teks
+                        </span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          {...register('allow_file_submission')}
+                          className="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600"
+                        />
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                          File
+                        </span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          {...register('allow_link_submission')}
+                          className="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600"
+                        />
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                          Link
+                        </span>
+                      </label>
                     </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2">
+                    <input
+                      id="ca-reminder"
+                      type="checkbox"
+                      {...register('reminder_enabled')}
+                      className="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600"
+                    />
+                    <label
+                      htmlFor="ca-reminder"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
+                    >
+                      Aktifkan Pengingat
+                    </label>
                   </div>
 
                   {/* Rubric preview if one is attached */}

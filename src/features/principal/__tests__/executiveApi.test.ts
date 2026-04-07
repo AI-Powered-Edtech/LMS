@@ -109,47 +109,35 @@ describe('getExecutiveOverview', () => {
 describe('getMonthlyTrend', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('calls get_activity_timeline RPC with correct params', async () => {
+  it('calls get_principal_monthly_trend_cached RPC with correct params', async () => {
     mockRpc.mockResolvedValue({ data: [], error: null })
 
     await getMonthlyTrend('tenant-1', 6)
 
-    expect(mockRpc).toHaveBeenCalledWith('get_activity_timeline', {
+    expect(mockRpc).toHaveBeenCalledWith('get_principal_monthly_trend_cached', {
       p_tenant_id: 'tenant-1',
-      p_days: 180,
+      p_months: 6,
     })
   })
 
-  it('returns pre-populated monthly buckets for requested months', async () => {
-    mockRpc.mockResolvedValue({ data: [], error: null })
-
-    const result = await getMonthlyTrend('tenant-1', 3)
-    expect(result).toHaveLength(3)
-    result.forEach((item) => {
-      expect(item).toHaveProperty('month')
-      expect(item).toHaveProperty('active_students')
-      expect(item).toHaveProperty('lesson_completions')
-      expect(item).toHaveProperty('quiz_attempts')
-    })
-  })
-
-  it('aggregates daily data into monthly buckets', async () => {
-    const now = new Date()
-    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 15)
-
+  it('returns data from RPC', async () => {
     mockRpc.mockResolvedValue({
       data: [
-        { event_date: thisMonth.toISOString(), lesson_completions: 10, quiz_attempts: 5 },
-        { event_date: thisMonth.toISOString(), lesson_completions: 20, quiz_attempts: 8 },
+        { month_label: '2026-01', active_students: 50, lesson_completions: 100, quiz_attempts: 25 },
       ],
       error: null,
     })
 
-    const result = await getMonthlyTrend('tenant-1', 6)
-    // Last bucket should have aggregated values
-    const lastMonth = result[result.length - 1]
-    expect(lastMonth.lesson_completions).toBe(30)
-    expect(lastMonth.quiz_attempts).toBe(13)
+    const result = await getMonthlyTrend('tenant-1', 3)
+    expect(result).toHaveLength(1)
+    expect(result[0]).toHaveProperty('month', '2026-01')
+  })
+
+  it('returns empty array when RPC returns empty data', async () => {
+    mockRpc.mockResolvedValue({ data: [], error: null })
+
+    const result = await getMonthlyTrend('tenant-1', 3)
+    expect(result).toEqual([])
   })
 
   it('returns empty array on RPC error (graceful degradation)', async () => {
@@ -166,10 +154,10 @@ describe('getMonthlyTrend', () => {
     mockRpc.mockResolvedValue({ data: [], error: null })
 
     const result = await getMonthlyTrend('tenant-1')
-    expect(result).toHaveLength(6)
-    expect(mockRpc).toHaveBeenCalledWith('get_activity_timeline', {
+    expect(result).toEqual([])
+    expect(mockRpc).toHaveBeenCalledWith('get_principal_monthly_trend_cached', {
       p_tenant_id: 'tenant-1',
-      p_days: 180,
+      p_months: 6,
     })
   })
 })

@@ -5,12 +5,13 @@ export interface Assignment {
   id: string
   tenant_id: string
   course_id: string | null
-  lesson_id: string | null
+  class_id: string | null
   title: string
-  instructions: string | null
+  description: string | null
   max_points: number
-  max_attempts: number
-  is_published: boolean
+  rubric: any // JSONB rubric schema
+  status: 'draft' | 'published' | 'archived'
+  late_penalty_percent: number
   due_date: string | null
   created_by: string | null
   created_at: string
@@ -22,14 +23,12 @@ export interface AssignmentSubmission {
   tenant_id: string
   assignment_id: string
   student_id: string
-  submission_text: string | null
-  file_url: string | null
-  score: number | null
-  feedback: string | null
-  status: 'draft' | 'submitted' | 'graded' | 'returned'
-  attempt_number: number
+  submission_content: any // JSONB: {type: 'text'/'file', content, file_urls}
   submitted_at: string
-  graded_at: string | null
+  status: 'draft' | 'submitted' | 'graded'
+  score: number | null
+  is_late: boolean
+  late_penalty_applied: boolean
   user_profiles?:
     | {
         full_name: string
@@ -40,19 +39,31 @@ export interface AssignmentSubmission {
 
 // Explicit columns for assignment queries (no SELECT *)
 const ASSIGNMENT_COLUMNS =
-  'id, tenant_id, course_id, lesson_id, title, instructions, max_points, max_attempts, is_published, due_date, created_by, created_at, updated_at'
+  'id, tenant_id, course_id, class_id, title, description, max_points, rubric, status, late_penalty_percent, due_date, created_by, created_at, updated_at'
 
 const SUBMISSION_COLUMNS =
-  'id, tenant_id, assignment_id, student_id, submission_text, file_url, score, feedback, status, attempt_number, submitted_at, graded_at'
+  'id, tenant_id, assignment_id, student_id, submission_content, submitted_at, is_late, late_penalty_applied'
+
+export type CreateAssignmentInput = Pick<
+  Assignment,
+  | 'tenant_id'
+  | 'course_id'
+  | 'class_id'
+  | 'title'
+  | 'description'
+  | 'max_points'
+  | 'rubric'
+  | 'status'
+  | 'late_penalty_percent'
+  | 'due_date'
+  | 'created_by'
+>
 
 export const assignmentService = {
-  /**
-   * Creates a new assignment linked to a lesson.
-   */
-  async createAssignment(assignment: Omit<Assignment, 'id' | 'created_at' | 'updated_at'>) {
+  async createAssignment(input: CreateAssignmentInput): Promise<Assignment> {
     const { data, error } = await supabase
       .from('assignments')
-      .insert(assignment)
+      .insert(input)
       .select(ASSIGNMENT_COLUMNS)
       .single()
 
@@ -63,25 +74,22 @@ export const assignmentService = {
 
     return data as Assignment
   },
-
   /**
-   * Students submit their work.
+   * Students submit their work using the new submit_assignment_attempt RPC.
    * Note: lesson_progress completion is handled by DB trigger.
    */
   async submitAssignment(
-    submission: Omit<
-      AssignmentSubmission,
-      'id' | 'submitted_at' | 'graded_at' | 'score' | 'feedback' | 'status'
-    >
+    assignmentId: string,
+    studentId: string,
+    tenantId: string,
+    submissionContent: any
   ) {
-    const { data, error } = await supabase
-      .from('assignment_submissions')
-      .upsert(
-        { ...submission, status: 'submitted', submitted_at: new Date().toISOString() },
-        { onConflict: 'assignment_id,student_id' }
-      )
-      .select(SUBMISSION_COLUMNS)
-      .single()
+    const { data, error } = await supabase.rpc('submit_assignment_attempt', {
+      assignment_id: assignmentId,
+      student_id: studentId,
+      tenant_id: tenantId,
+      submission_content: submissionContent,
+    })
 
     if (error) {
       logDevError('assignmentService', 'Error submitting assignment:', error)
@@ -114,20 +122,26 @@ export const assignmentService = {
     return data as AssignmentSubmission
   },
   /**
-   * Teachers grade a submission.
+   * Teachers grade a submission by inserting into assignment_grades.
    */
-  async gradeSubmission(submissionId: string, tenantId: string, score: number, feedback: string) {
+  async gradeSubmission(
+    submissionId: string,
+    _tenantId: string,
+    score: number,
+    feedback: string,
+    rubricScores?: any
+  ) {
     const { data, error } = await supabase
-      .from('assignment_submissions')
-      .update({
-        score,
-        feedback,
-        status: 'graded',
+      .from('assignment_grades')
+      .insert({
+        submission_id: submissionId,
+        teacher_id: '', // TODO: get current user
+        rubric_scores: rubricScores || {},
+        total_score: score,
+        feedback_text: feedback,
         graded_at: new Date().toISOString(),
       })
-      .eq('id', submissionId)
-      .eq('tenant_id', tenantId)
-      .select(SUBMISSION_COLUMNS)
+      .select()
       .single()
 
     if (error) {
@@ -135,22 +149,22 @@ export const assignmentService = {
       throw error
     }
 
-    return data as AssignmentSubmission
+    return data
   },
 
   /**
-   * Fetches assignment details by lesson_id.
+   * Fetches assignment details by class_id.
    */
-  async getAssignmentByLesson(lessonId: string, tenantId: string) {
+  async getAssignmentByClass(classId: string, tenantId: string) {
     const { data, error } = await supabase
       .from('assignments')
       .select(ASSIGNMENT_COLUMNS)
-      .eq('lesson_id', lessonId)
+      .eq('class_id', classId)
       .eq('tenant_id', tenantId)
       .maybeSingle()
 
     if (error) {
-      logDevError('assignmentService', 'Error fetching assignment by lesson:', error)
+      logDevError('assignmentService', 'Error fetching assignment by class:', error)
       throw error
     }
 
@@ -232,13 +246,15 @@ export const assignmentService = {
                     status,
                     score,
                     submitted_at,
-                    file_url
+                    file_url,
+                    is_late,
+                    late_penalty_applied
                 )
             `,
         { count: 'exact' }
       )
       .eq('tenant_id', tenantId)
-      .eq('is_published', true)
+      .eq('status', 'published')
       .order('due_date', { ascending: true })
       .range(from, to)
 
@@ -478,7 +494,7 @@ export const assignmentService = {
       .from('assignments')
       .select('id')
       .eq('tenant_id', tenantId)
-      .eq('is_published', true)
+      .eq('status', 'published')
       .in('course_id', enrolledCourseIds)
 
     if (aErr) {
@@ -494,7 +510,6 @@ export const assignmentService = {
       .from('assignment_submissions')
       .select('assignment_id')
       .eq('student_id', userId)
-      .eq('status', 'submitted')
       .in(
         'assignment_id',
         allAssignments.map((a) => a.id)
@@ -508,5 +523,73 @@ export const assignmentService = {
 
     const submittedIds = new Set((submitted ?? []).map((s) => s.assignment_id))
     return allAssignments.filter((a) => !submittedIds.has(a.id)).length
+  },
+
+  /**
+   * Fetches detailed assignment submission bundle including grades and rubric.
+   */
+  async getAssignmentSubmissionBundle(submissionId: string, tenantId: string) {
+    const { data, error } = await supabase.rpc('get_assignment_submission_bundle', {
+      submission_id: submissionId,
+      tenant_id: tenantId,
+    })
+
+    if (error) {
+      logDevError('assignmentService', 'Error fetching submission bundle:', error)
+      throw error
+    }
+
+    return data
+  },
+
+  /**
+   * Fetches the grading queue for assignments.
+   */
+  async getAssignmentGradingQueue(assignmentId: string, tenantId: string) {
+    const { data, error } = await supabase.rpc('get_assignment_grading_queue', {
+      assignment_id: assignmentId,
+      tenant_id: tenantId,
+    })
+
+    if (error) {
+      logDevError('assignmentService', 'Error fetching grading queue:', error)
+      throw error
+    }
+
+    return data
+  },
+
+  /**
+   * Fetches assignment analytics data.
+   */
+  async getAssignmentAnalytics(assignmentId: string, tenantId: string) {
+    const { data, error } = await supabase.rpc('get_assignment_analytics', {
+      assignment_id: assignmentId,
+      tenant_id: tenantId,
+    })
+
+    if (error) {
+      logDevError('assignmentService', 'Error fetching assignment analytics:', error)
+      throw error
+    }
+
+    return data
+  },
+
+  /**
+   * Sends assignment reminders to students who haven't submitted.
+   */
+  async sendAssignmentReminders(assignmentId: string, tenantId: string) {
+    const { data, error } = await supabase.rpc('send_assignment_reminders', {
+      assignment_id: assignmentId,
+      tenant_id: tenantId,
+    })
+
+    if (error) {
+      logDevError('assignmentService', 'Error sending assignment reminders:', error)
+      throw error
+    }
+
+    return data
   },
 }

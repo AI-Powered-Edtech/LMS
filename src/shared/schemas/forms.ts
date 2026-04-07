@@ -60,6 +60,20 @@ export const AssignmentFormSchema = v.object({
     v.minValue(1, 'Poin maksimal minimal 1'),
     v.maxValue(1000, 'Poin maksimal tidak boleh lebih dari 1000')
   ),
+  available_from: v.optional(v.string(), ''),
+  max_attempts: v.pipe(
+    v.number('Max attempts must be a number'),
+    v.minValue(1, 'Max attempts minimal 1')
+  ),
+  late_penalty_percent: v.pipe(
+    v.number('Late penalty percent must be a number'),
+    v.minValue(0, 'Late penalty percent minimal 0'),
+    v.maxValue(100, 'Late penalty percent maksimal 100')
+  ),
+  allow_text_submission: v.boolean(),
+  allow_file_submission: v.boolean(),
+  allow_link_submission: v.boolean(),
+  reminder_enabled: v.boolean(),
 })
 
 export type AssignmentFormData = v.InferOutput<typeof AssignmentFormSchema>

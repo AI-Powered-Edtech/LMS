@@ -4,22 +4,25 @@ import { assignmentService } from '../api/assignmentService'
 
 const mockSingle = vi.fn()
 const mockFrom = vi.fn()
+const mockRpc = vi.fn()
 
 vi.mock('@/services/supabase/client', () => ({
   supabase: {
     from: (...args: unknown[]) => mockFrom(...args),
+    rpc: (...args: unknown[]) => mockRpc(...args),
   },
 }))
 
 const baseAssignment = {
   tenant_id: 'tenant-1',
   course_id: 'course-1',
-  lesson_id: 'lesson-1',
+  class_id: 'class-1',
   title: 'Test Assignment',
-  instructions: 'Do the thing',
+  description: 'Do the thing',
   max_points: 100,
-  max_attempts: 3,
-  is_published: false,
+  rubric: {},
+  status: 'draft' as const,
+  late_penalty_percent: 10,
   due_date: null,
   created_by: 'teacher-1',
 }
@@ -83,45 +86,36 @@ describe('assignmentService.createAssignment', () => {
 })
 
 describe('assignmentService.submitAssignment', () => {
-  const baseSubmission = {
-    tenant_id: 'tenant-1',
-    assignment_id: 'a1',
-    student_id: 'student-1',
-    submission_text: 'My answer',
-    file_url: null,
-    attempt_number: 1,
-  }
+  const assignmentId = 'a1'
+  const studentId = 'student-1'
+  const tenantId = 'tenant-1'
+  const submissionContent = { type: 'text', content: 'My answer' }
 
   beforeEach(() => vi.clearAllMocks())
 
-  it('upserts into assignment_submissions', async () => {
-    const fromSpy = vi.fn().mockReturnValue({
-      upsert: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi
-            .fn()
-            .mockResolvedValue({ data: { id: 's1', status: 'submitted' }, error: null }),
-        }),
-      }),
+  it('calls submit_assignment_attempt RPC', async () => {
+    mockRpc.mockResolvedValue({
+      data: { id: 's1' },
+      error: null,
     })
-    mockFrom.mockImplementation(fromSpy)
-    await assignmentService.submitAssignment(baseSubmission)
-    expect(fromSpy).toHaveBeenCalledWith('assignment_submissions')
+    await assignmentService.submitAssignment(assignmentId, studentId, tenantId, submissionContent)
+    expect(mockRpc).toHaveBeenCalledWith('submit_assignment_attempt', {
+      assignment_id: assignmentId,
+      student_id: studentId,
+      tenant_id: tenantId,
+      submission_content: submissionContent,
+    })
   })
 
-  it('sets status to submitted', async () => {
-    let capturedData: unknown
-    mockFrom.mockReturnValue({
-      upsert: vi.fn().mockImplementation((data) => {
-        capturedData = data
-        return {
-          select: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: { id: 's1', ...data }, error: null }),
-          }),
-        }
-      }),
-    })
-    await assignmentService.submitAssignment(baseSubmission)
-    expect((capturedData as Record<string, unknown>).status).toBe('submitted')
+  it('returns the submission data', async () => {
+    const submissionData = { id: 's1', submitted_at: '2026-01-01' }
+    mockRpc.mockResolvedValue({ data: submissionData, error: null })
+    const result = await assignmentService.submitAssignment(
+      assignmentId,
+      studentId,
+      tenantId,
+      submissionContent
+    )
+    expect(result).toEqual(submissionData)
   })
 })

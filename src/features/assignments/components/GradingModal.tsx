@@ -5,13 +5,14 @@ import { useCallback, useState } from 'react'
 import { useToast } from '@/components/ui'
 import type { Assignment, AssignmentSubmission } from '@/features/assignments/api/assignmentService'
 import { assignmentService } from '@/features/assignments/api/assignmentService'
+import { supabase } from '@/services/supabase/client'
 
 interface GradingModalProps {
   submission: AssignmentSubmission | null
   assignment: Assignment | null
   tenantId: string | null
   onClose: () => void
-  onUpdateSubmission: (updated: AssignmentSubmission) => void
+  onUpdateSubmission: (updated: any) => void
 }
 
 function getStudentName(submission: AssignmentSubmission): string {
@@ -37,13 +38,17 @@ export function GradingModal({
     if (!submission) return
     setIsSubmittingGrade(true)
     try {
+      const { data: user } = await supabase.auth.getUser()
+      const teacherId = user.user?.id
+      if (!teacherId) throw new Error('User not authenticated')
       const result = await assignmentService.gradeSubmission(
         submission.id,
         tenantId!,
+        teacherId,
         score,
         feedback
       )
-      onUpdateSubmission(result)
+      onUpdateSubmission(result) // Note: result is now the grade, not submission
       onClose()
     } catch (err) {
       addToast({
@@ -104,20 +109,20 @@ export function GradingModal({
                   Hasil Pekerjaan Siswa
                 </h4>
                 <div className="bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 min-h-[300px] text-slate-700 dark:text-slate-300 whitespace-pre-wrap text-sm leading-relaxed italic">
-                  {submission.submission_text || 'Siswa tidak menyertakan teks tambahan.'}
+                  {submission.submission_content?.content ||
+                    'Siswa tidak menyertakan teks tambahan.'}
                 </div>
-                {submission.file_url && (
+                {submission.submission_content?.file_urls?.length > 0 && (
                   <a
-                    href={submission.file_url}
+                    href={submission.submission_content.file_urls[0].url}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                   >
-                    <FileText className="w-5 h-5 text-blue-500" />
-                    <span className="text-sm font-bold text-slate-600 dark:text-slate-400">
-                      Buka File Lampiran
+                    <FileText className="w-4 h-4 text-blue-500" />
+                    <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">
+                      Lihat File Lampiran
                     </span>
-                    <span className="sr-only">(buka di tab baru)</span>
                   </a>
                 )}
               </div>
