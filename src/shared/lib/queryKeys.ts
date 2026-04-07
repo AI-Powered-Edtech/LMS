@@ -22,7 +22,18 @@
  * Creates a standardized query key factory for a feature domain.
  * All generated keys include tenantId for multi-tenant cache isolation.
  */
-export function createQueryKeys<TScope extends string>(scope: TScope) {
+export function createQueryKeys<TScope extends string>(
+  scope: TScope
+): {
+  all: (tenantId: string) => readonly [TScope, string]
+  lists: (tenantId: string) => readonly [TScope, string, 'list']
+  list: (
+    tenantId: string,
+    filters?: Record<string, unknown>
+  ) => readonly [TScope, string, 'list', Record<string, unknown> | undefined]
+  details: (tenantId: string) => readonly [TScope, string, 'detail']
+  detail: (tenantId: string, id: string) => readonly [TScope, string, 'detail', string]
+} {
   return {
     /** Root key for the entire feature scope: [scope, tenantId] */
     all: (tenantId: string) => [scope, tenantId] as const,
