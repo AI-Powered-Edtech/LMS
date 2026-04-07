@@ -11,9 +11,9 @@ const isDev = process.env.NODE_ENV !== 'production'
 const indexBootstrapScriptHash = "'sha256-vcUoBnSA12mp8svfpQU+aInIdToJ7fTSBGn+N2zVe70='"
 
 // Production: no unsafe-eval (Vite/React don't need it at runtime).
-// Development: unsafe-eval needed for Vite HMR source maps.
+// Development: unsafe-eval AND unsafe-inline needed for Vite HMR and React Refresh preamble.
 const scriptSrc = isDev
-  ? `'self' ${indexBootstrapScriptHash} 'unsafe-eval' https://js.sentry-cdn.com`
+  ? `'self' 'unsafe-inline' 'unsafe-eval' https://js.sentry-cdn.com`
   : `'self' ${indexBootstrapScriptHash} https://js.sentry-cdn.com`
 
 // NOTE: api.qrserver.com and chart.googleapis.com are intentionally NOT included.

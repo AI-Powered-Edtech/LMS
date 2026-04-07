@@ -47,7 +47,7 @@ export interface CachedAnswer {
 
 export interface SyncQueueItem {
   id: string
-  type: 'quiz-submission'
+  type: string
   payload: unknown
   createdAt: number
   attempts: number

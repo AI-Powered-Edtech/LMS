@@ -89,14 +89,24 @@ function buildStudentRows(
     }
   }
 
-  return Array.from(studentMap.entries()).map(([id, s]) => {
-    const graded = columns.filter((c) => s.grades[c.id]?.score != null)
-    const avg =
-      graded.length > 0
-        ? graded.reduce((sum, c) => sum + (s.grades[c.id]?.percentage ?? 0), 0) / graded.length
-        : 0
-    return { id, name: s.name, email: s.email, grades: s.grades, average: avg }
-  })
+  const result: GradebookStudent[] = []
+
+  // ⚡ Perf: consolidate multiple chained passes (.filter then .reduce) into a single, standard for loop to minimize CPU overhead and O(N) operations in performance-critical code.
+  for (const [id, s] of studentMap.entries()) {
+    let sum = 0
+    let count = 0
+    for (let i = 0; i < columns.length; i++) {
+      const grade = s.grades[columns[i].id]
+      if (grade?.score != null) {
+        sum += grade.percentage ?? 0
+        count++
+      }
+    }
+    const avg = count > 0 ? sum / count : 0
+    result.push({ id, name: s.name, email: s.email, grades: s.grades, average: avg })
+  }
+
+  return result
 }
 
 function deriveLetter(avg: number): string {
