@@ -18,7 +18,6 @@ const __dirname = path.dirname(__filename)
  *   admin@edusync.dev   / password123
  */
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const SCREENSHOTS_DIR = path.join(__dirname, 'screenshots')
 
 // Ensure screenshots directory exists before tests run
