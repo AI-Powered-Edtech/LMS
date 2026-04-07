@@ -221,6 +221,7 @@ export function LtiManagement() {
             onClick={() => refetch()}
             className="p-2.5 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
             title="Refresh"
+            aria-label="Refresh"
           >
             <RefreshCw className="w-4 h-4 text-slate-500 dark:text-slate-400" />
           </button>
