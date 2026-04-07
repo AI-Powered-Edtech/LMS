@@ -6,6 +6,11 @@ Sistem notifikasi real-time dengan bell icon dan panel. Preferensi per channel (
 
 Modul ini merupakan bagian dari arsitektur feature-module EduSync LMS, terletak di `src/features/notifications/`. Setiap feature module memiliki struktur standar: api/, queries/, hooks/, types/, components/, dan **tests**/.
 
+## Update Stabilitas (2026-04-05)
+
+- `sendNotification` sekarang **tidak lagi** fallback ke direct `INSERT` saat RPC `create_notification` tidak tersedia (`PGRST202`).
+- Alur kirim notifikasi sekarang fail-hard agar tidak melewati validasi otorisasi server-side.
+
 ## Domain
 
 **Communication** — Modul ini termasuk dalam domain Communication bersama dengan feature terkait lainnya.

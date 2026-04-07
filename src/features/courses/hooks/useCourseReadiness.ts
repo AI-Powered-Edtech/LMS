@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 
+import type { Role } from '@/contexts/AuthContext'
 import type { DomainModule } from '@/shared/types/moduleTypes'
 
 import type { CourseStatus } from '../types'
@@ -37,7 +38,8 @@ export interface CourseReadiness {
   availableActions: CourseAction[]
 }
 
-type UserRole = 'student' | 'teacher' | 'admin' | 'parent' | 'principal'
+/** UserRole is an alias for the shared Role type from AuthContext */
+export type UserRole = Role
 
 interface UseCourseReadinessOptions {
   modules: DomainModule[]
@@ -46,6 +48,10 @@ interface UseCourseReadinessOptions {
   courseStatus: CourseStatus
   role: UserRole | null
   assignedClassesCount?: number
+  /** Whether course has a cover/thumbnail image */
+  hasThumbnail?: boolean
+  /** Sum of durationMinutes across all lessons (0 = not set, undefined = not checked) */
+  totalLessonDuration?: number
 }
 
 // ============================================================
@@ -55,13 +61,16 @@ interface UseCourseReadinessOptions {
 /**
  * Compute readiness score from 0–100.
  * Each fulfilled criterion adds points. Blockers always result in canPublish=false.
+ * Max raw score is 110; capped at 100 via Math.min.
  */
 function computeScore(
   hasModules: boolean,
   hasLessons: boolean,
   hasPublishedLessons: boolean,
   hasDescription: boolean,
-  hasNoEmptyModules: boolean
+  hasNoEmptyModules: boolean,
+  hasThumbnail: boolean,
+  hasDuration: boolean
 ): number {
   let score = 0
   if (hasModules) score += 30
@@ -69,7 +78,9 @@ function computeScore(
   if (hasPublishedLessons) score += 25
   if (hasDescription) score += 10
   if (hasNoEmptyModules) score += 5
-  return score
+  if (hasThumbnail) score += 5
+  if (hasDuration) score += 5
+  return Math.min(score, 100)
 }
 
 // ============================================================
@@ -98,7 +109,7 @@ function computeAvailableActions(status: CourseStatus, role: UserRole | null): C
       break
 
     case 'in_review':
-      // Admin and principal can formally approve
+      // Admin and principal can formally approve; teacher can also self-approve
       if (role === 'admin' || role === 'principal') {
         actions.push('approve')
         actions.push('revert_draft')
@@ -142,6 +153,8 @@ export function useCourseReadiness({
   courseStatus,
   role,
   assignedClassesCount = 0,
+  hasThumbnail,
+  totalLessonDuration,
 }: UseCourseReadinessOptions): CourseReadiness {
   return useMemo(() => {
     const blockers: ReadinessItem[] = []
@@ -157,6 +170,11 @@ export function useCourseReadiness({
     const hasDescription = !!courseDescription && courseDescription.trim().length > 0
     const emptyModules = modules.filter((m) => !m.lessons || m.lessons.length === 0)
     const hasNoEmptyModules = emptyModules.length === 0
+
+    const publishedLessonsCount = modules.reduce(
+      (acc, m) => acc + (m.lessons?.filter((l) => l.isPublished).length ?? 0),
+      0
+    )
 
     // ── BLOCKERS ────────────────────────────────────────────
     if (!hasModules) {
@@ -217,6 +235,36 @@ export function useCourseReadiness({
       })
     }
 
+    // Warn about missing thumbnail only when explicitly set to false (undefined = not checked)
+    if (hasThumbnail === false) {
+      warnings.push({
+        id: 'no_thumbnail',
+        severity: 'warning',
+        message: 'Kursus belum memiliki foto sampul',
+        hint: 'Tambahkan foto sampul untuk meningkatkan daya tarik kursus',
+      })
+    }
+
+    // Warn about missing lesson durations only when explicitly 0 AND there are published lessons
+    if (totalLessonDuration === 0 && hasPublishedLessons) {
+      warnings.push({
+        id: 'no_duration',
+        severity: 'warning',
+        message: 'Estimasi durasi belajar belum diisi',
+        hint: 'Isi durasi pada setiap pelajaran agar siswa tahu perkiraan waktu belajar',
+      })
+    }
+
+    // Warn when published lesson count is too low (< 3) but some exist
+    if (hasPublishedLessons && publishedLessonsCount < 3) {
+      warnings.push({
+        id: 'few_lessons',
+        severity: 'warning',
+        message: 'Kursus terlalu singkat (kurang dari 3 pelajaran)',
+        hint: 'Pertimbangkan menambahkan lebih banyak pelajaran untuk pengalaman belajar yang lebih lengkap',
+      })
+    }
+
     // ── INFOS ───────────────────────────────────────────────
     if (assignedClassesCount > 0) {
       infos.push({
@@ -234,16 +282,12 @@ export function useCourseReadiness({
     }
 
     const totalLessons = modules.reduce((acc, m) => acc + (m.lessons?.length ?? 0), 0)
-    const publishedLessons = modules.reduce(
-      (acc, m) => acc + (m.lessons?.filter((l) => l.isPublished).length ?? 0),
-      0
-    )
 
     if (totalLessons > 0) {
       infos.push({
         id: 'lesson_summary',
         severity: 'info',
-        message: `${publishedLessons} dari ${totalLessons} pelajaran sudah diterbitkan`,
+        message: `${publishedLessonsCount} dari ${totalLessons} pelajaran sudah diterbitkan`,
       })
     }
 
@@ -253,7 +297,11 @@ export function useCourseReadiness({
       hasLessons,
       hasPublishedLessons,
       hasDescription,
-      hasNoEmptyModules
+      hasNoEmptyModules,
+      // Only count thumbnail bonus when explicitly true
+      hasThumbnail === true,
+      // Only count duration bonus when explicitly > 0
+      typeof totalLessonDuration === 'number' && totalLessonDuration > 0
     )
 
     const canPublish = blockers.length === 0
@@ -272,5 +320,14 @@ export function useCourseReadiness({
       canPublish,
       availableActions,
     }
-  }, [modules, courseTitle, courseDescription, courseStatus, role, assignedClassesCount])
+  }, [
+    modules,
+    courseTitle,
+    courseDescription,
+    courseStatus,
+    role,
+    assignedClassesCount,
+    hasThumbnail,
+    totalLessonDuration,
+  ])
 }

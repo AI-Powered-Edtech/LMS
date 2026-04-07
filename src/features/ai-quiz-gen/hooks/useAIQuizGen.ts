@@ -1,31 +1,20 @@
-import { useState } from 'react'
+import type { GenerateFromLessonConfig } from '@/features/ai-authoring'
+import { useGenerateFromLesson } from '@/features/ai-authoring'
 
-import { aiQuizGenService } from '../api/aiQuizGenService'
-import type { GenerateQuizConfig, GenerateQuizResult } from '../types'
-
+/**
+ * Backward-compat wrapper around useGenerateFromLesson (React Query useMutation).
+ * Preserves the old { generate, isGenerating, result, error, reset } interface.
+ */
 export function useAIQuizGen() {
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [result, setResult] = useState<GenerateQuizResult | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const mutation = useGenerateFromLesson()
 
-  const generate = async (config: GenerateQuizConfig) => {
-    setIsGenerating(true)
-    setError(null)
-    setResult(null)
-    try {
-      const data = await aiQuizGenService.generateQuestions(config)
-      setResult(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui')
-    } finally {
-      setIsGenerating(false)
-    }
+  const generate = (config: GenerateFromLessonConfig) => mutation.mutate(config)
+
+  return {
+    generate,
+    isGenerating: mutation.isPending,
+    result: mutation.data ?? null,
+    error: mutation.error instanceof Error ? mutation.error.message : null,
+    reset: mutation.reset,
   }
-
-  const reset = () => {
-    setResult(null)
-    setError(null)
-  }
-
-  return { generate, isGenerating, result, error, reset }
 }

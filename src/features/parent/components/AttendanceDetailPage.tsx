@@ -3,7 +3,6 @@
 // Menggantikan ComingSoonPage di /app/parent/kehadiran
 // ==========================================================================
 
-import { useQuery } from '@tanstack/react-query'
 import {
   addMonths,
   eachDayOfInterval,
@@ -21,57 +20,11 @@ import { Link } from 'react-router-dom'
 
 import { Card } from '@/components/ui/Card'
 import { Skeleton, SkeletonCard } from '@/components/ui/Skeleton'
-import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/services/supabase/client'
-import { createQueryKeys } from '@/shared/lib/queryKeys'
 import { cn } from '@/utils/cn'
-import { STALE } from '@/utils/queryConstants'
 
-import { getMyChildren } from '../api/parentApi'
+import { useChildAttendance } from '../queries/useChildAttendance'
+import { useParentChildren } from '../queries/useParentChildren'
 import type { AttendanceDay, ChildInfo } from '../types'
-
-// ── Query Keys ──────────────────────────────────────────────────
-
-const base = createQueryKeys('parent-attendance')
-
-const attendancePageKeys = {
-  children: (tenantId: string) => [...base.all(tenantId), 'children'] as const,
-  monthly: (tenantId: string, studentId: string, monthKey: string) =>
-    [...base.all(tenantId), 'monthly', studentId, monthKey] as const,
-}
-
-// ── API: fetch attendance for an entire month ───────────────────
-
-async function getMonthlyAttendance(
-  studentId: string,
-  year: number,
-  month: number
-): Promise<AttendanceDay[]> {
-  const startDate = format(startOfMonth(new Date(year, month - 1)), 'yyyy-MM-dd')
-  const endDate = format(endOfMonth(new Date(year, month - 1)), 'yyyy-MM-dd')
-
-  const { data, error } = await supabase
-    .from('attendance_records')
-    .select('date, status')
-    .eq('student_id', studentId)
-    .gte('date', startDate)
-    .lte('date', endDate)
-    .order('date', { ascending: true })
-
-  if (error) {
-    if (import.meta.env.DEV) console.error('[Parent] getMonthlyAttendance error:', error)
-    return []
-  }
-
-  return ((data ?? []) as Record<string, unknown>[]).map((row) => {
-    const rawStatus = (row.status as string)?.toLowerCase()
-    let status: AttendanceDay['status'] = 'alpha'
-    if (rawStatus === 'hadir' || rawStatus === 'present') status = 'hadir'
-    else if (rawStatus === 'sakit' || rawStatus === 'sick') status = 'sakit'
-    else if (rawStatus === 'izin' || rawStatus === 'excused') status = 'izin'
-    return { date: row.date as string, status }
-  })
-}
 
 // ── Status Config ───────────────────────────────────────────────
 
@@ -462,15 +415,12 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
 // ── Main Component ──────────────────────────────────────────────
 
 export function AttendanceDetailPage() {
-  const { tenantId } = useAuth()
   const [selectedStudentId, setSelectedStudentId] = useState<string>('')
   const [currentMonth, setCurrentMonth] = useState<Date>(() => new Date())
 
   const year = currentMonth.getFullYear()
   const month = currentMonth.getMonth() + 1
-  const monthKey = `${year}-${String(month).padStart(2, '0')}`
 
-  // Navigation handlers
   const handlePrevMonth = useCallback(() => {
     setCurrentMonth((prev) => subMonths(prev, 1))
   }, [])
@@ -479,26 +429,12 @@ export function AttendanceDetailPage() {
     setCurrentMonth((prev) => addMonths(prev, 1))
   }, [])
 
-  // Fetch children
-  const childrenQuery = useQuery({
-    queryKey: attendancePageKeys.children(tenantId ?? ''),
-    queryFn: () => getMyChildren(),
-    enabled: !!tenantId,
-    staleTime: STALE.MODERATE,
-  })
-
+  const childrenQuery = useParentChildren()
   const children = childrenQuery.data ?? []
   const effectiveStudentId =
     selectedStudentId || (children.length > 0 ? children[0].student_id : '')
 
-  // Fetch monthly attendance
-  const attendanceQuery = useQuery({
-    queryKey: attendancePageKeys.monthly(tenantId ?? '', effectiveStudentId, monthKey),
-    queryFn: () => getMonthlyAttendance(effectiveStudentId, year, month),
-    enabled: !!tenantId && !!effectiveStudentId,
-    staleTime: STALE.MODERATE,
-  })
-
+  const attendanceQuery = useChildAttendance(effectiveStudentId, year, month)
   const attendanceDays = attendanceQuery.data ?? []
 
   // Build attendance map

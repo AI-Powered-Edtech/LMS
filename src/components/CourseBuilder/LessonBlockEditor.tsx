@@ -37,10 +37,8 @@ import { ImageBlockEditor } from './blocks/ImageBlockEditor'
 import { ScormBlockEditor } from './blocks/ScormBlockEditor'
 import { TextBlockEditor } from './blocks/TextBlockEditor'
 import { VideoBlockEditor } from './blocks/VideoBlockEditor'
-import { CollaboratorCursor } from './CollaboratorCursor'
-
 export function LessonBlockEditor() {
-  const { state, actions, presence, mobile } = useBuilder()
+  const { state, actions, mobile } = useBuilder()
   const [showAddMenu, setShowAddMenu] = useState(false)
   const [deletingBlockId, setDeletingBlockId] = useState<string | null>(null)
   const [templateModalOpen, setTemplateModalOpen] = useState(false)
@@ -335,16 +333,8 @@ export function LessonBlockEditor() {
               >
                 <AnimatePresence>
                   {(state.activeLesson?.blocks ?? []).map((block, idx) => {
-                    const locker = presence.getBlockLocker(block.id)
-                    const isLocked = !!locker
-
                     return (
-                      <Draggable
-                        key={block.id}
-                        draggableId={block.id}
-                        index={idx}
-                        isDragDisabled={isLocked}
-                      >
+                      <Draggable key={block.id} draggableId={block.id} index={idx}>
                         {(dragProvided, snapshot) => (
                           <motion.div
                             ref={dragProvided.innerRef}
@@ -352,20 +342,13 @@ export function LessonBlockEditor() {
                             initial={{ opacity: 0, y: 15 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            onClick={() => {
-                              if (!isLocked) presence.updateActiveBlock(block.id)
-                            }}
                             className={cn(
                               'bg-white dark:bg-slate-800 rounded-[24px] border shadow-sm group transition-all relative overflow-hidden',
                               snapshot.isDragging
                                 ? 'shadow-2xl ring-2 ring-indigo-500/20 border-indigo-400 z-50 scale-[1.02]'
-                                : 'border-slate-200/70 dark:border-slate-700/70 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600',
-                              isLocked && 'pointer-events-none opacity-90 grayscale-[0.3]'
+                                : 'border-slate-200/70 dark:border-slate-700/70 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600'
                             )}
                           >
-                            {/* Collaborator overlay if locked */}
-                            {locker && <CollaboratorCursor locker={locker} />}
-
                             {/* Block Header */}
                             <div className="flex items-center gap-2 md:gap-3 px-3 md:px-5 py-3 md:py-4 border-b border-slate-50 dark:border-slate-700/50">
                               <div

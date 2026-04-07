@@ -320,7 +320,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
   }, [entityId, entityType, addToast])
 
   useEffect(() => {
-    loadComments()
+    void loadComments()
   }, [entityId, entityType, loadComments])
 
   const handleSubmit = async (e?: React.FormEvent, parentId: string | null = null) => {

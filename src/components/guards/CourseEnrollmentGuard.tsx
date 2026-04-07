@@ -33,7 +33,13 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
     }, 15000) // 15 second timeout
 
     const verifyEnrollment = async () => {
-      if (authLoading || !user || !tenantId) return
+      if (authLoading) return // still waiting — effect will re-run when authLoading changes
+
+      if (!user || !tenantId) {
+        // Auth finished but no user — don't hang forever
+        setLoading(false)
+        return
+      }
 
       // No courseId means we're not on a specific course page — allow through
       if (!courseId) {
@@ -72,7 +78,7 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
       }
     }
 
-    verifyEnrollment()
+    void verifyEnrollment()
     return () => clearTimeout(authTimeoutId)
   }, [courseId, user, effectiveRole, tenantId, authLoading, retryCount])
 

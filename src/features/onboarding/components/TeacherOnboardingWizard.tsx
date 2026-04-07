@@ -350,6 +350,7 @@ function StepInviteStudents({ onNext, joinCode }: Step3Props) {
             alt="QR Code bergabung kelas"
             className="w-16 h-16 rounded-lg"
             loading="lazy"
+            decoding="async"
           />
           <div>
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">QR Code</p>

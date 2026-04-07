@@ -5,13 +5,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useOptionalLearningSession } from '@/features/analytics'
 import { useInteractiveVideoEvents } from '@/features/lessons/hooks/useInteractiveVideoEvents'
 import { QuizViewer } from '@/features/quizzes/components/QuizViewer'
-import { AdaptiveVideoPlayer } from '@/features/video'
+import { AdaptiveVideoPlayer, type CaptionTrack } from '@/features/video'
 import { parseVideoUrl, type VideoType } from '@/utils/videoUtils'
 
 interface VideoCaption {
   id: string
-  file_url: string
-  language: string
+  vtt_url: string
+  language_code: string
   label: string
   is_default: boolean
 }
@@ -286,6 +286,13 @@ export function VideoBlock({
     const resolvedHlsUrl = metaHlsUrl ?? (isHlsUrl(url) ? url : null)
     const resolvedMp4Url = resolvedHlsUrl ? null : url
 
+    const captionTracks: CaptionTrack[] = (captions ?? []).map((c) => ({
+      src: c.vtt_url,
+      srclang: c.language_code,
+      label: c.label,
+      default: c.is_default,
+    }))
+
     return (
       <div className="px-6 py-4">
         <div
@@ -306,19 +313,8 @@ export function VideoBlock({
             className="absolute inset-0 w-full h-full"
             controlsList="nodownload"
             aria-label={blockId ? `Pemutar video ${blockId.slice(-6)}` : 'Video pelajaran'}
+            captions={captionTracks.length > 0 ? captionTracks : undefined}
           />
-
-          {/* Captions: injected as <track> elements into the underlying <video> via a portal-like mechanism.
-              Since AdaptiveVideoPlayer wraps the <video> internally, captions are rendered
-              separately when HLS is not active and the video element is accessible. */}
-          {!resolvedHlsUrl && captions && captions.length > 0 && videoRef.current && (
-            // We use a hidden span as a captions trigger — actual track elements must be
-            // children of <video>. For HLS streams, captions can be embedded in the manifest.
-            // For direct MP4, the AdaptiveVideoPlayer renders the <video> so tracks cannot
-            // be injected as children here. This is a known limitation of the wrapper pattern.
-            // Consider passing captions as a prop to AdaptiveVideoPlayer in a future iteration.
-            <></>
-          )}
 
           {/* Interactive Event Overlay */}
           <AnimatePresence>

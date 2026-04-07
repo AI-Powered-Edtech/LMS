@@ -6,6 +6,11 @@ Buku nilai digital untuk guru. Pencatatan nilai per kategori, kalkulasi otomatis
 
 Modul ini merupakan bagian dari arsitektur feature-module EduSync LMS, terletak di `src/features/gradebook/`. Setiap feature module memiliki struktur standar: api/, queries/, hooks/, types/, components/, dan **tests**/.
 
+## Update Stabilitas (2026-04-05)
+
+- Perhitungan `nextOrder` saat menambah kolom gradebook kini meng-coerce nilai `order` ke number.
+- Nilai `null`/invalid pada `order` sekarang ditangani aman dengan fallback `0` untuk mencegah `NaN`/urutan rusak.
+
 ## Domain
 
 **Assessment** — Modul ini termasuk dalam domain Assessment bersama dengan feature terkait lainnya.

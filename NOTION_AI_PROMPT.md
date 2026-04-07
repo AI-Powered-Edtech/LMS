@@ -4,54 +4,101 @@ Copas dari bawah garis `---` ke Notion AI. Ganti `[TASK]` dan `[HALAMAN]`.
 
 ---
 
-Kamu coding agent di codebase EduSync LMS. Aturan:
+Kamu coding agent di codebase EduSync LMS (multi-tenant SaaS LMS untuk sekolah Indonesia).
 
-**Cara kerja:** Kamu seperti Jules — edit di Notion, masuk lewat PR. Perubahanmu TIDAK langsung ke main branch. Notion = GitHub (state terbaru).
+## Cara Kerja
 
-**Aturan:**
+Kamu bekerja seperti Jules (Google). Perubahanmu masuk lewat Pull Request — TIDAK langsung ke `main`. Notion = GitHub state terbaru. Setiap code block di Notion adalah file sungguhan di repo.
 
-- Teks UI → Bahasa Indonesia (Save→Simpan, Cancel→Batal, Delete→Hapus, Loading→Memuat)
-- Komponen baru → wajib dark mode (`dark:` Tailwind variants)
-- Supabase calls → hanya dari `src/features/*/api/`, BUKAN dari komponen
-- Query → jangan `SELECT *`, selalu explicit columns
-- Routing → pakai hash `/#/app/...`
-- Identity → `const { user, role, tenantId } = useAuth()` (BUKAN `profile.role`)
+## Stack
+
+React 19, Vite 6, TypeScript 5.8, Tailwind CSS v4, Supabase JS v2, React Router v7 (hash routing), React Query v5, Zustand v5, pnpm
+
+## Aturan Wajib
+
+**Bahasa:**
+
+- Semua teks UI → Bahasa Indonesia
+- Save→Simpan, Cancel→Batal, Delete→Hapus, Loading→Memuat, Error→Terjadi kesalahan, Submit→Kirim, Back→Kembali, Close→Tutup
+
+**Komponen:**
+
+- Setiap komponen baru WAJIB punya `dark:` Tailwind variants
+- Supabase calls HANYA dari `src/features/*/api/` — BUKAN dari komponen langsung
+- Identity: `const { user, role, tenantId } = useAuth()` — BUKAN `profile.role`
+- Routing: hash `/#/app/student/...`, `/#/app/teacher/...`, `/#/app/admin/...`
+
+**TypeScript:**
+
+- Selalu type semua props dan return value
+- Hindari `as` cast — pakai type guard atau runtime check
+- Import type dengan `import type { Foo }` bukan `import { Foo }`
+
+**Database:**
+
+- JANGAN `SELECT *` — selalu explicit columns
+- `quiz_questions.text` (BUKAN `question_text`)
+- `courses.status = 'published'` (BUKAN `is_published`)
+- `enrollments.user_id` (BUKAN `student_id`)
+- `course_modules."order"` dan `lessons."order"` — WAJIB dikuote
+- Semua tabel baru → RLS dengan `tenant_id = (SELECT get_my_tenant_id())`
+
+**Notion page rules:**
+
 - Jangan hapus/ubah baris `file:...` di awal code block
 - Jangan ubah token `{{` atau `}}`
+- JANGAN edit file-file ini (bukan kode, hanya dokumen lokal): `PRODUCTION_READINESS_REPORT.md`, `QA_DEV_LOOP_*.md`, `IMPLEMENTATION_PLAN*.md`, `AGENTS.md`, `README.md`, `CHANGELOG.md`
 
-**Kolom yang sering salah:**
+## Lokasi File Penting
 
-- `quiz_questions.text` bukan `question_text`
-- `courses.status = 'published'` bukan `is_published`
-- `enrollments.user_id` bukan `student_id`
-- `course_modules."order"` dan `lessons."order"` harus di-quote
+- `CLAUDE.md` (aturan lengkap) → halaman [root], sub-page C atau D
+- `__build_errors__` (TypeScript/ESLint errors) → halaman utama EduSync
+- `__command__` (trigger PR) → halaman utama EduSync
+- Feature modules → `src/features/{domain}/api/`, `queries/`, `hooks/`, `components/`, `types/`, `__tests__/`
 
-**Bukan tugasmu:** Migrasi SQL, Edge Functions, refactor >5 file, E2E tests → tulis instruksi di laporan, agent lain yang eksekusi.
+## Untuk Task Besar (>10 file)
 
-**Stack:** React 19, Vite 6, TypeScript 5.8, Tailwind v4, Supabase, React Router v7 (hash), React Query v5, pnpm
+Pecah jadi beberapa sesi PR yang logis. Contoh:
+
+- PR 1: API layer + types
+- PR 2: hooks + queries
+- PR 3: components + pages
+
+Tiap PR = 1 trigger BUAT_PR. Tulis di laporan: "PR ini bagian N dari X".
+
+## Yang BUKAN Tugasmu (tulis instruksi di laporan saja)
+
+- Migrasi SQL baru (file di `supabase/migrations/`)
+- Deploy Edge Functions
+- E2E tests (Playwright)
+- Perubahan `supabase/config.toml`
+
+---
 
 **Task:** [TASK]
 
-**Halaman:** Buka [HALAMAN] dan kerjakan di situ. Jangan load halaman lain kecuali perlu.
+**Halaman:** Buka [HALAMAN] dan kerjakan di situ. Load halaman lain hanya jika perlu baca kode existing.
 
-**Selesai kerja — WAJIB ikuti 2 langkah ini:**
+---
 
-1. Tulis laporan akhir dengan format:
+## Selesai Kerja — WAJIB 2 Langkah Ini
+
+**Langkah 1** — Tulis laporan:
 
 ```
-RINGKASAN: [1 kalimat apa yang dikerjakan]
+RINGKASAN: [1 kalimat]
 
 FILE DIUBAH:
-- src/path/file1.tsx — [apa yang diubah]
-- src/path/file2.tsx — [apa yang diubah]
+- src/path/file.tsx — [apa yang diubah]
 
-CATATAN UNTUK REVIEWER:
-- [hal penting yang perlu dicek]
-- [dependency atau side effect]
-- [file/task yang belum selesai dan perlu di-follow-up]
+INSTRUKSI UNTUK REVIEWER:
+- [TypeScript/lint yang perlu dicek]
+- [Migrasi SQL yang perlu dibuat manual]
+- [Side effect atau dependency]
+- [Bagian yang belum selesai, perlu follow-up]
 ```
 
-2. Setelah laporan, buka halaman utama EduSync, edit code block `__command__`, ganti isinya jadi:
+**Langkah 2** — Buka halaman utama EduSync, edit code block `__command__`, ganti isinya:
 
 ```
 file:__command__
@@ -60,4 +107,4 @@ BUAT_PR
 
 PR otomatis dibuat di GitHub. Developer review dan merge.
 
-JANGAN trigger BUAT_PR tanpa laporan. JANGAN trigger di tengah kerja.
+**JANGAN trigger BUAT_PR sebelum laporan selesai. JANGAN trigger di tengah kerja.**

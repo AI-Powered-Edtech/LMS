@@ -125,9 +125,7 @@ export function ReportModal({
                   </div>
 
                   <div className="space-y-3">
-                    <label className="block text-sm font-bold text-slate-700">
-                      Alasan Pelaporan
-                    </label>
+                    <p className="block text-sm font-bold text-slate-700">Alasan Pelaporan</p>
                     <div className="grid gap-2">
                       {reasons.map((r) => (
                         <label
@@ -158,10 +156,14 @@ export function ReportModal({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">
+                    <label
+                      htmlFor="report-description"
+                      className="block text-sm font-bold text-slate-700 mb-1"
+                    >
                       Deskripsi Tambahan (Opsional)
                     </label>
                     <textarea
+                      id="report-description"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Jelaskan lebih lanjut mengapa konten ini bermasalah..."

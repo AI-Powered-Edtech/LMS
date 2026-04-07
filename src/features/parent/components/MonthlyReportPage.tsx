@@ -24,11 +24,11 @@ import { canNativeShare, printReport, shareReport } from '../utils/reportPrint'
 const base = createQueryKeys('parent-report')
 
 const reportKeys = {
-  monthly: (tenantId: string, studentId: string, month: number, year: number) =>
-    [...base.all(tenantId), 'monthly', studentId, year, month] as const,
+  children: (tenantId: string) => [...base.all(tenantId), 'children'] as const,
   months: (tenantId: string, studentId: string) =>
     [...base.all(tenantId), 'available-months', studentId] as const,
-  children: (tenantId: string) => [...base.all(tenantId), 'children'] as const,
+  monthly: (tenantId: string, studentId: string, month: number, year: number) =>
+    [...base.all(tenantId), 'monthly', studentId, year, month] as const,
 }
 
 // ── Skeleton ────────────────────────────────────────────────────
@@ -205,6 +205,8 @@ function ReportContent({ report }: { report: ParentMonthlyReport }) {
                 src={report.student.avatar}
                 alt={report.student.name}
                 className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
               />
             ) : (
               '👤'

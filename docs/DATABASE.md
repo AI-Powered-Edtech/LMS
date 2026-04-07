@@ -130,6 +130,100 @@ PostgreSQL on Supabase. 259 migration files (000_baseline.sql through 2026040300
 | `xp_transactions`             | Append-only XP ledger (lesson_complete, quiz_score, streak_bonus, badge_earned)   | Phase 37B |
 | `student_xp_summary`          | Per-student XP aggregate: total_xp, level, streak counters                        | Phase 37B |
 | `xp_processing_state`         | Watermark per tenant untuk idempotent cron-based XP awarding                      | Phase 37B |
+| `ai_generated_content`        | Hasil generasi AI dari fitur Creator (persistence, RLS multi-tenant)              | Phase 38A |
+| `ai_generation_logs`          | Append-only usage log untuk rate limiting dan analytics (insert via service role) | Phase 38A |
+
+### New in Phase 39A
+
+| Tabel / Perubahan      | Detail                                                                                                | Added     |
+| ---------------------- | ----------------------------------------------------------------------------------------------------- | --------- |
+| `ai_generated_content` | Kolom baru: `source_type` (file/lesson), `lesson_id` (FK), `subject`, `grade_level`, `curriculum_ref` | Phase 39A |
+| `ai_generation_logs`   | Kolom baru: `source_type`, `lesson_id` (FK → lessons)                                                 | Phase 39A |
+
+### `ai_generated_content`
+
+Menyimpan hasil generasi AI dari fitur Creator. Diinsert oleh edge function `generate-ai-content`.
+
+| Kolom             | Tipe                         | Keterangan                                      |
+| ----------------- | ---------------------------- | ----------------------------------------------- |
+| `id`              | uuid PK                      | Auto-generated                                  |
+| `tenant_id`       | uuid NOT NULL                | FK → tenants.id, auto-set via trigger           |
+| `created_by`      | uuid NOT NULL                | FK → auth.users.id                              |
+| `source_type`     | text NOT NULL DEFAULT 'file' | `'file'` atau `'lesson'` — asal sumber generasi |
+| `lesson_id`       | uuid                         | FK → lessons.id ON DELETE SET NULL (nullable)   |
+| `file_name`       | text                         | Nama file yang diunggah                         |
+| `file_type`       | text                         | MIME type file sumber                           |
+| `assignment_type` | text                         | `quiz` / `reading` / `writing`                  |
+| `bloom_level`     | text                         | C1–C6 (Taksonomi Bloom)                         |
+| `question_count`  | integer                      | Jumlah soal yang dihasilkan (1–50)              |
+| `subject`         | text                         | Mata pelajaran (curriculum alignment), nullable |
+| `grade_level`     | text                         | Kelas target (curriculum alignment), nullable   |
+| `curriculum_ref`  | text                         | Referensi CP/Kurikulum Merdeka, nullable        |
+| `summary`         | text                         | Rangkuman materi dari AI                        |
+| `questions`       | jsonb                        | Array soal yang dihasilkan                      |
+| `used_at`         | timestamptz                  | Di-set saat konten ditambahkan ke kursus        |
+| `created_at`      | timestamptz                  | Waktu generasi                                  |
+
+RLS: SELECT (tenant), INSERT/UPDATE/DELETE (created_by = auth.uid())
+Migration: `20260505000001_ai_content_generator.sql` (initial), `20260506000001_ai_authoring_unification.sql` (Phase 39A columns)
+
+---
+
+### `ai_generation_logs`
+
+Append-only usage log untuk rate limiting dan analytics. Diinsert oleh edge function via service role.
+
+| Kolom             | Tipe          | Keterangan                                     |
+| ----------------- | ------------- | ---------------------------------------------- |
+| `id`              | uuid PK       | Auto-generated                                 |
+| `tenant_id`       | uuid NOT NULL | FK → tenants.id                                |
+| `user_id`         | uuid NOT NULL | FK → auth.users.id                             |
+| `generation_id`   | uuid          | FK → ai_generated_content.id (nullable)        |
+| `source_type`     | text          | `'file'` atau `'lesson'` (Phase 39A), nullable |
+| `lesson_id`       | uuid          | FK → lessons.id (Phase 39A), nullable          |
+| `assignment_type` | text          | Jenis tugas yang diminta                       |
+| `bloom_level`     | text          | Level Bloom yang dipilih                       |
+| `question_count`  | integer       | Jumlah soal yang diminta                       |
+| `file_name`       | text          | Nama file sumber                               |
+| `file_size_bytes` | integer       | Ukuran file dalam bytes                        |
+| `processing_ms`   | integer       | Total waktu proses (ms)                        |
+| `model`           | text          | Model LLM yang digunakan                       |
+| `status`          | text          | `success` / `error` / `rate_limited`           |
+| `error_message`   | text          | Pesan error (nullable)                         |
+| `created_at`      | timestamptz   | Waktu log                                      |
+
+RLS: SELECT (tenant isolation). INSERT/UPDATE/DELETE via service role saja.
+Migration: `20260505000001_ai_content_generator.sql` (initial), `20260506000001_ai_authoring_unification.sql` (Phase 39A columns)
+
+---
+
+### New in Phase 39B (Semester Management)
+
+| Tabel / Perubahan | Detail                                                                                             | Added     |
+| ----------------- | -------------------------------------------------------------------------------------------------- | --------- |
+| `semesters`       | Semester periods per tenant: name, academic year, start/end dates, status (active/closed/archived) | Phase 39B |
+
+### `semesters`
+
+Menyimpan data semester akademik per tenant. Digunakan untuk pengelompokan kursus, promosi siswa, dan pembuatan rapor.
+
+| Kolom           | Tipe          | Keterangan                                                   |
+| --------------- | ------------- | ------------------------------------------------------------ |
+| `id`            | uuid PK       | Auto-generated                                               |
+| `tenant_id`     | uuid NOT NULL | FK → tenants.id, auto-set via `auto_set_tenant_id()` trigger |
+| `name`          | text NOT NULL | Nama semester (misal: "Semester 1 2025/2026")                |
+| `academic_year` | text NOT NULL | Tahun ajaran (misal: "2025/2026")                            |
+| `start_date`    | date NOT NULL | Tanggal mulai semester                                       |
+| `end_date`      | date NOT NULL | Tanggal selesai semester                                     |
+| `status`        | text NOT NULL | `'active'` / `'closed'` / `'archived'`                       |
+| `created_by`    | uuid NOT NULL | FK → auth.users.id                                           |
+| `created_at`    | timestamptz   | Waktu pembuatan                                              |
+| `updated_at`    | timestamptz   | Waktu update terakhir                                        |
+
+RLS: SELECT/INSERT/UPDATE/DELETE scoped ke `tenant_id = get_my_tenant_id()`. Hanya admin/principal yang dapat membuat dan menutup semester.
+Migration: `20260507000001_semester_management.sql`
+
+---
 
 ## RPC Reference
 
@@ -151,6 +245,14 @@ PostgreSQL on Supabase. 259 migration files (000_baseline.sql through 2026040300
 | `get_leaderboard_v2(p_course_id, p_sort_by, p_period, p_limit)`                   | Sortable/filterable leaderboard (xp\|streak, all_time\|weekly\|monthly) | Phase 37B |
 | `get_student_xp_profile(p_user_id)`                                               | Full XP profile: total_xp, level, progress, streak, recent_xp JSONB     | Phase 37B |
 | `process_xp_awards()`                                                             | Cron batch: award XP for lessons/quizzes/assignments since watermark    | Phase 37B |
+
+### New in Phase 39B
+
+| RPC                                                                            | Purpose                                                                                 | Added     |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- | --------- |
+| `clone_course_to_semester(p_course_id, p_target_semester_id)`                  | Kloning kursus (modul, pelajaran, kuis) ke semester target; returns new course_id       | Phase 39B |
+| `promote_students_to_next_class(p_semester_id, p_class_id, p_target_class_id)` | Bulk promosi siswa yang lulus ke kelas berikutnya; returns count promoted               | Phase 39B |
+| `generate_semester_report_card(p_semester_id, p_student_id)`                   | Generate rapor digital per siswa: nilai per mata pelajaran, kehadiran, XP, catatan guru | Phase 39B |
 
 ## Important Column Gotchas
 

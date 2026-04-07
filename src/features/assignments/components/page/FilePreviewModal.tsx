@@ -153,6 +153,8 @@ function ImagePreview({ url, fileName }: { url: string; fileName: string }) {
             setLoading(false)
             setError(true)
           }}
+          loading="lazy"
+          decoding="async"
         />
       )}
     </div>

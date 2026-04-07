@@ -3,6 +3,11 @@ import { AnimatePresence } from 'motion/react'
 import { useState } from 'react'
 
 import { AIQuizGeneratorPanel, type GeneratedQuestion } from '@/features/ai-quiz-gen'
+import { AIImportBanner } from '@/features/creator/components/AIImportBanner'
+import {
+  type PendingQuizData,
+  useCreatorBridgeStore,
+} from '@/features/creator/store/creatorBridge.store'
 import { QuestionSearchModal } from '@/features/question-bank/components/QuestionSearchModal'
 import type { QuestionType, QuizMode } from '@/features/quizzes'
 import { QuizAnalyticsPanel } from '@/features/quizzes/components/analytics'
@@ -13,6 +18,31 @@ import { useQuizEditorState } from '@/features/quizzes/hooks/useQuizEditorState'
 export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
   const s = useQuizEditorState(_blockId)
   const [showAIPanel, setShowAIPanel] = useState(false)
+  const clearPendingQuiz = useCreatorBridgeStore((s) => s.clearPendingQuiz)
+
+  const handleImportFromCreator = (pendingData: PendingQuizData) => {
+    s.setQuizData((prev) => ({
+      ...prev,
+      questions: [
+        ...prev.questions,
+        ...pendingData.questions.map((q, i) => ({
+          text: q.text,
+          order: prev.questions.length + i + 1,
+          question_type: 'MCQ' as const,
+          points: 10,
+          explanation: 'options' in q ? (q.explanation ?? '') : '',
+          options:
+            'options' in q && Array.isArray(q.options)
+              ? (q as { options: Array<{ text: string; is_correct: boolean }> }).options.map(
+                  (o) => ({ text: o.text, is_correct: o.is_correct })
+                )
+              : [],
+        })),
+      ],
+    }))
+    clearPendingQuiz()
+    setShowAIPanel(false)
+  }
 
   const handleInsertAIQuestions = (questions: GeneratedQuestion[]) => {
     s.setQuizData((prev) => ({
@@ -43,6 +73,8 @@ export function QuizBlockEditor({ blockId: _blockId }: { blockId: string }) {
 
   return (
     <div className="w-full space-y-6">
+      <AIImportBanner onImport={handleImportFromCreator} />
+
       <QuizEditorToolbar
         isPublished={s.isPublished}
         isSaving={s.isSaving}

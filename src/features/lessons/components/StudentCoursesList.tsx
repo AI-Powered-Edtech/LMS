@@ -1,58 +1,36 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, BookOpen } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/services/supabase/client'
 import { translateCourseStatus } from '@/utils/statusTranslations'
 
-interface Course {
-  id: string
-  title: string
-  description?: string
-  status: string
-}
+import { useStudentEnrollments } from '../queries/lessonQueries'
 
 export function StudentCoursesList() {
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, tenantId } = useAuth()
-  const [courses, setCourses] = useState<Course[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [retryCount, setRetryCount] = useState(0)
   const enrollmentError = (location.state as { error?: string } | null)?.error ?? null
 
-  useEffect(() => {
-    if (!tenantId || !user?.id) return
-    setLoading(true)
-    setError(null)
-    // NOTE: Only fetch courses the student is enrolled in via course_enrollments.
-    // Students are enrolled automatically when they join a class (handle_student_joined_class trigger).
-    // DO NOT fetch all published courses — that shows inaccessible content.
-    ;(async () => {
-      try {
-        const { data, error: err } = await supabase
-          .from('course_enrollments')
-          .select('course_id, courses!inner(id, title, description, status)')
-          .eq('user_id', user.id)
-          .eq('tenant_id', tenantId)
-          .eq('status', 'ACTIVE') // enrollment_status enum: uppercase only
-        if (err) throw err
-        const enrolled = (data ?? [])
-          .map((e) => (e as unknown as { courses: Course }).courses)
-          .filter((c) => c.status === 'published')
-        setCourses(enrolled)
-      } catch (err) {
-        if (import.meta.env.DEV) console.error('Failed to fetch enrolled courses:', err)
-        setError('Gagal memuat daftar kursus. Silakan muat ulang halaman.')
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [tenantId, user?.id, retryCount])
+  const {
+    data: courses = [],
+    isLoading: loading,
+    isRefetching,
+    error: queryError,
+    refetch,
+  } = useStudentEnrollments()
 
-  if (error) {
+  const handleRetryEnrollments = async () => {
+    await queryClient.invalidateQueries({
+      predicate: (query) =>
+        Array.isArray(query.queryKey) &&
+        query.queryKey[0] === 'lessons' &&
+        query.queryKey[2] === 'enrollments',
+    })
+    await refetch()
+  }
+
+  if (queryError) {
     return (
       <div className="flex items-center justify-center h-[80vh]">
         <div className="text-center p-8">
@@ -62,12 +40,15 @@ export function StudentCoursesList() {
           <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-2">
             Gagal Memuat Kursus
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 mb-4">{error}</p>
+          <p className="text-slate-500 dark:text-slate-400 mb-4">
+            Gagal memuat daftar kursus. Silakan muat ulang halaman.
+          </p>
           <button
-            onClick={() => setRetryCount((c) => c + 1)}
+            onClick={handleRetryEnrollments}
+            disabled={isRefetching}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
           >
-            Muat Ulang
+            {isRefetching ? 'Memuat...' : 'Coba Lagi'}
           </button>
         </div>
       </div>

@@ -2,7 +2,10 @@ import { motion } from 'motion/react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useOptionalLearningSession } from '@/features/analytics'
-import { videoCaptionService } from '@/features/courses/services/videoCaptionService'
+import {
+  type VideoCaption,
+  videoCaptionService,
+} from '@/features/courses/services/videoCaptionService'
 import { BLOCK_REGISTRY, isValidBlockType } from '@/features/lessons/blockRegistry'
 import type { Lesson } from '@/features/lessons/types'
 import { cn } from '@/utils/cn'
@@ -72,35 +75,20 @@ export function MultiBlockViewer({
     return initial
   })
 
-  const [captionsByBlock, setCaptionsByBlock] = useState<
-    Record<
-      string,
-      { id: string; file_url: string; language: string; label: string; is_default: boolean }[]
-    >
-  >({})
+  const [captionsByBlock, setCaptionsByBlock] = useState<Record<string, VideoCaption[]>>({})
 
   useEffect(() => {
     if (!lesson.id) return
     videoCaptionService
       .getCaptions(lesson.id)
       .then((data) => {
-        const grouped: Record<string, typeof data> = {}
+        const grouped: Record<string, VideoCaption[]> = {}
         for (const caption of data) {
           const key = caption.block_id || 'global'
           if (!grouped[key]) grouped[key] = []
           grouped[key].push(caption)
         }
-        const mapped: typeof captionsByBlock = {}
-        for (const [key, items] of Object.entries(grouped)) {
-          mapped[key] = items.map((c) => ({
-            id: c.id,
-            file_url: c.vtt_url,
-            language: c.language_code,
-            label: c.label,
-            is_default: c.is_default,
-          }))
-        }
-        setCaptionsByBlock(mapped)
+        setCaptionsByBlock(grouped)
       })
       .catch((err) => console.error('Failed to load captions', err))
   }, [lesson.id])

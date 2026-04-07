@@ -6,6 +6,11 @@ Konten pelajaran dengan block-based editor. Mendukung teks, video, kuis inline, 
 
 Modul ini merupakan bagian dari arsitektur feature-module EduSync LMS, terletak di `src/features/lessons/`. Setiap feature module memiliki struktur standar: api/, queries/, hooks/, types/, components/, dan **tests**/.
 
+## Update Stabilitas (2026-04-05)
+
+- `CourseBrowser`: handler retry kini melakukan invalidasi + refetch untuk query course, modules, teacher, dan completed lessons.
+- `StudentCoursesList`: tombol retry error enrollments diganti dari `window.location.reload()` ke React Query `invalidateQueries` + `refetch`.
+
 ## Domain
 
 **Learning** — Modul ini termasuk dalam domain Learning bersama dengan feature terkait lainnya.

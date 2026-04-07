@@ -36,7 +36,7 @@ interface SaveTemplateConfig {
 }
 
 export function BuilderSidebar() {
-  const { state, actions } = useBuilder()
+  const { state, actions, mobile } = useBuilder()
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const [addingLessonTo, setAddingLessonTo] = useState<string | null>(null)
   const [templateModalConfig, setTemplateModalConfig] = useState<TemplateModalConfig>({
@@ -50,7 +50,6 @@ export function BuilderSidebar() {
     sourceId: '',
     defaultTitle: '',
   })
-  const mobile = { isMobile: false, sidebarOpen: false, closeSidebar: () => {} }
 
   const toggleModule = (id: string) => {
     setExpandedModules((prev) => {
@@ -99,7 +98,7 @@ export function BuilderSidebar() {
 
   const handleAddModule = () => {
     const count = state.modules.length + 1
-    actions.addModule(`Module ${count}`)
+    actions.addModule(`Modul ${count}`)
   }
 
   const handleAddLesson = (moduleId: string, type: string) => {
@@ -128,6 +127,7 @@ export function BuilderSidebar() {
               onClick={handleAddModule}
               className="flex items-center gap-1 p-2 pr-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95"
               title="Buat Modul Baru"
+              aria-label="Buat Modul Baru"
             >
               <Plus className="w-4 h-4" />
               <span className="text-xs font-bold">Modul</span>
@@ -141,6 +141,7 @@ export function BuilderSidebar() {
               disabled={!state.courseId}
               className="flex items-center p-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-r-xl transition-all shadow-md shadow-indigo-100 dark:shadow-indigo-900/30 active:scale-95 border-l border-indigo-700/30 disabled:opacity-50"
               title="Import dari Template"
+              aria-label="Import dari Template"
             >
               <Import className="w-3.5 h-3.5" />
             </button>
@@ -360,23 +361,6 @@ export function BuilderSidebar() {
                                                   )}
                                                 </div>
                                               </div>
-                                              <button
-                                                onClick={(e) => {
-                                                  e.stopPropagation()
-                                                  if (confirm('Delete this lesson?')) {
-                                                    actions.deleteLesson(lesson.id)
-                                                  }
-                                                }}
-                                                className={cn(
-                                                  'p-1.5 rounded-lg transition-all focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500',
-                                                  state.activeLesson?.id === lesson.id
-                                                    ? 'opacity-0 group-hover/lesson:opacity-100 hover:bg-white/20 text-white'
-                                                    : 'opacity-0 group-hover/lesson:opacity-100 hover:bg-rose-50 text-slate-400 hover:text-rose-500'
-                                                )}
-                                                aria-label="Hapus pelajaran"
-                                              >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                              </button>
                                               <button
                                                 onClick={(e) => {
                                                   e.stopPropagation()

@@ -16,9 +16,11 @@ import { EmptyState, useToast } from '@/components/ui'
 import { cn } from '@/utils/cn'
 
 import { TeacherGroupEntry } from '../../api/groupAssignmentService'
-import { useTeacherGroups } from '../../hooks/useGroupAssignments'
+import { useTeacherGroups, useUpdateGroupSettings } from '../../hooks/useGroupAssignments'
+import { CreateGroupModal } from './CreateGroupModal'
 import { GradeGroupModal } from './GradeGroupModal'
-import { GroupSettingsTab } from './GroupSettingsTab'
+import { GroupMonitorModal } from './GroupMonitorModal'
+import { type GroupSettings, GroupSettingsTab } from './GroupSettingsTab'
 
 interface Props {
   assignmentId: string
@@ -53,8 +55,19 @@ export function TeacherGroupView({ assignmentId }: Props) {
   const addToast = useToast((s) => s.addToast)
   const [teacherTab, setTeacherTab] = useState('overview')
   const [gradingGroup, setGradingGroup] = useState<TeacherGroupEntry | null>(null)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [monitoringGroup, setMonitoringGroup] = useState<TeacherGroupEntry | null>(null)
 
   const { data: groups = [], isLoading, isError, refetch } = useTeacherGroups(assignmentId)
+  const updateSettingsMutation = useUpdateGroupSettings(assignmentId)
+
+  const handleSaveSettings = (settings: GroupSettings) => {
+    updateSettingsMutation.mutate(settings, {
+      onSuccess: () =>
+        addToast({ type: 'success', message: 'Pengaturan kelompok berhasil disimpan.' }),
+      onError: () => addToast({ type: 'error', message: 'Gagal menyimpan pengaturan. Coba lagi.' }),
+    })
+  }
 
   const handleSyncGCR = () => {
     addToast({
@@ -120,9 +133,7 @@ export function TeacherGroupView({ assignmentId }: Props) {
             Sinkronkan GCR
           </button>
           <button
-            onClick={() =>
-              addToast({ type: 'info', message: 'Pembuatan kelompok manual akan tersedia segera.' })
-            }
+            onClick={() => setIsCreateModalOpen(true)}
             className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl flex items-center gap-2 transition-colors shadow-sm shadow-indigo-200"
           >
             <Plus className="w-5 h-5" />
@@ -293,9 +304,7 @@ export function TeacherGroupView({ assignmentId }: Props) {
                       )}
                       <div className="flex gap-2">
                         <button
-                          onClick={() =>
-                            addToast({ type: 'info', message: 'Fitur pantau segera tersedia.' })
-                          }
+                          onClick={() => setMonitoringGroup(group)}
                           className="flex-1 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
                         >
                           <Eye className="w-4 h-4" /> Pantau
@@ -326,12 +335,7 @@ export function TeacherGroupView({ assignmentId }: Props) {
                 Buat kelompok baru atau sinkronisasi dari Google Classroom untuk memulai.
               </p>
               <button
-                onClick={() =>
-                  addToast({
-                    type: 'info',
-                    message: 'Pembuatan kelompok manual akan tersedia segera.',
-                  })
-                }
+                onClick={() => setIsCreateModalOpen(true)}
                 className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-sm"
               >
                 <Plus className="w-5 h-5" />
@@ -343,13 +347,7 @@ export function TeacherGroupView({ assignmentId }: Props) {
       )}
 
       {/* Settings Tab */}
-      {teacherTab === 'settings' && (
-        <GroupSettingsTab
-          onSave={() =>
-            addToast({ type: 'info', message: 'Pengaturan kelompok akan tersedia segera.' })
-          }
-        />
-      )}
+      {teacherTab === 'settings' && <GroupSettingsTab onSave={handleSaveSettings} />}
 
       {gradingGroup && (
         <GradeGroupModal
@@ -357,6 +355,14 @@ export function TeacherGroupView({ assignmentId }: Props) {
           assignmentId={assignmentId}
           onClose={() => setGradingGroup(null)}
         />
+      )}
+
+      {isCreateModalOpen && (
+        <CreateGroupModal assignmentId={assignmentId} onClose={() => setIsCreateModalOpen(false)} />
+      )}
+
+      {monitoringGroup && (
+        <GroupMonitorModal group={monitoringGroup} onClose={() => setMonitoringGroup(null)} />
       )}
     </div>
   )

@@ -46,16 +46,8 @@ const FillBlankBlock = lazy(() =>
 
 interface VideoCaption {
   id: string
-  file_url: string
-  language: string
-  label: string
-  is_default: boolean
-}
-
-interface VideoCaption {
-  id: string
-  file_url: string
-  language: string
+  vtt_url: string
+  language_code: string
   label: string
   is_default: boolean
 }

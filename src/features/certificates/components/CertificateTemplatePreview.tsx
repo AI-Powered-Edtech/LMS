@@ -79,6 +79,8 @@ export function CertificateTemplatePreview({
               src={template.logo_url}
               alt="Logo sekolah"
               className="h-14 w-auto object-contain"
+              loading="lazy"
+              decoding="async"
             />
           </div>
         ) : (

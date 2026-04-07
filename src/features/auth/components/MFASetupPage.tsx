@@ -77,6 +77,8 @@ export function MFASetupPage() {
                 src={qrCodeUrl}
                 alt="QR Code untuk setup 2FA"
                 className="w-48 h-48 rounded-lg border-2 border-slate-200 dark:border-slate-700"
+                loading="lazy"
+                decoding="async"
               />
             </div>
 

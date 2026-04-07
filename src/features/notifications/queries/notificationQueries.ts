@@ -7,6 +7,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/useToast'
 import { createQueryKeys } from '@/shared/lib/queryKeys'
 import { STALE } from '@/utils/queryConstants'
 import { captureError } from '@/utils/sentry'
@@ -96,9 +97,13 @@ export function useMarkAllAsRead() {
 /**
  * Hook for sending a notification
  * Used by Assignments, Creator, Calendar to send notifications to users
+ *
+ * Errors are captured silently via Sentry — notification delivery is best-effort.
+ * A user-visible toast is shown only for unexpected failures (RPC missing, network down).
  */
 export function useSendNotification() {
   const { tenantId } = useAuth()
+  const addToast = useToast((s) => s.addToast)
 
   return useMutation({
     mutationFn: ({
@@ -114,6 +119,16 @@ export function useSendNotification() {
     }) => notificationService.sendNotification(userId, title, message, type, tenantId!),
     onError: (err) => {
       captureError(err, { context: 'useSendNotification' })
+      // Show a non-blocking toast so the user knows the notification may not have been sent
+      const isRpcMissing =
+        err instanceof Error && err.message.includes('create_notification belum tersedia')
+      if (isRpcMissing) {
+        addToast({
+          type: 'warning',
+          message: 'Gagal mengirim notifikasi — fungsi database belum tersedia.',
+          description: 'Laporkan ke administrator sistem.',
+        })
+      }
     },
   })
 }

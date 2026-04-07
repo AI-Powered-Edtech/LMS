@@ -20,7 +20,11 @@ import { useAuth } from '../contexts/AuthContext'
  *   // INSERT with automatic tenant_id
  *   await tenantInsert('classes', { name: 'English 101', teacher_id: userId });
  */
-export function useTenantQuery() {
+export function useTenantQuery(): {
+  tenantId: string | null
+  tenantQuery: (table: string, columns?: string) => any
+  tenantInsert: (table: string, data: Record<string, unknown>) => Promise<any>
+} {
   const { tenantId } = useAuth()
 
   /**

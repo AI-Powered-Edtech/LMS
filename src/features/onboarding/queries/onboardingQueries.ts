@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/services/supabase/client'
 import { createQueryKeys } from '@/shared/lib/queryKeys'
 import { GC, STALE } from '@/utils/queryConstants'
-import { captureError } from '@/utils/sentry'
 
 import type { OnboardingProgress } from '../types'
 
@@ -23,25 +22,17 @@ export function useOnboardingProgress(tenantId: string, userId: string) {
   return useQuery({
     queryKey: onboardingKeys.progress(tenantId, userId),
     queryFn: async (): Promise<OnboardingProgress | null> => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('onboarding_progress')
         .select('id, tenant_id, user_id, steps_completed, completed_at')
         .eq('tenant_id', tenantId)
         .eq('user_id', userId)
         .maybeSingle()
-      // Table may not exist on all environments — return null gracefully.
-      if (error) {
-        if (import.meta.env.DEV)
-          console.warn('[onboardingQueries] onboarding_progress unavailable:', error.message)
-        return null
-      }
       return data as OnboardingProgress | null
     },
     enabled: !!tenantId && !!userId,
     staleTime: STALE.STATIC,
     gcTime: GC.LONG,
-    // Don't retry on 404 — table may not exist in all environments
-    retry: false,
   })
 }
 
@@ -66,7 +57,7 @@ export function useUpdateOnboardingProgress(tenantId: string, userId: string) {
           completed_at: allDone ? new Date().toISOString() : null,
         })
         .eq('id', progressId)
-        .select('id, tenant_id, user_id, steps_completed, completed_at')
+        .select()
         .single()
       if (error) throw error
       return data as OnboardingProgress
@@ -75,9 +66,6 @@ export function useUpdateOnboardingProgress(tenantId: string, userId: string) {
       queryClient.invalidateQueries({
         queryKey: onboardingKeys.progress(tenantId, userId),
       })
-    },
-    onError: (err) => {
-      captureError(err, { context: 'useUpdateOnboardingProgress' })
     },
   })
 }

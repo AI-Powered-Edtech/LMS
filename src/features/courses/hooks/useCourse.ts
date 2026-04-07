@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/contexts/AuthContext'
+import { logDevWarn } from '@/utils/logDevError'
 import { captureError } from '@/utils/sentry'
 
 import { courseService } from '../api/courseService'
@@ -35,8 +36,11 @@ export function useCourseMutation() {
         qc.invalidateQueries({ queryKey: courseKeys.lists(tenantId) })
         qc.invalidateQueries({ queryKey: courseKeys.infinite(tenantId) })
       } else {
-        // Fallback jika tenantId belum tersedia (seharusnya tidak terjadi)
-        qc.invalidateQueries({ queryKey: ['courses'] })
+        // tenantId not yet available — skip invalidation rather than blast all caches
+        logDevWarn(
+          'useCourseMutation',
+          'tenantId missing at mutation success — cache not invalidated'
+        )
       }
     },
     onError: (err) => {

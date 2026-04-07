@@ -142,6 +142,8 @@ function ActivityItem({ event }: { event: TeacherActivityEvent }) {
             src={event.profiles.avatar_url}
             alt={name}
             className="w-9 h-9 rounded-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-indigo-700 dark:text-indigo-300 text-xs font-bold">

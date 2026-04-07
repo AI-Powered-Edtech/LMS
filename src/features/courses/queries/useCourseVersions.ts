@@ -66,10 +66,11 @@ export function useRestoreVersion() {
         queryClient.invalidateQueries({ queryKey: courseKeys.detail(tenantId, courseId) })
         queryClient.invalidateQueries({ queryKey: courseKeys.versions(tenantId, courseId) })
       } else {
-        // Safe fallback — should not normally happen
-        queryClient.invalidateQueries({ queryKey: ['courses'] })
-        queryClient.invalidateQueries({ queryKey: ['course-modules'] })
-        queryClient.invalidateQueries({ queryKey: ['lessons'] })
+        // Safe fallback when tenant context is unavailable:
+        // invalidate all courses-scope queries without using empty tenantId key.
+        queryClient.invalidateQueries({
+          predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === 'courses',
+        })
       }
     },
     onError: (err, variables) => {
