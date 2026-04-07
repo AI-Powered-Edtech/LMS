@@ -110,7 +110,7 @@ export function GradingModal({
                   <a
                     href={submission.file_url}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                   >
                     <FileText className="w-5 h-5 text-blue-500" />
