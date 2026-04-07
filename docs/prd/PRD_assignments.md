@@ -120,7 +120,7 @@ Masalah yang dipecahkan:
 | 14  | **RLS & Multi-Tenant**          | Assignments scoped by course → tenant. Teachers see/edit own assignments. Students see if enrolled in course. Admin see all. Submissions only visible to own teacher + student + admin.                                                                    |
 | 15  | **Gradebook Export**            | Assignment grades export to CSV: student name, email, score, max_points, %, submission status, graded_date. Used for parent portal (future).                                                                                                               |
 | 16  | **Dark Mode**                   | SpeedGrader, rubric panel, analytics all support `dark:` Tailwind. Test fullscreen grading in dark mode.                                                                                                                                                   |
-| 17  | **Documentation**               | Update `docs/DATABASE.md` with assignment schema; create feature README with RPC reference; document rubric JSON format.                                                                                                                                   |
+| 17  | **Documentation**               | Update `docs/DATABASE_ARCHITECTURE.md` with assignment schema; create feature README with RPC reference; document rubric JSON format.                                                                                                                      |
 
 ### P1 — Nice to Have
 
@@ -290,7 +290,7 @@ Masalah yang dipecahkan:
 - [ ] File upload works for .pdf, .docx, .txt, .jpg (test 5 types)
 - [ ] Dark mode working on SpeedGrader + analytics
 - [ ] Performance: SpeedGrader load <2 sec; next student <500ms
-- [ ] Documentation updated (DATABASE.md, feature README, RPC reference)
+- [ ] Documentation updated (DATABASE_ARCHITECTURE.md, feature README, RPC reference)
 
 ---
 

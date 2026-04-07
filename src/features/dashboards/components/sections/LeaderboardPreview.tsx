@@ -6,6 +6,7 @@ import type { LeaderboardEntry } from '@/features/gamification'
 
 interface LeaderboardPreviewProps {
   xp: number
+  role: string
   leaderboardList: LeaderboardEntry[]
   loading: boolean
   error: boolean
@@ -14,6 +15,7 @@ interface LeaderboardPreviewProps {
 
 export function LeaderboardPreview({
   xp,
+  role,
   leaderboardList,
   loading,
   error,
@@ -29,7 +31,7 @@ export function LeaderboardPreview({
           Cuplikan Papan Peringkat
         </h2>
         <Link
-          to="/app/student/leaderboard"
+          to={role === 'teacher' ? '/app/teacher/leaderboard' : '/app/student/leaderboard'}
           className="text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
         >
           Lihat Peringkat

@@ -136,7 +136,7 @@ Dokumen ini mencatat setiap dependency, alasan pemilihan, alternatif yang dipert
 
 ## Feature Module Cross-Reference
 
-EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
+EduSync LMS terdiri dari 49 feature module yang saling terintegrasi:
 
 | Feature         | Domain         | Deskripsi                                                                                                                  |
 | --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |

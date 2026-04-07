@@ -9,6 +9,7 @@ import {
   getPendingSubmissions,
   markSynced,
   type SyncQueueItem,
+  updateQueueItem,
 } from './offlineStorage'
 
 // ---------------------------------------------------------------------------
@@ -258,6 +259,11 @@ export async function processSyncQueue(): Promise<SyncResult> {
   const result: SyncResult = { synced: 0, failed: 0, conflicts: 0, permanent: 0 }
 
   for (const item of pending) {
+    // Skip items already at max retries (quarantined)
+    const payload = item.payload as any
+    const maxRetries = payload?.maxRetries ?? MAX_RETRIES
+    if (item.attempts >= maxRetries) continue
+
     const outcome = await processOperation(item)
 
     switch (outcome) {
@@ -273,15 +279,18 @@ export async function processSyncQueue(): Promise<SyncResult> {
 
       case 'retry':
         result.failed++
-        // Backoff will be handled by the next sync cycle
+        // Increment attempts for exponential backoff tracking
+        await updateQueueItem(item.id, { attempts: item.attempts + 1 })
         break
 
       case 'permanent':
-        await markSynced(item.id)
+        // Do NOT delete (markSynced) quarantined items, just mark them as failed
+        await updateQueueItem(item.id, { attempts: maxRetries })
         result.permanent++
-        captureError(new Error(`Queue operation permanently failed: ${item.type}`), {
+        captureError(new Error(`Queue operation permanently failed (quarantined): ${item.type}`), {
           context: 'offlineQueue',
           itemId: item.id,
+          attempts: item.attempts + 1,
         })
         break
     }

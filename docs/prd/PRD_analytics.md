@@ -254,7 +254,6 @@ const { data, isLoading, error } = useTeacherAnalytics(courseId, {
 
 ```tsx
 import { useVirtual } from 'react-window'
-
 ;<VirtualList height={600} itemCount={students.length} itemSize={50}>
   {({ index, style }) => (
     <div style={style} key={students[index].id}>
@@ -325,7 +324,7 @@ export function AnalyticsSkeleton() {
 
 ## 12. References
 
-- **Database:** `/docs/DATABASE.md` — `course_stats`, `course_progress`, `student_lesson_signals`, `learning_events`
+- **Database:** `/docs/DATABASE_ARCHITECTURE.md` — `course_stats`, `course_progress`, `student_lesson_signals`, `learning_events`
 - **Analytics System:** `/docs/ANALYTICS.md` — engagement segments, struggle detection, RPCs
 - **Gamification:** `/docs/GAMIFICATION.md` — XP, badges, leaderboard
 - **Architecture:** `/docs/ARCHITECTURE.md` — RLS, multi-tenancy, realtime

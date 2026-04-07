@@ -266,7 +266,7 @@ When updating a PRD:
 ## References
 
 - **Main Codebase:** `/home/rog/Documents/edusync1/LMS/`
-- **Database Schema:** `docs/DATABASE.md`
+- **Database Schema:** `docs/DATABASE_ARCHITECTURE.md`
 - **Architecture:** `docs/ARCHITECTURE.md`
 - **Engineering Roadmap:** `docs/ENGINEERING_ROADMAP.md` (Phase 5)
 - **Design System:** `docs/design-system.md`

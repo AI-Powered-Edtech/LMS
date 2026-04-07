@@ -1,6 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { trackMetric, measureAsync } from '../metrics'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { supabase } from '@/services/supabase/client'
+
+import { measureAsync, trackMetric } from '../metrics'
 
 vi.mock('@/services/supabase/client', () => ({
   supabase: {

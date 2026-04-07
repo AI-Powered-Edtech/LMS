@@ -88,39 +88,43 @@ npx playwright show-report
 
 ### E2E Structure
 
-```
+````
 e2e/
   .auth/                ← Auto-generated auth state (gitignored)
     student.json
     teacher.json
     admin.json
   helpers/
-    auth.ts             ← loginAsStudent / loginAsTeacher / loginAsAdmin / gotoAndWait / dismissToast / skipIfNoAuth
+    auth.ts             ← loginAsStudent / loginAsTeacher / loginAsAdmin / gotoAndWait
     index.ts            ← barrel export
-  flows/                ← Legacy authenticated flow tests
-    student-journey.spec.ts
-    teacher-journey.spec.ts
-    admin-journey.spec.ts
-    quiz-autosave-resume.spec.ts
-    class-join-code.spec.ts
-  flows24/              ← Comprehensive 24-flow E2E suite (604 tests)
-    global.setup.ts     ← Authenticates student/teacher/admin, saves storage state
-    auth.spec.ts        ← Flows 1-3: Login, Registration, Role Switching (18 tests)
-    student.spec.ts     ← Flows 4,6,8,11,12,14,21,22,24: Student features (37 tests)
-    teacher.spec.ts     ← Flows 5,7,9,10,13,15: Teacher features (37 tests)
-    shared-admin.spec.ts← Flows 16-20,23: Communication, Admin, Settings (65 tests)
-    cross-cutting.spec.ts← CC-1 to CC-4: Dark mode, Mobile, Console, Loading (70 tests)
-    seeder.spec.ts      ← Data seeding for test prerequisites
-  *.spec.ts             ← Unauthenticated + authenticated tests per domain
-```
+  ```text
+  e2e/
+    critical-paths/           ← Critical user journey tests
+    flows/                    ← Legacy authenticated flow tests
+    flows-phase26-30/         ← Tests for newer features
+    flows24/                  ← Standard flow test collection
+    gradebook/                ← Specific gradebook and SpeedGrader tests
+    security/                 ← RLS and security verification tests
+    helpers/                  ← E2E test utilities (auth, setup)
+    admin.spec.ts             ← Main admin dashboard flows
+    auth.spec.ts              ← Login, Registration, Password flows
+    core.spec.ts              ← Shared core functionality
+    course.spec.ts            ← Course and lesson flows
+    quiz.spec.ts              ← Quiz engine flows
+    gamification.spec.ts      ← XP, badges, leaderboards
+    dark-mode.spec.ts         ← Visual sweep for dark mode
+    visual-regression.spec.ts ← Visual baseline comparisons
+    responsive.spec.ts        ← Mobile viewport checks
+    error-handling.spec.ts    ← Error boundary and toast verification
+    navigation.spec.ts        ← Breadcrumb and menu flows
+````
 
-### flows24 Configuration (playwright-24.config.ts)
+### Playwright Configuration (playwright.config.ts)
 
-The `flows24/` suite uses a separate Playwright config with pre-authenticated storage states:
+The E2E suite uses a centralized Playwright config with pre-authenticated storage states:
 
 - **Setup project**: `global.setup.ts` authenticates all 3 roles via keyboard events (React controlled input workaround) and saves storage state to `e2e/.auth/*.json`.
 - **Role-based projects**: `student`, `teacher`, `admin` — each project uses its own saved auth state so tests don't need to re-login.
-- **Role filtering**: Tests use `test.skip(testInfo.project.name !== 'role')` to run only under the correct role project.
 - **Timeout**: 120s per test (accounts for slow Supabase queries on first load).
 - **Web server**: Auto-starts `pnpm dev` if not already running.
 

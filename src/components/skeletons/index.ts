@@ -1,5 +1,5 @@
-export { CourseDetailSkeleton } from './CourseDetailSkeleton'
-export { CourseListSkeleton } from './CourseListSkeleton'
+export { CourseDetailSkeleton } from '../../features/courses/components/CourseDetailSkeleton'
+export { CourseListSkeleton } from '../../features/courses/components/CourseListSkeleton'
 export { DashboardSkeleton } from './DashboardSkeleton'
 export { LeaderboardSkeleton } from './LeaderboardSkeleton'
 export { ProfileSkeleton } from './ProfileSkeleton'

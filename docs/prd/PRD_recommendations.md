@@ -420,7 +420,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public';
 - [ ] Mobile responsive (tested on iPhone SE + iPad)
 - [ ] Dark mode CSS complete
 - [ ] 2–3 beta schools deployed, 50+ students, <3 critical bugs in 7 days
-- [ ] Documentation: DATABASE.md, feature README in src/features/recommendations/
+- [ ] Documentation: DATABASE_ARCHITECTURE.md, feature README in src/features/recommendations/
 
 ---
 

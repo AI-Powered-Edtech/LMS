@@ -32,7 +32,7 @@ All engineering phases have been completed as of 2026-04-02. The system is produ
 ## Architecture Overview
 
 - **Frontend:** React 19 + Vite 6 + TypeScript 5.8 + Tailwind CSS v4
-- **Backend:** Supabase (PostgreSQL + Auth + RLS + 23 Edge Functions)
+- **Backend:** Supabase (PostgreSQL + Auth + RLS + 28 Edge Functions)
 - **State:** React Query v5 (server), Zustand v5 (local quiz state)
 - **Routing:** React Router v7 (hash routing)
 - **Testing:** Vitest (unit, 120+ files, 700+ tests), Playwright (E2E, 24 flows + cross-cutting)
@@ -44,11 +44,11 @@ All engineering phases have been completed as of 2026-04-02. The system is produ
 | ------------------- | ------------------------- |
 | Test files          | 120+ passing              |
 | Unit tests          | 700+ passing              |
-| E2E flows           | 24 + 4 cross-cutting      |
-| Feature modules     | 32                        |
+| E2E scenarios       | 400+                      |
+| Feature modules     | 49                        |
 | Database tables     | 100+                      |
 | RLS policies        | 200+                      |
-| Edge Functions      | 23                        |
+| Edge Functions      | 28                        |
 | Coverage thresholds | Enforced in vitest.config |
 
 ---

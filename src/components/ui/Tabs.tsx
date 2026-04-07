@@ -1,5 +1,5 @@
-import { motion, useReducedMotion } from 'motion/react'
 import type { Transition } from 'motion/react'
+import { motion, useReducedMotion } from 'motion/react'
 import { useId, useRef } from 'react'
 
 import { cn } from '@/utils/cn'

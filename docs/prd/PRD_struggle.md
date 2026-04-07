@@ -449,7 +449,7 @@ function assignSegment(
 
 ## 13. References
 
-- **Database:** `/docs/DATABASE.md` — student_lesson_signals, quiz_attempts tables
+- **Database:** `/docs/DATABASE_ARCHITECTURE.md` — student_lesson_signals, quiz_attempts tables
 - **Analytics:** `/docs/ANALYTICS.md` — engagement segments, struggle score, early warning
 - **Gamification:** `/docs/GAMIFICATION.md` — XP, badges, streaks
 - **Architecture:** `/docs/ARCHITECTURE.md` — RLS, multi-tenancy, realtime

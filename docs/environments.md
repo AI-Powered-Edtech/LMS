@@ -167,7 +167,7 @@ Never commit `.env.local`, `.env.staging`, or any file containing real credentia
 
 ## Feature Module Cross-Reference
 
-EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
+EduSync LMS terdiri dari 49 feature module yang saling terintegrasi:
 
 | Feature         | Domain         | Deskripsi                                                                                                                  |
 | --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |

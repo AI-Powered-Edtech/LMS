@@ -89,12 +89,12 @@ After ANY significant task:
 2. If creating a new feature module, create a `README.md` inside it
 3. If deleting a feature or file, remove its documentation
 4. Add an entry to `CHANGELOG.md`
-5. Update `docs/DATABASE.md` if schema changed
+5. Update `docs/DATABASE_ARCHITECTURE.md` if schema changed
 
 Key docs:
 
 - `docs/ARCHITECTURE.md` — system architecture
-- `docs/DATABASE.md` — table/RPC reference (update after schema changes)
+- `docs/DATABASE_ARCHITECTURE.md` — table/RPC reference (update after schema changes)
 - `docs/AUTH.md` — auth flow and setup
 - `docs/SECURITY.md` — security model
 - `docs/ANALYTICS.md` — analytics system

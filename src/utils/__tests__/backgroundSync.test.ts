@@ -191,7 +191,7 @@ describe('backgroundSync', () => {
       const mockUpdate = vi.fn().mockReturnValue({ eq: mockEq })
       vi.mocked(supabase.from).mockReturnValue({ update: mockUpdate } as any)
 
-      scheduleSync(0)
+      scheduleSync()
 
       expect(getPendingSubmissions).toHaveBeenCalledTimes(0)
 
@@ -212,7 +212,7 @@ describe('backgroundSync', () => {
     it('does not retry if all syncs succeeded', async () => {
       vi.mocked(getPendingSubmissions).mockResolvedValueOnce([])
 
-      scheduleSync(0)
+      scheduleSync()
 
       // First sync runs
       await vi.advanceTimersByTimeAsync(1000)
@@ -241,7 +241,7 @@ describe('backgroundSync', () => {
 
       // Call scheduleSync with the last attempt index: DELAYS.length - 1 (3 for max delay index)
       // Wait, DELAYS.length - 1 is 3 (max index for DELAYS: [1000, 5000, 30000, 300000])
-      scheduleSync(3)
+      scheduleSync()
 
       // Wait 300000ms
       await vi.advanceTimersByTimeAsync(300000)

@@ -339,7 +339,7 @@ Semua feature menggunakan skeleton loading dari `src/components/ui/Skeleton.tsx`
 
 ## Feature Module Cross-Reference
 
-EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
+EduSync LMS terdiri dari 49 feature module yang saling terintegrasi:
 
 | Feature         | Domain         | Deskripsi                                                                                                                  |
 | --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |

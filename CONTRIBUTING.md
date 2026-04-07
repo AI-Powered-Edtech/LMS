@@ -88,7 +88,7 @@ If you add or modify database schema:
 
 1. Create a timestamped migration file in `supabase/migrations/`
    - Use format: `YYYYMMDDHHMMSS_description.sql`
-2. Update `docs/DATABASE.md` with the new table/column/RPC reference
+2. Update `docs/DATABASE_ARCHITECTURE.md` with the new table/column/RPC reference
 3. Ensure the new table has:
    - `tenant_id UUID NOT NULL` column
    - `RLS ENABLED`
@@ -126,7 +126,7 @@ After completing any task:
 - If you deleted a feature: remove its documentation
 - Update `CHANGELOG.md` with a brief entry
 - If you created a new feature module: create a `README.md` inside it
-- If you changed the database schema: update `docs/DATABASE.md`
+- If you changed the database schema: update `docs/DATABASE_ARCHITECTURE.md`
 
 ---
 

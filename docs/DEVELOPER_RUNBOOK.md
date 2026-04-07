@@ -1,7 +1,7 @@
 # EduSync LMS — Developer Runbook
 
 > Untuk setup awal dari nol, lihat [SETUP_GUIDE.md](SETUP_GUIDE.md).
-> Untuk peta dokumentasi lengkap, lihat [DX.md](DX.md).
+> Untuk peta dokumentasi lengkap, lihat [README.md](README.md).
 
 ---
 
@@ -201,7 +201,7 @@ supabase db push
 - **Tenant isolation**: Every tenant-scoped table has `tenant_id`. RLS enforces it via `get_my_tenant_id()`.
 - **Event-driven analytics**: High-frequency events are batched client-side and ingested via Edge Functions.
 - **HashRouter**: All client-side routes use `/#/` prefix. Deep links refresh correctly.
-- **Feature modules**: 24 modules in `src/features/`, each with `api/`, `queries/`, `hooks/`, `types/`, `components/`.
+- **Feature modules**: 49 modules in `src/features/`, each with `api/`, `queries/`, `hooks/`, `types/`, `components/`.
 - **Package manager**: pnpm (never npm/yarn)
 
 ---

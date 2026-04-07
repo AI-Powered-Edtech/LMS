@@ -323,6 +323,17 @@ export function BuilderSidebar() {
                                               )}
                                             >
                                               <div
+                                                {...lesDragProvided.dragHandleProps}
+                                                className={cn(
+                                                  'p-0.5 shrink-0 transition-colors',
+                                                  state.activeLesson?.id === lesson.id
+                                                    ? 'text-white/50 hover:text-white/80'
+                                                    : 'text-slate-300 hover:text-slate-500'
+                                                )}
+                                              >
+                                                <GripVertical className="w-3.5 h-3.5" />
+                                              </div>
+                                              <div
                                                 className={cn(
                                                   'p-1.5 rounded-lg transition-colors',
                                                   state.activeLesson?.id === lesson.id

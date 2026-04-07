@@ -1,6 +1,6 @@
 # EduSync LMS — Feature Access Matrix
 
-Matriks akses fitur per role (Student, Teacher, Admin, Parent, Principal) untuk semua 32 feature module.
+Matriks akses fitur per role (Student, Teacher, Admin, Parent, Principal) untuk semua 49 feature module.
 
 ## Role Permissions
 

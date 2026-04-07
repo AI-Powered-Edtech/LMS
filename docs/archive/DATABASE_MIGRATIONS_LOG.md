@@ -16,7 +16,7 @@
 
 ---
 
-PostgreSQL on Supabase. 259 migration files (000_baseline.sql through 20260403000014_calendar_events_persist.sql).
+PostgreSQL on Supabase. 133 migration files (000_baseline.sql through 20260403000014_calendar_events_persist.sql).
 
 ## Key Tables
 

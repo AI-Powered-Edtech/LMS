@@ -34,9 +34,11 @@ export interface UseQuestionBankSelectReturn {
   searchQuery: string
   filterType: QuestionTypeFilter
   filterDifficulty: DifficultyFilter
+  filterTags: string[]
   setSearchQuery: (q: string) => void
   setFilterType: (t: QuestionTypeFilter) => void
   setFilterDifficulty: (d: DifficultyFilter) => void
+  setFilterTags: (tags: string[]) => void
 
   // Selection
   selectedIds: Set<string>
@@ -66,6 +68,7 @@ export function useQuestionBankSelect({
   const [searchQuery, setSearchQuery] = useState('')
   const [filterType, setFilterType] = useState<QuestionTypeFilter>('')
   const [filterDifficulty, setFilterDifficulty] = useState<DifficultyFilter>('')
+  const [filterTags, setFilterTags] = useState<string[]>([])
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isImporting, setIsImporting] = useState(false)
@@ -82,6 +85,7 @@ export function useQuestionBankSelect({
         query: searchQuery || undefined,
         questionType: filterType || undefined,
         difficulty: filterDifficulty ? parseInt(filterDifficulty) : undefined,
+        tags: filterTags.length > 0 ? filterTags : undefined,
         limit: 100,
       })
       setQuestions(data)
@@ -90,12 +94,12 @@ export function useQuestionBankSelect({
     } finally {
       setIsLoading(false)
     }
-  }, [searchQuery, filterType, filterDifficulty])
+  }, [searchQuery, filterType, filterDifficulty, filterTags])
 
   // Fetch saat filter berubah (non-search: langsung)
   useEffect(() => {
     fetchQuestions()
-  }, [filterType, filterDifficulty, fetchQuestions])
+  }, [filterType, filterDifficulty, filterTags, fetchQuestions])
 
   // Fetch saat search berubah (debounce 400ms)
   useEffect(() => {
@@ -154,9 +158,11 @@ export function useQuestionBankSelect({
     searchQuery,
     filterType,
     filterDifficulty,
+    filterTags,
     setSearchQuery,
     setFilterType,
     setFilterDifficulty,
+    setFilterTags,
 
     selectedIds,
     selectedCount: selectedIds.size,

@@ -29,16 +29,16 @@ Audit ini dilakukan untuk memastikan bahwa seluruh dokumentasi proyek EduSync me
 
 ### 🏗 Core Documentation
 
-| File                   | Status       | Action    | Notes                                    |
-| ---------------------- | ------------ | --------- | ---------------------------------------- |
-| `README.md`            | Relevan      | Updated   | Verifikasi link dan status project.      |
-| `AGENTS.md`            | Relevan      | No change | Sudah akurat untuk instruksi AI.         |
-| `CLAUDE.md`            | Relevan      | No change | Sudah akurat untuk developer.            |
-| `docs/DX.md`           | Perlu Update | Updated   | Sinkronisasi peta dokumen baru.          |
-| `docs/SETUP_GUIDE.md`  | Perlu Update | Updated   | Update daftar Edge Functions (16 total). |
-| `docs/ARCHITECTURE.md` | Relevan      | No change | Sudah sesuai dengan Phase 21.            |
-| `docs/DATABASE.md`     | Perlu Update | Updated   | Update jumlah migrasi (180+).            |
-| `docs/SECURITY.md`     | Relevan      | No change | Sudah mencakup audit hardening terbaru.  |
+| File                            | Status       | Action    | Notes                                    |
+| ------------------------------- | ------------ | --------- | ---------------------------------------- |
+| `README.md`                     | Relevan      | Updated   | Verifikasi link dan status project.      |
+| `AGENTS.md`                     | Relevan      | No change | Sudah akurat untuk instruksi AI.         |
+| `CLAUDE.md`                     | Relevan      | No change | Sudah akurat untuk developer.            |
+| `docs/DX.md`                    | Perlu Update | Updated   | Sinkronisasi peta dokumen baru.          |
+| `docs/SETUP_GUIDE.md`           | Perlu Update | Updated   | Update daftar Edge Functions (16 total). |
+| `docs/ARCHITECTURE.md`          | Relevan      | No change | Sudah sesuai dengan Phase 21.            |
+| `docs/DATABASE_ARCHITECTURE.md` | Perlu Update | Updated   | Update jumlah migrasi (180+).            |
+| `docs/SECURITY.md`              | Relevan      | No change | Sudah mencakup audit hardening terbaru.  |
 
 ### 🗑 Deleted (Irrelevant/Obsolete)
 
@@ -64,7 +64,7 @@ Audit ini dilakukan untuk memastikan bahwa seluruh dokumentasi proyek EduSync me
    - Update total hitungan dari 15 menjadi 16 fungsi aktif.
 
 2. **Database Schema Update**:
-   - Update `DATABASE.md` untuk mencerminkan `quiz_attempts_v2` dan `is_reviewed`.
+   - Update `DATABASE_ARCHITECTURE.md` untuk mencerminkan `quiz_attempts_v2` dan `is_reviewed`.
    - Koreksi jumlah file migrasi di `DX.md` (dari 27 menjadi 180+ total).
 
 3. **Link Integrity**:

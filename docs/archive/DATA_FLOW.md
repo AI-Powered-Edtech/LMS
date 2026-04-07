@@ -6,7 +6,7 @@ Panduan alur data dan state management di EduSync LMS.
 
 | Layer        | Technology      | Feature Modules             |
 | ------------ | --------------- | --------------------------- |
-| Server State | React Query v5  | Semua 24 feature modules    |
+| Server State | React Query v5  | Semua 49 feature modules    |
 | Local State  | Zustand v5      | quizzes (quiz player store) |
 | URL State    | React Router v7 | Semua route-aware features  |
 
@@ -222,7 +222,7 @@ High-frequency events dari **analytics**, **progress**, dan **struggle** menggun
 
 ## Feature Module Cross-Reference
 
-EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
+EduSync LMS terdiri dari 49 feature module yang saling terintegrasi:
 
 | Feature         | Domain         | Deskripsi                                                                                                                  |
 | --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |

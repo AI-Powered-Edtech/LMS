@@ -43,7 +43,7 @@ File yang masih relevan namun datanya tertinggal telah diperbarui agar sesuai de
 File-file di bawah ini dipertahankan karena secara akurat mencerminkan kode aktual:
 
 - **Root:** `README.md`, `CLAUDE.md`, `AGENTS.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `DEPLOYMENT.md` (Menjelaskan tech stack terkini dan rule agen AI).
-- **Core Docs:** `docs/DX.md`, `docs/ARCHITECTURE.md`, `docs/DATABASE.md`, `docs/SECURITY.md`, `docs/AUTH.md`, `docs/SETUP_GUIDE.md` (Divalidasi sinkron dengan Supabase DB dan Vite 6).
+- **Core Docs:** `docs/DX.md`, `docs/ARCHITECTURE.md`, `docs/DATABASE_ARCHITECTURE.md`, `docs/SECURITY.md`, `docs/AUTH.md`, `docs/SETUP_GUIDE.md` (Divalidasi sinkron dengan Supabase DB dan Vite 6).
 - **Feature Docs:** Semua file `src/features/*/README.md` (Menjelaskan spesifikasi UI/UX, hooks, dan Supabase queries masing-masing modul).
 - **ADR & PRD:** `docs/adr/*.md` dan `docs/prd/*.md` dipertahankan sebagai rekam jejak keputusan arsitektural dan product requirements historis.
 

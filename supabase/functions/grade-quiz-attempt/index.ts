@@ -296,6 +296,16 @@ Deno.serve(async (req: Request) => {
 
     if (queueError) throw queueError
 
+    // 11b. Struggle Detection Integration:
+    // Trigger struggle detection to catch any new at-risk students based on this new grade.
+    // We call detect_new_struggles() which scans for students exceeding struggle thresholds.
+    // Since this can be heavy, we only call it here if the attempt was auto-graded.
+    if (attemptStatus === 'graded') {
+      await supabase.rpc('detect_new_struggles').catch((err) => {
+        console.error('STRUGGLE_DETECTION_TRIGGER_ERROR', err)
+      })
+    }
+
     // 12. Phase 35C: Fire-and-forget LTI grade passback
     //     Only for fully auto-graded attempts (not 'submitted' which awaits manual grading).
     //     Fetch quiz metadata needed for passback (quiz_id + tenant_id)

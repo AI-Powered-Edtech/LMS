@@ -15,32 +15,32 @@ This plan implements production-grade UX/UI for **Auth/RBAC + Quiz Experience** 
 ```typescript
 interface AuthContextType {
   // User
-  user: User | null;
-  session: Session | null;
-  
+  user: User | null
+  session: Session | null
+
   // Profile
-  profile: Profile | null;
-  
+  profile: Profile | null
+
   // Multi-tenant
-  memberships: TenantMembership[];  // All tenant memberships
-  activeTenant: Tenant | null;    // Current active tenant
-  setActiveTenant: (tenantId: string) => void;
-  
+  memberships: TenantMembership[] // All tenant memberships
+  activeTenant: Tenant | null // Current active tenant
+  setActiveTenant: (tenantId: string) => void
+
   // Role
-  roles: Role[];
-  role: Role;  // Primary role (highest privilege)
-  
+  roles: Role[]
+  role: Role // Primary role (highest privilege)
+
   // State
-  loading: boolean;
+  loading: boolean
   // ... methods
 }
 
 interface TenantMembership {
-  tenant_id: string;
-  tenant_name: string;
-  tenant_logo: string | null;
-  role: Role;
-  last_workspace_id?: string;
+  tenant_id: string
+  tenant_name: string
+  tenant_logo: string | null
+  role: Role
+  last_workspace_id?: string
 }
 ```
 
@@ -100,27 +100,31 @@ graph TD
 
 ```typescript
 // Route behavior
-switch(role) {
-  case 'ADMIN': redirect('/app/admin');
-  case 'TEACHER': redirect('/app/teacher');
-  case 'STUDENT': redirect('/app/student');
+switch (role) {
+  case 'ADMIN':
+    redirect('/app/admin')
+  case 'TEACHER':
+    redirect('/app/teacher')
+  case 'STUDENT':
+    redirect('/app/student')
 }
 ```
 
 ### 1.5 Auth Screens Implementation
 
-| Screen | URL | Current Status | Action |
-|--------|-----|---------------|--------|
-| Login | /login | ✅ Exists | Minor improvements |
-| Register | /register | ✅ In Login | Keep as-is |
-| Forgot Password | /forgot-password | ✅ Exists | Keep as-is |
-| Reset Password | /reset-password | ✅ Exists | Keep as-is |
-| Verify Email | /verify-email | ✅ Exists | Keep as-is |
-| **Workspace Selector** | /workspace-selector | ❌ Missing | **CREATE** |
+| Screen                 | URL                 | Current Status | Action             |
+| ---------------------- | ------------------- | -------------- | ------------------ |
+| Login                  | /login              | ✅ Exists      | Minor improvements |
+| Register               | /register           | ✅ In Login    | Keep as-is         |
+| Forgot Password        | /forgot-password    | ✅ Exists      | Keep as-is         |
+| Reset Password         | /reset-password     | ✅ Exists      | Keep as-is         |
+| Verify Email           | /verify-email       | ✅ Exists      | Keep as-is         |
+| **Workspace Selector** | /workspace-selector | ❌ Missing     | **CREATE**         |
 
 ### 1.6 Route Structure
 
 **Target (Hierarchical):**
+
 ```
 /login
 /workspace-selector
@@ -144,7 +148,7 @@ switch(role) {
 
 1. Update [`AuthContext.tsx`](src/contexts/AuthContext.tsx):
    - Add `memberships` state
-   - Add `activeTenant` state  
+   - Add `activeTenant` state
    - Add `setActiveTenant()` method
    - Add `last_workspace` logic after login
    - Add login redirect logic
@@ -189,6 +193,7 @@ switch(role) {
 ### 2.2 Quiz Player - Resume Attempt
 
 **Flow:**
+
 1. Open quiz → Check for existing attempt
 2. If exists → Fetch attempt with last question index
 3. Resume from last position
@@ -196,14 +201,13 @@ switch(role) {
 ```typescript
 // In Quiz.tsx
 const activeAttempt = quizAttempts.find(
-  a => a.assignment_id === quiz.assignment_id && 
-  a.status === 'IN_PROGRESS'
-);
+  (a) => a.assignment_id === quiz.assignment_id && a.status === 'IN_PROGRESS'
+)
 
 if (activeAttempt) {
   // Resume from last question
-  const lastQuestionIndex = activeAttempt.current_index || 0;
-  setCurrentQuestionIdx(lastQuestionIndex);
+  const lastQuestionIndex = activeAttempt.current_index || 0
+  setCurrentQuestionIdx(lastQuestionIndex)
 }
 ```
 
@@ -228,9 +232,9 @@ answer selected
 // When user is on question N, prefetch question N+1
 useEffect(() => {
   if (currentQuestionIdx < totalQuestions - 1) {
-    prefetchQuestion(attemptQuestions[currentQuestionIdx + 1].id);
+    prefetchQuestion(attemptQuestions[currentQuestionIdx + 1].id)
   }
-}, [currentQuestionIdx]);
+}, [currentQuestionIdx])
 ```
 
 ### 2.5 Quiz Player Layout
@@ -267,14 +271,15 @@ useEffect(() => {
 
 ```typescript
 // WRONG ❌
-const xp = calculateXP(score, correctAnswers); // Frontend calculation
+const xp = calculateXP(score, correctAnswers) // Frontend calculation
 
 // CORRECT ✅
-const result = await submitAttempt({ answers });
-const { xp_earned, badges } = result; // From server
+const result = await submitAttempt({ answers })
+const { xp_earned, badges } = result // From server
 ```
 
 **Server-side RPC should:**
+
 1. Calculate score based on answers
 2. Award XP based on score/performance
 3. Check and award badges
@@ -398,6 +403,7 @@ src/components/
 ## Files to Create/Modify
 
 ### New Files
+
 ```
 src/components/guards/AuthGuard.tsx
 src/components/guards/TenantGuard.tsx
@@ -405,6 +411,7 @@ src/pages/WorkspaceSelector.tsx
 ```
 
 ### Files to Modify
+
 ```
 src/contexts/AuthContext.tsx    # Add memberships, activeTenant
 src/App.tsx                     # Route restructure with guards
@@ -419,10 +426,10 @@ src/pages/QuizManager.tsx      # Assignment wizard
 ## Success Criteria
 
 1. **Auth:** Login → last_workspace check → workspace selector OR redirect → role-based dashboard
-2. **Security:** 
+2. **Security:**
    - 3-layer guards (Auth → Tenant → Role)
    - XP calculated server-side only
-3. **Quiz:** 
+3. **Quiz:**
    - Resume from last position
    - Autosave with 2-3s debounce
    - Question prefetch

@@ -28,7 +28,7 @@ Follow this checklist for every production deployment. Steps marked [REQUIRED] m
 - [ ] All new migrations are in `supabase/migrations/` with sequential timestamps
 - [ ] Migrations reviewed for: irreversibility, data loss risk, long-running locks
 - [ ] Destructive migrations (DROP, ALTER TYPE) have been tested on a staging clone first
-- [ ] `docs/DATABASE.md` updated to reflect schema changes
+- [ ] `docs/DATABASE_ARCHITECTURE.md` updated to reflect schema changes
 
 ### Documentation [REQUIRED]
 
@@ -129,7 +129,7 @@ Apply it as a new migration file with a later timestamp.
 
 ## Feature Module Cross-Reference
 
-EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
+EduSync LMS terdiri dari 49 feature module yang saling terintegrasi:
 
 | Feature         | Domain         | Deskripsi                                                                                                                  |
 | --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |

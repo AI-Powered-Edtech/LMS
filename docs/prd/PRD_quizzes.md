@@ -115,7 +115,7 @@ Masalah yang dipecahkan EduSync v2 Quiz Engine:
 | 15  | **RLS & Multi-Tenant**        | Quizzes scoped by course → tenant. Students can only access if enrolled in course. Teachers can only see/edit own quizzes. Admin see all. Anti-cheat data aggregated by tenant.                                                                                                                        |
 | 16  | **Export Results**            | "Export" button in teacher quiz analytics; CSV with columns: student name, email, score, %, time taken, submitted_at, answers JSON. Downloadable.                                                                                                                                                      |
 | 17  | **Dark Mode**                 | Quiz player, settings, analytics all support `dark:` Tailwind variants. Test fullscreen player in dark mode.                                                                                                                                                                                           |
-| 18  | **Documentation**             | Update `docs/DATABASE.md` with quiz schema; create feature README with RPC reference; document anti-cheat data collection.                                                                                                                                                                             |
+| 18  | **Documentation**             | Update `docs/DATABASE_ARCHITECTURE.md` with quiz schema; create feature README with RPC reference; document anti-cheat data collection.                                                                                                                                                                |
 
 ### P1 — Nice to Have
 
@@ -285,7 +285,7 @@ Masalah yang dipecahkan EduSync v2 Quiz Engine:
 - [ ] No N+1 queries on quiz load or stats fetch
 - [ ] Dark mode working on player + analytics
 - [ ] Performance: quiz page load <1.5 sec p50
-- [ ] Documentation updated (DATABASE.md, feature README, RPC reference)
+- [ ] Documentation updated (DATABASE_ARCHITECTURE.md, feature README, RPC reference)
 
 ---
 

@@ -4,9 +4,9 @@ This document describes the core database architecture for EduSync LMS, a multi-
 
 ## Principles
 
-*   **Multi-tenant safe**: All core tables must isolate data by `tenant_id`.
-*   **Modular**: Designed to support Feature Toggles per tenant.
-*   **Scalable**: Uses an event-driven telemetry pipeline for high-volume data (like video progress).
+- **Multi-tenant safe**: All core tables must isolate data by `tenant_id`.
+- **Modular**: Designed to support Feature Toggles per tenant.
+- **Scalable**: Uses an event-driven telemetry pipeline for high-volume data (like video progress).
 
 ## Content Hierarchy
 
@@ -107,9 +107,10 @@ create index idx_resources_tenant_lesson on lesson_resources(tenant_id, lesson_i
 ```
 
 **Example JSONB Payloads:**
-*   **Video**: `{"videoUrl": "...", "duration": 420, "transcript": true}`
-*   **Article**: `{"html": "<p>Content</p>"}`
-*   **Quiz**: `{"quizId": "uuid-of-quiz"}`
+
+- **Video**: `{"videoUrl": "...", "duration": 420, "transcript": true}`
+- **Article**: `{"html": "<p>Content</p>"}`
+- **Quiz**: `{"quizId": "uuid-of-quiz"}`
 
 ---
 
@@ -247,6 +248,7 @@ create index idx_course_progress_user_activity on course_progress(user_id, last_
 ```
 
 **Related RPCs & Triggers:**
+
 - `recompute_course_progress(student_id_uuid, lesson_id_uuid)`: Invoked via DB trigger `on_lesson_progress_completed`.
 
 ### 11. `course_stats`
@@ -273,6 +275,7 @@ create index idx_course_stats_refresh on course_stats(last_refreshed_at);
 ```
 
 **Related Analytics RPCs:**
+
 - `refresh_course_stats(p_tenant_id, p_course_id)`: Aggregates data and upserts into `course_stats`. (Hardened: Role/Tenant check)
 - `get_teacher_analytics(p_course_id)`: Fetches the pre-aggregated JSON securely for the frontend. (Hardened: Role/Tenant check)
 - `get_question_difficulty(p_quiz_id)`: Fetches question correct/incorrect breakdowns for the gradebook. (Hardened: Role/Tenant check)
@@ -314,19 +317,21 @@ Level is computed from XP and stored on `user_profiles.level`.
 
 **Level Tiers:**
 
-| Level | Tier | Color |
-|-------|------|-------|
-| 1-3 | Pemula | Gray |
-| 4-7 | Penjelajah | Blue |
-| 8-12 | Cendekia | Purple |
-| 13+ | Master | Gold |
+| Level | Tier       | Color  |
+| ----- | ---------- | ------ |
+| 1-3   | Pemula     | Gray   |
+| 4-7   | Penjelajah | Blue   |
+| 8-12  | Cendekia   | Purple |
+| 13+   | Master     | Gold   |
 
 **Related Gamification RPCs:**
+
 - `add_user_points(p_user_id, p_points)`: Upserts XP and auto-recomputes `user_profiles.level` (SECURITY DEFINER)
 - `recompute_leaderboard(p_tenant_id, p_class_id)`: Recalculates rank using DENSE_RANK
 - `compute_level(p_points)`: Pure function, IMMUTABLE, O(1)
 
 **Triggers:**
+
 - `on_user_points_changed`: Syncs `user_points.points` → `leaderboards.score`
 
 ---

@@ -84,7 +84,7 @@ export const adminNavGroups: AdminNavGroup[] = [
     group: 'Utama',
     items: [
       { label: 'Dasbor', icon: LayoutDashboard, href: '/app/admin/dashboard' },
-      { label: 'Admin Hub', icon: Grid3X3, href: '/app/admin/dashboard' },
+      { label: 'Admin Hub', icon: Grid3X3, href: '/app/admin/administration' },
     ],
   },
   {
@@ -153,7 +153,7 @@ export const navigationItems: NavItem[] = [
     name: 'Gamifikasi',
     path: '/gamification-hub',
     icon: Gamepad2,
-    roles: ['student'],
+    roles: ['student', 'teacher'],
     location: 'sidebar',
   },
   {
@@ -497,7 +497,7 @@ export const navigationItems: NavItem[] = [
     name: 'Papan Peringkat',
     path: '/leaderboard',
     icon: Trophy,
-    roles: ['student'],
+    roles: ['student', 'teacher'],
     location: 'gamification-hub',
     description: 'Peringkat siswa, XP, dan liga gamifikasi.',
     color: 'text-yellow-600',

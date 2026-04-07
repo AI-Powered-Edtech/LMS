@@ -107,7 +107,7 @@ Masalah utama:
 | 10  | **RLS & Multi-Tenant**       | All courses scoped to tenant_id. Teachers can only edit own courses. Students can only see enrolled or public courses. Admin can see all.                                   |
 | 11  | **Dark Mode**                | All new components support dark mode with `dark:` Tailwind variants. Test with `class="dark"` on html.                                                                      |
 | 12  | **Responsive Design**        | Course grid responsive on mobile (1-2 cols); builder responsive (sidebar collapse on mobile).                                                                               |
-| 13  | **Documentation**            | Update `docs/DATABASE.md` with course schema; create `src/features/courses/README.md` with API reference.                                                                   |
+| 13  | **Documentation**            | Update `docs/DATABASE_ARCHITECTURE.md` with course schema; create `src/features/courses/README.md` with API reference.                                                      |
 
 ### P1 — Nice to Have
 
@@ -264,7 +264,7 @@ Masalah utama:
 - [ ] Course list page loads <2 sec (p50)
 - [ ] No N+1 queries; pagination on all lists
 - [ ] Dark mode working on all new components
-- [ ] Documentation updated (`docs/DATABASE.md`, feature README)
+- [ ] Documentation updated (`docs/DATABASE_ARCHITECTURE.md`, feature README)
 
 ---
 

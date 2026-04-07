@@ -3,8 +3,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { getPendingCount } from '@/utils/offlineStorage'
 import { processSyncQueue, startOfflineSync } from '@/utils/offlineQueue'
+import { getPendingCount } from '@/utils/offlineStorage'
 
 // ---------------------------------------------------------------------------
 // Types

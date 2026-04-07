@@ -1,5 +1,25 @@
 # EduSync LMS — Changelog
 
+## [Gold Readiness Hardening] — 2026-04-07
+
+### Added
+
+- `supabase/migrations/20260407000003_gold_readiness_hardening.sql` — secure survey RPC, finance RPC, parent snapshot RPC, principal monthly trend RPC, dan bulk import async worker schema
+- `src/features/administration/api/financeApi.ts` — service layer finance berbasis RPC tenant-scoped
+- `docs/SLO.md` — target SLI/SLO jalur kritikal Gold readiness
+- `docs/RELEASE_SIGNOFF.md` — checklist signoff lintas fungsi untuk rilis produksi
+- `docs/reports/GOLD_READINESS_IMPLEMENTATION_2026-04-07.md` — catatan implementasi dan risiko tersisa
+
+### Changed
+
+- Survey analytics principal dan survey dashboard sekarang membaca hasil agregasi server-side, bukan mengagregasi respons di browser
+- Finance dashboard sekarang memakai RPC paginated + reconcile/reminder API, dan modal reminder menampilkan status per invoice
+- Parent dashboard sekarang memakai snapshot tunggal `get_parent_dashboard_snapshot()` untuk mengurangi fan-out query
+- Principal monthly trend sekarang memakai agregasi server-side `get_principal_monthly_trend_cached()`
+- Bulk import admin sekarang memakai job rows asynchronous dengan polling status
+- AI Tutor sekarang memakai RPC rate limit atomic dan fallback deterministic grounded response
+- Offline banner sekarang membaca status sinkronisasi terpusat dari `backgroundSync`/`offlineQueue`
+
 ## [Phase 5 Remediation] — 2026-04-07
 
 ### Fixed
@@ -1078,7 +1098,7 @@ Final polish pass covering UI/UX, logic hardening, code health, security, and do
 
 ### Sprint 21E: Documentation
 
-- Updated `docs/DATABASE.md` — added `20260325_fix_search_path` migration entry, listed 19 patched functions, noted `rate_limits` table is planned but not yet implemented
+- Updated `docs/DATABASE_ARCHITECTURE.md` — added `20260325_fix_search_path` migration entry, listed 19 patched functions, noted `rate_limits` table is planned but not yet implemented
 - Updated `docs/ARCHITECTURE.md` — added route splitting section, page refactors, service file splits
 - Updated `docs/SECURITY.md` — added CSP enforcement, SECURITY DEFINER fixes, Sentry filtering, token refresh monitoring sections
 - Updated `docs/ENGINEERING_ROADMAP.md` — added Phase 21 as completed with full sprint breakdown
@@ -1760,10 +1780,10 @@ Comprehensive audit targeting score improvement from 83.7/100 (B+) to ~96/100 ac
 
 ### Sprint 5A — Structure & README
 
-- Created missing folders (hooks/, types/, components/, queries/, **tests**/) across all 24 feature modules
+- Created missing folders (hooks/, types/, components/, queries/, **tests**/) across all 49 feature modules
 - Generated meaningful stub files: hooks with React Query, types with entity interfaces, query key factories
 - Created README.md for 23 features (all except quizzes which already had one)
-- Fixed main README.md: 22 → 24 feature module count
+- Fixed main README.md: 22 → 49 feature module count
 - All 24 features now have complete folder structure (Completeness = 100)
 
 ### Sprint 5B — Unit Tests
@@ -2397,7 +2417,7 @@ Initial setup from prototype to deployed Supabase project.
 - **Phase C**: Edge Functions deployed (7 functions)
 - **Phase D**: Service layer migrated from mock data to live Supabase client
 - **Phase E**: Consumer page TypeScript types fixed across all pages
-- **Phase F**: Initial documentation (`docs/ARCHITECTURE.md`, `docs/DATABASE.md`, `docs/AUTH.md`)
+- **Phase F**: Initial documentation (`docs/ARCHITECTURE.md`, `docs/DATABASE_ARCHITECTURE.md`, `docs/AUTH.md`)
 - Supabase project deployed: `omfnkoufjqjqilswldtz`
 
 ---

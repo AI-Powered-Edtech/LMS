@@ -106,7 +106,7 @@ Masalah utama:
 | 8   | **Dark Mode Support**                 | All onboarding components support dark mode with `dark:` Tailwind variants. Test with `class="dark"` on html.                                                                                                                                                      |
 | 9   | **Mobile Responsive**                 | Checklist card responsive (full width on mobile, sidebar on desktop). Modals centered & scrollable on small screens. Wizard buttons stack on mobile.                                                                                                               |
 | 10  | **Dismiss & Restore Onboarding**      | User can hide/dismiss onboarding checklist from view. "Onboarding" menu item in settings to restore it. Completed items cannot be "un-done" but user can reset full checklist (admin only).                                                                        |
-| 11  | **Documentation**                     | Create `src/features/onboarding/README.md` with: table schema, RPC list, component structure, onboarding flow diagrams. Update `docs/DATABASE.md` with new tables.                                                                                                 |
+| 11  | **Documentation**                     | Create `src/features/onboarding/README.md` with: table schema, RPC list, component structure, onboarding flow diagrams. Update `docs/DATABASE_ARCHITECTURE.md` with new tables.                                                                                    |
 
 ### P1 — Nice to Have
 

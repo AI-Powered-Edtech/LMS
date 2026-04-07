@@ -1,7 +1,7 @@
 # EduSync LMS — Agent Configuration
 
 > Quick reference untuk AI coding agents. Baca `CLAUDE.md` untuk instruksi lengkap.
-> Baca `docs/DX.md` untuk peta dokumentasi lengkap.
+> Baca `docs/README.md` untuk peta dokumentasi lengkap.
 
 ---
 
@@ -65,7 +65,7 @@
 - Tuliskan semua teks user-visible dalam Bahasa Indonesia
 - Dokumentasikan setiap perubahan signifikan di file yang relevan di `docs/`
 - Tambahkan entri ke `CHANGELOG.md` setelah setiap task signifikan
-- Update `docs/DATABASE.md` jika ada perubahan skema
+- Update `docs/DATABASE_ARCHITECTURE.md` jika ada perubahan skema
 - Jalankan `pnpm typecheck`, `pnpm lint`, `pnpm build` sebelum pull request
 - Ikuti struktur modul fitur standar di `src/features/{domain}/`:
   ```
@@ -100,9 +100,9 @@
 | Primitif UI             | `src/components/ui/`                                    |
 | Modul fitur             | `src/features/` (32 modul)                              |
 | Migrasi DB              | `supabase/migrations/`                                  |
-| Edge Functions          | `supabase/functions/` (23 fungsi)                       |
+| Edge Functions          | `supabase/functions/` (28 fungsi)                       |
 | Utilitas aplikasi luas  | `src/utils/`                                            |
-| Dokumentasi             | `docs/` (lihat `docs/DX.md` untuk peta lengkap)         |
+| Dokumentasi             | `docs/` (lihat `docs/README.md` untuk peta lengkap)     |
 
 ---
 
@@ -151,7 +151,7 @@ Setelah **APAPUN task signifikan**:
 2.  Jika membuat modul fitur baru → buat `README.md` di dalamnya
 3.  Jika menghapus fitur atau file → hapus dokumentasinya
 4.  Tambahkan entri ke `CHANGELOG.md`
-5.  Update `docs/DATABASE.md` jika ada perubahan skema
+5.  Update `docs/DATABASE_ARCHITECTURE.md` jika ada perubahan skema
 
 Referensi: `CLAUDE.md §Documentation Policy`
 

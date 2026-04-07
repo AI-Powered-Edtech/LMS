@@ -72,7 +72,8 @@ Perintah ini otomatis:
 
 1. Menghapus schema lama
 2. Menjalankan `supabase/migrations/000_baseline.sql` (84 tabel, 194 RLS policy, 213 function)
-3. Menjalankan `supabase/seed.sql` yang memanggil 4 file seed secara berurutan
+3. Menjalankan semua file migrasi tambahan (Total: 133 file migrasi aktif)
+4. Menjalankan `supabase/seed.sql` yang memanggil 4 file seed secara berurutan
 
 ### Opsi B: SQL Editor Manual (jika CLI bermasalah)
 

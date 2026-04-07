@@ -6,11 +6,11 @@ Panduan untuk developer baru yang ingin menjalankan EduSync di Supabase project 
 
 ## Prerequisites
 
-| Tool | Versi Minimum | Instalasi |
-|------|---------------|-----------|
-| Node.js | 20+ | https://nodejs.org |
-| Supabase CLI | 1.x | `npm i -g supabase` |
-| Git | 2.x | Sudah ada di macOS/Linux |
+| Tool         | Versi Minimum | Instalasi                |
+| ------------ | ------------- | ------------------------ |
+| Node.js      | 20+           | https://nodejs.org       |
+| Supabase CLI | 1.x           | `npm i -g supabase`      |
+| Git          | 2.x           | Sudah ada di macOS/Linux |
 
 ---
 
@@ -39,6 +39,7 @@ cp .env.example .env
 ```
 
 Edit `.env` dan isi:
+
 ```
 VITE_SUPABASE_URL=https://<REF>.supabase.co
 VITE_SUPABASE_ANON_KEY=<anon-key-kamu>
@@ -88,21 +89,23 @@ Jika Opsi A gagal (misalnya karena permission), buat user secara manual:
 1. Buka **Authentication → Users → Add User**
 2. Buat 3 akun (centang **"Auto Confirm User"**):
 
-| Email | Password | Role (akan di-assign otomatis) |
-|-------|----------|------|
-| `teacher@demo.edusync.com` | `password123` | TEACHER |
-| `student@demo.edusync.com` | `password123` | STUDENT |
-| `admin@demo.edusync.com` | `password123` | ADMIN |
+| Email                      | Password      | Role (akan di-assign otomatis) |
+| -------------------------- | ------------- | ------------------------------ |
+| `teacher@demo.edusync.com` | `password123` | TEACHER                        |
+| `student@demo.edusync.com` | `password123` | STUDENT                        |
+| `admin@demo.edusync.com`   | `password123` | ADMIN                          |
 
 3. Lalu jalankan **`seed_base.sql`** dan **`seed_demo.sql`** di SQL Editor (skip seed_users.sql).
 
 ### Opsi C: Pakai Supabase Local (supabase db reset)
 
 Jika pakai Supabase local development:
+
 ```bash
 supabase start
 supabase db reset
 ```
+
 `supabase db reset` otomatis menjalankan `supabase/seed.sql` setelah migrasi.
 
 ---
@@ -111,11 +114,11 @@ supabase db reset
 
 Setelah seed berhasil:
 
-| Email | Password | Role |
-|-------|----------|------|
+| Email                      | Password      | Role    |
+| -------------------------- | ------------- | ------- |
 | `teacher@demo.edusync.com` | `password123` | TEACHER |
 | `student@demo.edusync.com` | `password123` | STUDENT |
-| `admin@demo.edusync.com` | `password123` | ADMIN |
+| `admin@demo.edusync.com`   | `password123` | ADMIN   |
 
 ---
 
@@ -141,6 +144,7 @@ supabase functions deploy --project-ref <REF>
 ```
 
 Atau satu per satu:
+
 ```bash
 supabase functions deploy ai-tutor --project-ref <REF>
 supabase functions deploy ai-grade-essay --project-ref <REF>
@@ -193,6 +197,7 @@ supabase secrets set GROQ_API_KEY=<your-groq-key> --project-ref <REF>
 **Penyebab**: Migrasi sebelumnya mungkin gagal silent.
 
 **Solusi**:
+
 ```bash
 # Cek status migrasi
 supabase migration list --project-ref <REF>

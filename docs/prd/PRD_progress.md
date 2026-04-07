@@ -367,7 +367,7 @@ EXECUTE FUNCTION update_progress_on_activity(NEW.user_id, NEW.lesson_id);
 - [ ] Mobile responsiveness tested on iPhone SE + iPad
 - [ ] Dark mode CSS complete
 - [ ] 3 beta schools deployed, 100+ students, <3 critical bugs in 7 days
-- [ ] Documentation: DATABASE.md, feature README in src/features/progress/
+- [ ] Documentation: DATABASE_ARCHITECTURE.md, feature README in src/features/progress/
 
 ---
 
