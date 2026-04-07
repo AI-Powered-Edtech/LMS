@@ -118,7 +118,7 @@ export const aiAuthoringService = {
 
     if (error) {
       const msg = error.message ?? ''
-      const errCode = msg.split(':').pop()?.trim() ?? ''
+      const errCode = msg.split(':')[0]?.trim() ?? ''
 
       const friendlyErrors: Record<string, string> = {
         LESSON_NOT_FOUND: 'Materi tidak ditemukan.',

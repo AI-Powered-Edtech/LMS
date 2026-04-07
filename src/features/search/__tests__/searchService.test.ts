@@ -76,7 +76,9 @@ describe('globalSearch', () => {
         ],
         error: null,
       })
-      mockFrom.mockReturnValue(chain)
+      mockFrom.mockImplementation((table) =>
+        table === 'courses' ? chain : createChainMock({ data: [], error: null })
+      )
 
       const result = await globalSearch({ tenantId: 'tenant-1', query: 'Matematika' })
 
@@ -95,7 +97,9 @@ describe('globalSearch', () => {
         ],
         error: null,
       })
-      mockFrom.mockReturnValue(chain)
+      mockFrom.mockImplementation((table) =>
+        table === 'courses' ? chain : createChainMock({ data: [], error: null })
+      )
 
       const result = await globalSearch({ tenantId: 'tenant-1', query: 'Kursus' })
 
@@ -117,7 +121,9 @@ describe('globalSearch', () => {
         ],
         error: null,
       })
-      mockFrom.mockReturnValue(chain)
+      mockFrom.mockImplementation((table) =>
+        table === 'lessons' ? chain : createChainMock({ data: [], error: null })
+      )
 
       const result = await globalSearch({ tenantId: 'tenant-1', query: 'Aljabar' })
 
@@ -143,7 +149,9 @@ describe('globalSearch', () => {
         ],
         error: null,
       })
-      mockFrom.mockReturnValue(chain)
+      mockFrom.mockImplementation((table) =>
+        table === 'assignments' ? chain : createChainMock({ data: [], error: null })
+      )
 
       const result = await globalSearch({ tenantId: 'tenant-1', query: 'Tugas' })
 
@@ -166,7 +174,9 @@ describe('globalSearch', () => {
         ],
         error: null,
       })
-      mockFrom.mockReturnValue(chain)
+      mockFrom.mockImplementation((table) =>
+        table === 'quizzes' ? chain : createChainMock({ data: [], error: null })
+      )
 
       const result = await globalSearch({ tenantId: 'tenant-1', query: 'Kuis' })
 
@@ -190,7 +200,9 @@ describe('globalSearch', () => {
         ],
         error: null,
       })
-      mockFrom.mockReturnValue(chain)
+      mockFrom.mockImplementation((table) =>
+        table === 'profiles' ? chain : createChainMock({ data: [], error: null })
+      )
 
       const result = await globalSearch({ tenantId: 'tenant-1', query: 'Andi' })
 
@@ -214,7 +226,9 @@ describe('globalSearch', () => {
         ],
         error: null,
       })
-      mockFrom.mockReturnValue(chain)
+      mockFrom.mockImplementation((table) =>
+        table === 'profiles' ? chain : createChainMock({ data: [], error: null })
+      )
 
       const result = await globalSearch({ tenantId: 'tenant-1', query: 'Budi' })
 

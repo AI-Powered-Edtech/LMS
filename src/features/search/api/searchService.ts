@@ -155,7 +155,7 @@ export async function globalSearch(options: SearchOptions): Promise<SearchResult
         ...(data ?? []).map((u) => ({
           id: u.id,
           type: 'user' as const,
-          title: `${u.first_name} ${u.last_name}`.trim(),
+          title: `${u.first_name}${u.last_name ? ` ${u.last_name}` : ''}`.trim(),
           description: u.email ?? '',
           url: `/app/p/${u.id}`,
           tenantId: u.tenant_id,

@@ -102,34 +102,6 @@ Key docs:
 - `docs/TESTING.md` — test accounts and known limitations
 - `docs/ENGINEERING_ROADMAP.md` — phase status
 
-## Component Registry
-
-Maintain the component registry at `COMPONENT_REGISTRY.md`. This document tracks all feature modules, Edge Functions, shared hooks, UI primitives, and other key components.
-
-**Update after any significant change:**
-
-- New feature module (folder in `src/features/`)
-- New Edge Function (file in `supabase/functions/`)
-- New shared hook (file in `src/hooks/`)
-- New UI primitive (component in `src/components/ui/`)
-- New Zustand store or Context provider
-
-For each update:
-
-1. Add row to appropriate registry table
-2. Set Status: "Active"
-3. Set Last Updated: current date (YYYY-MM-DD)
-4. Set Codebase Version: current git hash
-
-Quick update command:
-
-```bash
-git rev-parse --short HEAD  # get current hash
-sed -i 's/<OLD_HASH>/<NEW_HASH>/g' COMPONENT_REGISTRY.md
-```
-
-See `COMPONENT_REGISTRY.md` for the complete registry and update procedures.
-
 ## Edge Functions
 
 All Edge Functions live in `supabase/functions/`. Each is self-contained (no shared module). Use `Deno.serve`, `jsr:` imports, and the standard CORS/response helpers.

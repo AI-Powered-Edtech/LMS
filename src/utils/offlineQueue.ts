@@ -3,6 +3,7 @@
 
 import { supabase } from '@/services/supabase/client'
 import { captureError } from '@/utils/sentry'
+
 import {
   addToSyncQueue,
   getPendingSubmissions,
@@ -121,7 +122,9 @@ function calculateBackoff(attempt: number): number {
  * Process a single queued operation against the Supabase API.
  * Returns true if the operation was successfully synced.
  */
-async function processOperation(item: SyncQueueItem): Promise<'success' | 'retry' | 'conflict' | 'permanent'> {
+async function processOperation(
+  item: SyncQueueItem
+): Promise<'success' | 'retry' | 'conflict' | 'permanent'> {
   const payload = item.payload as Record<string, unknown> & {
     idempotencyKey?: string
     maxRetries?: number
@@ -192,14 +195,12 @@ async function processOperation(item: SyncQueueItem): Promise<'success' | 'retry
       }
 
       case 'message-send': {
-        const { error } = await supabase
-          .from('messages')
-          .insert({
-            sender_id: payload.senderId,
-            recipient_id: payload.recipientId,
-            content: payload.content,
-            sent_at: new Date().toISOString(),
-          })
+        const { error } = await supabase.from('messages').insert({
+          sender_id: payload.senderId,
+          recipient_id: payload.recipientId,
+          content: payload.content,
+          sent_at: new Date().toISOString(),
+        })
         result = { error }
         break
       }
@@ -207,7 +208,7 @@ async function processOperation(item: SyncQueueItem): Promise<'success' | 'retry
       case 'form-submit': {
         const { error } = await supabase
           .from(payload.tableName as string)
-          .insert(payload.data)
+          .insert(payload.data as any)
         result = { error }
         break
       }

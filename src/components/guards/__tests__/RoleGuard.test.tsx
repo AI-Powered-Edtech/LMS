@@ -17,8 +17,17 @@ vi.mock('@/components/layout/AppLoading', () => ({
 import { useAuth } from '@/contexts/AuthContext'
 const mockUseAuth = vi.mocked(useAuth)
 
+import { Route, Routes } from 'react-router-dom'
+
 function renderWithRouter(ui: React.ReactElement) {
-  return render(<MemoryRouter>{ui}</MemoryRouter>)
+  return render(
+    <MemoryRouter initialEntries={['/']}>
+      <Routes>
+        <Route path="/" element={ui} />
+        <Route path="/unauthorized" element={<div data-testid="unauthorized-page" />} />
+      </Routes>
+    </MemoryRouter>
+  )
 }
 
 describe('RoleGuard', () => {

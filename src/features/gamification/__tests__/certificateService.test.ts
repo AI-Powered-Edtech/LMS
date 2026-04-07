@@ -1,8 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { certificateService } from '../api/certificateService'
 
 // Mock supabase
-const mockInvoke = vi.fn()
+const { mockInvoke } = vi.hoisted(() => ({ mockInvoke: vi.fn() }))
+
 vi.mock('@/services/supabase/client', () => ({
   supabase: {
     functions: {
@@ -64,7 +66,7 @@ describe('certificateService.generatePdf', () => {
     }
 
     await expect(certificateService.generatePdf(params)).rejects.toThrow(
-      'Certificate generation service is currently unavailable. Please try again later.'
+      'Layanan pembuatan sertifikat sedang tidak tersedia. Coba lagi nanti.'
     )
   })
 

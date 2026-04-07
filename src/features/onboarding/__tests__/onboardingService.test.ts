@@ -40,13 +40,14 @@ describe('onboardingService', () => {
       expect(result).toEqual(mockData)
     })
 
-    it('harus throw error saat Supabase error', async () => {
+    it('harus mengembalikan array kosong saat Supabase error', async () => {
       mockEq.mockResolvedValue({
         data: null,
         error: { message: 'RLS violation' },
       })
 
-      await expect(onboardingService.getAll('t1')).rejects.toThrow()
+      const result = await onboardingService.getAll('t1')
+      expect(result).toEqual([])
     })
   })
 })

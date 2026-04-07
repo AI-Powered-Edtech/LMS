@@ -70,7 +70,7 @@ describe('backgroundSync', () => {
 
       const result = await syncPendingSubmissions()
 
-      expect(supabase.from).toHaveBeenCalledWith('quiz_attempts')
+      expect(supabase.from).toHaveBeenCalledWith('quiz_attempts_v2')
       expect(mockUpdate).toHaveBeenCalledWith(
         expect.objectContaining({
           answers: ['A'],

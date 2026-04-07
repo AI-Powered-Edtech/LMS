@@ -294,8 +294,7 @@ describe('aiRubricService', () => {
   })
 
   it('melempar error ketika tidak ada sesi autentikasi', async () => {
-    const { supabase } = await import('@/services/supabase/client')
-    vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session: null }, error: null })
+    mockGetSession.mockResolvedValue({ data: { session: null }, error: null })
 
     await expect(
       aiRubricService.suggestRubric('Tugas Essay', 'Deskripsi', 'Instruksi')
@@ -303,8 +302,7 @@ describe('aiRubricService', () => {
   })
 
   it('mengembalikan rubrik fallback ketika API gagal', async () => {
-    const { supabase } = await import('@/services/supabase/client')
-    vi.mocked(supabase.auth.getSession).mockResolvedValue({
+    mockGetSession.mockResolvedValue({
       data: {
         session: {
           access_token: 'token-123',
@@ -330,8 +328,7 @@ describe('aiRubricService', () => {
   })
 
   it('menggunakan fallback rubrik ketika respons AI tidak valid', async () => {
-    const { supabase } = await import('@/services/supabase/client')
-    vi.mocked(supabase.auth.getSession).mockResolvedValue({
+    mockGetSession.mockResolvedValue({
       data: {
         session: {
           access_token: 'token-123',
@@ -357,8 +354,7 @@ describe('aiRubricService', () => {
   })
 
   it('mem-parse respons JSON yang valid dari AI', async () => {
-    const { supabase } = await import('@/services/supabase/client')
-    vi.mocked(supabase.auth.getSession).mockResolvedValue({
+    mockGetSession.mockResolvedValue({
       data: {
         session: {
           access_token: 'token-123',
