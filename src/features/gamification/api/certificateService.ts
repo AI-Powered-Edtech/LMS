@@ -1,6 +1,6 @@
 import { supabase } from '@/services/supabase/client'
 
-export interface CertificatePdfParams {
+interface CertificatePdfParams {
   studentName: string
   courseTitle: string
   completionDate: string

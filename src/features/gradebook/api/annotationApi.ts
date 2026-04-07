@@ -17,7 +17,7 @@ export interface SubmissionAnnotation {
 
 export type AnnotationColor = '#FFD700' | '#FF4444' | '#44BB44'
 
-export interface AddAnnotationInput {
+interface AddAnnotationInput {
   submission_id: string
   x_percent: number
   y_percent: number

@@ -17,7 +17,7 @@ const BLOOM_TO_DIFFICULTY: Record<string, number> = {
   C6: 5,
 }
 
-export interface SaveToBankResult {
+interface SaveToBankResult {
   saved: number
   failed: number
   errors: string[]
