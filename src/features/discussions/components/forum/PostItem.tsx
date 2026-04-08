@@ -162,8 +162,14 @@ export function PostItem({ post, isTeacher, onMarkBest, onReport, onVote }: Post
                 <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden z-10">
                   {isTeacher && (
                     <button
-                      onClick={() => addToast({ type: 'info', message: 'Segera hadir' })}
-                      className="w-full text-left px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-2 border-b border-slate-100 dark:border-slate-700"
+                      onClick={() =>
+                        addToast({
+                          type: 'warning',
+                          message: 'Fitur Push ke GCR dalam pengembangan.',
+                        })
+                      }
+                      disabled
+                      className="w-full text-left px-4 py-2 text-sm font-medium text-slate-400 hover:bg-slate-50 flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 cursor-not-allowed"
                     >
                       <Share2 className="w-4 h-4" /> Push ke GCR
                     </button>

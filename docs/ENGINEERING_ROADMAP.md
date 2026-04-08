@@ -23,9 +23,15 @@ From prototype to production. Built on a Supabase-centric serverless architectur
 
 ---
 
-## Current Status: All Phases Complete
+## Current Status: Production Candidate (79/100)
 
-All engineering phases have been completed as of 2026-04-02. The system is production-ready with all features implemented and tested.
+> See [docs/PRODUCTION_READINESS_STATUS.md](./PRODUCTION_READINESS_STATUS.md) for single source of truth.
+
+Engineering phases 1-30 are complete. However, some features are in transitional state:
+
+- Gradebook: uses mock data, CSV export is placeholder
+- Parent Portal: digest settings are stubs
+- E2E tests: smoke-only, not correctness-heavy
 
 ---
 

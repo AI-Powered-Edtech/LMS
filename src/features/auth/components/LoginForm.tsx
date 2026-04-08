@@ -41,6 +41,7 @@ export function LoginForm({ loginForm, error, setError, submitting, onSubmit }: 
           type="email"
           placeholder="kamu@email.com"
           autoComplete="email"
+          data-testid="login-email-input"
           onInput={(e: React.FormEvent<HTMLInputElement>) => {
             loginForm.setValue('email', e.currentTarget.value, { shouldValidate: true })
             if (error) setError('')
@@ -59,6 +60,7 @@ export function LoginForm({ loginForm, error, setError, submitting, onSubmit }: 
             type={showPassword ? 'text' : 'password'}
             placeholder="••••••••"
             autoComplete="current-password"
+            data-testid="login-password-input"
             onInput={(e: React.FormEvent<HTMLInputElement>) => {
               loginForm.setValue('password', e.currentTarget.value, {
                 shouldValidate: true,
@@ -73,6 +75,7 @@ export function LoginForm({ loginForm, error, setError, submitting, onSubmit }: 
           onClick={() => setShowPassword(!showPassword)}
           className="absolute right-3 top-9 text-white/40 hover:text-white/60 transition-colors"
           aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+          data-testid="login-toggle-password"
         >
           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
         </button>
@@ -97,6 +100,7 @@ export function LoginForm({ loginForm, error, setError, submitting, onSubmit }: 
       <button
         type="submit"
         disabled={submitting}
+        data-testid="login-submit-button"
         className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 font-semibold transition-colors mt-2"
       >
         {submitting ? 'Masuk...' : 'Masuk'}

@@ -5,7 +5,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL+RLS-3FCF8E?logo=supabase&logoColor=white)
-![Status](https://img.shields.io/badge/status-production--ready-brightgreen)
+![Status](https://img.shields.io/badge/status-release--candidate-orange)
 
 A multi-tenant SaaS Learning Management System built for Indonesian schools. EduSync supports multiple school organizations (tenants) on a shared platform with complete data isolation via PostgreSQL Row-Level Security. All student/teacher-facing UI text is in Bahasa Indonesia.
 
@@ -126,26 +126,26 @@ src/
 
 ## Documentation
 
-| Document                                                       | Description                                    |
-| -------------------------------------------------------------- | ---------------------------------------------- |
-| [docs/README.md](docs/README.md)                               | Developer experience guide & documentation map |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)                   | System architecture                            |
-| [docs/DATABASE_ARCHITECTURE.md](docs/DATABASE_ARCHITECTURE.md) | Database reference (tables, columns, RPCs)     |
-| [docs/SECURITY.md](docs/SECURITY.md)                           | Security model & threat mitigations            |
-| [docs/TESTING.md](docs/TESTING.md)                             | Test accounts, unit & E2E guide                |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)                       | Deployment guide                               |
-| [docs/ENGINEERING_ROADMAP.md](docs/ENGINEERING_ROADMAP.md)     | Phase status & roadmap                         |
-| [CHANGELOG.md](CHANGELOG.md)                                   | All changes by phase                           |
+| Document                                                                   | Description                                          |
+| -------------------------------------------------------------------------- | ---------------------------------------------------- |
+| [docs/README.md](docs/README.md)                                           | Developer experience guide & documentation map       |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)                               | System architecture                                  |
+| [docs/DATABASE_ARCHITECTURE.md](docs/DATABASE_ARCHITECTURE.md)             | Database reference (tables, columns, RPCs)           |
+| [docs/SECURITY.md](docs/SECURITY.md)                                       | Security model & threat mitigations                  |
+| [docs/TESTING.md](docs/TESTING.md)                                         | Test accounts, unit & E2E guide                      |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)                                   | Deployment guide                                     |
+| [docs/PRODUCTION_READINESS_STATUS.md](docs/PRODUCTION_READINESS_STATUS.md) | Production readiness status (single source of truth) |
+| [docs/ENGINEERING_ROADMAP.md](docs/ENGINEERING_ROADMAP.md)                 | Phase status & roadmap                               |
+| [CHANGELOG.md](CHANGELOG.md)                                               | All changes by phase                                 |
 
 ---
 
 ## Test Accounts
 
-| Email                 | Password      | Role    |
-| --------------------- | ------------- | ------- |
-| `teacher@edusync.dev` | `password123` | Teacher |
-| `student@edusync.dev` | `password123` | Student |
-| `admin@edusync.dev`   | `password123` | Admin   |
+> ⚠️ **Production Security:** These credentials are for local development only.  
+> See [docs/DEVELOPER_RUNBOOK.md](docs/DEVELOPER_RUNBOOK.md) for test account management.
+
+For production deployment, use proper Supabase auth with real credentials or disable public registration in Supabase dashboard.
 
 ---
 

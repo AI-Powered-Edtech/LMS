@@ -27,14 +27,14 @@ const CHANNEL_OPTIONS: {
   {
     value: 'whatsapp',
     label: 'WhatsApp',
-    description: 'Kirim ke WhatsApp (segera hadir)',
-    badge: 'Segera',
+    description: 'Kirim ke WhatsApp (dalam pengembangan)',
+    badge: 'Beta',
   },
   {
     value: 'email',
     label: 'Email',
-    description: 'Kirim ringkasan ke email Anda (segera hadir)',
-    badge: 'Segera',
+    description: 'Kirim ringkasan ke email Anda (dalam pengembangan)',
+    badge: 'Beta',
   },
 ]
 

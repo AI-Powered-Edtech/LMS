@@ -1,13 +1,29 @@
 import Papa from 'papaparse'
 
-import type { GradebookColumn, GradebookEntry, GradebookStudent } from '../types'
-
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface GradebookExportData {
-  entries: GradebookEntry[]
-  columns: GradebookColumn[]
-  students: GradebookStudent[]
+  entries: {
+    id: string
+    student_id: string
+    assignment_id: string | null
+    quiz_id: string | null
+    score: number | null
+    max_score: number
+    percentage: number
+    grade_letter: string | null
+  }[]
+  columns: {
+    id: string
+    title: string
+    type: 'quiz' | 'assignment'
+    max_score: number
+  }[]
+  students: {
+    id: string
+    name: string
+    email: string
+  }[]
   /** Nama kelas/kursus untuk dipakai di nama file */
   className?: string
 }
@@ -32,6 +48,8 @@ function sanitizeFilename(name: string): string {
 
 // ── Main export function ──────────────────────────────────────────────────────
 
+type ExportEntry = GradebookExportData['entries'][number]
+
 /**
  * Mengekspor data gradebook ke file CSV dan memicu unduhan di browser.
  *
@@ -44,7 +62,7 @@ export function exportGradebookToCSV(data: GradebookExportData, filename?: strin
   const { entries, columns, students, className } = data
 
   // Kumpulkan nilai tiap siswa dari entries
-  const gradeMap = new Map<string, Record<string, GradebookEntry | null>>()
+  const gradeMap = new Map<string, Record<string, ExportEntry | null>>()
 
   for (const entry of entries) {
     if (!gradeMap.has(entry.student_id)) {

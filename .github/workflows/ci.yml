@@ -137,8 +137,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Scope | Stmts | Branches | Fns | Lines |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|-------|----------|-----|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| \`src/utils/**\` | 80% | 70% | 70% | 80% |" >> $GITHUB_STEP_SUMMARY
-          echo "| \`src/features/**/api/**\` | 50% | 40% | 50% | 50% |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`src/utils/**\` | 65% | 65% | 50% | 65% |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`src/features/**/api/**\` | 22% | 15% | 24% | 24% |" >> $GITHUB_STEP_SUMMARY
           echo "| \`src/hooks/**\` | 70% | 60% | 70% | 70% |" >> $GITHUB_STEP_SUMMARY
           echo "| \`src/contexts/**\` | 60% | 50% | 60% | 60% |" >> $GITHUB_STEP_SUMMARY
           echo "| \`src/features/**/hooks/**\` | 60% | 50% | 60% | 60% |" >> $GITHUB_STEP_SUMMARY

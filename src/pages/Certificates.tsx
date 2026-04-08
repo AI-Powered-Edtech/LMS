@@ -160,8 +160,8 @@ export function Certificates() {
                 Penerbitan Massal (Bulk Issuance)
               </h2>
             </div>
-            <p className="text-sm text-amber-700 dark:text-amber-400">
-              Penerbitan massal akan segera hadir — fitur ini memungkinkan Anda menerbitkan
+            <p className="text-sm text-amber-700 dark:text-amber-400 italic">
+              Fitur penerbitan massal dalam pengembangan — akan memungkinkan Anda menerbitkan
               sertifikat secara otomatis untuk seluruh siswa yang telah memenuhi KKM atau
               menyelesaikan modul dalam satu kelas.
             </p>

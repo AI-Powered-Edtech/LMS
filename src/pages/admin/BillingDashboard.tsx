@@ -190,8 +190,11 @@ export function BillingDashboard() {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => addToast({ type: 'info', message: 'Segera hadir' })}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors shadow-sm"
+            onClick={() =>
+              addToast({ type: 'warning', message: 'Fitur metode pembayaran dalam pengembangan.' })
+            }
+            disabled
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-300 text-slate-500 text-sm font-medium rounded-xl transition-colors shadow-sm cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
             Metode Pembayaran
