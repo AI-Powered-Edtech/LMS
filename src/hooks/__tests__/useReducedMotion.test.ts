@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useReducedMotion } from '../useReducedMotion'
@@ -106,7 +106,7 @@ describe('useReducedMotion', () => {
   })
 
   it('harus update state ketika media query matches berubah', async () => {
-    let changeHandler: any = null // ((e: MediaQueryListEvent) => void) | null = null
+    let changeHandler: ((e: MediaQueryListEvent) => void) | null = null
 
     const addEventListenerMock = vi.fn(
       (event: string, handler: (e: MediaQueryListEvent) => void) => {
@@ -132,12 +132,17 @@ describe('useReducedMotion', () => {
     expect(result.current).toBe(false)
 
     // Simulate media query change
-    if (changeHandler) {
-      changeHandler({
+    const handler = changeHandler as ((event: MediaQueryListEvent) => void) | null
+    if (!handler) {
+      throw new Error('Expected change handler to be registered')
+    }
+
+    act(() => {
+      handler({
         matches: true,
         media: '(prefers-reduced-motion: reduce)',
-      } as unknown as MediaQueryListEvent)
-    }
+      } as MediaQueryListEvent)
+    })
 
     rerender()
 

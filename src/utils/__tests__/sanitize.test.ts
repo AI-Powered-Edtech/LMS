@@ -124,4 +124,8 @@ describe('sanitizeUrl', () => {
   it('handles empty strings', () => {
     expect(sanitizeUrl('')).toBe('#')
   })
+
+  it('blocks malformed URLs when parsing fails', () => {
+    expect(sanitizeUrl('http://[::1')).toBe('#')
+  })
 })

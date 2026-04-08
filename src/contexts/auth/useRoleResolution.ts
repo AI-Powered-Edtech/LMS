@@ -1,5 +1,5 @@
 import type { User } from '@supabase/supabase-js'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { authService } from '@/features/auth/api/authService'
 import { supabase } from '@/services/supabase/client'
@@ -155,73 +155,7 @@ export function useRoleResolution(user: User | null): UseRoleResolutionResult {
   const [loadingMemberships, setLoadingMemberships] = useState(true)
   const fetchLock = useRef(false)
 
-  const processPendingInvite = async (userId: string) => {
-    const pendingToken = localStorage.getItem('pendingInviteToken')
-    if (!pendingToken) return
-
-    localStorage.removeItem('pendingInviteToken')
-
-    try {
-      const data = await authService.acceptInvitation(pendingToken)
-      if (data?.success) {
-        addBreadcrumb('Invitation accepted', 'auth')
-        fetchLock.current = false
-        await fetchUserData(userId)
-      }
-    } catch (e) {
-      if (import.meta.env.DEV) console.error('Failed to accept invitation:', e)
-      captureError(e, { context: 'processPendingInvite' })
-
-      const errorMsg = (e instanceof Error ? e.message : String(e)).toLowerCase()
-      const isPermanentFailure =
-        errorMsg.includes('invalid') ||
-        errorMsg.includes('expired') ||
-        errorMsg.includes('already used') ||
-        errorMsg.includes('not found')
-
-      const retryCount = parseInt(localStorage.getItem('pendingInviteRetryCount') ?? '0')
-      if (!isPermanentFailure && retryCount < 1) {
-        localStorage.setItem('pendingInviteToken', pendingToken)
-        localStorage.setItem('pendingInviteRetryCount', '1')
-        if (import.meta.env.DEV)
-          console.warn('[Auth] Transient invite error — will retry on next login')
-        return
-      }
-      localStorage.removeItem('pendingInviteRetryCount')
-
-      const { useToast } = await import('@/hooks/useToast')
-      useToast.getState().addToast({
-        type: 'error',
-        message: 'Undangan tidak valid atau sudah kadaluarsa.',
-        description: 'Hubungi administrator untuk mendapatkan undangan baru.',
-      })
-    }
-  }
-
-  const processPendingJoinCode = async () => {
-    const pendingCode = localStorage.getItem('pendingJoinCode')
-    if (!pendingCode) return
-    localStorage.removeItem('pendingJoinCode')
-    try {
-      await authService.enrollStudent(pendingCode)
-      const { useToast } = await import('@/hooks/useToast')
-      useToast.getState().addToast({
-        type: 'success',
-        message: 'Berhasil bergabung ke kelas!',
-      })
-    } catch (e) {
-      if (import.meta.env.DEV) console.error('[Auth] Failed to enroll with pending join code:', e)
-      captureError(e, { context: 'processPendingJoinCode' })
-      const { useToast } = await import('@/hooks/useToast')
-      useToast.getState().addToast({
-        type: 'error',
-        message: 'Kode kelas tidak valid.',
-        description: 'Periksa kembali kode dari guru Anda dan coba lagi.',
-      })
-    }
-  }
-
-  const fetchUserData = async (userId: string) => {
+  const fetchUserData = useCallback(async (userId: string) => {
     if (fetchLock.current) return
     fetchLock.current = true
     try {
@@ -324,7 +258,7 @@ export function useRoleResolution(user: User | null): UseRoleResolutionResult {
         setRawTenants(tenantsMap)
 
         if (rolesData.length === PAGE_SIZE) {
-          ;(async () => {
+          void (async () => {
             let offset = PAGE_SIZE
             let hasMore = true
             let maxIterations = 20
@@ -405,7 +339,76 @@ export function useRoleResolution(user: User | null): UseRoleResolutionResult {
       setLoadingMemberships(false)
       fetchLock.current = false
     }
-  }
+  }, [])
+
+  const processPendingInvite = useCallback(
+    async (userId: string) => {
+      const pendingToken = localStorage.getItem('pendingInviteToken')
+      if (!pendingToken) return
+
+      localStorage.removeItem('pendingInviteToken')
+
+      try {
+        const data = await authService.acceptInvitation(pendingToken)
+        if (data?.success) {
+          addBreadcrumb('Invitation accepted', 'auth')
+          fetchLock.current = false
+          await fetchUserData(userId)
+        }
+      } catch (e) {
+        if (import.meta.env.DEV) console.error('Failed to accept invitation:', e)
+        captureError(e, { context: 'processPendingInvite' })
+
+        const errorMsg = (e instanceof Error ? e.message : String(e)).toLowerCase()
+        const isPermanentFailure =
+          errorMsg.includes('invalid') ||
+          errorMsg.includes('expired') ||
+          errorMsg.includes('already used') ||
+          errorMsg.includes('not found')
+
+        const retryCount = parseInt(localStorage.getItem('pendingInviteRetryCount') ?? '0')
+        if (!isPermanentFailure && retryCount < 1) {
+          localStorage.setItem('pendingInviteToken', pendingToken)
+          localStorage.setItem('pendingInviteRetryCount', '1')
+          if (import.meta.env.DEV)
+            console.warn('[Auth] Transient invite error — will retry on next login')
+          return
+        }
+        localStorage.removeItem('pendingInviteRetryCount')
+
+        const { useToast } = await import('@/hooks/useToast')
+        useToast.getState().addToast({
+          type: 'error',
+          message: 'Undangan tidak valid atau sudah kadaluarsa.',
+          description: 'Hubungi administrator untuk mendapatkan undangan baru.',
+        })
+      }
+    },
+    [fetchUserData]
+  )
+
+  const processPendingJoinCode = useCallback(async () => {
+    const pendingCode = localStorage.getItem('pendingJoinCode')
+    if (!pendingCode) return
+    localStorage.removeItem('pendingJoinCode')
+    try {
+      await authService.enrollStudent(pendingCode)
+      const { useToast } = await import('@/hooks/useToast')
+      useToast.getState().addToast({
+        type: 'success',
+        message: 'Berhasil bergabung ke kelas!',
+      })
+    } catch (e) {
+      if (import.meta.env.DEV) console.error('[Auth] Failed to enroll with pending join code:', e)
+      captureError(e, { context: 'processPendingJoinCode' })
+      const { useToast } = await import('@/hooks/useToast')
+      useToast.getState().addToast({
+        type: 'error',
+        message: 'Kode kelas tidak valid.',
+        description: 'Periksa kembali kode dari guru Anda dan coba lagi.',
+      })
+    }
+  }, [])
 
   useEffect(() => {
     if (!user) {
@@ -445,7 +448,7 @@ export function useRoleResolution(user: User | null): UseRoleResolutionResult {
         setLoading(false)
         setLoadingMemberships(false)
       })
-  }, [user])
+  }, [fetchUserData, processPendingInvite, processPendingJoinCode, user])
 
   return {
     profile,

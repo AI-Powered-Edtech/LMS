@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -391,31 +391,9 @@ describe('ParentRegisterPage', () => {
     fireEvent.click(submitButton)
 
     // Run all timers including the 500ms setTimeout in the mock and the 1s countdown
-    await vi.runAllTimersAsync()
-
-    expect(screen.getByText('Masukkan Kode Verifikasi')).toBeInTheDocument()
-    expect(screen.getByText(/kirim ulang dalam/i)).toBeInTheDocument()
-  })
-
-  it('menampilkan countdown resend OTP', async () => {
-    mockRpc.mockResolvedValue({
-      data: { success: true, dev_otp: '123456' },
-      error: null,
+    await act(async () => {
+      await vi.runAllTimersAsync()
     })
-
-    vi.useFakeTimers({ shouldAdvanceTime: true })
-
-    render(<ParentRegisterPage />)
-
-    // Use fireEvent instead of userEvent for fake timer compatibility
-    const phoneInput = screen.getByPlaceholderText(/8xx/i)
-    fireEvent.change(phoneInput, { target: { value: '81234567890' } })
-
-    const submitButton = screen.getByRole('button', { name: /kirim kode verifikasi/i })
-    fireEvent.click(submitButton)
-
-    // Run all timers including the 500ms setTimeout in the mock and the 1s countdown
-    await vi.runAllTimersAsync()
 
     expect(screen.getByText('Masukkan Kode Verifikasi')).toBeInTheDocument()
     expect(screen.getByText(/kirim ulang dalam/i)).toBeInTheDocument()

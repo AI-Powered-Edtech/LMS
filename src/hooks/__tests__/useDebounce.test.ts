@@ -9,7 +9,9 @@ describe('useDebounce', () => {
   })
 
   afterEach(() => {
-    vi.runOnlyPendingTimers()
+    act(() => {
+      vi.runOnlyPendingTimers()
+    })
     vi.useRealTimers()
   })
 
@@ -24,7 +26,9 @@ describe('useDebounce', () => {
     })
 
     rerender({ value: 'updated', delay: 300 })
-    vi.advanceTimersByTime(200)
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
     expect(result.current).toBe('initial')
   })
 
@@ -46,9 +50,13 @@ describe('useDebounce', () => {
     })
 
     rerender({ value: 'b' })
-    vi.advanceTimersByTime(200)
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
     rerender({ value: 'c' })
-    vi.advanceTimersByTime(200)
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
     // timer reset — 'c' not applied yet
     expect(result.current).toBe('a')
 
@@ -64,7 +72,9 @@ describe('useDebounce', () => {
     })
 
     rerender({ value: 'end' })
-    vi.advanceTimersByTime(299)
+    act(() => {
+      vi.advanceTimersByTime(299)
+    })
     expect(result.current).toBe('start')
 
     act(() => {

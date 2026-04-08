@@ -1,3 +1,4 @@
+import { screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { renderWithAllProviders } from '@/testing/test-utils'
@@ -22,8 +23,11 @@ vi.mock('@/features/administration/api/documentApi', () => ({
 }))
 
 describe('DocumentManager', () => {
-  it('renders without crashing', () => {
+  it('renders without crashing', async () => {
     const { container } = renderWithAllProviders(<DocumentManager />)
+    await waitFor(() => {
+      expect(screen.getByText('Surat & Dokumen')).toBeInTheDocument()
+    })
     expect(container).toBeTruthy()
   })
 })
