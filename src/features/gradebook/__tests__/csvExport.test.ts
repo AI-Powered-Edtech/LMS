@@ -152,7 +152,7 @@ describe('exportGradebookToCSV', () => {
   })
 
   it('should generate CSV with correct headers and student data', () => {
-    let capturedBlob: Blob | undefined
+    let capturedFilename = ''
 
     vi.stubGlobal('document', {
       body: {
@@ -164,8 +164,10 @@ describe('exportGradebookToCSV', () => {
           return {
             href: '',
             download: '',
-            setAttribute: (_key: string, value: string) => {
-              capturedBlob = new Blob([value], { type: 'text/csv;charset=utf-8;' })
+            setAttribute: (key: string, value: string) => {
+              if (key === 'download') {
+                capturedFilename = value
+              }
             },
             click: vi.fn(),
             remove: vi.fn(),
@@ -176,7 +178,7 @@ describe('exportGradebookToCSV', () => {
     })
 
     vi.stubGlobal('URL', {
-      createObjectURL: () => 'blob:http://localhost',
+      createObjectURL: vi.fn(() => 'blob:http://localhost'),
       revokeObjectURL: vi.fn(),
     })
 
@@ -213,8 +215,9 @@ describe('exportGradebookToCSV', () => {
 
     exportGradebookToCSV(data)
 
-    expect(capturedBlob).toBeDefined()
-    expect(capturedBlob?.type).toContain('text/csv')
+    expect(capturedFilename).toContain('gradebook')
+    expect(capturedFilename).toContain('Test-Class')
+    expect(capturedFilename).toContain('.csv')
 
     vi.unstubAllGlobals()
   })

@@ -111,7 +111,6 @@ Target: **100/100** (Production Ready Gold Standard)
 - Parent digest delivery (stub only)
 - Principal metrics (some mock data)
 - E2E tests verify presence, not correctness
-- Some CI coverage scope mismatch (partially fixed)
 
 ---
 

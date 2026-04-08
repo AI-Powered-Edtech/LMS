@@ -23,13 +23,13 @@ From prototype to production. Built on a Supabase-centric serverless architectur
 
 ---
 
-## Current Status: Production Candidate (79/100)
+## Current Status: Production Candidate (81/100)
 
 > See [docs/PRODUCTION_READINESS_STATUS.md](./PRODUCTION_READINESS_STATUS.md) for single source of truth.
 
 Engineering phases 1-30 are complete. However, some features are in transitional state:
 
-- Gradebook: uses mock data, CSV export is placeholder
+- Gradebook: CSV export button works, but persistence uses mock/transitional data
 - Parent Portal: digest settings are stubs
 - E2E tests: smoke-only, not correctness-heavy
 
