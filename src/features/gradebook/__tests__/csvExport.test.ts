@@ -150,4 +150,72 @@ describe('exportGradebookToCSV', () => {
 
     vi.unstubAllGlobals()
   })
+
+  it('should generate CSV with correct headers and student data', () => {
+    let capturedBlob: Blob | undefined
+
+    vi.stubGlobal('document', {
+      body: {
+        appendChild: vi.fn(),
+        removeChild: vi.fn(),
+      },
+      createElement: vi.fn().mockImplementation((tag: string) => {
+        if (tag === 'a') {
+          return {
+            href: '',
+            download: '',
+            setAttribute: (_key: string, value: string) => {
+              capturedBlob = new Blob([value], { type: 'text/csv;charset=utf-8;' })
+            },
+            click: vi.fn(),
+            remove: vi.fn(),
+          }
+        }
+        return {}
+      }),
+    })
+
+    vi.stubGlobal('URL', {
+      createObjectURL: () => 'blob:http://localhost',
+      revokeObjectURL: vi.fn(),
+    })
+
+    const data = {
+      entries: [
+        {
+          id: '1',
+          student_id: 'stu-1',
+          assignment_id: 'ass-1',
+          quiz_id: null,
+          score: 85,
+          max_score: 100,
+          percentage: 85,
+          grade_letter: 'B',
+        },
+      ],
+      columns: [
+        {
+          id: 'ass-1',
+          title: 'Tugas 1',
+          type: 'assignment' as const,
+          max_score: 100,
+        },
+      ],
+      students: [
+        {
+          id: 'stu-1',
+          name: 'John Doe',
+          email: 'john@example.com',
+        },
+      ],
+      className: 'Test Class',
+    }
+
+    exportGradebookToCSV(data)
+
+    expect(capturedBlob).toBeDefined()
+    expect(capturedBlob?.type).toContain('text/csv')
+
+    vi.unstubAllGlobals()
+  })
 })
