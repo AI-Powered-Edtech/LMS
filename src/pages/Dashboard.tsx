@@ -156,13 +156,23 @@ export function Dashboard() {
 
         {role === 'student' && (
           <motion.div variants={itemVariants}>
-            <MyClassesSection classrooms={classrooms} onJoinClass={openJoinModal} />
+            <ContinueLearning
+              courses={activeCourses as Parameters<typeof ContinueLearning>[0]['courses']}
+              loading={loadingCourses}
+              onJoinClass={openJoinModal}
+            />
           </motion.div>
         )}
 
         <motion.div variants={itemVariants}>
           <UpcomingAssignments assignments={assignments || []} loading={assignmentsLoading} />
         </motion.div>
+
+        {role === 'student' && (
+          <motion.div variants={itemVariants}>
+            <MyClassesSection classrooms={classrooms} onJoinClass={openJoinModal} />
+          </motion.div>
+        )}
 
         {/* Koleksi Lencana (Student Only) */}
         {role === 'student' && (
@@ -176,16 +186,6 @@ export function Dashboard() {
               </div>
               <BadgeShowcase compact />
             </Card>
-          </motion.div>
-        )}
-
-        {role === 'student' && (
-          <motion.div variants={itemVariants}>
-            <ContinueLearning
-              courses={activeCourses as Parameters<typeof ContinueLearning>[0]['courses']}
-              loading={loadingCourses}
-              onJoinClass={openJoinModal}
-            />
           </motion.div>
         )}
 
