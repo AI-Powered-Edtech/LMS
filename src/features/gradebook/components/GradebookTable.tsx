@@ -231,6 +231,7 @@ export function GradebookTable({ courseId }: Props) {
         <div className="relative w-full sm:w-72">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
+            data-testid="gradebook-search-input"
             type="text"
             placeholder="Cari siswa..."
             value={search}
@@ -241,6 +242,7 @@ export function GradebookTable({ courseId }: Props) {
 
         <div className="flex items-center gap-2">
           <button
+            data-testid="gradebook-sync-button"
             onClick={handleSync}
             disabled={syncMutation.isPending}
             className={cn(
@@ -253,6 +255,7 @@ export function GradebookTable({ courseId }: Props) {
           </button>
 
           <button
+            data-testid="gradebook-export-button"
             onClick={handleExport}
             disabled={entries.length === 0}
             className={cn(
@@ -271,6 +274,7 @@ export function GradebookTable({ courseId }: Props) {
       {/* Table */}
       <div className="overflow-x-auto">
         <table
+          data-testid="gradebook-table"
           className="w-full text-left border-collapse min-w-[600px]"
           aria-label="Tabel nilai kelas"
         >

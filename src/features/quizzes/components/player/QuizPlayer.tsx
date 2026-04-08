@@ -270,6 +270,7 @@ export function QuizPlayer({
   if (showReview) {
     return (
       <QuizReviewScreen
+        data-testid="quiz-review-screen"
         questions={attemptQuestions}
         answers={answers}
         flagged={flagged}
@@ -407,6 +408,7 @@ export function QuizPlayer({
 
         {/* ── Header ────────────────────────────────────── */}
         <QuizHeader
+          data-testid="quiz-header"
           title={quiz.title}
           currentQuestionIdx={currentQuestionIdx}
           totalQuestions={totalQuestions}
@@ -458,7 +460,8 @@ export function QuizPlayer({
                 </p>
               </div>
               <button
-                onClick={handleResume}
+                data-testid="quiz-pause-button"
+                onClick={handlePause}
                 className={cn(
                   'flex items-center gap-2 px-8 py-3 rounded-xl font-bold text-base',
                   'bg-green-500 dark:bg-green-600 text-white',
@@ -488,6 +491,7 @@ export function QuizPlayer({
             <div className="sticky top-6 space-y-6">
               <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-5">
                 <QuestionPalette
+                  data-testid="quiz-sidebar"
                   questions={attemptQuestions}
                   currentQuestionIdx={currentQuestionIdx}
                   answers={answers}
@@ -550,6 +554,7 @@ export function QuizPlayer({
 
             {/* Navigation Controls */}
             <QuizFooter
+              data-testid="quiz-footer"
               currentQuestionIdx={currentQuestionIdx}
               isLastQuestion={isLastQuestion}
               onPrevious={() => setCurrentQuestionIdx((i) => i - 1)}

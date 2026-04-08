@@ -55,6 +55,7 @@ function CourseBuilderPage() {
             Materi.
           </p>
           <button
+            data-testid="coursebuilder-back-button"
             onClick={() =>
               navigate(role === 'admin' ? '/app/admin/courses' : '/app/teacher/courses')
             }
@@ -98,6 +99,7 @@ function CourseBuilderPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] -mx-6 -mt-6 bg-slate-50 dark:bg-slate-900 overflow-hidden">
       <a
+        data-testid="coursebuilder-skip-link"
         href="#builder-main"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus:shadow-lg"
       >
@@ -105,18 +107,29 @@ function CourseBuilderPage() {
       </a>
       <header>
         <BuilderTopBar
+          data-testid="coursebuilder-topbar"
           releasePanelOpen={releasePanelOpen}
           onToggleReleasePanel={toggleReleasePanel}
         />
       </header>
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <nav aria-label="Struktur kursus">
-          <BuilderSidebar />
+          <BuilderSidebar data-testid="coursebuilder-sidebar" />
         </nav>
-        <main id="builder-main" aria-label="Editor konten" className="flex-1 min-w-0 overflow-auto">
+        <main
+          id="builder-main"
+          aria-label="Editor konten"
+          data-testid="coursebuilder-editor"
+          className="flex-1 min-w-0 overflow-auto"
+        >
           <LessonBlockEditor />
         </main>
-        {releasePanelOpen && <CourseReleasePanel onClose={() => setReleasePanelOpen(false)} />}
+        {releasePanelOpen && (
+          <CourseReleasePanel
+            data-testid="coursebuilder-release-panel"
+            onClose={() => setReleasePanelOpen(false)}
+          />
+        )}
       </div>
     </div>
   )

@@ -29,6 +29,45 @@ export interface ClassInfo {
   tenant_name: string
 }
 
+export interface DemoAccountOption {
+  key: 'student' | 'teacher' | 'admin'
+  label: string
+  email: string
+  icon: string
+}
+
+const DEMO_HOSTNAMES = new Set([
+  'edusync-lms-demo-public-baimdwipro.vercel.app',
+  'dist-baimdwipro-8006s-projects.vercel.app',
+])
+
+const DEMO_ACCOUNTS: Record<DemoAccountOption['key'], DemoAccountOption> = {
+  student: {
+    key: 'student',
+    label: 'Siswa Demo',
+    email: 'siswa.andi@smanusantara.dev',
+    icon: '🎓',
+  },
+  teacher: {
+    key: 'teacher',
+    label: 'Guru Demo',
+    email: 'guru.matematika@smanusantara.dev',
+    icon: '👩‍🏫',
+  },
+  admin: {
+    key: 'admin',
+    label: 'Admin Demo',
+    email: 'admin@smanusantara.dev',
+    icon: '🛡️',
+  },
+}
+
+function isPublicDemoHost(): boolean {
+  if (typeof window === 'undefined') return false
+  const hostname = window.location.hostname ?? ''
+  return DEMO_HOSTNAMES.has(hostname)
+}
+
 export function useLoginState(postAuthRedirect?: string | null) {
   const { user, signIn, signUp, signInWithGoogle, loading, clearAuthError } = useAuth()
   const [mode, setMode] = useState<'login' | 'register'>('login')
@@ -172,22 +211,26 @@ export function useLoginState(postAuthRedirect?: string | null) {
     void signInWithGoogle()
   }
 
-  const fillAccount = import.meta.env.DEV
-    ? async (role: string) => {
-        const devEmail = `${role}@edusync.dev`
-        const devPassword = import.meta.env.VITE_DEV_PASSWORD
-        if (!devPassword) {
-          setError('VITE_DEV_PASSWORD tidak diset di .env')
-          return
-        }
-        loginForm.reset({ email: devEmail, password: devPassword })
+  const demoMode = import.meta.env.DEV || isPublicDemoHost()
+  const demoAccounts = demoMode ? Object.values(DEMO_ACCOUNTS) : []
+
+  const fillAccount = demoMode
+    ? async (role: DemoAccountOption['key']) => {
+        const devPassword = import.meta.env.VITE_DEV_PASSWORD ?? 'password123'
+        const accountEmail = import.meta.env.DEV
+          ? `${role}@edusync.dev`
+          : DEMO_ACCOUNTS[role].email
+
+        loginForm.reset({ email: accountEmail, password: devPassword })
         setMode('login')
         setError('')
         setSubmitting(true)
+        persistPostAuthRedirect(postAuthRedirect)
+
         try {
-          const { error: err } = await signIn(devEmail, devPassword)
+          const { error: err } = await signIn(accountEmail, devPassword)
           if (err) {
-            setError(err.message)
+            setError(translateAuthError(err.message))
           }
         } catch (e: unknown) {
           setError(e instanceof Error ? e.message : String(e))
@@ -230,6 +273,8 @@ export function useLoginState(postAuthRedirect?: string | null) {
     handleRegisterStep1,
     handleRegisterSubmit,
     handleGoogleAuth,
+    demoMode,
+    demoAccounts,
     fillAccount,
     switchMode,
     setMode,

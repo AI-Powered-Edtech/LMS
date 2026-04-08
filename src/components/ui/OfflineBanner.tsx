@@ -1,3 +1,7 @@
+// Canonical UI primitive. Use this instead of custom implementations.
+// Network status banner with sync state, dismiss handling, and background sync integration.
+// Canonical UI primitive. Use this instead of custom implementations.
+// Network status banner with sync state, dismiss handling, and background sync integration.
 import { Wifi, WifiOff, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 

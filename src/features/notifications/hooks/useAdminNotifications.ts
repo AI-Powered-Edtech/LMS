@@ -82,6 +82,8 @@ export interface UseAdminNotificationsReturn {
   notifications: Notification[]
   unreadCount: number
   isLoading: boolean
+  isError: boolean
+  error: Error | null
   markAsRead: (id: string) => void
   markAllAsRead: () => void
   refetch: () => void
@@ -211,6 +213,8 @@ export function useAdminNotifications(): UseAdminNotificationsReturn {
     notifications,
     unreadCount,
     isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error as Error | null,
     markAsRead: (id) => markReadMutation.mutate(id),
     markAllAsRead: () => markAllReadMutation.mutate(),
     refetch: () => query.refetch(),

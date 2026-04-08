@@ -75,6 +75,18 @@ export interface AuthBootstrap {
   requires_email_verification: boolean
 }
 
+function extractAuthCode(input: string): string {
+  try {
+    const parsed = new URL(input, window.location.origin)
+    const code = parsed.searchParams.get('code')
+    if (code) return code
+  } catch {
+    // Fall back to treating input as a raw code.
+  }
+
+  return input
+}
+
 /**
  * Auth Service
  * Wraps Supabase RPC and Edge Function calls for auth-related operations.
@@ -89,9 +101,10 @@ export const authService = {
     if (error) throw error
   },
 
-  async exchangeOAuthCode(url: string) {
+  async exchangeOAuthCode(urlOrCode: string) {
     addBreadcrumb('OAuth code exchange started', 'auth')
-    const { data, error } = await supabase.auth.exchangeCodeForSession(url)
+    const authCode = extractAuthCode(urlOrCode)
+    const { data, error } = await supabase.auth.exchangeCodeForSession(authCode)
     if (error) throw error
     addBreadcrumb('OAuth code exchange succeeded', 'auth')
     return data

@@ -14,9 +14,11 @@ export const assignmentKeys = {
 /**
  * Query hook untuk daftar Tugas.
  */
+type AssignmentListResponse = Awaited<ReturnType<typeof assignmentService.getAssignments>>
+
 export function useAssignmentList(
   tenantId: string
-): UseQueryResult<{ data: any[] | null; pagination: any }> {
+): UseQueryResult<AssignmentListResponse> {
   return useQuery({
     queryKey: assignmentKeys.all(tenantId),
     queryFn: () => assignmentService.getAssignments(tenantId),

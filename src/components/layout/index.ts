@@ -4,7 +4,7 @@ export { BottomNav } from './BottomNav'
 export { Header } from './Header'
 export { HeaderSkeleton } from './HeaderSkeleton'
 export { Layout } from './Layout'
-export { OfflineBanner } from './OfflineBanner'
+// @deprecated Use canonical UI OfflineBanner from '@/components/ui' instead
 export { Sidebar } from './Sidebar'
 export { SidebarSkeleton } from './SidebarSkeleton'
 export { StudentLayout } from './StudentLayout'

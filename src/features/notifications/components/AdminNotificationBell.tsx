@@ -191,7 +191,7 @@ interface AdminNotificationPanelProps {
 const AdminNotificationPanel = memo(function AdminNotificationPanel({
   onClose,
 }: AdminNotificationPanelProps) {
-  const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead } =
+  const { notifications, unreadCount, isLoading, isError, error, markAsRead, markAllAsRead } =
     useAdminNotifications()
 
   const recent = notifications.slice(0, 10)
@@ -253,6 +253,12 @@ const AdminNotificationPanel = memo(function AdminNotificationPanel({
             <SkeletonCard lines={2} />
             <SkeletonCard lines={2} />
           </div>
+        ) : isError ? (
+          <EmptyState
+            icon={<AlertTriangle className="w-8 h-8" />}
+            title="Gagal memuat notifikasi"
+            description={error?.message || 'Terjadi kesalahan saat memuat notifikasi'}
+          />
         ) : recent.length === 0 ? (
           <EmptyState
             icon={<Inbox className="w-8 h-8" />}

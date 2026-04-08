@@ -59,7 +59,7 @@ export function ResetPassword() {
 
       try {
         if (code) {
-          await supabase.auth.exchangeCodeForSession(window.location.href)
+          await supabase.auth.exchangeCodeForSession(code)
           isRecoveryRef.current = true
           setSessionReady(true)
           return

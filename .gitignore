@@ -102,3 +102,4 @@ __command__*
 
 # Empty placeholder config (not needed)
 config.json
+.vercel

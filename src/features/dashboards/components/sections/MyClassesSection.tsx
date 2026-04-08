@@ -1,7 +1,7 @@
 import { Plus, User, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-import { Button, Card, EmptyState } from '@/components/ui'
+import { Button, Card, EmptyState, SkeletonCard } from '@/components/ui'
 
 interface Classroom {
   id: string
@@ -35,8 +35,10 @@ export function MyClassesSection({ classrooms, loading, onJoinClass }: MyClasses
         </Button>
       </div>
       {loading ? (
-        <div className="flex justify-center p-8">
-          <div className="w-8 h-8 rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-indigo-500 dark:border-t-indigo-400 animate-spin" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <SkeletonCard key={i} lines={1} />
+          ))}
         </div>
       ) : classrooms.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

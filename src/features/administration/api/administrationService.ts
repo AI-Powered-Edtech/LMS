@@ -460,12 +460,40 @@ export const administrationService = {
   },
 
   /**
-   * Health check — verifies DB connectivity by querying tenants table.
-   * Returns true if DB is reachable, false otherwise.
+   * Health check — verifies DB and auth connectivity.
+   * Returns structured health status instead of bare boolean.
    */
-  async healthCheck(): Promise<boolean> {
-    const { error } = await supabase.from('tenants').select('id').limit(1)
-    return !error
+  async healthCheck(): Promise<{
+    status: 'healthy' | 'degraded' | 'down'
+    checks: {
+      db: 'ok' | 'error'
+      auth: 'ok' | 'error'
+    }
+    timestamp: string
+    version?: string
+  }> {
+    const { error: dbError } = await supabase.from('tenants').select('id').limit(1)
+    const dbOk = !dbError
+
+    const { error: authError } = await supabase.from('profiles').select('id').limit(1)
+    const authOk = !authError
+
+    let status: 'healthy' | 'degraded' | 'down' = 'healthy'
+    if (!dbOk && !authOk) {
+      status = 'down'
+    } else if (!dbOk || !authOk) {
+      status = 'degraded'
+    }
+
+    return {
+      status,
+      checks: {
+        db: dbOk ? 'ok' : 'error',
+        auth: authOk ? 'ok' : 'error',
+      },
+      timestamp: new Date().toISOString(),
+      version: '4.0.0',
+    }
   },
 
   /**

@@ -39,10 +39,22 @@ export const Button = memo(
         className,
         children,
         disabled,
+        'aria-label': ariaLabel,
         ...props
       },
       ref
     ) => {
+      // Warn in development when icon is used without accessible label
+      if (
+        process.env.NODE_ENV === 'development' &&
+        icon &&
+        !children &&
+        !ariaLabel &&
+        !props['aria-labelledby']
+      ) {
+        console.warn('Button: Icon-only buttons require an aria-label for accessibility')
+      }
+
       return (
         <button
           ref={ref}
@@ -55,6 +67,7 @@ export const Button = memo(
             className
           )}
           disabled={disabled || loading}
+          aria-label={ariaLabel}
           {...props}
         >
           {loading ? (

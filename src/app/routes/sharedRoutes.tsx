@@ -24,11 +24,13 @@ import {
   NotificationsPage,
   Offline,
   ParentRegisterPage,
+  PrivacyPolicy,
   Profile,
   PublicProfile,
   ResetPassword,
   Settings,
   SocialHub,
+  TermsOfService,
   Unauthorized,
   VerifyEmail,
   WorkspaceSelector,
@@ -84,11 +86,9 @@ export function PublicRoutes() {
       <Route
         path="/verify-email"
         element={
-          <AuthGuard requireEmailVerification={false}>
-            <S>
-              <VerifyEmail />
-            </S>
-          </AuthGuard>
+          <S>
+            <VerifyEmail />
+          </S>
         }
       />
       <Route
@@ -171,6 +171,22 @@ export function PublicRoutes() {
         element={
           <S feature="Verifikasi 2FA">
             <MFAVerifyPage />
+          </S>
+        }
+      />
+      <Route
+        path="/privacy"
+        element={
+          <S>
+            <PrivacyPolicy />
+          </S>
+        }
+      />
+      <Route
+        path="/terms"
+        element={
+          <S>
+            <TermsOfService />
           </S>
         }
       />

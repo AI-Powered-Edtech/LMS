@@ -82,6 +82,7 @@ export function LoginForm({ loginForm, error, setError, submitting, onSubmit }: 
       </div>
       <div className="flex justify-end mt-1">
         <Link
+          data-testid="login-forgot-password-link"
           to="/forgot-password"
           className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
         >

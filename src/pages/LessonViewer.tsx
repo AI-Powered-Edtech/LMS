@@ -66,7 +66,7 @@ export function LessonViewer() {
         completedBlockCount={s.completedBlockCount}
         sessionStartRef={s.sessionStartRef}
       />
-      <div className="flex flex-col lg:flex-row h-full bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 p-4 lg:p-6 xl:p-8 gap-5 overflow-hidden">
+      <div className="flex flex-col lg:flex-row h-full bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 p-2 lg:p-4 xl:p-8 gap-3 lg:gap-5 overflow-hidden pb-[env(safe-area-inset-bottom)]">
         {/* Sidebar */}
         <LessonSidebar
           moduleTitle={s.moduleTitle}

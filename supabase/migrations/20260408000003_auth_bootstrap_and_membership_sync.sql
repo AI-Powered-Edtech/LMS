@@ -25,6 +25,7 @@ AS $$
 DECLARE
   v_role_lower TEXT;
   v_role_upper public.app_role;
+  v_membership_role TEXT;
 BEGIN
   v_role_lower := lower(trim(p_role));
 
@@ -35,6 +36,8 @@ BEGIN
   IF lower(trim(p_status)) NOT IN ('active', 'inactive', 'suspended') THEN
     RAISE EXCEPTION 'Status membership tidak valid: %', p_status;
   END IF;
+
+  v_membership_role := upper(v_role_lower);
 
   INSERT INTO public.tenant_memberships (
     tenant_id,
@@ -47,7 +50,7 @@ BEGIN
   VALUES (
     p_tenant_id,
     p_user_id,
-    v_role_lower,
+    v_membership_role,
     lower(trim(p_status)),
     now(),
     now()
@@ -92,7 +95,7 @@ INSERT INTO public.tenant_memberships (
 SELECT
   ur.tenant_id,
   ur.user_id,
-  lower(ur.role::text),
+  upper(ur.role::text),
   'active',
   ur.created_at,
   now(),
@@ -444,16 +447,16 @@ $$;
 
 
 CREATE OR REPLACE FUNCTION public.accept_invitation(
-  p_token UUID
+  p_token TEXT
 )
-RETURNS JSONB
+RETURNS JSON
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path TO 'public'
 AS $$
 DECLARE
-  v_validation JSONB;
-  v_invitation tenant_invitations%ROWTYPE;
+  v_validation JSON;
+  v_invitation public.user_invitations%ROWTYPE;
   v_current_email TEXT;
 BEGIN
   IF auth.uid() IS NULL THEN
@@ -474,7 +477,7 @@ BEGIN
     RAISE EXCEPTION 'Undangan ini ditujukan untuk email yang berbeda.';
   END IF;
 
-  UPDATE public.tenant_invitations
+  UPDATE public.user_invitations
   SET
     accepted_at = now(),
     status = 'accepted'
@@ -490,14 +493,14 @@ BEGIN
   PERFORM public.sync_user_tenant_access(
     auth.uid(),
     v_invitation.tenant_id,
-    lower(v_invitation.role),
+    lower(v_invitation.role::text),
     'active'
   );
 
-  RETURN jsonb_build_object(
+  RETURN json_build_object(
     'success',   true,
     'tenant_id', v_invitation.tenant_id,
-    'role',      lower(v_invitation.role)
+    'role',      lower(v_invitation.role::text)
   );
 END;
 $$;

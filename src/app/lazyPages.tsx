@@ -58,6 +58,14 @@ export const NotificationsPage = withErrorBoundary(
   lazy(() => import('../pages/Notifications').then((m) => ({ default: m.Notifications }))),
   'Notifikasi'
 )
+export const PrivacyPolicy = withErrorBoundary(
+  lazy(() => import('../pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy }))),
+  'Kebijakan Privasi'
+)
+export const TermsOfService = withErrorBoundary(
+  lazy(() => import('../pages/TermsOfService').then((m) => ({ default: m.TermsOfService }))),
+  'Ketentuan Layanan'
+)
 
 // ============================================================
 // Student pages

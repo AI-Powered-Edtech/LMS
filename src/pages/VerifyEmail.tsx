@@ -8,16 +8,25 @@ import { addBreadcrumb, captureError } from '@/utils/sentry'
 
 import { useAuth } from '../contexts/AuthContext'
 
+type VerifyState =
+  | { status: 'idle' }
+  | { status: 'verifying' }
+  | { status: 'verified' }
+  | { status: 'error'; message: string }
+
+type ResendState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'success' }
+  | { status: 'error'; message: string }
+
 export function VerifyEmail() {
   usePageTitle('Verifikasi Email')
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { user, signOut } = useAuth()
-  const [resending, setResending] = useState(false)
-  const [resent, setResent] = useState(false)
-  const [verifying, setVerifying] = useState(false)
-  const [verified, setVerified] = useState(false)
-  const [error, setError] = useState('')
+  const [verifyState, setVerifyState] = useState<VerifyState>({ status: 'idle' })
+  const [resendState, setResendState] = useState<ResendState>({ status: 'idle' })
 
   useEffect(() => {
     const code = searchParams.get('code')
@@ -29,14 +38,13 @@ export function VerifyEmail() {
     }
 
     let active = true
-    setVerifying(true)
-    setError('')
+    setVerifyState({ status: 'verifying' })
 
     void (async () => {
       try {
         addBreadcrumb('Email verification started', 'auth')
         if (code) {
-          await supabase.auth.exchangeCodeForSession(window.location.href)
+          await supabase.auth.exchangeCodeForSession(code)
         } else if (tokenHash) {
           const { error: verifyError } = await supabase.auth.verifyOtp({
             token_hash: tokenHash,
@@ -46,7 +54,7 @@ export function VerifyEmail() {
         }
 
         if (!active) return
-        setVerified(true)
+        setVerifyState({ status: 'verified' })
         const bootstrap = await authService.getAuthBootstrap()
         const destination = authService.resolvePostAuthDestination(bootstrap)
         addBreadcrumb('Email verification redirect resolved', 'auth', { destination })
@@ -56,13 +64,13 @@ export function VerifyEmail() {
       } catch (err) {
         captureError(err, { context: 'VerifyEmail.confirmation' })
         if (!active) return
-        setError(
-          err instanceof Error ? err.message : 'Link verifikasi tidak valid atau sudah kedaluwarsa.'
-        )
-      } finally {
-        if (active) {
-          setVerifying(false)
-        }
+        setVerifyState({
+          status: 'error',
+          message:
+            err instanceof Error
+              ? err.message
+              : 'Link verifikasi tidak valid atau sudah kedaluwarsa.',
+        })
       }
     })()
 
@@ -72,8 +80,7 @@ export function VerifyEmail() {
   }, [navigate, searchParams])
 
   const handleResend = async () => {
-    setError('')
-    setResending(true)
+    setResendState({ status: 'loading' })
 
     try {
       const { error: resendError } = await supabase.auth.resend({
@@ -82,16 +89,22 @@ export function VerifyEmail() {
       })
 
       if (resendError) {
-        setError(resendError.message)
+        setResendState({ status: 'error', message: resendError.message })
       } else {
-        setResent(true)
+        setResendState({ status: 'success' })
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Gagal mengirim ulang email verifikasi.')
-    } finally {
-      setResending(false)
+      setResendState({
+        status: 'error',
+        message: err instanceof Error ? err.message : 'Gagal mengirim ulang email verifikasi.',
+      })
     }
   }
+
+  const isVerifying = verifyState.status === 'verifying'
+  const isVerified = verifyState.status === 'verified'
+  const isError = verifyState.status === 'error'
+  const errorMessage = verifyState.status === 'error' ? verifyState.message : ''
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-4">
@@ -99,27 +112,31 @@ export function VerifyEmail() {
         <div className="text-center mb-8">
           <span className="text-5xl inline-block mb-4">📧</span>
           <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold mt-2 mb-1">
-            {verified
+            {isVerified
               ? 'Email Terverifikasi'
-              : verifying
+              : isVerifying
                 ? 'Memverifikasi Email'
-                : 'Verifikasi Email'}
+                : isError
+                  ? 'Verifikasi Gagal'
+                  : 'Verifikasi Email'}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed m-0">
-            {verified
+            {isVerified
               ? 'Email Anda sudah berhasil diverifikasi.'
-              : verifying
+              : isVerifying
                 ? 'Sedang memproses link verifikasi Anda.'
-                : 'Kami telah mengirim email verifikasi ke'}
+                : isError
+                  ? 'Link verifikasi tidak valid atau sudah kedaluwarsa.'
+                  : 'Kami telah mengirim email verifikasi ke'}
           </p>
-          {!verified && !verifying && (
+          {!isVerified && !isVerifying && !isError && (
             <p className="text-slate-900 dark:text-slate-100 font-bold text-lg mt-2 mb-6">
               {user?.email ?? 'your@email.com'}
             </p>
           )}
         </div>
 
-        {!verified && !verifying && (
+        {!isVerified && !isVerifying && !isError && (
           <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 mb-6 flex flex-col gap-3 text-left">
             <div className="flex items-center gap-3">
               <span className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
@@ -148,35 +165,45 @@ export function VerifyEmail() {
           </div>
         )}
 
-        {error && <div className="text-red-500 text-xs font-bold mt-1">{error}</div>}
+        {isError && errorMessage && (
+          <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm font-medium text-center mb-4 border border-red-200 dark:border-red-800/50">
+            {errorMessage}
+          </div>
+        )}
 
-        {verified ? (
+        {isVerified ? (
           <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 p-3 rounded-lg text-sm font-bold text-center mb-4 border border-emerald-200 dark:border-emerald-800/50">
             ✅ Verifikasi berhasil. Mengarahkan ke aplikasi...
           </div>
-        ) : resent ? (
+        ) : resendState.status === 'success' ? (
           <div className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 p-3 rounded-lg text-sm font-bold text-center mb-4 border border-emerald-200 dark:border-emerald-800/50">
             ✅ Email verifikasi telah dikirim ulang!
+          </div>
+        ) : resendState.status === 'error' ? (
+          <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm font-medium text-center mb-4 border border-red-200 dark:border-red-800/50">
+            {resendState.message}
           </div>
         ) : (
           <button
             className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold py-2 px-4 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors w-full text-sm mb-6"
             onClick={handleResend}
-            disabled={resending || verifying}
+            disabled={resendState.status === 'loading' || isVerifying}
           >
-            {resending ? 'Mengirim...' : '📤 Kirim Ulang Email Verifikasi'}
+            {resendState.status === 'loading' ? 'Mengirim...' : '📤 Kirim Ulang Email Verifikasi'}
           </button>
         )}
 
-        {!verified && (
+        {!isVerified && (
           <div className="flex flex-col gap-3">
-            <button
-              className="w-full p-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
-              onClick={() => window.location.reload()}
-              disabled={verifying}
-            >
-              🔄 Refresh Halaman
-            </button>
+            {isError && (
+              <button
+                className="w-full p-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
+                onClick={() => window.location.reload()}
+                disabled={isVerifying}
+              >
+                🔄 Refresh Halaman
+              </button>
+            )}
 
             <button
               className="w-full p-3 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 font-medium rounded-lg transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700"

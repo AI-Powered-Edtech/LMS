@@ -118,7 +118,7 @@ export function useAssignments() {
 
       if (data) {
         // Map database response to UI state with proper typing
-        const mapped = (data as any[]).map((a) => {
+        const mapped = (data as AssignmentDbResponse[]).map((a) => {
           const allSubmissions = [...(a.assignment_submissions || [])]
           const relevantSubmissions =
             role === 'student'

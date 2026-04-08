@@ -28,6 +28,7 @@ const FOCUSABLE_SELECTOR =
 export function Modal({ open, onClose, size = 'md', ariaLabel, children }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null)
   const titleId = useId()
 
   const handleKeyDown = useCallback(
@@ -62,13 +63,21 @@ export function Modal({ open, onClose, size = 'md', ariaLabel, children }: Modal
   useEffect(() => {
     if (!open) return
 
+    // Store currently focused element to return focus when modal closes
+    previouslyFocusedRef.current = document.activeElement as HTMLElement
+
     document.addEventListener('keydown', handleKeyDown)
     document.body.style.overflow = 'hidden'
 
     // Focus first focusable element
     const timer = setTimeout(() => {
       const focusable = contentRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)
-      focusable?.focus()
+      if (focusable) {
+        focusable.focus()
+      } else {
+        // If no focusable elements inside, focus the modal container itself
+        contentRef.current?.focus()
+      }
     }, 50)
 
     // DOM-level focus boundary: snap focus back if it strays outside the modal
@@ -87,6 +96,11 @@ export function Modal({ open, onClose, size = 'md', ariaLabel, children }: Modal
       document.removeEventListener('focusin', handleFocusIn)
       document.body.style.overflow = ''
       clearTimeout(timer)
+
+      // Return focus to previously focused element when modal closes
+      setTimeout(() => {
+        previouslyFocusedRef.current?.focus()
+      }, 0)
     }
   }, [open, handleKeyDown])
 
@@ -111,6 +125,7 @@ export function Modal({ open, onClose, size = 'md', ariaLabel, children }: Modal
         aria-modal="true"
         aria-labelledby={ariaLabel ? undefined : titleId}
         aria-label={ariaLabel}
+        tabIndex={-1}
         className={cn(
           'relative w-full bg-white dark:bg-slate-900 shadow-xl',
           'border border-slate-200 dark:border-slate-700/60',

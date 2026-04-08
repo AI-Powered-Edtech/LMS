@@ -58,6 +58,13 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
+      # Smoke test for build artifact
+      - name: Smoke Test
+        run: bash scripts/smoke-build.sh
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
+
       # Bundle size enforcement — only runs when bundlesize.config.json is present
       - name: Bundle size check
         if: hashFiles('bundlesize.config.json') != ''

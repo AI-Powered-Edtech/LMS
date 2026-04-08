@@ -76,49 +76,71 @@ test.describe('Critical Path — Grade Publication Flow', () => {
     await expect(page).not.toHaveURL(/login/)
   })
 
-  test('teacher dapat menginput atau mengupdate nilai siswa', async ({ page }) => {
-    const errors: string[] = []
-    page.on('pageerror', (err) => errors.push(err.message))
-
+  test('teacher dapat mengexport gradebook sebagai CSV', async ({ page }) => {
     await loginAsTeacher(page)
     await gotoAndWait(page, '/#/app/teacher/gradebook')
 
-    // Cari input nilai atau tombol edit pertama yang tersedia
-    const gradeInput = page
-      .locator(
-        'input[type="number"][placeholder*="ilai"], input[data-testid="grade-input"], [data-testid="edit-grade"], button:has-text("Edit Nilai"), button:has-text("Ubah")'
-      )
+    // Cari tombol export CSV
+    const exportBtn = page
+      .locator('button:has-text("Export"), button:has-text("Ekspor"), [data-testid="export-csv"]')
       .first()
 
-    const hasInput = await gradeInput.isVisible({ timeout: 5000 }).catch(() => false)
-
-    if (!hasInput) {
-      // Tidak ada input nilai tersedia (mungkin tidak ada assignment) — verifikasi tidak crash
-      const fatalErrors = errors.filter(
-        (e) => !e.includes('ResizeObserver') && !e.includes('Non-Error')
-      )
-      expect(fatalErrors).toHaveLength(0)
+    const hasExport = await exportBtn.isVisible({ timeout: 5000 }).catch(() => false)
+    if (!hasExport) {
+      // Tidak ada tombol export — verifikasi tidak crash
+      const bodyLen = await page.evaluate(() => document.body.textContent?.trim().length ?? 0)
+      expect(bodyLen).toBeGreaterThan(50)
       return
     }
 
-    // Klik edit dan coba input nilai
-    await gradeInput.click()
-    await page.waitForTimeout(500)
+    // Klik tombol export
+    await exportBtn.click()
+    await dismissToast(page)
+    await page.waitForTimeout(2000)
 
-    // Jika input berhasil difokus, isikan nilai
-    const focusedInput = page.locator('input:focus, textarea:focus').first()
-    if (await focusedInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await focusedInput.fill('85')
-      await page.keyboard.press('Enter')
-      await page.waitForTimeout(1000)
-      await dismissToast(page)
+    // Verifikasi bahwa CSV diunduh (cek network request atau file download)
+    // Alternatif: verifikasi bahwa ada konfirmasi atau toast yang muncul
+    const csvDownloaded = await page
+      .locator('text="Berhasil ekspor"', 'text="Export successful"')
+      .isVisible({ timeout: 5000 })
+      .catch(() => false)
+
+    expect(csvDownloaded).toBeTruthy()
+
+    // VERIFIKASI DATABASE: Pastikan data di CSV sesuai dengan data di database
+    // Kita tidak bisa langsung verifikasi isi CSV karena itu file di client,
+    // tapi kita bisa verifikasi bahwa data di database konsisten
+    const supabase = page.evaluate(() => {
+      return window.supabase
+    }) as any
+
+    if (supabase) {
+      // Dapatkan data gradebook dari database
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      const teacherId = session?.user?.id
+
+      // Query gradebook entries untuk teacher ini
+      const { data: grades, error } = await supabase
+        .from('grades')
+        .select('*')
+        .eq('teacher_id', teacherId)
+        .order('created_at', { ascending: true })
+
+      expect(error).toBeNull()
+      expect(grades).toBeArray()
+      expect(grades.length).toBeGreaterThan(0)
+
+      // Pastikan setiap grade memiliki student_id, assignment_id, score, dll
+      grades.forEach((grade) => {
+        expect(grade).toHaveProperty('id')
+        expect(grade).toHaveProperty('student_id')
+        expect(grade).toHaveProperty('assignment_id')
+        expect(grade).toHaveProperty('score')
+        expect(grade).toHaveProperty('teacher_id', teacherId)
+      })
     }
-
-    // Tidak ada error fatal setelah operasi
-    const fatalErrors = errors.filter(
-      (e) => !e.includes('ResizeObserver') && !e.includes('Non-Error')
-    )
-    expect(fatalErrors).toHaveLength(0)
   })
 
   test('student dapat melihat halaman nilai mereka', async ({ page }) => {

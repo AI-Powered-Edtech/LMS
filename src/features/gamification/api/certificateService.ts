@@ -28,10 +28,11 @@ export const certificateService = {
 
       if (error) {
         const msg = error.message ?? ''
+        const edgeError = error as { code?: string }
         if (
           msg.includes('not found') ||
           msg.includes('404') ||
-          (error as any).code === 'PGRST202'
+          edgeError.code === 'PGRST202'
         ) {
           throw new Error('Layanan pembuatan sertifikat sedang tidak tersedia. Coba lagi nanti.')
         }
@@ -39,11 +40,12 @@ export const certificateService = {
       }
 
       return data instanceof Blob ? data : new Blob([data], { type: 'application/pdf' })
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { message?: string; code?: string }
       if (
-        err.message?.includes('not found') ||
-        err.code === 'PGRST202' ||
-        err.message?.includes('404')
+        error.message?.includes('not found') ||
+        error.code === 'PGRST202' ||
+        error.message?.includes('404')
       ) {
         throw new Error('Layanan pembuatan sertifikat sedang tidak tersedia. Coba lagi nanti.')
       }

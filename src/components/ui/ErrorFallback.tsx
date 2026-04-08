@@ -1,3 +1,7 @@
+// Canonical UI primitive. Use this instead of custom implementations.
+// Standard error state component for pages, containers, and boundary fallbacks.
+// Canonical UI primitive. Use this instead of custom implementations.
+// Standard error state component for pages, containers, and boundary fallbacks.
 import { AlertTriangle } from 'lucide-react'
 
 import { cn } from '@/utils/cn'
@@ -14,6 +18,7 @@ export interface ErrorFallbackProps {
 
 /* ─── Error Fallback Component ────────────────────────────────── */
 
+/** Fatal page error - full page fallback */
 export function ErrorFallback({
   title = 'Terjadi Kesalahan',
   description = 'Maaf, terjadi kesalahan yang tidak terduga. Silakan coba lagi.',

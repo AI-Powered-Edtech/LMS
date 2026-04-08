@@ -204,6 +204,38 @@ test.describe('Critical Path — Assignment Submission → Grade Flow', () => {
 
     // Halaman tidak redirect ke login
     await expect(page).not.toHaveURL(/login/)
+
+    // VERIFIKASI DATABASE: Pastikan submission tersimpan di database
+    const supabase = page.evaluate(() => {
+      return window.supabase
+    }) as any
+
+    if (supabase) {
+      // Dapatkan data student untuk mendapatkan user ID
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      const studentId = session?.user?.id
+
+      // Query submission terbaru untuk student ini
+      const { data: submissions, error } = await supabase
+        .from('submissions')
+        .select('*')
+        .eq('student_id', studentId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      expect(error).toBeNull()
+      expect(submissions).toBeArray()
+      expect(submissions.length).toBeGreaterThan(0)
+
+      const latestSubmission = submissions[0]
+      expect(latestSubmission).toHaveProperty('id')
+      expect(latestSubmission).toHaveProperty('student_id', studentId)
+      expect(latestSubmission).toHaveProperty('status', 'submitted')
+      expect(latestSubmission).toHaveProperty('created_at')
+      expect(latestSubmission).toHaveProperty('updated_at')
+    }
   })
 
   test('teacher dapat mengakses SpeedGrader', async ({ page }) => {
