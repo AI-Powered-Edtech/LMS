@@ -89,7 +89,11 @@ export function FunnelBuilder({ courseId, onSaved, onCancel }: FunnelBuilderProp
               ))}
             </select>
             {steps.length > 2 && (
-              <button onClick={() => removeStep(i)} className="text-slate-400 hover:text-red-500">
+              <button
+                onClick={() => removeStep(i)}
+                className="text-slate-400 hover:text-red-500"
+                aria-label="Hapus Langkah"
+              >
                 <X className="h-4 w-4" />
               </button>
             )}
