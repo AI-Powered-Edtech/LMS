@@ -32,7 +32,7 @@ export function useSaveAnnouncement() {
       announcementService.saveAnnouncement({ ...announcement, tenant_id: tenantId! }),
     onSuccess: () => {
       if (tenantId) {
-        queryClient.invalidateQueries({ queryKey: announcementKeys.all(tenantId) })
+        void queryClient.invalidateQueries({ queryKey: announcementKeys.all(tenantId) })
       }
     },
     onError: (err) => {
@@ -55,7 +55,7 @@ export function useSubmitRSVP() {
     }) => announcementService.submitRSVP(announcementId, tenantId!, user!.id, response),
     onSuccess: () => {
       if (tenantId) {
-        queryClient.invalidateQueries({ queryKey: announcementKeys.all(tenantId) })
+        void queryClient.invalidateQueries({ queryKey: announcementKeys.all(tenantId) })
       }
     },
     onError: (err) => {

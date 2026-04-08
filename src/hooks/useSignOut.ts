@@ -30,7 +30,7 @@ export function useSignOut(): () => Promise<void> {
       if (import.meta.env.DEV) console.error('[useSignOut] signOut error:', err)
       captureError(err, { context: 'useSignOut' })
     } finally {
-      navigate('/login')
+      void navigate('/login')
     }
   }
 }

@@ -82,7 +82,7 @@ export function Announcements() {
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     setPage(0)
-    refetch()
+    void refetch()
   }, [debouncedSearch])
   /* eslint-enable react-hooks/exhaustive-deps */
 
@@ -120,7 +120,7 @@ export function Announcements() {
         type: 'success',
       })
       setIsCreateModalOpen(false)
-      refetch()
+      void refetch()
     } catch (err) {
       if (import.meta.env.DEV) console.error('Error creating announcement:', err)
       addToast({ message: 'Gagal menyimpan pengumuman.', type: 'error' })
@@ -131,7 +131,7 @@ export function Announcements() {
     try {
       await rsvpMutation.mutateAsync({ announcementId, response })
       addToast({ message: 'Berhasil mengirim RSVP', type: 'success' })
-      refetch()
+      void refetch()
     } catch {
       addToast({ message: 'Gagal mengirim RSVP', type: 'error' })
     }

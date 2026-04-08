@@ -50,7 +50,7 @@ function RecommendationCard({ rec, onAccept, onDismiss }: RecommendationCardProp
     onAccept(rec.id)
     if (rec.course_id) {
       // FIXED: Use correct hash-router student course path (was /courses/:id — missing /app/student prefix)
-      navigate(`/app/student/courses/${rec.course_id}`)
+      void navigate(`/app/student/courses/${rec.course_id}`)
     }
   }
 

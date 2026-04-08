@@ -52,7 +52,7 @@ export function AnnouncementsPreview({ announcements, loading }: AnnouncementsPr
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault()
-                  navigate('/announcements')
+                  void navigate('/announcements')
                 }
               }}
               aria-label={`Pengumuman: ${ann.title}`}

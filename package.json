@@ -32,7 +32,7 @@
     "perf:lighthouse": "npx lhci autorun --config=lighthouserc.json 2>/dev/null || npx lighthouse http://localhost:5173 --output=json --output-path=./lighthouse-report.json --chrome-flags='--headless'",
     "check:circular": "madge --circular --extensions ts,tsx --config .madgerc.json src/",
     "check:unused": "knip",
-    "bundlesize": "bundlesize2"
+    "bundlesize": "bundlesize"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
@@ -111,6 +111,7 @@
     "prettier": "^3.8.1",
     "rollup-plugin-visualizer": "^7.0.1",
     "storybook": "^10.3.4",
+    "supabase": "^2.87.2",
     "typescript": "~5.8.2",
     "vite-plugin-compression2": "^2.5.3",
     "vite-plugin-pwa": "^1.2.0",

@@ -110,7 +110,7 @@ const NotificationItem = memo(function NotificationItem({
     if (!notification.is_read) markRead(notification.id)
     if (url) {
       onClose()
-      navigate(url)
+      void navigate(url)
     }
   }, [notification.is_read, notification.id, markRead, url, onClose, navigate])
 

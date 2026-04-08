@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useMutation,
+  UseMutationResult,
+  useQuery,
+  useQueryClient,
+  UseQueryResult,
+} from '@tanstack/react-query'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { createQueryKeys } from '@/shared/lib/queryKeys'
@@ -6,7 +12,22 @@ import { STALE } from '@/utils/queryConstants'
 import { captureError } from '@/utils/sentry'
 
 import { analyticsService } from '../api/analyticsService'
-import { AnalyticsError, TeacherAnalyticsData } from '../types'
+import {
+  AnalyticsError,
+  CourseAnalytics,
+  EngagementSummaryRow,
+  EngagementTrendPoint,
+  FunnelDefinition,
+  FunnelStepResult,
+  LearningPath,
+  LessonAnalytics,
+  PredictionSummary,
+  RetentionRow,
+  StudentPrediction,
+  StudentSignal,
+  TeacherAnalyticsData,
+  TenantAnalyticsData,
+} from '../types'
 
 const base = createQueryKeys('analytics')
 const analyticsKeys = {
@@ -53,10 +74,12 @@ const analyticsKeys = {
 /**
  * Hook for fetching teacher analytics for a specific course
  */
-export function useTeacherAnalytics(courseId?: string) {
+export function useTeacherAnalytics(
+  courseId?: string
+): UseQueryResult<TeacherAnalyticsData, AnalyticsError> {
   const { tenantId } = useAuth()
 
-  return useQuery({
+  return useQuery<TeacherAnalyticsData, AnalyticsError>({
     queryKey: analyticsKeys.teacher(tenantId!, courseId!),
     queryFn: async () => {
       try {
@@ -82,10 +105,10 @@ export function useTeacherAnalytics(courseId?: string) {
 /**
  * Hook for fetching tenant-level analytics overview
  */
-export function useTenantAnalytics() {
+export function useTenantAnalytics(): UseQueryResult<TenantAnalyticsData, Error> {
   const { tenantId } = useAuth()
 
-  return useQuery({
+  return useQuery<TenantAnalyticsData, Error>({
     queryKey: analyticsKeys.tenantOverview(tenantId!),
     queryFn: () => analyticsService.getTenantAnalytics(tenantId!),
     enabled: !!tenantId,
@@ -95,11 +118,11 @@ export function useTenantAnalytics() {
 /**
  * Hook for refreshing course stats
  */
-export function useRefreshCourseStats() {
+export function useRefreshCourseStats(): UseMutationResult<void, AnalyticsError, string> {
   const { tenantId } = useAuth()
   const queryClient = useQueryClient()
 
-  return useMutation({
+  return useMutation<void, AnalyticsError, string>({
     mutationFn: async (courseId: string) => {
       try {
         await analyticsService.refreshCourseStats(courseId, tenantId!)
@@ -112,7 +135,7 @@ export function useRefreshCourseStats() {
     },
     onSuccess: (_, courseId) => {
       if (tenantId) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: analyticsKeys.teacher(tenantId, courseId),
         })
       }
@@ -128,7 +151,9 @@ export function useRefreshCourseStats() {
 /**
  * Hook for fetching course-level dashboard analytics
  */
-export function useCourseDashboard(courseId?: string) {
+export function useCourseDashboard(
+  courseId?: string
+): UseQueryResult<CourseAnalytics | null, Error> {
   const { tenantId } = useAuth()
   return useQuery({
     queryKey: analyticsKeys.courseDashboard(tenantId!, courseId!),
@@ -141,7 +166,7 @@ export function useCourseDashboard(courseId?: string) {
 /**
  * Hook for fetching per-lesson analytics breakdown
  */
-export function useLessonDashboard(courseId?: string) {
+export function useLessonDashboard(courseId?: string): UseQueryResult<LessonAnalytics[], Error> {
   const { tenantId } = useAuth()
   return useQuery({
     queryKey: analyticsKeys.lessonDashboard(tenantId!, courseId!),
@@ -154,7 +179,10 @@ export function useLessonDashboard(courseId?: string) {
 /**
  * Hook for fetching student struggle signals
  */
-export function useStudentSignals(courseId?: string, lessonId?: string) {
+export function useStudentSignals(
+  courseId?: string,
+  lessonId?: string
+): UseQueryResult<StudentSignal[], Error> {
   const { tenantId } = useAuth()
   return useQuery({
     queryKey: analyticsKeys.studentSignals(tenantId!, courseId!, lessonId),
@@ -166,7 +194,7 @@ export function useStudentSignals(courseId?: string, lessonId?: string) {
 
 // SP-14: Funnel hooks
 
-export function useFunnelList(courseId?: string) {
+export function useFunnelList(courseId?: string): UseQueryResult<FunnelDefinition[], Error> {
   const { tenantId } = useAuth()
   return useQuery({
     queryKey: analyticsKeys.funnelList(tenantId!, courseId),
@@ -176,9 +204,9 @@ export function useFunnelList(courseId?: string) {
   })
 }
 
-export function useFunnelResults(funnelId?: string) {
+export function useFunnelResults(funnelId?: string): UseQueryResult<FunnelStepResult[], Error> {
   const { tenantId } = useAuth()
-  return useQuery({
+  return useQuery<FunnelStepResult[], Error>({
     queryKey: analyticsKeys.funnelResults(tenantId!, funnelId!),
     queryFn: () => analyticsService.getFunnelResults(funnelId!),
     enabled: !!tenantId && !!funnelId,
@@ -186,7 +214,11 @@ export function useFunnelResults(funnelId?: string) {
   })
 }
 
-export function useSaveFunnel() {
+export function useSaveFunnel(): UseMutationResult<
+  string,
+  Error,
+  { name: string; steps: string[]; courseId?: string; funnelId?: string }
+> {
   const { tenantId } = useAuth()
   const queryClient = useQueryClient()
   return useMutation({
@@ -202,7 +234,7 @@ export function useSaveFunnel() {
       funnelId?: string
     }) => analyticsService.saveFunnelDefinition(name, steps, courseId, funnelId),
     onSuccess: () => {
-      if (tenantId) queryClient.invalidateQueries({ queryKey: base.all(tenantId) })
+      if (tenantId) void queryClient.invalidateQueries({ queryKey: base.all(tenantId) })
     },
     onError: (err) => {
       captureError(err, { context: 'useSaveFunnel' })
@@ -210,13 +242,13 @@ export function useSaveFunnel() {
   })
 }
 
-export function useDeleteFunnel() {
+export function useDeleteFunnel(): UseMutationResult<void, Error, string> {
   const { tenantId } = useAuth()
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (funnelId: string) => analyticsService.deleteFunnelDefinition(funnelId),
     onSuccess: () => {
-      if (tenantId) queryClient.invalidateQueries({ queryKey: base.all(tenantId) })
+      if (tenantId) void queryClient.invalidateQueries({ queryKey: base.all(tenantId) })
     },
     onError: (err) => {
       captureError(err, { context: 'useDeleteFunnel' })
@@ -226,7 +258,10 @@ export function useDeleteFunnel() {
 
 // SP-15: Retention & Cohort hook
 
-export function useRetentionMatrix(courseId?: string, weeksBack: number = 8) {
+export function useRetentionMatrix(
+  courseId?: string,
+  weeksBack: number = 8
+): UseQueryResult<RetentionRow[], Error> {
   const { tenantId } = useAuth()
   return useQuery({
     queryKey: analyticsKeys.retentionMatrix(tenantId!, courseId!, weeksBack),
@@ -238,7 +273,9 @@ export function useRetentionMatrix(courseId?: string, weeksBack: number = 8) {
 
 // SP-16: Engagement Scoring hooks
 
-export function useEngagementSummary(courseId?: string) {
+export function useEngagementSummary(
+  courseId?: string
+): UseQueryResult<EngagementSummaryRow[], Error> {
   const { tenantId } = useAuth()
   return useQuery({
     queryKey: analyticsKeys.engagementSummary(tenantId!, courseId!),
@@ -248,7 +285,10 @@ export function useEngagementSummary(courseId?: string) {
   })
 }
 
-export function useEngagementTrend(courseId?: string, days: number = 30) {
+export function useEngagementTrend(
+  courseId?: string,
+  days: number = 30
+): UseQueryResult<EngagementTrendPoint[], Error> {
   const { tenantId } = useAuth()
   return useQuery({
     queryKey: analyticsKeys.engagementTrend(tenantId!, courseId!, days),
@@ -260,7 +300,10 @@ export function useEngagementTrend(courseId?: string, days: number = 30) {
 
 // SP-17: Learning Path hooks
 
-export function useLearningPaths(courseId?: string, minUsers: number = 1) {
+export function useLearningPaths(
+  courseId?: string,
+  minUsers: number = 1
+): UseQueryResult<LearningPath[], Error> {
   const { tenantId } = useAuth()
   return useQuery({
     queryKey: analyticsKeys.learningPaths(tenantId!, courseId!),
@@ -272,7 +315,10 @@ export function useLearningPaths(courseId?: string, minUsers: number = 1) {
 
 // SP-19: Prediction hooks
 
-export function useAtRiskStudents(courseId?: string, minRisk: number = 0.3) {
+export function useAtRiskStudents(
+  courseId?: string,
+  minRisk: number = 0.3
+): UseQueryResult<StudentPrediction[], Error> {
   const { tenantId } = useAuth()
   return useQuery({
     queryKey: analyticsKeys.predictions(tenantId!, courseId!),
@@ -282,7 +328,9 @@ export function useAtRiskStudents(courseId?: string, minRisk: number = 0.3) {
   })
 }
 
-export function usePredictionSummary(courseId?: string) {
+export function usePredictionSummary(
+  courseId?: string
+): UseQueryResult<PredictionSummary | null, Error> {
   const { tenantId } = useAuth()
   return useQuery({
     queryKey: analyticsKeys.predictionSummary(tenantId!, courseId!),

@@ -47,7 +47,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
   useEffect(() => {
     if (isOpen) {
       if (questionId) {
-        loadQuestion(questionId)
+        void loadQuestion(questionId)
       } else {
         setFormData(emptyQuestion)
       }

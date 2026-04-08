@@ -1,5 +1,13 @@
 import { valibotResolver } from '@hookform/resolvers/valibot'
-import { ClipboardList, FileText, X } from 'lucide-react'
+import {
+  BellRing,
+  ClipboardList,
+  FileText,
+  Link as LinkIcon,
+  MessageSquareText,
+  Paperclip,
+  X,
+} from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { type Resolver, useForm } from 'react-hook-form'
@@ -117,6 +125,9 @@ export function CreateAssignmentModal({
                   <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                     Buat Tugas Baru
                   </h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Atur tenggat, percobaan, penalti, dan metode pengumpulan native.
+                  </p>
                 </div>
               </div>
               <button
@@ -317,52 +328,78 @@ export function CreateAssignmentModal({
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">
                       Jenis Pengumpulan
                     </label>
-                    <div className="flex flex-wrap gap-4">
-                      <label className="flex items-center gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <label className="flex items-start gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
                         <input
                           type="checkbox"
                           {...register('allow_text_submission')}
-                          className="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600"
+                          className="mt-1 w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600"
                         />
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                          Teks
-                        </span>
+                        <div>
+                          <div className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300">
+                            <MessageSquareText className="w-4 h-4 text-blue-500" />
+                            Teks
+                          </div>
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            Jawaban ditulis langsung di aplikasi.
+                          </p>
+                        </div>
                       </label>
-                      <label className="flex items-center gap-2">
+                      <label className="flex items-start gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
                         <input
                           type="checkbox"
                           {...register('allow_file_submission')}
-                          className="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600"
+                          className="mt-1 w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600"
                         />
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                          File
-                        </span>
+                        <div>
+                          <div className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300">
+                            <Paperclip className="w-4 h-4 text-blue-500" />
+                            File
+                          </div>
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            Satu file private per percobaan.
+                          </p>
+                        </div>
                       </label>
-                      <label className="flex items-center gap-2">
+                      <label className="flex items-start gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
                         <input
                           type="checkbox"
                           {...register('allow_link_submission')}
-                          className="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600"
+                          className="mt-1 w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600"
                         />
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                          Link
-                        </span>
+                        <div>
+                          <div className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300">
+                            <LinkIcon className="w-4 h-4 text-blue-500" />
+                            Link
+                          </div>
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            URL eksternal untuk tugas yang di-host di luar LMS.
+                          </p>
+                        </div>
                       </label>
                     </div>
+                    {errors.allow_text_submission && (
+                      <p className="text-xs text-red-500">{errors.allow_text_submission.message}</p>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-2 pt-2">
-                    <input
-                      id="ca-reminder"
-                      type="checkbox"
-                      {...register('reminder_enabled')}
-                      className="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600"
-                    />
-                    <label
-                      htmlFor="ca-reminder"
-                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                    >
-                      Aktifkan Pengingat
+                  <div className="pt-2">
+                    <label className="flex items-start gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
+                      <input
+                        id="ca-reminder"
+                        type="checkbox"
+                        {...register('reminder_enabled')}
+                        className="mt-1 w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600"
+                      />
+                      <div>
+                        <div className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300">
+                          <BellRing className="w-4 h-4 text-blue-500" />
+                          Aktifkan Pengingat
+                        </div>
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                          Guru dapat mengirim reminder ke siswa yang belum submit.
+                        </p>
+                      </div>
                     </label>
                   </div>
 
@@ -402,14 +439,9 @@ export function CreateAssignmentModal({
             {/* Footer — only show submit button on detail tab */}
             {activeTab === 'detail' && (
               <div className="p-6 border-t border-slate-100 dark:border-slate-800 shrink-0 flex items-center justify-between bg-white dark:bg-slate-900">
-                <button
-                  type="button"
-                  disabled
-                  title="Fitur segera hadir"
-                  className="text-slate-400 dark:text-slate-500 font-bold text-sm cursor-not-allowed opacity-60"
-                >
-                  Jadwalkan
-                </button>
+                <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  Tugas dipublikasikan sebagai flow native EduSync.
+                </span>
                 <div className="flex gap-3">
                   <button
                     type="button"

@@ -59,13 +59,13 @@ export function useThreads() {
           filter: `parent_id=eq.${user.id}`,
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: messageKeys.threads(user.id) })
+          void queryClient.invalidateQueries({ queryKey: messageKeys.threads(user.id) })
         }
       )
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      void supabase.removeChannel(channel)
     }
   }, [user?.id, queryClient])
 
@@ -106,16 +106,16 @@ export function useMessages(threadId: string | undefined) {
         },
         () => {
           // Refetch messages dan threads (untuk update unread count + last_message_at)
-          queryClient.invalidateQueries({ queryKey: messageKeys.messages(threadId) })
+          void queryClient.invalidateQueries({ queryKey: messageKeys.messages(threadId) })
           if (user?.id) {
-            queryClient.invalidateQueries({ queryKey: messageKeys.threads(user.id) })
+            void queryClient.invalidateQueries({ queryKey: messageKeys.threads(user.id) })
           }
         }
       )
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      void supabase.removeChannel(channel)
     }
   }, [threadId, user?.id, queryClient])
 
@@ -178,7 +178,7 @@ export function useSendMessage(threadId: string | undefined) {
       )
       // Invalidate threads untuk update last_message_at
       if (user?.id) {
-        queryClient.invalidateQueries({ queryKey: messageKeys.threads(user.id) })
+        void queryClient.invalidateQueries({ queryKey: messageKeys.threads(user.id) })
       }
     },
   })
@@ -198,7 +198,7 @@ export function useMarkThreadRead() {
       markThreadRead(threadId, role),
     onSuccess: () => {
       if (user?.id) {
-        queryClient.invalidateQueries({ queryKey: messageKeys.threads(user.id) })
+        void queryClient.invalidateQueries({ queryKey: messageKeys.threads(user.id) })
       }
     },
   })
@@ -217,7 +217,7 @@ export function useCreateThread() {
     mutationFn: (params: CreateThreadParams) => createThread(params),
     onSuccess: () => {
       if (user?.id) {
-        queryClient.invalidateQueries({ queryKey: messageKeys.threads(user.id) })
+        void queryClient.invalidateQueries({ queryKey: messageKeys.threads(user.id) })
       }
     },
   })

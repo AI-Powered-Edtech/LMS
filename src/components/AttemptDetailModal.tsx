@@ -84,7 +84,7 @@ export function AttemptDetailModal({
         setIsLoading(false)
       }
     }
-    loadDetail()
+    void loadDetail()
   }, [attemptId])
 
   const correctCount = answers.filter((a) => a.is_correct).length

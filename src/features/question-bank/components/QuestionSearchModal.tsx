@@ -33,14 +33,14 @@ export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isOpen) {
-      loadQuestions()
+      void loadQuestions()
     }
   }, [isOpen, typeFilter])
 
   useEffect(() => {
     if (!isOpen) return
     const timer = setTimeout(() => {
-      loadQuestions()
+      void loadQuestions()
     }, 500)
     return () => clearTimeout(timer)
   }, [searchQuery])

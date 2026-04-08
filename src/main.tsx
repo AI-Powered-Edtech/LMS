@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import { AppProviders } from './app/providers'
 import { validateEnv } from './config/env.schema'
+import { normalizeLegacyHashUrl, sanitizeRedirectTarget } from './features/auth/utils/authFlow'
 import { useToast } from './hooks/useToast'
 import { initSentry } from './utils/sentry'
 import { reportWebVitals } from './utils/webVitals'
@@ -15,6 +16,17 @@ validateEnv()
 
 // Initialise Sentry before rendering so errors during boot are captured
 initSentry()
+
+const legacyHashPath = normalizeLegacyHashUrl(window.location)
+const redirectedPath = sanitizeRedirectTarget(
+  new URLSearchParams(window.location.search).get('redirect')
+)
+
+if (window.location.pathname === '/' && redirectedPath) {
+  window.history.replaceState(null, '', redirectedPath)
+} else if (legacyHashPath) {
+  window.history.replaceState(null, '', legacyHashPath)
+}
 
 // Guard to prevent double-firing auth redirects from concurrent request failures
 let authRedirectPending = false
@@ -54,7 +66,7 @@ window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => 
   const status = (reason as { status?: number })?.status
   if ((status === 401 || status === 403 || message.includes('JWT')) && !authRedirectPending) {
     authRedirectPending = true
-    window.location.hash = '#/login'
+    window.location.assign('/login')
     setTimeout(() => {
       authRedirectPending = false
     }, 2000)

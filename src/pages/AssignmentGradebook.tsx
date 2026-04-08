@@ -42,22 +42,25 @@ export function AssignmentGradebook() {
         setLoading(false)
       }
     }
-    loadAssignments()
+    void loadAssignments()
   }, [user?.id, tenantId])
 
-  const handleSelectAssignment = useCallback(async (assignment: Assignment) => {
-    setSelectedAssignment(assignment)
-    setLoadingSubmissions(true)
-    try {
-      const data = await assignmentService.getAssignmentSubmissions(assignment.id, tenantId!)
-      setSubmissions(data || [])
-    } catch (err) {
-      if (import.meta.env.DEV) console.error('Error fetching submissions:', err)
-      captureError(err, { context: 'AssignmentGradebook.handleSelectAssignment' })
-    } finally {
-      setLoadingSubmissions(false)
-    }
-  }, [])
+  const handleSelectAssignment = useCallback(
+    async (assignment: Assignment) => {
+      setSelectedAssignment(assignment)
+      setLoadingSubmissions(true)
+      try {
+        const data = await assignmentService.getAssignmentSubmissions(assignment.id, tenantId!)
+        setSubmissions(data || [])
+      } catch (err) {
+        if (import.meta.env.DEV) console.error('Error fetching submissions:', err)
+        captureError(err, { context: 'AssignmentGradebook.handleSelectAssignment' })
+      } finally {
+        setLoadingSubmissions(false)
+      }
+    },
+    [tenantId]
+  )
 
   const submissionColumns = useMemo(
     () => [
@@ -84,12 +87,14 @@ export function AssignmentGradebook() {
         header: 'Tanggal Pengiriman',
         render: (sub: AssignmentSubmission) => (
           <span className="text-sm text-slate-500 dark:text-slate-400">
-            {new Date(sub.submitted_at).toLocaleDateString('id-ID', {
-              day: 'numeric',
-              month: 'long',
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
+            {sub.submitted_at
+              ? new Date(sub.submitted_at).toLocaleDateString('id-ID', {
+                  day: 'numeric',
+                  month: 'long',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : '-'}
           </span>
         ),
       },
@@ -124,7 +129,7 @@ export function AssignmentGradebook() {
         ),
       },
     ],
-    [selectedAssignment]
+    []
   )
 
   return (

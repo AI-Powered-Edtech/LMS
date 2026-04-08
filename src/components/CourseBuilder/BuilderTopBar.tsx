@@ -84,7 +84,7 @@ export function BuilderTopBar({ releasePanelOpen, onToggleReleasePanel }: Builde
       setIsConfirmOpen(true)
       return
     }
-    navigate(courseListPath)
+    void navigate(courseListPath)
   }
 
   const blockerCount = readiness.blockers.length
@@ -100,7 +100,7 @@ export function BuilderTopBar({ releasePanelOpen, onToggleReleasePanel }: Builde
               setIsConfirmOpen(true)
               return
             }
-            navigate(-1)
+            void navigate(-1)
           }}
           className="p-2.5 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm border border-transparent hover:border-slate-100 dark:hover:border-slate-700 rounded-xl transition-all text-slate-500 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
           title="Kembali"
@@ -284,7 +284,7 @@ export function BuilderTopBar({ releasePanelOpen, onToggleReleasePanel }: Builde
             {/* Preview Button */}
             <button
               onClick={() => {
-                window.open(`/#/app/teacher/preview/${state.courseId}?preview=true`, '_blank')
+                window.open(`/app/teacher/preview/${state.courseId}?preview=true`, '_blank')
               }}
               disabled={!state.courseId}
               className="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"

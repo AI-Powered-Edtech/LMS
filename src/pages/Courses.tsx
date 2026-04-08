@@ -81,7 +81,7 @@ export const Courses: React.FC = () => {
   // M-18: Stable ref for the load-more callback — prevents observer recreation on dep changes
   const loadMoreRef = useRef<() => void>(() => {})
   loadMoreRef.current = () => {
-    if (hasNextPage && !isFetchingNextPage) fetchNextPage()
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage()
   }
 
   useEffect(() => {
@@ -119,9 +119,12 @@ export const Courses: React.FC = () => {
         tenant_id: activeTenant.id,
         created_by: user.id,
       })
+      if (!newCourse?.id) {
+        throw new Error('Gagal membuat materi baru.')
+      }
 
       setIsModalOpen(false)
-      navigate(
+      void navigate(
         `${getPath('/app/teacher/course-builder', '/app/admin/course-builder')}?courseId=${newCourse.id}`
       )
     } catch (err: unknown) {

@@ -169,7 +169,7 @@ export function UserManagement() {
               <button
                 onClick={() => {
                   setCursor(null)
-                  fetchUsers()
+                  void fetchUsers()
                 }}
                 className="p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700"
                 title="Refresh"
@@ -223,8 +223,8 @@ export function UserManagement() {
           onClose={() => setShowBulkImportWizard(false)}
           onSuccess={() => {
             setShowBulkImportWizard(false)
-            fetchUsers()
-            fetchInvitations()
+            void fetchUsers()
+            void fetchInvitations()
           }}
         />
       )}

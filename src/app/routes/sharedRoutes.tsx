@@ -6,6 +6,8 @@ import {
   AccountDeletionPage,
   Announcements,
   Assignments,
+  AuthCallback,
+  AuthError,
   Calendar,
   DataExportPage,
   Directory,
@@ -44,6 +46,22 @@ export function PublicRoutes() {
         element={
           <S>
             <Login />
+          </S>
+        }
+      />
+      <Route
+        path="/auth/callback"
+        element={
+          <S>
+            <AuthCallback />
+          </S>
+        }
+      />
+      <Route
+        path="/auth/error"
+        element={
+          <S>
+            <AuthError />
           </S>
         }
       />
@@ -136,7 +154,7 @@ export function PublicRoutes() {
         }
       />
       {/*
-       * Deep link enrollment: /#/join?code=XXXXXX
+       * Deep link enrollment: /join?code=XXXXXX
        * Accessible without authentication — EnrollPage handles the auth redirect
        * internally (saves code to sessionStorage, redirects to /login).
        */}

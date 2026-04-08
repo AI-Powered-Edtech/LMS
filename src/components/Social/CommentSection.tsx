@@ -317,7 +317,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
     } finally {
       setLoading(false)
     }
-  }, [entityId, entityType, addToast])
+  }, [entityId, entityType, addToast, tenantId])
 
   useEffect(() => {
     void loadComments()
@@ -367,7 +367,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
         addToast({ type: 'error', message: 'Gagal mengubah status sematan komentar' })
       }
     },
-    [addToast]
+    [addToast, tenantId]
   )
 
   if (loading) {
@@ -415,7 +415,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          handleSubmit()
+          void handleSubmit()
         }}
         className="mt-6 flex gap-3 pt-4 border-t border-slate-100"
       >

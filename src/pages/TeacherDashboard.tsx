@@ -249,7 +249,7 @@ export function TeacherDashboard() {
                       icon={<BarChart3 className="w-4 h-4" />}
                       onClick={() => {
                         setActiveClassroomId(classroom.id)
-                        navigate('/analytics')
+                        void navigate('/analytics')
                       }}
                     >
                       Analitik
@@ -259,7 +259,7 @@ export function TeacherDashboard() {
                       size="sm"
                       onClick={() => {
                         setActiveClassroomId(classroom.id)
-                        navigate('/app/teacher/classes')
+                        void navigate('/app/teacher/classes')
                       }}
                     >
                       Kelola Kelas <ChevronRight className="w-4 h-4" />

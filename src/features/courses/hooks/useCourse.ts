@@ -33,8 +33,8 @@ export function useCourseMutation() {
     onSuccess: () => {
       // Tenant-scoped invalidation — mencegah blast ke tenant lain di cache
       if (tenantId) {
-        qc.invalidateQueries({ queryKey: courseKeys.lists(tenantId) })
-        qc.invalidateQueries({ queryKey: courseKeys.infinite(tenantId) })
+        void qc.invalidateQueries({ queryKey: courseKeys.lists(tenantId) })
+        void qc.invalidateQueries({ queryKey: courseKeys.infinite(tenantId) })
       } else {
         // tenantId not yet available — skip invalidation rather than blast all caches
         logDevWarn(

@@ -122,7 +122,7 @@ export function QuizPlayer({
       }
     }
 
-    computeResumeIndex()
+    void computeResumeIndex()
     // QUIZ-HIGH-06: Clear the toast timeout on cleanup to prevent memory leak / state update on unmounted component
     return () => {
       clearTimeout(resumeTimeoutRef.current)

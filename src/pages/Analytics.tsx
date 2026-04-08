@@ -97,7 +97,7 @@ export function Analytics() {
           <button
             onClick={() => {
               if (selectedCourseId) {
-                navigate(`/app/teacher/course-analytics?courseId=${selectedCourseId}`)
+                void navigate(`/app/teacher/course-analytics?courseId=${selectedCourseId}`)
               }
             }}
             disabled={!selectedCourseId}

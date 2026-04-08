@@ -98,14 +98,14 @@ export function useQuestionBankSelect({
 
   // Fetch saat filter berubah (non-search: langsung)
   useEffect(() => {
-    fetchQuestions()
+    void fetchQuestions()
   }, [filterType, filterDifficulty, filterTags, fetchQuestions])
 
   // Fetch saat search berubah (debounce 400ms)
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      fetchQuestions()
+      void fetchQuestions()
     }, 400)
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)

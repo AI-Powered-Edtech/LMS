@@ -35,7 +35,10 @@ export function useInteractiveVideoEvents({
   const { tenantId } = useAuth()
 
   const interactiveData = metadata as InteractiveVideoMetadata | undefined
-  const events = interactiveData?.interactiveEvents || []
+  const events = useMemo(
+    () => interactiveData?.interactiveEvents ?? [],
+    [interactiveData?.interactiveEvents]
+  )
 
   const [activeEvent, setActiveEvent] = useState<InteractiveEvent | null>(null)
   const [completedEvents, setCompletedEvents] = useState<Set<number>>(new Set())
@@ -79,7 +82,7 @@ export function useInteractiveVideoEvents({
         })
         .catch((err) => console.error('[useInteractiveVideoEvents] Failed to load quiz', err))
     })
-  }, [tenantId, eventIdsKey])
+  }, [tenantId, events, eventIdsKey])
 
   // Check if the current playback time matches an interactive event
   const checkForEvent = useCallback(

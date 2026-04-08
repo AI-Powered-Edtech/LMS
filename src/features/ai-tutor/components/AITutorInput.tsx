@@ -67,7 +67,7 @@ export function AITutorInput({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       if (!isLoading && question.trim() && !disabled) {
-        handleSubmit()
+        void handleSubmit()
       }
     }
   }

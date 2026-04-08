@@ -73,7 +73,7 @@ export function InteractiveVideoEditor({
         setLoading(false)
       }
     }
-    loadQuizzes()
+    void loadQuizzes()
   }, [tenantId])
 
   // Load captions when lessonId is available

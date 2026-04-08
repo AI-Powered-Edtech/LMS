@@ -117,7 +117,7 @@ export function QuestionBankExportImport() {
 
       if (fileInputRef.current) fileInputRef.current.value = ''
     },
-    [tenantId, addToast]
+    [addToast]
   )
 
   return (

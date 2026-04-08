@@ -16,7 +16,7 @@ let status: BackgroundSyncStatus = {
   lastResult: null,
 }
 
-function publishStatus(next: BackgroundSyncStatus) {
+function publishStatus(next: BackgroundSyncStatus): void {
   status = next
   listeners.forEach((listener) => listener(status))
 }
@@ -56,11 +56,13 @@ export async function syncPendingSubmissions(): Promise<SyncResult> {
 export function scheduleSync(attempt: number = 0): void {
   const delay = DELAYS[Math.min(attempt, DELAYS.length - 1)]
 
-  window.setTimeout(async () => {
-    const result = await syncPendingSubmissions()
+  window.setTimeout(() => {
+    void (async (): Promise<void> => {
+      const result = await syncPendingSubmissions()
 
-    if (result.failed > 0 && attempt < DELAYS.length - 1) {
-      scheduleSync(attempt + 1)
-    }
+      if (result.failed > 0 && attempt < DELAYS.length - 1) {
+        scheduleSync(attempt + 1)
+      }
+    })()
   }, delay)
 }

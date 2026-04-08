@@ -52,7 +52,7 @@ export function AITutorPanel({
   onClose: _onClose,
 }: AITutorPanelProps) {
   useEffect(() => {
-    import('katex/dist/katex.min.css')
+    void import('katex/dist/katex.min.css')
   }, [])
 
   const { tenantId } = useAuth()
@@ -176,7 +176,7 @@ export function AITutorPanel({
 
   const handleSuggestedClick = (question: string) => {
     if (!isLoading) {
-      handleSendQuestion(question)
+      void handleSendQuestion(question)
     }
   }
 

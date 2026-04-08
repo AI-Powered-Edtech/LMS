@@ -19,24 +19,24 @@ export function RoleResolver() {
     if (!loading) {
       switch (activeRole) {
         case 'admin':
-          navigate('/app/admin', { replace: true })
+          void navigate('/app/admin', { replace: true })
           break
         case 'principal':
-          navigate('/app/principal', { replace: true })
+          void navigate('/app/principal', { replace: true })
           break
         case 'teacher':
-          navigate('/app/teacher', { replace: true })
+          void navigate('/app/teacher', { replace: true })
           break
         case 'parent':
-          navigate('/app/parent', { replace: true })
+          void navigate('/app/parent', { replace: true })
           break
         case 'student':
-          navigate('/app/student', { replace: true })
+          void navigate('/app/student', { replace: true })
           break
         default:
           // activeRole is null → no active tenant; TenantGuard upstream should
           // already redirect to /workspace-selector, but guard here as fallback.
-          navigate('/workspace-selector', { replace: true })
+          void navigate('/workspace-selector', { replace: true })
       }
     }
   }, [activeRole, loading, navigate])

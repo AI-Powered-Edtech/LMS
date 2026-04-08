@@ -1,13 +1,21 @@
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import {
+  InfiniteData,
+  useInfiniteQuery,
+  UseInfiniteQueryResult,
+  useQuery,
+  UseQueryResult,
+} from '@tanstack/react-query'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { STALE } from '@/utils/queryConstants'
 
 import { courseService } from '../api/courseService'
-import { FetchCoursesOptions } from '../types'
+import { Course, FetchCoursesOptions } from '../types'
 import { courseKeys } from './courseKeys'
 
-export function useCourses(filters?: Omit<FetchCoursesOptions, 'tenantId'>) {
+export function useCourses(
+  filters?: Omit<FetchCoursesOptions, 'tenantId'>
+): UseQueryResult<{ courses: Course[]; count: number }> {
   const { tenantId } = useAuth()
 
   return useQuery({
@@ -25,7 +33,9 @@ const PAGE_SIZE = 12
  * Uses courseKeys.infinite() for consistent cache invalidation.
  * tenantId is read from useAuth() internally for a consistent API.
  */
-export function useInfiniteCoursesQuery(search?: string) {
+export function useInfiniteCoursesQuery(
+  search?: string
+): UseInfiniteQueryResult<InfiniteData<{ courses: Course[]; count: number }>> {
   const { tenantId } = useAuth()
 
   return useInfiniteQuery({

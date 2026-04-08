@@ -70,7 +70,7 @@ export function SuspiciousAttemptsPanel({
     }
 
     if (quizId && tenantId) {
-      fetchData()
+      void fetchData()
     }
   }, [quizId, tenantId])
 

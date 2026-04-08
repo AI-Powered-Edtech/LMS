@@ -24,10 +24,10 @@ export function useSyncQueueCount(): number {
   }, [])
 
   useEffect(() => {
-    refresh()
+    void refresh()
 
     const handleChange = () => {
-      refresh()
+      void refresh()
     }
 
     window.addEventListener('online', handleChange)

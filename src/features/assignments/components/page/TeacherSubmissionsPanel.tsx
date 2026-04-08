@@ -3,25 +3,26 @@ import { Link } from 'react-router-dom'
 
 import { EmptyState, OptimizedImage } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
+import type { AssignmentGradingQueue } from '@/features/assignments/api/assignmentService'
 import type { AssignmentUiState } from '@/features/assignments/types'
 import { PlagiarismCheckButton } from '@/features/plagiarism'
 
 interface TeacherSubmissionsPanelProps {
   assignment: AssignmentUiState
-  getStudentGrade: (
-    studentId: string,
-    assignmentId: string
-  ) => { score: number | null } | null | undefined
+  gradingQueue?: AssignmentGradingQueue | null
 }
 
 export function TeacherSubmissionsPanel({
   assignment,
-  getStudentGrade,
+  gradingQueue,
 }: TeacherSubmissionsPanelProps) {
   const { tenantId } = useAuth()
-  const submissions = assignment.studentSubmissions || []
+  const submissions = gradingQueue?.students ?? assignment.studentSubmissions
   const submittedCount = submissions.filter(
-    (s: { status: string }) => s.status === 'submitted' || s.status === 'graded'
+    (submission: { status: string }) =>
+      submission.status === 'submitted' ||
+      submission.status === 'graded' ||
+      submission.status === 'late'
   ).length
 
   return (
@@ -41,50 +42,57 @@ export function TeacherSubmissionsPanel({
           />
         ) : (
           submissions.map((sub) => {
-            const gradeEntry = getStudentGrade(String(sub.id), assignment.id)
-            const displayGrade = gradeEntry?.score !== null ? gradeEntry?.score : sub.grade
+            const isQueueRow = 'submission_id' in sub
+            const studentName = isQueueRow ? sub.student_name : sub.studentName
+            const studentId = isQueueRow ? sub.student_id : sub.studentId
+            const displayGrade = isQueueRow ? (sub.score ?? sub.raw_score ?? null) : sub.grade
             const isGraded = displayGrade !== null && displayGrade !== undefined
 
             return (
               <div
-                key={sub.id}
+                key={isQueueRow ? sub.student_id : sub.id}
                 className="flex items-center justify-between p-3 border border-slate-100 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center overflow-hidden">
                     <OptimizedImage
-                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${sub.studentName}`}
+                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${studentName}`}
                       alt=""
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <div>
                     <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                      {sub.studentName}
+                      {studentName}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {sub.status === 'assigned'
+                      {sub.status === 'assigned' || sub.status === 'not_submitted'
                         ? 'Belum diserahkan'
                         : sub.status === 'submitted'
                           ? 'Diserahkan'
-                          : 'Dinilai'}
+                          : sub.status === 'late'
+                            ? 'Terlambat'
+                            : 'Dinilai'}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
                   {/* Plagiarism check — only for submitted/graded text submissions */}
-                  {(sub.status === 'submitted' || sub.status === 'graded') &&
+                  {(sub.status === 'submitted' ||
+                    sub.status === 'graded' ||
+                    sub.status === 'late') &&
                     tenantId &&
-                    typeof sub.id === 'string' && (
-                      <PlagiarismCheckButton submissionId={sub.id} tenantId={tenantId} />
+                    isQueueRow &&
+                    sub.submission_id && (
+                      <PlagiarismCheckButton submissionId={sub.submission_id} tenantId={tenantId} />
                     )}
                   {isGraded ? (
                     <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                      {displayGrade}/100
+                      {displayGrade}/{assignment.maxGrade}
                     </span>
-                  ) : sub.status === 'submitted' ? (
+                  ) : sub.status === 'submitted' || sub.status === 'late' ? (
                     <Link
-                      to={`/grader?assignmentId=${assignment.id}&studentId=${sub.id}`}
+                      to={`/grader?assignmentId=${assignment.id}&studentId=${studentId}`}
                       className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
                     >
                       Beri Nilai

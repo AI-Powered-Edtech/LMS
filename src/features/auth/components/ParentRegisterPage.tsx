@@ -268,7 +268,9 @@ export function ParentRegisterPage() {
       // Dev mode: simpan OTP untuk ditampilkan di UI
       if (import.meta.env.DEV && result.dev_otp) {
         setDevOtp(result.dev_otp)
-        console.info('[ParentRegister] DEV OTP:', result.dev_otp)
+        if (import.meta.env.DEV) {
+          console.warn('[ParentRegister] DEV OTP:', result.dev_otp)
+        }
       }
 
       setStep(2)

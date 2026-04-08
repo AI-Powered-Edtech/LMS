@@ -117,7 +117,7 @@ const AdminNotificationItem = memo(function AdminNotificationItem({
     if (!notification.is_read) markAsRead(notification.id)
     if (url) {
       onClose()
-      navigate(url)
+      void navigate(url)
     }
   }, [notification.is_read, notification.id, markAsRead, url, onClose, navigate])
 

@@ -66,7 +66,7 @@ export function useUpsertGuide() {
     ) => guidanceService.upsertGuide(params),
     onSuccess: () => {
       if (tenantId) {
-        queryClient.invalidateQueries({ queryKey: base.all(tenantId) })
+        void queryClient.invalidateQueries({ queryKey: base.all(tenantId) })
       }
     },
     onError: (err) => {
@@ -82,7 +82,7 @@ export function useDeleteGuide() {
     mutationFn: (guideId: string) => guidanceService.deleteGuide(guideId),
     onSuccess: () => {
       if (tenantId) {
-        queryClient.invalidateQueries({ queryKey: base.all(tenantId) })
+        void queryClient.invalidateQueries({ queryKey: base.all(tenantId) })
       }
     },
     onError: (err) => {

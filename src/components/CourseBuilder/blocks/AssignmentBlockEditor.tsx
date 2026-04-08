@@ -57,7 +57,7 @@ export function AssignmentBlockEditor({ blockId: _blockId }: { blockId: string }
         setIsLoading(false)
       }
     }
-    load()
+    void load()
   }, [activeLesson?.id])
   /* eslint-enable react-hooks/exhaustive-deps */
 

@@ -73,10 +73,10 @@ export function LtiCallback() {
             // If it's an internal path, use navigate
             if (url.origin === window.location.origin) {
               const path = url.pathname + url.search + url.hash
-              navigate(path, { replace: true })
+              void navigate(path, { replace: true })
             } else {
               // External redirect (shouldn't happen, but handle gracefully)
-              navigate('/app/student/courses', { replace: true })
+              void navigate('/app/student/courses', { replace: true })
             }
           } catch (err) {
             if (import.meta.env.DEV)
@@ -85,7 +85,7 @@ export function LtiCallback() {
                 redirect,
                 err
               )
-            navigate('/app/student/courses', { replace: true })
+            void navigate('/app/student/courses', { replace: true })
           }
         }, 500)
       } catch (err) {
@@ -95,7 +95,7 @@ export function LtiCallback() {
       }
     }
 
-    verifyToken()
+    void verifyToken()
   }, [searchParams, navigate])
 
   return (

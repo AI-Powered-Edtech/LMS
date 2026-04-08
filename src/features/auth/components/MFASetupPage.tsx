@@ -40,7 +40,7 @@ export function MFASetupPage() {
     const result = await verifyMFAEnrollment(factorId, verificationCode)
     if (result) {
       addToast({ type: 'success', message: '2FA berhasil diaktifkan!' })
-      window.location.hash = '#/app/student/dashboard'
+      window.location.assign('/app/student/dashboard')
     } else {
       setError('Kode verifikasi salah. Pastikan waktu perangkat Anda akurat.')
       addToast({ type: 'error', message: 'Kode verifikasi salah' })
@@ -49,7 +49,7 @@ export function MFASetupPage() {
   }, [factorId, verificationCode, addToast])
 
   useEffect(() => {
-    handleStartEnrollment()
+    void handleStartEnrollment()
   }, [handleStartEnrollment])
 
   return (
@@ -125,7 +125,7 @@ export function MFASetupPage() {
 
         <div className="text-center">
           <a
-            href="#/app/student/dashboard"
+            href="/app/student/dashboard"
             className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
           >
             Lewati untuk sekarang

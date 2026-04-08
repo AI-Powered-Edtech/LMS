@@ -237,7 +237,7 @@ export function ScormPlayer({
       }
     }
 
-    init()
+    void init()
 
     return () => {
       cancelled = true

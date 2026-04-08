@@ -12,7 +12,7 @@ EduSync operates in three environments. Each has its own Supabase project (or lo
 | ----------- | --------------------------- | --------------------------- | ----------------- |
 | Local       | http://localhost:5173       | Local (`supabase start`)    | Developer machine |
 | Staging     | https://staging.edusync.dev | Supabase staging project    | Vercel preview    |
-| Production  | https://app.edusync.id      | Supabase production project | Vercel production |
+| Production  | https://app.edusync.id      | Supabase production project | Puter site        |
 
 ---
 
@@ -102,35 +102,55 @@ vercel --env staging
 
 Live environment serving real users. No debugging tools, no source maps exposed.
 
-### Environment Variables (set in Vercel Dashboard)
+### Environment Variables (set in Puter site config or injected before `pnpm run build`)
 
-| Variable                 | Description                              |
-| ------------------------ | ---------------------------------------- |
-| `VITE_SUPABASE_URL`      | Production Supabase project URL          |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anon key (safe to expose)       |
-| `VITE_SENTRY_DSN`        | Sentry DSN for production error tracking |
-| `VITE_FF_AI_TUTOR`       | Feature flag: AI Tutor module            |
-| `VITE_FF_GAMIFICATION`   | Feature flag: XP, badges, leaderboard    |
-| `VITE_FF_CERTIFICATES`   | Feature flag: Certificate generation     |
-| `VITE_FF_ANALYTICS`      | Feature flag: Analytics dashboards       |
-| `VITE_FF_SOCIAL`         | Feature flag: Forum and social features  |
-| `VITE_FF_ATTENDANCE`     | Feature flag: Attendance tracking        |
+| Variable                 | Description                               |
+| ------------------------ | ----------------------------------------- |
+| `VITE_SUPABASE_URL`      | Production Supabase project URL           |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anon key (safe to expose)        |
+| `VITE_SENTRY_DSN`        | Sentry DSN for production error tracking  |
+| `VITE_VAPID_PUBLIC_KEY`  | Web Push public key jika fitur push aktif |
+| `VITE_FF_AI_TUTOR`       | Feature flag: AI Tutor module             |
+| `VITE_FF_GAMIFICATION`   | Feature flag: XP, badges, leaderboard     |
+| `VITE_FF_CERTIFICATES`   | Feature flag: Certificate generation      |
+| `VITE_FF_ANALYTICS`      | Feature flag: Analytics dashboards        |
+| `VITE_FF_SOCIAL`         | Feature flag: Forum and social features   |
+| `VITE_FF_ATTENDANCE`     | Feature flag: Attendance tracking         |
 
 > Never set `SUPABASE_SERVICE_ROLE_KEY` or any private key in `VITE_*` variables. Service role keys must only exist in Edge Function secrets (Supabase Vault or project secrets).
+
+### Production Deploy Flow
+
+```bash
+pnpm run build
+pnpm run deploy:puter
+```
+
+- Production frontend is published to Puter from `dist/`.
+- HashRouter is already used in the app, so Puter does not need custom rewrite rules.
+- Supabase Auth must allow the production origin:
+  - Site URL: `https://app.edusync.id`
+  - Redirect URLs:
+    - `https://app.edusync.id`
+    - `https://app.edusync.id/#/auth/callback`
+    - `https://app.edusync.id/#/reset-password`
+- Supabase Edge Functions must receive production origin and app URL secrets:
+  - `CORS_ORIGIN=https://app.edusync.id`
+  - `APP_URL=https://app.edusync.id`
 
 ---
 
 ## 5. Key Differences Between Environments
 
-| Concern              | Local                       | Staging                 | Production              |
-| -------------------- | --------------------------- | ----------------------- | ----------------------- |
-| Source maps          | Enabled                     | Enabled                 | Disabled                |
-| Sentry               | Off                         | Enabled (staging DSN)   | Enabled (prod DSN)      |
-| React Query devtools | Enabled                     | Disabled                | Disabled                |
-| Console logs         | All enabled                 | Warnings + errors only  | Errors only             |
-| RLS                  | Enabled (same as prod)      | Enabled                 | Enabled                 |
-| Migrations           | Manual (`supabase db push`) | Applied via CI on merge | Applied via CI on merge |
-| Seed data            | Full dev seed               | Anonymized staging seed | Real data (no seed)     |
+| Concern              | Local                       | Staging                 | Production                      |
+| -------------------- | --------------------------- | ----------------------- | ------------------------------- |
+| Source maps          | Enabled                     | Enabled                 | Disabled                        |
+| Sentry               | Off                         | Enabled (staging DSN)   | Enabled (prod DSN)              |
+| React Query devtools | Enabled                     | Disabled                | Disabled                        |
+| Console logs         | All enabled                 | Warnings + errors only  | Errors only                     |
+| RLS                  | Enabled (same as prod)      | Enabled                 | Enabled                         |
+| Migrations           | Manual (`supabase db push`) | Applied before staging  | Manual release via Supabase CLI |
+| Seed data            | Full dev seed               | Anonymized staging seed | Real data (no seed)             |
 
 ---
 
@@ -147,19 +167,20 @@ Feature flags are evaluated at runtime from `VITE_FF_*` environment variables. T
 | `FF_SOCIAL`       | true  | true    | true                     |
 | `FF_ATTENDANCE`   | true  | true    | true                     |
 
-To disable a feature in production without a code deploy, update the Vercel environment variable and trigger a redeploy.
+To disable a feature in production without a code change, update the Puter build environment value and trigger a new deploy.
 
 ---
 
 ## 7. Secrets Management
 
-| Secret                      | Where stored                   | Who can access         |
-| --------------------------- | ------------------------------ | ---------------------- |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Edge Function secrets | Edge Functions only    |
-| `OPENAI_API_KEY`            | Supabase Edge Function secrets | AI Tutor function only |
-| `RESEND_API_KEY`            | Supabase Edge Function secrets | Email function only    |
-| `VERCEL_TOKEN`              | GitHub Actions secrets         | Deploy workflow only   |
-| `VITE_SUPABASE_ANON_KEY`    | Vercel env vars (public)       | Frontend (safe)        |
+| Secret                      | Where stored                   | Who can access                  |
+| --------------------------- | ------------------------------ | ------------------------------- |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Edge Function secrets | Edge Functions only             |
+| `GROQ_API_KEY`              | Supabase Edge Function secrets | AI functions only               |
+| `CORS_ORIGIN`               | Supabase Edge Function secrets | Browser-facing Edge Functions   |
+| `APP_URL`                   | Supabase Edge Function secrets | LTI / email / redirect builders |
+| `VAPID_PRIVATE_KEY`         | Supabase Edge Function secrets | Push function only              |
+| `VITE_SUPABASE_ANON_KEY`    | Puter build env (public)       | Frontend (safe)                 |
 
 Never commit `.env.local`, `.env.staging`, or any file containing real credentials to the repository.
 

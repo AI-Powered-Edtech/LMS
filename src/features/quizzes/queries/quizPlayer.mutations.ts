@@ -26,7 +26,7 @@ export function useStartQuizAttempt() {
     mutationFn: (input: StartQuizAttemptInput) => quizPlayerService.startQuizAttempt(input),
     onSuccess: () => {
       if (tenantId) {
-        queryClient.invalidateQueries({ queryKey: QuizKeys.studentAssignments(tenantId) })
+        void queryClient.invalidateQueries({ queryKey: QuizKeys.studentAssignments(tenantId) })
       }
     },
     onError: (err) => {
@@ -101,8 +101,8 @@ export function useSubmitQuizAttempt() {
     onSettled: () => {
       // Always sync with server after mutation completes (success or error)
       if (tenantId) {
-        queryClient.invalidateQueries({ queryKey: QuizKeys.userAttempts(tenantId) })
-        queryClient.invalidateQueries({ queryKey: QuizKeys.studentAssignments(tenantId) })
+        void queryClient.invalidateQueries({ queryKey: QuizKeys.userAttempts(tenantId) })
+        void queryClient.invalidateQueries({ queryKey: QuizKeys.studentAssignments(tenantId) })
       }
     },
   })

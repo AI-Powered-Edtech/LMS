@@ -1,7 +1,9 @@
 import { RefreshCw, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 
+import { isAuthSurfacePath } from '@/features/auth/utils/authFlow'
 import { usePWA } from '@/hooks/usePWA'
 
 const SNOOZE_DURATION_MS = 60 * 60 * 1000 // 1 jam
@@ -11,6 +13,7 @@ const SNOOZE_DURATION_MS = 60 * 60 * 1000 // 1 jam
 // ---------------------------------------------------------------------------
 
 export function PWAUpdateToast() {
+  const location = useLocation()
   const { isUpdateAvailable, updateApp } = usePWA()
   const [snoozedUntil, setSnoozedUntil] = useState<number | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
@@ -41,6 +44,9 @@ export function PWAUpdateToast() {
   }, [])
 
   const visible = isUpdateAvailable && !isSnoozed
+  if (isAuthSurfacePath(location.pathname)) {
+    return null
+  }
 
   return (
     <AnimatePresence>

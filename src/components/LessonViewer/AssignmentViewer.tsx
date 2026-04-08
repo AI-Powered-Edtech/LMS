@@ -52,11 +52,11 @@ export function AssignmentViewer({
     async function loadSubmission() {
       try {
         const data = await assignmentService.getAssignmentDetails(assignmentId, user!.id, tenantId!)
-        if (data && data.assignment_submissions?.length > 0) {
-          const sub = data.assignment_submissions[0]
+        if (data && data.submission) {
+          const sub = data.submission as AssignmentSubmission
           setSubmission(sub)
-          setSubmissionText(sub.submission_content?.content || '')
-          setAttemptCount(1) // No attempt_number in new schema
+          setSubmissionText(sub.submission_text || '')
+          setAttemptCount(sub.attempt_number ?? 1)
         }
       } catch (err: unknown) {
         if (import.meta.env.DEV) console.error('Error loading submission:', err)
@@ -66,22 +66,24 @@ export function AssignmentViewer({
       }
     }
     void loadSubmission()
-  }, [assignmentId, user?.id, tenantId])
+  }, [assignmentId, tenantId, user])
 
   const handleSubmit = async () => {
     if (!user?.id || !submissionText.trim()) return
     setIsSubmitting(true)
     setError(null)
     try {
-      const submissionContent = { type: 'text', content: submissionText, file_urls: [] }
-      const result = await assignmentService.submitAssignment(
+      const result = await assignmentService.submitAssignmentAttempt(
         assignmentId,
         user.id,
         tenantId!,
-        submissionContent
+        {
+          text: submissionText,
+          clientRequestId: crypto.randomUUID(),
+        }
       )
       setSubmission(result)
-      setAttemptCount(attemptCount + 1)
+      setAttemptCount(result.attempt_number ?? attemptCount + 1)
       onCompletionMet()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Kesalahan tidak diketahui')
@@ -99,8 +101,8 @@ export function AssignmentViewer({
     )
   }
 
-  const isSubmitted = !!submission
-  const isGraded = false // Grades are separate in new schema
+  const isSubmitted = !!submission?.submitted_at
+  const isGraded = submission?.status === 'graded' || submission?.status === 'returned'
   const canEdit = !isSubmitted && !isGraded && !isCompleted
 
   // Handle unpublished assignments for students

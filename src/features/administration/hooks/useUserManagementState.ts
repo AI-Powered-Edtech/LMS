@@ -64,7 +64,7 @@ export function useUserManagementState() {
         setLoading(false)
       }
     },
-    [debouncedSearch, roleFilter]
+    [addToast, debouncedSearch, roleFilter]
   )
 
   const fetchInvitations = useCallback(async () => {
@@ -78,15 +78,15 @@ export function useUserManagementState() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [addToast])
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (tab === 'users') {
       setCursor(null)
-      fetchUsers()
+      void fetchUsers()
     } else {
-      fetchInvitations()
+      void fetchInvitations()
     }
   }, [tab, debouncedSearch, roleFilter])
   /* eslint-enable react-hooks/exhaustive-deps */
@@ -126,8 +126,8 @@ export function useUserManagementState() {
 
   const copyInviteLink = (token: string) => {
     // Gunakan path parameter, bukan query param — mencegah token bocor via browser history & Referer header
-    const link = `${window.location.origin}/#/invite/${token}`
-    navigator.clipboard.writeText(link)
+    const link = `${window.location.origin}/invite/${token}`
+    void navigator.clipboard.writeText(link)
   }
 
   const formatDate = (dateStr: string | null) => {

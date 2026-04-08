@@ -49,7 +49,7 @@ export function QuizAnalyticsPanel({ quizId, className }: QuizAnalyticsPanelProp
     }
 
     if (quizId) {
-      fetchStats()
+      void fetchStats()
     }
   }, [quizId])
 

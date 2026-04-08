@@ -294,6 +294,18 @@ export const navigationItems: NavItem[] = [
     border: 'border-indigo-200',
   },
   {
+    id: 'lesson-monitor',
+    name: 'Monitor Pelajaran',
+    path: '/app/teacher/lesson-monitor',
+    icon: Activity,
+    roles: ['teacher'],
+    location: 'teaching-hub',
+    description: 'Pantau progress siswa secara real-time.',
+    color: 'text-red-600',
+    bg: 'bg-red-100',
+    border: 'border-red-200',
+  },
+  {
     id: 'attendance',
     name: 'Scan Absensi',
     path: '/app/teacher/scan-attendance',

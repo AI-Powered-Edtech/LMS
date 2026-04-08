@@ -41,6 +41,7 @@ function makeAuthContext(overrides: Record<string, unknown> = {}) {
     signIn: vi.fn().mockResolvedValue({ error: null }),
     signUp: vi.fn().mockResolvedValue({ error: null }),
     signInWithGoogle: vi.fn(),
+    clearAuthError: vi.fn(),
     ...overrides,
   } as any
 }
@@ -60,7 +61,7 @@ describe('useLoginState', () => {
     mockAuthService.checkRateLimit.mockResolvedValue({ allowed: true })
     // Default: no invite token in URL
     Object.defineProperty(window, 'location', {
-      value: { hash: '#/login' },
+      value: { search: '', pathname: '/login' },
       writable: true,
     })
   })
@@ -284,7 +285,7 @@ describe('useLoginState', () => {
 
       // Simulasi invite token di URL
       Object.defineProperty(window, 'location', {
-        value: { hash: '#/login?invite=abc123' },
+        value: { search: '?invite=abc123', pathname: '/login' },
         writable: true,
       })
       mockAuthService.validateInvitation.mockResolvedValue({

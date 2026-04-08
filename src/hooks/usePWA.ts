@@ -103,10 +103,14 @@ export function usePWA(): PWAState {
     updateServiceWorker,
   } = useRegisterSW({
     onRegistered(r) {
-      if (import.meta.env.DEV) console.log('[usePWA] SW registered', r)
+      if (import.meta.env.DEV) {
+        console.warn('[usePWA] SW registered', r)
+      }
     },
     onRegisterError(error) {
-      if (import.meta.env.DEV) console.warn('[usePWA] SW registration error', error)
+      if (import.meta.env.DEV) {
+        console.warn('[usePWA] SW registration error', error)
+      }
     },
   })
 

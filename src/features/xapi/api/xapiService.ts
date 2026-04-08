@@ -1,6 +1,6 @@
 import { supabase } from '@/services/supabase/client'
 
-import type { XAPIContext, XAPIObjectType, XAPIResult, XAPIVerb } from '../types'
+import type { XAPIContext, XAPIObjectType, XAPIResult, XAPIVerb } from '../types/index'
 
 /**
  * Records an xAPI statement via the record_xapi_statement RPC.

@@ -171,7 +171,7 @@ export function useBuilderOffline(
       }
     }
 
-    handleReconnect()
+    void handleReconnect()
   }, [wasOffline, isOnline, hasPendingDraft, courseId, resetWasOffline, syncDraftToServer])
 
   // ---------------------------------------------------------------------------

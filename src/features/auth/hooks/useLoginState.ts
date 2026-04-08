@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { authService } from '@/features/auth/api/authService'
+import { persistPostAuthRedirect } from '@/features/auth/utils/authFlow'
 import {
   type LoginFormData,
   LoginFormSchema,
@@ -28,8 +29,8 @@ export interface ClassInfo {
   tenant_name: string
 }
 
-export function useLoginState() {
-  const { user, signIn, signUp, signInWithGoogle, loading } = useAuth()
+export function useLoginState(postAuthRedirect?: string | null) {
+  const { user, signIn, signUp, signInWithGoogle, loading, clearAuthError } = useAuth()
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [step, setStep] = useState<1 | 2 | 3>(1)
 
@@ -59,23 +60,19 @@ export function useLoginState() {
   const [inviteInfo, setInviteInfo] = useState<InviteInfo | null>(null)
 
   useEffect(() => {
-    const hash = window.location.hash
-    const queryPart = hash.split('?')[1]
-    if (queryPart) {
-      const params = new URLSearchParams(queryPart)
-      const token = params.get('invite')
-      if (token) {
-        setInviteToken(token)
-        setMode('register')
-        authService.validateInvitation(token).then((data) => {
-          if (data?.valid) {
-            setInviteInfo(data as InviteInfo)
-            registerForm.setValue('email', data.email)
-          } else {
-            setError(data?.error || 'Undangan tidak valid atau sudah kedaluwarsa.')
-          }
-        })
-      }
+    const params = new URLSearchParams(window.location.search)
+    const token = params.get('invite')
+    if (token) {
+      setInviteToken(token)
+      setMode('register')
+      void authService.validateInvitation(token).then((data) => {
+        if (data?.valid) {
+          setInviteInfo(data as InviteInfo)
+          registerForm.setValue('email', data.email)
+        } else {
+          setError(data?.error || 'Undangan tidak valid atau sudah kedaluwarsa.')
+        }
+      })
     }
   }, [registerForm])
 
@@ -163,14 +160,16 @@ export function useLoginState() {
   const handleRegisterStep1 = (_data: RegisterFormData) => {
     setError('')
     if (inviteToken) {
-      handleRegisterSubmit()
+      void handleRegisterSubmit()
     } else {
       setStep(2)
     }
   }
 
   const handleGoogleAuth = () => {
-    signInWithGoogle()
+    clearAuthError()
+    persistPostAuthRedirect(postAuthRedirect)
+    void signInWithGoogle()
   }
 
   const fillAccount = import.meta.env.DEV
@@ -202,6 +201,7 @@ export function useLoginState() {
     setMode(newMode)
     setStep(1)
     setError('')
+    clearAuthError()
     setJoinCode('')
     setClassInfo(null)
     loginForm.reset()

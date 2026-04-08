@@ -44,7 +44,7 @@ export function StudentProgress() {
       }
     }
 
-    loadProgress()
+    void loadProgress()
   }, [studentId, tenantId])
 
   if (loading) {
@@ -59,7 +59,7 @@ export function StudentProgress() {
         <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">Progres Siswa</p>
         <p className="text-sm text-center">
           Pilih siswa dari halaman{' '}
-          <a href="#/app/admin/users" className="text-blue-600 dark:text-blue-400 underline">
+          <a href="/app/admin/users" className="text-blue-600 dark:text-blue-400 underline">
             Manajemen Pengguna
           </a>{' '}
           untuk melihat progres belajar mereka.

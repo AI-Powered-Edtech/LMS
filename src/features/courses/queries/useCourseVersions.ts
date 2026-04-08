@@ -33,7 +33,7 @@ export function useSaveVersion() {
     onSuccess: (_, { courseId }) => {
       // Tenant-scoped invalidation via courseKeys.versions
       if (tenantId) {
-        queryClient.invalidateQueries({ queryKey: courseKeys.versions(tenantId, courseId) })
+        void queryClient.invalidateQueries({ queryKey: courseKeys.versions(tenantId, courseId) })
       }
     },
     onError: (err) => {
@@ -62,13 +62,13 @@ export function useRestoreVersion() {
     onSuccess: (_, { courseId }) => {
       if (tenantId) {
         // Invalidate only the specific course's builder and detail cache
-        queryClient.invalidateQueries({ queryKey: courseKeys.builder(tenantId, courseId) })
-        queryClient.invalidateQueries({ queryKey: courseKeys.detail(tenantId, courseId) })
-        queryClient.invalidateQueries({ queryKey: courseKeys.versions(tenantId, courseId) })
+        void queryClient.invalidateQueries({ queryKey: courseKeys.builder(tenantId, courseId) })
+        void queryClient.invalidateQueries({ queryKey: courseKeys.detail(tenantId, courseId) })
+        void queryClient.invalidateQueries({ queryKey: courseKeys.versions(tenantId, courseId) })
       } else {
         // Safe fallback when tenant context is unavailable:
         // invalidate all courses-scope queries without using empty tenantId key.
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === 'courses',
         })
       }

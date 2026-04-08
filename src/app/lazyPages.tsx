@@ -22,6 +22,14 @@ export const Login = withErrorBoundary(
   lazy(() => import('../pages/Login').then((m) => ({ default: m.Login }))),
   'Masuk'
 )
+export const AuthCallback = withErrorBoundary(
+  lazy(() => import('../pages/AuthCallback').then((m) => ({ default: m.AuthCallback }))),
+  'Callback Login'
+)
+export const AuthError = withErrorBoundary(
+  lazy(() => import('../pages/AuthError').then((m) => ({ default: m.AuthError }))),
+  'Login Gagal'
+)
 export const ForgotPassword = withErrorBoundary(
   lazy(() => import('../pages/ForgotPassword').then((m) => ({ default: m.ForgotPassword }))),
   'Lupa Kata Sandi'
@@ -145,6 +153,14 @@ export const SpeedGrader = withErrorBoundary(
 export const CourseAnalytics = withErrorBoundary(
   lazy(() => import('../pages/CourseAnalytics').then((m) => ({ default: m.CourseAnalytics }))),
   'Analitik Kursus'
+)
+export const TeacherLessonMonitorPage = withErrorBoundary(
+  lazy(() =>
+    import('../features/lesson-monitor/pages/TeacherLessonMonitorPage').then((m) => ({
+      default: m.TeacherLessonMonitorPage,
+    }))
+  ),
+  'Monitor Pelajaran'
 )
 export const Dashboards = withErrorBoundary(
   lazy(() => import('../pages/Dashboards').then((m) => ({ default: m.Dashboards }))),

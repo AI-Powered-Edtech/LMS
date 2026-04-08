@@ -31,7 +31,7 @@ export function useCreatePathRule() {
     mutationFn: ({ rule, tenantId }: { rule: PathRuleInsert; tenantId: string }) =>
       adaptivePathService.createPathRule(rule, tenantId),
     onSuccess: (created, { tenantId }) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: adaptivePathQueryKeys.byCourse(tenantId, created.course_id),
       })
       addToast({ type: 'success', message: 'Aturan jalur berhasil dibuat.' })
@@ -59,7 +59,7 @@ export function useUpdatePathRule() {
       tenantId: string
     }) => adaptivePathService.updatePathRule(ruleId, data, tenantId),
     onSuccess: (updated, { tenantId }) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: adaptivePathQueryKeys.byCourse(tenantId, updated.course_id),
       })
       addToast({ type: 'success', message: 'Aturan jalur berhasil diperbarui.' })
@@ -87,7 +87,7 @@ export function useDeletePathRule() {
       courseId: string
     }) => adaptivePathService.deletePathRule(ruleId, tenantId),
     onSuccess: (_, { tenantId, courseId }) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: adaptivePathQueryKeys.byCourse(tenantId, courseId),
       })
       addToast({ type: 'success', message: 'Aturan jalur berhasil dihapus.' })

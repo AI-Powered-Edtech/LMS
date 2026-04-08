@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 
+import { useAuth } from '@/contexts/AuthContext'
 import { LoginForm } from '@/features/auth/components/LoginForm'
 import { RegisterStep1, RegisterStep2 } from '@/features/auth/components/RegisterForm'
 import { useLoginState } from '@/features/auth/hooks/useLoginState'
@@ -10,7 +11,11 @@ import { cn } from '@/utils/cn'
 export function Login() {
   usePageTitle('Masuk')
   const location = useLocation()
-  const from = location.state?.from?.pathname || '/'
+  const { authError, authStatus, clearAuthError } = useAuth()
+  const fromState = location.state?.from
+  const from = fromState
+    ? `${fromState.pathname || ''}${fromState.search || ''}${fromState.hash || ''}`
+    : '/'
   const {
     user,
     loading,
@@ -36,7 +41,7 @@ export function Login() {
     fillAccount,
     switchMode,
     setMode,
-  } = useLoginState()
+  } = useLoginState(from)
 
   if (loading) {
     return (
@@ -192,8 +197,11 @@ export function Login() {
               {mode === 'login' && (
                 <LoginForm
                   loginForm={loginForm}
-                  error={error}
-                  setError={setError}
+                  error={error || authError || ''}
+                  setError={(value) => {
+                    clearAuthError()
+                    setError(value)
+                  }}
                   submitting={submitting}
                   onSubmit={handleSignIn}
                 />
@@ -202,7 +210,7 @@ export function Login() {
               {mode === 'register' && step === 1 && (
                 <RegisterStep1
                   registerForm={registerForm}
-                  error={error}
+                  error={error || authError || ''}
                   submitting={submitting}
                   inviteToken={inviteToken}
                   inviteInfo={inviteInfo}
@@ -256,7 +264,7 @@ export function Login() {
                   type="button"
                   disabled={submitting}
                   onClick={() => {
-                    if (fillAccount) fillAccount(r)
+                    if (fillAccount) void fillAccount(r)
                   }}
                   className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/50 rounded-lg text-xs font-medium transition-colors border border-white/5 disabled:opacity-50"
                 >
@@ -265,6 +273,12 @@ export function Login() {
               ))}
             </div>
           </div>
+        )}
+
+        {authStatus === 'callback_processing' && (
+          <p className="mt-4 text-center text-xs text-blue-200/70">
+            Sesi login sedang diproses. Jika Anda baru kembali dari Google, tunggu beberapa saat.
+          </p>
         )}
       </div>
     </div>

@@ -104,7 +104,7 @@ export function StudentCoursesList() {
                 onClick={() => navigate(`/app/student/courses/${course.id}`)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ')
-                    navigate(`/app/student/courses/${course.id}`)
+                    void navigate(`/app/student/courses/${course.id}`)
                 }}
                 className="group flex flex-col bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all cursor-pointer"
               >
@@ -136,7 +136,7 @@ export function StudentCoursesList() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      navigate(`/app/student/courses/${course.id}`)
+                      void navigate(`/app/student/courses/${course.id}`)
                     }}
                     onKeyDown={(e) => e.stopPropagation()}
                     className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm shadow-blue-200 dark:shadow-none"

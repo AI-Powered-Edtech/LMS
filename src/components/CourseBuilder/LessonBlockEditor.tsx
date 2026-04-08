@@ -71,7 +71,7 @@ export function LessonBlockEditor() {
       if (state.activeLesson) {
         if (titleDebounceRef.current) clearTimeout(titleDebounceRef.current)
         titleDebounceRef.current = setTimeout(() => {
-          actions.updateLesson(state.activeLesson!.id, { title: newTitle })
+          void actions.updateLesson(state.activeLesson!.id, { title: newTitle })
         }, 600)
       }
     },
@@ -211,7 +211,7 @@ export function LessonBlockEditor() {
     const blockIds = state.activeLesson.blocks.map((b) => b.id)
     const [moved] = blockIds.splice(result.source.index, 1)
     blockIds.splice(result.destination.index, 0, moved)
-    actions.reorderBlocks(blockIds)
+    void actions.reorderBlocks(blockIds)
   }
 
   const handleMoveUp = (index: number) => {
@@ -220,7 +220,7 @@ export function LessonBlockEditor() {
     const temp = blockIds[index]
     blockIds[index] = blockIds[index - 1]
     blockIds[index - 1] = temp
-    actions.reorderBlocks(blockIds)
+    void actions.reorderBlocks(blockIds)
   }
 
   const handleMoveDown = (index: number) => {
@@ -231,11 +231,11 @@ export function LessonBlockEditor() {
     const temp = blockIds[index]
     blockIds[index] = blockIds[index + 1]
     blockIds[index + 1] = temp
-    actions.reorderBlocks(blockIds)
+    void actions.reorderBlocks(blockIds)
   }
 
   const handleAddBlock = (type: string) => {
-    actions.addBlock(type)
+    void actions.addBlock(type)
     setShowAddMenu(false)
   }
 
@@ -402,7 +402,7 @@ export function LessonBlockEditor() {
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation()
-                                      actions.deleteBlock(block.id)
+                                      void actions.deleteBlock(block.id)
                                       setDeletingBlockId(null)
                                     }}
                                     className="p-1.5 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700"

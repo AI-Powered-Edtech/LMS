@@ -39,7 +39,7 @@ export function useUpdateProfilePrivacy(userId: string) {
   return useMutation({
     mutationFn: (isPublic: boolean) => publicProfileService.updatePrivacy(isPublic),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: profileKeys.byId(userId) })
+      void qc.invalidateQueries({ queryKey: profileKeys.byId(userId) })
     },
     onError: (err) => {
       captureError(err, { context: 'useUpdateProfilePrivacy' })

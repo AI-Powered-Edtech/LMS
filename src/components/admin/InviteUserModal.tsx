@@ -71,7 +71,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
         return
       }
 
-      const link = `${window.location.origin}/#/login?invite=${insertData.token}`
+      const link = `${window.location.origin}/login?invite=${insertData.token}`
       setInviteLink(link)
       reset({ email: data.email, role: data.role })
       onSuccess?.()

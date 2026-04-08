@@ -43,8 +43,8 @@ export function useAnalyticsPageState() {
         captureError(err, { context: 'useAnalyticsPageState.loadCourses' })
       }
     }
-    loadCourses()
-  }, [activeTenant?.id])
+    void loadCourses()
+  }, [activeTenant?.id, selectedCourseId])
 
   // Handle error state from query
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -89,7 +89,7 @@ export function useAnalyticsPageState() {
     if (!selectedCourseId) return
     try {
       await refreshMutation.mutateAsync(selectedCourseId)
-      refetch()
+      void refetch()
     } catch (err: unknown) {
       if (import.meta.env.DEV) console.error('Failed to refresh analytics', err)
 

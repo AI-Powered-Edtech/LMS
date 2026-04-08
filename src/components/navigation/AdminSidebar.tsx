@@ -61,7 +61,7 @@ export function AdminSidebar() {
       if (import.meta.env.DEV) console.error('[AdminSidebar] signOut error:', e)
       captureError(e, { context: 'AdminSidebar.signOut' })
     } finally {
-      navigate('/login')
+      void navigate('/login')
     }
   }
 

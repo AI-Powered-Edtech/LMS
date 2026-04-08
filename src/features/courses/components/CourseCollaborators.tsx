@@ -36,7 +36,9 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
     mutationFn: (userId: string) =>
       collaboratorService.addCollaborator(courseId, userId, selectedRole, tenantId!),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: courseKeys.collaborators(tenantId!, courseId) })
+      void queryClient.invalidateQueries({
+        queryKey: courseKeys.collaborators(tenantId!, courseId),
+      })
       addToast({ type: 'success', message: 'Kolaborator ditambahkan' })
       setSearch('')
     },
@@ -48,7 +50,9 @@ export function CourseCollaborators({ courseId }: { courseId: string }) {
   const removeCollabMut = useMutation({
     mutationFn: (id: string) => collaboratorService.removeCollaborator(id, tenantId!),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: courseKeys.collaborators(tenantId!, courseId) })
+      void queryClient.invalidateQueries({
+        queryKey: courseKeys.collaborators(tenantId!, courseId),
+      })
       addToast({ type: 'success', message: 'Kolaborator dihapus' })
     },
   })

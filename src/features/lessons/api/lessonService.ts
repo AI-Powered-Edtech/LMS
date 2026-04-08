@@ -747,7 +747,7 @@ export const lessonService = {
     }
 
     try {
-      fetch(scormApiUrl, {
+      void fetch(scormApiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

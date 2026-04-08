@@ -57,7 +57,7 @@ function useAddClassroom() {
       await classroomService.createClassroom(user.id, name, tenantId)
     },
     onSuccess: () => {
-      if (tenantId) queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
+      if (tenantId) void queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
     },
     onError: (err) => {
       captureError(err, { context: 'useAddClassroom' })
@@ -78,7 +78,7 @@ function useUpdateClassroom() {
       await classroomService.updateClassroom(id, name, tenantId!)
     },
     onSuccess: () => {
-      if (tenantId) queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
+      if (tenantId) void queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
     },
     onError: (err) => {
       captureError(err, { context: 'useUpdateClassroom' })
@@ -99,7 +99,7 @@ function useJoinClassroom() {
       await classroomService.joinClassroom(joinCode)
     },
     onSuccess: () => {
-      if (tenantId) queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
+      if (tenantId) void queryClient.invalidateQueries({ queryKey: classroomKeys.all(tenantId!) })
     },
     onError: (err) => {
       captureError(err, { context: 'useJoinClassroom' })

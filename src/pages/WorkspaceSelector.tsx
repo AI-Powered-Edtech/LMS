@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import { useToast } from '@/components/ui'
 import { authService } from '@/features/auth/api/authService'
+import { consumePostAuthRedirect, peekPostAuthRedirect } from '@/features/auth/utils/authFlow'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
 import { useAuth } from '../contexts/AuthContext'
@@ -17,12 +18,25 @@ type OnboardingStep = 'pick-role' | 'student-form' | 'teacher-form' | 'admin-for
 
 export function WorkspaceSelector() {
   usePageTitle('Pilih Ruang Kerja')
-  const { memberships, activeTenant, setActiveTenant, loading, signOut, user } = useAuth()
+  const {
+    memberships,
+    activeTenant,
+    setActiveTenant,
+    loading,
+    signOut,
+    user,
+    refreshAuthBootstrap,
+  } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   // Preserve the deep link that TenantGuard captured before redirecting here.
   // Cast is safe: react-router state is typed as unknown.
-  const returnPath = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname
+  const fromState = (
+    location.state as { from?: { pathname?: string; search?: string; hash?: string } } | null
+  )?.from
+  const returnPath = fromState
+    ? `${fromState.pathname ?? ''}${fromState.search ?? ''}${fromState.hash ?? ''}`
+    : null
   const addToast = useToast((s) => s.addToast)
 
   const [step, setStep] = useState<OnboardingStep>('pick-role')
@@ -34,7 +48,7 @@ export function WorkspaceSelector() {
   useEffect(() => {
     if (activeTenant && memberships.length > 0) {
       // Navigate to original deep link if preserved, otherwise fallback to /app
-      navigate(returnPath ?? '/app', { replace: true })
+      void navigate(returnPath ?? consumePostAuthRedirect() ?? '/app', { replace: true })
     }
   }, [activeTenant, memberships, navigate, returnPath])
 
@@ -63,7 +77,11 @@ export function WorkspaceSelector() {
         message: `Berhasil bergabung di kelas ${result?.class_name || ''} — ${result?.school_name || 'sekolah Anda'}!`,
       })
 
-      window.location.href = '/'
+      await refreshAuthBootstrap()
+      if (result?.tenant_id) {
+        setActiveTenant(result.tenant_id)
+      }
+      void navigate(returnPath ?? peekPostAuthRedirect() ?? '/app', { replace: true })
     } catch (err: unknown) {
       addToast({
         type: 'error',
@@ -86,7 +104,7 @@ export function WorkspaceSelector() {
 
     setIsSubmitting(true)
     try {
-      await authService.createSchoolTenant({
+      const tenantId = await authService.createSchoolTenant({
         schoolName: schoolName.trim(),
         fullName: fullName.trim(),
         role: 'teacher',
@@ -97,7 +115,9 @@ export function WorkspaceSelector() {
         message: `Sekolah "${schoolName.trim()}" berhasil dibuat! Anda terdaftar sebagai Guru.`,
       })
 
-      window.location.href = '/'
+      await refreshAuthBootstrap()
+      setActiveTenant(tenantId)
+      void navigate(returnPath ?? peekPostAuthRedirect() ?? '/app', { replace: true })
     } catch (err: unknown) {
       addToast({
         type: 'error',
@@ -117,7 +137,7 @@ export function WorkspaceSelector() {
 
     setIsSubmitting(true)
     try {
-      await authService.createSchoolTenant({
+      const tenantId = await authService.createSchoolTenant({
         schoolName: schoolName.trim(),
         fullName: fullName.trim(),
         role: 'admin',
@@ -128,7 +148,9 @@ export function WorkspaceSelector() {
         message: `Sekolah "${schoolName.trim()}" berhasil dibuat! Anda terdaftar sebagai Admin.`,
       })
 
-      window.location.href = '/'
+      await refreshAuthBootstrap()
+      setActiveTenant(tenantId)
+      void navigate(returnPath ?? peekPostAuthRedirect() ?? '/app', { replace: true })
     } catch (err: unknown) {
       addToast({
         type: 'error',
@@ -140,7 +162,7 @@ export function WorkspaceSelector() {
   }
 
   const handleSignOut = () => {
-    signOut()
+    void signOut()
   }
 
   // ── Loading ──

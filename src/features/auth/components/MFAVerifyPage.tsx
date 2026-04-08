@@ -32,7 +32,7 @@ export function MFAVerifyPage() {
     const success = await verifyMFAChallenge(totpFactor.id, verificationCode)
     if (success) {
       addToast({ type: 'success', message: 'Verifikasi berhasil!' })
-      window.location.hash = '#/app/student/dashboard'
+      window.location.assign('/app/student/dashboard')
     } else {
       setError('Kode verifikasi salah. Pastikan waktu perangkat Anda akurat.')
       addToast({ type: 'error', message: 'Kode verifikasi salah' })

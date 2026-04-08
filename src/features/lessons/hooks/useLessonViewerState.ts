@@ -110,8 +110,7 @@ export function useLessonViewerState() {
     )
       return
     if (import.meta.env.DEV) {
-      if (import.meta.env.DEV)
-        console.debug('[Lesson Completion]', { lessonId: state.lesson.id, status: state.status })
+      console.warn('[Lesson Completion]', { lessonId: state.lesson.id, status: state.status })
     }
     actions.completionMet()
 
@@ -154,9 +153,11 @@ export function useLessonViewerState() {
       if (!willShowModuleComplete) {
         try {
           const confetti = (await import('canvas-confetti')).default
-          confetti({ particleCount: 150, spread: 80, origin: { y: 0.7 } })
+          void confetti({ particleCount: 150, spread: 80, origin: { y: 0.7 } })
         } catch (err) {
-          if (import.meta.env.DEV) console.warn('Confetti failed:', err)
+          if (import.meta.env.DEV) {
+            console.warn('Confetti failed:', err)
+          }
         }
       }
       setTimeout(() => setShowCelebration(false), 4000)
@@ -166,7 +167,9 @@ export function useLessonViewerState() {
         setTimeout(() => setShowModuleComplete(true), 4200)
       }
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Completion failed:', err)
+      if (import.meta.env.DEV) {
+        console.error('Completion failed:', err)
+      }
       captureError(err, {
         context: 'useLessonViewerState',
         action: 'completeLesson',
@@ -280,7 +283,9 @@ export function useLessonViewerState() {
         if (!cancelled && title) setModuleTitle(title)
       })
       .catch((err) => {
-        if (import.meta.env.DEV) console.error('Failed to load module title:', err)
+        if (import.meta.env.DEV) {
+          console.error('Failed to load module title:', err)
+        }
       })
 
     lessonService

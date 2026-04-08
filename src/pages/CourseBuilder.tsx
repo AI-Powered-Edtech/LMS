@@ -24,7 +24,7 @@ function CourseBuilderPage() {
   // Auto-load course from URL param
   useEffect(() => {
     if (courseId && !state.courseId && !state.loadingCourse && !state.error) {
-      actions.loadCourse(courseId)
+      void actions.loadCourse(courseId)
     }
   }, [courseId, state.courseId, state.loadingCourse, state.error, actions])
 

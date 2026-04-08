@@ -193,7 +193,7 @@ export function MessageTeacher() {
   const { mutate: markRead } = useMutation({
     mutationFn: (threadId: string) => markThreadRead(threadId, 'parent'),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parent', 'threads', user?.id ?? ''] })
+      void queryClient.invalidateQueries({ queryKey: ['parent', 'threads', user?.id ?? ''] })
     },
   })
 
@@ -201,7 +201,7 @@ export function MessageTeacher() {
     if (thread.parent_unread_count > 0) {
       markRead(thread.id)
     }
-    navigate(`/app/parent/pesan/${thread.id}`)
+    void navigate(`/app/parent/pesan/${thread.id}`)
   }
 
   const totalUnread = (threads ?? []).reduce((sum, t) => sum + t.parent_unread_count, 0)

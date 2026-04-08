@@ -147,7 +147,7 @@ export function useAdminNotifications(): UseAdminNotificationsReturn {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      void supabase.removeChannel(channel)
     }
   }, [tenantId, user, queryClient, queryKey])
 
@@ -170,7 +170,7 @@ export function useAdminNotifications(): UseAdminNotificationsReturn {
       if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous)
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: adminNotificationKeys.all(tenantId!) })
+      void queryClient.invalidateQueries({ queryKey: adminNotificationKeys.all(tenantId!) })
     },
   })
 
@@ -199,7 +199,7 @@ export function useAdminNotifications(): UseAdminNotificationsReturn {
       if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous)
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: adminNotificationKeys.all(tenantId!) })
+      void queryClient.invalidateQueries({ queryKey: adminNotificationKeys.all(tenantId!) })
     },
   })
 

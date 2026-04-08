@@ -36,7 +36,7 @@ export function QuestionBankPage() {
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    loadQuestions()
+    void loadQuestions()
   }, [debouncedSearchTerm, typeFilter])
   /* eslint-enable react-hooks/exhaustive-deps */
 

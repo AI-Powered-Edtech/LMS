@@ -106,7 +106,7 @@ export function AdministrationDashboard() {
 
   // Initial data fetch
   useEffect(() => {
-    fetchSyncHistory()
+    void fetchSyncHistory()
   }, [fetchSyncHistory])
 
   // Sync handler
@@ -128,7 +128,7 @@ export function AdministrationDashboard() {
           text: `Sinkronisasi berhasil! ${result.recordsSynced || 0} data diperbarui.`,
         })
         // Refresh sync history
-        fetchSyncHistory()
+        void fetchSyncHistory()
       } else {
         setSyncMessage({
           type: 'error',

@@ -134,10 +134,10 @@ export function useChildDashboard(studentId: string | null) {
     isLoading,
     error,
     refetchAll: () => {
-      gradesQuery.refetch()
-      attendanceQuery.refetch()
-      pendingQuery.refetch()
-      achievementsQuery.refetch()
+      void gradesQuery.refetch()
+      void attendanceQuery.refetch()
+      void pendingQuery.refetch()
+      void achievementsQuery.refetch()
     },
   }
 }

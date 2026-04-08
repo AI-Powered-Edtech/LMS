@@ -23,11 +23,20 @@ export type QueueOperationType =
   | 'attendance-mark'
   | 'message-send'
   | 'form-submit'
+  | 'xapi-statement'
+
+export interface QueuePayload extends Record<string, unknown> {
+  idempotencyKey?: string
+  maxRetries?: number
+  conflictStrategy?: 'client-wins' | 'server-wins' | 'manual'
+  nextRetryAt?: number | null
+  lastError?: string | null
+}
 
 export interface QueuedOperation {
   id: string
   type: QueueOperationType
-  payload: Record<string, unknown>
+  payload: QueuePayload
   /** Idempotency key to prevent duplicate processing */
   idempotencyKey: string
   createdAt: number
@@ -126,13 +135,7 @@ function calculateBackoff(attempt: number): number {
 async function processOperation(
   item: SyncQueueItem
 ): Promise<'success' | 'retry' | 'conflict' | 'permanent'> {
-  const payload = item.payload as Record<string, unknown> & {
-    idempotencyKey?: string
-    maxRetries?: number
-    conflictStrategy?: string
-    nextRetryAt?: number | null
-    lastError?: string | null
-  }
+  const payload = item.payload as QueuePayload
 
   const maxRetries = payload.maxRetries ?? MAX_RETRIES
   const attempts = item.attempts
@@ -209,7 +212,19 @@ async function processOperation(
       case 'form-submit': {
         const { error } = await supabase
           .from(payload.tableName as string)
-          .insert(payload.data as any)
+          .insert(payload.data as never)
+        result = { error }
+        break
+      }
+
+      case 'xapi-statement': {
+        const { error } = await supabase.rpc('record_xapi_statement', {
+          p_verb: payload.verb,
+          p_object_type: payload.objectType,
+          p_object_id: payload.objectId,
+          p_result: payload.result as Record<string, unknown>,
+          p_context: payload.context as Record<string, unknown>,
+        })
         result = { error }
         break
       }
@@ -260,7 +275,7 @@ export async function processSyncQueue(): Promise<SyncResult> {
 
   for (const item of pending) {
     // Skip items already at max retries (quarantined)
-    const payload = item.payload as any
+    const payload = item.payload as QueuePayload
     const maxRetries = payload?.maxRetries ?? MAX_RETRIES
     if (item.attempts >= maxRetries) continue
 
@@ -320,7 +335,7 @@ export function scheduleNextSync(failedCount: number, attempt: number): void {
  * Automatically processes the queue when the user comes back online.
  */
 export function startOfflineSync(): () => void {
-  const handleOnline = async () => {
+  const handleOnline = async (): Promise<void> => {
     const result = await processSyncQueue()
     if (result.failed > 0) {
       scheduleNextSync(result.failed, 0)
@@ -330,9 +345,9 @@ export function startOfflineSync(): () => void {
   window.addEventListener('online', handleOnline)
 
   // Also try to sync on visibility change (user returns to tab)
-  const handleVisibility = () => {
+  const handleVisibility = (): void => {
     if (document.visibilityState === 'visible' && navigator.onLine) {
-      processSyncQueue()
+      void processSyncQueue()
     }
   }
 

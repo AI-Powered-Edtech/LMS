@@ -5,7 +5,6 @@ import { useCallback, useState } from 'react'
 import { useToast } from '@/components/ui'
 import type { Assignment, AssignmentSubmission } from '@/features/assignments/api/assignmentService'
 import { assignmentService } from '@/features/assignments/api/assignmentService'
-import { supabase } from '@/services/supabase/client'
 
 interface GradingModalProps {
   submission: AssignmentSubmission | null
@@ -28,14 +27,10 @@ export function GradingModal({ submission, assignment, tenantId, onClose }: Grad
   const [isSubmittingGrade, setIsSubmittingGrade] = useState(false)
 
   const handleSaveGrade = useCallback(async () => {
-    if (!submission) return
+    if (!submission || !tenantId) return
     setIsSubmittingGrade(true)
     try {
-      const { data: user } = await supabase.auth.getUser()
-      const teacherId = user.user?.id
-      if (!teacherId) throw new Error('User not authenticated')
-      await assignmentService.gradeSubmission(submission.id, tenantId!, teacherId, score, feedback)
-      // Note: grading is now separate, no submission update
+      await assignmentService.gradeSubmission(submission.id, tenantId, score, feedback)
       onClose()
     } catch (err) {
       addToast({
@@ -45,7 +40,7 @@ export function GradingModal({ submission, assignment, tenantId, onClose }: Grad
     } finally {
       setIsSubmittingGrade(false)
     }
-  }, [submission, score, feedback, tenantId, onClose])
+  }, [addToast, feedback, onClose, score, submission, tenantId])
 
   const handleOpen = useCallback(() => {
     setScore(submission?.score || 0)
@@ -96,12 +91,11 @@ export function GradingModal({ submission, assignment, tenantId, onClose }: Grad
                   Hasil Pekerjaan Siswa
                 </h4>
                 <div className="bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 min-h-[300px] text-slate-700 dark:text-slate-300 whitespace-pre-wrap text-sm leading-relaxed italic">
-                  {submission.submission_content?.content ||
-                    'Siswa tidak menyertakan teks tambahan.'}
+                  {submission.submission_text || 'Siswa tidak menyertakan teks tambahan.'}
                 </div>
-                {submission.submission_content?.file_urls?.length > 0 && (
+                {submission.file_url && (
                   <a
-                    href={submission.submission_content.file_urls[0].url}
+                    href={submission.file_url}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"

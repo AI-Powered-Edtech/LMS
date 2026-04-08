@@ -126,12 +126,12 @@ export function useQuizAutosave({
     isMountedRef.current = true
 
     const intervalId = setInterval(() => {
-      performSave()
+      void performSave()
     }, intervalMs)
 
     // Trigger first save after 5 seconds to establish connection and status
     const initialTimeout = setTimeout(() => {
-      performSave()
+      void performSave()
     }, 5000)
 
     // Cleanup on unmount

@@ -166,7 +166,7 @@ export class FeatureErrorBoundary extends Component<Props, State> {
               Silakan masuk kembali untuk melanjutkan menggunakan aplikasi.
             </p>
             <a
-              href="/#/login"
+              href="/login"
               className="flex items-center gap-2 px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-xl transition-all focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
             >
               <LogIn className="w-4 h-4" />

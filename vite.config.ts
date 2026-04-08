@@ -130,13 +130,13 @@ export default defineConfig(({ mode }) => {
             {
               name: 'Dashboard',
               short_name: 'Dashboard',
-              url: '/#/app/student/dashboard',
+              url: '/app/student/dashboard',
               icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }],
             },
             {
               name: 'Kursus Saya',
               short_name: 'Kursus',
-              url: '/#/app/student/courses',
+              url: '/app/student/courses',
               icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }],
             },
           ],

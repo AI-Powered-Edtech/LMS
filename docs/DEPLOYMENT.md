@@ -1,6 +1,6 @@
-# EduSync LMS — Developer Setup Guide
+# EduSync LMS — Setup and Deployment Guide
 
-Panduan untuk developer baru yang ingin menjalankan EduSync di Supabase project masing-masing.
+Panduan untuk developer baru yang ingin menjalankan EduSync di Supabase project masing-masing, plus runbook deploy production ke Puter.
 
 ---
 
@@ -10,6 +10,7 @@ Panduan untuk developer baru yang ingin menjalankan EduSync di Supabase project 
 | ------------ | ------------- | ------------------------ |
 | Node.js      | 20+           | https://nodejs.org       |
 | Supabase CLI | 1.x           | `npm i -g supabase`      |
+| Puter CLI    | terbaru       | sesuai dokumentasi Puter |
 | Git          | 2.x           | Sudah ada di macOS/Linux |
 
 ---
@@ -21,7 +22,7 @@ Panduan untuk developer baru yang ingin menjalankan EduSync di Supabase project 
 ```bash
 git clone <repo-url>
 cd LMS
-npm install
+pnpm install
 ```
 
 ### 2. Buat Supabase Project
@@ -125,7 +126,7 @@ Setelah seed berhasil:
 ## Jalankan Development Server
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Buka http://localhost:5173 → login dengan salah satu akun demo.
@@ -223,8 +224,134 @@ supabase network-bans remove --project-ref <REF>
 - [ ] `pg_cron` extension enabled
 - [ ] `custom_access_token_hook` enabled di Auth Hooks
 - [ ] Seed data dijalankan (seed_base → seed_users → seed_demo)
-- [ ] `npm run dev` → login berhasil dengan akun demo
+- [ ] `pnpm run dev` → login berhasil dengan akun demo
 - [ ] (Opsional) Edge Functions deployed + GROQ_API_KEY set
+
+---
+
+## Deploy Production ke Puter
+
+Frontend production EduSync di-host sebagai static site di Puter. Backend production tetap Supabase.
+
+### 1. Pastikan source release bersih
+
+- Deploy hanya dari commit yang sudah siap di branch release/main.
+- Jangan deploy dari worktree lokal yang masih punya perubahan belum committed.
+- Pastikan migrasi baru yang ikut rilis memang sudah direview.
+
+### 2. Build gate wajib
+
+```bash
+pnpm run build
+```
+
+Perintah ini adalah gate utama pre-deploy karena sudah menjalankan:
+
+1. `pnpm run typecheck`
+2. `pnpm run lint`
+3. `pnpm run test:ci`
+4. `vite build`
+
+Jika `pnpm run build` gagal, jangan lanjut deploy.
+
+### 3. Frontend environment di Puter
+
+Set environment berikut untuk build production:
+
+```env
+VITE_SUPABASE_URL=https://<PROD_REF>.supabase.co
+VITE_SUPABASE_ANON_KEY=<production-anon-key>
+VITE_SENTRY_DSN=<optional-production-dsn>
+VITE_VAPID_PUBLIC_KEY=<optional-web-push-public-key>
+```
+
+EduSync memakai HashRouter, jadi tidak perlu rewrite khusus di Puter. `index.html` menangani bootstrap dan app menavigasi melalui `/#/`.
+
+### 4. Konfigurasi Supabase production
+
+#### Link CLI dan migrasi
+
+```bash
+supabase link --project-ref <PROD_REF>
+supabase db push --include-all --project-ref <PROD_REF>
+```
+
+Jika release ini membawa migrasi additive seperti `20260408000001_assignments_prd_alignment.sql`, aman push database lebih dulu sebelum frontend.
+
+#### Auth settings wajib
+
+Di Supabase Dashboard:
+
+- **Authentication → URL Configuration**
+  - Site URL: `https://app.edusync.id`
+  - Redirect URLs:
+    - `https://app.edusync.id`
+    - `https://app.edusync.id/#/auth/callback`
+    - `https://app.edusync.id/#/reset-password`
+- **Authentication → Hooks**
+  - Pastikan `custom_access_token_hook` tetap aktif
+
+Ini wajib karena OAuth login dan reset password membentuk callback dari `window.location.origin`.
+
+#### Edge Functions
+
+Deploy semua fungsi:
+
+```bash
+supabase functions deploy --project-ref <PROD_REF>
+```
+
+Set secret minimum berikut:
+
+```bash
+supabase secrets set CORS_ORIGIN=https://app.edusync.id --project-ref <PROD_REF>
+supabase secrets set APP_URL=https://app.edusync.id --project-ref <PROD_REF>
+```
+
+Tambahkan secret fitur hanya bila memang aktif di production:
+
+```bash
+supabase secrets set GROQ_API_KEY=<key> --project-ref <PROD_REF>
+supabase secrets set LTI_LAUNCH_URL=<url> --project-ref <PROD_REF>
+supabase secrets set LTI_RSA_PUBLIC_KEY=<key> --project-ref <PROD_REF>
+supabase secrets set VAPID_PRIVATE_KEY=<key> --project-ref <PROD_REF>
+supabase secrets set VAPID_SUBJECT=mailto:admin@edusync.id --project-ref <PROD_REF>
+supabase secrets set SMTP_FROM=<sender> --project-ref <PROD_REF>
+supabase secrets set VIDEO_WEBHOOK_SECRET=<secret> --project-ref <PROD_REF>
+supabase secrets set WHATSAPP_WEBHOOK_SECRET=<secret> --project-ref <PROD_REF>
+```
+
+`CORS_ORIGIN` wajib karena beberapa Edge Function masih punya fallback origin lama. Tanpa secret ini, request browser dari domain Puter dapat gagal CORS.
+
+### 5. Deploy frontend ke Puter
+
+Gunakan workflow resmi:
+
+```bash
+pnpm run deploy:puter
+```
+
+Manual upload folder `dist/` hanya dipakai sebagai fallback darurat.
+
+### 6. Domain dan verifikasi
+
+- Hubungkan domain `app.edusync.id` di dashboard Puter
+- Pastikan TLS/HTTPS aktif sebelum smoke test
+- Verifikasi health endpoint:
+
+```bash
+curl -f "https://<PROD_REF>.supabase.co/functions/v1/health-check"
+```
+
+### 7. Smoke test production
+
+1. Buka `https://app.edusync.id` di private window
+2. Login sebagai student, teacher, dan admin
+3. Pastikan dashboard load normal
+4. Buka kursus dan kuis
+5. Buka gradebook / SpeedGrader
+6. Uji deep link `/#/...` lalu refresh browser
+7. Jika auth, routing, assignments, atau PWA ikut berubah, jalankan juga `pnpm run test:e2e`
 
 ---
 
@@ -246,7 +373,7 @@ Developer baru:
   3. cp .env.example .env → isi credentials
   4. supabase link + supabase db push --include-all
   5. Seed data
-  6. npm run dev → mulai develop
+  6. pnpm run dev → mulai develop
 
 Saat ada migrasi baru dari tim:
   1. git pull

@@ -1,7 +1,9 @@
 import { Download, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 
+import { isAuthSurfacePath } from '@/features/auth/utils/authFlow'
 import { usePWAInstall } from '@/hooks/usePWAInstall'
 
 const SNOOZE_KEY = 'edusync_pwa_banner_snoozed'
@@ -24,6 +26,7 @@ function isSnoozed(): boolean {
 // ---------------------------------------------------------------------------
 
 export function PWAInstallBanner() {
+  const location = useLocation()
   const { canInstall, promptInstall, isDismissed, dismiss } = usePWAInstall()
   const [snoozed, setSnoozed] = useState(() => isSnoozed())
 
@@ -57,6 +60,9 @@ export function PWAInstallBanner() {
   }
 
   const visible = canInstall && !isDismissed && !snoozed
+  if (isAuthSurfacePath(location.pathname)) {
+    return null
+  }
 
   return (
     <AnimatePresence>

@@ -67,7 +67,7 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
       if (import.meta.env.DEV) console.error('[Header] signOut error:', e)
       captureError(e, { context: 'Header.handleLogout' })
     } finally {
-      navigate('/login')
+      void navigate('/login')
     }
   }
 
@@ -237,7 +237,7 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
                   type="button"
                   role="menuitem"
                   onClick={() => {
-                    navigate('/profile')
+                    void navigate('/profile')
                     setIsProfileOpen(false)
                   }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"

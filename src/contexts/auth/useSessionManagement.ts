@@ -1,13 +1,28 @@
 import type { Session, User } from '@supabase/supabase-js'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import {
+  clearOAuthRedirectPending,
+  clearPostAuthRedirect,
+  isOAuthRedirectPending,
+  markOAuthRedirectPending,
+} from '@/features/auth/utils/authFlow'
 import { supabase } from '@/services/supabase/client'
 import { addBreadcrumb, captureError } from '@/utils/sentry'
+
+export type AuthStatus =
+  | 'initializing'
+  | 'callback_processing'
+  | 'authenticated'
+  | 'unauthenticated'
+  | 'auth_error'
 
 interface UseSessionManagementResult {
   session: Session | null
   user: User | null
   loading: boolean
+  authStatus: AuthStatus
+  authError: string | null
   sessionExpired: boolean
   signOut: () => Promise<void>
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
@@ -19,6 +34,7 @@ interface UseSessionManagementResult {
     tenantId?: string
   ) => Promise<{ error: Error | null }>
   signInWithGoogle: () => Promise<void>
+  clearAuthError: () => void
 }
 
 const AUTH_KEYS = [
@@ -36,8 +52,13 @@ export function useSessionManagement(): UseSessionManagementResult {
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [authError, setAuthError] = useState<string | null>(null)
+  const [authStatus, setAuthStatus] = useState<AuthStatus>(() =>
+    window.location.pathname === '/auth/callback' ? 'callback_processing' : 'initializing'
+  )
   const [sessionExpired, setSessionExpired] = useState(false)
   const wasAuthenticatedRef = useRef(false)
+  const clearAuthError = useCallback(() => setAuthError(null), [])
 
   const signOut = useCallback(async () => {
     addBreadcrumb('User signing out', 'auth')
@@ -51,18 +72,29 @@ export function useSessionManagement(): UseSessionManagementResult {
 
     setUser(null)
     setSession(null)
+    setAuthError(null)
+    setAuthStatus('unauthenticated')
+    clearPostAuthRedirect()
+    clearOAuthRedirectPending()
 
     try {
       await supabase.auth.signOut()
     } catch (err) {
       captureError(err, { context: 'AuthContext.signOut' })
-      if (import.meta.env.DEV) console.error('[Auth] signOut error (state already cleared):', err)
+      if (import.meta.env.DEV) {
+        console.error('[Auth] signOut error (state already cleared):', err)
+      }
     }
   }, [])
 
   const signIn = useCallback(async (email: string, password: string) => {
     setSessionExpired(false)
+    setAuthError(null)
     const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) {
+      setAuthError(error.message)
+      setAuthStatus('auth_error')
+    }
     return { error: error as Error | null }
   }, [])
 
@@ -74,10 +106,12 @@ export function useSessionManagement(): UseSessionManagementResult {
       lastName: string,
       signUpTenantId?: string
     ) => {
+      setAuthError(null)
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/verify-email`,
           data: {
             first_name: firstName,
             last_name: lastName,
@@ -85,18 +119,34 @@ export function useSessionManagement(): UseSessionManagementResult {
           },
         },
       })
+      if (error) {
+        setAuthError(error.message)
+        setAuthStatus('auth_error')
+      }
       return { error: error as Error | null }
     },
     []
   )
 
   const signInWithGoogle = useCallback(async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/#/auth/callback`,
-      },
-    })
+    setAuthError(null)
+    setAuthStatus('callback_processing')
+    markOAuthRedirectPending()
+    addBreadcrumb('OAuth redirect started', 'auth', { provider: 'google' })
+    try {
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+    } catch (error) {
+      clearOAuthRedirectPending()
+      captureError(error, { context: 'AuthContext.signInWithGoogle' })
+      setAuthError(error instanceof Error ? error.message : 'Gagal memulai login Google.')
+      setAuthStatus('auth_error')
+      throw error
+    }
   }, [])
 
   useEffect(() => {
@@ -108,11 +158,21 @@ export function useSessionManagement(): UseSessionManagementResult {
         if (s?.user) {
           wasAuthenticatedRef.current = true
           addBreadcrumb('Session restored', 'auth', { userId: s.user.id })
+          clearOAuthRedirectPending()
+          setAuthStatus('authenticated')
+        } else if (window.location.pathname === '/auth/callback' || isOAuthRedirectPending()) {
+          setAuthStatus('callback_processing')
+        } else {
+          setAuthStatus('unauthenticated')
         }
         setLoading(false)
       })
       .catch((err) => {
-        if (import.meta.env.DEV) console.error('[Auth] getSession failed:', err)
+        if (import.meta.env.DEV) {
+          console.error('[Auth] getSession failed:', err)
+        }
+        setAuthError(err instanceof Error ? err.message : 'Gagal memulihkan sesi login.')
+        setAuthStatus('auth_error')
         setLoading(false)
       })
 
@@ -124,11 +184,21 @@ export function useSessionManagement(): UseSessionManagementResult {
       if (s?.user) {
         wasAuthenticatedRef.current = true
         addBreadcrumb(`Auth state changed: ${_event}`, 'auth', { userId: s.user.id })
+        clearOAuthRedirectPending()
+        setAuthError(null)
+        setAuthStatus('authenticated')
       } else {
         if (wasAuthenticatedRef.current && _event === 'SIGNED_OUT') {
           setSessionExpired(true)
         }
         wasAuthenticatedRef.current = false
+        if (_event === 'SIGNED_OUT') {
+          setAuthStatus('unauthenticated')
+        } else if (window.location.pathname === '/auth/callback' || isOAuthRedirectPending()) {
+          setAuthStatus('callback_processing')
+        } else {
+          setAuthStatus('unauthenticated')
+        }
         setLoading(false)
       }
     })
@@ -153,12 +223,15 @@ export function useSessionManagement(): UseSessionManagementResult {
       const remainingS = expiresAt - nowS
 
       if (remainingS <= REFRESH_THRESHOLD_S) {
-        if (import.meta.env.DEV)
-          console.info(`[Auth] Token expires in ${remainingS}s, refreshing...`)
+        if (import.meta.env.DEV) {
+          console.warn(`[Auth] Token expires in ${remainingS}s, refreshing...`)
+        }
 
         const { error } = await supabase.auth.refreshSession()
         if (error) {
-          console.error('[Auth] Proactive token refresh failed:', error)
+          if (import.meta.env.DEV) {
+            console.error('[Auth] Proactive token refresh failed:', error)
+          }
           captureError(error, { context: 'proactiveTokenRefresh' })
           addBreadcrumb('Proactive token refresh failed — signing out', 'auth', {
             error: error.message,
@@ -177,7 +250,19 @@ export function useSessionManagement(): UseSessionManagementResult {
 
     const interval = setInterval(checkAndRefresh, INTERVAL_MS)
     return () => clearInterval(interval)
-  }, [session?.access_token, signOut])
+  }, [session, signOut])
 
-  return { session, user, loading, sessionExpired, signOut, signIn, signUp, signInWithGoogle }
+  return {
+    session,
+    user,
+    loading,
+    authStatus,
+    authError,
+    sessionExpired,
+    signOut,
+    signIn,
+    signUp,
+    signInWithGoogle,
+    clearAuthError,
+  }
 }

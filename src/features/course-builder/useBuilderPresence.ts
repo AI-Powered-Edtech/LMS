@@ -60,7 +60,7 @@ export function useBuilderPresence(
     })
 
     // Track my presence
-    channel.track({
+    void channel.track({
       userId,
       fullName,
       avatarUrl,
@@ -70,7 +70,7 @@ export function useBuilderPresence(
     } satisfies PresenceData)
 
     return () => {
-      channel.untrack()
+      void channel.untrack()
     }
   }, [channelRef, userId, fullName, avatarUrl])
 
@@ -80,7 +80,7 @@ export function useBuilderPresence(
       const channel = channelRef.current
       if (!channel || !userId) return
       myPresenceRef.current.activeBlockId = blockId
-      channel.track({
+      void channel.track({
         userId,
         fullName,
         avatarUrl,

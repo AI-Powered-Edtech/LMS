@@ -149,7 +149,7 @@ export function BillingDashboard() {
         setLoading(false)
       }
     }
-    fetchData()
+    void fetchData()
   }, [tenantId, addToast, page, PAGE_SIZE])
 
   // ⚡ Perf: Memoize filteredInvoices — was recomputed on every render without useMemo

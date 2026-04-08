@@ -152,7 +152,7 @@ export function AuditDashboard() {
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     setCursor(null)
-    fetchLogs()
+    void fetchLogs()
   }, [actionFilter])
   /* eslint-enable react-hooks/exhaustive-deps */
 
@@ -288,7 +288,7 @@ export function AuditDashboard() {
           <button
             onClick={() => {
               setCursor(null)
-              fetchLogs()
+              void fetchLogs()
             }}
             className="p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700"
             title="Muat Ulang"

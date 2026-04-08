@@ -23,7 +23,7 @@ export function PrincipalLayout() {
 
   const handleSignOut = async () => {
     await signOut()
-    navigate('/login', { replace: true })
+    void navigate('/login', { replace: true })
   }
 
   return (

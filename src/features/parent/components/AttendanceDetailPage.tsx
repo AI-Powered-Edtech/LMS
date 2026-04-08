@@ -435,7 +435,7 @@ export function AttendanceDetailPage() {
     selectedStudentId || (children.length > 0 ? children[0].student_id : '')
 
   const attendanceQuery = useChildAttendance(effectiveStudentId, year, month)
-  const attendanceDays = attendanceQuery.data ?? []
+  const attendanceDays = useMemo(() => attendanceQuery.data ?? [], [attendanceQuery.data])
 
   // Build attendance map
   const attendanceMap = useMemo(() => {

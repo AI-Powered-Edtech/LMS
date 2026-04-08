@@ -36,7 +36,7 @@ export function useSaveTemplate() {
     onSuccess: (_, variables) => {
       // Use variables.tenantId (fresh at call time) instead of closure tenantId
       const tid = variables.tenantId ?? tenantId
-      queryClient.invalidateQueries({ queryKey: ['content-templates', variables.type, tid] })
+      void queryClient.invalidateQueries({ queryKey: ['content-templates', variables.type, tid] })
     },
   })
 }
@@ -72,15 +72,17 @@ export function useImportTemplate() {
 
       if (tid && variables.courseId) {
         // Narrow invalidation: only the specific course's builder cache
-        queryClient.invalidateQueries({ queryKey: courseKeys.builder(tid, variables.courseId) })
-        queryClient.invalidateQueries({ queryKey: courseKeys.detail(tid, variables.courseId) })
+        void queryClient.invalidateQueries({
+          queryKey: courseKeys.builder(tid, variables.courseId),
+        })
+        void queryClient.invalidateQueries({ queryKey: courseKeys.detail(tid, variables.courseId) })
       } else if (tid) {
         // Broader fallback if courseId not provided
-        queryClient.invalidateQueries({ queryKey: courseKeys.lists(tid) })
+        void queryClient.invalidateQueries({ queryKey: courseKeys.lists(tid) })
       } else {
         // Ultimate fallback when tenant context is unavailable:
         // invalidate all courses-scope queries without fabricating empty tenantId.
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           predicate: (query) => Array.isArray(query.queryKey) && query.queryKey[0] === 'courses',
         })
       }

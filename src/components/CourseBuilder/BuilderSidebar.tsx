@@ -82,7 +82,7 @@ export function BuilderSidebar() {
       const moduleIds = state.modules.map((m) => m.id)
       const [moved] = moduleIds.splice(source.index, 1)
       moduleIds.splice(destination.index, 0, moved)
-      actions.reorderModules(moduleIds)
+      void actions.reorderModules(moduleIds)
     }
 
     if (type === 'LESSON') {
@@ -92,18 +92,18 @@ export function BuilderSidebar() {
       const lessonIds = mod.lessons.map((l) => l.id)
       const [moved] = lessonIds.splice(source.index, 1)
       lessonIds.splice(destination.index, 0, moved)
-      actions.reorderLessons(lessonIds)
+      void actions.reorderLessons(lessonIds)
     }
   }
 
   const handleAddModule = () => {
     const count = state.modules.length + 1
-    actions.addModule(`Modul ${count}`)
+    void actions.addModule(`Modul ${count}`)
   }
 
   const handleAddLesson = (moduleId: string, type: string) => {
     const typeLabel = type.charAt(0).toUpperCase() + type.slice(1)
-    actions.addLesson(moduleId, type, `New ${typeLabel}`)
+    void actions.addLesson(moduleId, type, `New ${typeLabel}`)
     setAddingLessonTo(null)
     // Auto-expand the module
     setExpandedModules((prev) => new Set(prev).add(moduleId))
@@ -262,7 +262,7 @@ export function BuilderSidebar() {
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   if (confirm('Hapus modul ini beserta seluruh materinya?')) {
-                                    actions.deleteModule(mod.id)
+                                    void actions.deleteModule(mod.id)
                                   }
                                 }}
                                 className="p-2 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded transition-colors ml-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
@@ -304,12 +304,12 @@ export function BuilderSidebar() {
                                               role="button"
                                               tabIndex={0}
                                               onClick={() => {
-                                                actions.selectLesson(lesson.id)
+                                                void actions.selectLesson(lesson.id)
                                                 if (mobile.isMobile) mobile.closeSidebar()
                                               }}
                                               onKeyDown={(e) => {
                                                 if (e.key === 'Enter' || e.key === ' ') {
-                                                  actions.selectLesson(lesson.id)
+                                                  void actions.selectLesson(lesson.id)
                                                   if (mobile.isMobile) mobile.closeSidebar()
                                                 }
                                               }}
@@ -397,7 +397,7 @@ export function BuilderSidebar() {
                                                 onClick={(e) => {
                                                   e.stopPropagation()
                                                   if (confirm('Hapus materi ini?')) {
-                                                    actions.deleteLesson(lesson.id)
+                                                    void actions.deleteLesson(lesson.id)
                                                   }
                                                 }}
                                                 className={cn(

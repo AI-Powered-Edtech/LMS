@@ -152,9 +152,9 @@ describe('prefetch', () => {
       cleanup()
     })
 
-    it('harus only process href attributes starting dengan /#/', () => {
+    it('harus only process href attributes starting dengan /', () => {
       const cleanup = setupPrefetchListeners()
-      // Verifikasi bahwa hanya link dengan href /#/ akan diprefetch
+      // Verifikasi bahwa hanya link same-origin berbentuk path yang akan diprefetch
       expect(cleanup).toBeDefined()
       cleanup()
     })

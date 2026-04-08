@@ -154,7 +154,9 @@ export function DigestSettings() {
         channel,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parent', 'digest-settings', user?.id ?? ''] })
+      void queryClient.invalidateQueries({
+        queryKey: ['parent', 'digest-settings', user?.id ?? ''],
+      })
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 3000)
     },

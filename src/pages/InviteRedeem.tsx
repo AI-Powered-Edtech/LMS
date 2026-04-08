@@ -2,8 +2,8 @@ import { CheckCircle, Loader2, Mail, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
+import { authService } from '@/features/auth/api/authService'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { supabase } from '@/services/supabase/client'
 import { captureError } from '@/utils/sentry'
 
 export function InviteRedeem() {
@@ -14,49 +14,40 @@ export function InviteRedeem() {
 
   useEffect(() => {
     if (!token) {
-      navigate('/login')
+      void navigate('/login')
       return
     }
 
     const validateAndRedeem = async () => {
       try {
-        // Validasi token via RPC
-        const { data, error } = await supabase.rpc('validate_invite_token', {
-          p_token: token,
-        })
+        const data = await authService.validateInvitation(token)
 
-        if (error || !data) {
+        if (!data) {
           setStatus('invalid')
           return
         }
 
-        if (data.status === 'expired') {
+        if (!data.valid && data.error?.toLowerCase().includes('kadaluarsa')) {
           setStatus('expired')
           return
         }
 
-        if (data.status === 'valid') {
+        if (data.valid) {
           setStatus('valid')
-          // Simpan invite data di sessionStorage (bukan URL) — mencegah token bocor
-          sessionStorage.setItem(
-            'invite_data',
-            JSON.stringify({
-              email: data.email,
-              role: data.role,
-              tenantId: data.tenant_id,
-            })
-          )
           setTimeout(() => {
-            navigate('/set-password')
+            void navigate(`/login?invite=${token}`, { replace: true })
           }, 1500)
+          return
         }
+
+        setStatus('invalid')
       } catch (err) {
         captureError(err, { context: 'invite-redeem', token: token.slice(0, 8) })
         setStatus('invalid')
       }
     }
 
-    validateAndRedeem()
+    void validateAndRedeem()
   }, [token, navigate])
 
   return (

@@ -318,7 +318,7 @@ export function useQuizPageState() {
           message: 'Waktu habis! Kuis Anda telah ditandai sebagai kedaluwarsa.',
         })
         setIsQuizActive(false)
-        refreshQuizData()
+        void refreshQuizData()
       } else if (message.includes('ATTEMPT_VERSION_CONFLICT')) {
         addToast({
           type: 'warning',
@@ -326,7 +326,7 @@ export function useQuizPageState() {
             'Kuis ini baru saja disubmit dari tempat lain (tab/perangkat lain). Memuat ulang...',
         })
         setIsQuizActive(false)
-        refreshQuizData()
+        void refreshQuizData()
       } else {
         addToast({ type: 'error', message: 'Gagal mengirim kuis. Silakan coba lagi.' })
       }

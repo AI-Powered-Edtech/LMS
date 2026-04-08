@@ -40,7 +40,7 @@ export function QuizManager() {
 
   useEffect(() => {
     if (activeClassroomId && tenantId) {
-      classroomService.getActiveEnrollmentCount(activeClassroomId, tenantId).then((count) => {
+      void classroomService.getActiveEnrollmentCount(activeClassroomId, tenantId).then((count) => {
         setStudentCount(count)
       })
     }
@@ -85,7 +85,7 @@ export function QuizManager() {
   }, [activeClassroomId, tenantId, activeTab])
 
   useEffect(() => {
-    loadQuizzes()
+    void loadQuizzes()
   }, [loadQuizzes])
 
   // ─── Open Editor ────────────────────────────────────────

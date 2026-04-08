@@ -354,7 +354,7 @@ export function AdminAnalyticsDashboard() {
   // ⚡ Perf: stabilize refresh handler ref
   const handleRefresh = useCallback(() => {
     setIsRefreshing(true)
-    refetch().finally(() => setIsRefreshing(false))
+    void refetch().finally(() => setIsRefreshing(false))
   }, [refetch])
 
   // ⚡ Perf: stable retry ref for ErrorState

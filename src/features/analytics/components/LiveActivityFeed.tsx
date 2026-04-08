@@ -66,7 +66,7 @@ export function LiveActivityFeed({
     }
 
     // Initial fetch
-    fetchEvents()
+    void fetchEvents()
 
     // Poll every 15 seconds instead of keeping a WebSocket open
     const pollInterval = setInterval(fetchEvents, 15000)

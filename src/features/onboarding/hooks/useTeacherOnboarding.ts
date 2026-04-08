@@ -121,7 +121,7 @@ export function useTeacherOnboarding(): UseTeacherOnboardingReturn {
       }
     }
 
-    loadProgress()
+    void loadProgress()
     return () => {
       cancelled = true
     }
@@ -176,7 +176,7 @@ export function useTeacherOnboarding(): UseTeacherOnboardingReturn {
     const newStep = Math.max(state.current_step - 1, 1)
     setState((prev) => ({ ...prev, current_step: newStep }))
     // No need to await for going back
-    persistProgress({ current_step: newStep })
+    void persistProgress({ current_step: newStep })
   }, [state.current_step, persistProgress])
 
   const completeStep = useCallback(

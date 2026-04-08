@@ -19,6 +19,10 @@ interface RubricPanelProps {
   currentStudent: SpeedGraderStudent
   feedback: string
   totalScore: number
+  manualScore: number
+  effectiveScore: number
+  maxScore: number
+  latePenaltyPercent: number
   isLoading: boolean
   isAIGrading: boolean
   // Dynamic rubric props
@@ -26,6 +30,7 @@ interface RubricPanelProps {
   assignmentId: string | null
   tenantId: string | null
   onFeedbackChange: (feedback: string) => void
+  onManualScoreChange: (score: number) => void
   onAIGrade: () => void
   onSaveAndNext: (status: 'graded' | 'needs_revision') => void
   /** Di mobile, action footer disembunyikan karena digantikan fixed bottom bar di halaman */
@@ -35,12 +40,18 @@ interface RubricPanelProps {
 function StudentInfoHeader({
   student,
   earnedScore,
+  effectiveScore,
   totalRubricPoints,
+  hasRubric,
+  maxScore,
   isLoading,
 }: {
   student: SpeedGraderStudent
   earnedScore: number
+  effectiveScore: number
   totalRubricPoints: number
+  hasRubric: boolean
+  maxScore: number
   isLoading: boolean
 }) {
   if (!student) return null
@@ -80,16 +91,16 @@ function StudentInfoHeader({
           <div className="h-8 w-12 bg-slate-200 dark:bg-slate-700 rounded animate-pulse ml-auto mb-1" />
         ) : (
           <div className="text-3xl font-black text-blue-600 dark:text-blue-400 tracking-tight">
-            {earnedScore}
-            {totalRubricPoints > 0 && (
+            {hasRubric ? earnedScore : effectiveScore}
+            {(hasRubric ? totalRubricPoints : maxScore) > 0 && (
               <span className="text-lg font-bold text-slate-400 dark:text-slate-500">
-                /{totalRubricPoints}
+                /{hasRubric ? totalRubricPoints : maxScore}
               </span>
             )}
           </div>
         )}
         <div className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-          Nilai Rubrik
+          {hasRubric ? 'Nilai Rubrik' : 'Nilai Efektif'}
         </div>
       </div>
     </div>
@@ -116,12 +127,17 @@ function RubricSkeleton() {
 export function RubricPanel({
   currentStudent,
   feedback,
+  manualScore,
+  effectiveScore,
+  maxScore,
+  latePenaltyPercent,
   isLoading,
   isAIGrading,
   submissionId,
   assignmentId,
   tenantId,
   onFeedbackChange,
+  onManualScoreChange,
   onAIGrade,
   onSaveAndNext,
   isMobile = false,
@@ -176,7 +192,10 @@ export function RubricPanel({
       <StudentInfoHeader
         student={currentStudent}
         earnedScore={earnedScore}
+        effectiveScore={effectiveScore}
         totalRubricPoints={totalRubricPoints}
+        hasRubric={Boolean(rubric)}
+        maxScore={maxScore}
         isLoading={isContentLoading}
       />
 
@@ -204,15 +223,48 @@ export function RubricPanel({
 
             {/* No rubric state */}
             {!rubric && (
-              <div className="flex flex-col items-center justify-center py-10 text-center">
-                <ClipboardList className="w-10 h-10 text-slate-300 dark:text-slate-600 mb-3" />
-                <p className="font-bold text-slate-500 dark:text-slate-400 text-sm">
-                  Belum ada rubrik untuk tugas ini
-                </p>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-[200px]">
-                  Buat rubrik melalui halaman pengaturan tugas untuk menggunakan penilaian berbasis
-                  rubrik.
-                </p>
+              <div className="space-y-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4">
+                <div className="flex items-start gap-3">
+                  <ClipboardList className="w-5 h-5 text-slate-400 dark:text-slate-500 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">
+                      Penilaian manual
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Tugas ini belum memiliki rubrik. Masukkan nilai manual, lalu sistem akan
+                      menghitung nilai efektif setelah penalti keterlambatan.
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-3">
+                  <label className="space-y-1.5">
+                    <span className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      Nilai Raw
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      max={maxScore}
+                      value={Number.isNaN(manualScore) ? 0 : manualScore}
+                      onChange={(event) => onManualScoreChange(Number(event.target.value || 0))}
+                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </label>
+                  <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-3 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500 dark:text-slate-400">Nilai efektif</span>
+                      <span className="font-bold text-slate-900 dark:text-white">
+                        {effectiveScore}/{maxScore}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-slate-500 dark:text-slate-400">Penalti terlambat</span>
+                      <span className="font-bold text-slate-900 dark:text-white">
+                        {latePenaltyPercent}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 

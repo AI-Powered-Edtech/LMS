@@ -1,4 +1,16 @@
-export * from './api/gradebookApi'
+export {
+  addGradebookItem,
+  exportGradebookCSV,
+  fetchGradebookColumns,
+  fetchGradebookEntries,
+  fetchGradebookLegacy,
+  fetchGradebookSettings,
+  submitGradeLegacy,
+  syncGradebook,
+  updateGradebookEntry,
+  upsertGradebookEntry,
+  upsertGradebookSettings,
+} from './api/gradebookApi'
 export {
   type GradebookAssignment,
   type GradebookData,

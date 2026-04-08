@@ -10,12 +10,14 @@ Follow this checklist for every production deployment. Steps marked [REQUIRED] m
 
 ### Code Quality [REQUIRED]
 
-- [ ] All CI checks passing on the PR: typecheck, lint, unit tests, E2E tests
+- [ ] `pnpm run build` passes locally from a clean worktree (`build` already runs typecheck, lint, test:ci, then Vite build)
+- [ ] Optional `pnpm run test:e2e` executed when the release changes auth, routing, assignments, or PWA behavior
 - [ ] No `console.log` or `console.debug` in production code paths (use `logger` utility or remove)
 - [ ] No hardcoded user IDs, tenant IDs, or credentials in changed files
 - [ ] `SELECT *` not introduced in any new query
 - [ ] New tables have RLS enabled and `tenant_id` column
 - [ ] New RPCs have `auth.uid() IS NOT NULL` guard and `SET search_path TO 'public'`
+- [ ] Release will be cut from committed branch state, not from a dirty local worktree
 
 ### Bundle Size [REQUIRED]
 
@@ -29,6 +31,7 @@ Follow this checklist for every production deployment. Steps marked [REQUIRED] m
 - [ ] Migrations reviewed for: irreversibility, data loss risk, long-running locks
 - [ ] Destructive migrations (DROP, ALTER TYPE) have been tested on a staging clone first
 - [ ] `docs/DATABASE_ARCHITECTURE.md` updated to reflect schema changes
+- [ ] Production CLI linked with `supabase link --project-ref <production-project-ref>`
 
 ### Documentation [REQUIRED]
 
@@ -41,15 +44,31 @@ Follow this checklist for every production deployment. Steps marked [REQUIRED] m
 ## Deploy Steps
 
 1. **Merge PR to main** — requires at least 1 approved review
-2. **CI runs automatically** — GitHub Actions runs: typecheck → lint → unit tests → build
-3. **Vercel deploys automatically** — triggered on push to `main`, deploys to production
-4. **Run migrations** — if this release includes schema changes:
+2. **Build release artifacts locally**:
    ```bash
-   supabase db push --linked --project-ref [production-project-ref]
+   pnpm run build
    ```
-   > Run migrations AFTER deploy if they are backward-compatible (additive). Run BEFORE deploy if the old code cannot run against the new schema.
-5. **Smoke test** — see section below
-6. **Monitor Sentry** — watch for new errors for 15 minutes post-deploy
+3. **Run migrations** — if this release includes schema changes:
+   ```bash
+   supabase db push --include-all --project-ref [production-project-ref]
+   ```
+   > Additive migrations can run before frontend deployment. For example, `20260408000001_assignments_prd_alignment.sql` is safe to push before the Puter release.
+4. **Deploy Edge Functions**:
+   ```bash
+   supabase functions deploy --project-ref [production-project-ref]
+   ```
+5. **Verify production Supabase configuration**:
+   - Auth Site URL = `https://app.edusync.id`
+   - Redirect URLs include `https://app.edusync.id`, `https://app.edusync.id/#/auth/callback`, and `https://app.edusync.id/#/reset-password`
+   - Required secret `CORS_ORIGIN=https://app.edusync.id` is set
+   - `APP_URL=https://app.edusync.id` and feature-specific secrets are present where applicable
+6. **Deploy frontend to Puter**:
+   ```bash
+   pnpm run deploy:puter
+   ```
+7. **Verify Puter custom domain** — `app.edusync.id` resolves correctly and serves valid TLS
+8. **Smoke test** — see section below
+9. **Monitor Sentry and Supabase logs** — watch for new errors for 15 minutes post-deploy
 
 ---
 
@@ -68,23 +87,23 @@ Run these checks immediately after each production deploy:
 
 ### Automated health check
 
-The deploy workflow runs a health check automatically:
+Run the public health check against the production Supabase project:
 
 ```bash
-curl -f "$PROD_URL/functions/v1/health-check"
+curl -f "https://<PROD_REF>.supabase.co/functions/v1/health-check"
 ```
 
-If this returns non-200, the deploy workflow fails and alerts the team.
+If this returns non-200, treat the release as failed until the issue is understood.
 
 ---
 
 ## Rollback Procedure
 
-### Option A: Revert via Vercel (fastest, no code change)
+### Option A: Re-deploy last known-good Puter bundle (fastest, no code change)
 
-1. Go to Vercel Dashboard → Deployments
-2. Find the last known-good deployment
-3. Click "..." → "Promote to Production"
+1. Open Puter site management for the production site
+2. Select the last known-good bundle or redeploy the previous release artifact
+3. Rebind `app.edusync.id` if Puter created a temporary deployment target
 4. Verify smoke test passes
 
 ### Option B: Revert via Git
@@ -117,13 +136,13 @@ Apply it as a new migration file with a later timestamp.
 
 ## Monitoring Post-Deploy
 
-| Check                    | Tool             | Action if abnormal                        |
-| ------------------------ | ---------------- | ----------------------------------------- |
-| Error rate spike         | Sentry           | Investigate top errors, consider rollback |
-| Health endpoint          | Vercel + CI      | Triggers automatic alert                  |
-| DB query latency         | Supabase Reports | Check for missing indexes or bad queries  |
-| Edge Function error rate | Supabase Logs    | Check Deno logs for unhandled exceptions  |
-| Build bundle size        | `pnpm analyze`   | File issue if > budget                    |
+| Check                    | Tool              | Action if abnormal                           |
+| ------------------------ | ----------------- | -------------------------------------------- |
+| Error rate spike         | Sentry            | Investigate top errors, consider rollback    |
+| Health endpoint          | Supabase function | Investigate before declaring release healthy |
+| DB query latency         | Supabase Reports  | Check for missing indexes or bad queries     |
+| Edge Function error rate | Supabase Logs     | Check Deno logs for unhandled exceptions     |
+| Build bundle size        | `pnpm analyze`    | File issue if > budget                       |
 
 <!-- Phase 5 Feature Cross-Reference -->
 

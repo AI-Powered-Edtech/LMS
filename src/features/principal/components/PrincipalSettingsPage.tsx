@@ -221,7 +221,7 @@ export function PrincipalSettingsPage() {
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: principalKeys.settings(tenantId ?? '') })
+      void queryClient.invalidateQueries({ queryKey: principalKeys.settings(tenantId ?? '') })
       addToast({ type: 'success', message: 'Pengaturan berhasil disimpan' })
     },
     onError: (error) => {
