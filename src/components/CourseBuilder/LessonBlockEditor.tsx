@@ -72,7 +72,7 @@ export function LessonBlockEditor() {
         if (titleDebounceRef.current) clearTimeout(titleDebounceRef.current)
         titleDebounceRef.current = setTimeout(() => {
           void actions.updateLesson(state.activeLesson!.id, { title: newTitle })
-        }, 600)
+        }, 300)
       }
     },
     [state.activeLesson, actions]

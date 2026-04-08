@@ -41,7 +41,8 @@ export function Tabs({
   tabPanelIdPrefix,
 }: TabsProps & { tabPanelIdPrefix?: string }) {
   const layoutId = useId()
-  const baseId = tabPanelIdPrefix ?? useId()
+  const generatedBaseId = useId()
+  const baseId = tabPanelIdPrefix ?? generatedBaseId
   const containerRef = useRef<HTMLDivElement>(null)
 
   // ACCESSIBILITY: Respect the user's OS/browser preference for reduced motion.

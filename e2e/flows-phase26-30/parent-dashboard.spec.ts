@@ -22,8 +22,10 @@ async function loginAsParent(page: import('@playwright/test').Page): Promise<voi
   if (await quickBtn.isVisible({ timeout: 1500 }).catch(() => false)) {
     await quickBtn.click()
   } else {
-    await page.fill('input[type="email"], input[name="email"]', 'parent@edusync.dev')
-    await page.fill('input[type="password"], input[name="password"]', 'password123')
+    const email = process.env.E2E_TEST_PARENT_EMAIL || 'parent@edusync.dev'
+    const password = process.env.E2E_TEST_PASSWORD || 'password123'
+    await page.fill('input[type="email"], input[name="email"]', email)
+    await page.fill('input[type="password"], input[name="password"]', password)
     await page.locator('button[type="submit"]').click()
   }
 

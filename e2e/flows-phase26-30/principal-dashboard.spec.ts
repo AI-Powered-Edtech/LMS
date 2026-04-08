@@ -14,6 +14,10 @@ async function loginAsPrincipal(page: import('@playwright/test').Page): Promise<
   await page.goto('/#/login')
   await page.waitForLoadState('networkidle')
 
+  // Use environment variables with fallback to hardcoded values
+  const email = process.env.E2E_TEST_PRINCIPAL_EMAIL || 'principal@edusync.dev'
+  const password = process.env.E2E_TEST_PASSWORD || 'password123'
+
   const quickBtn = page
     .locator(
       '[data-testid="quick-login-principal"], button:has-text("Principal"), button:has-text("Kepala Sekolah")'
@@ -22,8 +26,8 @@ async function loginAsPrincipal(page: import('@playwright/test').Page): Promise<
   if (await quickBtn.isVisible({ timeout: 1500 }).catch(() => false)) {
     await quickBtn.click()
   } else {
-    await page.fill('input[type="email"], input[name="email"]', 'principal@edusync.dev')
-    await page.fill('input[type="password"], input[name="password"]', 'password123')
+    await page.fill('input[type="email"], input[name="email"]', email)
+    await page.fill('input[type="password"], input[name="password"]', password)
     await page.locator('button[type="submit"]').click()
   }
 
@@ -235,7 +239,7 @@ test.describe('Principal Executive Dashboard', () => {
     await page.waitForTimeout(3000)
 
     const url = page.url()
-    expect(url.includes('/teaching/assignment-gradebook')).toBeFalsy()
+    expect(url.includes('/unauthorized')).toBeTruthy()
 
     await context.close()
   })

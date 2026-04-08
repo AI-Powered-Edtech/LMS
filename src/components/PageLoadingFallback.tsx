@@ -4,6 +4,7 @@
  */
 
 import { SkeletonCard } from './ui/Skeleton'
+import { Spinner } from './ui/Spinner'
 
 interface PageLoadingFallbackProps {
   variant?: 'dashboard' | 'table' | 'form' | 'default'
@@ -16,6 +17,7 @@ function SkeletonBlock({ className }: { className: string }) {
 function DefaultFallback() {
   return (
     <div className="space-y-6 p-4 md:p-8 max-w-7xl mx-auto w-full">
+      <Spinner size="sm" className="mx-auto" />
       <SkeletonBlock className="h-8 w-48" />
       <div className="space-y-4">
         <SkeletonBlock className="h-4 w-full" />
@@ -31,6 +33,7 @@ function DefaultFallback() {
 function DashboardFallback() {
   return (
     <div className="space-y-6 p-4 md:p-8 max-w-7xl mx-auto w-full">
+      <Spinner size="sm" className="mx-auto" />
       {/* Header */}
       <div className="flex items-center justify-between">
         <SkeletonBlock className="h-8 w-48" />
@@ -83,6 +86,7 @@ function DashboardFallback() {
 function TableFallback() {
   return (
     <div className="space-y-4 p-4 md:p-8 max-w-7xl mx-auto w-full">
+      <Spinner size="sm" className="mx-auto" />
       {/* Header with actions */}
       <div className="flex items-center justify-between">
         <SkeletonBlock className="h-8 w-40" />
@@ -128,6 +132,7 @@ function TableFallback() {
 function FormFallback() {
   return (
     <div className="space-y-6 p-4 md:p-8 max-w-2xl mx-auto w-full">
+      <Spinner size="sm" className="mx-auto" />
       {/* Page title */}
       <SkeletonBlock className="h-8 w-56" />
 

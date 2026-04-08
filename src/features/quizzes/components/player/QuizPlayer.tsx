@@ -55,6 +55,7 @@ export function QuizPlayer({
   const [flagged, setFlagged] = useState<Set<string>>(new Set())
   const [showReview, setShowReview] = useState(false)
   const [answers, setAnswers] = useState<Record<string, SubmitAnswer>>(initialAnswers)
+  const [submitted, setSubmitted] = useState(false)
   const [isResuming, setIsResuming] = useState(false)
   const [resumeToast, setResumeToast] = useState<{ show: boolean; current: number; total: number }>(
     { show: false, current: 0, total: 0 }
@@ -156,7 +157,7 @@ export function QuizPlayer({
     // QUIZ-CRIT-03: Guard against submitting while already submitting (race condition)
     // QUIZ-CRIT-04: Use answersRef so timer closure always has the latest answers
     onTimeUp: () => {
-      if (!isSubmitting) onSubmit(answersRef.current)
+      if (!isSubmitting) submitQuiz()
     },
   })
 
@@ -215,48 +216,19 @@ export function QuizPlayer({
   // ── Answer handling ─────────────────────────────────────
   // Note: Autosave is now handled by useQuizAutosave interval (30s)
   // No need to call setAutoSaveAnswer on each answer change
-  const handleAnswer = useCallback((questionId: string, answer: SubmitAnswer) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: answer }))
-  }, [])
+  const handleAnswer = useCallback(
+    (questionId: string, answer: SubmitAnswer) => {
+      if (submitted) return
+      setAnswers((prev) => ({ ...prev, [questionId]: answer }))
+    },
+    [submitted]
+  )
 
-  // ── Keyboard navigation ────────────────────────────────
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName || '')) return
-      // Block navigation while paused
-      if (isPaused) return
+  const submitQuiz = useCallback(() => {
+    onSubmit(answersRef.current)
+    setSubmitted(true)
+  }, [onSubmit])
 
-      if (e.key === 'ArrowRight' && currentQuestionIdx < totalQuestions - 1 && !showReview) {
-        setCurrentQuestionIdx((i) => i + 1)
-      }
-      if (e.key === 'ArrowLeft' && currentQuestionIdx > 0 && !showReview) {
-        setCurrentQuestionIdx((i) => i - 1)
-      }
-      if (e.key.toLowerCase() === 'f' && question && !showReview) {
-        setFlagged((prev) => {
-          const next = new Set(prev)
-          if (next.has(question.question_id)) next.delete(question.question_id)
-          else next.add(question.question_id)
-          return next
-        })
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [currentQuestionIdx, totalQuestions, question, showReview, isPaused])
-
-  // ── beforeunload warning ────────────────────────────────
-  useEffect(() => {
-    if (showReview) return
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault()
-      e.returnValue = ''
-    }
-    window.addEventListener('beforeunload', handler)
-    return () => window.removeEventListener('beforeunload', handler)
-  }, [showReview])
-
-  // ── Flag toggle ───────────────────────────────────────
   const toggleFlag = (id: string) => {
     setFlagged((prev) => {
       const next = new Set(prev)
@@ -266,24 +238,7 @@ export function QuizPlayer({
     })
   }
 
-  // ── Review Screen ───────────────────────────────────────
-  if (showReview) {
-    return (
-      <QuizReviewScreen
-        data-testid="quiz-review-screen"
-        questions={attemptQuestions}
-        answers={answers}
-        flagged={flagged}
-        onBack={() => setShowReview(false)}
-        onSubmit={() => onSubmit(answers)}
-        onJump={(index) => {
-          setCurrentQuestionIdx(index)
-          setShowReview(false)
-        }}
-        isSubmitting={isSubmitting}
-      />
-    )
-  }
+  // ── Keyboard navigation ────────────────────────────────
 
   // Show skeleton while computing resume index
   if (isResuming) {
@@ -304,6 +259,24 @@ export function QuizPlayer({
           </div>
         </div>
       </div>
+    )
+  }
+
+  if (showReview) {
+    return (
+      <QuizReviewScreen
+        data-testid="quiz-review-screen"
+        questions={attemptQuestions}
+        answers={answers}
+        flagged={flagged}
+        onBack={() => setShowReview(false)}
+        onSubmit={submitQuiz}
+        onJump={(index) => {
+          setCurrentQuestionIdx(index)
+          setShowReview(false)
+        }}
+        isSubmitting={isSubmitting}
+      />
     )
   }
 

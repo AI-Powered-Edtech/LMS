@@ -54,7 +54,7 @@ export function AdminLayout() {
             tabIndex={-1}
             className={`flex-1 overflow-y-auto overflow-x-hidden flex flex-col outline-none ${isHidden ? 'p-0' : 'p-2 sm:p-4 md:p-8 pb-24 md:pb-8'}`}
           >
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="sync">
               <motion.div
                 key={location.pathname}
                 initial={{ opacity: 0, y: 10 }}

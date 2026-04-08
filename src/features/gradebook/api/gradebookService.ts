@@ -10,7 +10,7 @@ export const gradebookService = {
   async fetchGradebook(tenantId: string, courseId: string, submissionsPage = 0) {
     try {
       return await fetchGradebookLegacy(tenantId, courseId, submissionsPage)
-    } catch (error) {
+    } catch {
       return await legacyGradebookService.fetchGradebook(tenantId, submissionsPage)
     }
   },
@@ -29,7 +29,7 @@ export const gradebookService = {
   ) {
     try {
       return await submitGradeLegacy(assignmentId, studentId, courseId, score, feedback, tenantId)
-    } catch (error) {
+    } catch {
       return await legacyGradebookService.submitGrade(
         assignmentId,
         studentId,
@@ -54,7 +54,7 @@ export const gradebookService = {
   async getStudentGrades(studentId: string, tenantId: string) {
     try {
       return await fetchGradebookLegacy(studentId, tenantId, 0)
-    } catch (error) {
+    } catch {
       // Fallback to direct query if fetchGradebookLegacy fails
       const { data, error: queryError } = await supabase
         .from('assignment_submissions')

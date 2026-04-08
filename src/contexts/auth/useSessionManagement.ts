@@ -227,14 +227,32 @@ export function useSessionManagement(): UseSessionManagementResult {
           console.warn(`[Auth] Token expires in ${remainingS}s, refreshing...`)
         }
 
-        const { error } = await supabase.auth.refreshSession()
-        if (error) {
-          if (import.meta.env.DEV) {
-            console.error('[Auth] Proactive token refresh failed:', error)
+        try {
+          const { error } = await supabase.auth.refreshSession()
+          if (error) {
+            if (import.meta.env.DEV) {
+              console.error('[Auth] Proactive token refresh failed:', error)
+            }
+            captureError(error, { context: 'proactiveTokenRefresh' })
+            addBreadcrumb('Proactive token refresh failed — signing out', 'auth', {
+              error: error.message,
+            })
+            const { useToast } = await import('@/hooks/useToast')
+            useToast.getState().addToast({
+              type: 'error',
+              message: 'Sesi Anda telah berakhir',
+              description: 'Silakan masuk kembali untuk melanjutkan.',
+            })
+            setSessionExpired(true)
+            await signOut()
           }
-          captureError(error, { context: 'proactiveTokenRefresh' })
-          addBreadcrumb('Proactive token refresh failed — signing out', 'auth', {
-            error: error.message,
+        } catch (err) {
+          if (import.meta.env.DEV) {
+            console.error('[Auth] Proactive token refresh exception:', err)
+          }
+          captureError(err, { context: 'proactiveTokenRefreshException' })
+          addBreadcrumb('Proactive token refresh exception — signing out', 'auth', {
+            error: err instanceof Error ? err.message : 'Unknown error',
           })
           const { useToast } = await import('@/hooks/useToast')
           useToast.getState().addToast({

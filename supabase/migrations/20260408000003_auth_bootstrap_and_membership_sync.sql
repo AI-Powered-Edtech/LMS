@@ -93,13 +93,13 @@ INSERT INTO public.tenant_memberships (
   updated_at
 )
 SELECT
-  ur.tenant_id,
-  ur.user_id,
-  upper(ur.role::text),
-  'active',
-  ur.created_at,
-  now(),
-  now()
+  ur.tenant_id AS tenant_id,
+  ur.user_id AS user_id,
+  upper(ur.role::text) AS role,
+  'active' AS status,
+  ur.created_at AS joined_at,
+  now() AS created_at,
+  now() AS updated_at
 FROM public.user_roles ur
 JOIN public.tenants t ON t.id = ur.tenant_id
 LEFT JOIN public.tenant_memberships tm

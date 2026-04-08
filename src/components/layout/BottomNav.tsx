@@ -108,7 +108,7 @@ export function BottomNav() {
             to={item.path}
             aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'flex flex-col items-center justify-center w-full min-h-[44px] gap-1 transition-colors relative group outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:rounded-xl',
+              'flex flex-col items-center justify-center w-full min-h-[44px] gap-1 transition-colors relative group outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 focus-visible:rounded-xl',
               isActive
                 ? 'text-blue-600 dark:text-blue-400'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'

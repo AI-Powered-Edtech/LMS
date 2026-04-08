@@ -148,6 +148,9 @@ describe('Modal accessibility (a11y)', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
 
     fireEvent.keyDown(document, { key: 'Escape' })
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0))
+    })
     expect(document.activeElement).toBe(trigger)
   })
 })

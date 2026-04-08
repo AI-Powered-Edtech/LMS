@@ -86,9 +86,11 @@ export function PublicRoutes() {
       <Route
         path="/verify-email"
         element={
-          <S>
-            <VerifyEmail />
-          </S>
+          <AuthGuard requireEmailVerification={false}>
+            <S>
+              <VerifyEmail />
+            </S>
+          </AuthGuard>
         }
       />
       <Route
