@@ -261,7 +261,7 @@ export function BuilderTopBar({ releasePanelOpen, onToggleReleasePanel }: Builde
             <button
               onClick={() => setIsVersionHistoryOpen(true)}
               disabled={!state.courseId}
-              className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
               title="Riwayat Versi"
               aria-label="Riwayat versi"
             >
@@ -273,7 +273,7 @@ export function BuilderTopBar({ releasePanelOpen, onToggleReleasePanel }: Builde
             <button
               onClick={() => setIsSaveTemplateOpen(true)}
               disabled={!state.courseId}
-              className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1"
               title="Simpan sebagai Template Kursus"
               aria-label="Simpan sebagai template"
             >
@@ -287,7 +287,7 @@ export function BuilderTopBar({ releasePanelOpen, onToggleReleasePanel }: Builde
                 window.open(`/#/app/teacher/preview/${state.courseId}?preview=true`, '_blank')
               }}
               disabled={!state.courseId}
-              className="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
               aria-label="Pratinjau kursus"
             >
               <Eye className="w-4 h-4" />
@@ -298,7 +298,7 @@ export function BuilderTopBar({ releasePanelOpen, onToggleReleasePanel }: Builde
             <button
               onClick={() => setIsSettingsOpen(true)}
               disabled={!state.courseId}
-              className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
               title="Pengaturan Kursus"
               aria-label="Pengaturan kursus"
             >
@@ -314,7 +314,7 @@ export function BuilderTopBar({ releasePanelOpen, onToggleReleasePanel }: Builde
             onClick={onToggleReleasePanel}
             disabled={!state.courseId}
             className={cn(
-              'relative px-5 py-2.5 text-sm font-black rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed',
+              'relative px-5 py-2.5 text-sm font-black rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1',
               releasePanelOpen
                 ? 'bg-indigo-600 text-white shadow-indigo-100 dark:shadow-indigo-900/30'
                 : 'bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-md hover:-translate-y-0.5'
@@ -337,7 +337,7 @@ export function BuilderTopBar({ releasePanelOpen, onToggleReleasePanel }: Builde
         <button
           onClick={() => setIsAssignModalOpen(true)}
           disabled={!state.courseId}
-          className="px-5 py-2.5 text-sm font-black text-white bg-slate-900 dark:bg-slate-700 hover:bg-black dark:hover:bg-slate-600 shadow-xl shadow-slate-200 dark:shadow-slate-900/30 hover:shadow-slate-300 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-5 py-2.5 text-sm font-black text-white bg-slate-900 dark:bg-slate-700 hover:bg-black dark:hover:bg-slate-600 shadow-xl shadow-slate-200 dark:shadow-slate-900/30 hover:shadow-slate-300 hover:-translate-y-0.5 rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-1 dark:focus-visible:ring-slate-400"
         >
           <Users className="w-4 h-4" />
           Bagikan
