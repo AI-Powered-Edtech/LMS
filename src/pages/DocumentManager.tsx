@@ -45,6 +45,7 @@ import {
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
+import { sanitizeUrl } from '@/utils/sanitize'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -464,7 +465,7 @@ function DocumentRow({ doc, onDelete }: DocumentRowProps) {
       <div className="flex items-center gap-1 shrink-0">
         {doc.file_url && (
           <a
-            href={doc.file_url}
+            href={sanitizeUrl(doc.file_url)}
             target="_blank"
             rel="noopener noreferrer"
             className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
