@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { authService } from '@/features/auth/api/authService'
 import { usePageTitle } from '@/hooks/usePageTitle'
@@ -80,12 +80,21 @@ export function VerifyEmail() {
   }, [navigate, searchParams])
 
   const handleResend = async () => {
+    if (!user?.email) {
+      setResendState({
+        status: 'error',
+        message:
+          'Sesi tidak valid. Silakan login terlebih dahulu untuk meminta email verifikasi ulang.',
+      })
+      return
+    }
+
     setResendState({ status: 'loading' })
 
     try {
       const { error: resendError } = await supabase.auth.resend({
         type: 'signup',
-        email: user?.email ?? '',
+        email: user.email,
       })
 
       if (resendError) {
@@ -100,6 +109,8 @@ export function VerifyEmail() {
       })
     }
   }
+
+  const hasValidEmail = !!user?.email
 
   const isVerifying = verifyState.status === 'verifying'
   const isVerified = verifyState.status === 'verified'
@@ -183,7 +194,7 @@ export function VerifyEmail() {
           <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm font-medium text-center mb-4 border border-red-200 dark:border-red-800/50">
             {resendState.message}
           </div>
-        ) : (
+        ) : hasValidEmail ? (
           <button
             className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold py-2 px-4 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors w-full text-sm mb-6"
             onClick={handleResend}
@@ -191,6 +202,18 @@ export function VerifyEmail() {
           >
             {resendState.status === 'loading' ? 'Mengirim...' : '📤 Kirim Ulang Email Verifikasi'}
           </button>
+        ) : (
+          <div className="bg-slate-100 dark:bg-slate-800 rounded-lg p-4 text-center mb-4 border border-slate-200 dark:border-slate-700">
+            <p className="text-slate-600 dark:text-slate-400 text-sm mb-3">
+              Anda belum masuk ke akun. Silakan login untuk meminta email verifikasi ulang.
+            </p>
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors text-sm"
+            >
+              🔑 Masuk ke Akun
+            </Link>
+          </div>
         )}
 
         {!isVerified && (

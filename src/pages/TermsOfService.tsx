@@ -87,7 +87,7 @@ export function TermsOfService() {
               <p className="text-slate-600 dark:text-slate-300">
                 Anda mempertahankan kepemilikan atas konten yang Anda buat di EduSync. Dengan
                 memposting konten, Anda memberikan kepada kami lisensi untuk menggunakan,
-                mereproduksi, dan menampilkan konten tersebut dalam提供 layanan.
+                mereproduksi, dan menampilkan konten tersebut dalam layanan kami.
               </p>
             </section>
 

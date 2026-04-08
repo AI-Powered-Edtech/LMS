@@ -462,6 +462,11 @@ export const administrationService = {
   /**
    * Health check — verifies DB and auth connectivity.
    * Returns structured health status instead of bare boolean.
+   *
+   * DB check: queries tenants table to verify data plane is accessible
+   * Auth check: tests if auth service is responsive by checking session state
+   *   - "ok" means auth service is reachable (user may or may not be logged in)
+   *   - "error" means auth service is not reachable (network/service failure)
    */
   async healthCheck(): Promise<{
     status: 'healthy' | 'degraded' | 'down'
@@ -475,8 +480,8 @@ export const administrationService = {
     const { error: dbError } = await supabase.from('tenants').select('id').limit(1)
     const dbOk = !dbError
 
-    const { error: authError } = await supabase.from('profiles').select('id').limit(1)
-    const authOk = !authError
+    const { error: sessionError } = await supabase.auth.getSession()
+    const authOk = !sessionError
 
     let status: 'healthy' | 'degraded' | 'down' = 'healthy'
     if (!dbOk && !authOk) {

@@ -30,9 +30,9 @@ export function PrivacyPolicy() {
                 1. Pendahuluan
               </h2>
               <p className="text-slate-600 dark:text-slate-300">
-                EduSync sangat重视 privasi pengguna. Kebijakan Privasi ini menjelaskan bagaimana
-                kami mengumpulkan, menggunakan, mengungkapkan, dan mengamankan informasi pribadi
-                Anda saat menggunakan layanan kami.
+                EduSync sangat memperhatikan privasi pengguna. Kebijakan Privasi ini menjelaskan
+                bagaimana kami mengumpulkan, menggunakan, mengungkapkan, dan mengamankan informasi
+                pribadi Anda saat menggunakan layanan kami.
               </p>
             </section>
 
@@ -83,7 +83,8 @@ export function PrivacyPolicy() {
               </h2>
               <p className="text-slate-600 dark:text-slate-300">
                 Anda memiliki hak untuk mengakses, memperbaiki, atau menghapus data pribadi Anda.
-                Untuk行使 hak ini, silakan hubungi kami melalui pengaturan akun atau email dukungan.
+                Untuk menggunakan hak ini, silakan hubungi kami melalui pengaturan akun atau email
+                dukungan.
               </p>
             </section>
 
@@ -93,7 +94,7 @@ export function PrivacyPolicy() {
               </h2>
               <p className="text-slate-600 dark:text-slate-300">
                 Kami dapat memperbarui kebijakan privasi ini sewaktu-waktu. Perubahan signifikan
-                akan di通知 melalui email atau notifikasi dalam aplikasi.
+                akan diinformasikan melalui email atau notifikasi dalam aplikasi.
               </p>
             </section>
 

@@ -65,6 +65,7 @@ function useAddClassroom() {
         type: 'error',
         message: 'Gagal membuat kelas.',
       })
+      throw err
     },
   })
 }
