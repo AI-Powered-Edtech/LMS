@@ -101,11 +101,11 @@ export function OfflineSyncIndicator({
         setPendingOps(pending)
 
         // Show toast if there are conflicts
-        if (queueStats.conflict > 0 && !activeConflict) {
+        if (queueStats.conflict !== undefined && queueStats.conflict > 0 > 0 && !activeConflict) {
           addToast({
             type: 'warning',
             message: 'Sinkronisasi Konflik',
-            description: `${queueStats.conflict} konflik memerlukan resolusi Anda.`,
+            description: `${queueStats.conflict !== undefined && queueStats.conflict > 0} konflik memerlukan resolusi Anda.`,
           })
         }
       } catch (error) {
@@ -132,9 +132,9 @@ export function OfflineSyncIndicator({
     async (itemId: string) => {
       // Find the operation with conflict
       const item = pendingOps.find((op) => op.id === itemId)
-      if (!item || !item.payload.conflict) return
+      if (!item || !(item.payload as Record<string, unknown>).conflict) return
 
-      const conflict = item.payload.conflict as ConflictInfo
+      const conflict = (item.payload as Record<string, unknown>).conflict as ConflictInfo
 
       try {
         // Auto-resolve using strategy
@@ -255,7 +255,7 @@ export function OfflineSyncIndicator({
               </span>
             </div>
           )}
-          {stats.conflict > 0 && (
+          {stats.conflict !== undefined && stats.conflict > 0 && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600 dark:text-gray-400">Konflik:</span>
               <span className="font-medium text-yellow-600">
@@ -277,13 +277,15 @@ export function OfflineSyncIndicator({
             {isSyncing ? 'Menyinkronkan...' : 'Sinkronkan Sekarang'}
           </button>
 
-          {stats.conflict > 0 && (
+          {stats.conflict !== undefined && stats.conflict > 0 && (
             <button
               onClick={() => {
                 // Find first conflict and show it
                 const conflictItem = pendingOps.find((op) => op.status === 'conflict')
-                if (conflictItem?.payload.conflict) {
-                  setActiveConflict(conflictItem.payload.conflict as ConflictInfo)
+                if ((conflictItem?.payload as Record<string, unknown>)?.conflict) {
+                  setActiveConflict(
+                    (conflictItem?.payload as Record<string, unknown>)?.conflict as ConflictInfo
+                  )
                 }
               }}
               className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md transition-colors text-sm font-medium"
@@ -306,14 +308,18 @@ export function OfflineSyncIndicator({
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-gray-900 dark:text-gray-100">{op.type}</span>
                     <span className="text-gray-500 dark:text-gray-400">
-                      {new Date(op.metadata.queuedAt).toLocaleTimeString()}
+                      {new Date(
+                        (op.metadata as Record<string, string>)?.queuedAt
+                      ).toLocaleTimeString()}
                     </span>
                   </div>
                   <div className="text-gray-600 dark:text-gray-400 mt-1">
-                    {op.metadata.entityId}
+                    {(op.metadata as Record<string, string>)?.entityId}
                   </div>
-                  {op.metadata.lastError && (
-                    <div className="text-red-600 mt-1">{op.metadata.lastError}</div>
+                  {(op.metadata as Record<string, string>)?.lastError && (
+                    <div className="text-red-600 mt-1">
+                      {(op.metadata as Record<string, string>)?.lastError}
+                    </div>
                   )}
                 </div>
               ))}

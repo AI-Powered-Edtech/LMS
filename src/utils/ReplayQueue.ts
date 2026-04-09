@@ -33,9 +33,9 @@ export interface ReplayQueueStats {
   failed: number
   total: number
   oldestItemAt: number | null
-  conflict?: boolean
+  conflict?: number
   completed?: number
-  syncing?: boolean
+  syncing?: number
 }
 
 export interface ReplayQueueOptions {
@@ -119,7 +119,7 @@ export class ReplayQueue {
    */
   async processAll(processor: ItemProcessor): Promise<ReplayResult> {
     if (this.processing) {
-      return { processed: 0, succeeded: 0, failed: 0, deadLettered: 0, conflict: true }
+      return { processed: 0, succeeded: 0, failed: 0, deadLettered: 0, conflict: false }
     }
 
     this.processing = true
