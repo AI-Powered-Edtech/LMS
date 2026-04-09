@@ -12,6 +12,7 @@ import {
 import type { RefObject } from 'react'
 
 import { cn } from '@/utils/cn'
+import { sanitizeUrl } from '@/utils/sanitize'
 
 import type { ActiveTool, Annotation } from './types'
 
@@ -226,7 +227,7 @@ export function DocumentViewer({
               <div className="mb-6 flex flex-wrap gap-3">
                 {fileUrl && (
                   <a
-                    href={fileUrl}
+                    href={sanitizeUrl(fileUrl)}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700/60"
@@ -237,7 +238,7 @@ export function DocumentViewer({
                 )}
                 {linkUrl && (
                   <a
-                    href={linkUrl}
+                    href={sanitizeUrl(linkUrl)}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700/60"
