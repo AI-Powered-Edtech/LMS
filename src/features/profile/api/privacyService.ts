@@ -16,40 +16,37 @@ export async function exportUserData(
   tenantId: string
 ): Promise<UserDataExport | null> {
   try {
-    const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single()
-
-    const { data: enrollments } = await supabase
-      .from('enrollments')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
-
-    const { data: progress } = await supabase
-      .from('lesson_progress')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
-      .limit(1000)
-
-    const { data: grades } = await supabase
-      .from('grades')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
-      .limit(1000)
-
-    const { data: messages } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('sender_id', userId)
-      .eq('tenant_id', tenantId)
-      .limit(1000)
-
-    const { data: certificates } = await supabase
-      .from('certificates')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
+    // Optimization: Run all independent queries concurrently
+    const [
+      { data: profile },
+      { data: enrollments },
+      { data: progress },
+      { data: grades },
+      { data: messages },
+      { data: certificates },
+    ] = await Promise.all([
+      supabase.from('profiles').select('*').eq('id', userId).single(),
+      supabase.from('enrollments').select('*').eq('user_id', userId).eq('tenant_id', tenantId),
+      supabase
+        .from('lesson_progress')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('tenant_id', tenantId)
+        .limit(1000),
+      supabase
+        .from('grades')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('tenant_id', tenantId)
+        .limit(1000),
+      supabase
+        .from('messages')
+        .select('*')
+        .eq('sender_id', userId)
+        .eq('tenant_id', tenantId)
+        .limit(1000),
+      supabase.from('certificates').select('*').eq('user_id', userId).eq('tenant_id', tenantId),
+    ])
 
     return {
       profile: profile ?? {},
