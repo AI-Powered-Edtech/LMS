@@ -110,7 +110,7 @@ export function useBaselineMetrics() {
       data: Omit<SchoolBaselineMetrics, 'id' | 'tenant_id' | 'created_at' | 'updated_at'>
     ) => saveBaselineMetrics(tenantId!, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: principalKeys.baseline(tenantId ?? '') })
+      void queryClient.invalidateQueries({ queryKey: principalKeys.baseline(tenantId ?? '') })
     },
   })
 
@@ -138,7 +138,7 @@ export function useSurveys() {
   const createMutation = useMutation({
     mutationFn: (input: CreateSurveyInput) => createSurvey(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: principalKeys.surveys(tenantId ?? '') })
+      void queryClient.invalidateQueries({ queryKey: principalKeys.surveys(tenantId ?? '') })
     },
   })
 
@@ -146,28 +146,28 @@ export function useSurveys() {
     mutationFn: ({ id, input }: { id: string; input: Partial<CreateSurveyInput> }) =>
       updateSurvey(id, input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: principalKeys.surveys(tenantId ?? '') })
+      void queryClient.invalidateQueries({ queryKey: principalKeys.surveys(tenantId ?? '') })
     },
   })
 
   const publishMutation = useMutation({
     mutationFn: (id: string) => publishSurvey(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: principalKeys.surveys(tenantId ?? '') })
+      void queryClient.invalidateQueries({ queryKey: principalKeys.surveys(tenantId ?? '') })
     },
   })
 
   const closeMutation = useMutation({
     mutationFn: (id: string) => closeSurvey(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: principalKeys.surveys(tenantId ?? '') })
+      void queryClient.invalidateQueries({ queryKey: principalKeys.surveys(tenantId ?? '') })
     },
   })
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteSurvey(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: principalKeys.surveys(tenantId ?? '') })
+      void queryClient.invalidateQueries({ queryKey: principalKeys.surveys(tenantId ?? '') })
     },
   })
 
@@ -194,7 +194,7 @@ export function useSurveyResults(surveyId: string | null) {
 
   return useQuery({
     queryKey: principalKeys.surveyResults(tenantId ?? '', surveyId ?? ''),
-    queryFn: () => getSurveyResults(surveyId!),
+    queryFn: () => getSurveyResults(surveyId!, tenantId!),
     enabled: !!tenantId && !!surveyId,
     staleTime: STALE.DYNAMIC,
   })
@@ -225,10 +225,10 @@ export function useExecutiveData() {
     isLoading,
     error,
     refetchAll: () => {
-      overviewQuery.refetch()
-      monthlyTrendQuery.refetch()
-      roiMetricsQuery.refetch()
-      settingsQuery.refetch()
+      void overviewQuery.refetch()
+      void monthlyTrendQuery.refetch()
+      void roiMetricsQuery.refetch()
+      void settingsQuery.refetch()
     },
   }
 }

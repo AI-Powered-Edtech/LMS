@@ -39,7 +39,7 @@ export function StudentClassPage() {
     }
 
     if (currentClass) {
-      loadClassData()
+      void loadClassData()
     }
   }, [classId, tenantId, currentClass])
 
@@ -110,7 +110,7 @@ export function StudentClassPage() {
                     tabIndex={0}
                     onClick={() => navigate(`/courses/${course.id}`)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') navigate(`/courses/${course.id}`)
+                      if (e.key === 'Enter' || e.key === ' ') void navigate(`/courses/${course.id}`)
                     }}
                     className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group flex items-start gap-4"
                   >

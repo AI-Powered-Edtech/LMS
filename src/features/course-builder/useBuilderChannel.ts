@@ -70,7 +70,7 @@ export function useBuilderChannel(
 
       // Remove any stale channel before creating a new one
       if (channelRef.current) {
-        channelRef.current.unsubscribe()
+        void channelRef.current.unsubscribe()
         channelRef.current = null
       }
 
@@ -131,11 +131,11 @@ export function useBuilderChannel(
       reconnectTimerRef.current = setTimeout(() => {
         if (!mountedRef.current) return
         reconnectAttemptRef.current += 1
-        subscribe()
+        void subscribe()
       }, delay)
     }
 
-    subscribe()
+    void subscribe()
 
     return () => {
       mountedRef.current = false
@@ -144,7 +144,7 @@ export function useBuilderChannel(
         reconnectTimerRef.current = null
       }
       if (channelRef.current) {
-        channelRef.current.unsubscribe()
+        void channelRef.current.unsubscribe()
         channelRef.current = null
       }
       setChannelStatus('disconnected')
@@ -158,7 +158,7 @@ export function useBuilderChannel(
       // Don't broadcast if not authorized
       if (channelStatus === 'unauthorized') return
 
-      channelRef.current.send({
+      void channelRef.current.send({
         type: 'broadcast',
         event: 'builder_action',
         payload: { action, userId, userName } satisfies BroadcastPayload,

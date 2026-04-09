@@ -47,7 +47,7 @@ export function useUpdateStruggleConfig() {
     mutationFn: (updates: Partial<StruggleConfig>) =>
       struggleService.updateStruggleConfig(tenantId!, updates),
     onSuccess: () => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: struggleKeys.config(tenantId!),
       })
     },
@@ -94,7 +94,7 @@ export function useMarkAlertsRead() {
     mutationFn: (alertIds: string[]) => struggleService.markAlertsRead(tenantId!, alertIds),
     onSuccess: () => {
       // Invalidate all alert queries so both unread-only and full lists refresh
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: base.all(tenantId!),
       })
     },

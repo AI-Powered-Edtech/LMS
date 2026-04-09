@@ -59,7 +59,7 @@ export function useAntiCheat({ attemptId }: UseAntiCheatOptions): UseAntiCheatRe
     if (!attemptId) return
 
     const record = (type: AntiCheatEventType, extra?: Record<string, unknown>) => {
-      quizPlayerService.recordCheatingSignal(attemptId, type, {
+      void quizPlayerService.recordCheatingSignal(attemptId, type, {
         timestamp: new Date().toISOString(),
         ...extra,
       })

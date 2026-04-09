@@ -113,7 +113,7 @@ export function usePushSubscription(): UsePushSubscriptionReturn {
       }
     }
 
-    checkExisting()
+    void checkExisting()
 
     return () => {
       cancelled = true

@@ -56,7 +56,7 @@ export function UpcomingAssignments({ assignments, loading }: UpcomingAssignment
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault()
-                  navigate('/assignments')
+                  void navigate('/assignments')
                 }
               }}
               aria-label={`Tugas: ${task.title}`}

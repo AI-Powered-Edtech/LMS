@@ -53,8 +53,9 @@ export const surveyAnalyticsService = {
    * Get aggregated survey results using the get_survey_results RPC.
    * Returns per-question analytics with rating averages, yes/no counts, and text answers.
    */
-  async getSurveyResults(surveyId: string): Promise<SurveyAnalyticsResult> {
+  async getSurveyResults(tenantId: string, surveyId: string): Promise<SurveyAnalyticsResult> {
     const { data, error } = await supabase.rpc('get_survey_results', {
+      p_tenant_id: tenantId,
       p_survey_id: surveyId,
     })
 
@@ -104,11 +105,10 @@ export const surveyAnalyticsService = {
    * Get survey analytics summary from the materialized view.
    * Returns high-level metrics for all surveys.
    */
-  async getSurveySummary(): Promise<SurveySummary[]> {
-    const { data, error } = await supabase
-      .from('survey_analytics_summary')
-      .select('*')
-      .order('created_at', { ascending: false })
+  async getSurveySummary(tenantId: string): Promise<SurveySummary[]> {
+    const { data, error } = await supabase.rpc('get_survey_summary', {
+      p_tenant_id: tenantId,
+    })
 
     if (error) {
       if (import.meta.env.DEV) console.error('[SurveyAnalytics] getSurveySummary error:', error)
@@ -133,7 +133,10 @@ export const surveyAnalyticsService = {
   /**
    * Export survey responses in a flat format suitable for CSV generation.
    */
-  async exportResponses(surveyId: string): Promise<
+  async exportResponses(
+    tenantId: string,
+    surveyId: string
+  ): Promise<
     Array<{
       respondentId: string
       respondedAt: string
@@ -144,6 +147,7 @@ export const surveyAnalyticsService = {
     }>
   > {
     const { data, error } = await supabase.rpc('export_survey_responses', {
+      p_tenant_id: tenantId,
       p_survey_id: surveyId,
     })
 

@@ -88,6 +88,6 @@ pnpm vitest run src/features/courses
 
 ## Dokumentasi Terkait
 
-- [DATABASE.md](../../docs/DATABASE.md)
+- [DATABASE_ARCHITECTURE.md](../../docs/DATABASE_ARCHITECTURE.md)
 - [ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 - [course-builder README](../course-builder/README.md)

@@ -8,7 +8,11 @@ import { usePageTitle } from '@/hooks/usePageTitle'
 
 export function useGradebookState() {
   usePageTitle('Buku Nilai')
-  const { students, assignments, grades, updateGrade, addAssignment } = useGradebook()
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('')
+  const { students, assignments, grades, updateGrade, addAssignment } = useGradebook(
+    0,
+    selectedCourseId || undefined
+  )
   const [searchQuery, setSearchQuery] = useState('')
   const debouncedSearch = useDebounce(searchQuery, 300)
   const [editingCell, setEditingCell] = useState<{
@@ -25,7 +29,6 @@ export function useGradebookState() {
   })
 
   // Course-based gradebook (real Supabase data)
-  const [selectedCourseId, setSelectedCourseId] = useState<string>('')
   const coursesQuery = useCourses({ limit: 50 })
   const courses: Course[] = coursesQuery.data?.courses ?? []
 

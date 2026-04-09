@@ -106,7 +106,7 @@ export function AdministrationDashboard() {
 
   // Initial data fetch
   useEffect(() => {
-    fetchSyncHistory()
+    void fetchSyncHistory()
   }, [fetchSyncHistory])
 
   // Sync handler
@@ -128,7 +128,7 @@ export function AdministrationDashboard() {
           text: `Sinkronisasi berhasil! ${result.recordsSynced || 0} data diperbarui.`,
         })
         // Refresh sync history
-        fetchSyncHistory()
+        void fetchSyncHistory()
       } else {
         setSyncMessage({
           type: 'error',
@@ -328,12 +328,16 @@ export function AdministrationDashboard() {
             </button>
             <button
               onClick={() =>
-                addToast({ type: 'info', message: 'Fitur Cadangan Basis Data segera hadir.' })
+                addToast({
+                  type: 'warning',
+                  message: 'Fitur Cadangan Basis Data dalam pengembangan.',
+                })
               }
-              className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3"
+              className="w-full p-3 text-left bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors flex items-center gap-3 opacity-60"
+              disabled
             >
-              <Database className="w-5 h-5 text-slate-500" />
-              <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">
+              <Database className="w-5 h-5 text-slate-400" />
+              <span className="font-medium text-slate-400 dark:text-slate-500 text-sm">
                 Cadangan Basis Data
               </span>
             </button>

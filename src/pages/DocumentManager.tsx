@@ -228,7 +228,7 @@ function UploadModal({ open, onClose, onSuccess, tenantId }: UploadModalProps) {
     } finally {
       setUploading(false)
     }
-  }, [file, title, description, category, visibility, addToast, handleClose, onSuccess])
+  }, [file, title, description, category, visibility, addToast, handleClose, onSuccess, tenantId])
 
   return (
     <Modal open={open} onClose={handleClose} size="lg">

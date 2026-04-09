@@ -1,15 +1,15 @@
 // EduSync LMS — Survey Results Dashboard
 // Displays aggregated survey results with charts and export functionality
 
-import { Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Download, Loader2, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { Card } from '@/components/ui/Card'
+import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
 
-import { surveyAnalyticsService, type SurveyAnalyticsResult } from '../api/surveyAnalytics'
+import { type SurveyAnalyticsResult, surveyAnalyticsService } from '../api/surveyAnalytics'
 import { exportSurveyToCSV } from '../utils/surveyExport'
 
 // ---------------------------------------------------------------------------
@@ -26,6 +26,7 @@ interface SurveyResultsDashboardProps {
 // ---------------------------------------------------------------------------
 
 export function SurveyResultsDashboard({ surveyId, className }: SurveyResultsDashboardProps) {
+  const { tenantId } = useAuth()
   const [data, setData] = useState<SurveyAnalyticsResult | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -38,7 +39,11 @@ export function SurveyResultsDashboard({ surveyId, className }: SurveyResultsDas
       setIsLoading(true)
       setError(null)
       try {
-        const result = await surveyAnalyticsService.getSurveyResults(surveyId)
+        if (!tenantId) {
+          throw new Error('Tenant tidak ditemukan.')
+        }
+
+        const result = await surveyAnalyticsService.getSurveyResults(tenantId, surveyId)
         if (!cancelled) setData(result)
       } catch (err) {
         if (!cancelled) {
@@ -49,11 +54,11 @@ export function SurveyResultsDashboard({ surveyId, className }: SurveyResultsDas
       }
     }
 
-    load()
+    void load()
     return () => {
       cancelled = true
     }
-  }, [surveyId])
+  }, [surveyId, tenantId])
 
   const handleExport = () => {
     if (!data) return
@@ -86,9 +91,7 @@ export function SurveyResultsDashboard({ surveyId, className }: SurveyResultsDas
     return (
       <Card className="p-6 text-center">
         <Users className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-          Belum Ada Respons
-        </h3>
+        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Belum Ada Respons</h3>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
           Survei sudah dipublikasikan dan menunggu respons.
         </p>
@@ -151,10 +154,7 @@ export function SurveyResultsDashboard({ surveyId, className }: SurveyResultsDas
 
             {/* Yes/No Chart */}
             {q.questionType === 'yesno' && (
-              <YesNoChart
-                yesCount={q.yesCount ?? 0}
-                noCount={q.noCount ?? 0}
-              />
+              <YesNoChart yesCount={q.yesCount ?? 0} noCount={q.noCount ?? 0} />
             )}
 
             {/* Text Answers */}
@@ -225,9 +225,7 @@ function RatingChart({
                 }}
               />
             </div>
-            <span className="w-8 text-right text-slate-500 dark:text-slate-400">
-              {row.count}
-            </span>
+            <span className="w-8 text-right text-slate-500 dark:text-slate-400">{row.count}</span>
           </div>
         ))}
       </div>
@@ -243,11 +241,6 @@ function YesNoChart({ yesCount, noCount }: { yesCount: number; noCount: number }
   const total = yesCount + noCount
   const yesPct = total > 0 ? (yesCount / total) * 100 : 0
   const noPct = total > 0 ? (noCount / total) * 100 : 0
-
-  const chartData = [
-    { name: 'Ya', value: yesCount, pct: yesPct },
-    { name: 'Tidak', value: noCount, pct: noPct },
-  ]
 
   return (
     <div className="space-y-3">

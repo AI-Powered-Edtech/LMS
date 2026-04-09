@@ -191,7 +191,7 @@ export function ClassDetailPanel({
                   <button
                     onClick={() =>
                       onHandleCopy(
-                        `${window.location.origin}/#/join?code=${selectedClass.join_code}`,
+                        `${window.location.origin}/join?code=${selectedClass.join_code}`,
                         'link-' + selectedClass.id
                       )
                     }

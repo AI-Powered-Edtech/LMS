@@ -1,5 +1,5 @@
-import { motion, useReducedMotion } from 'motion/react'
 import type { Transition } from 'motion/react'
+import { motion, useReducedMotion } from 'motion/react'
 import { useId, useRef } from 'react'
 
 import { cn } from '@/utils/cn'
@@ -16,10 +16,33 @@ export interface TabsProps {
   activeTab: string
   onChange: (tabId: string) => void
   className?: string
+  /** Prefix for generated tab and tabpanel ids for aria relationships */
+  tabPanelIdPrefix?: string
 }
 
-export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
+/**
+ * Helper to get matching tabpanel aria attributes for a given tab id
+ * Use this on your tabpanel elements for correct accessibility relationships
+ */
+export function getTabPanelAttrs(tabId: string, prefix: string) {
+  return {
+    id: `${prefix}-panel-${tabId}`,
+    role: 'tabpanel',
+    'aria-labelledby': `${prefix}-tab-${tabId}`,
+    tabIndex: 0,
+  }
+}
+
+export function Tabs({
+  tabs,
+  activeTab,
+  onChange,
+  className,
+  tabPanelIdPrefix,
+}: TabsProps & { tabPanelIdPrefix?: string }) {
   const layoutId = useId()
+  const generatedBaseId = useId()
+  const baseId = tabPanelIdPrefix ?? generatedBaseId
   const containerRef = useRef<HTMLDivElement>(null)
 
   // ACCESSIBILITY: Respect the user's OS/browser preference for reduced motion.
@@ -68,6 +91,8 @@ export function Tabs({ tabs, activeTab, onChange, className }: TabsProps) {
             key={tab.id}
             role="tab"
             aria-selected={isActive}
+            aria-controls={`${baseId}-panel-${tab.id}`}
+            id={`${baseId}-tab-${tab.id}`}
             tabIndex={isActive ? 0 : -1}
             onClick={() => onChange(tab.id)}
             className={cn(

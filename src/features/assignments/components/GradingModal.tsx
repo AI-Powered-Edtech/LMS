@@ -11,7 +11,6 @@ interface GradingModalProps {
   assignment: Assignment | null
   tenantId: string | null
   onClose: () => void
-  onUpdateSubmission: (updated: AssignmentSubmission) => void
 }
 
 function getStudentName(submission: AssignmentSubmission): string {
@@ -21,29 +20,17 @@ function getStudentName(submission: AssignmentSubmission): string {
   return submission.user_profiles?.full_name || 'Siswa'
 }
 
-export function GradingModal({
-  submission,
-  assignment,
-  tenantId,
-  onClose,
-  onUpdateSubmission,
-}: GradingModalProps) {
+export function GradingModal({ submission, assignment, tenantId, onClose }: GradingModalProps) {
   const { addToast } = useToast()
   const [score, setScore] = useState(submission?.score || 0)
-  const [feedback, setFeedback] = useState(submission?.feedback || '')
+  const [feedback, setFeedback] = useState('')
   const [isSubmittingGrade, setIsSubmittingGrade] = useState(false)
 
   const handleSaveGrade = useCallback(async () => {
-    if (!submission) return
+    if (!submission || !tenantId) return
     setIsSubmittingGrade(true)
     try {
-      const result = await assignmentService.gradeSubmission(
-        submission.id,
-        tenantId!,
-        score,
-        feedback
-      )
-      onUpdateSubmission(result)
+      await assignmentService.gradeSubmission(submission.id, tenantId, score, feedback)
       onClose()
     } catch (err) {
       addToast({
@@ -53,11 +40,11 @@ export function GradingModal({
     } finally {
       setIsSubmittingGrade(false)
     }
-  }, [submission, score, feedback, tenantId, onClose, onUpdateSubmission])
+  }, [addToast, feedback, onClose, score, submission, tenantId])
 
   const handleOpen = useCallback(() => {
     setScore(submission?.score || 0)
-    setFeedback(submission?.feedback || '')
+    setFeedback('')
   }, [submission])
 
   return (
@@ -113,11 +100,10 @@ export function GradingModal({
                     rel="noreferrer"
                     className="flex items-center gap-2 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                   >
-                    <FileText className="w-5 h-5 text-blue-500" />
-                    <span className="text-sm font-bold text-slate-600 dark:text-slate-400">
-                      Buka File Lampiran
+                    <FileText className="w-4 h-4 text-blue-500" />
+                    <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">
+                      Lihat File Lampiran
                     </span>
-                    <span className="sr-only">(buka di tab baru)</span>
                   </a>
                 )}
               </div>

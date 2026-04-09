@@ -259,7 +259,7 @@ export function SecurityTab() {
     } finally {
       setSavingPassword(false)
     }
-  }, [newPassword, confirmPassword])
+  }, [currentPassword, newPassword, confirmPassword])
 
   return (
     <div className="space-y-6">
@@ -357,7 +357,7 @@ export function SecurityTab() {
         </div>
         <div className="p-6 space-y-3">
           <a
-            href="#/app/privacy/export-data"
+            href="/app/privacy/export-data"
             className="block w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-left transition-colors"
           >
             <p className="text-sm font-bold text-slate-900 dark:text-white">Export Data Pribadi</p>
@@ -366,7 +366,7 @@ export function SecurityTab() {
             </p>
           </a>
           <a
-            href="#/app/privacy/delete-account"
+            href="/app/privacy/delete-account"
             className="block w-full px-4 py-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl text-left transition-colors"
           >
             <p className="text-sm font-bold text-red-600 dark:text-red-400">Hapus Akun</p>

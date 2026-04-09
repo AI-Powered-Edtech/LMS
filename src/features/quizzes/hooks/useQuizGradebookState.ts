@@ -60,7 +60,7 @@ export function useQuizGradebookState() {
       }
     }
 
-    loadClasses()
+    void loadClasses()
   }, [activeTenant, user])
 
   /* eslint-disable react-hooks/exhaustive-deps */
@@ -87,7 +87,7 @@ export function useQuizGradebookState() {
       }
     }
 
-    loadAssignments()
+    void loadAssignments()
   }, [selectedClass])
   /* eslint-enable react-hooks/exhaustive-deps */
 
@@ -112,7 +112,7 @@ export function useQuizGradebookState() {
   /* eslint-enable react-hooks/exhaustive-deps */
 
   useEffect(() => {
-    loadAttempts()
+    void loadAttempts()
   }, [loadAttempts])
 
   useEffect(() => {
@@ -134,7 +134,7 @@ export function useQuizGradebookState() {
       }
     }
 
-    loadDifficulty()
+    void loadDifficulty()
   }, [selectedAssignment, attempts])
 
   const handleOpenAttemptDetail = useCallback((attempt: AssignmentResultRow) => {
@@ -198,7 +198,7 @@ export function useQuizGradebookState() {
 
   const handleCloseAttemptDetail = () => {
     setSelectedAttemptId(null)
-    loadAttempts()
+    void loadAttempts()
   }
 
   return {

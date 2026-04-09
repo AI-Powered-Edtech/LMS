@@ -22,7 +22,11 @@ export const aiRecommendationService = {
     })
 
     if (!response.ok) {
-      throw new Error(`Gagal memuat rekomendasi (${response.status})`)
+      const err = new Error(`Gagal memuat rekomendasi (${response.status})`) as Error & {
+        status: number
+      }
+      err.status = response.status
+      throw err
     }
 
     return response.json() as Promise<RecommendationResult>

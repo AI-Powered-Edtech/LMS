@@ -93,7 +93,7 @@ export function LegacyContentFallback({
         <button
           onClick={() => {
             onCompletionMet()
-            navigate(`/app/student/quizzes?quizId=${quiz.id}`)
+            void navigate(`/app/student/quizzes?quizId=${quiz.id}`)
           }}
           className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-sm"
         >

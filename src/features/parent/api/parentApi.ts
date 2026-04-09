@@ -10,6 +10,7 @@ import { supabase } from '@/services/supabase/client'
 
 import type {
   AttendanceDay,
+  ChildDashboardData,
   ChildGradeSummary,
   ChildInfo,
   PendingAssignment,
@@ -38,6 +39,35 @@ export async function getMyChildren(): Promise<ChildInfo[]> {
     student_avatar: (row.student_avatar as string | null) ?? null,
     class_name: (row.class_name as string) ?? 'Tidak ada kelas',
     relationship: (row.relationship as ChildInfo['relationship']) ?? 'wali',
+  }))
+}
+
+export async function getParentDashboardSnapshot(
+  tenantId: string,
+  parentId: string
+): Promise<ChildDashboardData[]> {
+  const { data, error } = await supabase.rpc('get_parent_dashboard_snapshot', {
+    p_tenant_id: tenantId,
+    p_parent_id: parentId,
+  })
+
+  if (error) {
+    if (import.meta.env.DEV) console.error('[Parent] get_parent_dashboard_snapshot error:', error)
+    throw new Error('Gagal memuat dashboard orang tua.')
+  }
+
+  const rawChildren = ((data as { children?: unknown[] } | null)?.children ?? []) as Array<
+    Record<string, unknown>
+  >
+
+  return rawChildren.map((row) => ({
+    child: row.child as ChildInfo,
+    traffic_light: 'green',
+    traffic_light_reason: 'Semua aktivitas berjalan baik',
+    grades: (row.grades as ChildGradeSummary[] | null) ?? [],
+    attendance_this_week: (row.attendance_this_week as AttendanceDay[] | null) ?? [],
+    pending_assignments: (row.pending_assignments as PendingAssignment[] | null) ?? [],
+    recent_achievements: (row.recent_achievements as string[] | null) ?? [],
   }))
 }
 

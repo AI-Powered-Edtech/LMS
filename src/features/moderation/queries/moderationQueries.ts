@@ -55,7 +55,7 @@ export function useSubmitReport() {
     },
     onSuccess: () => {
       if (!tenantId) return
-      queryClient.invalidateQueries({ queryKey: moderationKeys.reports(tenantId) })
+      void queryClient.invalidateQueries({ queryKey: moderationKeys.reports(tenantId) })
     },
     onError: (err) => {
       captureError(err, { context: 'useSubmitReport' })
@@ -84,7 +84,7 @@ export function useResolveReport() {
       moderationService.resolveReport(reportId, status, tenantId!),
     onSuccess: () => {
       if (!tenantId) return
-      queryClient.invalidateQueries({ queryKey: moderationKeys.reports(tenantId) })
+      void queryClient.invalidateQueries({ queryKey: moderationKeys.reports(tenantId) })
     },
     onError: (err) => {
       captureError(err, { context: 'useResolveReport' })

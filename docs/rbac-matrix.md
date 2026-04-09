@@ -501,7 +501,7 @@ the RLS policies and RPC role checks enforce the same permissions at the databas
 
 ## Feature Module Cross-Reference
 
-EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
+EduSync LMS terdiri dari 49 feature module yang saling terintegrasi:
 
 | Feature         | Domain         | Deskripsi                                                                                                                  |
 | --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |

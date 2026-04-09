@@ -6,6 +6,8 @@ import {
   AccountDeletionPage,
   Announcements,
   Assignments,
+  AuthCallback,
+  AuthError,
   Calendar,
   DataExportPage,
   Directory,
@@ -22,11 +24,13 @@ import {
   NotificationsPage,
   Offline,
   ParentRegisterPage,
+  PrivacyPolicy,
   Profile,
   PublicProfile,
   ResetPassword,
   Settings,
   SocialHub,
+  TermsOfService,
   Unauthorized,
   VerifyEmail,
   WorkspaceSelector,
@@ -44,6 +48,22 @@ export function PublicRoutes() {
         element={
           <S>
             <Login />
+          </S>
+        }
+      />
+      <Route
+        path="/auth/callback"
+        element={
+          <S>
+            <AuthCallback />
+          </S>
+        }
+      />
+      <Route
+        path="/auth/error"
+        element={
+          <S>
+            <AuthError />
           </S>
         }
       />
@@ -136,7 +156,7 @@ export function PublicRoutes() {
         }
       />
       {/*
-       * Deep link enrollment: /#/join?code=XXXXXX
+       * Deep link enrollment: /join?code=XXXXXX
        * Accessible without authentication — EnrollPage handles the auth redirect
        * internally (saves code to sessionStorage, redirects to /login).
        */}
@@ -153,6 +173,22 @@ export function PublicRoutes() {
         element={
           <S feature="Verifikasi 2FA">
             <MFAVerifyPage />
+          </S>
+        }
+      />
+      <Route
+        path="/privacy"
+        element={
+          <S>
+            <PrivacyPolicy />
+          </S>
+        }
+      />
+      <Route
+        path="/terms"
+        element={
+          <S>
+            <TermsOfService />
           </S>
         }
       />

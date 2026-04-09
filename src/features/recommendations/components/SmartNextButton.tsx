@@ -38,9 +38,11 @@ export function SmartNextButton({
       recordAction({ id: nextLessonRec.id, action: 'accepted' })
     }
     if (targetId && currentModuleId) {
-      navigate(`/app/student/courses/${courseId}?moduleId=${currentModuleId}&lessonId=${targetId}`)
+      void navigate(
+        `/app/student/courses/${courseId}?moduleId=${currentModuleId}&lessonId=${targetId}`
+      )
     } else {
-      navigate(`/app/student/courses/${courseId}`)
+      void navigate(`/app/student/courses/${courseId}`)
     }
   }
 

@@ -151,16 +151,26 @@ export const discussionService = {
   async fetchForumPosts(
     tenantId: string,
     page: number = 0,
-    pageSize: number = 20
+    pageSize: number = 20,
+    courseId?: string
   ): Promise<Discussion[]> {
-    const { data, error } = await supabase
+    let query = supabase
       .from('discussions')
       .select(DISCUSSION_COLUMNS)
       .eq('tenant_id', tenantId)
       .is('lesson_id', null)
-      .is('course_id', null)
       .is('announcement_id', null)
       .eq('is_deleted', false)
+
+    if (courseId) {
+      // Course-scoped forum posts
+      query = query.eq('course_id', courseId)
+    } else {
+      // Global forum posts (legacy behavior)
+      query = query.is('course_id', null)
+    }
+
+    const { data, error } = await query
       .order('created_at', { ascending: false })
       .range(page * pageSize, (page + 1) * pageSize - 1)
 

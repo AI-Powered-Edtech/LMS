@@ -122,7 +122,7 @@ export function ReportScheduler({ open, onClose }: ReportSchedulerProps) {
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: principalKeys.settings(tenantId ?? '') })
+      void queryClient.invalidateQueries({ queryKey: principalKeys.settings(tenantId ?? '') })
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     },

@@ -96,7 +96,7 @@ Masalah utama:
 | 11  | **Admin Analytics**               | Admin page "Question Bank Analytics": total questions across all teachers, questions by topic (bar chart), difficulty distribution (pie), most-used questions (table). Export CSV.                                                           |
 | 12  | **Dark Mode Support**             | All question bank UI components support dark mode with `dark:` Tailwind variants.                                                                                                                                                            |
 | 13  | **Mobile Responsive**             | Question bank browser responsive (list view on mobile). Question forms scrollable. Tags responsive.                                                                                                                                          |
-| 14  | **Documentation**                 | Create `src/features/question_bank/README.md` with: schema, tag system, search implementation, integration with quiz builder. Update `docs/DATABASE.md`.                                                                                     |
+| 14  | **Documentation**                 | Create `src/features/question_bank/README.md` with: schema, tag system, search implementation, integration with quiz builder. Update `docs/DATABASE_ARCHITECTURE.md`.                                                                        |
 
 ### P1 — Nice to Have
 

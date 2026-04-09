@@ -36,7 +36,7 @@ export function useGenerateFromFile() {
     mutationFn: (formData: FormData) => aiAuthoringService.generateFromFile(formData),
     onSuccess: () => {
       if (tenantId && user) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: aiAuthoringKeys.history(tenantId, user.id),
         })
       }
@@ -62,7 +62,7 @@ export function useGenerateFromLesson() {
     mutationFn: (config: GenerateFromLessonConfig) => aiAuthoringService.generateFromLesson(config),
     onSuccess: () => {
       if (tenantId && user) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: aiAuthoringKeys.history(tenantId, user.id),
         })
       }
@@ -104,7 +104,7 @@ export function useMarkContentUsed() {
     mutationFn: (id: string) => aiAuthoringService.markAsUsed(id),
     onSuccess: () => {
       if (tenantId && user) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: aiAuthoringKeys.history(tenantId, user.id),
         })
       }
@@ -127,7 +127,7 @@ export function useUpdateGenerationQuestions() {
       aiAuthoringService.updateQuestions(id, questions),
     onSuccess: () => {
       if (tenantId && user) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: aiAuthoringKeys.history(tenantId, user.id),
         })
       }
@@ -149,7 +149,7 @@ export function useDeleteGeneration() {
     mutationFn: (id: string) => aiAuthoringService.deleteGeneration(id),
     onSuccess: () => {
       if (tenantId && user) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: aiAuthoringKeys.history(tenantId, user.id),
         })
       }

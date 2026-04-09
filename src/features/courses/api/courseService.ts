@@ -8,7 +8,13 @@ export const courseService = {
    * Fetches courses for a specific tenant with optional pagination and search.
    * RLS ensures users only see courses they have access to.
    */
-  async fetchCourses({ tenantId, page = 1, limit = 10, search, ids }: FetchCoursesOptions) {
+  async fetchCourses({
+    tenantId,
+    page = 1,
+    limit = 10,
+    search,
+    ids,
+  }: FetchCoursesOptions): Promise<{ courses: Course[]; count: number }> {
     // Try fetching with joined class data first
     let query = supabase
       .from('courses')
@@ -94,7 +100,7 @@ export const courseService = {
   /**
    * Gets a specific course by its ID.
    */
-  async getCourseById(courseId: string, tenantId: string) {
+  async getCourseById(courseId: string, tenantId: string): Promise<Course | null> {
     const { data, error } = await supabase
       .from('courses')
       .select(
@@ -117,7 +123,7 @@ export const courseService = {
    * The created_by field should ideally be set by the edge function/DB defaults using auth.uid(),
    * but we provide it here explicitly for completeness if the RLS allows it.
    */
-  async createCourse(courseData: CourseInsert) {
+  async createCourse(courseData: CourseInsert): Promise<Course | null> {
     const { data, error } = await supabase
       .from('courses')
       .insert(courseData)
@@ -135,7 +141,11 @@ export const courseService = {
   /**
    * Updates an existing course.
    */
-  async updateCourse(courseId: string, updates: CourseUpdate, tenantId: string) {
+  async updateCourse(
+    courseId: string,
+    updates: CourseUpdate,
+    tenantId: string
+  ): Promise<Course | null> {
     const { data, error } = await supabase
       .from('courses')
       .update(updates)
@@ -155,7 +165,7 @@ export const courseService = {
   /**
    * Deletes a course.
    */
-  async deleteCourse(courseId: string, tenantId: string) {
+  async deleteCourse(courseId: string, tenantId: string): Promise<void> {
     const { error } = await supabase
       .from('courses')
       .delete()
@@ -171,7 +181,12 @@ export const courseService = {
   /**
    * Fetch course modules with lesson counts (used by CourseBrowser).
    */
-  async getCourseModulesWithLessons(courseId: string, tenantId: string) {
+  async getCourseModulesWithLessons(
+    courseId: string,
+    tenantId: string
+  ): Promise<
+    Array<{ id: string; title: string; order: number; course_id: string; lessons: any[] }>
+  > {
     const { data, error } = await supabase
       .from('course_modules')
       .select('id, title, "order", course_id, lessons(id, duration_minutes)')

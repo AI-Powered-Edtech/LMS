@@ -52,7 +52,7 @@ export function useCreateSemester() {
   return useMutation({
     mutationFn: (data: SemesterFormData) => createSemester(data, tenantId!),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: semesterKeys.list(tenantId!) })
+      void queryClient.invalidateQueries({ queryKey: semesterKeys.list(tenantId!) })
     },
     onError: (err) => {
       captureError(err, { context: 'useCreateSemester' })
@@ -68,8 +68,8 @@ export function useUpdateSemester() {
     mutationFn: ({ id, data }: { id: string; data: Partial<SemesterFormData> }) =>
       updateSemester(id, data, tenantId!),
     onSuccess: (_data, { id }) => {
-      queryClient.invalidateQueries({ queryKey: semesterKeys.detail(id) })
-      queryClient.invalidateQueries({ queryKey: semesterKeys.list(tenantId!) })
+      void queryClient.invalidateQueries({ queryKey: semesterKeys.detail(id) })
+      void queryClient.invalidateQueries({ queryKey: semesterKeys.list(tenantId!) })
     },
     onError: (err) => {
       captureError(err, { context: 'useUpdateSemester' })
@@ -84,8 +84,8 @@ export function useCloseSemester() {
   return useMutation({
     mutationFn: (id: string) => closeSemester(id, tenantId!),
     onSuccess: (_data, id) => {
-      queryClient.invalidateQueries({ queryKey: semesterKeys.detail(id) })
-      queryClient.invalidateQueries({ queryKey: semesterKeys.list(tenantId!) })
+      void queryClient.invalidateQueries({ queryKey: semesterKeys.detail(id) })
+      void queryClient.invalidateQueries({ queryKey: semesterKeys.list(tenantId!) })
     },
     onError: (err) => {
       captureError(err, { context: 'useCloseSemester' })

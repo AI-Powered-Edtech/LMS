@@ -1,6 +1,14 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import postgres from 'https://deno.land/x/postgresjs@v3.4.4/mod.js'
 
+interface ProgressEvent {
+  tenant_id: string
+  user_id: string
+  lesson_id: string
+  position?: number
+  event_type: string
+}
+
 // ==========================================================================
 // Edge Function: process-progress-events
 //
@@ -114,7 +122,10 @@ serve(async (req) => {
 
         // ─── 4. Aggregate by (user_id, lesson_id) ───
         const aggStart = Date.now()
-        const aggregated = new Map<string, any>()
+        const aggregated = new Map<
+          string,
+          ProgressEvent & { position: number; is_completed: boolean }
+        >()
         const msgIds: number[] = []
 
         // Poison message resilience (IN-H3) — skip malformed events instead of crashing

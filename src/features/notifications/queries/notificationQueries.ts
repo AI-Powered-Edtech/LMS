@@ -61,7 +61,7 @@ export function useMarkAsRead() {
     mutationFn: (id: string) => notificationService.markAsRead(id, tenantId!),
     onSuccess: () => {
       if (tenantId && user) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: notificationKeys.user(tenantId, user.id),
         })
       }
@@ -83,7 +83,7 @@ export function useMarkAllAsRead() {
     mutationFn: () => notificationService.markAllAsRead(user!.id, tenantId!),
     onSuccess: () => {
       if (tenantId && user) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: notificationKeys.user(tenantId, user.id),
         })
       }

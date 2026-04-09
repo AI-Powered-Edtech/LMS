@@ -1,11 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/useToast'
 import { createQueryKeys } from '@/shared/lib/queryKeys'
 import { captureError } from '@/utils/sentry'
 
-import { addGradebookItem } from '../api/gradebookApi'
+import {
+  addGradebookItem,
+  fetchGradebookLegacy,
+  submitGradeLegacy,
+  syncGradebook,
+} from '../api/gradebookApi'
 import {
   GradebookAssignment,
   GradebookData,
@@ -18,17 +24,33 @@ export type Assignment = GradebookAssignment
 
 const gradebookKeys = createQueryKeys('gradebook')
 
-function useGradebookQuery(submissionsPage = 0) {
-  const { user, tenantId } = useAuth()
+function useGradebookQuery(submissionsPage = 0, legacyMode = true, courseId?: string) {
+  const { user, tenantId, activeRole } = useAuth()
+  const shouldPoll = activeRole === 'teacher' || activeRole === 'admin'
 
   return useQuery<GradebookData>({
-    queryKey: [...gradebookKeys.all(tenantId!), 'submissions-page', submissionsPage],
-    queryFn: () => gradebookService.fetchGradebook(tenantId!, submissionsPage),
-    enabled: !!user && !!tenantId,
+    queryKey: [
+      ...gradebookKeys.all(tenantId!),
+      'submissions-page',
+      submissionsPage,
+      legacyMode,
+      courseId,
+    ],
+    queryFn: () => {
+      if (legacyMode) {
+        return gradebookService.fetchGradebook(tenantId!, submissionsPage)
+      } else {
+        return fetchGradebookLegacy(tenantId!, courseId!)
+      }
+    },
+    enabled: !!user && !!tenantId && (!legacyMode ? !!courseId : true),
+    staleTime: 30_000,
+    refetchInterval: shouldPoll ? 30_000 : false,
+    refetchIntervalInBackground: false,
   })
 }
 
-function useUpdateGrade() {
+function useUpdateGrade(legacyMode = true, courseId?: string) {
   const { tenantId } = useAuth()
   const queryClient = useQueryClient()
   const addToast = useToast((s) => s.addToast)
@@ -48,7 +70,11 @@ function useUpdateGrade() {
       feedback?: string
     }) => {
       if (score !== null && tenantId) {
-        await gradebookService.submitGrade(assignmentId, studentId, score, feedback, tenantId)
+        if (legacyMode) {
+          await gradebookService.submitGrade(assignmentId, studentId, score, feedback, tenantId)
+        } else {
+          await submitGradeLegacy(assignmentId, studentId, courseId!, score, feedback, tenantId)
+        }
       }
     },
     onMutate: async ({ studentId, assignmentId, score, status = 'graded', feedback }) => {
@@ -66,7 +92,7 @@ function useUpdateGrade() {
 
       // Optimistically update all cached pages
       matchingQueries.forEach((q) => {
-        queryClient.setQueryData<GradebookData>(q.queryKey, (old) => {
+        void queryClient.setQueryData<GradebookData>(q.queryKey, (old) => {
           if (!old) return old
           const newGrades = { ...old.grades }
           if (!newGrades[studentId]) newGrades[studentId] = {}
@@ -93,7 +119,7 @@ function useUpdateGrade() {
     },
     onSettled: () => {
       // Always sync with server after mutation completes (success or error)
-      queryClient.invalidateQueries({ queryKey: gradebookKeys.all(tenantId!) })
+      void queryClient.invalidateQueries({ queryKey: gradebookKeys.all(tenantId!) })
     },
   })
 }
@@ -101,12 +127,47 @@ function useUpdateGrade() {
 /**
  * Drop-in replacement for the old GradebookContext useGradebook() hook.
  * @param submissionsPage - Zero-indexed page for submissions (50 per page). Defaults to 0.
+ * @param courseId - Course ID for modern gradebook path. If provided, uses modern path.
+ * @param forceLegacyMode - Force legacy mode even when courseId is provided (for compatibility)
  */
-export function useGradebook(submissionsPage = 0) {
-  const { tenantId } = useAuth()
+export function useGradebook(submissionsPage = 0, courseId?: string, forceLegacyMode = false) {
+  const { tenantId, activeRole } = useAuth()
   const queryClient = useQueryClient()
-  const { data, isLoading } = useGradebookQuery(submissionsPage)
-  const updateGradeMutation = useUpdateGrade()
+
+  // Determine legacy mode: use modern path for teachers/admins when courseId is provided
+  const legacyMode =
+    forceLegacyMode || !courseId || (activeRole !== 'teacher' && activeRole !== 'admin')
+
+  const { data, isLoading } = useGradebookQuery(submissionsPage, legacyMode, courseId)
+  const updateGradeMutation = useUpdateGrade(legacyMode, courseId)
+
+  // Auto-sync gradebook entries once per course session when using modern layer
+  useEffect(() => {
+    if (
+      !legacyMode &&
+      courseId &&
+      tenantId &&
+      (activeRole === 'teacher' || activeRole === 'admin')
+    ) {
+      // Only sync once per course session - check if we've already synced this course
+      const syncKey = `gradebook-synced-${courseId}`
+      const hasSynced = sessionStorage.getItem(syncKey)
+
+      if (!hasSynced) {
+        syncGradebook(courseId, tenantId)
+          .then(() => {
+            sessionStorage.setItem(syncKey, 'true')
+            // Invalidate queries after sync to refresh data
+            queryClient.invalidateQueries({
+              queryKey: gradebookKeys.all(tenantId),
+            })
+          })
+          .catch((error) => {
+            captureError(error, { context: 'useGradebook.autoSync' })
+          })
+      }
+    }
+  }, [legacyMode, courseId, tenantId, activeRole, queryClient])
 
   const students = data?.students ?? []
   const assignments = data?.assignments ?? []
@@ -164,6 +225,14 @@ export function useGradebook(submissionsPage = 0) {
   }
 
   const refreshGradebook = async () => {
+    // Trigger sync when using modern mode before invalidating
+    if (!legacyMode && courseId && tenantId) {
+      try {
+        await syncGradebook(courseId, tenantId)
+      } catch (error) {
+        captureError(error, { context: 'useGradebook.refreshGradebook' })
+      }
+    }
     await queryClient.invalidateQueries({ queryKey: gradebookKeys.all(tenantId!) })
   }
 

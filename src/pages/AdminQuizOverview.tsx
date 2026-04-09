@@ -75,7 +75,7 @@ export function AdminQuizOverview() {
       }
     }
 
-    fetchData()
+    void fetchData()
   }, [tenantId])
 
   const handleSort = (key: SortKey) => {

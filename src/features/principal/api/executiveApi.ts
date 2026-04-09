@@ -104,13 +104,9 @@ export async function getMonthlyTrend(
   tenantId: string,
   months: number = 6
 ): Promise<MonthlyTrend[]> {
-  // Calculate date range
-  const now = new Date()
-  const since = new Date(now.getFullYear(), now.getMonth() - months + 1, 1)
-
-  const { data, error } = await supabase.rpc('get_activity_timeline', {
+  const { data, error } = await supabase.rpc('get_principal_monthly_trend_cached', {
     p_tenant_id: tenantId,
-    p_days: months * 30,
+    p_months: months,
   })
 
   if (error) {
@@ -119,41 +115,12 @@ export async function getMonthlyTrend(
     return []
   }
 
-  // Aggregate daily data into monthly buckets
-  const monthlyMap = new Map<string, MonthlyTrend>()
-
-  // Pre-populate months
-  for (let i = months - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const key = d.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
-    monthlyMap.set(key, {
-      month: key,
-      active_students: 0,
-      lesson_completions: 0,
-      quiz_attempts: 0,
-    })
-  }
-
-  // Aggregate from timeline data
-  if (Array.isArray(data)) {
-    for (const row of data) {
-      const date = new Date(row.event_date ?? row.date)
-      if (date < since) continue
-      const key = date.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
-      const existing = monthlyMap.get(key)
-      if (existing) {
-        existing.lesson_completions += Number(row.lesson_completions ?? 0)
-        existing.quiz_attempts += Number(row.quiz_attempts ?? 0)
-        // Active students: we'll approximate as lesson_completions / average completions
-        existing.active_students = Math.max(
-          existing.active_students,
-          Number(row.lesson_completions ?? 0)
-        )
-      }
-    }
-  }
-
-  return Array.from(monthlyMap.values())
+  return ((data ?? []) as Record<string, unknown>[]).map((row) => ({
+    month: String(row.month_label ?? row.month_key ?? ''),
+    active_students: Number(row.active_students ?? 0),
+    lesson_completions: Number(row.lesson_completions ?? 0),
+    quiz_attempts: Number(row.quiz_attempts ?? 0),
+  }))
 }
 
 // ── Principal Settings ─────────────────────────────────────────

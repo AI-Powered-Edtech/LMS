@@ -289,7 +289,7 @@ export const LessonSidebar = memo(function LessonSidebar({
     </aside>
   )
 
-  // Mobile drawer layout - overlay
+  // Mobile bottom sheet drawer pattern
   const mobileDrawer = (
     <>
       {/* Backdrop */}
@@ -307,16 +307,20 @@ export const LessonSidebar = memo(function LessonSidebar({
         )}
       </AnimatePresence>
 
-      {/* Drawer panel */}
+      {/* Bottom Sheet panel */}
       <AnimatePresence>
         {isMobileOpen && (
           <motion.aside
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-white border-r border-slate-200/70 flex flex-col shadow-2xl shadow-slate-900/30 z-50 lg:hidden dark:bg-slate-900 dark:border-slate-700"
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 350, mass: 0.9 }}
+            className="fixed bottom-0 left-0 right-0 max-h-[75vh] bg-white rounded-t-3xl border-t border-slate-200/70 flex flex-col shadow-2xl shadow-slate-900/30 z-50 lg:hidden dark:bg-slate-900 dark:border-slate-700"
           >
+            {/* Sheet grabber handle */}
+            <div className="flex justify-center pt-3 pb-1 lg:hidden">
+              <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-600 rounded-full" />
+            </div>
             {sidebarContent}
           </motion.aside>
         )}

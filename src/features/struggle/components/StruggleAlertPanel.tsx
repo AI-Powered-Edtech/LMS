@@ -28,7 +28,7 @@ export function StruggleAlertPanel({ onClose }: Props) {
     if (!alerts.find((a) => a.alert_id === alertId)?.read_at) {
       markRead.mutate([alertId])
     }
-    navigate(`/app/teacher/course-analytics?courseId=${courseId}&lessonId=${lessonId}`)
+    void navigate(`/app/teacher/course-analytics?courseId=${courseId}&lessonId=${lessonId}`)
     onClose()
   }
 

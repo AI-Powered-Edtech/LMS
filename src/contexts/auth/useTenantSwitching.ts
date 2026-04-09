@@ -6,6 +6,7 @@ import type { Tenant } from './useRoleResolution'
 
 interface UseTenantSwitchingParams {
   rawTenants: Record<string, Tenant>
+  defaultTenantId?: string | null
 }
 
 interface UseTenantSwitchingResult {
@@ -20,6 +21,7 @@ interface UseTenantSwitchingResult {
  */
 export function useTenantSwitching({
   rawTenants,
+  defaultTenantId = null,
 }: UseTenantSwitchingParams): UseTenantSwitchingResult {
   const [tenantId, setTenantId] = useState<string | null>(null)
   const [activeTenant, setActiveTenantState] = useState<Tenant | null>(null)
@@ -31,6 +33,22 @@ export function useTenantSwitching({
     }
   }, [])
 
+  useEffect(() => {
+    if (Object.keys(rawTenants).length === 0) {
+      setActiveTenantState(null)
+      if (!localStorage.getItem('activeTenantId')) {
+        setTenantId(null)
+      }
+    }
+  }, [rawTenants])
+
+  useEffect(() => {
+    if (!tenantId && defaultTenantId) {
+      setTenantId(defaultTenantId)
+      localStorage.setItem('activeTenantId', defaultTenantId)
+    }
+  }, [defaultTenantId, tenantId])
+
   // Restore activeTenant from rawTenants when both are available (e.g., after page reload)
   useEffect(() => {
     if (!activeTenant && tenantId && rawTenants[tenantId]) {
@@ -40,6 +58,25 @@ export function useTenantSwitching({
       }
     }
   }, [tenantId, rawTenants, activeTenant])
+
+  useEffect(() => {
+    if (!tenantId && defaultTenantId && rawTenants[defaultTenantId]?.is_active) {
+      setActiveTenantState(rawTenants[defaultTenantId])
+      setTenantId(defaultTenantId)
+      return
+    }
+
+    if (
+      tenantId &&
+      !rawTenants[tenantId] &&
+      defaultTenantId &&
+      rawTenants[defaultTenantId]?.is_active
+    ) {
+      localStorage.setItem('activeTenantId', defaultTenantId)
+      setActiveTenantState(rawTenants[defaultTenantId])
+      setTenantId(defaultTenantId)
+    }
+  }, [defaultTenantId, rawTenants, tenantId])
 
   const setActiveTenant = useCallback(
     (id: string) => {

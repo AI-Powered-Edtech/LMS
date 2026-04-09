@@ -37,7 +37,7 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    loadAssignments()
+    void loadAssignments()
   }, [quizId, tenantId])
   /* eslint-enable react-hooks/exhaustive-deps */
 

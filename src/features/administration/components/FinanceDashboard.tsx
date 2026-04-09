@@ -23,9 +23,9 @@ import {
 } from 'recharts'
 
 import { useToast } from '@/hooks/useToast'
-import { supabase } from '@/services/supabase/client'
 import { cn } from '@/utils/cn'
 
+import { reconcileInvoicePayment } from '../api/financeApi'
 import { useFinanceData } from '../hooks/useFinanceData'
 import type { InvoiceFilter, InvoiceStatusFilter } from '../types/finance'
 import { exportFinanceToCSV } from '../utils/financeExport'
@@ -124,12 +124,12 @@ export function FinanceDashboard() {
     if (!confirm('Tandai tagihan ini sebagai sudah dibayar?')) return
     setIsMarkingPaid(true)
     try {
-      const { error } = await supabase.rpc('record_payment', {
-        p_invoice_id: invoiceId,
-        p_amount: amount,
-        p_method: 'transfer',
+      await reconcileInvoicePayment({
+        invoiceId,
+        amount,
+        method: 'transfer',
+        notes: 'Dilunasi dari dashboard keuangan',
       })
-      if (error) throw error
       await queryClient.invalidateQueries({ queryKey: ['finance'] })
       addToast({ message: 'Tagihan berhasil ditandai lunas', type: 'success' })
     } catch (err) {
@@ -276,7 +276,9 @@ export function FinanceDashboard() {
       )}
       {reminderModalOpen && (
         <FinanceReconcileModal
+          invoiceIds={[]}
           unpaidCount={unpaidCount}
+          onComplete={() => queryClient.invalidateQueries({ queryKey: ['finance'] })}
           onClose={() => setReminderModalOpen(false)}
         />
       )}

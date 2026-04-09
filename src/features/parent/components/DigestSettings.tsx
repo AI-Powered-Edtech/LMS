@@ -27,14 +27,14 @@ const CHANNEL_OPTIONS: {
   {
     value: 'whatsapp',
     label: 'WhatsApp',
-    description: 'Kirim ke WhatsApp (segera hadir)',
-    badge: 'Segera',
+    description: 'Kirim ke WhatsApp (dalam pengembangan)',
+    badge: 'Beta',
   },
   {
     value: 'email',
     label: 'Email',
-    description: 'Kirim ringkasan ke email Anda (segera hadir)',
-    badge: 'Segera',
+    description: 'Kirim ringkasan ke email Anda (dalam pengembangan)',
+    badge: 'Beta',
   },
 ]
 
@@ -154,7 +154,9 @@ export function DigestSettings() {
         channel,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parent', 'digest-settings', user?.id ?? ''] })
+      void queryClient.invalidateQueries({
+        queryKey: ['parent', 'digest-settings', user?.id ?? ''],
+      })
       setSaveSuccess(true)
       setTimeout(() => setSaveSuccess(false), 3000)
     },

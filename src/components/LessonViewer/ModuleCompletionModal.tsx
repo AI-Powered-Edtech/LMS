@@ -30,15 +30,15 @@ export function ModuleCompletionModal({
 
     import('canvas-confetti')
       .then(({ default: confetti }) => {
-        confetti({
+        void confetti({
           particleCount: 120,
           spread: 80,
           origin: { y: 0.55 },
           colors: ['#6366f1', '#3b82f6', '#f59e0b', '#10b981', '#f43f5e'],
         })
         setTimeout(() => {
-          confetti({ particleCount: 60, spread: 55, origin: { y: 0.5, x: 0.2 }, angle: 60 })
-          confetti({ particleCount: 60, spread: 55, origin: { y: 0.5, x: 0.8 }, angle: 120 })
+          void confetti({ particleCount: 60, spread: 55, origin: { y: 0.5, x: 0.2 }, angle: 60 })
+          void confetti({ particleCount: 60, spread: 55, origin: { y: 0.5, x: 0.8 }, angle: 120 })
         }, 250)
       })
       .catch(() => {})

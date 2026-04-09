@@ -50,6 +50,41 @@ export function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search)
+
+    const prepareRecoverySession = async () => {
+      const code = searchParams.get('code')
+      const tokenHash = searchParams.get('token_hash')
+      const type = searchParams.get('type')
+
+      try {
+        if (code) {
+          await supabase.auth.exchangeCodeForSession(code)
+          isRecoveryRef.current = true
+          setSessionReady(true)
+          return
+        }
+
+        if (tokenHash && type === 'recovery') {
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: 'recovery',
+          })
+
+          if (verifyError) {
+            throw verifyError
+          }
+
+          isRecoveryRef.current = true
+          setSessionReady(true)
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Link reset password tidak valid.')
+      }
+    }
+
+    void prepareRecoverySession()
+
     // Supabase auto-logs the user in when they click the recovery link.
     // Only set sessionReady=true for PASSWORD_RECOVERY events.
     // A regular SIGNED_IN session (normal login) should not unlock the reset form —
@@ -66,7 +101,7 @@ export function ResetPassword() {
         setSessionReady(true)
       } else if (event === 'SIGNED_IN' && !isRecoveryRef.current) {
         // Regular sign-in (not recovery) — redirect to home.
-        navigate('/')
+        void navigate('/')
       }
     })
 

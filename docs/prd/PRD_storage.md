@@ -113,7 +113,7 @@ Saat ini, EduSync tidak memiliki unified file management system. File uploads ti
 | 13  | **File Manager UI (Teacher)**    | Page: list of teacher's uploaded files (lessons, rubrics) organized by course. Search, sort by date/size. Delete with confirmation. Show file size stats.                                                                          |
 | 14  | **Dark Mode Support**            | All file upload UI, progress bars, file managers support dark mode with `dark:` Tailwind variants.                                                                                                                                 |
 | 15  | **Mobile Responsive**            | File upload form responsive on mobile; progress bar readable on small screens. File manager list scrollable; touch targets >44px.                                                                                                  |
-| 16  | **Documentation**                | Create `src/features/storage/README.md` with: service API, usage examples, quota setup, RLS policies. Update `docs/DATABASE.md` with tables + schema.                                                                              |
+| 16  | **Documentation**                | Create `src/features/storage/README.md` with: service API, usage examples, quota setup, RLS policies. Update `docs/DATABASE_ARCHITECTURE.md` with tables + schema.                                                                 |
 
 ### P1 — Nice to Have
 
@@ -267,7 +267,7 @@ Saat ini, EduSync tidak memiliki unified file management system. File uploads ti
 - [ ] Dark mode working on upload UI
 - [ ] Mobile responsive file upload + file manager
 - [ ] No N+1 queries on file list (paginated)
-- [ ] Documentation updated (`docs/DATABASE.md`, feature README)
+- [ ] Documentation updated (`docs/DATABASE_ARCHITECTURE.md`, feature README)
 
 ---
 

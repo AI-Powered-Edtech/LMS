@@ -31,7 +31,7 @@ export function AssignCourseModal({
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isOpen && user?.id) {
-      loadData()
+      void loadData()
     }
   }, [isOpen, user?.id, courseId])
   /* eslint-enable react-hooks/exhaustive-deps */

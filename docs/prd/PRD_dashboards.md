@@ -377,7 +377,7 @@ export function DashboardSkeleton() {
 
 ## 13. References
 
-- **Database:** `/docs/DATABASE.md` — tables, RPCs, column gotchas
+- **Database:** `/docs/DATABASE_ARCHITECTURE.md` — tables, RPCs, column gotchas
 - **Analytics System:** `/docs/ANALYTICS.md` — engagement metrics, struggle detection
 - **Architecture:** `/docs/ARCHITECTURE.md` — multi-tenancy, RLS, realtime
 - **Design System:** `/docs/design-system.md` — component patterns, dark mode

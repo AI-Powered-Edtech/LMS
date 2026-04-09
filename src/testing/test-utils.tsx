@@ -82,6 +82,10 @@ export const mockAuthValue: AuthContextType = {
 
   // Status flags
   loading: false,
+  authStatus: 'authenticated',
+  authError: null,
+  workspaceStatus: 'resolved',
+  bootstrapReady: true,
   emailVerified: true,
   sessionExpired: false,
 
@@ -90,6 +94,8 @@ export const mockAuthValue: AuthContextType = {
   signUp: vi.fn().mockResolvedValue({ error: null }),
   signOut: vi.fn().mockResolvedValue(undefined),
   signInWithGoogle: vi.fn().mockResolvedValue(undefined),
+  clearAuthError: vi.fn(),
+  refreshAuthBootstrap: vi.fn().mockResolvedValue(undefined),
   hasRole: vi.fn((r: string) => r === 'student'),
 }
 

@@ -11,7 +11,7 @@ interface QRCodeGeneratorProps {
  * QRCodeGenerator — generates a scannable QR code for class join links.
  *
  * Uses Google Charts API to render QR code as an image (no extra library needed).
- * URL format: {origin}/#/join?code={joinCode}
+ * URL format: {origin}/join?code={joinCode}
  *
  * Features:
  * - Download as PNG
@@ -22,8 +22,7 @@ export function QRCodeGenerator({ joinCode, className = '', onClose }: QRCodeGen
   const [copiedLink, setCopiedLink] = useState(false)
   const [copiedCode, setCopiedCode] = useState(false)
 
-  // Hash routing: use /#/join?code=
-  const joinUrl = `${window.location.origin}/#/join?code=${encodeURIComponent(joinCode)}`
+  const joinUrl = `${window.location.origin}/join?code=${encodeURIComponent(joinCode)}`
   const qrApiUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chld=M|1&chl=${encodeURIComponent(joinUrl)}`
 
   const handleCopyLink = async () => {

@@ -13,7 +13,7 @@ import {
   X,
 } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui'
@@ -34,7 +34,7 @@ interface StepProps {
 
 /* ─── Step 1 — Selamat Datang ────────────────────────────────── */
 
-function StepWelcome({ onNext }: StepProps) {
+function StepWelcome({ onNext }: StepProps): React.JSX.Element {
   const { profile } = useAuth()
   const firstName = profile?.first_name || 'Guru'
 
@@ -110,7 +110,7 @@ function StepCreateClass({
   onClassCreated,
   existingClassId,
   existingJoinCode,
-}: Step2Props) {
+}: Step2Props): React.JSX.Element {
   const { user, tenantId } = useAuth()
   const [className, setClassName] = useState('')
   const [mapel, setMapel] = useState('')
@@ -138,7 +138,7 @@ function StepCreateClass({
     )
   }
 
-  async function handleCreateClass() {
+  async function handleCreateClass(): Promise<void> {
     if (!className.trim()) {
       setError('Nama kelas wajib diisi.')
       return
@@ -273,22 +273,22 @@ interface Step3Props extends StepProps {
   joinCode: string | null
 }
 
-function StepInviteStudents({ onNext, joinCode }: Step3Props) {
+function StepInviteStudents({ onNext, joinCode }: Step3Props): React.JSX.Element {
   const [copied, setCopied] = useState(false)
 
   const displayCode = joinCode || '------'
-  const joinUrl = `${window.location.origin}/#/join?code=${displayCode}`
+  const joinUrl = `${window.location.origin}/join?code=${displayCode}`
   const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=${encodeURIComponent(joinUrl)}&choe=UTF-8`
 
-  function copyCode() {
-    navigator.clipboard.writeText(displayCode).then(() => {
+  function copyCode(): void {
+    void navigator.clipboard.writeText(displayCode).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
   }
 
-  function copyLink() {
-    navigator.clipboard.writeText(joinUrl).then(() => {
+  function copyLink(): void {
+    void navigator.clipboard.writeText(joinUrl).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
@@ -387,7 +387,12 @@ interface Step4Props extends StepProps {
   existingCourseId?: string | null
 }
 
-function StepCreateCourse({ onNext, onSkip, onCourseCreated, existingCourseId }: Step4Props) {
+function StepCreateCourse({
+  onNext,
+  onSkip,
+  onCourseCreated,
+  existingCourseId,
+}: Step4Props): React.JSX.Element {
   const { user, tenantId } = useAuth()
   const navigate = useNavigate()
   const [title, setTitle] = useState('')
@@ -414,7 +419,7 @@ function StepCreateCourse({ onNext, onSkip, onCourseCreated, existingCourseId }:
     )
   }
 
-  async function handleCreateCourse() {
+  async function handleCreateCourse(): Promise<void> {
     if (!title.trim()) {
       setError('Judul kursus wajib diisi.')
       return
@@ -433,13 +438,16 @@ function StepCreateCourse({ onNext, onSkip, onCourseCreated, existingCourseId }:
         tenant_id: tenantId,
         created_by: user.id,
       })
+      if (!course?.id) {
+        throw new Error('Gagal membuat kursus.')
+      }
 
       onCourseCreated(course.id)
       // Navigate to course builder with the new course
       onNext()
       // Small delay so the wizard can close cleanly
       setTimeout(() => {
-        navigate(`/app/teacher/course-builder?courseId=${course.id}`)
+        void navigate(`/app/teacher/course-builder?courseId=${course.id}`)
       }, 400)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal membuat kursus. Coba lagi.')
@@ -530,7 +538,12 @@ interface Step5Props {
   onFinish: () => void
 }
 
-function StepReady({ completedSteps, createdClassId, createdCourseId, onFinish }: Step5Props) {
+function StepReady({
+  completedSteps,
+  createdClassId,
+  createdCourseId,
+  onFinish,
+}: Step5Props): React.JSX.Element {
   const navigate = useNavigate()
 
   const checklistItems = [
@@ -668,7 +681,7 @@ function StepReady({ completedSteps, createdClassId, createdCourseId, onFinish }
 
 /* ─── Main Wizard Component ──────────────────────────────────── */
 
-export function TeacherOnboardingWizard() {
+export function TeacherOnboardingWizard(): React.JSX.Element | null {
   const [showDismissConfirm, setShowDismissConfirm] = useState(false)
 
   const {
@@ -691,30 +704,30 @@ export function TeacherOnboardingWizard() {
 
   if (isLoading || !isVisible) return null
 
-  async function handleNext() {
+  async function handleNext(): Promise<void> {
     await completeStep(currentStep)
     await nextStep()
   }
 
-  async function handleSkip() {
+  async function handleSkip(): Promise<void> {
     await nextStep()
   }
 
-  async function handleClassCreated(classId: string, joinCode: string) {
+  async function handleClassCreated(classId: string, joinCode: string): Promise<void> {
     await saveClassResult(classId, joinCode)
     await completeStep(2)
   }
 
-  async function handleCourseCreated(courseId: string) {
+  async function handleCourseCreated(courseId: string): Promise<void> {
     await saveCourseResult(courseId)
     await completeStep(4)
   }
 
-  async function handleFinish() {
+  async function handleFinish(): Promise<void> {
     await completeOnboarding()
   }
 
-  async function handleDismissConfirmed() {
+  async function handleDismissConfirmed(): Promise<void> {
     await dismissForever()
     setShowDismissConfirm(false)
   }
@@ -804,8 +817,8 @@ export function TeacherOnboardingWizard() {
                 {currentStep === 2 && (
                   <StepCreateClass
                     onNext={() => {
-                      completeStep(2)
-                      nextStep()
+                      void completeStep(2)
+                      void nextStep()
                     }}
                     onSkip={handleSkip}
                     onClassCreated={handleClassCreated}
@@ -819,8 +832,8 @@ export function TeacherOnboardingWizard() {
                 {currentStep === 4 && (
                   <StepCreateCourse
                     onNext={() => {
-                      completeStep(4)
-                      nextStep()
+                      void completeStep(4)
+                      void nextStep()
                     }}
                     onSkip={handleSkip}
                     onCourseCreated={handleCourseCreated}

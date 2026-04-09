@@ -37,7 +37,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
   const handleSelect = useCallback(
     (url: string) => {
       onClose()
-      window.location.hash = `#${url}`
+      window.location.assign(url)
     },
     [onClose]
   )

@@ -18,7 +18,7 @@ export function MFASettings() {
   }, [])
 
   useEffect(() => {
-    loadFactors()
+    void loadFactors()
   }, [loadFactors])
 
   const handleDisable = useCallback(async () => {
@@ -28,7 +28,7 @@ export function MFASettings() {
     const success = await unenrollMFA(totpFactor.id)
     if (success) {
       addToast({ type: 'success', message: '2FA berhasil dinonaktifkan' })
-      loadFactors()
+      void loadFactors()
     } else {
       addToast({ type: 'error', message: 'Gagal menonaktifkan 2FA' })
     }
@@ -57,7 +57,7 @@ export function MFASettings() {
       )}
 
       {!isMFAEnabled && (
-        <a href="#/setup-2fa">
+        <a href="/setup-2fa">
           <Button>Aktifkan 2FA</Button>
         </a>
       )}

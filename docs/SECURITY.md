@@ -101,7 +101,7 @@ All `SECURITY DEFINER` functions now include `SET search_path TO 'public'`. Migr
 
 This completes the security posture: every `SECURITY DEFINER` function in the system now has an explicit `search_path`. Previous fixes (migration 836, production readiness audit) covered 8 functions; this migration covers the remaining 19.
 
-See `docs/DATABASE.md` for the full list of patched functions.
+See `docs/DATABASE_ARCHITECTURE.md` for the full list of patched functions.
 
 ## Sentry Sensitive Data Filtering — Phase 21D
 
@@ -188,7 +188,7 @@ The `scorm-packages` storage bucket is **public** (`public: true`). This is inte
 
 ## Feature Module Cross-Reference
 
-EduSync LMS terdiri dari 24 feature module yang saling terintegrasi:
+EduSync LMS terdiri dari 49 feature module yang saling terintegrasi:
 
 | Feature         | Domain         | Deskripsi                                                                                                                  |
 | --------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------- |

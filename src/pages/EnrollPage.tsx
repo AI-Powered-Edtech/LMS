@@ -49,7 +49,7 @@ export function EnrollPage() {
     // Not logged in: persist code to session and redirect to login
     if (!session || !user) {
       sessionStorage.setItem(SESSION_STORAGE_KEY, joinCode)
-      navigate('/login', {
+      void navigate('/login', {
         state: { from: { pathname: `/join`, search: `?code=${joinCode}` } },
         replace: true,
       })
@@ -77,7 +77,7 @@ export function EnrollPage() {
         setStatus('success')
         setMessage('Berhasil bergabung ke kelas!')
         setTimeout(() => {
-          navigate('/app/student/dashboard', { replace: true })
+          void navigate('/app/student/dashboard', { replace: true })
         }, 2000)
       })
       .catch((err: Error) => {
@@ -94,7 +94,7 @@ export function EnrollPage() {
         }
         // Redirect to dashboard after 3s even on error
         setTimeout(() => {
-          navigate('/app/student/dashboard', { replace: true })
+          void navigate('/app/student/dashboard', { replace: true })
         }, 3000)
       })
   }, [authLoading, session, user, joinCode, role, navigate])

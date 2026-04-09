@@ -106,7 +106,7 @@ export function TeacherWelcome() {
                   key={a.path}
                   onClick={() => {
                     dismiss()
-                    navigate(a.path)
+                    void navigate(a.path)
                   }}
                   className={`w-full flex items-center gap-4 p-4 rounded-2xl border text-left transition-all hover:scale-[1.01] active:scale-[0.99] ${a.color}`}
                 >

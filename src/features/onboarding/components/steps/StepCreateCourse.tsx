@@ -67,11 +67,14 @@ export function StepCreateCourse({
         tenant_id: tenantId,
         created_by: user.id,
       })
+      if (!course?.id) {
+        throw new Error('Gagal membuat kursus.')
+      }
 
       onCourseCreated(course.id)
       onNext()
       setTimeout(() => {
-        navigate(`/app/teacher/course-builder?courseId=${course.id}`)
+        void navigate(`/app/teacher/course-builder?courseId=${course.id}`)
       }, 400)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal membuat kursus. Coba lagi.')

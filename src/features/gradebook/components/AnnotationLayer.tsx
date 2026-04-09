@@ -216,13 +216,14 @@ export function AnnotationLayer({
       }
     }
 
-    load()
+    void load()
+    const timers = debounceTimers.current
 
     return () => {
       cancelled = true
       // Bersihkan semua timer debounce saat unmount / submissionId berubah
-      debounceTimers.current.forEach((timer) => clearTimeout(timer))
-      debounceTimers.current.clear()
+      timers.forEach((timer) => clearTimeout(timer))
+      timers.clear()
     }
   }, [submissionId])
 

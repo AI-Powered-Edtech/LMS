@@ -93,7 +93,7 @@ npx vitest run src/features/storage
 
 ## Related Features
 
-Semua 24 feature module dalam EduSync LMS yang saling terintegrasi:
+Semua 49 feature module dalam EduSync LMS yang saling terintegrasi:
 
 - **administration** — Administrasi: Manajemen tenant, konfigurasi modul sekolah, sinkronisasi data
 - **ai-tutor** — AI Tutor: Asisten belajar berbasis AI yang memberikan penjelasan personal kepada siswa
@@ -123,7 +123,7 @@ Semua 24 feature module dalam EduSync LMS yang saling terintegrasi:
 ## Referensi
 
 - [ARCHITECTURE.md](../ARCHITECTURE.md) — Arsitektur sistem
-- [DATABASE.md](../DATABASE.md) — Referensi tabel dan RPC
+- [DATABASE_ARCHITECTURE.md](../DATABASE_ARCHITECTURE.md) — Referensi tabel dan RPC
 - [SECURITY.md](../SECURITY.md) — Model keamanan dan RLS
 - [AUTH.md](../AUTH.md) — Flow autentikasi
 - [TESTING.md](../TESTING.md) — Panduan testing

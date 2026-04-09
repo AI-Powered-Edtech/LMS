@@ -109,12 +109,15 @@ Large page components were refactored from monolithic files into feature-module 
 - UI split into smaller, composable components in `src/features/*/components/`
 - Pages in `src/pages/` became thin entry points that compose hooks and components
 
-### Service File Splits (Phase 21C)
+### Service Architecture
 
-Oversized service files were split into focused modules:
+While domain-specific API logic is collocated within feature modules (`src/features/*/api/`), core infrastructure services remain in a top-level directory:
 
-- Each service was decomposed into smaller, single-responsibility files
-- Collocated with their respective feature modules under `src/features/*/api/`
+- `src/services/supabase/client.ts` — Shared Supabase client initialization and singleton export.
+- `src/services/supabase/auth.ts` — Auth-related helper methods (if present).
+- `src/lib/` — Third-party library wrappers and generic utilities.
+
+Oversized legacy service files have been split and moved to their respective feature modules under `src/features/*/api/`.
 
 ## Multi-Tenant Architecture
 
@@ -190,50 +193,55 @@ src/features/{domain}/
 └── README.md       ← Feature documentation
 ```
 
-**32 Feature Modules:**
+**49 feature modules:**
 
-`administration`, `ai-tutor`, `analytics`, `announcements`, `assignments`, `attendance`, `auth`, `calendar`, `classroom`, `courses`, `creator`, `dashboards`, `discussions`, `gamification`, `gradebook`, `guidance`, `lessons`, `lti`, `moderation`, `notifications`, `onboarding`, `parent`, `principal`, `profile`, `progress`, `question-bank`, `quizzes`, `recommendations`, `reports`, `settings`, `storage`, `struggle`
+`accessibility`, `adaptive-paths`, `administration`, `ai-authoring`, `ai-quiz-gen`, `ai-recommendations`, `ai-tutor`, `analytics`, `announcements`, `assignments`, `attendance`, `auth`, `calendar`, `certificates`, `classroom`, `course-builder`, `courses`, `creator`, `dashboards`, `discussions`, `gamification`, `gradebook`, `guidance`, `interactive-blocks`, `lessons`, `lti`, `moderation`, `notifications`, `onboarding`, `parent`, `peer-review`, `plagiarism`, `principal`, `profile`, `progress`, `question-bank`, `quests`, `quizzes`, `recommendations`, `reports`, `rubrics`, `search`, `semester`, `settings`, `storage`, `struggle`, `surveys`, `video`, `xapi`
 
 ## Database Architecture
 
 - PostgreSQL on Supabase with Row-Level Security
-- 100+ tables with RLS enabled
-- 200+ RLS policies
-- 259 migration files (including archived)
+- 200+ tables with RLS enabled
+- 400+ RLS policies
+- 133 migration files (including archived)
 - All tables use `tenant_id` for multi-tenant isolation
 - `auto_set_tenant_id()` trigger on all new tables
 - SQL functions use `SECURITY DEFINER` with `SET search_path TO 'public'`
 
-See [DATABASE.md](DATABASE.md) for complete table and RPC reference.
+See [DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md) for complete table and RPC reference.
 
 ## Edge Functions
 
-23 Deno Edge Functions deployed to Supabase (`supabase/functions/`):
+28 Deno Edge Functions deployed to Supabase (`supabase/functions/`):
 
-| Function                    | Purpose                         | Auth              |
-| --------------------------- | ------------------------------- | ----------------- |
-| `ai-grade-essay`            | AI essay grading via Groq       | User JWT          |
-| `ai-tutor`                  | AI tutor chat                   | User JWT          |
-| `generate-ai-content`       | AI content generation           | User JWT          |
-| `generate-pdf`              | PDF certificate generation      | User JWT          |
-| `grade-quiz-attempt`        | Background quiz grading         | Service role      |
-| `health-check`              | System health status            | None (public)     |
-| `load-quiz-data`            | Load quiz for student           | User JWT          |
-| `process-progress-events`   | Batch progress event processing | API key           |
-| `progress-events`           | Enqueue progress events         | User JWT          |
-| `send-email-digest`         | Email digest sender             | Service role      |
-| `send-push`                 | Push notification sender        | User JWT          |
-| `lti-jwks`                  | Public JWKS for LTI platforms   | None (public GET) |
-| `lti-oidc-login`            | LTI OIDC login initiation       | None (platform)   |
-| `lti-launch`                | LTI launch token validation     | None (LTI)        |
-| `scorm-extract`             | SCORM ZIP extraction            | User JWT          |
-| `generate-executive-report` | Executive report generation     | Service role      |
-| `generate-parent-report`    | Parent report generation        | Service role      |
-| `bulk-import-users`         | Bulk user import                | Service role      |
-| `check-rate-limit`          | Rate limiting check             | Service role      |
-| `send-parent-digest`        | Parent digest sending           | Service role      |
-| `send-parent-otp`           | Parent OTP sending              | Service role      |
-| `whatsapp-webhook`          | WhatsApp webhook handler        | Service role      |
+| Function                     | Purpose                         | Auth              |
+| ---------------------------- | ------------------------------- | ----------------- |
+| `ai-grade-essay`             | AI essay grading via Groq       | User JWT          |
+| `ai-tutor`                   | AI tutor chat                   | User JWT          |
+| `generate-ai-content`        | AI content generation           | User JWT          |
+| `generate-pdf`               | PDF certificate generation      | User JWT          |
+| `grade-quiz-attempt`         | Background quiz grading         | Service role      |
+| `health-check`               | System health status            | None (public)     |
+| `load-quiz-data`             | Load quiz for student           | User JWT          |
+| `process-progress-events`    | Batch progress event processing | API key           |
+| `progress-events`            | Enqueue progress events         | User JWT          |
+| `send-email-digest`          | Email digest sender             | Service role      |
+| `send-push`                  | Push notification sender        | User JWT          |
+| `lti-jwks`                   | Public JWKS for LTI platforms   | None (public GET) |
+| `lti-oidc-login`             | LTI OIDC login initiation       | None (platform)   |
+| `lti-launch`                 | LTI launch token validation     | None (LTI)        |
+| `lti-grade-passback`         | LTI 1.3 grade passback          | Service role      |
+| `scorm-extract`              | SCORM ZIP extraction            | User JWT          |
+| `check-plagiarism`           | Plagiarism detection check      | User JWT          |
+| `generate-quiz-from-content` | AI quiz generation              | User JWT          |
+| `recommend-learning-path`    | AI path recommendation          | User JWT          |
+| `video-webhook`              | Video processing webhook        | Service role      |
+| `generate-executive-report`  | Executive report generation     | Service role      |
+| `generate-parent-report`     | Parent report generation        | Service role      |
+| `bulk-import-users`          | Bulk user import                | Service role      |
+| `check-rate-limit`           | Rate limiting check             | Service role      |
+| `send-parent-digest`         | Parent digest sending           | Service role      |
+| `send-parent-otp`            | Parent OTP sending              | Service role      |
+| `whatsapp-webhook`           | WhatsApp webhook handler        | Service role      |
 
 ## Security Model
 
@@ -248,11 +256,11 @@ See [SECURITY.md](SECURITY.md) for complete security documentation.
 
 ## Testing
 
-| Type          | Tool       | Location                            | Count      |
-| ------------- | ---------- | ----------------------------------- | ---------- |
-| Unit          | Vitest     | `src/**/__tests__/*.test.ts(x)`     | 700+ tests |
-| E2E           | Playwright | `e2e/flows24/*.spec.ts`             | 24 flows   |
-| Cross-cutting | Playwright | `e2e/flows24/cross-cutting.spec.ts` | 4 suites   |
+| Type          | Tool       | Location                                                                                                         | Count          |
+| ------------- | ---------- | ---------------------------------------------------------------------------------------------------------------- | -------------- |
+| Unit          | Vitest     | `src/**/__tests__/*.test.ts(x)`                                                                                  | 700+ tests     |
+| E2E           | Playwright | `e2e/*.spec.ts`, `e2e/critical-paths/`, `e2e/flows/`, `e2e/flows-phase26-30/`, `e2e/gradebook/`, `e2e/security/` | 400+ scenarios |
+| Cross-cutting | Playwright | `e2e/visual-regression.spec.ts`, `e2e/dark-mode.spec.ts`                                                         | 4 suites       |
 
 See [TESTING.md](TESTING.md) for complete testing guide.
 

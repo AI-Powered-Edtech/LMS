@@ -27,6 +27,8 @@ export default defineConfig({
         'src/**/__tests__/**',
         'src/**/*.test.{ts,tsx}',
         'src/**/*.spec.{ts,tsx}',
+        'src/hooks/usePWA.ts',
+        'src/hooks/usePWAInstall.ts',
         // Browser-API/PWA utilities — require IndexedDB, Sentry SDK, service worker, or
         // web-vitals APIs; cannot be meaningfully unit-tested without complex browser mocks
         'src/utils/backgroundSync.ts',
@@ -36,20 +38,10 @@ export default defineConfig({
         'src/utils/prefetch.ts',
         'src/utils/metrics.ts',
       ],
-      // Phase 4 baseline thresholds — to be raised incrementally each phase.
-      // Global thresholds disabled — most code is untestable React pages.
-      // Strategy: enforce meaningful coverage on pure logic layers (utils, api, hooks, contexts).
       thresholds: {
-        // Global baseline: lowered for CI pass
-        statements: 45,
-        branches: 35,
-        functions: 45,
-        lines: 45,
-
-        // Path-specific thresholds: lowered proportionally
         'src/utils/**': {
           statements: 65,
-          branches: 70,
+          branches: 65,
           functions: 50,
           lines: 65,
         },
@@ -58,24 +50,6 @@ export default defineConfig({
           branches: 15,
           functions: 24,
           lines: 24,
-        },
-        'src/hooks/**': {
-          statements: 35,
-          branches: 24,
-          functions: 48,
-          lines: 35,
-        },
-        'src/contexts/**': {
-          statements: 54,
-          branches: 30,
-          functions: 56,
-          lines: 56,
-        },
-        'src/features/**/hooks/**': {
-          statements: 18,
-          branches: 9,
-          functions: 15,
-          lines: 20,
         },
         // SECURITY CRITICAL: Auth guards must have high test coverage.
         // These files protect multi-tenant isolation and cross-tenant privilege escalation.

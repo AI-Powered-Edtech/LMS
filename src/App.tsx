@@ -5,7 +5,7 @@
 
 import { MotionConfig } from 'motion/react'
 import { useEffect } from 'react'
-import { HashRouter as Router } from 'react-router-dom'
+import { BrowserRouter as Router } from 'react-router-dom'
 
 import { AppRoutes } from './app/routes'
 import { OfflineIndicator } from './components/OfflineIndicator'
@@ -21,15 +21,6 @@ import { setupPrefetchListeners } from './utils/prefetch'
 
 export default function App() {
   useEffect(() => {
-    // Normalize path for HashRouter: if user accesses /login directly (instead of /#/login),
-    // redirect them so the pathname is '/' and the hash is the path.
-    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
-      const path = window.location.pathname
-      const hash = window.location.hash
-      const search = window.location.search
-      window.history.replaceState(null, '', `/#${path}${search}${hash}`)
-    }
-
     const cleanup = setupPrefetchListeners()
     return cleanup
   }, [])
@@ -39,13 +30,13 @@ export default function App() {
       <ErrorBoundary>
         <ThemeProvider>
           <AuthProvider>
-            <SkipToContent />
-            <ToastContainer />
-            <OfflineIndicator />
-            <PWAUpdateToast />
-            <PWAInstallBanner />
-            <SessionManager />
             <Router>
+              <SkipToContent />
+              <ToastContainer />
+              <OfflineIndicator />
+              <PWAUpdateToast />
+              <PWAInstallBanner />
+              <SessionManager />
               <main id="main-content" tabIndex={-1} className="outline-none">
                 <AppRoutes />
               </main>

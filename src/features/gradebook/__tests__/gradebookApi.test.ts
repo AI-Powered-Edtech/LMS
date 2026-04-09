@@ -18,11 +18,22 @@ import { addGradebookItem } from '../api/gradebookApi'
 
 function makeChain(resolveWith: { data: unknown; error: unknown }) {
   const chain: Record<string, unknown> = {}
-  const methods = ['insert', 'select', 'single', 'eq', 'update', 'upsert']
+  const methods = [
+    'insert',
+    'select',
+    'single',
+    'eq',
+    'update',
+    'upsert',
+    'order',
+    'limit',
+    'maybeSingle',
+  ]
   for (const m of methods) {
     chain[m] = vi.fn().mockReturnValue(chain)
   }
   ;(chain.single as ReturnType<typeof vi.fn>).mockResolvedValue(resolveWith)
+  ;(chain.maybeSingle as ReturnType<typeof vi.fn>).mockResolvedValue(resolveWith)
   chain.then = (resolve: (v: unknown) => unknown, reject: (v: unknown) => unknown) =>
     Promise.resolve(resolveWith).then(resolve, reject)
   return chain

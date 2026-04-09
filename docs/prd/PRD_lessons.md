@@ -105,7 +105,7 @@ Masalah utama:
 | 11  | **Teacher Lesson Dashboard**  | View lesson performance metrics: student list with completion status, time spent, quiz score. Sort by score/time/status.                                                                                   |
 | 12  | **RLS & Multi-Tenant**        | All lessons scoped to course → module → tenant. Teachers can only edit own lesson. Students can only view if enrolled in course.                                                                           |
 | 13  | **Dark Mode**                 | All components support dark mode with `dark:` Tailwind. Test on viewer + editor.                                                                                                                           |
-| 14  | **Documentation**             | Update `docs/DATABASE.md` with lesson_resources schema; create feature README with block type reference.                                                                                                   |
+| 14  | **Documentation**             | Update `docs/DATABASE_ARCHITECTURE.md` with lesson_resources schema; create feature README with block type reference.                                                                                      |
 
 ### P1 — Nice to Have
 
@@ -273,7 +273,7 @@ Masalah utama:
 - [ ] Video loads <2 sec on 4G (test with Lighthouse throttling)
 - [ ] Rich text XSS-safe (sanitization tested)
 - [ ] Dark mode working on editor + viewer
-- [ ] Documentation updated (DATABASE.md, feature README)
+- [ ] Documentation updated (DATABASE_ARCHITECTURE.md, feature README)
 
 ---
 

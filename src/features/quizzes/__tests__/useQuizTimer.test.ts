@@ -8,7 +8,9 @@ const ATTEMPT_ID = 'test-attempt-id'
 describe('useQuizTimer', () => {
   beforeEach(() => vi.useFakeTimers())
   afterEach(() => {
-    vi.runOnlyPendingTimers()
+    act(() => {
+      vi.runOnlyPendingTimers()
+    })
     vi.useRealTimers()
   })
 

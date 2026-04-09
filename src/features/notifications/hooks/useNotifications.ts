@@ -105,7 +105,7 @@ export function useNotifications(): UseNotificationsReturn {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      void supabase.removeChannel(channel)
     }
   }, [tenantId, user, queryClient, queryKey])
 
@@ -134,7 +134,7 @@ export function useNotifications(): UseNotificationsReturn {
     },
     onSettled: () => {
       // Always sync with server after mutation completes (success or error)
-      queryClient.invalidateQueries({ queryKey: notificationKeys.all(tenantId!) })
+      void queryClient.invalidateQueries({ queryKey: notificationKeys.all(tenantId!) })
     },
   })
 
@@ -154,7 +154,7 @@ export function useNotifications(): UseNotificationsReturn {
       if (ctx?.previous) queryClient.setQueryData(queryKey, ctx.previous)
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: notificationKeys.all(tenantId!) })
+      void queryClient.invalidateQueries({ queryKey: notificationKeys.all(tenantId!) })
     },
   })
 
@@ -211,7 +211,7 @@ export function useNotificationPreferences(): UseNotificationPreferencesReturn {
         tenant_id: tenantId!,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: notificationKeys.preferences(tenantId!, user!.id),
       })
     },

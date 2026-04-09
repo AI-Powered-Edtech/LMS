@@ -4,6 +4,40 @@ import { supabase } from '@/services/supabase/client'
 
 import type { GradebookColumn, GradebookEntry, GradebookSettings } from '../types'
 
+// ── Legacy Compatibility Types ───────────────────────────────────────────────
+
+export type GradeStatus = 'ungraded' | 'graded' | 'needs_revision'
+
+export interface GradebookAssignment {
+  id: string
+  title: string
+  type: 'quiz' | 'assignment' | 'project' | 'exam' | 'presentation' | 'offline'
+  maxScore: number
+  date: string
+}
+
+export interface GradeEntry {
+  score: number | null
+  status: GradeStatus
+  feedback?: string
+  source?: 'assignment' | 'quiz'
+}
+
+export type GradeData = Record<string, Record<string, GradeEntry>>
+
+export interface GradebookStudent {
+  id: string
+  name: string
+  nis: string
+  avatarSeed?: string
+}
+
+export interface GradebookData {
+  assignments: GradebookAssignment[]
+  students: GradebookStudent[]
+  grades: GradeData
+}
+
 // ── Fetch ────────────────────────────────────────────────────────────────────
 
 /**
@@ -99,7 +133,19 @@ export async function updateGradebookEntry(
  * percentage adalah generated column, tidak boleh dikirim ke Supabase.
  */
 export async function upsertGradebookEntry(
-  entry: Omit<GradebookEntry, 'id' | 'percentage'>
+  entry: Pick<
+    GradebookEntry,
+    | 'tenant_id'
+    | 'student_id'
+    | 'course_id'
+    | 'assignment_id'
+    | 'quiz_id'
+    | 'score'
+    | 'max_score'
+    | 'notes'
+    | 'graded_by'
+    | 'graded_at'
+  >
 ): Promise<GradebookEntry> {
   const entityType = entry.quiz_id ? 'quiz' : 'assignment'
   const entityId = entry.quiz_id ?? entry.assignment_id
@@ -331,6 +377,114 @@ export async function upsertGradebookSettings(
   if (error) throw error
 
   return data as unknown as GradebookSettings
+}
+
+// ── Legacy Compatibility Layer ──────────────────────────────────────────────
+
+/**
+ * Legacy-compatible fetchGradebook function that maps modern gradebook_entries
+ * to the old interface for backward compatibility during migration.
+ */
+export async function fetchGradebookLegacy(
+  tenantId: string,
+  courseId: string,
+  _submissionsPage = 0
+): Promise<GradebookData> {
+  // Fetch modern gradebook data
+  const [entriesResult, columnsResult, profilesResult] = await Promise.all([
+    fetchGradebookEntries(courseId, tenantId),
+    fetchGradebookColumns(courseId, tenantId),
+    // Server-side student filtering via RPC
+    supabase.rpc('get_gradebook_students', { p_tenant_id: tenantId }),
+  ])
+
+  // Transform entries to legacy format
+  const grades: GradeData = {}
+  const studentMap = new Map<string, { name: string; email: string }>()
+
+  // Process entries and build student map
+  for (const entry of entriesResult) {
+    if (!grades[entry.student_id]) grades[entry.student_id] = {}
+
+    const itemId = entry.quiz_id || entry.assignment_id
+    if (!itemId) continue
+
+    grades[entry.student_id][itemId] = {
+      score: entry.score,
+      status: entry.score !== null ? 'graded' : 'ungraded',
+      feedback: entry.notes || undefined,
+      source: entry.quiz_id ? 'quiz' : 'assignment',
+    }
+
+    // Store student info
+    if (entry.student_name && entry.student_email) {
+      studentMap.set(entry.student_id, {
+        name: entry.student_name,
+        email: entry.student_email,
+      })
+    }
+  }
+
+  // Transform columns to legacy assignments
+  const assignments: GradebookAssignment[] = columnsResult.map((col) => ({
+    id: col.id,
+    title: col.title,
+    type: col.type === 'quiz' ? 'quiz' : 'assignment',
+    maxScore: col.max_score,
+    date: '', // Legacy format doesn't store dates
+  }))
+
+  // Transform profiles to legacy students
+  const students: GradebookStudent[] = (profilesResult.data ?? []).map(
+    (p: { id: string; first_name: string; last_name: string; email: string }) => {
+      const profile = studentMap.get(p.id)
+      return {
+        id: p.id,
+        name: profile?.name || `${p.first_name} ${p.last_name}`.trim() || p.email,
+        nis: p.email.split('@')[0],
+        avatarSeed: p.id,
+      }
+    }
+  )
+
+  return { assignments, students, grades }
+}
+
+/**
+ * Legacy-compatible submitGrade function that updates gradebook_entries.
+ */
+export async function submitGradeLegacy(
+  itemId: string,
+  studentId: string,
+  courseId: string,
+  score: number,
+  feedback: string | undefined,
+  tenantId: string
+): Promise<void> {
+  // Determine if this is a quiz or assignment
+  const columns = await fetchGradebookColumns(courseId, tenantId)
+  const column = columns.find((col) => col.id === itemId)
+
+  if (!column) {
+    throw new Error(`Column ${itemId} not found in gradebook`)
+  }
+
+  const entityType = column.type
+  const entityId = itemId
+
+  // Upsert the gradebook entry
+  await upsertGradebookEntry({
+    tenant_id: tenantId,
+    student_id: studentId,
+    course_id: courseId,
+    quiz_id: entityType === 'quiz' ? entityId : null,
+    assignment_id: entityType === 'assignment' ? entityId : null,
+    score,
+    max_score: column.max_score,
+    notes: feedback ?? null,
+    graded_by: null, // TODO: Get from auth context
+    graded_at: new Date().toISOString(),
+  })
 }
 
 // ── CSV Export ────────────────────────────────────────────────────────────────

@@ -43,7 +43,7 @@ export function ArticleViewer({
 
   // Lazy-load KaTeX CSS for math rendering
   useEffect(() => {
-    import('katex/dist/katex.min.css')
+    void import('katex/dist/katex.min.css')
   }, [])
 
   // Active Visibility Timer

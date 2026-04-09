@@ -27,16 +27,16 @@ export function AdminLayout() {
   useEffect(() => {
     if (sessionExpired) {
       addToast({ type: 'warning', message: 'Sesi Anda telah berakhir' })
-      navigate('/login', { replace: true })
+      void navigate('/login', { replace: true })
     }
   }, [sessionExpired, addToast, navigate])
 
   return (
-    <div className="flex h-[100dvh] overflow-hidden font-sans flex-col transition-colors duration-300 bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-50">
+    <div className="flex h-[100dvh] overflow-hidden font-sans flex-col transition-colors duration-300 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       <RouteAnnouncer />
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
       >
         Langsung ke konten utama
       </a>
@@ -52,15 +52,15 @@ export function AdminLayout() {
           <main
             id="main-content"
             tabIndex={-1}
-            className={`flex-1 overflow-y-auto overflow-x-hidden flex flex-col outline-none ${isHidden ? 'p-0' : 'p-2 sm:p-4 md:p-spacing-lg'}`}
+            className={`flex-1 overflow-y-auto overflow-x-hidden flex flex-col outline-none ${isHidden ? 'p-0' : 'p-2 sm:p-4 md:p-8 pb-24 md:pb-8'}`}
           >
             <AnimatePresence mode="sync">
               <motion.div
                 key={location.pathname}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
                 className={`${isHidden ? 'max-w-none' : 'max-w-5xl'} mx-auto w-full flex-1 flex flex-col`}
               >
                 <FeatureErrorBoundary>

@@ -178,7 +178,7 @@ export function PPDBDashboard() {
     staleTime: 60_000,
   })
 
-  const periods = periodsQuery.data ?? []
+  const periods = useMemo(() => periodsQuery.data ?? [], [periodsQuery.data])
 
   useEffect(() => {
     if (!selectedPeriodId && periods.length > 0) {
@@ -233,7 +233,7 @@ export function PPDBDashboard() {
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
 
   function invalidateAll() {
-    queryClient.invalidateQueries({ queryKey: ['ppdb'] })
+    void queryClient.invalidateQueries({ queryKey: ['ppdb'] })
     setSelectedIds(new Set())
   }
 

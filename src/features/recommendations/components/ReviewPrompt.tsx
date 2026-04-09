@@ -37,7 +37,7 @@ export function ReviewPrompt({ score, lessonId, quizId: _quizId }: ReviewPromptP
     const params = currentModuleId
       ? `moduleId=${currentModuleId}&lessonId=${lessonId}`
       : `lessonId=${lessonId}`
-    navigate(`/courses/${courseTarget}?${params}`)
+    void navigate(`/courses/${courseTarget}?${params}`)
   }
 
   const handleDismiss = () => {

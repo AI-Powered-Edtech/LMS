@@ -43,7 +43,7 @@ export function useCourseSettings(courseId: string | null): CourseSettingsReturn
     mutationFn: (updates: Parameters<typeof courseService.updateCourse>[1]) =>
       courseService.updateCourse(courseId!, updates, tenantId!),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: courseKeys.detail(tenantId!, courseId!) })
+      void queryClient.invalidateQueries({ queryKey: courseKeys.detail(tenantId!, courseId!) })
       setIsSaved(true)
       savedTimerRef.current = setTimeout(() => setIsSaved(false), 3000)
     },

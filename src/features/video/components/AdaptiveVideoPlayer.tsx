@@ -73,7 +73,7 @@ export function AdaptiveVideoPlayer({
 
     let destroyed = false
 
-    import('hls.js').then(({ default: Hls }) => {
+    void import('hls.js').then(({ default: Hls }) => {
       if (destroyed) return
 
       if (Hls.isSupported() && videoRef.current) {

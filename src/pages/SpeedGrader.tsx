@@ -1,11 +1,15 @@
 import { AlertCircle, FileText, Loader2, Save, Sparkles } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { aiGraderService } from '@/features/assignments/api/aiGraderService'
+import type {
+  AssignmentAttemptRecord,
+  AssignmentGradingQueue,
+  AssignmentSubmissionBundle,
+} from '@/features/assignments/api/assignmentService'
 import { assignmentService } from '@/features/assignments/api/assignmentService'
-import { useComments } from '@/features/discussions/hooks/useCommentQueries'
 import type {
   ActiveTool,
   SaveStatus,
@@ -17,32 +21,32 @@ import {
   RubricPanel,
   SaveStatusToast,
 } from '@/features/gradebook/components/speedgrader'
-import { useGradebook } from '@/features/gradebook/hooks/useGradebookQueries'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
 import { captureError } from '@/utils/sentry'
 
+function calculateEffectiveScore(rawScore: number, latePenaltyPercent: number) {
+  return Math.max(Math.round((rawScore - (rawScore * latePenaltyPercent) / 100) * 100) / 100, 0)
+}
+
 export function SpeedGrader() {
   usePageTitle('Penilaian Cepat')
-  const { students, grades, updateGrade } = useGradebook()
-  const { addComment } = useComments()
   const { tenantId } = useAuth()
-  const addToast = useToast((s) => s.addToast)
+  const addToast = useToast((state) => state.addToast)
   const [searchParams] = useSearchParams()
-  const assignmentId = searchParams.get('assignmentId')
 
+  const assignmentId = searchParams.get('assignmentId')
   const studentIdParam = searchParams.get('studentId')
 
-  const [currentStudentIdx, setCurrentStudentIdx] = useState(() => {
-    if (!studentIdParam || !assignmentId) return 0
-    const idx = students.findIndex((s) => s.id.toString() === studentIdParam)
-    return Math.max(0, idx)
-  })
+  const [queue, setQueue] = useState<AssignmentGradingQueue | null>(null)
+  const [bundle, setBundle] = useState<AssignmentSubmissionBundle | null>(null)
+  const [currentStudentIdx, setCurrentStudentIdx] = useState(0)
+  const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(null)
   const [feedback, setFeedback] = useState('')
-  const [submissionText, setSubmissionText] = useState('')
-  const [submissionId, setSubmissionId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [manualScore, setManualScore] = useState(0)
+  const [isLoadingQueue, setIsLoadingQueue] = useState(false)
+  const [isLoadingBundle, setIsLoadingBundle] = useState(false)
   const [isAIGrading, setIsAIGrading] = useState(false)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [zoom, setZoom] = useState(100)
@@ -50,74 +54,126 @@ export function SpeedGrader() {
   const [mobileActiveTab, setMobileActiveTab] = useState<'document' | 'penilaian'>('document')
   const documentRef = useRef<HTMLDivElement>(null)
 
-  const currentStudent = students[currentStudentIdx]
+  const queueStudents = useMemo(() => queue?.students ?? [], [queue?.students])
+  const currentQueueStudent = queueStudents[currentStudentIdx] ?? null
+  const latestAttempt = bundle?.latest_attempt ?? null
+  const selectedAttempt = useMemo<AssignmentAttemptRecord | null>(() => {
+    if (!bundle) return null
+    return bundle.attempts.find((attempt) => attempt.id === selectedAttemptId) ?? latestAttempt
+  }, [bundle, latestAttempt, selectedAttemptId])
 
-  // Load submission data when switching students
-  /* eslint-disable react-hooks/exhaustive-deps */
+  const effectiveScore = useMemo(
+    () => calculateEffectiveScore(manualScore, latestAttempt?.late_penalty_percent ?? 0),
+    [latestAttempt?.late_penalty_percent, manualScore]
+  )
+
+  const speedGraderStudents: SpeedGraderStudent[] = useMemo(
+    () =>
+      queueStudents.map((student) => ({
+        id: student.student_id,
+        name: student.student_name,
+        gradeEntry: {
+          score: student.score ?? student.raw_score ?? null,
+          status: student.status,
+        },
+      })),
+    [queueStudents]
+  )
+
   useEffect(() => {
-    if (!assignmentId || !currentStudent || !tenantId) return
+    if (!assignmentId || !tenantId) return
 
-    const loadStudentData = async () => {
-      setIsLoading(true)
-      setSaveStatus('idle')
+    let cancelled = false
 
+    const loadQueue = async () => {
+      setIsLoadingQueue(true)
       try {
-        const assignment = await assignmentService.getAssignmentById(assignmentId, tenantId)
-        if (!assignment) {
-          if (import.meta.env.DEV) console.error('Assignment not found or access denied')
-          setIsLoading(false)
-          return
-        }
-      } catch (authError) {
-        if (import.meta.env.DEV) console.error('Authorization check failed:', authError)
-        setIsLoading(false)
-        return
-      }
-
-      try {
-        // Ambil submission ID dan teks sekaligus
-        const submission = await assignmentService.getSubmission(
+        const gradingQueue = await assignmentService.getAssignmentGradingQueue(
           assignmentId,
-          currentStudent.id,
           tenantId
         )
+        if (cancelled) return
 
-        setSubmissionText(submission?.submission_text ?? '')
-        setSubmissionId(submission?.id ?? null)
-        const existingGrade = grades[currentStudent.id]?.[assignmentId]
-        setFeedback(existingGrade?.feedback || '')
-        setZoom(100)
-        setActiveTool('pointer')
-      } catch (err) {
-        if (import.meta.env.DEV) console.warn('Error loading submission:', err)
-        captureError(err, { context: 'SpeedGrader.loadSubmission' })
-        setSubmissionText('')
-        setSubmissionId(null)
+        setQueue(gradingQueue)
+        if (studentIdParam) {
+          const initialIndex = gradingQueue.students.findIndex(
+            (student) => student.student_id === studentIdParam
+          )
+          setCurrentStudentIdx(initialIndex >= 0 ? initialIndex : 0)
+        } else {
+          setCurrentStudentIdx(0)
+        }
+      } catch {
+        if (!cancelled) {
+          addToast({
+            type: 'error',
+            message: 'Gagal memuat grading queue.',
+          })
+        }
       } finally {
-        setIsLoading(false)
+        if (!cancelled) setIsLoadingQueue(false)
       }
     }
 
-    void loadStudentData()
-  }, [currentStudentIdx])
-  /* eslint-enable react-hooks/exhaustive-deps */
+    void loadQueue()
 
-  const saveCurrentStudent = useCallback(
-    async (status: 'graded' | 'needs_revision' | 'ungraded' = 'graded') => {
-      if (!currentStudent || !assignmentId) return
-      setSaveStatus('saving')
+    return () => {
+      cancelled = true
+    }
+  }, [addToast, assignmentId, studentIdParam, tenantId])
+
+  useEffect(() => {
+    if (!assignmentId || !tenantId || !currentQueueStudent) {
+      setBundle(null)
+      return
+    }
+
+    let cancelled = false
+
+    const loadBundle = async () => {
+      setIsLoadingBundle(true)
+      setSaveStatus('idle')
+
       try {
-        updateGrade(currentStudent.id, assignmentId, 0, status, feedback)
-        if (feedback.trim()) await addComment(assignmentId, feedback)
-        setSaveStatus('saved')
-        setTimeout(() => setSaveStatus('idle'), 2000)
+        const submissionBundle = await assignmentService.getAssignmentSubmissionBundle(
+          assignmentId,
+          currentQueueStudent.student_id,
+          tenantId
+        )
+
+        if (cancelled) return
+
+        setBundle(submissionBundle)
+        setSelectedAttemptId(submissionBundle.latest_attempt?.id ?? null)
+        setFeedback(submissionBundle.latest_attempt?.feedback ?? '')
+        setManualScore(
+          Number(
+            submissionBundle.latest_attempt?.raw_score ??
+              submissionBundle.latest_attempt?.score ??
+              0
+          )
+        )
+        setZoom(100)
+        setActiveTool('pointer')
       } catch (error) {
-        setSaveStatus('error')
-        console.error('Save failed:', error)
+        if (cancelled) return
+        captureError(error, { context: 'SpeedGrader.loadBundle' })
+        addToast({
+          type: 'error',
+          message: 'Gagal memuat submission siswa.',
+        })
+        setBundle(null)
+      } finally {
+        if (!cancelled) setIsLoadingBundle(false)
       }
-    },
-    [currentStudent, assignmentId, feedback, updateGrade, addComment]
-  )
+    }
+
+    void loadBundle()
+
+    return () => {
+      cancelled = true
+    }
+  }, [addToast, assignmentId, currentQueueStudent, tenantId])
 
   if (!assignmentId) {
     return (
@@ -132,93 +188,138 @@ export function SpeedGrader() {
     )
   }
 
-  if (!currentStudent) {
+  if (!isLoadingQueue && queueStudents.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-slate-500">Tidak ada data siswa.</p>
+        <p className="text-slate-500">Belum ada siswa pada grading queue assignment ini.</p>
       </div>
     )
   }
 
-  const handleNext = () => {
-    void saveCurrentStudent()
-    if (currentStudentIdx < students.length - 1) setCurrentStudentIdx((s) => s + 1)
+  const isLoading = isLoadingQueue || isLoadingBundle
+
+  const refreshCurrentState = async () => {
+    if (!assignmentId || !tenantId || !currentQueueStudent) return
+
+    const [gradingQueue, submissionBundle] = await Promise.all([
+      assignmentService.getAssignmentGradingQueue(assignmentId, tenantId),
+      assignmentService.getAssignmentSubmissionBundle(
+        assignmentId,
+        currentQueueStudent.student_id,
+        tenantId
+      ),
+    ])
+
+    setQueue(gradingQueue)
+    setBundle(submissionBundle)
+    setSelectedAttemptId(submissionBundle.latest_attempt?.id ?? null)
+    setFeedback(submissionBundle.latest_attempt?.feedback ?? '')
+    setManualScore(
+      Number(
+        submissionBundle.latest_attempt?.raw_score ?? submissionBundle.latest_attempt?.score ?? 0
+      )
+    )
+  }
+
+  const handleStudentChange = (index: number) => {
+    setCurrentStudentIdx(index)
   }
 
   const handlePrev = () => {
-    void saveCurrentStudent()
-    if (currentStudentIdx > 0) setCurrentStudentIdx((s) => s - 1)
+    setCurrentStudentIdx((index) => Math.max(index - 1, 0))
   }
 
-  const handleStudentChange = (idx: number) => {
-    void saveCurrentStudent()
-    setCurrentStudentIdx(idx)
+  const handleNext = () => {
+    setCurrentStudentIdx((index) => Math.min(index + 1, queueStudents.length - 1))
   }
 
-  const handleSaveAndNext = async (status: 'graded' | 'needs_revision' = 'graded') => {
+  const handleSaveAndNext = async (status: 'graded' | 'needs_revision') => {
+    if (!latestAttempt || !tenantId) {
+      addToast({
+        type: 'error',
+        message: 'Belum ada attempt terbaru yang bisa dinilai.',
+      })
+      return
+    }
+
     setSaveStatus('saving')
     try {
-      updateGrade(currentStudent.id, assignmentId, 0, status, feedback)
-      if (feedback.trim()) await addComment(assignmentId, feedback)
+      await assignmentService.gradeSubmission(
+        latestAttempt.id,
+        tenantId,
+        manualScore,
+        feedback,
+        status === 'needs_revision' ? 'returned' : 'graded'
+      )
+
+      await refreshCurrentState()
       setSaveStatus('saved')
-      setTimeout(() => {
+
+      window.setTimeout(() => {
         setSaveStatus('idle')
-        if (currentStudentIdx < students.length - 1) setCurrentStudentIdx((s) => s + 1)
-      }, 500)
-    } catch (err) {
+        if (currentStudentIdx < queueStudents.length - 1) {
+          setCurrentStudentIdx((index) => index + 1)
+        }
+      }, 400)
+    } catch (error) {
+      captureError(error, { context: 'SpeedGrader.save' })
       setSaveStatus('error')
-      console.error('handleSaveAndNext failed:', err)
+      addToast({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Gagal menyimpan penilaian.',
+      })
     }
   }
 
   const handleAIGrading = async () => {
-    if (feedback.trim().length > 0) {
-      if (!confirm('Apakah Anda yakin ingin menimpa umpan balik yang sudah ada dengan hasil AI?'))
-        return
-    }
-    if (!submissionText?.trim()) {
+    if (!latestAttempt?.submission_text?.trim()) {
       addToast({
         type: 'error',
-        message:
-          'Tidak ada teks esai yang dapat dinilai. Siswa mungkin belum mengumpulkan tugas atau mengumpulkan file saja.',
+        message: 'Attempt terbaru tidak memiliki jawaban teks untuk auto-grade AI.',
       })
+      return
+    }
+
+    if (
+      feedback.trim().length > 0 &&
+      !window.confirm('Tumpuk feedback AI di atas feedback yang ada?')
+    ) {
       return
     }
 
     setIsAIGrading(true)
     try {
       const aiResponse = await aiGraderService.gradeEssay({
-        submissionId: `${assignmentId}-${currentStudent.id}`,
-        essayText: submissionText,
+        submissionId: latestAttempt.id,
+        essayText: latestAttempt.submission_text,
         rubric: [],
       })
 
-      let aggregatedFeedback = aiResponse.overallFeedback ? aiResponse.overallFeedback + '\n\n' : ''
-      Object.entries(aiResponse.feedback ?? {}).forEach(([criterion, fb]) => {
-        aggregatedFeedback += `**${criterion}**: ${fb}\n`
+      let aggregatedFeedback = aiResponse.overallFeedback ? `${aiResponse.overallFeedback}\n\n` : ''
+      Object.entries(aiResponse.feedback ?? {}).forEach(([criterion, criterionFeedback]) => {
+        aggregatedFeedback += `**${criterion}**: ${criterionFeedback}\n`
       })
+
       setFeedback(aggregatedFeedback.trim())
-    } catch (error: unknown) {
-      if (import.meta.env.DEV) console.error('AI Grading failed:', error)
+    } catch (error) {
       addToast({
         type: 'error',
-        message:
-          error instanceof Error ? error.message : 'Gagal melakukan penilaian otomatis dengan AI.',
+        message: error instanceof Error ? error.message : 'Gagal menjalankan auto-grade AI.',
       })
     } finally {
       setIsAIGrading(false)
     }
   }
 
-  // Map GradebookStudent to SpeedGraderStudent for GraderTopBar
-  const speedGraderStudents: SpeedGraderStudent[] = students.map((s) => ({
-    id: s.id,
-    name: s.name,
-    gradeEntry: {
-      score: grades[s.id]?.[assignmentId]?.score ?? null,
-      status: grades[s.id]?.[assignmentId]?.status ?? 'ungraded',
-    },
-  }))
+  const selectedStudent = speedGraderStudents[currentStudentIdx]
+
+  if (!selectedStudent || !currentQueueStudent) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-slate-500">Data siswa tidak ditemukan pada grading queue.</p>
+      </div>
+    )
+  }
 
   return (
     <div className="h-full flex flex-col bg-slate-50 dark:bg-slate-950 relative">
@@ -233,7 +334,6 @@ export function SpeedGrader() {
         onNext={handleNext}
       />
 
-      {/* Mobile Tab Switcher — hanya tampil di mobile (< md) */}
       <div className="flex md:hidden shrink-0 px-4 pt-3 pb-2 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 gap-2">
         <button
           type="button"
@@ -263,9 +363,39 @@ export function SpeedGrader() {
         </button>
       </div>
 
-      {/* Desktop: side-by-side. Mobile: tab-based full width */}
+      <div className="shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-bold text-slate-800 dark:text-white">
+            {bundle?.assignment.title ?? 'Assignment'}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Status queue: {currentQueueStudent.status.replace('_', ' ')}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={selectedAttemptId ?? ''}
+            onChange={(event) => setSelectedAttemptId(event.target.value)}
+            className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200"
+          >
+            {(bundle?.attempts ?? []).map((attempt) => (
+              <option key={attempt.id} value={attempt.id}>
+                Attempt {attempt.attempt_number}
+                {attempt.id === latestAttempt?.id ? ' (terbaru)' : ''}
+              </option>
+            ))}
+          </select>
+
+          {selectedAttempt && latestAttempt && selectedAttempt.id !== latestAttempt.id && (
+            <span className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 px-3 py-2 rounded-xl">
+              Penilaian tetap disimpan pada attempt terbaru.
+            </span>
+          )}
+        </div>
+      </div>
+
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-        {/* DocumentViewer: di desktop selalu tampil, di mobile hanya jika tab 'document' aktif */}
         <div
           className={cn(
             'flex-1 flex flex-col overflow-hidden',
@@ -274,18 +404,19 @@ export function SpeedGrader() {
         >
           <DocumentViewer
             isLoading={isLoading}
-            submissionText={submissionText}
-            studentName={currentStudent?.name || ''}
+            submissionText={selectedAttempt?.submission_text ?? ''}
+            fileUrl={selectedAttempt?.file_url ?? null}
+            linkUrl={selectedAttempt?.link_url ?? null}
+            studentName={selectedStudent.name}
             zoom={zoom}
             activeTool={activeTool}
-            submissionId={submissionId}
+            submissionId={selectedAttempt?.id ?? null}
             documentRef={documentRef}
             onZoomChange={setZoom}
             onToolChange={setActiveTool}
           />
         </div>
 
-        {/* RubricPanel: di desktop selalu tampil, di mobile hanya jika tab 'penilaian' aktif */}
         <div
           className={cn(
             mobileActiveTab !== 'penilaian' ? 'hidden md:flex md:flex-col' : 'flex flex-col',
@@ -293,15 +424,20 @@ export function SpeedGrader() {
           )}
         >
           <RubricPanel
-            currentStudent={speedGraderStudents[currentStudentIdx]}
+            currentStudent={selectedStudent}
             feedback={feedback}
             totalScore={0}
+            manualScore={manualScore}
+            effectiveScore={effectiveScore}
+            maxScore={bundle?.assignment.max_points ?? 100}
+            latePenaltyPercent={latestAttempt?.late_penalty_percent ?? 0}
             isLoading={isLoading}
             isAIGrading={isAIGrading}
-            submissionId={submissionId}
+            submissionId={latestAttempt?.id ?? null}
             assignmentId={assignmentId}
             tenantId={tenantId}
             onFeedbackChange={setFeedback}
+            onManualScoreChange={setManualScore}
             onAIGrade={handleAIGrading}
             onSaveAndNext={handleSaveAndNext}
             isMobile={mobileActiveTab === 'penilaian'}
@@ -309,12 +445,11 @@ export function SpeedGrader() {
         </div>
       </div>
 
-      {/* Mobile Fixed Bottom Bar — hanya di tab penilaian */}
       {mobileActiveTab === 'penilaian' && (
         <div className="flex md:hidden shrink-0 p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 gap-3 safe-area-bottom">
           <button
             type="button"
-            onClick={() => handleSaveAndNext('needs_revision')}
+            onClick={() => void handleSaveAndNext('needs_revision')}
             disabled={isLoading}
             className="flex-1 min-h-[48px] bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 text-sm"
           >
@@ -323,7 +458,7 @@ export function SpeedGrader() {
           </button>
           <button
             type="button"
-            onClick={() => handleSaveAndNext('graded')}
+            onClick={() => void handleSaveAndNext('graded')}
             disabled={isLoading}
             className="flex-1 min-h-[48px] bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-200 dark:shadow-none active:scale-95 disabled:opacity-50 text-sm"
           >

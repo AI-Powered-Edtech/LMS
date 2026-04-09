@@ -36,7 +36,7 @@ export function AppShell() {
   useEffect(() => {
     if (sessionExpired) {
       addToast({ type: 'warning', message: 'Sesi Anda telah berakhir' })
-      navigate('/login', { replace: true })
+      void navigate('/login', { replace: true })
     }
   }, [sessionExpired, addToast, navigate])
 

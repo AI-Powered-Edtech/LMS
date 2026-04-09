@@ -343,7 +343,7 @@ Each PRD follows the same comprehensive format:
 
 - Update `src/features/[domain]/README.md` after launch
 - Add entry to `docs/CHANGELOG.md`
-- Update `docs/DATABASE.md` if schema changed
+- Update `docs/DATABASE_ARCHITECTURE.md` if schema changed
 - Add entry to `docs/ENGINEERING_ROADMAP.md`
 
 ---

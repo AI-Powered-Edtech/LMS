@@ -84,6 +84,39 @@ test.describe('Teacher — Comprehensive Course Creation Flow', () => {
     // STATE: Published
     log('STATE: Published - Verifying status')
     await expect(page.locator('text=/Terbit|Published/i')).toBeVisible({ timeout: 10000 })
+
+    // VERIFIKASI DATABASE: Pastikan course benar-benar diterbitkan di database
+    const supabase = page.evaluate(() => {
+      return window.supabase
+    }) as any
+
+    if (supabase) {
+      // Dapatkan data teacher untuk mendapatkan user ID
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      const teacherId = session?.user?.id
+
+      // Query course yang baru dibuat (dengan timestamp terbaru)
+      const { data: courses, error } = await supabase
+        .from('courses')
+        .select('id, title, course_status, created_by')
+        .eq('created_by', teacherId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      expect(error).toBeNull()
+      expect(courses).toBeArray()
+      expect(courses.length).toBeGreaterThan(0)
+
+      const latestCourse = courses[0]
+      expect(latestCourse).toHaveProperty('id')
+      expect(latestCourse).toHaveProperty('title', title)
+      expect(latestCourse).toHaveProperty('course_status', 'published')
+      expect(latestCourse).toHaveProperty('created_by', teacherId)
+      expect(latestCourse).toHaveProperty('created_at')
+    }
+
     log('SUCCESS: Happy Path completed')
   })
 

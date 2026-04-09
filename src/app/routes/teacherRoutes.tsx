@@ -28,6 +28,7 @@ import {
   StudentProgress,
   SurveyRespondPage,
   TeacherDashboard,
+  TeacherLessonMonitorPage,
   TeachingHub,
 } from '../lazyPages'
 import { S } from './utils'
@@ -167,6 +168,14 @@ export function TeacherRoutes() {
         element={
           <S feature="Analytics">
             <Analytics />
+          </S>
+        }
+      />
+      <Route
+        path="lesson-monitor"
+        element={
+          <S>
+            <TeacherLessonMonitorPage />
           </S>
         }
       />

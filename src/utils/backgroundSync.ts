@@ -1,114 +1,68 @@
-// EduSync LMS — Background Sync
-// Processes the offline sync queue when connectivity is restored
+import { processSyncQueue, type SyncResult } from './offlineQueue'
 
-import { useToast } from '@/hooks/useToast'
-import { supabase } from '@/services/supabase/client'
-import { captureError } from '@/utils/sentry'
-
-import { getPendingSubmissions, markSynced } from './offlineStorage'
-
-// Exponential back-off delays: 1 s → 5 s → 30 s → 5 min
 const DELAYS = [1000, 5000, 30000, 300000] as const
 
-// Maximum sync attempts per item before giving up and deleting
-const MAX_ATTEMPTS = 3
-
-interface QuizSubmissionPayload {
-  attemptId: string
-  answers: unknown[]
-  quizId: string
+export interface BackgroundSyncStatus {
+  isSyncing: boolean
+  lastSyncedAt: number | null
+  lastResult: SyncResult | null
 }
 
-export interface SyncResult {
-  synced: number
-  failed: number
-  permanent: number
+const listeners = new Set<(status: BackgroundSyncStatus) => void>()
+
+let status: BackgroundSyncStatus = {
+  isSyncing: false,
+  lastSyncedAt: null,
+  lastResult: null,
+}
+
+function publishStatus(next: BackgroundSyncStatus): void {
+  status = next
+  listeners.forEach((listener) => listener(status))
+}
+
+export function getBackgroundSyncStatus(): BackgroundSyncStatus {
+  return status
+}
+
+export function subscribeBackgroundSyncStatus(
+  listener: (status: BackgroundSyncStatus) => void
+): () => void {
+  listeners.add(listener)
+  listener(status)
+
+  return () => {
+    listeners.delete(listener)
+  }
 }
 
 export async function syncPendingSubmissions(): Promise<SyncResult> {
-  const pending = await getPendingSubmissions()
-  let synced = 0
-  let failed = 0
-  let permanent = 0
+  publishStatus({
+    ...status,
+    isSyncing: true,
+  })
 
-  for (const item of pending) {
-    try {
-      if (item.type === 'quiz-submission') {
-        const payload = item.payload as QuizSubmissionPayload
+  const result = await processSyncQueue()
 
-        const { error } = await supabase
-          .from('quiz_attempts_v2')
-          .update({
-            answers: payload.answers,
-            completed_at: new Date().toISOString(),
-            submitted_late: true,
-          })
-          .eq('id', payload.attemptId)
+  publishStatus({
+    isSyncing: false,
+    lastSyncedAt: Date.now(),
+    lastResult: result,
+  })
 
-        if (!error) {
-          await markSynced(item.id)
-          synced++
-        } else {
-          // Increment attempt count
-          const attempts = (item.attempts ?? 0) + 1
-          if (attempts >= MAX_ATTEMPTS) {
-            // Permanent failure — delete item (markSynced removes from queue), report to Sentry
-            await markSynced(item.id)
-            captureError(new Error(`Background sync permanent failure: ${error.message}`), {
-              context: 'backgroundSync',
-              itemId: item.id,
-              type: item.type,
-              attemptId: payload.attemptId,
-              attempts,
-            })
-            // Notify user that their offline submission was lost
-            useToast.getState().addToast({
-              type: 'error',
-              message: 'Gagal menyinkronkan jawaban offline.',
-              description:
-                'Jawaban tidak dapat terkirim setelah beberapa percobaan. Hubungi admin.',
-            })
-            permanent++
-          } else {
-            // Update attempt count for retry
-            await updateItemAttempts(item.id, attempts)
-            failed++
-          }
-        }
-      }
-    } catch (err) {
-      const attempts = (item.attempts ?? 0) + 1
-      if (attempts >= MAX_ATTEMPTS) {
-        await markSynced(item.id)
-        captureError(err, {
-          context: 'backgroundSync',
-          itemId: item.id,
-          attempts,
-        })
-        permanent++
-      } else {
-        await updateItemAttempts(item.id, attempts)
-        failed++
-      }
-    }
-  }
-
-  return { synced, failed, permanent }
+  return result
 }
 
 export function scheduleSync(attempt: number = 0): void {
   const delay = DELAYS[Math.min(attempt, DELAYS.length - 1)]
 
-  setTimeout(async () => {
-    const result = await syncPendingSubmissions()
-    if (result.failed > 0 && attempt < DELAYS.length - 1) {
-      scheduleSync(attempt + 1)
-    }
+  window.setTimeout(() => {
+    void (async (): Promise<void> => {
+      const result = await syncPendingSubmissions()
+
+      if (result.failed > 0 && attempt < DELAYS.length - 1) {
+        scheduleSync(attempt + 1)
+      }
+    })()
   }, delay)
-}
-
-// ─── Helper (noop if offlineStorage doesn't support it yet) ──────────────────
-
-async function updateItemAttempts(_id: string, _attempts: number): Promise<void> {
-  // NOTE: Offline storage akan diimplementasi seiring pengembangan PWA. Lihat SW.2 di IMPLEMENTATION_PLAN.md.
 }

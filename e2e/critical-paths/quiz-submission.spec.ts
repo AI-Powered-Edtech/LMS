@@ -183,6 +183,38 @@ test.describe('Critical Path — Quiz Submission Flow', () => {
       // Submit berhasil jika tidak ada error dan kita tidak kembali ke login
       await expect(page).not.toHaveURL(/login/)
     }
+
+    // VERIFIKASI DATABASE: Pastikan quiz attempt tercatat di database
+    const supabase = page.evaluate(() => {
+      return window.supabase
+    }) as any
+
+    if (supabase) {
+      // Dapatkan data student untuk mendapatkan user ID
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      const studentId = session?.user?.id
+
+      // Query quiz attempt terbaru untuk student ini
+      const { data: attempts, error } = await supabase
+        .from('quiz_attempts')
+        .select('*')
+        .eq('student_id', studentId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      expect(error).toBeNull()
+      expect(attempts).toBeArray()
+      expect(attempts.length).toBeGreaterThan(0)
+
+      const latestAttempt = attempts[0]
+      expect(latestAttempt).toHaveProperty('id')
+      expect(latestAttempt).toHaveProperty('student_id', studentId)
+      expect(latestAttempt).toHaveProperty('status', 'completed')
+      expect(latestAttempt).toHaveProperty('created_at')
+      expect(latestAttempt).toHaveProperty('updated_at')
+    }
   })
 
   test('halaman hasil kuis tidak mengalami crash', async ({ page }) => {

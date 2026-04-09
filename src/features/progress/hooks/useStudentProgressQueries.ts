@@ -137,7 +137,7 @@ export function useAddXP() {
     onSettled: () => {
       // Re-sync with server after mutation settles
       if (userId && tenantId) {
-        queryClient.invalidateQueries({ queryKey: progressKeys.xp(userId, tenantId) })
+        void queryClient.invalidateQueries({ queryKey: progressKeys.xp(userId, tenantId) })
       }
     },
   })

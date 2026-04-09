@@ -97,9 +97,11 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
     searchQuery,
     filterType,
     filterDifficulty,
+    filterTags,
     setSearchQuery,
     setFilterType,
     setFilterDifficulty,
+    setFilterTags,
     selectedCount,
     toggleSelect,
     selectAll,
@@ -116,7 +118,6 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
 
   const handleImport = () => {
     importSelected()
-    // onClose dipanggil oleh parent setelah import sukses
   }
 
   if (!isOpen) return null
@@ -156,9 +157,9 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
 
           {/* ── Toolbar ── */}
           <div className="px-6 py-3 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/60 shrink-0 space-y-3">
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               {/* Search */}
-              <div className="flex-1 relative">
+              <div className="flex-1 min-w-[200px] relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
                 <input
                   type="text"
@@ -201,6 +202,24 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
                   <option value="5">Sangat Sulit</option>
                 </select>
               </div>
+
+              {/* Filter Tags */}
+              <div className="flex-1 min-w-[150px]">
+                <input
+                  type="text"
+                  placeholder="Filter Tag (koma...)"
+                  value={filterTags.join(', ')}
+                  onChange={(e) =>
+                    setFilterTags(
+                      e.target.value
+                        .split(',')
+                        .map((t) => t.trim())
+                        .filter(Boolean)
+                    )
+                  }
+                  className="w-full px-3 py-2 bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-sm dark:text-neutral-100 placeholder:text-neutral-400"
+                />
+              </div>
             </div>
 
             {/* Selection bar */}
@@ -236,14 +255,12 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
 
           {/* ── Body ── */}
           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
-            {/* Error state */}
             {error && (
               <div className="p-3 bg-danger-50 dark:bg-danger-900/30 border border-danger-200 dark:border-danger-800 text-danger-700 dark:text-danger-400 text-sm rounded-xl">
                 {error}
               </div>
             )}
 
-            {/* Loading skeleton */}
             {isLoading && questions.length === 0 && (
               <div className="space-y-3">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -252,20 +269,15 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
               </div>
             )}
 
-            {/* Empty state */}
             {!isLoading && questions.length === 0 && !error && (
               <div className="flex flex-col items-center justify-center py-16 text-neutral-400">
                 <BookOpen className="w-12 h-12 mb-3 opacity-30" />
                 <p className="font-semibold text-neutral-500 dark:text-neutral-400 text-sm">
-                  Bank soal kosong.
-                </p>
-                <p className="text-xs mt-1 text-neutral-400 dark:text-neutral-500">
-                  Tambah soal terlebih dahulu.
+                  Bank soal kosong atau tidak ditemukan.
                 </p>
               </div>
             )}
 
-            {/* Question list */}
             {questions.length > 0 && (
               <div className="space-y-2">
                 {questions.map((q) => {
@@ -278,9 +290,7 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
                       key={q.id}
                       role="checkbox"
                       aria-checked={selected}
-                      tabIndex={alreadyAdded ? -1 : 0}
                       onClick={() => !alreadyAdded && toggleSelect(q.id)}
-                      onKeyDown={(e) => e.key === 'Enter' && !alreadyAdded && toggleSelect(q.id)}
                       className={cn(
                         'flex items-start gap-3 p-4 border rounded-xl transition-all',
                         alreadyAdded
@@ -290,21 +300,17 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
                             : 'cursor-pointer border-neutral-200 dark:border-neutral-700 hover:border-indigo-300 dark:hover:border-indigo-700 hover:bg-neutral-50 dark:hover:bg-neutral-800/50'
                       )}
                     >
-                      {/* Checkbox */}
                       <div className="shrink-0 mt-0.5">
                         <input
                           type="checkbox"
                           checked={selected}
                           disabled={alreadyAdded}
-                          onChange={() => !alreadyAdded && toggleSelect(q.id)}
-                          onClick={(e) => e.stopPropagation()}
+                          onChange={() => {}}
                           className="w-4.5 h-4.5 rounded accent-indigo-600 cursor-pointer disabled:cursor-not-allowed"
                         />
                       </div>
 
-                      {/* Content */}
                       <div className="flex-1 min-w-0">
-                        {/* Badges */}
                         <div className="flex flex-wrap items-center gap-2 mb-1.5">
                           <span
                             className={cn(
@@ -334,17 +340,13 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
                           )}
                         </div>
 
-                        {/* Question text preview (80 char truncation) */}
                         <p className="text-sm text-neutral-800 dark:text-neutral-200 leading-snug">
-                          {q.question_text.length > 120
-                            ? q.question_text.slice(0, 120) + '…'
-                            : q.question_text}
+                          {q.question_text}
                         </p>
 
-                        {/* Tags */}
                         {q.tags && q.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-2">
-                            {q.tags.slice(0, 4).map((tag, i) => (
+                            {q.tags.map((tag, i) => (
                               <span
                                 key={i}
                                 className="text-[10px] px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400"
@@ -365,11 +367,7 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
           {/* ── Footer ── */}
           <div className="flex items-center justify-between px-6 py-4 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/60 shrink-0">
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              {questions.length > 0
-                ? `${questions.length} soal ditemukan`
-                : isLoading
-                  ? 'Memuat…'
-                  : 'Tidak ada soal'}
+              {questions.length} soal ditemukan
             </p>
             <div className="flex items-center gap-3">
               <button
@@ -389,11 +387,7 @@ export const ImportFromQuestionBank: React.FC<ImportFromQuestionBankProps> = ({
                 )}
               >
                 {isDoingImport && <Loader2 className="w-4 h-4 animate-spin" />}
-                {isDoingImport
-                  ? 'Mengimpor…'
-                  : selectedCount > 0
-                    ? `Impor ${selectedCount} Soal`
-                    : 'Impor Soal'}
+                {isDoingImport ? 'Mengimpor…' : `Impor ${selectedCount} Soal`}
               </button>
             </div>
           </div>

@@ -40,7 +40,7 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     if (isOpen && user && tenantId) {
-      loadClasses()
+      void loadClasses()
     }
   }, [isOpen, quizId, user, tenantId])
   /* eslint-enable react-hooks/exhaustive-deps */

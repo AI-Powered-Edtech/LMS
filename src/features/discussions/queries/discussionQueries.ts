@@ -12,6 +12,13 @@ export const discussionKeys = {
   detail: (tenantId: string, id: string) => ['discussions', tenantId, id] as const,
   list: (tenantId: string, filters?: Record<string, unknown>) =>
     ['discussions', 'list', tenantId, filters] as const,
+  participation: (
+    tenantId: string,
+    courseId: string,
+    classId?: string,
+    dateFrom?: string,
+    dateTo?: string
+  ) => ['discussions', 'participation', tenantId, courseId, classId, dateFrom, dateTo] as const,
 }
 
 /**
@@ -43,13 +50,13 @@ export function useDiscussionList() {
           // Invalidate and refetch — we do a full refetch rather than manual
           // optimistic merge because the query includes a join on author profile
           // which the realtime payload does not contain.
-          queryClient.invalidateQueries({ queryKey: discussionKeys.all(tenantId) })
+          void queryClient.invalidateQueries({ queryKey: discussionKeys.all(tenantId) })
         }
       )
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      void supabase.removeChannel(channel)
     }
   }, [tenantId, queryClient])
 
@@ -64,4 +71,103 @@ export function useDiscussionList() {
     refetchInterval: 30_000,
     refetchIntervalInBackground: false,
   })
+}
+
+/**
+ * Query hook untuk dashboard partisipasi forum di satu kursus.
+ * Menggunakan RPC get_forum_participation untuk mengambil data agregat.
+ */
+export function useForumParticipationStats(
+  courseId: string,
+  options?: {
+    enabled?: boolean
+    classId?: string
+    dateFrom?: string
+    dateTo?: string
+  }
+) {
+  const { tenantId, activeRole } = useAuth()
+  const shouldPoll = activeRole === 'teacher' || activeRole === 'admin'
+
+  return useQuery({
+    queryKey: discussionKeys.participation(
+      tenantId!,
+      courseId,
+      options?.classId,
+      options?.dateFrom,
+      options?.dateTo
+    ),
+    queryFn: async (): Promise<ForumParticipationDashboard> => {
+      const { data, error } = await supabase.rpc('get_forum_participation', {
+        p_course_id: courseId,
+        p_tenant_id: tenantId!,
+        p_class_id: options?.classId || null,
+        p_date_from: options?.dateFrom || null,
+        p_date_to: options?.dateTo || null,
+      })
+
+      if (error) {
+        // Graceful fallback if RPC doesn't exist yet
+        if (import.meta.env.DEV) {
+          console.warn(
+            'get_forum_participation RPC not available, returning empty dashboard:',
+            error.message
+          )
+        }
+        return {
+          participants: [],
+          timeline: [],
+          summary: {
+            total_posts: 0,
+            total_comments: 0,
+            total_participants: 0,
+            average_participation_rate: 0,
+          },
+        }
+      }
+
+      return (
+        (data as ForumParticipationDashboard) || {
+          participants: [],
+          timeline: [],
+          summary: {
+            total_posts: 0,
+            total_comments: 0,
+            total_participants: 0,
+            average_participation_rate: 0,
+          },
+        }
+      )
+    },
+    enabled: !!tenantId && !!courseId && (options?.enabled ?? true),
+    staleTime: STALE.DYNAMIC,
+    refetchInterval: shouldPoll ? 30_000 : false,
+    refetchIntervalInBackground: false,
+  })
+}
+
+// Types for forum participation data
+export interface ForumParticipationRow {
+  student_id: string
+  student_name: string
+  total_posts: number
+  total_comments: number
+  last_activity: string | null
+  participation_rate: number
+}
+
+export interface ForumParticipationDashboard {
+  participants: ForumParticipationRow[]
+  timeline: Array<{
+    date: string
+    posts: number
+    comments: number
+    total_activity: number
+  }>
+  summary: {
+    total_posts: number
+    total_comments: number
+    total_participants: number
+    average_participation_rate: number
+  }
 }

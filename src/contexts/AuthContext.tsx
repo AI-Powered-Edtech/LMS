@@ -28,6 +28,16 @@ export interface AuthContextType {
   role: Role
   permissions: Permissions
   loading: boolean
+  authStatus: ReturnType<typeof useSessionManagement>['authStatus']
+  authError: string | null
+  workspaceStatus:
+    | 'idle'
+    | 'loading'
+    | 'needs_onboarding'
+    | 'needs_selection'
+    | 'resolved'
+    | 'error'
+  bootstrapReady: boolean
   emailVerified: boolean
   sessionExpired: boolean
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
@@ -40,6 +50,8 @@ export interface AuthContextType {
   ) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
   signInWithGoogle: () => Promise<void>
+  clearAuthError: () => void
+  refreshAuthBootstrap: () => Promise<void>
   hasRole: (role: Role) => boolean
 }
 
@@ -50,25 +62,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     user,
     loading: sessionLoading,
+    authStatus,
+    authError,
     sessionExpired,
     signOut,
     signIn,
     signUp,
     signInWithGoogle,
+    clearAuthError,
   } = useSessionManagement()
   const {
     profile,
     roles,
     memberships,
     rawTenants,
+    defaultTenantId,
+    bootstrapReady,
+    error: bootstrapError,
     loading: roleLoading,
     loadingMemberships,
+    fetchUserData,
   } = useRoleResolution(user)
   const {
     tenantId,
     activeTenant,
     setActiveTenant: setActiveTenantRaw,
-  } = useTenantSwitching({ rawTenants })
+  } = useTenantSwitching({ rawTenants, defaultTenantId })
 
   const setActiveTenant = useCallback(
     (id: string) => {
@@ -87,6 +106,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const permissions = useMemo(() => getPermissions(role), [role])
   const emailVerified = !!user?.email_confirmed_at
   const hasRole = useCallback((r: Role) => roles.includes(r), [roles])
+  const refreshAuthBootstrap = useCallback(async () => {
+    if (!user) return
+    await fetchUserData(user.id)
+  }, [fetchUserData, user])
+  const resolvedAuthError = authError ?? bootstrapError
+  const workspaceStatus = useMemo<AuthContextType['workspaceStatus']>(() => {
+    if (!user) return 'idle'
+    if (sessionLoading || roleLoading || loadingMemberships) return 'loading'
+
+    const activeMemberships = memberships.filter((membership) => {
+      const tenant = rawTenants[membership.tenant_id]
+      return membership.status === 'active' && tenant?.is_active
+    })
+
+    if (activeTenant) return 'resolved'
+    if (resolvedAuthError) return 'error'
+    if (memberships.length > 0 && activeMemberships.length === 0) return 'error'
+    if (activeMemberships.length === 0) return 'needs_onboarding'
+    return activeMemberships.length > 1 ? 'needs_selection' : 'resolved'
+  }, [
+    activeTenant,
+    loadingMemberships,
+    memberships,
+    rawTenants,
+    resolvedAuthError,
+    roleLoading,
+    sessionLoading,
+    user,
+  ])
 
   const contextValue = useMemo<AuthContextType>(
     () => ({
@@ -102,12 +150,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role,
       permissions,
       loading: sessionLoading || roleLoading || loadingMemberships,
+      authStatus,
+      authError: resolvedAuthError,
+      workspaceStatus,
+      bootstrapReady,
       emailVerified,
       sessionExpired,
       signIn,
       signUp,
       signOut,
       signInWithGoogle,
+      clearAuthError,
+      refreshAuthBootstrap,
       hasRole,
     }),
     [
@@ -125,12 +179,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sessionLoading,
       roleLoading,
       loadingMemberships,
+      authStatus,
+      resolvedAuthError,
+      workspaceStatus,
+      bootstrapReady,
       emailVerified,
       sessionExpired,
       signIn,
       signUp,
       signOut,
       signInWithGoogle,
+      clearAuthError,
+      refreshAuthBootstrap,
       hasRole,
     ]
   )

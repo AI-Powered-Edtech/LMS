@@ -177,8 +177,8 @@ export function MessageThread() {
   // ── Mark read saat buka thread ─────────────────────────────
   useEffect(() => {
     if (threadId && currentThread?.parent_unread_count) {
-      markThreadRead(threadId, 'parent').then(() => {
-        queryClient.invalidateQueries({ queryKey: ['parent', 'threads', user?.id ?? ''] })
+      void markThreadRead(threadId, 'parent').then(() => {
+        void queryClient.invalidateQueries({ queryKey: ['parent', 'threads', user?.id ?? ''] })
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -200,14 +200,14 @@ export function MessageThread() {
         },
         (_payload) => {
           // Refetch messages saat ada pesan baru
-          queryClient.invalidateQueries({ queryKey: ['parent', 'messages', threadId] })
-          queryClient.invalidateQueries({ queryKey: ['parent', 'threads', user?.id ?? ''] })
+          void queryClient.invalidateQueries({ queryKey: ['parent', 'messages', threadId] })
+          void queryClient.invalidateQueries({ queryKey: ['parent', 'threads', user?.id ?? ''] })
         }
       )
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      void supabase.removeChannel(channel)
     }
   }, [threadId, queryClient, user?.id])
 

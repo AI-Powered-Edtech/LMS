@@ -15,18 +15,18 @@ export function StepInviteStudents({ onNext, joinCode }: StepInviteStudentsProps
   const [copied, setCopied] = useState(false)
 
   const displayCode = joinCode || '------'
-  const joinUrl = `${window.location.origin}/#/join?code=${displayCode}`
+  const joinUrl = `${window.location.origin}/join?code=${displayCode}`
   const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=${encodeURIComponent(joinUrl)}&choe=UTF-8`
 
   function copyCode() {
-    navigator.clipboard.writeText(displayCode).then(() => {
+    void navigator.clipboard.writeText(displayCode).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })
   }
 
   function copyLink() {
-    navigator.clipboard.writeText(joinUrl).then(() => {
+    void navigator.clipboard.writeText(joinUrl).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     })

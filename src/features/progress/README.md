@@ -81,6 +81,6 @@ npx vitest run src/features/progress
 
 ## Dokumentasi Terkait
 
-- [DATABASE.md](../../docs/DATABASE.md)
+- [DATABASE_ARCHITECTURE.md](../../docs/DATABASE_ARCHITECTURE.md)
 - [ARCHITECTURE.md](../../docs/ARCHITECTURE.md)
 - [SECURITY.md](../../docs/SECURITY.md)

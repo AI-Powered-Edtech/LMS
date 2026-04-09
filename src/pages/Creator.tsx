@@ -1,19 +1,5 @@
-import {
-  BookOpen,
-  Calendar as CalendarIcon,
-  CheckSquare,
-  ChevronDown,
-  Clock,
-  Database,
-  Download,
-  FileText,
-  Settings,
-  Sparkles,
-  Square,
-  UploadCloud,
-} from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useToast } from '@/components/ui'
@@ -39,6 +25,20 @@ import { exportQuestionsToCSV } from '@/features/creator/utils/exportToCSV'
 import { useSendNotification } from '@/features/notifications'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
+import {
+  BookOpen,
+  Calendar as CalendarIcon,
+  CheckSquare,
+  ChevronDown,
+  Clock,
+  Database,
+  Download,
+  FileText,
+  Settings,
+  Sparkles,
+  Square,
+  UploadCloud,
+} from '@/icons'
 import { cn } from '@/utils/cn'
 
 // ─── Loading Progress Steps ───────────────────────────────────────────────────
@@ -50,7 +50,14 @@ const LOADING_STEPS = [
   { label: 'Menyimpan hasil generasi', icon: '💾' },
 ] as const
 
-function ProgressSteps({ activeStep }: { activeStep: number }) {
+const VALID_FILE_TYPES = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/plain',
+  'text/csv',
+] as const
+
+function ProgressSteps({ activeStep }: { activeStep: number }): React.JSX.Element {
   return (
     <ol className="space-y-3 mt-6">
       {LOADING_STEPS.map((step, i) => {
@@ -91,7 +98,7 @@ function ProgressSteps({ activeStep }: { activeStep: number }) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function Creator() {
+export function Creator(): React.JSX.Element {
   usePageTitle('Kreator AI')
   const addToast = useToast((s) => s.addToast)
   const { user } = useAuth()
@@ -171,20 +178,13 @@ export function Creator() {
 
   // ─── File Validation ───────────────────────────────────────────────────────
 
-  const VALID_TYPES = [
-    'application/pdf',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'text/plain',
-    'text/csv',
-  ]
-
   const validateAndSetFile = useCallback(
     (f: File) => {
       if (f.size > 10 * 1024 * 1024) {
         addToast({ type: 'error', message: 'Ukuran file maksimal 10MB.' })
         return
       }
-      if (!VALID_TYPES.includes(f.type)) {
+      if (!VALID_FILE_TYPES.includes(f.type as (typeof VALID_FILE_TYPES)[number])) {
         addToast({
           type: 'error',
           message: 'Format tidak didukung. Gunakan .pdf, .docx, .txt, atau .csv.',
@@ -218,7 +218,7 @@ export function Creator() {
 
   // ─── Generate ─────────────────────────────────────────────────────────────
 
-  const handleGenerate = () => {
+  const handleGenerate = (): void => {
     if (!file) return
 
     const formData = new FormData()
@@ -251,7 +251,7 @@ export function Creator() {
 
   // ─── Question Management ───────────────────────────────────────────────────
 
-  const handleToggleSelect = (id: string) => {
+  const handleToggleSelect = (id: string): void => {
     setSelectedIds((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
@@ -260,7 +260,7 @@ export function Creator() {
     })
   }
 
-  const handleSelectAll = () => {
+  const handleSelectAll = (): void => {
     if (allSelected) {
       setSelectedIds(new Set())
     } else {
@@ -268,18 +268,18 @@ export function Creator() {
     }
   }
 
-  const handleEditQuestion = (q: GeneratedQuestion) => {
+  const handleEditQuestion = (q: GeneratedQuestion): void => {
     setEditingQuestion(q)
     setShowEditModal(true)
   }
 
-  const handleSaveEdit = (updated: GeneratedQuestion) => {
+  const handleSaveEdit = (updated: GeneratedQuestion): void => {
     setQuestions((prev) => prev.map((q) => (q.id === updated.id ? updated : q)))
     setShowEditModal(false)
     setEditingQuestion(null)
   }
 
-  const handleDeleteQuestion = (id: string) => {
+  const handleDeleteQuestion = (id: string): void => {
     setQuestions((prev) => prev.filter((q) => q.id !== id))
     setSelectedIds((prev) => {
       const next = new Set(prev)
@@ -290,10 +290,10 @@ export function Creator() {
 
   // ─── Actions ──────────────────────────────────────────────────────────────
 
-  const getSelectedQuestions = () =>
+  const getSelectedQuestions = (): GeneratedQuestion[] =>
     selectedCount > 0 ? questions.filter((q) => selectedIds.has(q.id)) : questions
 
-  const handleAddToCourse = () => {
+  const handleAddToCourse = (): void => {
     const selectedQs = getSelectedQuestions()
     if (selectedQs.length === 0) {
       addToast({ type: 'error', message: 'Pilih minimal 1 soal untuk ditambahkan.' })
@@ -301,7 +301,7 @@ export function Creator() {
     }
 
     if (resultId) {
-      markUsedMutation.mutate(resultId)
+      void markUsedMutation.mutate(resultId)
     }
 
     // Set bridge store — CourseBuilder will read this
@@ -314,10 +314,10 @@ export function Creator() {
       questionCount: selectedQs.length,
     })
 
-    navigate(getPath('/app/teacher/course-builder', '/app/admin/course-builder'))
+    void navigate(getPath('/app/teacher/course-builder', '/app/admin/course-builder'))
   }
 
-  const handleSaveToCalendar = () => {
+  const handleSaveToCalendar = (): void => {
     const dueDate = new Date(dueDateStr + 'T23:59:00')
 
     addEvent({
@@ -332,7 +332,7 @@ export function Creator() {
       duration: 60,
     })
 
-    sendNotification.mutate({
+    void sendNotification.mutate({
       userId: user!.id,
       type: 'assignment',
       title: 'Tugas Dijadwalkan',
@@ -340,10 +340,10 @@ export function Creator() {
     })
 
     addToast({ type: 'success', message: 'Berhasil ditambahkan ke kalender.' })
-    navigate(getPath('/app/teacher/calendar', '/app/admin/calendar'))
+    void navigate(getPath('/app/teacher/calendar', '/app/admin/calendar'))
   }
 
-  const handleReset = () => {
+  const handleReset = (): void => {
     setQuestions([])
     setSelectedIds(new Set())
     setResultId(null)
@@ -353,7 +353,7 @@ export function Creator() {
     generateMutation.reset()
   }
 
-  const handleExportCSV = () => {
+  const handleExportCSV = (): void => {
     const selectedQs = getSelectedQuestions()
     if (selectedQs.length === 0) {
       addToast({ type: 'error', message: 'Pilih minimal 1 soal untuk diekspor.' })
@@ -363,7 +363,7 @@ export function Creator() {
     addToast({ type: 'success', message: `${selectedQs.length} soal berhasil diekspor ke CSV.` })
   }
 
-  const handleSaveToBank = async () => {
+  const handleSaveToBank = async (): Promise<void> => {
     const selectedQs = getSelectedQuestions()
     if (selectedQs.length === 0) {
       addToast({ type: 'error', message: 'Pilih minimal 1 soal untuk disimpan.' })
@@ -387,7 +387,7 @@ export function Creator() {
     }
   }
 
-  const handleLoadFromHistory = (content: AIGeneratedContent) => {
+  const handleLoadFromHistory = (content: AIGeneratedContent): void => {
     setResultId(content.id)
     setResultType(content.assignment_type as AssignmentType)
     setResultSummary(content.summary ?? '')

@@ -54,10 +54,10 @@ export function useSaveRubric() {
     mutationFn: (rubric: RubricInsert & { id?: string }) => rubricService.saveRubric(rubric),
     onSuccess: (_data, variables) => {
       // Invalidate all rubric queries — tenantId is embedded in the server-side RLS
-      queryClient.invalidateQueries({ queryKey: ['rubrics'] })
+      void queryClient.invalidateQueries({ queryKey: ['rubrics'] })
       // Also invalidate the assignment-specific key if we have it
       if (variables.assignment_id) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           predicate: (query) =>
             Array.isArray(query.queryKey) &&
             query.queryKey.includes('assignment') &&
@@ -79,7 +79,7 @@ export function useScoreSubmission() {
     mutationFn: ({ submissionId, scores }: { submissionId: string; scores: RubricScore[] }) =>
       rubricService.scoreSubmission(submissionId, scores),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         predicate: (query) =>
           Array.isArray(query.queryKey) &&
           query.queryKey.includes('scores') &&
@@ -99,7 +99,7 @@ export function useDeleteRubric() {
     mutationFn: ({ rubricId, tenantId }: { rubricId: string; tenantId: string }) =>
       rubricService.deleteRubric(rubricId, tenantId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['rubrics'] })
+      void queryClient.invalidateQueries({ queryKey: ['rubrics'] })
     },
   })
 }

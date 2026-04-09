@@ -67,7 +67,7 @@ export function useSavePeerReviewConfig() {
       createdBy: string
     }) => peerReviewService.saveConfig(config, tenantId, createdBy),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: peerReviewQueryKeys.byAssignment(data.tenant_id, data.assignment_id),
       })
     },
@@ -92,7 +92,7 @@ export function useAssignReviews() {
       assignmentId: string
     }) => peerReviewService.assignReviews(configId),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: peerReviewQueryKeys.byAssignment(variables.tenantId, variables.assignmentId),
       })
     },
@@ -120,10 +120,10 @@ export function useSubmitPeerReview() {
       userId: string
     }) => peerReviewService.submitReview(reviewId, score, comment, tenantId),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: peerReviewQueryKeys.myReviews(variables.tenantId, variables.userId),
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: peerReviewQueryKeys.bySubmission(variables.tenantId, _data.submission_id),
       })
     },

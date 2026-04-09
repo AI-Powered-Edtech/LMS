@@ -66,7 +66,7 @@ export function useSaveAttendance() {
     mutationFn: (params: UpsertAttendanceParams) => attendanceService.upsertAttendance(params),
     onSuccess: () => {
       if (tenantId) {
-        queryClient.invalidateQueries({ queryKey: attendanceKeys.all(tenantId) })
+        void queryClient.invalidateQueries({ queryKey: attendanceKeys.all(tenantId) })
       }
     },
     onError: (err) => captureError(err, { context: 'useSaveAttendance' }),
@@ -82,7 +82,7 @@ export function useDeleteAttendance() {
     mutationFn: (id: string) => attendanceService.deleteAttendance(id, tenantId!),
     onSuccess: () => {
       if (tenantId) {
-        queryClient.invalidateQueries({ queryKey: attendanceKeys.all(tenantId) })
+        void queryClient.invalidateQueries({ queryKey: attendanceKeys.all(tenantId) })
       }
     },
     onError: (err) => captureError(err, { context: 'useDeleteAttendance' }),

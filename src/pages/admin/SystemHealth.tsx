@@ -45,27 +45,16 @@ export function SystemHealth() {
   async function loadData() {
     setIsLoading(true)
     try {
-      // Check DB health via a simple query
       const start = performance.now()
-      const dbOk = await administrationService.healthCheck()
+      const healthResult = await administrationService.healthCheck()
       const dbLatency = Math.round(performance.now() - start)
 
-      setHealth({
-        status: dbOk ? 'healthy' : 'degraded',
-        checks: {
-          db: dbOk ? 'ok' : 'error',
-          auth: 'ok',
-        },
-        timestamp: new Date().toISOString(),
-        version: '4.0.0',
-      })
+      setHealth(healthResult)
 
-      // Recent metrics
       const recentMetrics = await administrationService.getAppMetrics()
 
       const summary: MetricSummary[] = []
 
-      // DB latency
       summary.push({
         name: 'Latensi DB',
         value: dbLatency,

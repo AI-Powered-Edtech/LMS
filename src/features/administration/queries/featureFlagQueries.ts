@@ -59,7 +59,7 @@ export function useSaveFeatureFlags() {
     },
     onSuccess: () => {
       if (tenantId) {
-        queryClient.invalidateQueries({ queryKey: adminKeys.featureFlags(tenantId) })
+        void queryClient.invalidateQueries({ queryKey: adminKeys.featureFlags(tenantId) })
       }
     },
   })
@@ -75,7 +75,7 @@ export function useToggleTenantModule() {
     mutationFn: ({ moduleId, isEnabled }: { moduleId: string; isEnabled: boolean }) =>
       administrationService.toggleTenantModule(moduleId, isEnabled),
     onSuccess: () => {
-      if (tenantId) queryClient.invalidateQueries({ queryKey: adminKeys.modules(tenantId) })
+      if (tenantId) void queryClient.invalidateQueries({ queryKey: adminKeys.modules(tenantId) })
     },
   })
 }

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 
+import { useAuth } from '@/contexts/AuthContext'
 import { LoginForm } from '@/features/auth/components/LoginForm'
 import { RegisterStep1, RegisterStep2 } from '@/features/auth/components/RegisterForm'
 import { useLoginState } from '@/features/auth/hooks/useLoginState'
@@ -10,7 +11,11 @@ import { cn } from '@/utils/cn'
 export function Login() {
   usePageTitle('Masuk')
   const location = useLocation()
-  const from = location.state?.from?.pathname || '/'
+  const { authError, authStatus, clearAuthError } = useAuth()
+  const fromState = location.state?.from
+  const from = fromState
+    ? `${fromState.pathname || ''}${fromState.search || ''}${fromState.hash || ''}`
+    : '/'
   const {
     user,
     loading,
@@ -33,10 +38,12 @@ export function Login() {
     handleRegisterStep1,
     handleRegisterSubmit,
     handleGoogleAuth,
+    demoMode,
+    demoAccounts,
     fillAccount,
     switchMode,
     setMode,
-  } = useLoginState()
+  } = useLoginState(from)
 
   if (loading) {
     return (
@@ -59,6 +66,41 @@ export function Login() {
         </div>
 
         <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-8 shadow-2xl">
+          {demoMode && step !== 3 && (
+            <div className="mb-6 rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-4">
+              <div className="mb-3 text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200/80">
+                  Demo Access
+                </p>
+                <p className="mt-1 text-sm text-emerald-50">
+                  Gunakan akun demo agar browser agent bisa langsung menguji dashboard tanpa signup
+                  atau Google OAuth.
+                </p>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {demoAccounts.map((account) => (
+                  <button
+                    key={account.key}
+                    type="button"
+                    disabled={submitting}
+                    onClick={() => {
+                      if (fillAccount) void fillAccount(account.key)
+                    }}
+                    className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-left transition-colors hover:bg-white/10 disabled:opacity-50"
+                  >
+                    <div className="text-sm font-semibold text-white">
+                      {account.icon} {account.label}
+                    </div>
+                    <div className="mt-1 text-xs text-emerald-100/70">{account.email}</div>
+                  </button>
+                ))}
+              </div>
+              <p className="mt-3 text-center text-xs text-emerald-100/60">
+                Signup publik di environment demo dibatasi. Gunakan tombol di atas untuk QA.
+              </p>
+            </div>
+          )}
+
           {/* Invite Banner */}
           {inviteInfo && (
             <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-center">
@@ -192,8 +234,11 @@ export function Login() {
               {mode === 'login' && (
                 <LoginForm
                   loginForm={loginForm}
-                  error={error}
-                  setError={setError}
+                  error={error || authError || ''}
+                  setError={(value) => {
+                    clearAuthError()
+                    setError(value)
+                  }}
                   submitting={submitting}
                   onSubmit={handleSignIn}
                 />
@@ -202,7 +247,7 @@ export function Login() {
               {mode === 'register' && step === 1 && (
                 <RegisterStep1
                   registerForm={registerForm}
-                  error={error}
+                  error={error || authError || ''}
                   submitting={submitting}
                   inviteToken={inviteToken}
                   inviteInfo={inviteInfo}
@@ -250,13 +295,13 @@ export function Login() {
               Dev Quick Login
             </p>
             <div className="flex gap-2 justify-center">
-              {['student', 'teacher', 'admin'].map((r) => (
+              {(['student', 'teacher', 'admin'] as const).map((r) => (
                 <button
                   key={r}
                   type="button"
                   disabled={submitting}
                   onClick={() => {
-                    if (fillAccount) fillAccount(r)
+                    if (fillAccount) void fillAccount(r)
                   }}
                   className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/50 rounded-lg text-xs font-medium transition-colors border border-white/5 disabled:opacity-50"
                 >
@@ -266,6 +311,33 @@ export function Login() {
             </div>
           </div>
         )}
+
+        {authStatus === 'callback_processing' && (
+          <p className="mt-4 text-center text-xs text-blue-200/70">
+            Sesi login sedang diproses. Jika Anda baru kembali dari Google, tunggu beberapa saat.
+          </p>
+        )}
+
+        {/* Legal links */}
+        <div className="mt-4 pt-4 border-t border-white/10">
+          <p className="text-center text-xs text-white/30 mb-3">
+            Dengan masuk atau daftar, Anda menyetujui
+          </p>
+          <div className="flex justify-center gap-4">
+            <Link
+              to="/privacy"
+              className="text-xs text-blue-400/60 hover:text-blue-300 transition-colors"
+            >
+              Kebijakan Privasi
+            </Link>
+            <Link
+              to="/terms"
+              className="text-xs text-blue-400/60 hover:text-blue-300 transition-colors"
+            >
+              Ketentuan Layanan
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   )

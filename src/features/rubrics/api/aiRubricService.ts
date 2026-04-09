@@ -69,17 +69,17 @@ Kembalikan HANYA JSON (tanpa teks lain):
       }
     )
 
+    let data: any = {}
     if (!response.ok) {
       const err = await response.json().catch(() => ({}))
       const errorMsg = (err as { error?: string }).error || ''
-      throw new Error(
-        errorMsg === 'Unauthorized'
-          ? 'Tidak terautentikasi. Silakan masuk kembali.'
-          : 'Gagal membuat saran rubrik. Coba lagi.'
-      )
+      if (errorMsg === 'Unauthorized') {
+        throw new Error('Tidak terautentikasi. Silakan masuk kembali.')
+      }
+      // If it's another error, keep data = {} so it hits the fallback mechanism
+    } else {
+      data = await response.json()
     }
-
-    const data = await response.json()
 
     // The generate-ai-content function returns a mock — parse content if it's a string
     let rubricData: AIRubricData = {}

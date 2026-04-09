@@ -51,9 +51,21 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
-      # Build (catches type errors missed by tsc --noEmit and Vite-specific issues)
-      - name: Build
-        run: pnpm build
+# Build (catches type errors missed by tsc --noEmit and Vite-specific issues)
+    - name: Build
+      run: pnpm build
+      env:
+        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+        VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
+    # Check if build output exists
+    - name: Check build output
+      run: test -f dist/index.html || (echo "Build failed: dist/index.html not found" && exit 1)
+
+    # Smoke test for build artifact
+
+      # Smoke test for build artifact
+      - name: Smoke Test
+        run: bash scripts/smoke-build.sh
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
@@ -137,11 +149,10 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Scope | Stmts | Branches | Fns | Lines |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|-------|----------|-----|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| \`src/utils/**\` | 80% | 70% | 70% | 80% |" >> $GITHUB_STEP_SUMMARY
-          echo "| \`src/features/**/api/**\` | 50% | 40% | 50% | 50% |" >> $GITHUB_STEP_SUMMARY
-          echo "| \`src/hooks/**\` | 70% | 60% | 70% | 70% |" >> $GITHUB_STEP_SUMMARY
-          echo "| \`src/contexts/**\` | 60% | 50% | 60% | 60% |" >> $GITHUB_STEP_SUMMARY
-          echo "| \`src/features/**/hooks/**\` | 60% | 50% | 60% | 60% |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`src/utils/**\` | 65% | 65% | 50% | 65% |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`src/features/**/api/**\` | 22% | 15% | 24% | 24% |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`src/components/guards/**\` | 85% | 80% | 85% | 85% |" >> $GITHUB_STEP_SUMMARY
+          echo "| \`src/utils/sanitize.ts\` | 100% | 100% | 100% | 100% |" >> $GITHUB_STEP_SUMMARY
 
       # Upload coverage
       - name: Upload coverage

@@ -85,7 +85,7 @@ export function StruggleDashboard() {
     if (!alerts.find((a) => a.alert_id === alertId)?.read_at) {
       markRead.mutate([alertId])
     }
-    navigate(
+    void navigate(
       `${getPath('/app/teacher/course-analytics', '/app/admin/analytics')}?courseId=${courseId}&lessonId=${lessonId}`
     )
   }

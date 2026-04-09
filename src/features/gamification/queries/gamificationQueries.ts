@@ -86,7 +86,7 @@ export function useSaveBadgeDefinition() {
     mutationFn: (badge: Parameters<typeof gamificationService.saveBadgeDefinition>[0]) =>
       gamificationService.saveBadgeDefinition(badge),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: gamificationKeys.badgeDefinitions(tenantId!) })
+      void qc.invalidateQueries({ queryKey: gamificationKeys.badgeDefinitions(tenantId!) })
     },
     onError: (err) => {
       captureError(err, { context: 'useSaveBadgeDefinition' })

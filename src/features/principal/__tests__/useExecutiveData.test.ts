@@ -330,9 +330,22 @@ describe('useExecutiveData', () => {
   })
 
   it('returns empty monthlyTrend array when no data', async () => {
-    mockGetExecutiveOverview.mockResolvedValue(undefined)
-    mockGetMonthlyTrend.mockResolvedValue(undefined)
-    mockGetROIMetrics.mockResolvedValue(undefined)
+    mockGetExecutiveOverview.mockResolvedValue({
+      total_students: 0,
+      active_students: 0,
+      total_teachers: 0,
+      active_teachers: 0,
+      total_courses: 0,
+      avg_quiz_score: 0,
+      adoption_rate: 0,
+    })
+    mockGetMonthlyTrend.mockResolvedValue([])
+    mockGetROIMetrics.mockResolvedValue({
+      paper_saved_sheets: 0,
+      paper_saved_cost: 0,
+      teacher_time_saved_hours: 0,
+      digital_adoption_score: 0,
+    })
     mockGetPrincipalSettings.mockResolvedValue(null)
 
     const { result } = renderHook(() => useExecutiveData(), {
@@ -346,7 +359,12 @@ describe('useExecutiveData', () => {
   it('exposes error from any sub-query', async () => {
     mockGetExecutiveOverview.mockRejectedValue(new Error('overview error'))
     mockGetMonthlyTrend.mockResolvedValue([])
-    mockGetROIMetrics.mockResolvedValue(undefined)
+    mockGetROIMetrics.mockResolvedValue({
+      paper_saved_sheets: 0,
+      paper_saved_cost: 0,
+      teacher_time_saved_hours: 0,
+      digital_adoption_score: 0,
+    })
     mockGetPrincipalSettings.mockResolvedValue(null)
 
     const { result } = renderHook(() => useExecutiveData(), {

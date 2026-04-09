@@ -63,7 +63,7 @@ export function useUpdateOnboardingProgress(tenantId: string, userId: string) {
       return data as OnboardingProgress
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: onboardingKeys.progress(tenantId, userId),
       })
     },

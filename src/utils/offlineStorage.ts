@@ -201,6 +201,17 @@ export async function markSynced(id: string): Promise<void> {
   await wrapTransaction(tx)
 }
 
+export async function updateQueueItem(id: string, updates: Partial<SyncQueueItem>): Promise<void> {
+  const db = await openDB()
+  const tx = db.transaction(STORES.SYNC_QUEUE, 'readwrite')
+  const store = tx.objectStore(STORES.SYNC_QUEUE)
+  const item = await wrapRequest<SyncQueueItem | undefined>(store.get(id))
+  if (item) {
+    store.put({ ...item, ...updates })
+  }
+  await wrapTransaction(tx)
+}
+
 // ---------------------------------------------------------------------------
 // Builder drafts
 // ---------------------------------------------------------------------------

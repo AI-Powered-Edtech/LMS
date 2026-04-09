@@ -3,11 +3,13 @@
 
 import { supabase } from '@/services/supabase/client'
 import { captureError } from '@/utils/sentry'
+
 import {
   addToSyncQueue,
   getPendingSubmissions,
   markSynced,
   type SyncQueueItem,
+  updateQueueItem,
 } from './offlineStorage'
 
 // ---------------------------------------------------------------------------
@@ -21,11 +23,20 @@ export type QueueOperationType =
   | 'attendance-mark'
   | 'message-send'
   | 'form-submit'
+  | 'xapi-statement'
+
+export interface QueuePayload extends Record<string, unknown> {
+  idempotencyKey?: string
+  maxRetries?: number
+  conflictStrategy?: 'client-wins' | 'server-wins' | 'manual'
+  nextRetryAt?: number | null
+  lastError?: string | null
+}
 
 export interface QueuedOperation {
   id: string
   type: QueueOperationType
-  payload: Record<string, unknown>
+  payload: QueuePayload
   /** Idempotency key to prevent duplicate processing */
   idempotencyKey: string
   createdAt: number
@@ -121,14 +132,10 @@ function calculateBackoff(attempt: number): number {
  * Process a single queued operation against the Supabase API.
  * Returns true if the operation was successfully synced.
  */
-async function processOperation(item: SyncQueueItem): Promise<'success' | 'retry' | 'conflict' | 'permanent'> {
-  const payload = item.payload as Record<string, unknown> & {
-    idempotencyKey?: string
-    maxRetries?: number
-    conflictStrategy?: string
-    nextRetryAt?: number | null
-    lastError?: string | null
-  }
+async function processOperation(
+  item: SyncQueueItem
+): Promise<'success' | 'retry' | 'conflict' | 'permanent'> {
+  const payload = item.payload as QueuePayload
 
   const maxRetries = payload.maxRetries ?? MAX_RETRIES
   const attempts = item.attempts
@@ -147,7 +154,7 @@ async function processOperation(item: SyncQueueItem): Promise<'success' | 'retry
           .update({
             answers: payload.answers,
             completed_at: new Date().toISOString(),
-            submitted_late: payload.submitted_late ?? false,
+            submitted_late: payload.submitted_late ?? true,
           })
           .eq('id', payload.attemptId)
         result = { error }
@@ -192,14 +199,12 @@ async function processOperation(item: SyncQueueItem): Promise<'success' | 'retry
       }
 
       case 'message-send': {
-        const { error } = await supabase
-          .from('messages')
-          .insert({
-            sender_id: payload.senderId,
-            recipient_id: payload.recipientId,
-            content: payload.content,
-            sent_at: new Date().toISOString(),
-          })
+        const { error } = await supabase.from('messages').insert({
+          sender_id: payload.senderId,
+          recipient_id: payload.recipientId,
+          content: payload.content,
+          sent_at: new Date().toISOString(),
+        })
         result = { error }
         break
       }
@@ -207,7 +212,19 @@ async function processOperation(item: SyncQueueItem): Promise<'success' | 'retry
       case 'form-submit': {
         const { error } = await supabase
           .from(payload.tableName as string)
-          .insert(payload.data)
+          .insert(payload.data as never)
+        result = { error }
+        break
+      }
+
+      case 'xapi-statement': {
+        const { error } = await supabase.rpc('record_xapi_statement', {
+          p_verb: payload.verb,
+          p_object_type: payload.objectType,
+          p_object_id: payload.objectId,
+          p_result: payload.result as Record<string, unknown>,
+          p_context: payload.context as Record<string, unknown>,
+        })
         result = { error }
         break
       }
@@ -257,6 +274,11 @@ export async function processSyncQueue(): Promise<SyncResult> {
   const result: SyncResult = { synced: 0, failed: 0, conflicts: 0, permanent: 0 }
 
   for (const item of pending) {
+    // Skip items already at max retries (quarantined)
+    const payload = item.payload as QueuePayload
+    const maxRetries = payload?.maxRetries ?? MAX_RETRIES
+    if (item.attempts >= maxRetries) continue
+
     const outcome = await processOperation(item)
 
     switch (outcome) {
@@ -272,15 +294,18 @@ export async function processSyncQueue(): Promise<SyncResult> {
 
       case 'retry':
         result.failed++
-        // Backoff will be handled by the next sync cycle
+        // Increment attempts for exponential backoff tracking
+        await updateQueueItem(item.id, { attempts: item.attempts + 1 })
         break
 
       case 'permanent':
-        await markSynced(item.id)
+        // Do NOT delete (markSynced) quarantined items, just mark them as failed
+        await updateQueueItem(item.id, { attempts: maxRetries })
         result.permanent++
-        captureError(new Error(`Queue operation permanently failed: ${item.type}`), {
+        captureError(new Error(`Queue operation permanently failed (quarantined): ${item.type}`), {
           context: 'offlineQueue',
           itemId: item.id,
+          attempts: item.attempts + 1,
         })
         break
     }
@@ -310,7 +335,7 @@ export function scheduleNextSync(failedCount: number, attempt: number): void {
  * Automatically processes the queue when the user comes back online.
  */
 export function startOfflineSync(): () => void {
-  const handleOnline = async () => {
+  const handleOnline = async (): Promise<void> => {
     const result = await processSyncQueue()
     if (result.failed > 0) {
       scheduleNextSync(result.failed, 0)
@@ -320,9 +345,9 @@ export function startOfflineSync(): () => void {
   window.addEventListener('online', handleOnline)
 
   // Also try to sync on visibility change (user returns to tab)
-  const handleVisibility = () => {
+  const handleVisibility = (): void => {
     if (document.visibilityState === 'visible' && navigator.onLine) {
-      processSyncQueue()
+      void processSyncQueue()
     }
   }
 

@@ -64,21 +64,21 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 left-0 w-80 bg-neutral-50 dark:bg-neutral-900 z-[70] shadow-2xl flex flex-col md:hidden"
+            className="fixed inset-y-0 left-0 w-80 bg-slate-50 dark:bg-slate-900 z-[70] shadow-2xl flex flex-col md:hidden"
           >
             {/* Header */}
-            <div className="p-spacing-md flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800">
+            <div className="p-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center shadow-sm">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
                   <span className="text-white font-bold text-lg">E</span>
                 </div>
-                <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-50 tracking-tight">
+                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
                   EduSync
                 </h1>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+                className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 aria-label="Tutup menu"
               >
                 <X className="w-6 h-6" />
@@ -86,10 +86,10 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-spacing-md custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
               {/* Classroom switcher — hanya untuk teacher */}
               {role === 'teacher' && (
-                <div className="mb-spacing-lg">
+                <div className="mb-8">
                   <ClassroomSwitcher variant="neutral" />
                 </div>
               )}
@@ -102,17 +102,14 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                       key={item.path}
                       to={item.path}
                       className={cn(
-                        'flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200',
+                        'flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
                         isActive
-                          ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 border border-primary-100 dark:border-primary-800/50'
-                          : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800/50'
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                       )}
                     >
                       <item.icon
-                        className={cn(
-                          'w-5 h-5',
-                          isActive ? 'text-primary-600' : 'text-neutral-400'
-                        )}
+                        className={cn('w-5 h-5', isActive ? 'text-blue-600' : 'text-slate-400')}
                       />
                       {item.name}
                     </Link>
@@ -122,10 +119,10 @@ export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
             </div>
 
             {/* Footer */}
-            <div className="p-spacing-md border-t border-neutral-200 dark:border-neutral-800">
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800">
               <button
                 onClick={() => void handleSignOut()}
-                className="w-full flex items-center justify-center gap-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-danger-600 font-semibold py-3 px-4 rounded-lg transition-all text-sm"
+                className="w-full flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-red-600 font-semibold py-3 px-4 rounded-xl transition-all text-sm outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               >
                 <LogOut className="w-4 h-4" />
                 Keluar

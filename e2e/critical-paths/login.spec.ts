@@ -37,6 +37,19 @@ test.describe('Critical Path — Student Login & Dashboard', () => {
     // Harus redirect ke halaman student (bukan tetap di login)
     await page.waitForURL(/dashboard|student/, { timeout: 12000 })
     await expect(page).not.toHaveURL(/login/)
+
+    // Verifikasi data di database: token dan role
+    const supabase = page.evaluate(() => {
+      return window.supabase
+    }) as any
+
+    if (supabase) {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      expect(session?.user?.email).toBe('student@edusync.dev')
+      expect(session?.user?.role).toBe('student')
+    }
   })
 
   test('setelah login, student diarahkan ke dashboard student', async ({ page }) => {
@@ -51,6 +64,19 @@ test.describe('Critical Path — Student Login & Dashboard', () => {
     // Pastikan konten halaman termuat (bukan blank)
     const bodyLen = await page.evaluate(() => document.body.textContent?.trim().length ?? 0)
     expect(bodyLen).toBeGreaterThan(100)
+
+    // Verifikasi data di database: token dan role
+    const supabase = page.evaluate(() => {
+      return window.supabase
+    }) as any
+
+    if (supabase) {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      expect(session?.user?.email).toBe('student@edusync.dev')
+      expect(session?.user?.role).toBe('student')
+    }
   })
 
   test('student dapat melihat daftar kursus yang di-assign', async ({ page }) => {

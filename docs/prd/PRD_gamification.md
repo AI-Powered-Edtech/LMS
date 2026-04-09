@@ -216,7 +216,7 @@ EduSync membedakan dirinya dengan **gamification system yang deeply integrated**
 - [ ] 1 beta school deployed, 100+ students active, 0 critical bugs in 7 days
 - [ ] Dark mode CSS complete for all gamification UI
 - [ ] RoleRoute leaderboard access fixed (student + teacher)
-- [ ] Documentation updated: DATABASE.md, GAMIFICATION.md, ENGINEERING_ROADMAP.md
+- [ ] Documentation updated: DATABASE_ARCHITECTURE.md, GAMIFICATION.md, ENGINEERING_ROADMAP.md
 
 ---
 

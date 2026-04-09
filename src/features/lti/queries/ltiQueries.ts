@@ -43,7 +43,7 @@ export function useCreateLtiPlatform() {
     mutationFn: (params: CreateLtiPlatformParams) => ltiService.createPlatform(params),
     onSuccess: () => {
       if (tenantId) {
-        queryClient.invalidateQueries({ queryKey: ltiKeys.all(tenantId) })
+        void queryClient.invalidateQueries({ queryKey: ltiKeys.all(tenantId) })
       }
     },
     onError: (err) => captureError(err, { context: 'useCreateLtiPlatform' }),
@@ -59,7 +59,7 @@ export function useUpdateLtiPlatform() {
     mutationFn: (params: UpdateLtiPlatformParams) => ltiService.updatePlatform(params, tenantId!),
     onSuccess: () => {
       if (tenantId) {
-        queryClient.invalidateQueries({ queryKey: ltiKeys.all(tenantId) })
+        void queryClient.invalidateQueries({ queryKey: ltiKeys.all(tenantId) })
       }
     },
     onError: (err) => captureError(err, { context: 'useUpdateLtiPlatform' }),
@@ -75,7 +75,7 @@ export function useDeleteLtiPlatform() {
     mutationFn: (id: string) => ltiService.deletePlatform(id, tenantId!),
     onSuccess: () => {
       if (tenantId) {
-        queryClient.invalidateQueries({ queryKey: ltiKeys.all(tenantId) })
+        void queryClient.invalidateQueries({ queryKey: ltiKeys.all(tenantId) })
       }
     },
     onError: (err) => captureError(err, { context: 'useDeleteLtiPlatform' }),
@@ -92,7 +92,7 @@ export function useToggleLtiPlatform() {
       ltiService.togglePlatform(id, isActive, tenantId!),
     onSuccess: () => {
       if (tenantId) {
-        queryClient.invalidateQueries({ queryKey: ltiKeys.all(tenantId) })
+        void queryClient.invalidateQueries({ queryKey: ltiKeys.all(tenantId) })
       }
     },
     onError: (err) => captureError(err, { context: 'useToggleLtiPlatform' }),

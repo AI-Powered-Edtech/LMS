@@ -3,8 +3,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { getPendingCount } from '@/utils/offlineStorage'
 import { processSyncQueue, startOfflineSync } from '@/utils/offlineQueue'
+import { getPendingCount } from '@/utils/offlineStorage'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -65,6 +65,23 @@ export function useOfflineSync(options?: {
   const cleanupRef = useRef<(() => void) | null>(null)
 
   // ---------------------------------------------------------------------------
+  // Sync Function
+  // ---------------------------------------------------------------------------
+
+  const sync = useCallback(async () => {
+    if (isSyncing || !isOnline) return
+
+    setIsSyncing(true)
+    try {
+      await processSyncQueue()
+      setLastSyncedAt(Date.now())
+      setPendingCount(await getPendingCount())
+    } finally {
+      setIsSyncing(false)
+    }
+  }, [isSyncing, isOnline])
+
+  // ---------------------------------------------------------------------------
   // Online/Offline Detection + Auto Sync
   // ---------------------------------------------------------------------------
 
@@ -72,7 +89,7 @@ export function useOfflineSync(options?: {
     const handleOnline = () => {
       setIsOnline(true)
       if (autoSync) {
-        sync()
+        void sync()
       }
     }
 
@@ -91,7 +108,7 @@ export function useOfflineSync(options?: {
       window.removeEventListener('offline', handleOffline)
       cleanupRef.current?.()
     }
-  }, [autoSync])
+  }, [autoSync, sync])
 
   // ---------------------------------------------------------------------------
   // Pending Count Polling
@@ -103,27 +120,10 @@ export function useOfflineSync(options?: {
       setPendingCount(count)
     }
 
-    updateCount()
+    void updateCount()
     const interval = setInterval(updateCount, pollInterval)
     return () => clearInterval(interval)
   }, [pollInterval])
-
-  // ---------------------------------------------------------------------------
-  // Sync Function
-  // ---------------------------------------------------------------------------
-
-  const sync = useCallback(async () => {
-    if (isSyncing || !isOnline) return
-
-    setIsSyncing(true)
-    try {
-      await processSyncQueue()
-      setLastSyncedAt(Date.now())
-      setPendingCount(await getPendingCount())
-    } finally {
-      setIsSyncing(false)
-    }
-  }, [isSyncing, isOnline])
 
   // ---------------------------------------------------------------------------
   // Refresh Pending Count

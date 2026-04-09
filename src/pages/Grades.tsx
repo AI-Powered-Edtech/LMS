@@ -58,13 +58,16 @@ export function Grades() {
   const [selectedCourseId, setSelectedCourseId] = useState<string>('')
   const coursesQuery = useCourses({ limit: 50 })
 
-  const { data: submissionsData = [], isLoading } = useQuery({
+  const { data: submissionsDataRaw, isLoading } = useQuery({
     queryKey: ['student-grades', user?.id, tenantId],
     queryFn: async () => {
       return await gradebookService.getStudentGrades(user!.id, tenantId!)
     },
     enabled: !!user && !!tenantId,
   })
+
+  // Ensure submissionsData is always an array
+  const submissionsData = Array.isArray(submissionsDataRaw) ? submissionsDataRaw : []
 
   const assignments: Assignment[] = useMemo(() => {
     if (submissionsData.length === 0) return DEFAULT_ASSIGNMENTS

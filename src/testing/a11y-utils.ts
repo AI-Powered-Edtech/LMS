@@ -19,6 +19,9 @@ export function setupA11yMatchers() {
   expect.extend(toHaveNoViolations)
 }
 
+// Auto-register matchers when the utility is imported
+setupA11yMatchers()
+
 const axe = configureAxe({
   rules: {
     // Skip color-contrast — requires rendered CSS, not available in jsdom

@@ -41,7 +41,7 @@ export function AccountDeletionPage() {
             Permintaan penghapusan akun Anda telah dikirim ke admin sekolah. Admin akan meninjau dan
             menghubungi Anda dalam 14 hari kerja.
           </p>
-          <a href="#/app/student/dashboard">
+          <a href="/app/student/dashboard">
             <Button>Kembali ke Dashboard</Button>
           </a>
         </Card>

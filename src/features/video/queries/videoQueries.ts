@@ -55,13 +55,13 @@ export function useUploadVideo() {
     onSuccess: (data: VideoAsset) => {
       // Invalidate lesson-level cache
       if (data.lesson_id) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: videoQueryKeys.byLesson(data.tenant_id, data.lesson_id),
         })
       }
       // Invalidate block-level cache
       if (data.block_id) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: videoQueryKeys.byBlock(data.tenant_id, data.block_id),
         })
       }

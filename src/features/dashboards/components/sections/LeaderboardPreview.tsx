@@ -1,11 +1,12 @@
 import { Crown, Trophy } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import { Card, EmptyState } from '@/components/ui'
+import { Card, EmptyState, SkeletonCard, ErrorFallback } from '@/components/ui'
 import type { LeaderboardEntry } from '@/features/gamification'
 
 interface LeaderboardPreviewProps {
   xp: number
+  role: string
   leaderboardList: LeaderboardEntry[]
   loading: boolean
   error: boolean
@@ -14,6 +15,7 @@ interface LeaderboardPreviewProps {
 
 export function LeaderboardPreview({
   xp,
+  role,
   leaderboardList,
   loading,
   error,
@@ -29,25 +31,16 @@ export function LeaderboardPreview({
           Cuplikan Papan Peringkat
         </h2>
         <Link
-          to="/app/student/leaderboard"
+          to={role === 'teacher' ? '/app/teacher/leaderboard' : '/app/student/leaderboard'}
           className="text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
         >
           Lihat Peringkat
         </Link>
       </div>
       {error ? (
-        <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4 text-center">
-          <p className="text-sm text-red-600 dark:text-red-400">Gagal memuat leaderboard</p>
-          <button
-            type="button"
-            onClick={onRetry}
-            className="mt-2 text-xs text-red-500 dark:text-red-400 underline hover:no-underline"
-          >
-            Coba lagi
-          </button>
-        </div>
+        <ErrorFallback title="Gagal memuat leaderboard" showHomeLink={false} onRetry={onRetry} />
       ) : loading ? (
-        <div className="h-32 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
+        <SkeletonCard lines={3} />
       ) : hasData ? (
         <div className="flex flex-col justify-center items-center text-center p-4 sm:p-6 bg-gradient-to-b from-yellow-50 to-white dark:from-yellow-900/10 dark:to-slate-900 rounded-2xl border border-yellow-100 dark:border-yellow-900/30">
           <div className="w-20 h-20 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mb-4 shadow-inner border-4 border-white dark:border-slate-800">

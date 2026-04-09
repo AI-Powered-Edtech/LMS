@@ -26,7 +26,7 @@
 
 - [ ] No database changes
 - [ ] Migration file added to `supabase/migrations/`
-- [ ] `docs/DATABASE.md` updated
+- [ ] `docs/DATABASE_ARCHITECTURE.md` updated
 - [ ] RLS policies verified (tenant isolation preserved)
 - [ ] No `SELECT *` — specific columns only
 - [ ] Queries are paginated or bounded
@@ -42,8 +42,8 @@
 
 <!-- Attach a screenshot or recording if this PR changes any UI. -->
 
-| Before | After |
-|--------|-------|
+| Before       | After        |
+| ------------ | ------------ |
 | _screenshot_ | _screenshot_ |
 
 ## Related Issues / Tickets

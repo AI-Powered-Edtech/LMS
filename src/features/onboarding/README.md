@@ -233,6 +233,6 @@ src/components/Onboarding.tsx   # 3-step slideshow modal
 
 - [`docs/ONBOARDING_FLOW.md`](../../../docs/ONBOARDING_FLOW.md) — Dokumentasi audit lengkap
 - [`docs/AUTH.md`](../../../docs/AUTH.md) — Flow autentikasi
-- [`docs/DATABASE.md`](../../../docs/DATABASE.md) — Referensi tabel
+- [`docs/DATABASE_ARCHITECTURE.md`](../../../docs/DATABASE_ARCHITECTURE.md) — Referensi tabel
 - [`docs/SECURITY.md`](../../../docs/SECURITY.md) — Model keamanan dan RLS
 - [`docs/ARCHITECTURE.md`](../../../docs/ARCHITECTURE.md) — Arsitektur sistem

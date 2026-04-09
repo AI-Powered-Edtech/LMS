@@ -20,7 +20,8 @@ import type { BulkImportRow as BulkImportRowType } from '../api/bulkImportServic
 import {
   type BulkImportRow,
   createImportJob,
-  type RowError,
+  getImportJobRows,
+  getImportJobStatus,
   runBulkImport,
 } from '../api/bulkImportService'
 import { BulkImportPreviewStep } from './bulk-import/BulkImportPreviewStep'
@@ -109,8 +110,6 @@ export function BulkImportWizard({ onClose, onSuccess }: BulkImportWizardProps) 
   const [successCount, setSuccessCount] = useState(0)
   const [failedCount, setFailedCount] = useState(0)
 
-  const CHUNK_SIZE = 50
-
   const handleFileParsed = useCallback((_rows: ParsedRow[]) => {
     setStep(3)
   }, [])
@@ -134,7 +133,8 @@ export function BulkImportWizard({ onClose, onSuccess }: BulkImportWizardProps) 
 
       try {
         const importJobId = await createImportJob(tenantId)
-        setProgress(15)
+        setProgress(12)
+        setChunkStatus('Menyiapkan antrean impor...')
 
         const rows: BulkImportRow[] = rowsToProcess.map((r) => ({
           email: r.email,
@@ -144,62 +144,52 @@ export function BulkImportWizard({ onClose, onSuccess }: BulkImportWizardProps) 
           nomor_hp: r.nomor_hp,
         }))
 
-        const chunks: BulkImportRow[][] = []
-        for (let i = 0; i < rows.length; i += CHUNK_SIZE) {
-          chunks.push(rows.slice(i, i + CHUNK_SIZE))
-        }
+        await runBulkImport(rows, tenantId, importJobId)
+        setProgress(20)
+        setChunkStatus('Mengantrekan data ke worker...')
 
-        let totalSuccess = 0
-        let totalFailed = 0
-        const allErrors: RowError[] = []
+        let jobStatus = await getImportJobStatus(importJobId)
+        const startedAt = Date.now()
 
-        for (let i = 0; i < chunks.length; i++) {
-          const chunk = chunks[i]
+        while (jobStatus.status === 'processing') {
+          const processedRows = jobStatus.success_rows + jobStatus.failed_rows
+          const totalRows = Math.max(jobStatus.total_rows, rows.length, 1)
+          const percent = Math.min(95, Math.max(20, Math.round((processedRows / totalRows) * 80)))
+          setProgress(percent)
           setChunkStatus(
-            chunks.length > 1
-              ? `Memproses bagian ${i + 1} dari ${chunks.length}...`
-              : 'Memproses data...'
+            `Memproses ${processedRows} dari ${totalRows} baris (${jobStatus.success_rows} berhasil, ${jobStatus.failed_rows} gagal)...`
           )
-          const chunkProgress = Math.round(15 + ((i + 1) / chunks.length) * 75)
-          setProgress(chunkProgress)
 
-          const result = await runBulkImport(chunk, tenantId, importJobId)
-          totalSuccess += result.success
-          totalFailed += result.failed
-          allErrors.push(...(result.errors ?? []))
+          if (Date.now() - startedAt > 5 * 60 * 1000) {
+            throw new Error('Proses impor melebihi batas waktu tunggu. Silakan periksa lagi nanti.')
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 2000))
+          jobStatus = await getImportJobStatus(importJobId)
         }
 
-        setProgress(95)
-        setChunkStatus('')
+        const jobRows = await getImportJobRows(importJobId)
+        const totalSuccess = jobStatus.success_rows
+        const totalFailed = jobStatus.failed_rows
 
         const errorMap = new Map<number, string>()
-        let offset = 0
-        for (let c = 0; c < chunks.length; c++) {
-          const chunkErrors = allErrors.filter(
-            (e) =>
-              e.row >= 1 && e.row <= (c === chunks.length - 1 ? rows.length - offset : CHUNK_SIZE)
-          )
-          chunkErrors.forEach((e) => errorMap.set(offset + e.row, e.reason))
-          offset += chunks[c].length
-        }
+        jobRows
+          .filter((row) => row.status === 'failed')
+          .forEach((row) => errorMap.set(row.row_number, row.error_reason ?? 'Gagal diproses'))
 
-        const resultRows: ImportResultRow[] = rowsToProcess.map((r, idx) => {
-          const globalRow = idx + 1
-          const errReason = errorMap.get(globalRow)
-          return {
-            ...r,
-            status: errReason ? 'gagal' : 'berhasil',
-            reason: errReason,
-          }
-        })
+        const resultRows: ImportResultRow[] = rowsToProcess.map((r) => ({
+          ...r,
+          status: errorMap.has(r._rowIndex) ? 'gagal' : 'berhasil',
+          reason: errorMap.get(r._rowIndex),
+        }))
 
         setImportResults(resultRows)
         setSuccessCount(totalSuccess)
         setFailedCount(totalFailed)
         setProgress(100)
+        setChunkStatus('')
 
-        const overallStatus =
-          totalFailed === 0 ? 'completed' : totalSuccess === 0 ? 'failed' : 'partial'
+        const overallStatus = jobStatus.status
 
         if (overallStatus === 'completed') {
           addToast({

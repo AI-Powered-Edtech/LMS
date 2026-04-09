@@ -1,8 +1,7 @@
 import type { User } from '@supabase/supabase-js'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { authService } from '@/features/auth/api/authService'
-import { supabase } from '@/services/supabase/client'
 import { addBreadcrumb, captureError, setSentryUser } from '@/utils/sentry'
 
 export type Role = 'teacher' | 'student' | 'admin' | 'parent' | 'principal'
@@ -34,6 +33,10 @@ interface TenantMembership {
   tenant_name: string
   tenant_logo: string | null
   role: Role
+  status: 'active' | 'inactive' | 'suspended'
+  is_active: boolean
+  tenant_slug: string
+  joined_at: string | null
   last_workspace_id?: string
 }
 
@@ -51,11 +54,14 @@ interface UseRoleResolutionResult {
   roles: Role[]
   memberships: TenantMembership[]
   rawTenants: Record<string, Tenant>
+  defaultTenantId: string | null
+  bootstrapReady: boolean
+  error: string | null
   loading: boolean
   loadingMemberships: boolean
   fetchUserData: (userId: string) => Promise<void>
   processPendingInvite: (userId: string) => Promise<void>
-  processPendingJoinCode: () => Promise<void>
+  processPendingJoinCode: (userId: string) => Promise<void>
 }
 
 const rolePermissions: Record<Role, Permissions> = {
@@ -151,59 +157,153 @@ export function useRoleResolution(user: User | null): UseRoleResolutionResult {
   const [memberships, setMemberships] = useState<TenantMembership[]>([])
   const [rawTenants, setRawTenants] = useState<Record<string, Tenant>>({})
   const [roles, setRoles] = useState<Role[]>([])
+  const [defaultTenantId, setDefaultTenantId] = useState<string | null>(null)
+  const [bootstrapReady, setBootstrapReady] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [loadingMemberships, setLoadingMemberships] = useState(true)
   const fetchLock = useRef(false)
 
-  const processPendingInvite = async (userId: string) => {
-    const pendingToken = localStorage.getItem('pendingInviteToken')
-    if (!pendingToken) return
-
-    localStorage.removeItem('pendingInviteToken')
-
+  const fetchUserData = useCallback(async (userId: string) => {
+    if (fetchLock.current) return
+    fetchLock.current = true
+    setError(null)
     try {
-      const data = await authService.acceptInvitation(pendingToken)
-      if (data?.success) {
-        addBreadcrumb('Invitation accepted', 'auth')
-        fetchLock.current = false
-        await fetchUserData(userId)
+      const bootstrap = await authService.getAuthBootstrap()
+
+      if (bootstrap.profile) {
+        setProfile(bootstrap.profile)
+      } else {
+        setProfile(null)
       }
-    } catch (e) {
-      if (import.meta.env.DEV) console.error('Failed to accept invitation:', e)
-      captureError(e, { context: 'processPendingInvite' })
 
-      const errorMsg = (e instanceof Error ? e.message : String(e)).toLowerCase()
-      const isPermanentFailure =
-        errorMsg.includes('invalid') ||
-        errorMsg.includes('expired') ||
-        errorMsg.includes('already used') ||
-        errorMsg.includes('not found')
+      const loadedMemberships: TenantMembership[] = bootstrap.memberships.map((membership) => ({
+        tenant_id: membership.tenant_id,
+        tenant_name: membership.tenant_name,
+        tenant_logo: membership.tenant_logo,
+        tenant_slug: membership.tenant_slug,
+        role: membership.role,
+        status: membership.status,
+        is_active: membership.is_active,
+        joined_at: membership.joined_at,
+      }))
 
-      const retryCount = parseInt(localStorage.getItem('pendingInviteRetryCount') ?? '0')
-      if (!isPermanentFailure && retryCount < 1) {
-        localStorage.setItem('pendingInviteToken', pendingToken)
-        localStorage.setItem('pendingInviteRetryCount', '1')
-        if (import.meta.env.DEV)
-          console.warn('[Auth] Transient invite error — will retry on next login')
-        return
-      }
-      localStorage.removeItem('pendingInviteRetryCount')
-
-      const { useToast } = await import('@/hooks/useToast')
-      useToast.getState().addToast({
-        type: 'error',
-        message: 'Undangan tidak valid atau sudah kadaluarsa.',
-        description: 'Hubungi administrator untuk mendapatkan undangan baru.',
+      const tenantsMap: Record<string, Tenant> = {}
+      loadedMemberships.forEach((membership) => {
+        tenantsMap[membership.tenant_id] = {
+          id: membership.tenant_id,
+          name: membership.tenant_name,
+          slug: membership.tenant_slug,
+          is_active: membership.is_active,
+        }
       })
-    }
-  }
 
-  const processPendingJoinCode = async () => {
+      const activeRoles = Array.from(
+        new Set(
+          loadedMemberships
+            .filter((membership) => membership.status === 'active' && membership.is_active)
+            .map((membership) => membership.role)
+        )
+      )
+
+      setMemberships(loadedMemberships)
+      setRawTenants(tenantsMap)
+      setRoles(activeRoles)
+      setDefaultTenantId(bootstrap.default_tenant_id)
+      setBootstrapReady(true)
+      addBreadcrumb('Workspace memberships resolved', 'auth', {
+        memberships: loadedMemberships.length,
+        activeRoles: activeRoles.join(','),
+        defaultTenantId: bootstrap.default_tenant_id,
+      })
+
+      if (activeRoles.length > 0) {
+        setSentryUser(userId, getPrimaryRole(activeRoles))
+      }
+
+      const cachedTenantId = localStorage.getItem('activeTenantId')
+      const hasValidCachedTenant =
+        !!cachedTenantId &&
+        loadedMemberships.some(
+          (membership) =>
+            membership.tenant_id === cachedTenantId &&
+            membership.status === 'active' &&
+            membership.is_active
+        )
+
+      if (!hasValidCachedTenant) {
+        if (bootstrap.default_tenant_id) {
+          localStorage.setItem('activeTenantId', bootstrap.default_tenant_id)
+        } else {
+          localStorage.removeItem('activeTenantId')
+        }
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Gagal memuat akses ruang kerja.'
+      setError(message)
+      setBootstrapReady(true)
+      captureError(err, { context: 'useRoleResolution.fetchUserData', userId })
+      throw err
+    } finally {
+      setLoadingMemberships(false)
+      fetchLock.current = false
+    }
+  }, [])
+
+  const processPendingInvite = useCallback(
+    async (userId: string) => {
+      const pendingToken = localStorage.getItem('pendingInviteToken')
+      if (!pendingToken) return
+
+      localStorage.removeItem('pendingInviteToken')
+
+      try {
+        const data = await authService.acceptInvitation(pendingToken)
+        if (data?.success) {
+          addBreadcrumb('Invitation accepted', 'auth')
+          fetchLock.current = false
+          await fetchUserData(userId)
+        }
+      } catch (e) {
+        if (import.meta.env.DEV) console.error('Failed to accept invitation:', e)
+        captureError(e, { context: 'processPendingInvite' })
+
+        const errorMsg = (e instanceof Error ? e.message : String(e)).toLowerCase()
+        const isPermanentFailure =
+          errorMsg.includes('invalid') ||
+          errorMsg.includes('expired') ||
+          errorMsg.includes('already used') ||
+          errorMsg.includes('not found')
+
+        const retryCount = parseInt(localStorage.getItem('pendingInviteRetryCount') ?? '0')
+        if (!isPermanentFailure && retryCount < 1) {
+          localStorage.setItem('pendingInviteToken', pendingToken)
+          localStorage.setItem('pendingInviteRetryCount', '1')
+          if (import.meta.env.DEV)
+            console.warn('[Auth] Transient invite error — will retry on next login')
+          return
+        }
+        localStorage.removeItem('pendingInviteRetryCount')
+
+        const { useToast } = await import('@/hooks/useToast')
+        useToast.getState().addToast({
+          type: 'error',
+          message: 'Undangan tidak valid atau sudah kadaluarsa.',
+          description: 'Hubungi administrator untuk mendapatkan undangan baru.',
+        })
+      }
+    },
+    [fetchUserData]
+  )
+
+  const processPendingJoinCode = useCallback(async (userId: string) => {
     const pendingCode = localStorage.getItem('pendingJoinCode')
     if (!pendingCode) return
     localStorage.removeItem('pendingJoinCode')
     try {
       await authService.enrollStudent(pendingCode)
+      fetchLock.current = false
+      await fetchUserData(userId)
       const { useToast } = await import('@/hooks/useToast')
       useToast.getState().addToast({
         type: 'success',
@@ -219,193 +319,7 @@ export function useRoleResolution(user: User | null): UseRoleResolutionResult {
         description: 'Periksa kembali kode dari guru Anda dan coba lagi.',
       })
     }
-  }
-
-  const fetchUserData = async (userId: string) => {
-    if (fetchLock.current) return
-    fetchLock.current = true
-    try {
-      let { data: profileData, error: profileErr } = await supabase
-        .from('profiles')
-        .select('id, email, first_name, last_name, avatar_url, tenant_id')
-        .eq('id', userId)
-        .single()
-
-      if (!profileData && profileErr) {
-        if (import.meta.env.DEV)
-          console.warn('[Auth] Profile missing for user, calling ensure_profile_exists()...')
-        try {
-          await authService.ensureProfileExists()
-          const { data: retryData } = await supabase
-            .from('profiles')
-            .select('id, email, first_name, last_name, avatar_url, tenant_id')
-            .eq('id', userId)
-            .single()
-          if (retryData) profileData = retryData
-        } catch (rpcErr) {
-          captureError(rpcErr, { context: 'AuthContext.ensureProfileExists' })
-          if (import.meta.env.DEV) {
-            console.error('[Auth] ensure_profile_exists() failed:', rpcErr)
-          }
-        }
-      }
-
-      if (profileData) {
-        setProfile(profileData)
-      }
-
-      const PAGE_SIZE = 20
-      const { data: rolesData, error: rolesErr } = await supabase
-        .from('user_roles')
-        .select(
-          `
-          role,
-          tenant_id,
-          tenants (
-            id,
-            name,
-            slug,
-            is_active
-          )
-        `
-        )
-        .eq('user_id', userId)
-        .range(0, PAGE_SIZE - 1)
-
-      if (rolesErr) {
-        if (import.meta.env.DEV) {
-          console.error('Failed to fetch user roles:', rolesErr)
-        }
-      }
-
-      if (rolesData) {
-        const userRoles = rolesData.map(
-          (r: {
-            role: string
-            tenant_id: string
-            tenants?:
-              | { id: string; name: string; slug: string; is_active: boolean }
-              | { id: string; name: string; slug: string; is_active: boolean }[]
-          }) => r.role.toLowerCase() as Role
-        )
-        setRoles(userRoles)
-        setSentryUser(userId, getPrimaryRole(userRoles))
-
-        const loadedMemberships: TenantMembership[] = []
-        const tenantsMap: Record<string, Tenant> = {}
-
-        rolesData.forEach(
-          (r: {
-            role: string
-            tenant_id: string
-            tenants?:
-              | { id: string; name: string; slug: string; is_active: boolean }
-              | { id: string; name: string; slug: string; is_active: boolean }[]
-          }) => {
-            if (r.tenants) {
-              const t = Array.isArray(r.tenants) ? r.tenants[0] : r.tenants
-              loadedMemberships.push({
-                tenant_id: r.tenant_id,
-                tenant_name: t.name,
-                tenant_logo: null,
-                role: r.role.toLowerCase() as Role,
-              })
-              tenantsMap[t.id] = {
-                id: t.id,
-                name: t.name,
-                slug: t.slug,
-                is_active: t.is_active,
-              }
-            }
-          }
-        )
-
-        setMemberships(loadedMemberships)
-        setRawTenants(tenantsMap)
-
-        if (rolesData.length === PAGE_SIZE) {
-          ;(async () => {
-            let offset = PAGE_SIZE
-            let hasMore = true
-            let maxIterations = 20
-            const extraMemberships: TenantMembership[] = []
-            const extraTenantsMap: Record<string, Tenant> = {}
-
-            try {
-              while (hasMore && maxIterations-- > 0) {
-                const { data: more, error: moreError } = await supabase
-                  .from('user_roles')
-                  .select(`role, tenant_id, tenants ( id, name, slug, is_active )`)
-                  .eq('user_id', userId)
-                  .range(offset, offset + PAGE_SIZE - 1)
-
-                if (moreError) {
-                  if (import.meta.env.DEV)
-                    console.error('[Auth] Background pagination error:', moreError)
-                  break
-                }
-
-                if (!more || more.length === 0) {
-                  hasMore = false
-                  break
-                }
-
-                more.forEach((r: (typeof rolesData)[number]) => {
-                  if (r.tenants) {
-                    const t = Array.isArray(r.tenants) ? r.tenants[0] : r.tenants
-                    extraMemberships.push({
-                      tenant_id: r.tenant_id,
-                      tenant_name: t.name,
-                      tenant_logo: null,
-                      role: r.role.toLowerCase() as Role,
-                    })
-                    extraTenantsMap[t.id] = {
-                      id: t.id,
-                      name: t.name,
-                      slug: t.slug,
-                      is_active: t.is_active,
-                    }
-                  }
-                })
-
-                hasMore = more.length === PAGE_SIZE
-                offset += PAGE_SIZE
-              }
-            } catch (err) {
-              captureError(err, { context: 'AuthContext.fetchMemberships' })
-              if (import.meta.env.DEV)
-                console.error('[Auth] Background membership pagination failed:', err)
-            }
-
-            if (extraMemberships.length > 0) {
-              setMemberships((prev) => [...prev, ...extraMemberships])
-              setRawTenants((prev) => ({ ...prev, ...extraTenantsMap }))
-            }
-          })()
-        }
-
-        const cachedTenantId = localStorage.getItem('activeTenantId')
-        let initialTenantId = cachedTenantId
-
-        const validMembership = loadedMemberships.find((m) => m.tenant_id === cachedTenantId)
-
-        if (!validMembership) {
-          if (loadedMemberships.length > 0) {
-            initialTenantId = loadedMemberships[0].tenant_id
-          } else {
-            initialTenantId = profileData?.tenant_id || null
-          }
-        }
-
-        if (initialTenantId) {
-          localStorage.setItem('activeTenantId', initialTenantId)
-        }
-      }
-    } finally {
-      setLoadingMemberships(false)
-      fetchLock.current = false
-    }
-  }
+  }, [])
 
   useEffect(() => {
     if (!user) {
@@ -413,6 +327,10 @@ export function useRoleResolution(user: User | null): UseRoleResolutionResult {
       setRoles([])
       setMemberships([])
       setRawTenants({})
+      setDefaultTenantId(null)
+      setBootstrapReady(false)
+      setError(null)
+      setLoading(false)
       setLoadingMemberships(false)
       return
     }
@@ -435,7 +353,7 @@ export function useRoleResolution(user: User | null): UseRoleResolutionResult {
 
     withTimeout(fetchUserData(user.id))
       .then(() => processPendingInvite(user!.id))
-      .then(() => processPendingJoinCode())
+      .then(() => processPendingJoinCode(user!.id))
       .finally(() => {
         setLoading(false)
       })
@@ -445,13 +363,16 @@ export function useRoleResolution(user: User | null): UseRoleResolutionResult {
         setLoading(false)
         setLoadingMemberships(false)
       })
-  }, [user])
+  }, [fetchUserData, processPendingInvite, processPendingJoinCode, user])
 
   return {
     profile,
     roles,
     memberships,
     rawTenants,
+    defaultTenantId,
+    bootstrapReady,
+    error,
     loading,
     loadingMemberships,
     fetchUserData,

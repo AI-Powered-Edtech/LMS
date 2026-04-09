@@ -62,7 +62,7 @@ export function useClassManagementState() {
 
       setStudentCounts(counts)
     }
-    fetchCounts()
+    void fetchCounts()
   }, [classrooms, tenantId])
 
   // Fetch enrolled students for selected class
@@ -85,7 +85,7 @@ export function useClassManagementState() {
   )
 
   useEffect(() => {
-    if (selectedClassId) fetchStudents(selectedClassId)
+    if (selectedClassId) void fetchStudents(selectedClassId)
   }, [selectedClassId, fetchStudents])
 
   // Auto-select first class
@@ -169,7 +169,7 @@ export function useClassManagementState() {
   )
 
   const handleCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text)
+    void navigator.clipboard.writeText(text)
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 2000)
   }
@@ -180,7 +180,7 @@ export function useClassManagementState() {
       await classroomService.removeStudent(student.id, user!.id, tenantId!)
 
       // Refresh student list
-      fetchStudents(selectedClassId!)
+      void fetchStudents(selectedClassId!)
       // Update count
       setStudentCounts((prev) => ({
         ...prev,

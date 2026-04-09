@@ -98,7 +98,7 @@ Berbeda dari **Onboarding** (yang adalah **satu kali setup flow**), **Guidance**
 | 9   | **Dark Mode Support**                      | All tooltips, banners, tour steps support dark mode with `dark:` Tailwind variants.                                                                                                                                                          |
 | 10  | **Mobile Responsive**                      | Tooltips on mobile: tap info icon → show tooltip in modal (not hover). Banners stack and readable on small screens. Tours adjust highlight box for mobile viewport.                                                                          |
 | 11  | **Guidance Analytics**                     | Track events: tooltip_shown, tooltip_clicked, banner_shown, banner_dismissed, tour_started, tour_completed. Store in `guidance_events` table for product analytics.                                                                          |
-| 12  | **Documentation**                          | Create `src/features/guidance/README.md` with: guidance content structure, tour definitions, trigger rules, component API. Update `docs/DATABASE.md`.                                                                                        |
+| 12  | **Documentation**                          | Create `src/features/guidance/README.md` with: guidance content structure, tour definitions, trigger rules, component API. Update `docs/DATABASE_ARCHITECTURE.md`.                                                                           |
 
 ### P1 — Nice to Have
 

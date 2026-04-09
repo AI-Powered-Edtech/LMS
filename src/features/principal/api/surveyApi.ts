@@ -47,7 +47,9 @@ export async function createSurvey(input: CreateSurveyInput): Promise<Satisfacti
       end_date: input.end_date,
       status: 'draft',
     })
-    .select()
+    .select(
+      'id, title, target_audience, questions, status, start_date, end_date, created_at, created_by, tenant_id'
+    )
     .single()
 
   if (error) {
@@ -70,7 +72,9 @@ export async function updateSurvey(
       ...input,
     })
     .eq('id', id)
-    .select()
+    .select(
+      'id, title, target_audience, questions, status, start_date, end_date, created_at, created_by, tenant_id'
+    )
     .single()
 
   if (error) {
@@ -122,7 +126,10 @@ export async function deleteSurvey(id: string): Promise<void> {
 
 // ── Get Survey Results ─────────────────────────────────────────
 
-export async function getSurveyResults(surveyId: string): Promise<SurveyResultsData> {
+export async function getSurveyResults(
+  surveyId: string,
+  tenantId?: string
+): Promise<SurveyResultsData> {
   // Fetch survey detail
   const { data: survey, error: surveyError } = await supabase
     .from('satisfaction_surveys')
@@ -136,51 +143,118 @@ export async function getSurveyResults(surveyId: string): Promise<SurveyResultsD
     throw new Error('Gagal memuat detail survey.')
   }
 
-  // Fetch responses
-  const { data: responses, error: responsesError } = await supabase
-    .from('survey_responses')
-    .select('id, survey_id, respondent_id, answers, created_at')
-    .eq('survey_id', surveyId)
-    .limit(500)
-
-  if (responsesError) {
-    throw new Error('Gagal memuat respons survey.')
-  }
-
-  const allResponses = responses ?? []
   const surveyData = survey as SatisfactionSurvey
 
-  // Aggregate per question
-  const questionResults: QuestionResult[] = surveyData.questions.map((question) => {
-    const answers = allResponses
-      .map((r) => r.answers[question.id])
-      .filter((a) => a !== undefined && a !== null && a !== '')
+  if (typeof supabase.rpc !== 'function') {
+    const { data: responses, error: responsesError } = await supabase
+      .from('survey_responses')
+      .select('id, survey_id, respondent_id, answers, created_at')
+      .eq('survey_id', surveyId)
+      .limit(500)
 
-    if (question.type === 'rating') {
-      const numAnswers = answers.map(Number).filter((n) => !isNaN(n) && n >= 1 && n <= 5)
-      const avg =
-        numAnswers.length > 0 ? numAnswers.reduce((a, b) => a + b, 0) / numAnswers.length : 0
-      const distribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-      numAnswers.forEach((v) => {
-        distribution[v] = (distribution[v] ?? 0) + 1
-      })
-
-      return { question, ratingAvg: avg, ratingDistribution: distribution }
+    if (responsesError) {
+      throw new Error('Gagal memuat respons survey.')
     }
 
-    if (question.type === 'yesno') {
-      const yesCount = answers.filter((a) => a === true || a === 'true' || a === 'ya').length
-      const noCount = answers.filter((a) => a === false || a === 'false' || a === 'tidak').length
-      return { question, yesCount, noCount }
-    }
+    const allResponses = responses ?? []
+    const fallbackQuestionResults: QuestionResult[] = surveyData.questions.map((question) => {
+      const answers = allResponses
+        .map((response) => response.answers[question.id])
+        .filter((answer) => answer !== undefined && answer !== null && answer !== '')
 
-    // text
-    return { question, textAnswers: answers.map(String) }
+      if (question.type === 'rating') {
+        const numericAnswers = answers
+          .map(Number)
+          .filter((value) => !Number.isNaN(value) && value >= 1 && value <= 5)
+        const distribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+        numericAnswers.forEach((value) => {
+          distribution[value] = (distribution[value] ?? 0) + 1
+        })
+
+        return {
+          question,
+          ratingAvg:
+            numericAnswers.length > 0
+              ? numericAnswers.reduce((sum, value) => sum + value, 0) / numericAnswers.length
+              : 0,
+          ratingDistribution: distribution,
+        }
+      }
+
+      if (question.type === 'yesno') {
+        return {
+          question,
+          yesCount: answers.filter((answer) =>
+            [true, 'true', 'ya', 'yes', 1, '1'].includes(answer as never)
+          ).length,
+          noCount: answers.filter((answer) =>
+            [false, 'false', 'tidak', 'no', 0, '0'].includes(answer as never)
+          ).length,
+        }
+      }
+
+      return {
+        question,
+        textAnswers: answers.map(String),
+      }
+    })
+
+    return {
+      survey: surveyData,
+      totalResponses: allResponses.length,
+      questionResults: fallbackQuestionResults,
+    }
+  }
+
+  const { data: rows, error: resultsError } = await supabase.rpc('get_survey_results', {
+    p_tenant_id: tenantId ?? surveyData.tenant_id,
+    p_survey_id: surveyId,
   })
+
+  if (resultsError) {
+    if (import.meta.env.DEV) console.error('[Survey] getSurveyResults RPC error:', resultsError)
+    throw new Error('Gagal memuat hasil survey.')
+  }
+
+  const questionResults: QuestionResult[] = ((rows ?? []) as Record<string, unknown>[]).map(
+    (row) => {
+      const questionId = String(row.question_id ?? '')
+      const question = survey.questions.find(
+        (item: SatisfactionSurvey['questions'][number]) => item.id === questionId
+      )
+      if (!question) {
+        return {
+          question: {
+            id: questionId,
+            text: String(row.question_text ?? 'Pertanyaan'),
+            type: (row.question_type as QuestionResult['question']['type']) ?? 'text',
+            required: false,
+          },
+          ratingAvg: row.rating_avg ? Number(row.rating_avg) : undefined,
+          ratingDistribution: row.rating_distribution as Record<number, number> | undefined,
+          yesCount: row.yes_count ? Number(row.yes_count) : undefined,
+          noCount: row.no_count ? Number(row.no_count) : undefined,
+          textAnswers: (row.text_answers as string[] | null) ?? undefined,
+        }
+      }
+
+      return {
+        question,
+        ratingAvg: row.rating_avg ? Number(row.rating_avg) : undefined,
+        ratingDistribution: row.rating_distribution as Record<number, number> | undefined,
+        yesCount: row.yes_count ? Number(row.yes_count) : undefined,
+        noCount: row.no_count ? Number(row.no_count) : undefined,
+        textAnswers: (row.text_answers as string[] | null) ?? undefined,
+      }
+    }
+  )
 
   return {
     survey: surveyData,
-    totalResponses: allResponses.length,
+    totalResponses:
+      rows && rows.length > 0
+        ? Number((rows[0] as Record<string, unknown>).total_responses ?? 0)
+        : 0,
     questionResults,
   }
 }

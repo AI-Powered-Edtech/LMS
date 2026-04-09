@@ -23,7 +23,7 @@ export function perfMeasure(name: string, startMark: string, endMark: string): n
   try {
     const entry = performance.measure(name, startMark, endMark)
     if (import.meta.env.DEV) {
-      console.log(`⏱ ${name}: ${entry.duration.toFixed(0)}ms`)
+      console.warn(`⏱ ${name}: ${entry.duration.toFixed(0)}ms`)
     }
     return entry.duration
   } catch {

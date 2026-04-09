@@ -3,6 +3,9 @@
  * Variants mimic the layout of the page being loaded to avoid layout shift.
  */
 
+import { SkeletonCard } from './ui/Skeleton'
+import { Spinner } from './ui/Spinner'
+
 interface PageLoadingFallbackProps {
   variant?: 'dashboard' | 'table' | 'form' | 'default'
 }
@@ -13,9 +16,16 @@ function SkeletonBlock({ className }: { className: string }) {
 
 function DefaultFallback() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-slate-500 dark:text-slate-400">
-      <div className="w-10 h-10 border-4 border-slate-200 dark:border-slate-700 border-t-indigo-500 rounded-full animate-spin" />
-      <p className="text-sm font-medium">Memuat...</p>
+    <div className="space-y-6 p-4 md:p-8 max-w-7xl mx-auto w-full">
+      <Spinner size="sm" className="mx-auto" />
+      <SkeletonBlock className="h-8 w-48" />
+      <div className="space-y-4">
+        <SkeletonBlock className="h-4 w-full" />
+        <SkeletonBlock className="h-4 w-5/6" />
+        <SkeletonBlock className="h-4 w-4/6" />
+      </div>
+      <SkeletonCard lines={3} />
+      <SkeletonCard lines={2} />
     </div>
   )
 }
@@ -23,6 +33,7 @@ function DefaultFallback() {
 function DashboardFallback() {
   return (
     <div className="space-y-6 p-4 md:p-8 max-w-7xl mx-auto w-full">
+      <Spinner size="sm" className="mx-auto" />
       {/* Header */}
       <div className="flex items-center justify-between">
         <SkeletonBlock className="h-8 w-48" />
@@ -75,6 +86,7 @@ function DashboardFallback() {
 function TableFallback() {
   return (
     <div className="space-y-4 p-4 md:p-8 max-w-7xl mx-auto w-full">
+      <Spinner size="sm" className="mx-auto" />
       {/* Header with actions */}
       <div className="flex items-center justify-between">
         <SkeletonBlock className="h-8 w-40" />
@@ -120,6 +132,7 @@ function TableFallback() {
 function FormFallback() {
   return (
     <div className="space-y-6 p-4 md:p-8 max-w-2xl mx-auto w-full">
+      <Spinner size="sm" className="mx-auto" />
       {/* Page title */}
       <SkeletonBlock className="h-8 w-56" />
 

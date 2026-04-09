@@ -134,7 +134,7 @@ export function ReportGenerator({ open, onClose }: ReportGeneratorProps) {
           year: String(state.year),
         })
         onClose()
-        navigate(`/app/principal/report?${params.toString()}`)
+        void navigate(`/app/principal/report?${params.toString()}`)
         return
       }
 

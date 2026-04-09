@@ -44,7 +44,7 @@ export function trackLearningEvent(params: {
   }
 
   if (eventBuffer.length >= FLUSH_THRESHOLD) {
-    flushEvents()
+    void flushEvents()
   }
 }
 

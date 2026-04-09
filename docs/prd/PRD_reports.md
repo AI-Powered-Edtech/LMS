@@ -424,7 +424,7 @@ async function scheduleReportEmail(
 
 ## 13. References
 
-- **Database:** `/docs/DATABASE.md` — tables, RPC reference
+- **Database:** `/docs/DATABASE_ARCHITECTURE.md` — tables, RPC reference
 - **Architecture:** `/docs/ARCHITECTURE.md` — multi-tenancy, RLS, Edge Functions
 - **Analytics:** `/docs/ANALYTICS.md` — engagement metrics, signals
 - **Design System:** `/docs/design-system.md` — dark mode, print CSS

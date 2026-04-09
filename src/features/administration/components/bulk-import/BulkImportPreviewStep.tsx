@@ -53,7 +53,7 @@ export function BulkImportPreviewStep({
 
       setFileName(file.name)
 
-      import('papaparse').then((Papa) => {
+      void import('papaparse').then((Papa) => {
         Papa.default.parse<Record<string, string>>(file, {
           header: true,
           skipEmptyLines: true,
