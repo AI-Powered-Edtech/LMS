@@ -79,6 +79,43 @@ async function checkRateLimit(
   }
 }
 
+async function assertCourseAccess(
+  serviceClient: ReturnType<typeof createClient>,
+  courseId: string,
+  userId: string,
+  tenantId: string
+): Promise<void> {
+  const { count: creatorCount, error: creatorError } = await serviceClient
+    .from('courses')
+    .select('id', { count: 'exact', head: true })
+    .eq('id', courseId)
+    .eq('tenant_id', tenantId)
+    .eq('created_by', userId)
+    .limit(1)
+
+  if (creatorError) {
+    throw new Error('COURSE_ACCESS_CHECK_FAILED')
+  }
+
+  if ((creatorCount ?? 0) > 0) return
+
+  const { count: collaboratorCount, error: collaboratorError } = await serviceClient
+    .from('course_collaborators')
+    .select('id', { count: 'exact', head: true })
+    .eq('course_id', courseId)
+    .eq('user_id', userId)
+    .eq('tenant_id', tenantId)
+    .limit(1)
+
+  if (collaboratorError) {
+    throw new Error('COURSE_ACCESS_CHECK_FAILED')
+  }
+
+  if ((collaboratorCount ?? 0) === 0) {
+    throw new Error('FORBIDDEN_NO_COURSE_ACCESS')
+  }
+}
+
 // ─── Context Gathering ────────────────────────────────────────────────────────
 
 async function gatherLessonContext(
@@ -430,34 +467,17 @@ Deno.serve(async (req) => {
     if (subject && subject.length > MAX_FIELD_CHARS) return err('SUBJECT_TOO_LONG', 400)
     if (grade_level && grade_level.length > MAX_FIELD_CHARS) return err('GRADE_LEVEL_TOO_LONG', 400)
 
-    // ✅ Course ownership validation BEFORE any expensive operations
-    // Verify authenticated user has access to this course
-    const { count: courseAccessCount, error: courseAccessError } = await serviceClient
-      .from('course_collaborators')
-      .select('id', { count: 'exact', head: true })
-      .eq('course_id', course_id)
-      .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
-      .limit(1)
+    // 3. Course access validation BEFORE any expensive operations
+    await assertCourseAccess(serviceClient, course_id, userId, tenantId)
 
-    if (courseAccessError) {
-      await logAttempt('error', null, 'COURSE_ACCESS_CHECK_FAILED')
-      return err('INTERNAL_ERROR', 500)
-    }
-
-    if (courseAccessCount === 0) {
-      await logAttempt('error', null, 'NO_COURSE_ACCESS')
-      return err('FORBIDDEN_NO_COURSE_ACCESS', 403)
-    }
-
-    // 3. Rate limiting
+    // 4. Rate limiting
     await checkRateLimit(serviceClient, userId, tenantId)
 
-    // 4. Gather lesson context
+    // 5. Gather lesson context
     const { lessonTitle, context } = await gatherLessonContext(serviceClient, lesson_id, tenantId)
     const mode = resolveDraftMode(content_types)
 
-    // 5. Call Groq LLM
+    // 6. Call Groq LLM
     const apiKey = Deno.env.get('GROQ_API_KEY')
     if (!apiKey) {
       await logAttempt('error', null, 'AI_CONFIG_MISSING')
@@ -566,7 +586,7 @@ Deno.serve(async (req) => {
       mode,
     }
 
-    // 6. Persist artifact
+    // 7. Persist artifact
     const { data: artifact, error: saveError } = await serviceClient
       .from('ai_builder_artifacts')
       .insert({
@@ -589,7 +609,7 @@ Deno.serve(async (req) => {
       console.error('Artifact save error (non-fatal):', saveError.message)
     }
 
-    // 7. Log success
+    // 8. Log success
     await logAttempt('success', null)
 
     return json({
@@ -602,6 +622,7 @@ Deno.serve(async (req) => {
     if (msg === 'AUTH_MISSING' || msg === 'AUTH_INVALID') return err(msg, 401)
     if (msg === 'UNAUTHORIZED_ROLE') return err(msg, 403)
     if (msg === 'TENANT_MISSING') return err(msg, 403)
+    if (msg === 'FORBIDDEN_NO_COURSE_ACCESS') return err(msg, 403)
     if (msg === 'LESSON_NOT_FOUND') return err(msg, 404)
     if (msg === 'RATE_LIMITED') {
       await logAttempt('rate_limited', null, msg)
