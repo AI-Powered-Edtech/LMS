@@ -254,6 +254,17 @@ Migration: `20260507000001_semester_management.sql`
 | `promote_students_to_next_class(p_semester_id, p_class_id, p_target_class_id)` | Bulk promosi siswa yang lulus ke kelas berikutnya; returns count promoted               | Phase 39B |
 | `generate_semester_report_card(p_semester_id, p_student_id)`                   | Generate rapor digital per siswa: nilai per mata pelajaran, kehadiran, XP, catatan guru | Phase 39B |
 
+### New in AI Builder Copilot
+
+| Table                    | Purpose                                                                              | Added              |
+| ------------------------ | ------------------------------------------------------------------------------------ | ------------------ |
+| `ai_builder_artifacts`   | Tracks AI-generated artifacts from Course Builder Copilot (outline, lesson draft, assessment, transform) with creator-scoped history | AI Builder Copilot |
+
+| RPC                                                                                 | Purpose                                                                                                   | Added              |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------ |
+| `apply_ai_outline_artifact(p_artifact_id, p_course_id, p_selected_modules)`         | Atomically insert selected modules+lessons from an outline artifact; returns created IDs                  | AI Builder Copilot |
+| `apply_ai_lesson_artifact(p_artifact_id, p_lesson_id, p_selected_blocks, p_quiz_payload, p_assignment_payload)` | Atomically insert selected blocks, persist quiz via `save_quiz_builder`, upsert assignment, and ensure quiz/assignment blocks exist | AI Builder Copilot |
+
 ## Important Column Gotchas
 
 | Table                    | Column              | Note                                                                                      |

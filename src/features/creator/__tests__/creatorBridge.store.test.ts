@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import type { PendingQuizData } from '../store/creatorBridge.store'
+import type { PendingArtifactData, PendingQuizData } from '../store/creatorBridge.store'
 import { useCreatorBridgeStore } from '../store/creatorBridge.store'
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -74,10 +74,22 @@ const mockSecondQuiz: PendingQuizData = {
   questionCount: 1,
 }
 
+const mockPendingArtifact: PendingArtifactData = {
+  artifactId: 'artifact-1',
+  artifactKind: 'assessment',
+  courseId: 'course-1',
+  targetId: 'lesson-1',
+  output: {
+    quiz_payload: {
+      title: 'Kuis AI',
+    },
+  },
+}
+
 // ─── Setup ────────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
-  useCreatorBridgeStore.setState({ pendingQuiz: null })
+  useCreatorBridgeStore.setState({ pendingQuiz: null, pendingArtifact: null })
   sessionStorage.clear()
 })
 
@@ -90,12 +102,22 @@ describe('useCreatorBridgeStore', () => {
       expect(state.pendingQuiz).toBeNull()
     })
 
+    it('pendingArtifact is null by default', () => {
+      const state = useCreatorBridgeStore.getState()
+      expect(state.pendingArtifact).toBeNull()
+    })
+
     it('has setPendingQuiz action', () => {
       expect(typeof useCreatorBridgeStore.getState().setPendingQuiz).toBe('function')
     })
 
     it('has clearPendingQuiz action', () => {
       expect(typeof useCreatorBridgeStore.getState().clearPendingQuiz).toBe('function')
+    })
+
+    it('has artifact bridge actions', () => {
+      expect(typeof useCreatorBridgeStore.getState().setPendingArtifact).toBe('function')
+      expect(typeof useCreatorBridgeStore.getState().clearPendingArtifact).toBe('function')
     })
   })
 
@@ -224,6 +246,21 @@ describe('useCreatorBridgeStore', () => {
       const emptyQuiz: PendingQuizData = { ...mockPendingQuiz, questions: [], questionCount: 0 }
       useCreatorBridgeStore.getState().setPendingQuiz(emptyQuiz)
       expect(useCreatorBridgeStore.getState().pendingQuiz?.questions).toHaveLength(0)
+    })
+  })
+
+  describe('pendingArtifact', () => {
+    it('stores builder artifact bridge payload', () => {
+      useCreatorBridgeStore.getState().setPendingArtifact(mockPendingArtifact)
+
+      expect(useCreatorBridgeStore.getState().pendingArtifact).toEqual(mockPendingArtifact)
+    })
+
+    it('clears pendingArtifact safely', () => {
+      useCreatorBridgeStore.getState().setPendingArtifact(mockPendingArtifact)
+      useCreatorBridgeStore.getState().clearPendingArtifact()
+
+      expect(useCreatorBridgeStore.getState().pendingArtifact).toBeNull()
     })
   })
 })

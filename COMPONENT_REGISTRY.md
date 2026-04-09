@@ -1,7 +1,7 @@
 # EduSync LMS — Component Registry
 
 > Living registry of all key components in the codebase.
-> Last Updated: 2026-04-05
+> Last Updated: 2026-04-09
 
 ---
 
@@ -9,15 +9,15 @@
 
 | Category          | Active | Deprecated | Under Review | Total |
 | ----------------- | ------ | ---------- | ------------ | ----- |
-| Feature Modules   | 49     | 0          | 0            | 49    |
-| Edge Functions    | 26     | 0          | 0            | 26    |
+| Feature Modules   | 50     | 0          | 0            | 50    |
+| Edge Functions    | 29     | 0          | 0            | 29    |
 | Shared Hooks      | 17     | 0          | 0            | 17    |
 | Utility Functions | 30+    | 0          | 0            | 30+   |
 | UI Primitives     | 30+    | 0          | 0            | 30+   |
 | Context Providers | 3      | 0          | 0            | 3     |
-| Zustand Stores    | 3      | 0          | 0            | 3     |
+| Zustand Stores    | 4      | 0          | 0            | 4     |
 
-**Codebase Version**: `ff4edf1` (latest tag: `v0.3-core-lms-complete`)
+**Codebase Version**: `cf24d99` (latest tag: `v0.3-core-lms-complete`)
 **Total Commits**: 636
 **Branch**: `main`
 
@@ -74,6 +74,7 @@
 | `struggle`           | Student struggle detection                                                                              | Active | 2026-04-02   | ff4edf1          | Phase 26                     |
 | `video`              | Video upload & playback                                                                                 | Active | 2026-04-05   | ff4edf1          | WCAG 1.2.2 caption support   |
 | `xapi`               | xAPI Learning Record Store (API-only)                                                                   | Active | 2026-04-02   | ff4edf1          | Phase 26                     |
+| `ai-builder-copilot` | AI Copilot drawer for Course Builder: outline, draft, assessment, improve, history                       | Active | 2026-04-09   | cf24d99          | AI Builder Copilot — NEW     |
 
 ---
 
@@ -115,6 +116,7 @@
 | ----------------------- | ----------------------------------------------- | ------ | ------------ | ---------------- | --------------- |
 | `useQuizPlayerStore`    | Quiz player state (answers, navigation, flags)  | Active | 2026-04-02   | ff4edf1          | quizzes feature |
 | `useCreatorBridgeStore` | AI quiz data bridge between Creator and Builder | Active | 2026-04-05   | ff4edf1          | creator feature |
+| `useBuilderAICopilotStore` | Drawer AI copilot state + hydrated artifact history | Active | 2026-04-09   | cf24d99          | ai-builder-copilot |
 | `useToast` (Zustand)    | Toast notification store                        | Active | 2026-04-02   | ff4edf1          | Global          |
 
 ### UI Components (`src/components/ui/`)
@@ -184,7 +186,9 @@
 | `check-plagiarism`           | Internal plagiarism checker       | Active | 2026-04-02   | ff4edf1          | Teacher/admin only     |
 | `check-rate-limit`           | Server-side rate limiting         | Active | 2026-04-02   | ff4edf1          | Service role           |
 | `generate-ai-content`        | AI content generation from files  | Active | 2026-04-05   | ff4edf1          | Teacher/admin only     |
+| `generate-course-outline`    | AI outline generation in builder  | Active | 2026-04-09   | cf24d99          | Teacher/admin only     |
 | `generate-executive-report`  | Executive report generation       | Active | 2026-04-02   | ff4edf1          | Principal/admin only   |
+| `generate-lesson-draft`      | AI lesson draft + assessment payload generation | Active | 2026-04-09   | cf24d99          | Teacher/admin only     |
 | `generate-parent-report`     | Parent report generation          | Active | 2026-04-02   | ff4edf1          | Parent/admin/principal |
 | `generate-pdf`               | PDF certificate generation        | Active | 2026-04-02   | ff4edf1          | User JWT               |
 | `grade-quiz-attempt`         | Background quiz grading           | Active | 2026-04-02   | ff4edf1          | Service role           |
@@ -203,6 +207,7 @@
 | `send-parent-digest`         | Parent digest notification        | Active | 2026-04-02   | ff4edf1          | Service role           |
 | `send-parent-otp`            | Parent OTP verification           | Active | 2026-04-02   | ff4edf1          | Phone verification     |
 | `send-push`                  | Web Push notification sender      | Active | 2026-04-02   | ff4edf1          | User JWT               |
+| `transform-course-content`   | AI transform helper for builder blocks | Active | 2026-04-09   | cf24d99          | Teacher/admin only     |
 | `video-webhook`              | Video provider webhook handler    | Active | 2026-04-05   | ff4edf1          | Webhook secret         |
 
 ---

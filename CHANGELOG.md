@@ -1,5 +1,29 @@
 # EduSync LMS — Changelog
 
+## [AI Course Builder Copilot V1] — 2026-04-09
+
+### Added
+
+- **`ai_builder_artifacts` table** — New provenance store for builder-AI interactions (outline, lesson_draft, assessment, transform artifacts) with tenant RLS, creator-scoped policies, and auto-set triggers (`20260509000001_ai_builder_copilot.sql`)
+- **`apply_ai_outline_artifact` RPC** — Atomic outline apply: inserts selected modules and lessons as draft, modeled after `import_content_template`
+- **`apply_ai_lesson_artifact` RPC** — Atomic lesson apply: inserts selected blocks, menyimpan kuis via `save_quiz_builder`, upsert assignment, dan memastikan block kuis/tugas tersedia di builder
+- **`generate-course-outline` edge function** — Groq-powered outline generation with module/lesson structure, types, and durations
+- **`generate-lesson-draft` edge function** — Lesson draft generation with mode `lesson_draft`, `quiz`, `reading`, dan `writing` untuk preview asesmen native di builder
+- **`transform-course-content` edge function** — Content transformation (summarize, expand, simplify, tone-rewrite, grade-align, quiz-seed, assignment-brief)
+- **`src/features/ai-builder-copilot/`** — New feature module with types, service, React Query hooks, Zustand store, and feature flag gate hook
+- **`CourseBuilderAICopilotDrawer`** — Right-side drawer with 5 tabs: Kerangka (Outline), Draft, Asesmen, Perbaiki (Improve), Riwayat (History)
+- **Builder entry points** — Sparkles button in TopBar, AI CTA in sidebar empty state, AI CTA in lesson editor empty state, Sparkles button on TEXT block actions
+- **Feature flag** — `ai_course_builder_copilot` (enabled=true, rollout=0%)
+
+### Changed
+
+- **`CourseBuilder.tsx`** — Replaced dual boolean panel state with `activePanel: 'none' | 'release' | 'copilot'` for mutual exclusion
+- **`BuilderTopBar.tsx`** — Added `copilotOpen`/`onToggleCopilot` props and Sparkles button
+- **`BuilderSidebar.tsx`** — Added "Hasilkan dengan AI" button in empty state
+- **`LessonBlockEditor.tsx`** — Added AI CTAs in empty states and Sparkles button on TEXT block headers
+- **`creatorBridge.store.ts`** — Generalized with `pendingArtifact` alongside existing `pendingQuiz`
+- **Riwayat copilot** — Artifact history kini user-scoped dan bisa memulihkan konteks lesson/block saat artefak dimuat ulang dari drawer
+
 ## [Phase 5 Remediation] — 2026-04-07
 
 ### Fixed

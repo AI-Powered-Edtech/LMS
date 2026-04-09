@@ -27,6 +27,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useBuilder } from '@/contexts/BuilderContext'
+import { useAICopilotFeatureGate } from '@/features/ai-builder-copilot/hooks/useAICopilotFeatureGate'
+import { useBuilderAICopilotStore } from '@/features/ai-builder-copilot/store/builderAICopilot.store'
 import { TemplateModal } from '@/features/courses/components/TemplateModal'
 import { QuizBlockEditor } from '@/features/quizzes/components/QuizBlockEditor'
 import { cn } from '@/utils/cn'
@@ -39,6 +41,8 @@ import { TextBlockEditor } from './blocks/TextBlockEditor'
 import { VideoBlockEditor } from './blocks/VideoBlockEditor'
 export function LessonBlockEditor() {
   const { state, actions, mobile } = useBuilder()
+  const { enabled: copilotEnabled } = useAICopilotFeatureGate()
+  const openCopilot = useBuilderAICopilotStore((s) => s.openDrawer)
   const [showAddMenu, setShowAddMenu] = useState(false)
   const [deletingBlockId, setDeletingBlockId] = useState<string | null>(null)
   const [templateModalOpen, setTemplateModalOpen] = useState(false)
@@ -123,6 +127,20 @@ export function LessonBlockEditor() {
                     <Plus className="w-5 h-5" />
                     Buat dari Awal
                   </button>
+                  {copilotEnabled && (
+                    <button
+                      onClick={() =>
+                        openCopilot('outline', {
+                          entryPoint: 'lesson_empty',
+                          preSelectedTab: 'outline',
+                        })
+                      }
+                      className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800 text-violet-600 dark:text-violet-400 font-bold rounded-2xl hover:bg-violet-100 dark:hover:bg-violet-950/50 transition-all text-sm"
+                    >
+                      <Sparkles className="w-5 h-5" />
+                      Susun dengan AI
+                    </button>
+                  )}
                 </div>
               </>
             ) : (
@@ -133,9 +151,23 @@ export function LessonBlockEditor() {
                 <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-4 tracking-tight">
                   Mulai Menyusun
                 </h3>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-[280px] mx-auto">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-[280px] mx-auto mb-6">
                   Pilih satu materi dari daftar kurikulum untuk mulai mengisi konten pembelajaran.
                 </p>
+                {copilotEnabled && (
+                  <button
+                    onClick={() =>
+                      openCopilot('outline', {
+                        entryPoint: 'lesson_empty',
+                        preSelectedTab: 'outline',
+                      })
+                    }
+                    className="flex items-center justify-center gap-2 px-5 py-2.5 bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800 text-violet-600 dark:text-violet-400 font-bold rounded-2xl hover:bg-violet-100 dark:hover:bg-violet-950/50 transition-all text-sm"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Buat Konten dengan AI
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -393,6 +425,25 @@ export function LessonBlockEditor() {
                                 >
                                   <ArrowDown className="w-4 h-4" />
                                 </button>
+                                {copilotEnabled && block.type.toUpperCase() === 'TEXT' && (
+                                  <button
+                                    onClick={() => {
+                                      actions.selectBlock(block.id)
+                                      openCopilot('improve', {
+                                        entryPoint: 'block_action',
+                                        targetType: 'block',
+                                        targetId: block.id,
+                                        preSelectedTab: 'improve',
+                                        blockContent: block.content ?? undefined,
+                                      })
+                                    }}
+                                    className="p-2 hover:bg-violet-50 dark:hover:bg-violet-950/30 text-slate-500 hover:text-violet-600 dark:hover:text-violet-400 rounded-xl transition-all focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                                    aria-label="Perbaiki dengan AI"
+                                    title="Perbaiki dengan AI"
+                                  >
+                                    <Sparkles className="w-4 h-4" />
+                                  </button>
+                                )}
                               </div>
 
                               {/* FIX 2: Inline delete confirmation — replaces native confirm() */}

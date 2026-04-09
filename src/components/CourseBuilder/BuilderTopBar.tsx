@@ -10,6 +10,7 @@ import {
   Send,
   Settings,
   Shield,
+  Sparkles,
   Users,
   WifiOff,
   XCircle,
@@ -32,9 +33,16 @@ import { translateCourseStatus } from '@/utils/statusTranslations'
 interface BuilderTopBarProps {
   releasePanelOpen?: boolean
   onToggleReleasePanel?: () => void
+  copilotOpen?: boolean
+  onToggleCopilot?: () => void
 }
 
-export function BuilderTopBar({ releasePanelOpen, onToggleReleasePanel }: BuilderTopBarProps) {
+export function BuilderTopBar({
+  releasePanelOpen,
+  onToggleReleasePanel,
+  copilotOpen,
+  onToggleCopilot,
+}: BuilderTopBarProps) {
   const { state, actions, mobile, offline } = useBuilder()
   const { role } = useAuth()
   const navigate = useNavigate()
@@ -184,6 +192,17 @@ export function BuilderTopBar({ releasePanelOpen, onToggleReleasePanel }: Builde
                   exit={{ opacity: 0, y: 10 }}
                   className="absolute top-16 right-4 w-48 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 flex flex-col z-50"
                 >
+                  {onToggleCopilot && (
+                    <button
+                      onClick={() => {
+                        onToggleCopilot()
+                        setIsMobileMenuOpen(false)
+                      }}
+                      className="px-4 py-2 text-sm text-left hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-3 text-violet-600 dark:text-violet-400"
+                    >
+                      <Sparkles className="w-4 h-4" /> Asisten AI
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       onToggleReleasePanel?.()
@@ -305,6 +324,26 @@ export function BuilderTopBar({ releasePanelOpen, onToggleReleasePanel }: Builde
               <Settings className="w-4 h-4" />
               <span className="hidden lg:inline">Pengaturan</span>
             </button>
+
+            {/* AI Copilot Button */}
+            {onToggleCopilot && (
+              <button
+                onClick={onToggleCopilot}
+                disabled={!state.courseId}
+                className={cn(
+                  'px-4 py-2 text-sm font-semibold rounded-xl transition-all flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed',
+                  copilotOpen
+                    ? 'bg-violet-600 text-white shadow-violet-100 dark:shadow-violet-900/30'
+                    : 'text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-white dark:hover:bg-slate-750 hover:shadow-md hover:-translate-y-0.5'
+                )}
+                title="Asisten AI"
+                aria-label="Asisten AI"
+                aria-pressed={copilotOpen}
+              >
+                <Sparkles className="w-4 h-4" />
+                <span className="hidden lg:inline">AI</span>
+              </button>
+            )}
           </>
         )}
 

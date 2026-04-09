@@ -9,6 +9,7 @@ import {
   Import,
   Plus,
   Save,
+  Sparkles,
   Trash2,
   Video,
   X,
@@ -17,6 +18,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
 import { useBuilder } from '@/contexts/BuilderContext'
+import { useAICopilotFeatureGate } from '@/features/ai-builder-copilot/hooks/useAICopilotFeatureGate'
+import { useBuilderAICopilotStore } from '@/features/ai-builder-copilot/store/builderAICopilot.store'
 import { SaveTemplateModal } from '@/features/courses/components/SaveTemplateModal'
 import { TemplateModal } from '@/features/courses/components/TemplateModal'
 import { cn } from '@/utils/cn'
@@ -37,6 +40,8 @@ interface SaveTemplateConfig {
 
 export function BuilderSidebar() {
   const { state, actions, mobile } = useBuilder()
+  const { enabled: copilotEnabled } = useAICopilotFeatureGate()
+  const openCopilot = useBuilderAICopilotStore((s) => s.openDrawer)
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const [addingLessonTo, setAddingLessonTo] = useState<string | null>(null)
   const [templateModalConfig, setTemplateModalConfig] = useState<TemplateModalConfig>({
@@ -188,6 +193,20 @@ export function BuilderSidebar() {
               <Plus className="w-4 h-4" />
               Buat Modul
             </button>
+            {copilotEnabled && (
+              <button
+                onClick={() =>
+                  openCopilot('outline', {
+                    entryPoint: 'sidebar_empty',
+                    preSelectedTab: 'outline',
+                  })
+                }
+                className="text-sm font-bold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/30 hover:bg-violet-100 dark:hover:bg-violet-950/50 border border-violet-200 dark:border-violet-800 px-6 py-2.5 rounded-xl transition-all shadow-sm hover:-translate-y-0.5 flex items-center gap-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                Hasilkan dengan AI
+              </button>
+            )}
           </div>
         ) : (
           <DragDropContext onDragEnd={handleDragEnd}>

@@ -4,6 +4,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { BuilderSidebar, BuilderTopBar, LessonBlockEditor } from '@/components/CourseBuilder'
 import { useAuth } from '@/contexts/AuthContext'
 import { BuilderProvider, useBuilder } from '@/contexts/BuilderContext'
+import { CourseBuilderAICopilotDrawer } from '@/features/ai-builder-copilot/components/CourseBuilderAICopilotDrawer'
+import { useAICopilotFeatureGate } from '@/features/ai-builder-copilot/hooks/useAICopilotFeatureGate'
+import { useBuilderAICopilotStore } from '@/features/ai-builder-copilot/store/builderAICopilot.store'
 import { CourseReleasePanel } from '@/features/courses/components/CourseReleasePanel'
 import { usePageTitle } from '@/hooks/usePageTitle'
 
@@ -17,9 +20,32 @@ function CourseBuilderPage() {
   const { role } = useAuth()
   const courseId = searchParams.get('courseId')
   const { state, actions } = useBuilder()
-  const [releasePanelOpen, setReleasePanelOpen] = useState(false)
+  const [activePanel, setActivePanel] = useState<'none' | 'release' | 'copilot'>('none')
+  const { enabled: copilotEnabled } = useAICopilotFeatureGate()
+  const isCopilotDrawerOpen = useBuilderAICopilotStore((store) => store.isOpen)
+  const openCopilotDrawer = useBuilderAICopilotStore((store) => store.openDrawer)
+  const closeCopilotDrawer = useBuilderAICopilotStore((store) => store.closeDrawer)
 
-  const toggleReleasePanel = () => setReleasePanelOpen((prev) => !prev)
+  const releasePanelOpen = activePanel === 'release'
+  const copilotOpen = activePanel === 'copilot'
+
+  const toggleReleasePanel = () => setActivePanel((p) => (p === 'release' ? 'none' : 'release'))
+  const toggleCopilot = () => {
+    if (activePanel === 'copilot') {
+      setActivePanel('none')
+      closeCopilotDrawer()
+    } else {
+      setActivePanel('copilot')
+      openCopilotDrawer()
+    }
+  }
+
+  // Sync external store opens (from sidebar/lesson editor entry points)
+  useEffect(() => {
+    if (isCopilotDrawerOpen && activePanel !== 'copilot') {
+      setActivePanel('copilot')
+    }
+  }, [isCopilotDrawerOpen, activePanel])
 
   // Auto-load course from URL param
   useEffect(() => {
@@ -107,6 +133,8 @@ function CourseBuilderPage() {
         <BuilderTopBar
           releasePanelOpen={releasePanelOpen}
           onToggleReleasePanel={toggleReleasePanel}
+          copilotOpen={copilotOpen}
+          onToggleCopilot={copilotEnabled ? toggleCopilot : undefined}
         />
       </header>
       <div className="flex flex-1 min-h-0 overflow-hidden">
@@ -116,7 +144,15 @@ function CourseBuilderPage() {
         <main id="builder-main" aria-label="Editor konten" className="flex-1 min-w-0 overflow-auto">
           <LessonBlockEditor />
         </main>
-        {releasePanelOpen && <CourseReleasePanel onClose={() => setReleasePanelOpen(false)} />}
+        {copilotOpen && (
+          <CourseBuilderAICopilotDrawer
+            onClose={() => {
+              setActivePanel('none')
+              closeCopilotDrawer()
+            }}
+          />
+        )}
+        {releasePanelOpen && <CourseReleasePanel onClose={() => setActivePanel('none')} />}
       </div>
     </div>
   )
