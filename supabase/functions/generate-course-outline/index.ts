@@ -5,6 +5,8 @@ import { corsHeaders, handleCors } from '../_shared/cors.ts'
 const LLM_TIMEOUT_MS = 30_000
 const RATE_LIMIT_PER_HOUR = 20
 const MODEL = 'llama-3.1-70b-versatile'
+const MAX_PROMPT_CHARS = 10_000
+const MAX_FIELD_CHARS = 5_000
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -72,6 +74,43 @@ async function checkRateLimit(
 
   if ((count ?? 0) >= RATE_LIMIT_PER_HOUR) {
     throw new Error('RATE_LIMITED')
+  }
+}
+
+async function assertCourseAccess(
+  serviceClient: ReturnType<typeof createClient>,
+  courseId: string,
+  userId: string,
+  tenantId: string
+): Promise<void> {
+  const { count: creatorCount, error: creatorError } = await serviceClient
+    .from('courses')
+    .select('id', { count: 'exact', head: true })
+    .eq('id', courseId)
+    .eq('tenant_id', tenantId)
+    .eq('created_by', userId)
+    .limit(1)
+
+  if (creatorError) {
+    throw new Error('COURSE_ACCESS_CHECK_FAILED')
+  }
+
+  if ((creatorCount ?? 0) > 0) return
+
+  const { count: collaboratorCount, error: collaboratorError } = await serviceClient
+    .from('course_collaborators')
+    .select('id', { count: 'exact', head: true })
+    .eq('course_id', courseId)
+    .eq('user_id', userId)
+    .eq('tenant_id', tenantId)
+    .limit(1)
+
+  if (collaboratorError) {
+    throw new Error('COURSE_ACCESS_CHECK_FAILED')
+  }
+
+  if ((collaboratorCount ?? 0) === 0) {
+    throw new Error('FORBIDDEN_NO_COURSE_ACCESS')
   }
 }
 
@@ -176,11 +215,18 @@ Deno.serve(async (req) => {
 
     if (!course_id) return err('COURSE_ID_REQUIRED', 400)
     if (!course_title || course_title.trim().length < 3) return err('COURSE_TITLE_REQUIRED', 400)
+    if (course_title.length > MAX_FIELD_CHARS) return err('COURSE_TITLE_TOO_LONG', 400)
+    if (course_description && course_description.length > MAX_FIELD_CHARS) {
+      return err('COURSE_DESCRIPTION_TOO_LONG', 400)
+    }
+    if (subject && subject.length > MAX_FIELD_CHARS) return err('SUBJECT_TOO_LONG', 400)
+    if (grade_level && grade_level.length > MAX_FIELD_CHARS) return err('GRADE_LEVEL_TOO_LONG', 400)
 
     const moduleCount = Math.min(Math.max(target_module_count, 1), 10)
     const lessonCount = Math.min(Math.max(target_lesson_count, 1), 8)
 
-    // 3. Rate limiting
+    // 3. Course access + rate limiting
+    await assertCourseAccess(serviceClient, course_id, userId, tenantId)
     await checkRateLimit(serviceClient, userId, tenantId)
 
     // 4. Call Groq LLM
@@ -198,6 +244,11 @@ Deno.serve(async (req) => {
       moduleCount,
       lessonCount
     )
+
+    if (prompt.length > MAX_PROMPT_CHARS) {
+      await logAttempt('error', null, 'PROMPT_TOO_LONG')
+      return err('PROMPT_TOO_LONG', 400)
+    }
 
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), LLM_TIMEOUT_MS)
@@ -309,6 +360,7 @@ Deno.serve(async (req) => {
     if (msg === 'AUTH_MISSING' || msg === 'AUTH_INVALID') return err(msg, 401)
     if (msg === 'UNAUTHORIZED_ROLE') return err(msg, 403)
     if (msg === 'TENANT_MISSING') return err(msg, 403)
+    if (msg === 'FORBIDDEN_NO_COURSE_ACCESS') return err(msg, 403)
     if (msg === 'RATE_LIMITED') {
       await logAttempt('rate_limited', null, msg)
       return err(msg, 429)

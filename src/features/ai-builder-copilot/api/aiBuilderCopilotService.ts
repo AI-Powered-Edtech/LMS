@@ -28,12 +28,17 @@ const ERROR_MAP: Record<string, string> = {
   COURSE_TITLE_REQUIRED: 'Judul kursus wajib diisi (minimal 3 karakter).',
   LESSON_ID_REQUIRED: 'ID pelajaran wajib diisi.',
   LESSON_NOT_FOUND: 'Pelajaran tidak ditemukan.',
+  FORBIDDEN_NO_COURSE_ACCESS: 'Anda tidak memiliki akses ke kursus ini.',
   CONTENT_TOO_SHORT: 'Konten terlalu pendek untuk diproses (minimal 10 karakter).',
+  CONTENT_TOO_LONG: 'Konten terlalu panjang. Maksimal 5.000 karakter.',
   INVALID_ACTION: 'Aksi transformasi tidak valid.',
   INTERNAL_ERROR: 'Terjadi kesalahan. Coba lagi.',
   PROMPT_TOO_LONG: 'Prompt terlalu panjang. Maksimal 10.000 karakter.',
+  COURSE_TITLE_TOO_LONG: 'Judul kursus terlalu panjang. Maksimal 5.000 karakter.',
+  COURSE_DESCRIPTION_TOO_LONG: 'Deskripsi kursus terlalu panjang. Maksimal 5.000 karakter.',
   SUBJECT_TOO_LONG: 'Mata pelajaran terlalu panjang. Maksimal 5.000 karakter.',
   GRADE_LEVEL_TOO_LONG: 'Tingkat kelas terlalu panjang. Maksimal 5.000 karakter.',
+  LESSON_TITLE_TOO_LONG: 'Judul pelajaran terlalu panjang. Maksimal 5.000 karakter.',
 }
 
 function mapError(msg: string): string {

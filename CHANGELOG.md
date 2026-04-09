@@ -1,5 +1,14 @@
 # EduSync LMS — Changelog
 
+## [AI Builder Copilot Hardening] — 2026-04-09
+
+### Changed
+
+- `CourseBuilder.tsx` kembali me-mount `CourseBuilderAICopilotDrawer` dan menyatukan panel `release`/`copilot` agar entry point AI benar-benar muncul di builder shell.
+- `generate-course-outline`, `generate-lesson-draft`, dan `transform-course-content` sekarang memverifikasi akses ke course sebelum operasi AI dijalankan.
+- AI Builder Copilot sekarang menegakkan batas input 5.000 karakter per field dan 10.000 karakter per prompt pada backend, bukan hanya di frontend.
+- `src/features/ai-builder-copilot/README.md` dirapikan agar sesuai dengan implementasi yang benar-benar ada di codebase.
+
 ## [Gold Readiness Hardening] — 2026-04-07
 
 ### Added

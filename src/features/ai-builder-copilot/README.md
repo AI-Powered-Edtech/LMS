@@ -1,180 +1,106 @@
-# ai-builder-copilot — Feature Module
+# AI Builder Copilot
 
-AI Copilot real-time terintegrasi di dalam Course Builder untuk otomatisasi, pengingat, dan rekomendasi kontekstual untuk guru dan konten creator. Menyediakan drawer panel di sisi kanan untuk menghasilkan kerangka kursus, draft pelajaran, asesmen, dan transformasi konten.
+Fitur AI Copilot yang terintegrasi langsung di Course Builder. Surface utamanya berupa drawer di sisi kanan yang membantu guru atau admin membuat kerangka kursus, draft pelajaran, asesmen, transformasi konten, dan meninjau riwayat artefak AI.
 
 ## Status
 
-**Production-Ready** — Phase 30B selesai (2026-04-09)
+Implementasi V1 aktif di codebase dan digate oleh feature flag `ai_course_builder_copilot`.
 
-## Arsitektur
+## Struktur
 
-```
+```text
 src/features/ai-builder-copilot/
-├── types/
-│   └── index.ts                     # Type definitions (artifacts, requests, responses)
-├── api/
-│   └── aiBuilderCopilotService.ts   # Supabase client calls (edge functions + RPCs)
-├── queries/
-│   └── aiBuilderCopilotQueries.ts   # React Query hooks
-├── store/
-│   └── builderAICopilot.store.ts    # Zustand store: drawer state, active tab, history artifact
-├── hooks/
-│   ├── useAICopilotFeatureGate.ts   # Feature flag gate with hydration
-│   ├── useSuggestionEngine.ts       # Logic pengurutan dan filtering saran
-│   └── useActionExecutor.ts         # Eksekusi otomatisasi aksi
-├── components/
-│   ├── CourseBuilderAICopilotDrawer.tsx # Main drawer shell with tab bar
-│   ├── OutlineTab.tsx                   # Course outline generation
-│   ├── LessonDraftTab.tsx               # Lesson content draft
-│   ├── AssessmentTab.tsx                # Assessment generation (quiz/reading/writing)
-│   ├── ImproveTab.tsx                   # Content transform with diff preview
-│   ├── HistoryTab.tsx                   # Artifact history browser
-│   └── shared/
-│       ├── ArtifactStatusBadge.tsx
-│       ├── BlockPreviewCard.tsx
-│       ├── CopilotLoadingState.tsx
-│       ├── DiffPreview.tsx
-│       └── ModuleOutlineCard.tsx
-├── utils/
-│   └── contextExtractor.ts          # Ekstraksi konteks dari state builder
-├── __tests__/
-├── index.ts                         # Public barrel export
-└── README.md
-```
-
-## Data Flow
-
-```
-┌─────────────────────────┐     ┌─────────────────────────┐     ┌─────────────────────────┐
-│ Course Builder State    │────▶│ Context Extractor       │────▶│ Suggestion Engine       │
-└─────────────────────────┘     └─────────────────────────┘     └─────────────────────────┘
-                                                               │
-                                                               ▼
-┌─────────────────────────┐     ┌─────────────────────────┐     ┌─────────────────────────┐
-│ User Action Execution   │◀────│ Action Validator        │◀────│ LLM Suggestion          │
-└─────────────────────────┘     └─────────────────────────┘     └─────────────────────────┘
-         │
-         ▼
-┌─────────────────────────┐
-│ Audit Log + Cache       │
-└─────────────────────────┘
-```
-
-## Capability
-
-| Capability                | Method                    | Edge Function / Backend         |
-| ------------------------- | ------------------------- | ------------------------------- |
-| Generate course outline   | `generateCourseOutline()` | `generate-course-outline`       |
-| Generate lesson draft     | `generateLessonDraft()`   | `generate-lesson-draft`         |
-| Transform konten          | `transformContent()`      | `transform-course-content`      |
-| Auto-reorder modules      | `autoReorderModules()`    | Client-side                     |
-| Kurikulum alignment check | `checkCurriculumAlign()`  | Client validator                |
-| Undo last copilot action  | `undoLastAction()`        | Client store + Supabase revert  |
-| Apply outline ke kursus   | `applyOutlineArtifact()`  | RPC `apply_ai_outline_artifact` |
-| Apply draft ke lesson     | `applyLessonArtifact()`   | RPC `apply_ai_lesson_artifact`  |
-
-## Database Tables
-
-| Tabel                  | Purpose                                                      |
-| ---------------------- | ------------------------------------------------------------ |
-| `ai_builder_artifacts` | Semua artefak yang dihasilkan beserta status dan metadata    |
-| `ai_copilot_sessions`  | Session per user per course builder sesi                     |
-| `ai_copilot_actions`   | Semua aksi yang dieksekusi beserta rollback data             |
-| `ai_copilot_logs`      | Audit log lengkap dengan user agent, timestamp, tenant scope |
-
-> ✅ Semua tabel memiliki RLS aktif dengan `tenant_id` scoping dan trigger `auto_set_tenant_id()`
->
-> Migrasi: `supabase/migrations/20260509000001_ai_builder_copilot.sql`
-
-## Store State Structure
-
-```typescript
-interface BuilderCopilotStore {
-  isDrawerOpen: boolean
-  activeTab: 'outline' | 'lesson' | 'assessment' | 'improve' | 'history'
-  currentSessionId: UUID | null
-  activeArtifact: AIBuilderArtifact | null
-  artifactHistory: AIBuilderArtifact[]
-  context: {
-    courseId: UUID | null
-    moduleId: UUID | null
-    lessonId: UUID | null
-    blockId: UUID | null
-  }
-  undoStack: CopilotUndoEntry[]
-}
-```
-
-## Security Features
-
-1.  **RLS Enabled**: Semua tabel hanya dapat diakses oleh user pada tenant yang sama
-2.  **Authorization Check**: Hanya `teacher`, `admin`, `principal` dapat mengaktifkan copilot
-3.  **Audit Log Immutable**: Tidak ada update / delete yang diizinkan pada tabel log
-4.  **No PII Logging**: Tidak ada informasi pribadi yang disimpan di log copilot
-5.  **Action Confirmation**: Semua aksi yang memodifikasi data menampilkan diff preview sebelum apply
-6.  **Rate Limiting**: 12 request per menit per user, enforced di Edge Function
-
-## Usage Examples
-
-### Mengaktifkan Drawer Copilot
-
-```tsx
-import { useBuilderCopilotStore } from '@/features/ai-builder-copilot'
-
-// Di dalam Course Builder TopBar
-const { isDrawerOpen, toggleDrawer } = useBuilderCopilotStore()
-
-return (
-  <Button variant="ghost" onClick={toggleDrawer} aria-label="Toggle AI Copilot">
-    <SparklesIcon />
-  </Button>
-)
-```
-
-### Generate Outline Kursus
-
-```tsx
-import { useGenerateCourseOutline } from '@/features/ai-builder-copilot'
-
-const generateMutation = useGenerateCourseOutline()
-
-const handleGenerate = () => {
-  generateMutation.mutate({
-    courseId,
-    subject: 'Matematika',
-    gradeLevel: '10',
-    totalModules: 6,
-  })
-}
+  api/
+    aiBuilderCopilotService.ts
+  components/
+    AssessmentTab.tsx
+    CourseBuilderAICopilotDrawer.tsx
+    HistoryTab.tsx
+    ImproveTab.tsx
+    LessonDraftTab.tsx
+    OutlineTab.tsx
+    shared/
+      ArtifactStatusBadge.tsx
+      BlockPreviewCard.tsx
+      CopilotLoadingState.tsx
+      DiffPreview.tsx
+      ModuleOutlineCard.tsx
+  hooks/
+    useAICopilotFeatureGate.ts
+  queries/
+    aiBuilderCopilotQueries.ts
+  store/
+    builderAICopilot.store.ts
+  types/
+    index.ts
+  __tests__/
+    builderAICopilot.store.test.ts
+  index.ts
 ```
 
 ## Entry Points
 
-1.  **TopBar** — Sparkles/AI button (between Settings and Release)
-2.  **Sidebar empty state** — "Hasilkan dengan AI" button
-3.  **Lesson editor empty state** — "Buat Konten dengan AI" button
-4.  **Block header actions** — Sparkles button on TEXT blocks (opens Improve tab)
-5.  **History tab** — Memuat ulang artefak lama beserta konteks lesson/block jika tersedia
+1. `BuilderTopBar` menampilkan tombol `AI` jika feature flag aktif.
+2. `BuilderSidebar` menampilkan CTA `Hasilkan dengan AI` pada empty state.
+3. `LessonBlockEditor` menampilkan CTA empty state dan aksi `Perbaiki dengan AI` pada blok teks.
+4. `CourseBuilder.tsx` me-mount `CourseBuilderAICopilotDrawer` sebagai panel kanan yang mutually exclusive dengan release panel.
 
-## Feature Flag
+## Tab dan Capability
 
-Gated behind `ai_course_builder_copilot` feature flag (default: enabled=true, rollout=0%).
+| Tab | Tujuan | Backend |
+| --- | --- | --- |
+| `Outline` | Generate modul + lesson tree dari konteks kursus | Edge Function `generate-course-outline` |
+| `Lesson Draft` | Generate blok teks untuk lesson aktif | Edge Function `generate-lesson-draft` |
+| `Assessment` | Generate kuis, bacaan, atau tugas dari lesson aktif | Edge Function `generate-lesson-draft` |
+| `Improve` | Ringkas, perluas, sederhanakan, ubah nada, atau ubah konten terpilih | Edge Function `transform-course-content` |
+| `History` | Lihat artefak AI terdahulu dan muat ulang preview | Query `ai_builder_artifacts` |
 
-## Testing
+## Data Flow
 
-```bash
-# Run unit tests untuk module ini
-pnpm test src/features/ai-builder-copilot/__tests__/
+1. User membuka drawer dari builder.
+2. Tab memanggil edge function melalui `aiBuilderCopilotService`.
+3. Edge function menyimpan hasil ke `ai_builder_artifacts` dengan status `generated`.
+4. UI menampilkan preview terlebih dahulu.
+5. Saat user menekan apply:
+   - outline memakai RPC `apply_ai_outline_artifact`
+   - lesson draft / assessment memakai RPC `apply_ai_lesson_artifact`
+   - transform menulis ulang block yang sedang dipilih melalui action builder yang sudah ada
+6. History membaca artefak yang dibuat user tersebut untuk course aktif, dengan pagination cursor berbasis `created_at`.
 
-# Integration test
-pnpm test:integration copilot
-```
+## State Lokal
 
-## Related Files
+Store `builderAICopilot.store.ts` menyimpan:
 
-| File Path                                                      | Deskripsi                              |
-| -------------------------------------------------------------- | -------------------------------------- |
-| `src/features/course-builder/components/BuilderLayout.tsx:142` | Tempat Copilot Drawer dimount          |
-| `supabase/migrations/20260509000001_ai_builder_copilot.sql`    | Skema tabel migrasi                    |
-| `src/shared/config/featureFlags.ts`                            | Flag fitur `ai_course_builder_copilot` |
-| `src/utils/queryConstants.ts:78`                               | Query key stale time untuk copilot     |
+- `isOpen`
+- `activeTab`
+- `launchContext`
+- `hydratedArtifact`
+
+`hydratedArtifact` dipakai oleh tab untuk memuat ulang preview dari History tanpa silent apply.
+
+## Security dan Guardrails
+
+- Edge function mewajibkan autentikasi dan menolak role `student`.
+- Semua edge function memverifikasi akses ke course target sebelum operasi LLM berjalan.
+- Request dibatasi oleh rate limit berbasis `ai_generation_logs`.
+- Field teks utama dibatasi maksimal 5.000 karakter dan prompt akhir maksimal 10.000 karakter.
+- Apply flow selalu draft-first; tidak ada overwrite diam-diam ke builder.
+- Riwayat builder AI bersifat user-scoped pada V1 melalui filter `created_by`.
+
+## Database
+
+Migration utama: `supabase/migrations/20260509000001_ai_builder_copilot.sql`
+
+Objek yang ditambahkan:
+
+- tabel `ai_builder_artifacts`
+- RPC `apply_ai_outline_artifact`
+- RPC `apply_ai_lesson_artifact`
+- seed feature flag `ai_course_builder_copilot`
+
+## Catatan Implementasi
+
+- V1 masih mengikuti model lesson-scoped untuk kuis dan assignment.
+- Assessment mode `quiz`, `reading`, dan `writing` semuanya disimpan sebagai artifact `assessment`.
+- History tab saat ini memuat ulang preview, bukan melakukan apply otomatis.
+- `/creator` masih tetap hidup untuk backward compatibility, tetapi surface builder adalah alur AI utama untuk authoring di dalam course builder.
