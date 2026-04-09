@@ -4,7 +4,7 @@
 
 - **Tanggal:** 2026-04-09
 - **Branch:** main
-- **Commit:** 79bf0ad5
+- **Commit:** 74d86a06
 - **Author:** Agent (Migration Planning)
 - **Sources Used:**
   - Codebase scan: `src/`
@@ -110,11 +110,13 @@
 | -------------------- | ---------------- | ------------ | ------------------------------ |
 | `profiles`           | RLS + tenant_id  | **Critical** | Must map to TenantGuard        |
 | `user_roles`         | RLS by user_id   | **Critical** | Must map to RBAC               |
-| `tenant_memberships` | RLS by tenant    | **Critical** | Must map to TenantGuard        |
-| `sessions`           | RLS by user      | **High**     | Must map to session management |
+| `tenant_memberships` | RLS by tenant_id | **Critical** | Validated: exists in schema    |
+| `user_sessions`      | RLS by user_id   | **High**     | Device tracking, login history |
 | `courses`            | RLS by tenant    | **High**     | Must map to TenantGuard        |
 | `classes`            | RLS by tenant    | **High**     | Must map to TenantGuard        |
 | `enrollments`        | RLS by tenant    | **High**     | Must map to TenantGuard        |
+| `lti_sessions`       | RLS by tenant    | **Medium**   | LTI guest sessions             |
+| `ai_tutor_sessions`  | RLS by tenant    | **Medium**   | AI Tutor sessions              |
 
 **Pola Keamanan Kritis:**
 
@@ -126,41 +128,49 @@
 
 ## Bucket 6: Edge Functions
 
-### 28 Edge Functions Teridentifikasi
+### 30 Edge Functions Teridentifikasi
 
-| Function                    | Category     | Purpose                   | Criticality |
-| --------------------------- | ------------ | ------------------------- | ----------- |
-| `ai-grade-essay`            | AI           | Essay grading via Groq    | **High**    |
-| `ai-tutor`                  | AI           | AI tutor chat             | **High**    |
-| `generate-ai-content`       | AI           | AI content generation     | **High**    |
-| `grade-quiz-attempt`        | Processing   | Background quiz grading   | **High**    |
-| `process-progress-events`   | Processing   | Batch progress processing | **High**    |
-| `send-email-digest`         | Notification | Daily email digest        | **Medium**  |
-| `send-push`                 | Notification | Push notifications        | **Medium**  |
-| `send-parent-digest`        | Notification | Parent digest             | **Medium**  |
-| `send-parent-otp`           | Notification | Parent OTP                | **High**    |
-| `lti-jwks`                  | LTI          | LTI JWKS                  | **Medium**  |
-| `lti-oidc-login`            | LTI          | LTI OIDC login            | **Medium**  |
-| `lti-launch`                | LTI          | LTI launch                | **Medium**  |
-| `scorm-extract`             | SCORM        | SCORM upload/extract      | **Medium**  |
-| `generate-pdf`              | PDF          | Certificate generation    | **Medium**  |
-| `generate-executive-report` | Reports      | Executive report          | **Medium**  |
-| `generate-parent-report`    | Reports      | Parent report             | **Medium**  |
-| `bulk-import-users`         | Admin        | Bulk user import          | **Medium**  |
-| `load-quiz-data`            | Quiz         | Quiz data loading         | **High**    |
-| `progress-events`           | Progress     | Progress events queue     | **High**    |
-| `check-rate-limit`          | Utility      | Rate limiting             | **Medium**  |
-| `health-check`              | Utility      | Health check              | **Low**     |
-| `whatsapp-webhook`          | External     | WhatsApp webhook          | **Low**     |
+| Function                     | Category     | Purpose                       | Criticality |
+| ---------------------------- | ------------ | ----------------------------- | ----------- |
+| `ai-grade-essay`             | AI           | Essay grading via Groq        | **High**    |
+| `ai-tutor`                   | AI           | AI tutor chat                 | **High**    |
+| `generate-ai-content`        | AI           | AI content generation         | **High**    |
+| `generate-course-outline`    | AI           | Course outline generation     | **High**    |
+| `generate-lesson-draft`      | AI           | Lesson draft generation       | **High**    |
+| `generate-quiz-from-content` | AI           | Quiz generation from content  | **High**    |
+| `recommend-learning-path`    | AI           | Learning path recommendation  | **High**    |
+| `check-plagiarism`           | AI           | Plagiarism checking           | **High**    |
+| `grade-quiz-attempt`         | Processing   | Background quiz grading       | **High**    |
+| `process-progress-events`    | Processing   | Batch progress processing     | **High**    |
+| `progress-events`            | Processing   | Progress events queue         | **High**    |
+| `transform-course-content`   | Processing   | Course content transformation | **Medium**  |
+| `video-webhook`              | Processing   | Video processing webhook      | **Medium**  |
+| `send-email-digest`          | Notification | Daily email digest            | **Medium**  |
+| `send-push`                  | Notification | Push notifications            | **Medium**  |
+| `send-parent-digest`         | Notification | Parent digest                 | **Medium**  |
+| `send-parent-otp`            | Notification | Parent OTP                    | **High**    |
+| `whatsapp-webhook`           | External     | WhatsApp webhook              | **Low**     |
+| `bulk-import-users`          | Admin        | Bulk user import              | **Medium**  |
+| `load-quiz-data`             | Quiz         | Quiz data loading             | **High**    |
+| `lti-jwks`                   | LTI          | LTI JWKS                      | **Medium**  |
+| `lti-oidc-login`             | LTI          | LTI OIDC login                | **Medium**  |
+| `lti-launch`                 | LTI          | LTI launch                    | **Medium**  |
+| `lti-grade-passback`         | LTI          | LTI grade passback            | **Medium**  |
+| `scorm-extract`              | SCORM        | SCORM upload/extract          | **Medium**  |
+| `generate-pdf`               | PDF          | Certificate generation        | **Medium**  |
+| `generate-executive-report`  | Reports      | Executive report              | **Medium**  |
+| `generate-parent-report`     | Reports      | Parent report                 | **Medium**  |
+| `check-rate-limit`           | Utility      | Rate limiting                 | **Medium**  |
+| `health-check`               | Utility      | Health check                  | **Low**     |
 
 **Category Breakdown:**
 
-- AI Functions: 3 (high priority)
-- Processing: 2 (high priority)
+- AI Functions: 8 (high priority)
+- Processing: 5 (high priority)
 - Notifications: 4 (medium priority)
-- LTI: 3 (medium priority)
+- LTI: 4 (medium priority)
 - Reports: 2 (medium priority)
-- Utility/Other: ~14
+- Utility/Other: 7
 
 ---
 
@@ -186,8 +196,8 @@
 | Bucket         | Severity     | Count        | Recommendation           |
 | -------------- | ------------ | ------------ | ------------------------ |
 | Auth/RPC       | **Critical** | 15+ items    | Migrate-first (Phase 1)  |
-| RLS Policies   | **Critical** | 7+ tables    | Migrate-first (Phase 1)  |
-| Edge Functions | **High**     | 28 functions | Migrate-later (Phase 3)  |
+| RLS Policies   | **Critical** | 9 tables     | Migrate-first (Phase 1)  |
+| Edge Functions | **High**     | 30 functions | Migrate-later (Phase 3)  |
 | Storage        | **High**     | 6 buckets    | Migrate-later (Phase 5)  |
 | Realtime       | **Medium**   | 11 subs      | Migrate-later (Phase 4)  |
 | Offline Sync   | **High**     | 2 files      | Migrate-later (Phase 5)  |
@@ -207,7 +217,7 @@
 | ----------------- | ------------ | -------------------------------------- |
 | Auth coupling     | **Critical** | MUST complete Phase 0A before Phase 1  |
 | RLS → TenantGuard | **Critical** | Must replicate tenant isolation in VIL |
-| 28 Edge Functions | **High**     | Need clear mapping to VIL equivalents  |
+| 30 Edge Functions | **High**     | Need clear mapping to VIL equivalents  |
 | Storage buckets   | **High**     | Abstract in Phase 0D before migrate    |
 | Realtime          | **Medium**   | Abstract in Phase 0C, migrate Phase 4  |
 
@@ -219,7 +229,9 @@
 - [x] Bucket 2: Realtime — 11 subscriptions found
 - [x] Bucket 3: Storage — 6 buckets identified
 - [x] Bucket 4: Offline Sync — 2 files analyzed
-- [x] Bucket 5: RLS — 7 critical tables identified
-- [x] Bucket 6: Edge Functions — 28 functions listed
+- [x] Bucket 5: RLS — 9 critical tables identified
+- [x] Bucket 6: Edge Functions — 30 functions listed
 - [x] Bucket 7: Client Types — 4 types, types.ts NOT YET CREATED
 - [x] Summary & Recommendations written
+
+(End of file - total 230 lines)
