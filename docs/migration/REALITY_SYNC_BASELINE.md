@@ -119,7 +119,7 @@ pnpm build        # Production build
 ## Known Migration-Critical Facts
 
 1. **Auth dependencies:** Sekarang bergantung pada Supabase Auth + RPC patterns (`get_auth_bootstrap`, `ensure_profile_exists`, dll)
-2. **Multi-tenant isolation:** Ditopang oleh RLS + `tenant_id` column — di VIL harus换成 TenantGuard middleware
+2. **Multi-tenant isolation:** Ditopang oleh RLS + `tenant_id` column — di VIL harus diubah menjadi TenantGuard middleware atau setara
 3. **Edge Functions:** 28 functions adalah bagian nyata dari backend aktif, bukan optional
 4. **Realtime:** Native Supabase, 9 consumer hooks — butuh abstraction sebelum migrate
 5. **Storage:** Native Supabase Storage — butuh abstraction sebelum migrate
