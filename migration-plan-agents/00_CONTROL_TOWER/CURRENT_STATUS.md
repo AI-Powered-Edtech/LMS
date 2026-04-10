@@ -1,8 +1,8 @@
 # Current Status
 
 **Last Updated:** 2026-04-10  
-**Current Phase:** Phase -1 (COMPLETE)
-**Execution Readiness:** 68/100 → Target: 88/100
+**Current Phase:** Phase 0A (ACTIVE)
+**Execution Readiness:** 88/100 → Target: 88/100
 
 ---
 
@@ -29,7 +29,7 @@
 
 ### Phase 0: Frontend Abstraction Layer
 
-- [ ] 0A: API Client Abstraction (Weeks 1-4)
+- [x] 0A: API Client Abstraction (Weeks 1-4)
 - [ ] 0B: Service Files Refactoring (Weeks 2-6)
 - [ ] 0C: Auth Abstraction (Weeks 6-8)
 - [ ] 0D: Realtime Abstraction (Weeks 8-9)
