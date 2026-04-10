@@ -329,3 +329,44 @@ src/features/{domain}/
 - [ ] CHANGELOG.md updated
 - [ ] Component Registry updated (if applicable)
 - [ ] Relevant documentation updated
+
+---
+
+## Codebase Facts Reference (verified 2026-04-10)
+
+Agents should reference these counts instead of guessing or re-scanning.
+
+### Edge Functions: 30
+
+All 30 functions in `supabase/functions/`:
+
+`ai-grade-essay`, `ai-tutor`, `bulk-import-users`, `check-plagiarism`, `check-rate-limit`, `generate-ai-content`, `generate-course-outline`, `generate-executive-report`, `generate-lesson-draft`, `generate-parent-report`, `generate-pdf`, `generate-quiz-from-content`, `grade-quiz-attempt`, `health-check`, `load-quiz-data`, `lti-grade-passback`, `lti-jwks`, `lti-launch`, `lti-oidc-login`, `process-progress-events`, `progress-events`, `recommend-learning-path`, `scorm-extract`, `send-email-digest`, `send-parent-digest`, `send-parent-otp`, `send-push`, `transform-course-content`, `video-webhook`, `whatsapp-webhook`
+
+### Supabase Import Count: 129
+
+| Location | Count |
+| --- | --- |
+| `src/features/` | 120 |
+| `src/contexts/` | 1 |
+| `src/utils/` | 7 |
+| `src/components/` | 2 |
+| **Total** | **129** |
+
+### Verification Commands
+
+```bash
+# Count Edge Functions (exclude _shared)
+ls -d supabase/functions/*/ | grep -v _shared | wc -l
+# Expected: 30
+
+# Count Supabase imports in features
+grep -rl "supabase" src/features/ | wc -l
+# Expected: ~120
+```
+
+### Key Paths
+
+- `src/services/api/` does NOT exist yet (Phase 0A creates it)
+- Hash routing `/#/` is active (HashRouter)
+- Phase -1 outputs: `docs/migration/` (4 files)
+- Revised Phase 0 plan: `plans/REVISED_PHASE_0.md`

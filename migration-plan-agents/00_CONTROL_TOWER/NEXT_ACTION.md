@@ -1,189 +1,162 @@
-# Next Action: Phase -1 Reality Sync
+# Next Action: Phase 0A — API Client Abstraction
 
 **Priority:** START IMMEDIATELY  
-**Estimated Duration:** 1 week (~40 hours)  
-**Goal:** Synchronize migration plan with actual repository state
+**Estimated Duration:** 4 weeks (~60 hours)  
+**Goal:** Create `src/services/api/` abstraction layer so feature code never imports Supabase directly
 
 ---
 
-## What is Phase -1?
+## What is Phase 0A?
 
-Phase -1 is a preflight check to reconcile the migration plan with the current repository state. The repo is already at **81/100 Production Candidate**, but some plan assumptions may reference older baselines.
+Phase 0A creates the API client abstraction that all feature modules will use instead of importing Supabase directly. This is the foundation for the entire migration — without it, no subsequent phase can proceed.
 
-**Why?** Prevent entering Phase 0 with:
+**Why?** After Phase 0A:
 
-- Ambiguous source of truth
-- Incomplete coupling inventory
-- Tasks mixed with already-fixed issues
-- CI strategy assuming "no CI exists" (CI already exists)
+- Feature code imports `apiClient.query()` instead of `supabase.from()`
+- Swapping Supabase for VIL becomes a one-file change (`apiClient` implementation)
+- All 129 Supabase import sites get funneled through a single abstraction
 
 ---
 
 ## Prerequisites Checklist
 
-Before starting Phase -1, verify:
+Before starting Phase 0A, verify:
 
-- [ ] Access to repository (check CLAUDE.md for current path)
+- [x] Phase -1 Reality Sync complete (all 5 workstreams closed)
+- [x] Phase -1 outputs available:
+  - `docs/migration/REALITY_SYNC_BASELINE.md`
+  - `docs/migration/SUPABASE_COUPLING_INVENTORY.md`
+  - `docs/migration/GAP_RECLASSIFICATION.md`
+  - `docs/migration/MIGRATION_SCOPE_MATRIX.md`
+- [x] Revised Phase 0 plan reviewed: `plans/REVISED_PHASE_0.md`
 - [ ] `pnpm` installed and working
-- [ ] Access to Supabase project dashboard
-- [ ] Access to VIL framework documentation
-- [ ] Read the migration plan in `migration-plan-agents/` directory
+- [ ] Repository cloned and `pnpm install` succeeds
+- [ ] `pnpm typecheck && pnpm build` passes on current `main`
 
----
-
-## How to Start Phase -1
-
-### Step 1: Create Working Directory
+### Verify with bash
 
 ```bash
-mkdir -p docs/migration
-cd docs/migration
+# Phase -1 outputs exist
+ls docs/migration/REALITY_SYNC_BASELINE.md \
+   docs/migration/SUPABASE_COUPLING_INVENTORY.md \
+   docs/migration/GAP_RECLASSIFICATION.md \
+   docs/migration/MIGRATION_SCOPE_MATRIX.md \
+   plans/REVISED_PHASE_0.md \
+&& echo "PASS: all Phase -1 outputs present" \
+|| echo "FAIL: missing Phase -1 outputs"
+
+# src/services/api/ should NOT exist yet
+[ ! -d src/services/api ] && echo "PASS: api/ not yet created" || echo "INFO: api/ already exists"
+
+# Build passes
+pnpm typecheck && pnpm build && echo "PASS: build clean" || echo "FAIL: fix build first"
 ```
-
-### Step 2: Execute Workstream A — Baseline Truth Refresh
-
-Create `REALITY_SYNC_BASELINE.md`:
-
-```markdown
-# Reality Sync Baseline
-
-**Date:** YYYY-MM-DD
-**Author:** [Agent Name]
-
-## Current Repository State
-
-- Git hash: [latest]
-- Production readiness: 81/100
-- Feature modules: [count]
-- E2E scenarios: 400+ passing (Playwright)
-
-## Supabase Touchpoints
-
-[Inventory all direct Supabase usage]
-
-## Critical Vulnerabilities Status
-
-[Verify if any from old roadmap are already fixed]
-```
-
-### Step 3: Execute Workstream B — Coupling Inventory
-
-Create `SUPABASE_COUPLING_INVENTORY.md`:
-
-Document 7 buckets:
-
-1. **Auth/RPC/Functions** — Direct dependency
-2. **Realtime** — Active with polling fallback
-3. **Storage** — Upload/delete/public URL
-4. **Offline sync** — Queue writes
-5. **RLS policies** — Security layer
-6. **Edge Functions** — 28 functions
-7. **Client SDK** — Type definitions
-
-### Step 4: Execute Workstream C — Gap Classification
-
-Create `GAP_RECLASSIFICATION.md`:
-
-| Gap     | Old Status | New Status           | Reason   |
-| ------- | ---------- | -------------------- | -------- |
-| [gap 1] | [old]      | Live/Stale/Competing | [reason] |
-
-### Step 5: Execute Workstream D — Scope Narrowing
-
-Create `MIGRATION_SCOPE_MATRIX.md`:
-
-| Domain | Decision       | Rationale                  |
-| ------ | -------------- | -------------------------- |
-| [TBD]  | TBD - Decision | Requires Reality Sync data |
-| [TBD]  | TBD - Decision | Requires Reality Sync data |
-| ...    | ...            | ...                        |
-
-NOTE: All domain decisions (migrate-first / migrate-later / stay-on-supabase) will be determined by Reality Sync workstream D. Do NOT pre-assign.
-
-### Step 6: Execute Workstream E — Revised Phase 0
-
-Create `plans/REVISED_PHASE_0.md`:
-
-- Remove tasks already completed
-- Remove duplicate tasks
-- Align with CI-aware approach
-- Add tasks discovered in workstreams A-D
 
 ---
 
-## Phase -1 Exit Criteria
+## How to Start Phase 0A
 
-Before entering Phase 0, ALL must be true:
+### Step 1: Create Branch
 
-- [ ] Single baseline document agreed upon
-- [ ] All major Supabase touchpoints inventoried
-- [ ] All old blockers classified (Live vs Stale vs Competing)
-- [ ] Migration objective reframed as "safe surface reduction"
-- [ ] Revised Phase 0 contains no duplicate/obsolete tasks
-- [ ] Domain list: migrate-first / migrate-later / stay-on-supabase
+```bash
+git checkout -b phase-0/api-abstraction main
+```
+
+### Step 2: Create API Client Directory
+
+```bash
+mkdir -p src/services/api
+```
+
+### Step 3: Follow Task Queue
+
+The detailed task queue for Phase 0A is in:
+
+```
+migration-plan-agents/02_PHASE_0_FRONTEND_ABSTRACTION/
+```
+
+Review `plans/REVISED_PHASE_0.md` for scope adjustments from Phase -1.
+
+---
+
+## Phase 0A Exit Criteria
+
+Before entering Phase 0B, ALL must be true:
+
+- [ ] `src/services/api/apiClient.ts` exists with typed interface
+- [ ] `src/services/api/supabaseApiClient.ts` implements interface using current Supabase client
+- [ ] At least one feature module migrated to use `apiClient` instead of direct Supabase imports
+- [ ] `pnpm typecheck` passes
+- [ ] `pnpm build` passes
+- [ ] No regressions in existing E2E tests
+
+### Verify with bash
+
+```bash
+# API client files exist
+ls src/services/api/apiClient.ts \
+   src/services/api/supabaseApiClient.ts \
+&& echo "PASS: api client created" \
+|| echo "FAIL: api client missing"
+
+# TypeScript compiles
+pnpm typecheck && echo "PASS: types clean" || echo "FAIL: type errors"
+
+# Build succeeds
+pnpm build && echo "PASS: build clean" || echo "FAIL: build broken"
+```
 
 ### No-Go Conditions
 
-**DO NOT enter Phase 0 if:**
+**DO NOT enter Phase 0B if:**
 
-- Readiness source of truth still ambiguous
-- Coupling inventory incomplete
-- Migration tasks still mixed with already-fixed issues
-- CI strategy still assumes "no CI exists"
-- Auth/realtime/storage treated as easy-first
-
----
-
-## Phase -1 Timeline
-
-| Day     | Workstream            | Output                           |
-| ------- | --------------------- | -------------------------------- |
-| Day 1   | A: Baseline Truth     | `REALITY_SYNC_BASELINE.md`       |
-| Day 1-2 | B: Coupling Inventory | `SUPABASE_COUPLING_INVENTORY.md` |
-| Day 3   | C: Gap Classification | `GAP_RECLASSIFICATION.md`        |
-| Day 4   | D: Scope Narrowing    | `MIGRATION_SCOPE_MATRIX.md`      |
-| Day 5   | E: Revised Phase 0    | `plans/REVISED_PHASE_0.md`       |
+- API client interface is incomplete or untyped
+- Build is broken
+- Feature module migration pattern is not proven on at least one module
+- CI is not passing
 
 ---
 
-## After Phase -1
+## Phase 0A Timeline
 
-1. Review deliverables with stakeholders
-2. Update master plan if needed
-3. Begin Phase 0 with confidence
-4. Target: Execution Readiness 88/100
+| Week | Task | Output |
+| --- | --- | --- |
+| Week 1 | Design `ApiClient` interface | `src/services/api/apiClient.ts` |
+| Week 2 | Implement `SupabaseApiClient` | `src/services/api/supabaseApiClient.ts` |
+| Week 3 | Migrate first feature module batch | Updated imports in `src/features/` |
+| Week 4 | Migrate remaining + verify | All features using abstraction |
 
 ---
 
-## Key Contacts for Phase -1
+## After Phase 0A
 
-| Role                     | Responsibility            |
-| ------------------------ | ------------------------- |
-| Agent executing Phase -1 | All workstreams           |
-| Architect                | Baseline truth approval   |
-| Product Owner            | Scope narrowing decisions |
+1. Run full verification: `pnpm typecheck && pnpm lint && pnpm test:ci && pnpm build`
+2. Update `CURRENT_STATUS.md` with Phase 0A completion
+3. Update execution readiness score (target: +15 points toward 88/100)
+4. Proceed to Phase 0B only after Gate 0A passes
+
+---
+
+## Frozen Phases (DO NOT START)
+
+The following phases are **DITUNDA** until Gate 0A passes and execution readiness reaches 88/100:
+
+- Phase 0B: Service Files Refactoring
+- Phase 0C: Auth Abstraction
+- Phase 0D: Realtime Abstraction
+- Phase 0E: Compatibility Contract Freeze
+- Phase 0F: Direct Dependency Audit + CI Guard
+- Phase 0G: Verification
+- Phase 1 (1A, 1B, 1C, 1D): Auth + Scaffold
 
 ---
 
 ## Related Documents
 
-- [Control Tower Documents](./)
-- [Architecture Doc](../../docs/ARCHITECTURE.md)
-- [Database Schema](../../docs/DATABASE.md)
+- [Current Status](./CURRENT_STATUS.md)
+- [Global Rules](./GLOBAL_RULES.md)
 - [Phase 0 Directory](../02_PHASE_0_FRONTEND_ABSTRACTION/)
-
----
-
-## Status Terkini
-
-Execution Readiness: **68/100** → Target: 88/100
-
-**FROZEN:**
-
-- Phase 0B, 0C, 0D, 0E, 0F, 0G — DITUNDA hingga Gate RS + Gate 0A passed
-- Phase 1 (1A, 1B, 1C, 1D) — DITUNDA hingga execution readiness 88/100
-
-**ALLOWED NOW:**
-
-- Phase -1 Reality Sync
-- Phase 0A only
+- [Revised Phase 0 Plan](../../plans/REVISED_PHASE_0.md)
+- [Coupling Inventory](../../docs/migration/SUPABASE_COUPLING_INVENTORY.md)
+- [Architecture Doc](../../docs/ARCHITECTURE.md)

@@ -1,8 +1,8 @@
 # EduSync LMS Migration: Control Tower
 
 **Versi:** 1.0  
-**Status:** Siap Dimulai  
-**Tanggal:** 2026-04-09  
+**Status:** Phase -1 Complete, Phase 0A Next  
+**Tanggal:** 2026-04-10  
 **Repo:** AI-Powered-Edtech/LMS
 
 ---
@@ -13,7 +13,7 @@ Dokumen ini mengkoordinasikan migrasi EduSync LMS dari **Supabase** ke **VIL Bac
 
 **Total Estimasi Effort:** ~1,060 jam (~72 minggu part-time)  
 **Strategic Fit:** 88/100  
-**Execution Readiness:** 76/100 → Target: 88/100 setelah Phase -1
+**Execution Readiness:** 68/100 → Target: 88/100 (Phase -1 complete, Phase 0A next)
 
 ---
 
@@ -39,10 +39,10 @@ Dokumen ini mengkoordinasikan migrasi EduSync LMS dari **Supabase** ke **VIL Bac
 | Metrik               | Nilai                         |
 | -------------------- | ----------------------------- |
 | Strategic Fit        | 88/100                        |
-| Execution Readiness  | 76/100 → 88/100 (target)      |
+| Execution Readiness  | 68/100 → 88/100 (target)      |
 | Repository Readiness | 81/100 (Production Candidate) |
 | Feature Modules      | 48+                           |
-| Edge Functions       | 22                            |
+| Edge Functions       | 30                            |
 | Realtime Hooks       | 9                             |
 | E2E Tests            | 51 Playwright tests           |
 | Go/No-Go Gates       | 6                             |
@@ -82,10 +82,11 @@ Dokumen ini mengkoordinasikan migrasi EduSync LMS dari **Supabase** ke **VIL Bac
 
 ### Routing
 
-EduSync uses **path-based routing** (BrowserRouter), NOT hash routing.
+EduSync uses **hash-based routing** (HashRouter with `/#/` prefix).
 
-- OAuth callback: `/auth/callback`
-- Nginx: all `/app/*`, `/auth/*`, `/login`, `/register` must fallback to `index.html`
+- All app links use `/#/` prefix
+- OAuth callback: `/#/auth/callback`
+- No Nginx fallback required — hash routing handles client-side navigation
 
 ### Auth State Side-Effects
 
@@ -108,11 +109,11 @@ EduSync uses **path-based routing** (BrowserRouter), NOT hash routing.
 
 ## Quick Links
 
-- [Master Plan](<./migration-plan/Full%20Migration%20EduSync%20LMS%20Supabase%20→%20VIL%20Backend%20(ace54d0)>)
-- [VIL Framework Reference](./10_VIL_BOOTSTRAP_CONTEXT/)
-- [Database Schema](./docs/DATABASE.md)
-- [Component Registry](./COMPONENT_REGISTRY.md)
-- [Engineering Guide](./CLAUDE.md)
+- [Master Plan](<../migration-plan/Full%20Migration%20EduSync%20LMS%20Supabase%20→%20VIL%20Backend%20(ace54d0)>)
+- [VIL Framework Reference](../10_VIL_BOOTSTRAP_CONTEXT/)
+- [Database Schema](../../docs/DATABASE.md)
+- [Component Registry](../../COMPONENT_REGISTRY.md)
+- [Engineering Guide](../../CLAUDE.md)
 
 ---
 
