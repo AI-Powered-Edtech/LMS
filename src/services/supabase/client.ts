@@ -24,9 +24,9 @@ export function initializeSupabaseClient(): void {
 
 export function getSupabaseClient(): SupabaseClient {
   if (!supabaseClient) {
-    throw new Error('SupabaseClient not initialized. Call initializeSupabaseClient() first.')
+    initializeSupabaseClient()
   }
-  return supabaseClient
+  return supabaseClient!
 }
 
 export function setSupabaseClient(client: SupabaseClient): void {
