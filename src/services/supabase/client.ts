@@ -1,16 +1,44 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+let supabaseClient: SupabaseClient | null = null
+let initialized = false
 
-// Graceful degradation to avoid white screen of death during module evaluation.
-// Client will still work but queries will fail, which can be handled by the UI.
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    detectSessionInUrl: false,
-    flowType: 'pkce',
+export function initializeSupabaseClient(): void {
+  if (initialized) return
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+
+  supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      detectSessionInUrl: false,
+      flowType: 'pkce',
+    },
+  })
+  initialized = true
+}
+
+export function getSupabaseClient(): SupabaseClient {
+  if (!supabaseClient) {
+    initializeSupabaseClient()
+  }
+  return supabaseClient!
+}
+
+export function setSupabaseClient(client: SupabaseClient): void {
+  supabaseClient = client
+  initialized = true
+}
+
+export const supabase = new Proxy({} as any, {
+  get(_target, prop) {
+    return function (...args: any[]) {
+      const client = getSupabaseClient()
+      const target = (client as any)[prop]
+      if (typeof target === 'function') {
+        return target.apply(client, args)
+      }
+      return target
+    }
   },
 })
-// NOTE: Previously exposed `window.supabase` in DEV for browser console testing.
-// Removed: attackers could call Supabase directly bypassing all client-side checks.
-// For debugging, use Supabase Dashboard → Table Editor or SQL Editor instead.
