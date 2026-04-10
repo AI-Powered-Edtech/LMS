@@ -23,7 +23,7 @@ else
         fi
         
         echo "   - Memeriksa dokumentasi di docs/ENVIRONMENT.md..."
-        documented_vars=$(grep -E '\| *[a-zA-Z_][a-zA-Z0-9_]* *\|' docs/ENVIRONMENT.md | grep -v '^[|`]' | awk -F'|' '{print $2}' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -E '^[a-zA-Z_][a-zA-Z0-9_]*$' | sort)
+        documented_vars=$(grep -E '\| *[a-zA-Z_][a-zA-Z0-9_]* *\|' docs/ENVIRONMENT.md | grep -v 'Variable Name' | awk -F'|' '{print $2}' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -E '^[a-zA-Z_][a-zA-Z0-9_]*$' | sort)
         
         # Bandingkan environment variables
         missing_docs=""
