@@ -29,7 +29,7 @@
 
 ### Phase 0: Frontend Abstraction Layer
 
-- [x] 0A: API Client Abstraction (Weeks 1-4)
+- [ ] 0A: API Client Abstraction (Weeks 1-4) — ACTIVE
 - [ ] 0B: Service Files Refactoring (Weeks 2-6)
 - [ ] 0C: Auth Abstraction (Weeks 6-8)
 - [ ] 0D: Realtime Abstraction (Weeks 8-9)
@@ -107,43 +107,47 @@
    - Migration objective reframed
    - No-Go conditions cleared
 
-3. **Proceed to Phase 0A: API Client Abstraction**
+3. **Phase 0A: API Client Abstraction** 🔄 ACTIVE
    - Review `plans/REVISED_PHASE_0.md` for updated scope
-   - Start with `src/services/api/` foundation
+   - Build `src/services/api/` foundation
+   - Abstract all Supabase client calls
+   - Current focus: `src/services/api/` directory structure
 
 ---
 
 ## Repository Readiness Status
 
-| Component       | Status             | Notes                                       |
-| --------------- | ------------------ | ------------------------------------------- |
-| CI/CD           | ✅ Exists          | GitHub Actions, ESLint, Playwright          |
-| CI Status       | ⚠️ Exists          | Needs verification (workflow indent issues) |
-| E2E Tests       | ✅ 400+ scenarios  | Playwright framework                        |
-| Feature Modules | ✅ 48+             | Organized by domain                         |
-| Auth            | ✅ Supabase        | Needs abstraction                           |
-| Realtime        | ✅ 9 hooks         | Needs abstraction                           |
-| Storage         | ✅ Supabase        | Needs abstraction                           |
-| Edge Functions  | ✅ 28              | Need VIL port                               |
-| Routing         | ✅ Hash-based (#/) | Active                                      |
-| TypeScript      | ✅ v5.8            | Strict mode                                 |
-| Dark Mode       | ✅ Tailwind        | Need `dark:` variants                       |
+| Component       | Status                | Notes                                       |
+| --------------- | --------------------- | ------------------------------------------- |
+| CI/CD           | ✅ Exists             | GitHub Actions, ESLint, Playwright          |
+| CI Status       | ⚠️ Exists             | Needs verification (workflow indent issues) |
+| E2E Tests       | ✅ 400+ scenarios     | Playwright framework                        |
+| Feature Modules | ✅ 52                 | Organized by domain                         |
+| Hooks           | ✅ 20                 | Custom React hooks                          |
+| Contexts        | ✅ 3                  | Theme, Auth, Feature providers              |
+| UI Components   | ✅ 47                 | Reusable UI primitives                      |
+| Auth            | ✅ Supabase           | Needs abstraction                           |
+| Realtime        | ✅ 9 hooks            | Needs abstraction                           |
+| Storage         | ✅ Supabase           | Needs abstraction                           |
+| Edge Functions  | ✅ 30                 | Need VIL port                               |
+| Routing         | ✅ Path-based (/app/) | BrowserRouter in App.tsx, NOT HashRouter    |
+| TypeScript      | ✅ v5.8               | Strict mode                                 |
+| Dark Mode       | ✅ Tailwind           | Need `dark:` variants                       |
 
 ---
 
 ## Risk Status
 
-| Risk                            | Level        | Mitigation             |
-| ------------------------------- | ------------ | ---------------------- |
-| Password hash mismatch          | **Critical** | Dual-hash verification |
-| Scope creep                     | **High**     | Strict phase gates     |
-| Team burnout                    | **High**     | Realistic timeline     |
-| Routing mismatch (hash vs path) | **High**     | Sync with plan         |
-| Abstraction layer not started   | **High**     | Must complete 0A first |
-| CI gate unverified              | **Medium**   | Prove before relying   |
-| VIL stability                   | Medium       | Fork to Axum if needed |
-| RLS→middleware bugs             | Medium       | Shadow mode testing    |
-| MFA gaps                        | Medium       | Port existing logic    |
+| Risk                          | Level        | Mitigation             |
+| ----------------------------- | ------------ | ---------------------- |
+| Password hash mismatch        | **Critical** | Dual-hash verification |
+| Scope creep                   | **High**     | Strict phase gates     |
+| Team burnout                  | **High**     | Realistic timeline     |
+| Abstraction layer not started | **High**     | Must complete 0A first |
+| CI gate unverified            | **Medium**   | Prove before relying   |
+| VIL stability                 | Medium       | Fork to Axum if needed |
+| RLS→middleware bugs           | Medium       | Shadow mode testing    |
+| MFA gaps                      | Medium       | Port existing logic    |
 
 ---
 
