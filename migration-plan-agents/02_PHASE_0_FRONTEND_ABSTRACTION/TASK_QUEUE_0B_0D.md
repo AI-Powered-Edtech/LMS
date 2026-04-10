@@ -1,503 +1,655 @@
-# Task Queue — Waves 0B-0D: Auth, Realtime & Storage Abstraction
+# Task Queue — Waves 0B-0D (FROZEN PREBUILT QUEUE)
 
-**Timeline:** Weeks 5-9 (~80 hours)
-**Goal:** Abstract Auth, Realtime, and Storage from Supabase
+# Auth, Realtime, and Storage Abstraction
 
-## Prerequisites
-
-- [ ] Phase 0A complete (all service files refactored)
-- [ ] `getApiClient()` singleton working
-- [ ] ESLint CI Guard active
-
-## Parallel Execution
-
-Waves 0B, 0C, and 0D can run in parallel with different agents:
-
-- **0B:** `feat/phase-0b-auth-abstraction`
-- **0C:** `feat/phase-0c-realtime-abstraction`
-- **0D:** `feat/phase-0d-storage-abstraction`
-
-**Critical:** Task `0-INIT` (Provider Init) must complete BEFORE 0B-4, 0C-3, or 0D-3.
+**Status:** FROZEN  
+**Execution Status:** DO NOT EXECUTE YET  
+**Purpose:** Menyiapkan queue siap-eksekusi untuk fase setelah Gate RS + Gate 0A pass  
+**Current Program Rule:** Phase 0A only. 0B–0E tetap freeze.
 
 ---
 
-# 🔑 Wave 0B: Auth Abstraction
+## Freeze Rules
 
-**Most sensitive area** — 48 feature modules depend on `useAuth()`
+Queue ini **bole h dipopulate**, **tidak boleh dieksekusi** sampai semua syarat berikut benar:
 
-## Dependency Graph
+- [ ] Phase -1 Reality Sync sudah CLOSED
+- [ ] Phase 0A sudah PASSED
+- [ ] `src/services/api/*` sudah stabil
+- [ ] proving path `courseService` sudah hijau
+- [ ] CI workflow sudah diverifikasi
+- [ ] readiness program sudah dinaikkan sesuai gate aktif
 
+**NO-GO:**  
+Jangan buka 0B/0C/0D saat 0A belum pass.
+
+---
+
+## Shared Assumptions
+
+Semua wave 0B–0D mengasumsikan Phase 0A sudah menghasilkan:
+
+- `src/services/api/types.ts`
+- `src/services/api/apiClient.ts`
+- `src/services/api/supabaseApiClient.ts`
+- `src/services/api/vilApiClient.ts`
+- `src/services/api/index.ts`
+- `initApiClient(...)` di `src/main.tsx`
+
+---
+
+## Merge / Branch Strategy
+
+- `feat/phase-0b-auth-abstraction`
+- `feat/phase-0c-realtime-abstraction`
+- `feat/phase-0d-storage-abstraction`
+
+**Recommended order after unfreeze:**
+
+1. 0B Auth
+2. 0C Realtime
+3. 0D Storage
+
+**Do not run 0C/0D first** unless 0B singleton/provider foundation is already proven.
+
+---
+
+# Wave 0B — Auth Abstraction
+
+**Blast radius:** Very High  
+**Reason:** `authService.ts`, `mfaService.ts`, `useSessionManagement.ts`, `useRoleResolution.ts`, dan `AuthContext.tsx` masih coupled ke Supabase secara langsung.
+
+## 0B Entry Conditions
+
+- [ ] Phase 0A PASS
+- [ ] `getApiClient()` proven working
+- [ ] No scope widening into Phase 1
+- [ ] Routing compatibility note already exists
+- [ ] Auth parity test plan drafted
+
+---
+
+## 0B-0: Auth Provider Foundation
+
+**Output:**
+
+- `src/services/auth/types.ts`
+- `src/services/auth/authProvider.ts`
+- `src/services/auth/index.ts`
+
+### Required interfaces
+
+- `AuthUser`
+- `AuthSession`
+- `AuthError`
+- `AuthSubscription`
+- `AuthProvider`
+
+### Required provider capabilities
+
+- `getSession()`
+- `getUser()`
+- `onAuthStateChange()`
+- `signInWithPassword()`
+- `signUp()`
+- `signInWithOAuth()`
+- `signOut()`
+- `refreshSession()`
+- `exchangeCodeForSession()`
+- `resetPasswordForEmail()`
+- `updateUser()`
+- `mfa.enroll()`
+- `mfa.challenge()`
+- `mfa.challengeAndVerify()`
+- `mfa.verify()`
+- `mfa.unenroll()`
+- `mfa.listFactors()`
+- `mfa.getAuthenticatorAssuranceLevel()`
+
+### Singleton contract
+
+```ts
+let activeAuthProvider: AuthProvider | null = null
+
+export function setAuthProvider(provider: AuthProvider): void {
+  activeAuthProvider = provider
+}
+
+export function getAuthProvider(): AuthProvider {
+  if (!activeAuthProvider) {
+    throw new Error('[AuthProvider] Not initialized')
+  }
+  return activeAuthProvider
+}
 ```
-0A (DONE) → 0-INIT → 0B-1 → 0B-2 → 0B-3 → 0B-4 → 0B-5 → 0B-6 → 0B-6.5
-                                                              ↓
-                                                         0B-7 → 0B-8 → 0B-9
-```
 
-## Task 0-INIT: Consolidated Provider Init in main.tsx
+---
 
-**CRITICAL:** Tasks 0B-4, 0C-3, and 0D-3 all edit `main.tsx`. Consolidate all init here to avoid merge conflicts.
+## 0B-1: SupabaseAuthProvider
 
-**Output:** Edit `src/main.tsx` (add after `setApiClient()` block)
+**Output:** `src/services/auth/supabaseAuthProvider.ts`
 
-```typescript
-// Auth Provider
-import { setAuthProvider } from '@/services/auth'
-import { createSupabaseAuthProvider } from '@/services/auth/supabaseAuthProvider'
-import { createVilAuthProvider } from '@/services/auth/vilAuthProvider'
+**Rule:** thin wrapper only. Delegate ke `supabase.auth` dari `src/services/supabase/client.ts`.
+
+**Do not:**
+
+- tambah business logic baru
+- ubah error semantics
+- ubah timing/redirect behavior
+
+---
+
+## 0B-2: VilAuthProvider Stub
+
+**Output:** `src/services/auth/vilAuthProvider.ts`
+
+**Rule:** semua method boleh return `NOT_IMPLEMENTED`, tapi shape response harus tetap konsisten dengan `AuthProvider`.
+
+**Do not:**
+
+- panggil endpoint VIL sungguhan dulu
+- invent auth flow baru
+
+---
+
+## 0B-3: Init Auth Provider in `src/main.tsx`
+
+`src/main.tsx` sekarang sudah punya `initApiClient(apiBackend)` saat boot, jadi auth provider harus mengikuti pola yang sama, bukan `setApiClient()` seperti draft lama.
+
+**Output:** patch `src/main.tsx`
+
+**Pattern:**
+
+```ts
+import { initApiClient } from './services/api'
+import { setAuthProvider } from './services/auth'
+import { createSupabaseAuthProvider } from './services/auth/supabaseAuthProvider'
+import { createVilAuthProvider } from './services/auth/vilAuthProvider'
+
+const env = validateEnv()
+const apiBackend = env.VITE_API_BACKEND === 'vil' ? 'vil' : 'supabase'
+
+initApiClient(apiBackend)
 
 if (apiBackend === 'vil') {
   setAuthProvider(createVilAuthProvider(import.meta.env.VITE_API_URL || 'http://localhost:8080'))
 } else {
   setAuthProvider(createSupabaseAuthProvider())
 }
-
-// Realtime Provider
-import { setRealtimeProvider } from '@/services/realtime'
-// ... similar pattern
-
-// Storage Provider
-import { setStorageProvider } from '@/services/storage'
-// ... similar pattern
 ```
+
+**Do not:**
+
+- ubah urutan `validateEnv()` → init services → render
+- ubah auth redirect handler global
 
 ---
 
-## Task 0B-1: AuthProvider Interface + Types
+## 0B-4: Refactor `src/features/auth/api/authService.ts`
 
-**Output:** `src/services/auth/types.ts`
+File ini sekarang memakai kombinasi:
 
-```typescript
-export interface AuthUser {
-  id: string
-  email?: string
-  app_metadata: Record<string, unknown>
-  user_metadata: Record<string, unknown>
-  // ... full Supabase User shape
-}
+- `supabase.auth.*`
+- `supabase.rpc(...)`
+- `supabase.functions.invoke(...)`
 
-export interface AuthSession {
-  access_token: string
-  refresh_token: string
-  expires_at: number
-  user: AuthUser
-}
+### Refactor rules
 
-export interface AuthProvider {
-  getSession(): Promise<{ data: { session: AuthSession | null }; error: AuthError | null }>
-  getUser(): Promise<{ data: { user: AuthUser | null }; error: AuthError | null }>
-  onAuthStateChange(callback): { data: { subscription: AuthSubscription } }
+- `supabase.auth.*` → `getAuthProvider().*`
+- `supabase.rpc(...)` → `getApiClient().rpc(...)`
+- `supabase.from(...)` → `getApiClient().from(...)`
+- `supabase.functions.invoke(...)` **BELUM disentuh** di 0B
+  tetap dibiarkan untuk fase edge-function migration yang terpisah
 
-  signInWithPassword(credentials): Promise<AuthResponse>
-  signUp(credentials): Promise<AuthResponse>
-  signInWithOAuth(options): Promise<...>
-  signOut(): Promise<...>
+### Critical invariants
 
-  refreshSession(): Promise<AuthResponse>
-  exchangeCodeForSession(code): Promise<AuthResponse>
-  resetPasswordForEmail(email): Promise<...>
-  updateUser(attributes): Promise<...>
-
-  mfa: {
-    enroll(params): Promise<MFAEnrollResult>
-    challenge(params): Promise<MFAChallengeResult>
-    verify(params): Promise<MFAVerifyResult>
-    unenroll(params): Promise<...>
-    listFactors(): Promise<MFAListFactorsResult>
-    getAuthenticatorAssuranceLevel(): Promise<...>
-  }
-}
-```
+- shape `AuthBootstrap` tidak berubah
+- `resolvePostAuthDestination(...)` tidak berubah
+- rate limit fail-open/fail-closed behavior tidak berubah
 
 ---
 
-## Task 0B-2: SupabaseAuthProvider
+## 0B-5: Refactor `src/features/auth/api/mfaService.ts`
 
-**Output:** `src/services/auth/supabaseAuthProvider.ts`
+File ini masih memakai `supabase.auth.mfa.*` langsung
 
-Thin wrapper — delegate to existing `supabase.auth`:
+### Replace
 
-```typescript
-export function createSupabaseAuthProvider(): AuthProvider {
-  const auth = supabase.auth
-  return {
-    getSession() {
-      return auth.getSession()
-    },
-    signInWithPassword(c) {
-      return auth.signInWithPassword(c)
-    },
-    // ... all methods delegate
-    mfa: {
-      enroll(p) {
-        return auth.mfa.enroll(p)
-      },
-      // ... all MFA methods delegate
-    },
-  }
-}
-```
+- `supabase.auth.mfa.enroll(...)` → `getAuthProvider().mfa.enroll(...)`
+- `supabase.auth.mfa.challengeAndVerify(...)` → provider equivalent
+- `supabase.auth.mfa.listFactors()` → provider equivalent
+- `supabase.auth.mfa.unenroll(...)` → provider equivalent
+
+### Critical invariants
+
+- QRCode generation tetap local/browser-side
+- error capture via Sentry tetap ada
+- return shape `MFAEnrollResult`, `MFAVerifyResult`, `MFAFactor[]` tetap sama
 
 ---
 
-## Task 0B-3: VilAuthProvider Stub
+## 0B-6: Refactor `src/contexts/auth/useRoleResolution.ts`
 
-**Output:** `src/services/auth/vilAuthProvider.ts`
+File ini masih indirectly bergantung pada auth bootstrap flow dan user shape Supabase
 
-All methods throw "Not implemented":
+### Replace
 
-```typescript
-export function createVilAuthProvider(_baseUrl: string): AuthProvider {
-  return {
-    getSession() {
-      return NOT_IMPL('getSession')
-    },
-    signInWithPassword() {
-      return NOT_IMPL('signInWithPassword')
-    },
-    // ... all methods throw
-  }
-}
-```
+- semua kebutuhan RPC / DB access harus lewat:
+  - `getApiClient()`
+  - `authService` yang sudah direfactor
+
+### Critical invariants
+
+- `Role`, `Permissions`, `Tenant` types tetap
+- `getPrimaryRole()` tidak berubah
+- `fetchUserData()`, `processPendingInvite()`, `processPendingJoinCode()` flow tidak berubah
+- timeout 12s tetap
 
 ---
 
-## Task 0B-4: Auth Singleton + Barrel + main.tsx Init
+## 0B-7: Refactor `src/contexts/auth/useSessionManagement.ts`
 
-**Output:**
+File ini sangat sensitif karena masih langsung memakai:
 
-- `src/services/auth/authProvider.ts` (singleton)
-- `src/services/auth/index.ts` (barrel)
-- `src/main.tsx` (init — or use 0-INIT)
+- `Session`, `User` dari `@supabase/supabase-js`
+- `supabase.auth.*` untuk lifecycle session
 
-```typescript
-// src/services/auth/authProvider.ts
-let _authProvider: AuthProvider | null = null
+### Replace
 
-export function setAuthProvider(provider: AuthProvider): void {
-  _authProvider = provider
-}
+- Supabase SDK types → auth abstraction types
+- `supabase.auth.getSession()` → `getAuthProvider().getSession()`
+- `supabase.auth.onAuthStateChange()` → `getAuthProvider().onAuthStateChange()`
+- `supabase.auth.refreshSession()` → `getAuthProvider().refreshSession()`
+- `supabase.auth.signInWithPassword()` → `getAuthProvider().signInWithPassword()`
+- `supabase.auth.signUp()` → `getAuthProvider().signUp()`
+- `supabase.auth.signInWithOAuth()` → `getAuthProvider().signInWithOAuth()`
+- `supabase.auth.signOut()` → `getAuthProvider().signOut()`
 
-export function getAuthProvider(): AuthProvider {
-  if (!_authProvider) throw new Error('[AuthProvider] Not initialized')
-  return _authProvider
-}
-```
+### CRITICAL: do not change
 
----
-
-## Task 0B-5: Refactor authService.ts
-
-**Output:** Edit `src/features/auth/api/authService.ts`
-
-```typescript
-// Replace
-import { supabase } from '@/services/supabase/client'
-
-// With
-import { getAuthProvider } from '@/services/auth'
-import { getApiClient } from '@/services/api'
-
-// Replace
-supabase.auth.signInWithPassword(...) → getAuthProvider().signInWithPassword(...)
-supabase.rpc('get_auth_bootstrap')  → getApiClient().rpc('get_auth_bootstrap')
-supabase.from('profiles')           → getApiClient().from('profiles')
-```
+- `INTERVAL_MS = 60_000`
+- refresh threshold = `5 * 60`
+- callback processing status behavior
+- localStorage cleanup order inside signOut
+- session expired toast behavior
+- redirect target for OAuth callback
 
 ---
 
-## Task 0B-6: Refactor mfaService.ts
+## 0B-8: Refactor `src/contexts/AuthContext.tsx`
 
-**Output:** Edit `src/features/auth/api/mfaService.ts`
+File ini expose contract yang dipakai hampir seluruh app
 
-```typescript
-// Replace
-supabase.auth.mfa.enroll(...)  → getAuthProvider().mfa.enroll(...)
-supabase.auth.mfa.verify(...) → getAuthProvider().mfa.verify(...)
-// ... all MFA methods
-```
+### Do not change
 
----
+- `AuthContextType` field names
+- `useAuth()` public API
+- `workspaceStatus` semantics
+- `refreshAuthBootstrap()` signature
+- `role`, `permissions`, `hasRole()` behavior
 
-## Task 0B-6.5: Refactor useRoleResolution.ts
+### Task
 
-**Output:** Edit `src/contexts/auth/useRoleResolution.ts`
-
-```typescript
-// Replace supabase.from/rpc with getApiClient()
-// Replace supabase.auth.* with getAuthProvider()
-```
+- hanya ubah typing/import agar tidak tergantung ke Supabase SDK langsung
+- source data tetap dari hooks yang sudah direfactor
 
 ---
 
-## Task 0B-7: Refactor useSessionManagement.ts
-
-**Output:** Edit `src/contexts/auth/useSessionManagement.ts`
-
-**CRITICAL:** Keep timing constants unchanged:
-
-- Refresh interval: `60_000ms`
-- Expiry threshold: `300` seconds (5 minutes)
-
-```typescript
-// Replace
-supabase.auth.getSession()        → getAuthProvider().getSession()
-supabase.auth.onAuthStateChange() → getAuthProvider().onAuthStateChange()
-supabase.auth.refreshSession()    → getAuthProvider().refreshSession()
-```
-
----
-
-## Task 0B-8: Refactor AuthContext.tsx
-
-**Output:** Edit `src/contexts/AuthContext.tsx`
-
-**CRITICAL:** Do NOT change:
-
-- `AuthContextType` shape (25+ fields)
-- `useAuth()` hook return value
-- SignOut localStorage clearing order
-- Tenant switching behavior
-- `bootstrapReady` gate logic
-
-```typescript
-// Replace all
-supabase.auth.* → getAuthProvider().*
-supabase.rpc()  → getApiClient().rpc()
-supabase.from() → getApiClient().from()
-```
-
----
-
-## Task 0B-9: Auth Verification
+## 0B-9: Auth Verification
 
 ```bash
-# Zero supabase imports in auth files
+grep -rn "from '@supabase/supabase-js'" \
+  src/features/auth/ src/contexts/auth/ src/contexts/AuthContext.tsx
+
 grep -rn "from '@/services/supabase/client'" \
   src/features/auth/ src/contexts/auth/ src/contexts/AuthContext.tsx
-# Expected: 0 results
 
-pnpm typecheck && pnpm lint && pnpm test:ci && pnpm build
+pnpm typecheck
+pnpm lint
+pnpm test:ci
+pnpm build
 ```
+
+**Expected:**
+
+- direct SDK imports di auth surface = 0
+- direct `supabase client` imports di auth surface = 0
+- build/test/lint/typecheck green
 
 ---
 
-# 📡 Wave 0C: Realtime Abstraction
+# Wave 0C — Realtime Abstraction
 
-**9 consumer files** — 3 patterns: `postgres_changes`, `broadcast`, `presence`
+**Blast radius:** High
+**Status after unfreeze:** only after 0B stable
 
-## Task 0C-0: Scan Realtime Consumers
+## 0C Entry Conditions
 
-**Output:** Documented list of actual files using `supabase.channel()`
+- [ ] 0B complete
+- [ ] provider init pattern already established
+- [ ] no auth regression from 0B
+- [ ] realtime consumer list re-scanned before edit
+
+---
+
+## 0C-0: Scan Actual Realtime Consumers
+
+**Do this first before editing queue.**
 
 ```bash
-grep -rn "supabase\.channel\|supabase\.removeChannel" \
-  src/ | grep -v node_modules | grep -v __tests__
+grep -rn "supabase\.channel\|supabase\.removeChannel" src/ \
+  | grep -v node_modules \
+  | grep -v __tests__
 ```
+
+**Use actual paths found in current repo, not stale draft paths.**
+
+Known drift from old draft:
+
+- builder channel file in repo is `src/features/course-builder/useBuilderChannel.ts`, not `src/features/course-builder/hooks/useBuilderChannel.ts`
 
 ---
 
-## Task 0C-1: RealtimeProvider Interface + Types
-
-**Output:** `src/services/realtime/types.ts`
-
-```typescript
-export interface RealtimeChannel {
-  on(type: 'postgres_changes', config, handler): RealtimeChannel
-  on(type: 'broadcast', config, handler): RealtimeChannel
-  on(type: 'presence', config, handler): RealtimeChannel
-  subscribe(callback?): RealtimeChannel
-  unsubscribe(): Promise<void>
-  send(payload): Promise<'ok' | 'error' | 'timed out'>
-  track(state): Promise<...>
-  untrack(): Promise<...>
-  presenceState(): PresenceState
-}
-
-export interface RealtimeProvider {
-  channel(name, options?): RealtimeChannel
-  removeChannel(channel): Promise<void>
-  removeAllChannels(): Promise<void>
-}
-```
-
----
-
-## Task 0C-2: SupabaseRealtimeProvider
-
-**Output:** `src/services/realtime/supabaseRealtimeProvider.ts`
-
-```typescript
-export function createSupabaseRealtimeProvider(): RealtimeProvider {
-  return {
-    channel(name, options) {
-      return supabase.channel(name, options)
-    },
-    removeChannel(channel) {
-      return supabase.removeChannel(channel)
-    },
-    removeAllChannels() {
-      return supabase.removeAllChannels()
-    },
-  }
-}
-```
-
----
-
-## Task 0C-3: VilRealtimeProvider + Singleton + Barrel
+## 0C-1: RealtimeProvider Foundation
 
 **Output:**
 
-- `src/services/realtime/vilRealtimeProvider.ts`
+- `src/services/realtime/types.ts`
 - `src/services/realtime/realtimeProvider.ts`
 - `src/services/realtime/index.ts`
 
+### Required contracts
+
+- `RealtimeProvider`
+- `RealtimeChannel`
+- `RealtimeSubscriptionStatus`
+- `PresenceState`
+
+### Required methods
+
+- `channel(name, options?)`
+- `removeChannel(channel)`
+- `removeAllChannels()`
+- channel `.on(...)`
+- channel `.subscribe(...)`
+- channel `.unsubscribe()`
+- channel `.send(...)`
+- channel `.track(...)`
+- channel `.untrack()`
+- channel `.presenceState()`
+
 ---
 
-## Consumer File Refactoring
+## 0C-2: SupabaseRealtimeProvider
 
-| Task  | File                                                        | Pattern              |
-| ----- | ----------------------------------------------------------- | -------------------- |
-| 0C-4  | `src/features/course-builder/hooks/useBuilderChannel.ts`    | broadcast + presence |
-| 0C-5  | `src/features/course-builder/hooks/useBuilderPresence.ts`   | presence             |
-| 0C-6  | `src/features/notifications/hooks/useNotifications.ts`      | postgres_changes     |
-| 0C-6b | `src/features/notifications/hooks/useAdminNotifications.ts` | postgres_changes     |
-| 0C-7a | `src/features/discussions/queries/discussionQueries.ts`     | postgres_changes     |
-| 0C-7b | `src/features/messaging/hooks/useMessages.ts`               | broadcast            |
-| 0C-7c | `src/features/messaging/components/MessageThread.tsx`       | broadcast            |
-| 0C-8a | `src/features/classroom/api/classroomService.ts`            | (realtime only)      |
-| 0C-8b | `src/features/assignments/api/groupAssignmentService.ts`    | (realtime only)      |
+**Output:** `src/services/realtime/supabaseRealtimeProvider.ts`
 
-**Pattern:**
+**Rule:** thin wrapper only around `supabase.channel(...)`, `supabase.removeChannel(...)`, `supabase.removeAllChannels(...)`.
 
-```typescript
-// Replace
-import { supabase } from '@/services/supabase/client'
-supabase.channel(...) → getRealtimeProvider().channel(...)
+---
+
+## 0C-3: VilRealtimeProvider Stub
+
+**Output:** `src/services/realtime/vilRealtimeProvider.ts`
+
+**Rule:** stub only. Return consistent shape, not working websocket implementation.
+
+---
+
+## 0C-4: Init Realtime Provider in `src/main.tsx`
+
+Add after API/auth init pattern is stable.
+
+```ts
+if (apiBackend === 'vil') {
+  setRealtimeProvider(
+    createVilRealtimeProvider(import.meta.env.VITE_API_URL || 'http://localhost:8080')
+  )
+} else {
+  setRealtimeProvider(createSupabaseRealtimeProvider())
+}
 ```
 
+**Do not change:**
+
+- `initApiClient(...)`
+- auth init order
+- app render order
+
 ---
 
-## Task 0C-9: Realtime Verification
+## 0C-5: Refactor realtime consumers
+
+Use actual files from scan result, but seed list from current migration findings:
+
+- `src/features/course-builder/useBuilderChannel.ts`
+- `src/features/course-builder/useBuilderPresence.ts`
+- `src/features/notifications/hooks/useNotifications.ts`
+- `src/features/notifications/hooks/useAdminNotifications.ts`
+- `src/features/discussions/queries/discussionQueries.ts`
+- `src/features/parent/hooks/useMessages.ts`
+- `src/features/parent/components/MessageThread.tsx`
+- `src/features/classroom/api/classroomService.ts`
+- `src/features/assignments/api/groupAssignmentService.ts`
+
+### Replace pattern
+
+- `import { supabase } from '@/services/supabase/client'`
+- `supabase.channel(...)`
+- `supabase.removeChannel(...)`
+
+with:
+
+- `import { getRealtimeProvider } from '@/services/realtime'`
+- `getRealtimeProvider().channel(...)`
+- `getRealtimeProvider().removeChannel(...)`
+
+### Critical invariants
+
+- event names unchanged
+- channel names unchanged
+- presence semantics unchanged
+- cleanup/unsubscribe semantics unchanged
+
+---
+
+## 0C-6: Realtime Verification
 
 ```bash
-# Zero supabase.channel() calls in consumer files
 grep -rn "supabase\.channel\|supabase\.removeChannel" \
-  src/features/course-builder/hooks/ \
-  src/features/notifications/hooks/ \
-  src/features/discussions/queries/ \
-  src/features/messaging/ \
-  src/features/classroom/api/ \
-  src/features/assignments/api/
-# Expected: 0 results
+  src/features/course-builder/ \
+  src/features/notifications/ \
+  src/features/discussions/ \
+  src/features/parent/ \
+  src/features/classroom/ \
+  src/features/assignments/
 
-pnpm typecheck && pnpm lint && pnpm test:ci
+pnpm typecheck
+pnpm lint
+pnpm test:ci
 ```
+
+**Expected:**
+
+- consumer files = 0 direct realtime calls
+- abstraction layer only remains
 
 ---
 
-# 📦 Wave 0D: Storage Abstraction
+# Wave 0D — Storage Abstraction
 
-**5 consumer files** — buckets: `videos`, `submissions`, `avatars`, `documents`, `certificates`
+**Blast radius:** High
+**Status after unfreeze:** only after 0C stable or as separate gated branch
 
-## Task 0D-1: StorageProvider Interface + Types
+## 0D Entry Conditions
 
-**Output:** `src/services/storage/types.ts`
-
-```typescript
-export interface StorageBucketClient {
-  upload(path, file, options?): Promise<StorageUploadResponse>
-  download(path): Promise<{ data: Blob | null; error: StorageError | null }>
-  remove(paths): Promise<StorageRemoveResponse>
-  getPublicUrl(path): { data: { publicUrl: string } }
-  createSignedUrl(path, expiresIn): Promise<...>
-  list(path?, options?): Promise<...>
-}
-
-export interface StorageProvider {
-  from(bucket: string): StorageBucketClient
-}
-```
+- [ ] 0A complete
+- [ ] API/provider pattern proven
+- [ ] actual storage consumer list re-scanned
+- [ ] no storage migration/cutover; abstraction only
 
 ---
 
-## Task 0D-2: SupabaseStorageProvider
+## 0D-0: Scan Actual Storage Consumers
 
-**Output:** `src/services/storage/supabaseStorageProvider.ts`
-
-```typescript
-export function createSupabaseStorageProvider(): StorageProvider {
-  return {
-    from(bucket) {
-      return supabase.storage.from(bucket)
-    },
-  }
-}
+```bash
+grep -rn "supabase\.storage" src/ \
+  | grep -v node_modules \
+  | grep -v __tests__
 ```
+
+Use actual files, not stale draft paths.
+
+Known current paths from repo/migration findings:
+
+- `src/features/storage/api/storageService.ts`
+- `src/features/video/api/videoUploadService.ts`
+- `src/features/courses/services/videoCaptionService.ts`
+- `src/features/assignments/api/assignmentService.ts`
+- `src/features/administration/api/documentApi.ts`
 
 ---
 
-## Task 0D-3: VilStorageProvider + Singleton + Barrel
+## 0D-1: StorageProvider Foundation
 
 **Output:**
 
-- `src/services/storage/vilStorageProvider.ts`
+- `src/services/storage/types.ts`
 - `src/services/storage/storageProvider.ts`
 - `src/services/storage/index.ts`
 
+### Required contracts
+
+- `StorageProvider`
+- `StorageBucketClient`
+- `StorageError`
+- `StorageUploadResponse`
+
+### Required methods
+
+- `upload(path, file, options?)`
+- `download(path)`
+- `remove(paths)`
+- `getPublicUrl(path)`
+- `createSignedUrl(path, expiresIn)`
+- `list(path?, options?)`
+
 ---
 
-## Consumer File Refactoring
+## 0D-2: SupabaseStorageProvider
 
-| Task | File                                                | Notes |
-| ---- | --------------------------------------------------- | ----- |
-| 0D-4 | `src/features/courses/api/videoUploadService.ts`    |       |
-| 0D-5 | `src/features/courses/api/videoCaptionService.ts`   |       |
-| 0D-6 | `src/features/assignments/api/assignmentService.ts` |       |
-| 0D-7 | `src/features/documents/api/documentApi.ts`         |       |
+**Output:** `src/services/storage/supabaseStorageProvider.ts`
 
-**Pattern:**
+**Rule:** thin wrapper around `supabase.storage.from(bucket)`.
 
-```typescript
-// Replace
-import { supabase } from '@/services/supabase/client'
-supabase.storage.from('videos').upload(...) → getStorageProvider().from('videos').upload(...)
+---
+
+## 0D-3: VilStorageProvider Stub
+
+**Output:** `src/services/storage/vilStorageProvider.ts`
+
+**Rule:** stub only. Do not build real storage adapter yet.
+
+---
+
+## 0D-4: Init Storage Provider in `src/main.tsx`
+
+```ts
+if (apiBackend === 'vil') {
+  setStorageProvider(
+    createVilStorageProvider(import.meta.env.VITE_API_URL || 'http://localhost:8080')
+  )
+} else {
+  setStorageProvider(createSupabaseStorageProvider())
+}
 ```
 
 ---
 
-## Task 0D-8: Storage Verification
+## 0D-5: Refactor storage consumers
+
+Start from general abstraction first:
+
+- `src/features/storage/api/storageService.ts`
+
+Then bucket-specific consumers:
+
+- `src/features/video/api/videoUploadService.ts`
+- `src/features/courses/services/videoCaptionService.ts`
+- `src/features/assignments/api/assignmentService.ts`
+- `src/features/administration/api/documentApi.ts`
+
+### Replace pattern
+
+- `supabase.storage.from('bucket').upload(...)`
+- `supabase.storage.from('bucket').remove(...)`
+- `supabase.storage.from('bucket').getPublicUrl(...)`
+
+with:
+
+- `getStorageProvider().from('bucket').upload(...)`
+- `getStorageProvider().from('bucket').remove(...)`
+- `getStorageProvider().from('bucket').getPublicUrl(...)`
+
+### Critical invariants
+
+- bucket names unchanged
+- file path conventions unchanged
+- public URL semantics unchanged
+- no bucket migration/copy in this wave
+
+---
+
+## 0D-6: Storage Verification
 
 ```bash
-# Zero supabase.storage imports in consumer files
 grep -rn "supabase\.storage" src/features/
-# Expected: 0 results (only in abstraction layer)
 
-pnpm typecheck && pnpm lint && pnpm test:ci
+pnpm typecheck
+pnpm lint
+pnpm test:ci
+pnpm build
 ```
+
+**Expected:**
+
+- consumer files = 0 direct storage calls
+- only abstraction layer may still wrap Supabase storage
 
 ---
 
-# Wave 0X: Cross-Cutting Tasks
+# Wave 0X — Cross-Cutting (Still Deferred)
 
-After all 0B, 0C, 0D complete:
+These stay deferred even after 0B–0D docs are ready:
 
-| Task | Description                                  |
-| ---- | -------------------------------------------- |
-| 0X-1 | Refactor `offlineQueue.ts` if not done in 0A |
-| 0X-2 | Refactor Edge Function consumers             |
-| 0X-3 | CI Guard enforce (ESLint error level)        |
-| 0X-4 | Full verification + E2E tests                |
+- offline queue refactor
+- edge function consumer refactor
+- ESLint CI guard hard-enforcement
+- full E2E sweep
+
+**Reason:** these belong to later gates and should not be mixed into 0B–0D execution.
 
 ---
 
-## Merge Order
+## Hard No-Go List
 
-```
-main ← feat/phase-0-init-providers ← feat/phase-0b-auth-abstraction
-                          ↓
-              feat/phase-0c-realtime-abstraction
-              feat/phase-0d-storage-abstraction
-                          ↓
-              feat/phase-0x-cross-cutting
-```
+Even after this queue is populated, agent must NOT:
+
+- touch Phase 1 auth scaffold
+- cut over auth to VIL
+- cut over realtime to VIL
+- cut over storage to VIL
+- move offline queue in this wave
+- rewrite routing model
+- widen scope beyond listed files
+
+---
+
+## Ready-to-Execute Checklist (for future unfreeze)
+
+- [ ] 0A PASS
+- [ ] provider abstractions in `src/services/api/*` stable
+- [ ] auth/realtime/storage provider directories created
+- [ ] actual consumer lists re-scanned before refactor
+- [ ] CI green before and after each wave
+- [ ] each wave merged separately
