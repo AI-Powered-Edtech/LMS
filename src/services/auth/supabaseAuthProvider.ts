@@ -1,5 +1,6 @@
 import type {
   AuthProvider,
+  AuthBootstrap,
   AuthUser,
   AuthSession,
   AuthError,
@@ -77,6 +78,14 @@ export function createSupabaseAuthProvider(): AuthProvider {
       }
     },
 
+    getAuthBootstrap: async () => {
+      const { data, error } = await supabase.rpc('get_auth_bootstrap')
+      return {
+        data: (data as AuthBootstrap | null) ?? null,
+        error: mapError(error),
+      }
+    },
+
     onAuthStateChange: (callback) => {
       const { data } = supabase.auth.onAuthStateChange((_event, session) => {
         callback(_event, mapSession(session))
@@ -140,6 +149,16 @@ export function createSupabaseAuthProvider(): AuthProvider {
         },
         error: mapError(error),
       }
+    },
+
+    verifyOtp: async (params) => {
+      const { error } = await supabase.auth.verifyOtp(params as any)
+      return { error: mapError(error) }
+    },
+
+    resend: async (params) => {
+      const { error } = await supabase.auth.resend(params as any)
+      return { error: mapError(error) }
     },
 
     resetPasswordForEmail: async (email, options) => {

@@ -22,6 +22,29 @@ export interface AuthError {
   status?: number
 }
 
+export interface AuthBootstrap {
+  profile: {
+    id: string
+    email: string
+    first_name: string
+    last_name: string
+    avatar_url: string | null
+    tenant_id: string | null
+  } | null
+  memberships: Array<{
+    tenant_id: string
+    tenant_name: string
+    tenant_slug: string
+    tenant_logo: string | null
+    role: 'teacher' | 'student' | 'admin' | 'parent' | 'principal'
+    status: 'active' | 'inactive' | 'suspended'
+    is_active: boolean
+    joined_at: string | null
+  }>
+  default_tenant_id: string | null
+  requires_email_verification: boolean
+}
+
 export interface AuthSubscription {
   unsubscribe(): void
 }
@@ -72,6 +95,7 @@ export interface MFAProvider {
 export interface AuthProvider {
   getSession(): Promise<{ data: { session: AuthSession | null }; error: AuthError | null }>
   getUser(): Promise<{ data: { user: AuthUser | null }; error: AuthError | null }>
+  getAuthBootstrap(): Promise<{ data: AuthBootstrap | null; error: AuthError | null }>
   onAuthStateChange(callback: (event: string, session: AuthSession | null) => void): {
     data: { subscription: AuthSubscription }
   }
@@ -101,6 +125,15 @@ export interface AuthProvider {
   }>
   exchangeCodeForSession(code: string): Promise<{
     data: { session: AuthSession | null; user: AuthUser | null }
+    error: AuthError | null
+  }>
+  verifyOtp(params: {
+    token_hash: string
+    type: string
+  }): Promise<{
+    error: AuthError | null
+  }>
+  resend(params: { type: string; email: string }): Promise<{
     error: AuthError | null
   }>
   resetPasswordForEmail(

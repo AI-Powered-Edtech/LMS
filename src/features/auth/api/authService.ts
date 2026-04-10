@@ -4,7 +4,7 @@ import {
   sanitizeRedirectTarget,
 } from '@/features/auth/utils/authFlow'
 import { getApiClient } from '@/services/api'
-import { getAuthProvider } from '@/services/auth'
+import { getAuthProvider, type AuthBootstrap as ProviderAuthBootstrap } from '@/services/auth'
 import { logDevError } from '@/utils/logDevError'
 import { addBreadcrumb, captureError } from '@/utils/sentry'
 
@@ -69,12 +69,7 @@ export interface AuthBootstrapMembership {
   joined_at: string | null
 }
 
-export interface AuthBootstrap {
-  profile: AuthBootstrapProfile | null
-  memberships: AuthBootstrapMembership[]
-  default_tenant_id: string | null
-  requires_email_verification: boolean
-}
+export interface AuthBootstrap extends ProviderAuthBootstrap {}
 
 function extractAuthCode(input: string): string {
   try {
@@ -113,7 +108,7 @@ export const authService = {
 
   async getAuthBootstrap(): Promise<AuthBootstrap> {
     addBreadcrumb('Auth bootstrap request started', 'auth')
-    const { data, error } = await getApiClient().rpc('get_auth_bootstrap')
+    const { data, error } = await getAuthProvider().getAuthBootstrap()
     if (error) throw error
 
     const bootstrap = (data ?? {}) as Partial<AuthBootstrap>

@@ -7,7 +7,7 @@ import * as v from 'valibot'
 
 import { FormField } from '@/components/ui/FormField'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { supabase } from '@/services/supabase/client'
+import { getAuthProvider } from '@/services/auth'
 
 const resetPasswordSchema = v.pipe(
   v.object({
@@ -59,14 +59,15 @@ export function ResetPassword() {
 
       try {
         if (code) {
-          await supabase.auth.exchangeCodeForSession(code)
+          const { error } = await getAuthProvider().exchangeCodeForSession(code)
+          if (error) throw error
           isRecoveryRef.current = true
           setSessionReady(true)
           return
         }
 
         if (tokenHash && type === 'recovery') {
-          const { error: verifyError } = await supabase.auth.verifyOtp({
+          const { error: verifyError } = await getAuthProvider().verifyOtp({
             token_hash: tokenHash,
             type: 'recovery',
           })
@@ -92,7 +93,7 @@ export function ResetPassword() {
     // password without going through the email recovery flow.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
+    } = getAuthProvider().onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         // Only PASSWORD_RECOVERY events unlock the password reset form.
         // Use the ref to prevent a subsequent SIGNED_IN event (e.g. after updateUser)
@@ -117,7 +118,7 @@ export function ResetPassword() {
     setError('')
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
+      const { error: updateError } = await getAuthProvider().updateUser({
         password: data.password,
       })
 

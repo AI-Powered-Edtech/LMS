@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { authService } from '@/features/auth/api/authService'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { supabase } from '@/services/supabase/client'
+import { getAuthProvider } from '@/services/auth'
 import { addBreadcrumb, captureError } from '@/utils/sentry'
 
 import { useAuth } from '../contexts/AuthContext'
@@ -44,9 +44,10 @@ export function VerifyEmail() {
       try {
         addBreadcrumb('Email verification started', 'auth')
         if (code) {
-          await supabase.auth.exchangeCodeForSession(code)
+          const { error } = await getAuthProvider().exchangeCodeForSession(code)
+          if (error) throw error
         } else if (tokenHash) {
-          const { error: verifyError } = await supabase.auth.verifyOtp({
+          const { error: verifyError } = await getAuthProvider().verifyOtp({
             token_hash: tokenHash,
             type: 'signup',
           })
@@ -92,7 +93,7 @@ export function VerifyEmail() {
     setResendState({ status: 'loading' })
 
     try {
-      const { error: resendError } = await supabase.auth.resend({
+      const { error: resendError } = await getAuthProvider().resend({
         type: 'signup',
         email: user.email,
       })

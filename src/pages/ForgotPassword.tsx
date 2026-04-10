@@ -6,7 +6,7 @@ import * as v from 'valibot'
 
 import { FormField } from '@/components/ui/FormField'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { supabase } from '@/services/supabase/client'
+import { getAuthProvider } from '@/services/auth'
 import { passwordResetRateLimiter } from '@/utils/rateLimiter'
 
 const forgotPasswordSchema = v.object({
@@ -42,8 +42,8 @@ export function ForgotPassword() {
     }
 
     try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(data.email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      const { error: resetError } = await getAuthProvider().resetPasswordForEmail(data.email, {
+        emailRedirectTo: `${window.location.origin}/reset-password`,
       })
 
       if (resetError) {

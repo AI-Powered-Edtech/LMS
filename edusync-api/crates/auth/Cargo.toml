@@ -4,4 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+axum.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+thiserror.workspace = true
 uuid.workspace = true
+jsonwebtoken.workspace = true
+chrono.workspace = true
+argon2.workspace = true
+bcrypt.workspace = true
+sha2.workspace = true
+hex.workspace = true
