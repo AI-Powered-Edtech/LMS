@@ -1,4 +1,4 @@
-# Next Action: Phase -1 Reality Sync
+# Next Action: Phase 0A - API Client Abstraction
 
 **Priority:** START IMMEDIATELY  
 **Estimated Duration:** 1 week (~40 hours)  
@@ -77,7 +77,7 @@ Document 7 buckets:
 3. **Storage** — Upload/delete/public URL
 4. **Offline sync** — Queue writes
 5. **RLS policies** — Security layer
-6. **Edge Functions** — 28 functions
+6. **Edge Functions** — 30 functions
 7. **Client SDK** — Type definitions
 
 ### Step 4: Execute Workstream C — Gap Classification
@@ -176,14 +176,13 @@ Before entering Phase 0, ALL must be true:
 
 ## Status Terkini
 
-Execution Readiness: **68/100** → Target: 88/100
+Execution Readiness: **88/100** → Target: 88/100
 
 **FROZEN:**
 
-- Phase 0B, 0C, 0D, 0E, 0F, 0G — DITUNDA hingga Gate RS + Gate 0A passed
-- Phase 1 (1A, 1B, 1C, 1D) — DITUNDA hingga execution readiness 88/100
+- Phase 0B, 0C, 0D, 0E, 0F, 0G — DITUNDA hingga Gate 0A passed
+- Phase 1 (1A, 1B, 1C, 1D) — DITUNDA hingga Gate 1A passed
 
 **ALLOWED NOW:**
 
-- Phase -1 Reality Sync
-- Phase 0A only
+- Phase 0A only (API Client Abstraction)
