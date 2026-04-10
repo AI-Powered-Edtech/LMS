@@ -73,12 +73,13 @@ This document reclassifies all gaps/issues from the old migration plan into:
 
 ### Abstraction Layer Gaps
 
-| Gap ID | Original Description                  | Old Status | New Status | Reason                                                     | Evidence                     |
-| ------ | ------------------------------------- | ---------- | ---------- | ---------------------------------------------------------- | ---------------------------- |
-| AB-01  | "No ApiClient interface exists"       | Open       | **Live**   | `src/services/api/` structure does NOT exist               | Code scan: no api/ directory |
-| AB-02  | "No Supabase/VIL dual implementation" | Open       | **Live**   | Only Supabase implementation exists                        | `supabase/client.ts` only    |
-| AB-03  | "Feature flags not implemented"       | Open       | **Live**   | `VITE_API_BACKEND` env var pattern exists but not enforced | `authService.ts` pattern     |
-| AB-04  | "Offline queue writes to Supabase"    | Open       | **Live**   | `offlineQueue.ts` writes directly to Supabase              | `offlineQueue.ts` line 202   |
+| Gap ID | Original Description                               | Old Status | New Status | Reason                                                     | Evidence                     |
+| ------ | -------------------------------------------------- | ---------- | ---------- | ---------------------------------------------------------- | ---------------------------- |
+| AB-01  | "No `src/services/api/types.ts` abstraction layer" | Open       | **Live**   | `src/services/api/` structure does NOT exist               | Code scan: no api/ directory |
+| AB-02  | "No ApiClient interface"                           | Open       | **Live**   | `src/services/api/` structure does NOT exist               | Code scan: no api/ directory |
+| AB-03  | "No Supabase/VIL dual implementation"              | Open       | **Live**   | Only Supabase implementation exists                        | `supabase/client.ts` only    |
+| AB-04  | "Feature flag/env switching not enforced"          | Open       | **Live**   | `VITE_API_BACKEND` env var pattern exists but not enforced | `authService.ts` pattern     |
+| AB-05  | "Offline queue still writes direct to Supabase"    | Open       | **Live**   | `offlineQueue.ts` writes directly to Supabase              | `offlineQueue.ts` line 202   |
 
 ### CI & Testing Gaps
 
@@ -117,12 +118,12 @@ This document reclassifies all gaps/issues from the old migration plan into:
 | 2     | Edge Functions      | **High**     |
 | 1     | Realtime            | **Medium**   |
 | 3     | Storage             | **High**     |
-| 4     | Abstraction Layer   | **Critical** |
+| 5     | Abstraction Layer   | **Critical** |
 | 1     | CI Verification     | **Medium**   |
 | 1     | Routing             | **High**     |
 | 1     | Execution Readiness | **Critical** |
 
-**Total Live Gaps: 21**
+**Total Live Gaps: 22**
 
 ### Stale Gaps (No Longer Applicable)
 
@@ -201,14 +202,14 @@ For Phase 0A to pass and allow Phase 0B+ to open:
 
 Based on gap classification:
 
-| Domain                 | Recommendation    | Reason                               |
-| ---------------------- | ----------------- | ------------------------------------ |
-| API Client Abstraction | **Migrate-first** | 4 live gaps, AB-01 is prerequisite   |
-| Auth                   | **Migrate-later** | 6 live gaps, but 0B/1B scope         |
-| Database/RLS           | **Migrate-first** | Critical for Phase 1                 |
-| Edge Functions         | **Migrate-later** | Phase 3 scope                        |
-| Realtime               | **Migrate-later** | Phase 4 scope, stability TBD         |
-| Storage                | **Migrate-later** | Phase 5 scope, cost decision pending |
+| Domain                 | Recommendation    | Reason                                           |
+| ---------------------- | ----------------- | ------------------------------------------------ |
+| API Client Abstraction | **Migrate-first** | 5 live gaps (AB-01–AB-05), AB-01 is prerequisite |
+| Auth                   | **Migrate-later** | 6 live gaps, but 0B/1B scope                     |
+| Database/RLS           | **Migrate-first** | Critical for Phase 1                             |
+| Edge Functions         | **Migrate-later** | Phase 3 scope                                    |
+| Realtime               | **Migrate-later** | Phase 4 scope, stability TBD                     |
+| Storage                | **Migrate-later** | Phase 5 scope, cost decision pending             |
 
 ### Workstream E: Revised Phase 0
 
@@ -223,6 +224,9 @@ Tasks to ADD (Live):
 
 - ✅ Create `types.ts` (AB-01)
 - ✅ Create `ApiClient` interface (AB-02)
+- ✅ Create `SupabaseApiClient` + `VilApiClient` dual impl (AB-03)
+- ✅ Enforce feature flag/env switching (AB-04)
+- ✅ Abstraction for offline queue (AB-05)
 - ✅ Document routing decision (R-01)
 - ✅ Verify CI workflow format (CI-02)
 
@@ -231,7 +235,7 @@ Tasks to ADD (Live):
 ## Acceptance Checklist
 
 - [x] All gaps from old plan classified
-- [x] 21 Live gaps identified
+- [x] 22 Live gaps identified
 - [x] 6 Stale gaps documented
 - [x] 4 Competing gaps noted
 - [x] Phase -1 exit blockers identified

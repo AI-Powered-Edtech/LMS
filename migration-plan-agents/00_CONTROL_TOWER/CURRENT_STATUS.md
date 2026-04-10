@@ -1,8 +1,8 @@
 # Current Status
 
-**Last Updated:** 2026-04-09  
-**Current Phase:** Pre-Phase -1 (Planning)
-**Execution Readiness:** 68/100 → Target: 88/100
+**Last Updated:** 2026-04-10  
+**Current Phase:** Phase -1 (COMPLETE)
+**Execution Readiness:** 75/100 → Target: 88/100
 
 ---
 
@@ -10,22 +10,22 @@
 
 ### Phase -1: Reality Sync
 
-- [ ] **A: Baseline Truth Refresh**
-  - [ ] Create `docs/migration/REALITY_SYNC_BASELINE.md`
-  - [ ] Document current repo state (81/100 production candidate)
-  - [ ] Inventory all Supabase touchpoints
-- [ ] **B: Supabase Coupling Inventory**
-  - [ ] Create `docs/migration/SUPABASE_COUPLING_INVENTORY.md`
-  - [ ] Classify 7 buckets of coupling
-- [ ] **C: Gap Classification**
-  - [ ] Create `docs/migration/GAP_RECLASSIFICATION.md`
-  - [ ] Classify as Live vs Stale vs Competing
-- [ ] **D: Scope Narrowing Matrix**
-  - [ ] Create `docs/migration/MIGRATION_SCOPE_MATRIX.md`
-  - [ ] Decisions: migrate-first / migrate-later / stay-on-supabase
-- [ ] **E: Revised Phase 0 Prep**
-  - [ ] Create `plans/REVISED_PHASE_0.md`
-  - [ ] Remove duplicate/obsolete tasks
+- [x] **A: Baseline Truth Refresh**
+  - [x] Create `docs/migration/REALITY_SYNC_BASELINE.md`
+  - [x] Document current repo state (81/100 production candidate)
+  - [x] Inventory all Supabase touchpoints
+- [x] **B: Supabase Coupling Inventory**
+  - [x] Create `docs/migration/SUPABASE_COUPLING_INVENTORY.md`
+  - [x] Classify 7 buckets of coupling
+- [x] **C: Gap Classification**
+  - [x] Create `docs/migration/GAP_RECLASSIFICATION.md`
+  - [x] Classify as Live vs Stale vs Competing
+- [x] **D: Scope Narrowing Matrix**
+  - [x] Create `docs/migration/MIGRATION_SCOPE_MATRIX.md`
+  - [x] Decisions: migrate-first / migrate-later / stay-on-supabase
+- [x] **E: Revised Phase 0 Prep**
+  - [x] Create `plans/REVISED_PHASE_0.md`
+  - [x] Remove duplicate/obsolete tasks
 
 ### Phase 0: Frontend Abstraction Layer
 
@@ -96,20 +96,20 @@
 
 ## Next Immediate Action Items
 
-1. **Execute Phase -1 Reality Sync**
-   - Day 1: Create `docs/migration/` directory
-   - Day 1-2: Baseline Truth Refresh
-   - Day 2-3: Supabase Coupling Inventory
-   - Day 3-4: Gap Classification
-   - Day 4-5: Scope Narrowing Matrix
-   - Day 5: Revised Phase 0 Prep
+1. **Execute Phase -1 Reality Sync** ✅ COMPLETE
+   - All 5 workstreams closed
+   - Outputs available in `docs/migration/` and `plans/`
 
-2. **Phase -1 Exit Criteria Verification**
+2. **Phase -1 Exit Criteria Verification** ✅ COMPLETE
    - Single baseline document agreed
    - All major Supabase touchpoints inventoried
    - All old blockers classified
    - Migration objective reframed
    - No-Go conditions cleared
+
+3. **Proceed to Phase 0A: API Client Abstraction**
+   - Review `plans/REVISED_PHASE_0.md` for updated scope
+   - Start with `src/lib/api/` foundation
 
 ---
 
@@ -147,21 +147,27 @@
 
 ---
 
-## Success Metrics
+## Phase -1 Reality Sync Status
 
-### Phase 0
+| Workstream               | Status    | Output                                          |
+| ------------------------ | --------- | ----------------------------------------------- |
+| A: Reality Sync Baseline | ✅ CLOSED | `docs/migration/REALITY_SYNC_BASELINE.md`       |
+| B: Coupling Inventory    | ✅ CLOSED | `docs/migration/SUPABASE_COUPLING_INVENTORY.md` |
+| C: Gap Reclassification  | ✅ CLOSED | `docs/migration/GAP_RECLASSIFICATION.md`        |
+| D: Scope Narrowing       | ✅ CLOSED | `docs/migration/MIGRATION_SCOPE_MATRIX.md`      |
+| E: Revised Phase 0       | ✅ CLOSED | `plans/REVISED_PHASE_0.md`                      |
 
-- [ ] Zero Supabase imports in features/
-- [ ] Full vertical slice (courses) verified
-- [ ] All 400+ E2E scenarios pass
-- [ ] `VITE_API_BACKEND=supabase` identical to pre-refactor
+### Phase -1: COMPLETE
 
-### Phase 1
+**Next executable scope:** Phase 0A only
 
-- [ ] All 3 dev accounts can login via VIL
-- [ ] `get_auth_bootstrap` shape identical
-- [ ] MFA works
-- [ ] Multi-tenant isolation verified
+**Frozen:**
+
+- Phase 0B (Auth Abstraction)
+- Phase 0C (Realtime Abstraction)
+- Phase 0D (Storage Abstraction)
+- Phase 0E (Verification)
+- Phase 1 (Auth + Scaffold)
 
 ## Catatan Penting
 
