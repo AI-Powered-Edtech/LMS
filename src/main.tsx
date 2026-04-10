@@ -10,10 +10,6 @@ import { normalizeLegacyHashUrl, sanitizeRedirectTarget } from './features/auth/
 import { useToast } from './hooks/useToast'
 import { initSentry } from './utils/sentry'
 import { reportWebVitals } from './utils/webVitals'
-import { initializeSupabaseClient } from '@/services/supabase/client'
-
-// Initialize Supabase client early for early auth checks
-initializeSupabaseClient()
 
 // Validate env vars before anything else — fails fast with helpful message
 validateEnv()

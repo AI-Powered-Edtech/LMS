@@ -9,6 +9,10 @@ export function initializeSupabaseClient(): void {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY')
+  }
+
   supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       detectSessionInUrl: false,
@@ -20,9 +24,9 @@ export function initializeSupabaseClient(): void {
 
 export function getSupabaseClient(): SupabaseClient {
   if (!supabaseClient) {
-    initializeSupabaseClient()
+    throw new Error('SupabaseClient not initialized. Call initializeSupabaseClient() first.')
   }
-  return supabaseClient!
+  return supabaseClient
 }
 
 export function setSupabaseClient(client: SupabaseClient): void {
@@ -30,15 +34,8 @@ export function setSupabaseClient(client: SupabaseClient): void {
   initialized = true
 }
 
-export const supabase = new Proxy({} as any, {
-  get(_target, prop) {
-    return function (...args: any[]) {
-      const client = getSupabaseClient()
-      const target = (client as any)[prop]
-      if (typeof target === 'function') {
-        return target.apply(client, args)
-      }
-      return target
-    }
+export const supabase = {
+  get client() {
+    return getSupabaseClient()
   },
-})
+} as { readonly client: SupabaseClient } & Omit<SupabaseClient, 'client'>
