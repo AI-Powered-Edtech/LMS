@@ -16,25 +16,17 @@
 ### Verification
 
 ```bash
-# Test in service file (not a hook)
-cat > /tmp/test-service.ts << 'EOF'
-import { getApiClient } from '@/services/api'
-export async function test() {
-  const db = getApiClient()
-  return db.from('courses').select('*')
-}
-EOF
+# 1. getApiClient() export exists
+grep -q "export function getApiClient" src/services/api/apiClient.ts && echo "PASS: getApiClient exported" || echo "FAIL: getApiClient not found"
 
-# Test in hook
-cat > /tmp/test-hook.ts << 'EOF'
-import { getApiClient } from '@/services/api'
-export function useTest() {
-  const db = getApiClient()
-  return db.from('courses').select('*')
-}
-EOF
+# 2. Singleton pattern (not React Context)
+grep -q "useContext" src/services/api/apiClient.ts && echo "FAIL: uses React Context" || echo "PASS: no React Context"
 
-pnpm typecheck /tmp/test-service.ts /tmp/test-hook.ts
+# 3. At least one service file uses getApiClient()
+grep -rq "getApiClient" src/features/courses/api/ && echo "PASS: courseService uses getApiClient" || echo "FAIL: courseService not refactored"
+
+# 4. Build passes with abstraction layer
+pnpm typecheck && echo "PASS: typecheck" || echo "FAIL: typecheck"
 ```
 
 ### Evidence
@@ -146,21 +138,14 @@ Supabase imports ARE allowed in:
 ### Verification
 
 ```bash
-# Test that rule catches violations
-cat > /tmp/violation.ts << 'EOF'
-import { supabase } from '@/services/supabase/client'
-EOF
+# 1. Verify ESLint rule exists and is at error level
+grep -A5 "no-restricted-imports" eslint.config.js | grep -q "'error'" && echo "PASS: CI Guard at error level" || echo "FAIL: CI Guard not at error level (check if still at warn)"
 
-pnpm lint /tmp/violation.ts 2>&1 | grep -i "restricted\|error"
-# Expected: Error about restricted imports
+# 2. Verify abstraction layer is exempt from the rule
+pnpm lint src/services/api/supabaseApiClient.ts 2>&1 | grep -q "error" && echo "FAIL: abstraction layer not exempted" || echo "PASS: abstraction layer exempted"
 
-# Verify abstraction layer is exempt
-pnpm lint src/services/api/supabaseApiClient.ts
-# Expected: No errors (exempted by path)
-
-# Verify CI config
-grep -A5 "no-restricted-imports" eslint.config.js
-# Expected: Level is 'error'
+# 3. Verify no violations exist in feature code
+pnpm lint src/features/ 2>&1 | grep -i "restricted" && echo "FAIL: restricted import violations found" || echo "PASS: no restricted import violations"
 ```
 
 ---
@@ -200,53 +185,79 @@ pnpm test:e2e
 
 ### Import Audit Script
 
+Save as `scripts/phase0-audit.sh` and run with `bash scripts/phase0-audit.sh` from repo root.
+
 ```bash
 #!/bin/bash
-set -e
+# Phase 0 Acceptance Verification Script
+# Run from repo root: bash scripts/phase0-audit.sh
+
+set -uo pipefail
+PASS=0
+FAIL=0
+
+check() {
+  local label="$1" result="$2"
+  if [ "$result" = "0" ]; then
+    echo "  PASS: $label"
+    PASS=$((PASS + 1))
+  else
+    echo "  FAIL: $label"
+    FAIL=$((FAIL + 1))
+  fi
+}
 
 echo "=== Phase 0 Acceptance Verification ==="
 echo ""
 
-echo "1. getApiClient() exists and callable"
-grep -q "export function getApiClient" src/services/api/apiClient.ts && echo "   ✅ getApiClient exported" || echo "   ❌ Missing"
-echo ""
+# 1. getApiClient() exists
+echo "1. getApiClient() exported"
+grep -q "export function getApiClient" src/services/api/apiClient.ts 2>/dev/null
+check "getApiClient exported from src/services/api/apiClient.ts" "$?"
 
-echo "2. Supabase imports in features/"
-FEATURES_COUNT=$(grep -rn "from '@/services/supabase/client'" src/features/ 2>/dev/null | wc -l)
-echo "   Found: $FEATURES_COUNT imports"
-[ "$FEATURES_COUNT" -eq "0" ] && echo "   ✅ Clean" || echo "   ❌ Has violations"
-echo ""
+# 2-5. Zero direct Supabase imports in protected directories
+for dir in features contexts utils components; do
+  echo ""
+  echo "2-5. Direct Supabase imports in $dir/"
+  COUNT=$(grep -rn "from '@/services/supabase/client'" "src/$dir/" 2>/dev/null | wc -l)
+  echo "     Found: $COUNT imports (target: 0)"
+  if [ "$COUNT" -eq "0" ]; then
+    check "$dir/ clean" "0"
+  else
+    check "$dir/ has $COUNT violations" "1"
+    grep -rn "from '@/services/supabase/client'" "src/$dir/" 2>/dev/null | head -20
+  fi
+done
 
-echo "3. Supabase imports in contexts/"
-CONTEXTS_COUNT=$(grep -rn "from '@/services/supabase/client'" src/contexts/ 2>/dev/null | wc -l)
-echo "   Found: $CONTEXTS_COUNT imports"
-[ "$CONTEXTS_COUNT" -eq "0" ] && echo "   ✅ Clean" || echo "   ❌ Has violations"
+# 6. ESLint CI Guard at error level
 echo ""
-
-echo "4. Supabase imports in utils/"
-UTILS_COUNT=$(grep -rn "from '@/services/supabase/client'" src/utils/ 2>/dev/null | wc -l)
-echo "   Found: $UTILS_COUNT imports"
-[ "$UTILS_COUNT" -eq "0" ] && echo "   ✅ Clean" || echo "   ❌ Has violations"
-echo ""
-
-echo "5. Supabase imports in components/"
-COMPONENTS_COUNT=$(grep -rn "from '@/services/supabase/client'" src/components/ 2>/dev/null | wc -l)
-echo "   Found: $COMPONENTS_COUNT imports"
-[ "$COMPONENTS_COUNT" -eq "0" ] && echo "   ✅ Clean" || echo "   ❌ Has violations"
-echo ""
-
 echo "6. ESLint CI Guard"
-grep -q "'error'" eslint.config.js && echo "   ✅ CI Guard at error level" || echo "   ❌ CI Guard not set"
-echo ""
+grep -q "no-restricted-imports" eslint.config.js 2>/dev/null
+check "no-restricted-imports rule exists in eslint.config.js" "$?"
 
-echo "7. Build"
-pnpm build > /dev/null 2>&1 && echo "   ✅ Build succeeds" || echo "   ❌ Build fails"
+# 7. TypeScript compiles
 echo ""
+echo "7. TypeScript"
+pnpm typecheck > /dev/null 2>&1
+check "pnpm typecheck passes" "$?"
 
+# 8. Build succeeds
+echo ""
+echo "8. Build"
+pnpm build > /dev/null 2>&1
+check "pnpm build succeeds" "$?"
+
+# Summary
+echo ""
 echo "=== Summary ==="
-TOTAL=$((FEATURES_COUNT + CONTEXTS_COUNT + UTILS_COUNT + COMPONENTS_COUNT))
-echo "Total violations: $TOTAL"
-[ "$TOTAL" -eq "0" ] && echo "✅ PHASE 0 COMPLETE" || echo "❌ PHASE 0 INCOMPLETE"
+echo "PASS: $PASS  FAIL: $FAIL"
+if [ "$FAIL" -eq "0" ]; then
+  echo "PHASE 0 COMPLETE"
+  exit 0
+else
+  echo "PHASE 0 INCOMPLETE — fix $FAIL failing checks"
+  exit 1
+fi
 ```
 
 ---

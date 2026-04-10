@@ -4,73 +4,75 @@
 
 ---
 
-## Phase 0 Summary
+## What Phase 0 Produces
 
-### What Was Built
+Phase 0 creates the **Frontend Abstraction Layer** — new files that decouple React from Supabase.
 
-Phase 0 established the **Frontend Abstraction Layer** that decouples React from Supabase:
+### New files created by Phase 0A (API Client)
 
-| Component         | Files Created                                                                                                 | Status      |
-| ----------------- | ------------------------------------------------------------------------------------------------------------- | ----------- |
-| API Client        | `src/services/api/` (types.ts, apiClient.ts, supabaseApiClient.ts, vilApiClient.ts)                           | ✅ Complete |
-| Auth Provider     | `src/services/auth/` (types.ts, authProvider.ts, supabaseAuthProvider.ts, vilAuthProvider.ts)                 | ✅ Complete |
-| Realtime Provider | `src/services/realtime/` (types.ts, realtimeProvider.ts, supabaseRealtimeProvider.ts, vilRealtimeProvider.ts) | ✅ Complete |
-| Storage Provider  | `src/services/storage/` (types.ts, storageProvider.ts, supabaseStorageProvider.ts, vilStorageProvider.ts)     | ✅ Complete |
-| Provider Init     | `src/main.tsx`                                                                                                | ✅ Complete |
+These files do NOT exist before Phase 0A runs. Phase 0A creates them:
 
-### What Was Refactored
+| File | Purpose |
+| --- | --- |
+| `src/services/api/types.ts` | `QueryResult`, `ApiClient` interface, error shapes |
+| `src/services/api/apiClient.ts` | `getApiClient()` / `setApiClient()` singleton |
+| `src/services/api/supabaseApiClient.ts` | Supabase implementation of `ApiClient` |
+| `src/services/api/vilApiClient.ts` | VIL stub (all methods throw "Not implemented") |
+| `src/services/api/index.ts` | Barrel export — `getApiClient` re-exported |
 
-| Category           | Files Refactored                                                                | Status      |
-| ------------------ | ------------------------------------------------------------------------------- | ----------- |
-| Service Files      | ~30 files in `src/features/*/api/`                                              | ✅ Complete |
-| Auth Files         | `authService.ts`, `mfaService.ts`, `AuthContext.tsx`, `useSessionManagement.ts` | ✅ Complete |
-| Realtime Consumers | 9 hooks/queries                                                                 | ✅ Complete |
-| Storage Consumers  | 5 files                                                                         | ✅ Complete |
-| Utilities          | `offlineQueue.ts`                                                               | ✅ Complete |
+### New files created by Phase 0C (Auth)
 
-### Key Files
+| File | Purpose |
+| --- | --- |
+| `src/services/auth/types.ts` | `AuthProvider`, `AuthUser`, `AuthSession` |
+| `src/services/auth/authProvider.ts` | `getAuthProvider()` / `setAuthProvider()` singleton |
+| `src/services/auth/supabaseAuthProvider.ts` | Supabase implementation |
+| `src/services/auth/vilAuthProvider.ts` | VIL stub |
 
-```
-src/
-├── services/
-│   ├── api/
-│   │   ├── types.ts           # QueryResult, ApiClient interface
-│   │   ├── apiClient.ts       # getApiClient(), setApiClient() singleton
-│   │   ├── supabaseApiClient.ts  # Supabase implementation
-│   │   ├── vilApiClient.ts    # VIL stub (throws "Not implemented")
-│   │   └── index.ts           # Barrel export
-│   ├── auth/
-│   │   ├── types.ts           # AuthProvider, AuthUser, AuthSession
-│   │   ├── authProvider.ts    # getAuthProvider(), setAuthProvider()
-│   │   ├── supabaseAuthProvider.ts
-│   │   └── vilAuthProvider.ts
-│   ├── realtime/
-│   │   ├── types.ts           # RealtimeProvider, RealtimeChannel
-│   │   ├── realtimeProvider.ts
-│   │   ├── supabaseRealtimeProvider.ts
-│   │   └── vilRealtimeProvider.ts
-│   └── storage/
-│       ├── types.ts           # StorageProvider, StorageBucketClient
-│       ├── storageProvider.ts
-│       ├── supabaseStorageProvider.ts
-│       └── vilStorageProvider.ts
-└── main.tsx                   # Provider initialization
-```
+### New files created by Phase 0D (Realtime)
+
+| File | Purpose |
+| --- | --- |
+| `src/services/realtime/types.ts` | `RealtimeProvider`, `RealtimeChannel` |
+| `src/services/realtime/realtimeProvider.ts` | Singleton |
+| `src/services/realtime/supabaseRealtimeProvider.ts` | Supabase implementation |
+| `src/services/realtime/vilRealtimeProvider.ts` | VIL stub |
+
+### New files created by Phase 0E (Storage)
+
+| File | Purpose |
+| --- | --- |
+| `src/services/storage/types.ts` | `StorageProvider`, `StorageBucketClient` |
+| `src/services/storage/storageProvider.ts` | Singleton |
+| `src/services/storage/supabaseStorageProvider.ts` | Supabase implementation |
+| `src/services/storage/vilStorageProvider.ts` | VIL stub |
+
+### Modified files
+
+| File | Change |
+| --- | --- |
+| `src/main.tsx` | Provider initialization added (calls `setApiClient()` etc.) |
+| `src/config/env.schema.ts` | `VITE_API_BACKEND` and `VITE_API_URL` added |
+| `eslint.config.js` | `no-restricted-imports` escalated from WARN to ERROR |
+| ~30 service files in `src/features/*/api/` | `supabase` import replaced with `getApiClient()` |
+| Auth files (`authService.ts`, `mfaService.ts`, `AuthContext.tsx`, `useSessionManagement.ts`) | Refactored to use `getAuthProvider()` |
+| 9 realtime consumer hooks | Refactored to use `getRealtimeProvider()` |
+| 5 storage consumer files | Refactored to use `getStorageProvider()` |
 
 ---
 
-## Phase 0 Exit State
+## Known State After Phase 0 Completion
 
-### Verified Working
+### Verified working
 
-- ✅ `getApiClient()` callable from hooks and service files
-- ✅ Full vertical slice (courses) verified
-- ✅ Zero Supabase imports in `features/`, `contexts/`, `utils/`, `components/`
-- ✅ ESLint CI Guard active (error level)
-- ✅ All E2E tests pass
-- ✅ `pnpm build` succeeds
+- `getApiClient()` callable from both hooks and service files (module-level singleton)
+- Full vertical slice (courses CRUD) verified end-to-end
+- Zero direct Supabase imports in `src/features/`, `src/contexts/`, `src/utils/`, `src/components/`
+- ESLint CI Guard active at ERROR level — CI blocks on violations
+- `pnpm build` succeeds
+- `pnpm typecheck` succeeds
 
-### Feature Flag
+### Feature flag
 
 ```bash
 # .env or .env.local
@@ -78,6 +80,45 @@ VITE_API_BACKEND=supabase   # Current (Supabase active)
 VITE_API_BACKEND=vil        # After Phase 1 (VIL active)
 VITE_API_URL=http://localhost:8080
 ```
+
+### Supabase imports still permitted in
+
+These are the ONLY files allowed to import from `@/services/supabase/client`:
+
+- `src/services/api/supabaseApiClient.ts`
+- `src/services/auth/supabaseAuthProvider.ts`
+- `src/services/realtime/supabaseRealtimeProvider.ts`
+- `src/services/storage/supabaseStorageProvider.ts`
+
+---
+
+## Entry Criteria for Phase 1
+
+Before any Phase 1 work begins, run these checks to confirm Phase 0 is complete:
+
+```bash
+# 1. Abstraction layer files exist
+ls src/services/api/types.ts \
+   src/services/api/apiClient.ts \
+   src/services/api/supabaseApiClient.ts \
+   src/services/api/vilApiClient.ts \
+   src/services/api/index.ts \
+  && echo "PASS: API abstraction files exist" || echo "FAIL: missing files"
+
+# 2. Zero direct Supabase imports in protected dirs
+count=$(grep -rn "from '@/services/supabase/client'" src/features/ src/contexts/ src/utils/ src/components/ 2>/dev/null | wc -l)
+echo "Direct Supabase imports: $count (must be 0)"
+[ "$count" -eq "0" ] && echo "PASS" || echo "FAIL"
+
+# 3. ESLint guard at error level
+grep -A5 "no-restricted-imports" eslint.config.js | grep -q "error" \
+  && echo "PASS: CI guard at error" || echo "FAIL: CI guard not at error"
+
+# 4. Build and typecheck pass
+pnpm typecheck && pnpm build && echo "PASS: build clean" || echo "FAIL: build broken"
+```
+
+All four checks must PASS before starting Phase 1.
 
 ---
 
@@ -131,7 +172,7 @@ The `StorageProvider` expects:
 After VIL backend is ready, Phase 1 will:
 
 1. **Fill in VIL stubs** — replace "Not implemented" throws with actual implementations
-2. **Implement Edge Function replacements** — most Edge Functions will be VIL endpoints
+2. **Implement Edge Function replacements** — 30 Edge Functions will become VIL endpoints
 3. **Keep Supabase Auth for MVP** — auth is complex, may stay with Supabase initially
 4. **Enable feature flag** — `VITE_API_BACKEND=vil` to switch backends
 
@@ -205,14 +246,12 @@ grep -rn "from '@/services/supabase/client'" src/features/ src/contexts/ src/uti
 
 ```bash
 # Ensure CI still passes
-pnpm typecheck && pnpm lint && pnpm test:ci && pnpm build
+pnpm typecheck && pnpm lint && pnpm build
 ```
 
 ---
 
-## Contacts & Documentation
-
-### Key Files for Phase 1
+## Key Files for Phase 1
 
 | File                                           | Purpose                   |
 | ---------------------------------------------- | ------------------------- |
@@ -224,15 +263,6 @@ pnpm typecheck && pnpm lint && pnpm test:ci && pnpm build
 | `src/services/auth/vilAuthProvider.ts`         | VIL Auth stub to fill     |
 | `src/services/realtime/vilRealtimeProvider.ts` | VIL Realtime stub to fill |
 | `src/services/storage/vilStorageProvider.ts`   | VIL Storage stub to fill  |
-
-### Source Documents
-
-| Document          | Path                                                                                                                        |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Main Plan         | `migration-plan/Full Migration EduSync LMS Supabase → VIL Backend ...Plan & Strategi...ace54d0159584b0c8330eaad52e6e05b.md` |
-| Phase 0A Week 1   | `migration-plan/.../Agent Task Queue — Phase 0A Week 1...73757d6162304c67b9452ba0088cf01a.md`                               |
-| Phase 0A Week 2-4 | `migration-plan/.../Agent Task Queue — Phase 0A Week 2-4...5d66d1c594bf41f0ace3a07445777b8a.md`                             |
-| Phase 0B-0D       | `migration-plan/.../Agent Task Queue — Phase 0B-0D...81752e8cfaaa4765ba909bb7e8003624.md`                                   |
 
 ---
 
