@@ -35,6 +35,18 @@ pub async fn register_handler(
     let full_name = body.full_name.clone().unwrap_or_default();
     let (first_name, last_name) = split_name(&full_name);
 
+    // Insert into auth.users FIRST — public.profiles.id FK references auth.users.id
+    sqlx::query(
+        r#"INSERT INTO auth.users (id, email, encrypted_password, created_at, updated_at, aud, role, is_sso_user, is_anonymous)
+           VALUES ($1, $2, $3, now(), now(), 'authenticated', 'authenticated', false, false)
+           ON CONFLICT (id) DO NOTHING"#
+    )
+    .bind(user_id)
+    .bind(&body.email)
+    .bind(&hash)
+    .execute(&mut *tx)
+    .await?;
+
     sqlx::query!(
         r#"INSERT INTO public.users (id, email, encrypted_password, created_at, updated_at)
            VALUES ($1, $2, $3, now(), now())"#,

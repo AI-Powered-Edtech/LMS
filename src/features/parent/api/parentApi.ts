@@ -78,13 +78,9 @@ export async function getParentDashboardSnapshot(
  * Dikelompokkan per mata pelajaran (course), ambil 2 nilai terakhir untuk tren.
  */
 export async function getChildGrades(studentId: string): Promise<ChildGradeSummary[]> {
-  // Ambil entri nilai terbaru per course (via courses join)
   const { data, error } = await supabase
     .from('gradebook_entries')
-    .select(
-      `score, max_score, created_at,
-       courses:course_id (title)`
-    )
+    .select('score, max_score, created_at, course_id')
     .eq('student_id', studentId)
     .order('created_at', { ascending: false })
     .limit(50)
@@ -96,26 +92,44 @@ export async function getChildGrades(studentId: string): Promise<ChildGradeSumma
 
   if (!data || data.length === 0) return []
 
-  // Kelompokkan per course, ambil 2 terakhir untuk tren
-  const courseMap = new Map<string, { subject: string; scores: number[] }>()
+  const courseIds = (data as Record<string, unknown>[])
+    .map((row) => row.course_id as string | null)
+    .filter(Boolean) as string[]
+  const { data: courses, error: courseError } =
+    courseIds.length > 0
+      ? await supabase.from('courses').select('id, title').in('id', courseIds)
+      : { data: [], error: null }
+
+  if (courseError) {
+    if (import.meta.env.DEV) console.error('[Parent] getChildGrades course error:', courseError)
+  }
+
+  const courseTitleMap = new Map(
+    ((courses ?? []) as Record<string, unknown>[]).map((course) => [
+      String(course.id),
+      String(course.title ?? 'Mata Pelajaran'),
+    ])
+  )
+
+  const gradeMap = new Map<string, { subject: string; scores: number[] }>()
 
   for (const row of data as Record<string, unknown>[]) {
-    const courseData = row.courses as { title: string } | null
-    const subject = courseData?.title ?? 'Mata Pelajaran'
+    const courseId = String(row.course_id ?? '')
+    const subject = courseTitleMap.get(courseId) ?? 'Mata Pelajaran'
     const maxScore = Number(row.max_score ?? 100)
     const score = maxScore > 0 ? Math.round((Number(row.score ?? 0) / maxScore) * 100) : 0
 
-    if (!courseMap.has(subject)) {
-      courseMap.set(subject, { subject, scores: [] })
+    if (!gradeMap.has(subject)) {
+      gradeMap.set(subject, { subject, scores: [] })
     }
-    const entry = courseMap.get(subject)!
+    const entry = gradeMap.get(subject)!
     if (entry.scores.length < 2) {
       entry.scores.push(score)
     }
   }
 
   const result: ChildGradeSummary[] = []
-  for (const [, entry] of courseMap) {
+  for (const [, entry] of gradeMap) {
     if (entry.scores.length === 0) continue
     const latest = entry.scores[0]
     const previous = entry.scores.length > 1 ? entry.scores[1] : null
@@ -286,10 +300,7 @@ export async function getChildPendingAssignments(
 
   const { data: assignments, error: aErr } = await supabase
     .from('assignments')
-    .select(
-      `id, title, due_date,
-       courses:course_id (title)`
-    )
+    .select('id, title, due_date, course_id')
     .eq('tenant_id', tenantId)
     .eq('is_published', true)
     .in('course_id', courseIds)
@@ -297,6 +308,29 @@ export async function getChildPendingAssignments(
     .limit(20)
 
   if (aErr || !assignments || assignments.length === 0) return []
+
+  const assignmentCourseIds = (assignments as Record<string, unknown>[])
+    .map((assignment) => assignment.course_id as string | null)
+    .filter(Boolean) as string[]
+  const { data: courses, error: courseError } =
+    assignmentCourseIds.length > 0
+      ? await supabase
+          .from('courses')
+          .select('id, title')
+          .eq('tenant_id', tenantId)
+          .in('id', assignmentCourseIds)
+      : { data: [], error: null }
+
+  if (courseError && import.meta.env.DEV) {
+    console.error('[Parent] getChildPendingAssignments course error:', courseError)
+  }
+
+  const courseTitleMap = new Map(
+    ((courses ?? []) as Record<string, unknown>[]).map((course) => [
+      String(course.id),
+      String(course.title ?? 'Mata Pelajaran'),
+    ])
+  )
 
   // Ambil submission yang sudah ada dari siswa ini
   const assignmentIds = (assignments as Record<string, unknown>[]).map((a) => a.id as string)
@@ -322,14 +356,14 @@ export async function getChildPendingAssignments(
     const id = a.id as string
     if (submittedIds.has(id)) continue
 
-    const courseData = a.courses as { title: string } | null
+    const courseTitle = courseTitleMap.get(String(a.course_id ?? ''))
     const dueDate = (a.due_date as string | null) ?? ''
     const isOverdue = dueDate ? new Date(dueDate) < new Date(now) : false
 
     pending.push({
       id,
       title: a.title as string,
-      subject: courseData?.title ?? 'Mata Pelajaran',
+      subject: courseTitle ?? 'Mata Pelajaran',
       due_date: dueDate,
       is_overdue: isOverdue,
     })

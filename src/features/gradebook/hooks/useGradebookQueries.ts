@@ -38,7 +38,7 @@ function useGradebookQuery(submissionsPage = 0, legacyMode = true, courseId?: st
     ],
     queryFn: () => {
       if (legacyMode) {
-        return gradebookService.fetchGradebook(tenantId!, submissionsPage)
+        return gradebookService.fetchGradebook(tenantId!, courseId, submissionsPage)
       } else {
         return fetchGradebookLegacy(tenantId!, courseId!)
       }
@@ -51,7 +51,7 @@ function useGradebookQuery(submissionsPage = 0, legacyMode = true, courseId?: st
 }
 
 function useUpdateGrade(legacyMode = true, courseId?: string) {
-  const { tenantId } = useAuth()
+  const { tenantId, user } = useAuth()
   const queryClient = useQueryClient()
   const addToast = useToast((s) => s.addToast)
 
@@ -71,9 +71,25 @@ function useUpdateGrade(legacyMode = true, courseId?: string) {
     }) => {
       if (score !== null && tenantId) {
         if (legacyMode) {
-          await gradebookService.submitGrade(assignmentId, studentId, score, feedback, tenantId)
+          await gradebookService.submitGrade(
+            assignmentId,
+            studentId,
+            score,
+            feedback,
+            tenantId,
+            courseId ?? '',
+            user?.id ?? null
+          )
         } else {
-          await submitGradeLegacy(assignmentId, studentId, courseId!, score, feedback, tenantId)
+          await submitGradeLegacy(
+            assignmentId,
+            studentId,
+            courseId!,
+            score,
+            feedback,
+            tenantId,
+            user?.id ?? null
+          )
         }
       }
     },
@@ -158,7 +174,7 @@ export function useGradebook(submissionsPage = 0, courseId?: string, forceLegacy
           .then(() => {
             sessionStorage.setItem(syncKey, 'true')
             // Invalidate queries after sync to refresh data
-            queryClient.invalidateQueries({
+            void queryClient.invalidateQueries({
               queryKey: gradebookKeys.all(tenantId),
             })
           })

@@ -14,6 +14,7 @@ const envSchema = object({
 
   // ── Optional ────────────────────────────────────────────
   VITE_API_BACKEND: optional(string()),
+  VITE_API_URL: optional(string()),
   VITE_SENTRY_DSN: optional(string()),
   VITE_DEV_PASSWORD: optional(string()),
   VITE_VAPID_PUBLIC_KEY: optional(string()),
@@ -33,6 +34,7 @@ export function validateEnv(): AppEnv {
       VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
       VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
       VITE_API_BACKEND: import.meta.env.VITE_API_BACKEND,
+      VITE_API_URL: import.meta.env.VITE_API_URL,
       VITE_SENTRY_DSN: import.meta.env.VITE_SENTRY_DSN,
       VITE_DEV_PASSWORD: import.meta.env.VITE_DEV_PASSWORD,
       VITE_VAPID_PUBLIC_KEY: import.meta.env.VITE_VAPID_PUBLIC_KEY,

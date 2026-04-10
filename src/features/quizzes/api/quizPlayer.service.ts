@@ -15,6 +15,45 @@ import type {
   StudentQuizAssignment,
 } from '../types/quizzes.types'
 
+interface QuizQuestionRow {
+  id: string
+  text: string | null
+  explanation: string | null
+  order: number | null
+  question_type: QuestionType | null
+  points: number | null
+}
+
+interface QuizOptionRow {
+  id: string
+  question_id: string
+  text: string
+}
+
+interface QuizAssignmentRow {
+  id: string
+  quiz_id: string
+  class_id: string
+  status: string
+  available_from: string | null
+  due_at: string | null
+  max_attempts: number | null
+}
+
+interface QuizRow {
+  id: string
+  title: string | null
+  instructions: string | null
+  mode: string | null
+  time_limit_minutes: number | null
+  max_attempts: number | null
+  passing_score: number | null
+  show_correct_answers: boolean | null
+  status: string | null
+  available_from: string | null
+  available_until: string | null
+}
+
 // Re-export everything from submodules for backward compatibility
 export { batchSaveAnswers, startQuizAttempt, submitQuizAttempt } from './quizAttemptService'
 export { getCurrentQuestionIndex, recordCheatingSignal, recordHeartbeat } from './quizTimerService'
@@ -53,28 +92,37 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
   // Fetch all questions in the manifest, scoped to the attempt's tenant
   const { data: questions, error: questionError } = await supabase
     .from('quiz_questions')
-    .select(
-      `
-      id,
-      text,
-      explanation,
-      "order",
-      question_type,
-      points,
-      quiz_options ( id, text )
-    `
-    )
+    .select('id, text, explanation, "order", question_type, points')
     .in('id', manifest)
     .eq('tenant_id', attempt.tenant_id) // CRITICAL: tenant isolation
 
   if (questionError) throw questionError
 
+  const questionIds = (questions ?? []).map((question) => question.id)
+  const { data: options, error: optionError } =
+    questionIds.length > 0
+      ? await supabase
+          .from('quiz_options')
+          .select('id, question_id, text')
+          .eq('tenant_id', attempt.tenant_id)
+          .in('question_id', questionIds)
+      : { data: [], error: null }
+
+  if (optionError) throw optionError
+
   // Build Maps for O(1) lookup instead of O(n) find() - fixes O(n^2) performance
-  const questionsMap = new Map<string, (typeof questions)[0]>()
-  questions.forEach((q) => questionsMap.set(q.id, q))
+  const questionsMap = new Map<string, QuizQuestionRow>()
+  ;((questions ?? []) as QuizQuestionRow[]).forEach((q) => questionsMap.set(q.id, q))
+
+  const optionsMap = new Map<string, QuizOptionRow[]>()
+  ;((options ?? []) as QuizOptionRow[]).forEach((option) => {
+    const existing = optionsMap.get(option.question_id) ?? []
+    existing.push(option)
+    optionsMap.set(option.question_id, existing)
+  })
 
   const answersMap = new Map<string, (typeof answers)[0]>()
-  answers.forEach((a) => answersMap.set(a.question_id, a))
+  ;(answers ?? []).forEach((a) => answersMap.set(a.question_id, a))
 
   // Map and normalize the data
   return manifest.map((questionId: string, index: number) => {
@@ -93,7 +141,7 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
     }
 
     // Normalize quiz_options for the UI
-    const normalizedOptions = (question?.quiz_options || []).map(
+    const normalizedOptions = (optionsMap.get(questionId) ?? []).map(
       (option: { id: string; text: string; order?: number }, optionIndex: number) => ({
         id: option.id,
         text: option.text,
@@ -164,72 +212,98 @@ export async function getStudentQuizAssignments(
   // Get quiz assignments for those classes
   const { data, error } = await supabase
     .from('quiz_assignments')
-    .select(
-      `
-      id,
-      quiz_id,
-      class_id,
-      status,
-      available_from,
-      due_at,
-      classes!inner (
-        id,
-        name
-      ),
-      quizzes!inner (
-        id,
-        title,
-        instructions,
-        mode,
-        time_limit_minutes,
-        max_attempts,
-        passing_score,
-        show_correct_answers,
-        status,
-        available_from,
-        available_until,
-        quiz_questions ( id )
-      )
-    `
-    )
+    .select('id, quiz_id, class_id, status, available_from, due_at, max_attempts')
     .eq('tenant_id', tenantId)
     .in('class_id', classIds)
-    .eq('quizzes.status', 'published')
     .eq('status', 'active')
     .order('available_from', { ascending: true })
     .limit(100)
 
   if (error) throw error
 
-  return (data || []).map((assignment) => {
-    const quizArr = assignment.quizzes as unknown
-    const quiz = ((Array.isArray(quizArr) ? quizArr[0] : quizArr) as Record<string, unknown>) || {}
-    const classArr = assignment.classes as unknown
-    const cls = (Array.isArray(classArr) ? classArr[0] : classArr) as { name?: string } | null
-    return {
-      id: assignment.id,
-      assignment_id: assignment.id,
-      quiz_id: assignment.quiz_id,
-      class_id: assignment.class_id,
-      class_name: cls?.name || 'Kelas',
-      title: quiz.title || 'Kuis',
-      instructions: quiz.instructions || null,
-      mode: quiz.mode || 'graded',
-      status: assignment.status,
-      available_from: assignment.available_from ?? quiz.available_from ?? null,
-      due_at: assignment.due_at ?? quiz.available_until ?? null,
-      time_limit_minutes: quiz.time_limit_minutes ?? null,
-      max_attempts:
-        (assignment as unknown as { max_attempts?: number }).max_attempts ??
-        quiz.max_attempts ??
-        null,
-      passing_score: quiz.passing_score ?? null,
-      show_correct_answers: quiz.show_correct_answers ?? false,
-      quiz_questions: quiz.quiz_questions || [],
-      quizzes: quiz,
-      classes: cls,
-    }
-  }) as unknown as StudentQuizAssignment[]
+  const assignmentRows = (data ?? []) as QuizAssignmentRow[]
+  const assignedQuizIds = assignmentRows.map((assignment) => assignment.quiz_id)
+  const assignedClassIds = assignmentRows.map((assignment) => assignment.class_id)
+
+  const [{ data: quizzes, error: quizError }, { data: classes, error: classError }] =
+    await Promise.all([
+      assignedQuizIds.length > 0
+        ? supabase
+            .from('quizzes')
+            .select(
+              'id, title, instructions, mode, time_limit_minutes, max_attempts, passing_score, show_correct_answers, status, available_from, available_until'
+            )
+            .eq('tenant_id', tenantId)
+            .eq('status', 'published')
+            .in('id', assignedQuizIds)
+        : Promise.resolve({ data: [], error: null }),
+      assignedClassIds.length > 0
+        ? supabase
+            .from('classes')
+            .select('id, name')
+            .eq('tenant_id', tenantId)
+            .in('id', assignedClassIds)
+        : Promise.resolve({ data: [], error: null }),
+    ])
+
+  if (quizError) throw quizError
+  if (classError) throw classError
+
+  const publishedQuizIds = new Set(
+    ((quizzes ?? []) as QuizRow[]).map((quiz) => quiz.id)
+  )
+  const questionCounts = new Map<string, Array<{ id: string }>>()
+
+  if (publishedQuizIds.size > 0) {
+    const { data: quizQuestions, error: quizQuestionError } = await supabase
+      .from('quiz_questions')
+      .select('id, quiz_id')
+      .eq('tenant_id', tenantId)
+      .in('quiz_id', Array.from(publishedQuizIds))
+
+    if (quizQuestionError) throw quizQuestionError
+
+    ;((quizQuestions ?? []) as Array<{ id: string; quiz_id: string }>).forEach((question) => {
+      const existing = questionCounts.get(question.quiz_id) ?? []
+      existing.push({ id: question.id })
+      questionCounts.set(question.quiz_id, existing)
+    })
+  }
+
+  const quizMap = new Map(((quizzes ?? []) as QuizRow[]).map((quiz) => [quiz.id, quiz]))
+  const classMap = new Map(
+    ((classes ?? []) as Array<{ id: string; name: string }>).map((klass) => [klass.id, klass])
+  )
+
+  return assignmentRows
+    .filter((assignment) => publishedQuizIds.has(assignment.quiz_id))
+    .map((assignment) => {
+      const quiz = quizMap.get(assignment.quiz_id)
+      const cls = classMap.get(assignment.class_id)
+      return {
+        id: assignment.id,
+        assignment_id: assignment.id,
+        quiz_id: assignment.quiz_id,
+        class_id: assignment.class_id,
+        class_name: cls?.name || 'Kelas',
+        title: quiz?.title || 'Kuis',
+        instructions: quiz?.instructions || null,
+        mode: quiz?.mode || 'graded',
+        status: assignment.status,
+        available_from: assignment.available_from ?? quiz?.available_from ?? null,
+        due_at: assignment.due_at ?? quiz?.available_until ?? null,
+        time_limit_minutes: quiz?.time_limit_minutes ?? null,
+        max_attempts:
+          (assignment as unknown as { max_attempts?: number }).max_attempts ??
+          quiz?.max_attempts ??
+          null,
+        passing_score: quiz?.passing_score ?? null,
+        show_correct_answers: quiz?.show_correct_answers ?? false,
+        quiz_questions: questionCounts.get(assignment.quiz_id) || [],
+        quizzes: quiz ?? null,
+        classes: cls,
+      }
+    }) as unknown as StudentQuizAssignment[]
 }
 
 /**

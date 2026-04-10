@@ -163,6 +163,7 @@ pub struct ClassInfo {
     pub id: Uuid,
     pub name: String,
     pub tenant_id: Uuid,
+    pub tenant_name: String,
 }
 
 pub async fn lookup_class_handler(
@@ -170,7 +171,10 @@ pub async fn lookup_class_handler(
     Query(params): Query<LookupClassQuery>,
 ) -> Result<Json<ClassInfo>, AuthError> {
     let class = sqlx::query!(
-        "SELECT id, name, tenant_id FROM public.classes WHERE join_code = $1",
+        r#"SELECT c.id, c.name, c.tenant_id, t.name as tenant_name
+           FROM public.classes c
+           JOIN public.tenants t ON t.id = c.tenant_id
+           WHERE c.join_code = $1"#,
         params.code
     )
     .fetch_optional(&state.db)
@@ -181,6 +185,7 @@ pub async fn lookup_class_handler(
         id: class.id,
         name: class.name,
         tenant_id: class.tenant_id,
+        tenant_name: class.tenant_name,
     }))
 }
 
@@ -263,6 +268,17 @@ pub async fn onboard_student_handler(
 
     let mut tx = state.db.begin().await?;
 
+    // Insert into auth.users FIRST — public.profiles.id FK references auth.users.id
+    sqlx::query(
+        r#"INSERT INTO auth.users (id, email, encrypted_password, created_at, updated_at, aud, role, is_sso_user, is_anonymous)
+           VALUES ($1, $2, $3, now(), now(), 'authenticated', 'authenticated', false, false)
+           ON CONFLICT (id) DO NOTHING"#
+    )
+    .bind(user_id)
+    .bind(&body.email)
+    .bind(&hash)
+    .execute(&mut *tx).await?;
+
     sqlx::query!(
         r#"INSERT INTO public.users (id, email, encrypted_password, created_at, updated_at)
            VALUES ($1, $2, $3, now(), now())"#,
@@ -312,7 +328,7 @@ pub async fn create_tenant_handler(
     Extension(state): Extension<Arc<AppState>>,
     headers: HeaderMap,
     Json(body): Json<CreateTenantRequest>,
-) -> Result<StatusCode, AuthError> {
+) -> Result<Json<serde_json::Value>, AuthError> {
     let token = headers
         .get("authorization")
         .and_then(|v| v.to_str().ok())
@@ -324,6 +340,12 @@ pub async fn create_tenant_handler(
 
     let mut tx = state.db.begin().await?;
     let tenant_id = Uuid::new_v4();
+    let requested_role = body
+        .role
+        .as_deref()
+        .map(|value| value.trim().to_uppercase())
+        .filter(|value| matches!(value.as_str(), "ADMIN" | "TEACHER"))
+        .unwrap_or_else(|| "ADMIN".to_string());
 
     sqlx::query!(
         r#"INSERT INTO public.tenants (id, name, slug, created_at, updated_at)
@@ -332,15 +354,54 @@ pub async fn create_tenant_handler(
     )
     .execute(&mut *tx).await?;
 
-    sqlx::query!(
+    sqlx::query(
         r#"INSERT INTO public.user_roles (user_id, role, tenant_id)
-           VALUES ($1, 'ADMIN', $2)"#,
-        user_id, tenant_id
+           VALUES ($1, $2::app_role, $3)"#
+    )
+    .bind(user_id)
+    .bind(&requested_role)
+    .bind(tenant_id)
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        r#"INSERT INTO public.tenant_memberships (tenant_id, user_id, role, status, joined_at, created_at, updated_at)
+           VALUES ($1, $2, $3, 'active', now(), now(), now())
+           ON CONFLICT (tenant_id, user_id) DO UPDATE
+           SET role = EXCLUDED.role, status = 'active', updated_at = now()"#,
+        tenant_id, user_id, requested_role
     )
     .execute(&mut *tx).await?;
 
+    if let Some(full_name) = body.full_name.as_deref() {
+        let (first_name, last_name) = split_name(full_name);
+        sqlx::query!(
+            r#"UPDATE public.profiles
+               SET first_name = CASE WHEN COALESCE(first_name, '') = '' THEN $1 ELSE first_name END,
+                   last_name = CASE WHEN COALESCE(last_name, '') = '' THEN $2 ELSE last_name END,
+                   tenant_id = COALESCE(tenant_id, $3),
+                   updated_at = now()
+               WHERE id = $4"#,
+            first_name,
+            last_name,
+            tenant_id,
+            user_id
+        )
+        .execute(&mut *tx).await?;
+    } else {
+        sqlx::query!(
+            "UPDATE public.profiles SET tenant_id = COALESCE(tenant_id, $1), updated_at = now() WHERE id = $2",
+            tenant_id,
+            user_id
+        )
+        .execute(&mut *tx).await?;
+    }
+
     tx.commit().await?;
-    Ok(StatusCode::CREATED)
+    Ok(Json(serde_json::json!({
+        "tenant_id": tenant_id,
+        "role": requested_role.to_lowercase(),
+    })))
 }
 
 fn split_name(full: &str) -> (String, String) {

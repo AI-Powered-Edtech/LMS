@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import Papa from 'papaparse'
 
 import { supabase } from '@/services/supabase/client'
@@ -55,8 +56,7 @@ export async function fetchGradebookEntries(
     .from('gradebook_entries')
     .select(
       `id, tenant_id, student_id, course_id, entity_type, entity_id,
-       score, max_score, feedback, graded_by, graded_at, created_at, updated_at, title,
-       profiles:student_id (full_name, email)`
+       score, max_score, feedback, graded_by, graded_at, created_at, updated_at, title`
     )
     .eq('course_id', courseId)
     .eq('tenant_id', tenantId)
@@ -65,8 +65,27 @@ export async function fetchGradebookEntries(
 
   if (error) throw error
 
-  return ((data ?? []) as Record<string, unknown>[]).map((row) => {
-    const profile = row.profiles as { full_name: string; email: string } | null
+  const rows = (data ?? []) as Record<string, unknown>[]
+  const studentIds = rows.map((row) => String(row.student_id)).filter(Boolean)
+  const { data: profiles, error: profileError } =
+    studentIds.length > 0
+      ? await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .eq('tenant_id', tenantId)
+          .in('id', studentIds)
+      : { data: [], error: null }
+
+  if (profileError) throw profileError
+
+  const profileMap = new Map(
+    ((profiles ?? []) as Array<Record<string, unknown>>).map((profile) => [String(profile.id), profile])
+  )
+
+  return rows.map((row) => {
+    const profile =
+      profileMap.get(String(row.student_id)) ??
+      ((row.profiles as Record<string, unknown> | null | undefined) ?? null)
     const entityType = row.entity_type as string
     const itemType: 'quiz' | 'assignment' | undefined =
       entityType === 'quiz' ? 'quiz' : entityType === 'assignment' ? 'assignment' : undefined
@@ -90,8 +109,11 @@ export async function fetchGradebookEntries(
       graded_at: (row.graded_at as string | null) ?? null,
       created_at: row.created_at as string,
       updated_at: row.updated_at as string,
-      student_name: profile?.full_name ?? undefined,
-      student_email: profile?.email ?? undefined,
+      student_name:
+        (profile?.full_name as string | undefined) ??
+        (profile?.name as string | undefined) ??
+        undefined,
+      student_email: (profile?.email as string | undefined) ?? undefined,
       item_title: (row.title as string | null) ?? undefined,
       item_type: itemType,
     } satisfies GradebookEntry
@@ -459,7 +481,8 @@ export async function submitGradeLegacy(
   courseId: string,
   score: number,
   feedback: string | undefined,
-  tenantId: string
+  tenantId: string,
+  gradedBy?: string | null
 ): Promise<void> {
   // Determine if this is a quiz or assignment
   const columns = await fetchGradebookColumns(courseId, tenantId)
@@ -482,7 +505,7 @@ export async function submitGradeLegacy(
     score,
     max_score: column.max_score,
     notes: feedback ?? null,
-    graded_by: null, // TODO: Get from auth context
+    graded_by: gradedBy ?? null,
     graded_at: new Date().toISOString(),
   })
 }

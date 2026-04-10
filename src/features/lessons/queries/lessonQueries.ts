@@ -39,15 +39,25 @@ export function useStudentEnrollments() {
 
       const { data, error } = await supabase
         .from('course_enrollments')
-        .select('course_id, courses!inner(id, title, description, status)')
+        .select('course_id')
         .eq('user_id', user.id)
         .eq('tenant_id', tenantId)
         .eq('status', 'ACTIVE')
 
       if (error) throw error
 
-      return (data ?? [])
-        .map((e) => (e as unknown as { courses: EnrolledCourse }).courses)
+      const courseIds = (data ?? []).map((enrollment) => enrollment.course_id)
+      if (courseIds.length === 0) return []
+
+      const { data: courses, error: courseError } = await supabase
+        .from('courses')
+        .select('id, title, description, status')
+        .eq('tenant_id', tenantId)
+        .in('id', courseIds)
+
+      if (courseError) throw courseError
+
+      return ((courses ?? []) as EnrolledCourse[])
         .filter((c) => c.status === 'published')
     },
     enabled: !!tenantId && !!user?.id,

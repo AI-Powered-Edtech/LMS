@@ -48,6 +48,65 @@ export interface CreateThreadParams {
   subject?: string
 }
 
+type ProfileLookup = Record<string, { full_name?: string; avatar_url?: string | null }>
+
+async function fetchProfiles(userIds: string[]): Promise<ProfileLookup> {
+  if (userIds.length === 0) return {}
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url')
+    .in('id', userIds)
+
+  if (error) throw error
+
+  return Object.fromEntries(
+    ((data ?? []) as Record<string, unknown>[]).map((profile) => [
+      profile.id as string,
+      {
+        full_name: profile.full_name as string | undefined,
+        avatar_url: (profile.avatar_url as string | null | undefined) ?? null,
+      },
+    ])
+  )
+}
+
+function mapThreadRow(row: Record<string, unknown>, profiles: ProfileLookup): MessageThread {
+  const teacher = profiles[row.teacher_id as string]
+  const student = profiles[row.student_id as string]
+
+  return {
+    id: row.id as string,
+    tenant_id: row.tenant_id as string,
+    parent_id: row.parent_id as string,
+    teacher_id: row.teacher_id as string,
+    student_id: row.student_id as string,
+    subject: (row.subject as string | null) ?? null,
+    last_message_at: row.last_message_at as string,
+    parent_unread_count: (row.parent_unread_count as number) ?? 0,
+    teacher_unread_count: (row.teacher_unread_count as number) ?? 0,
+    created_at: row.created_at as string,
+    teacher_name: teacher?.full_name ?? 'Guru',
+    teacher_avatar: teacher?.avatar_url ?? null,
+    student_name: student?.full_name ?? 'Siswa',
+  }
+}
+
+function mapMessageRow(row: Record<string, unknown>, profiles: ProfileLookup): ThreadMessage {
+  const sender = profiles[row.sender_id as string]
+
+  return {
+    id: row.id as string,
+    thread_id: row.thread_id as string,
+    tenant_id: row.tenant_id as string,
+    sender_id: row.sender_id as string,
+    content: row.content as string,
+    created_at: row.created_at as string,
+    sender_name: sender?.full_name ?? 'Pengguna',
+    sender_avatar: sender?.avatar_url ?? null,
+  }
+}
+
 // ── getThreads ────────────────────────────────────────────────────────────
 
 /**
@@ -58,10 +117,7 @@ export async function getThreads(parentId: string): Promise<MessageThread[]> {
   const { data, error } = await supabase
     .from('parent_teacher_threads')
     .select(
-      `id, tenant_id, parent_id, teacher_id, student_id,
-       subject, last_message_at, parent_unread_count, teacher_unread_count, created_at,
-       teacher:teacher_id ( full_name, avatar_url ),
-       student:student_id ( full_name )`
+      'id, tenant_id, parent_id, teacher_id, student_id, subject, last_message_at, parent_unread_count, teacher_unread_count, created_at'
     )
     .eq('parent_id', parentId)
     .order('last_message_at', { ascending: false })
@@ -73,26 +129,12 @@ export async function getThreads(parentId: string): Promise<MessageThread[]> {
 
   if (!data || data.length === 0) return []
 
-  return (data as Record<string, unknown>[]).map((row) => {
-    const teacher = row.teacher as { full_name?: string; avatar_url?: string | null } | null
-    const student = row.student as { full_name?: string } | null
+  const rows = data as Record<string, unknown>[]
+  const profiles = await fetchProfiles(
+    Array.from(new Set(rows.flatMap((row) => [row.teacher_id as string, row.student_id as string])))
+  )
 
-    return {
-      id: row.id as string,
-      tenant_id: row.tenant_id as string,
-      parent_id: row.parent_id as string,
-      teacher_id: row.teacher_id as string,
-      student_id: row.student_id as string,
-      subject: (row.subject as string | null) ?? null,
-      last_message_at: row.last_message_at as string,
-      parent_unread_count: (row.parent_unread_count as number) ?? 0,
-      teacher_unread_count: (row.teacher_unread_count as number) ?? 0,
-      created_at: row.created_at as string,
-      teacher_name: teacher?.full_name ?? 'Guru',
-      teacher_avatar: teacher?.avatar_url ?? null,
-      student_name: student?.full_name ?? 'Siswa',
-    }
-  })
+  return rows.map((row) => mapThreadRow(row, profiles))
 }
 
 // ── getMessages ────────────────────────────────────────────────────────────
@@ -103,10 +145,7 @@ export async function getThreads(parentId: string): Promise<MessageThread[]> {
 export async function getMessages(threadId: string): Promise<ThreadMessage[]> {
   const { data, error } = await supabase
     .from('parent_teacher_messages')
-    .select(
-      `id, thread_id, tenant_id, sender_id, content, created_at,
-       sender:sender_id ( full_name, avatar_url )`
-    )
+    .select('id, thread_id, tenant_id, sender_id, content, created_at')
     .eq('thread_id', threadId)
     .limit(100)
     .order('created_at', { ascending: true })
@@ -118,20 +157,10 @@ export async function getMessages(threadId: string): Promise<ThreadMessage[]> {
 
   if (!data || data.length === 0) return []
 
-  return (data as Record<string, unknown>[]).map((row) => {
-    const sender = row.sender as { full_name?: string; avatar_url?: string | null } | null
+  const rows = data as Record<string, unknown>[]
+  const profiles = await fetchProfiles(Array.from(new Set(rows.map((row) => row.sender_id as string))))
 
-    return {
-      id: row.id as string,
-      thread_id: row.thread_id as string,
-      tenant_id: row.tenant_id as string,
-      sender_id: row.sender_id as string,
-      content: row.content as string,
-      created_at: row.created_at as string,
-      sender_name: sender?.full_name ?? 'Pengguna',
-      sender_avatar: sender?.avatar_url ?? null,
-    }
-  })
+  return rows.map((row) => mapMessageRow(row, profiles))
 }
 
 // ── sendMessage ────────────────────────────────────────────────────────────
@@ -153,10 +182,7 @@ export async function sendMessage(threadId: string, content: string): Promise<Th
       thread_id: threadId,
       content: content.trim(),
     })
-    .select(
-      `id, thread_id, tenant_id, sender_id, content, created_at,
-       sender:sender_id ( full_name, avatar_url )`
-    )
+    .select('id, thread_id, tenant_id, sender_id, content, created_at')
     .single()
 
   if (error) {
@@ -165,18 +191,9 @@ export async function sendMessage(threadId: string, content: string): Promise<Th
   }
 
   const row = data as Record<string, unknown>
-  const sender = row.sender as { full_name?: string; avatar_url?: string | null } | null
+  const profiles = await fetchProfiles([row.sender_id as string])
 
-  return {
-    id: row.id as string,
-    thread_id: row.thread_id as string,
-    tenant_id: row.tenant_id as string,
-    sender_id: row.sender_id as string,
-    content: row.content as string,
-    created_at: row.created_at as string,
-    sender_name: sender?.full_name ?? 'Pengguna',
-    sender_avatar: sender?.avatar_url ?? null,
-  }
+  return mapMessageRow(row, profiles)
 }
 
 // ── createThread ──────────────────────────────────────────────────────────
@@ -202,10 +219,7 @@ export async function createThread(params: CreateThreadParams): Promise<MessageT
       }
     )
     .select(
-      `id, tenant_id, parent_id, teacher_id, student_id,
-       subject, last_message_at, parent_unread_count, teacher_unread_count, created_at,
-       teacher:teacher_id ( full_name, avatar_url ),
-       student:student_id ( full_name )`
+      'id, tenant_id, parent_id, teacher_id, student_id, subject, last_message_at, parent_unread_count, teacher_unread_count, created_at'
     )
     .single()
 
@@ -215,10 +229,7 @@ export async function createThread(params: CreateThreadParams): Promise<MessageT
     const { data: existing, error: fetchError } = await supabase
       .from('parent_teacher_threads')
       .select(
-        `id, tenant_id, parent_id, teacher_id, student_id,
-         subject, last_message_at, parent_unread_count, teacher_unread_count, created_at,
-         teacher:teacher_id ( full_name, avatar_url ),
-         student:student_id ( full_name )`
+        'id, tenant_id, parent_id, teacher_id, student_id, subject, last_message_at, parent_unread_count, teacher_unread_count, created_at'
       )
       .eq('parent_id', params.parent_id)
       .eq('teacher_id', params.teacher_id)
@@ -230,45 +241,15 @@ export async function createThread(params: CreateThreadParams): Promise<MessageT
     }
 
     const row = existing as Record<string, unknown>
-    const teacher = row.teacher as { full_name?: string; avatar_url?: string | null } | null
-    const student = row.student as { full_name?: string } | null
+    const profiles = await fetchProfiles([row.teacher_id as string, row.student_id as string])
 
-    return {
-      id: row.id as string,
-      tenant_id: row.tenant_id as string,
-      parent_id: row.parent_id as string,
-      teacher_id: row.teacher_id as string,
-      student_id: row.student_id as string,
-      subject: (row.subject as string | null) ?? null,
-      last_message_at: row.last_message_at as string,
-      parent_unread_count: (row.parent_unread_count as number) ?? 0,
-      teacher_unread_count: (row.teacher_unread_count as number) ?? 0,
-      created_at: row.created_at as string,
-      teacher_name: teacher?.full_name ?? 'Guru',
-      teacher_avatar: teacher?.avatar_url ?? null,
-      student_name: student?.full_name ?? 'Siswa',
-    }
+    return mapThreadRow(row, profiles)
   }
 
   const row = data as Record<string, unknown>
-  const teacher = row.teacher as { full_name?: string; avatar_url?: string | null } | null
-  const student = row.student as { full_name?: string } | null
+  const profiles = await fetchProfiles([row.teacher_id as string, row.student_id as string])
 
-  return {
-    id: row.id as string,
-    tenant_id: row.tenant_id as string,
-    parent_id: row.parent_id as string,
-    teacher_id: row.teacher_id as string,
-    student_id: row.student_id as string,
-    subject: (row.subject as string | null) ?? null,
-    last_message_at: row.last_message_at as string,
-    parent_unread_count: (row.parent_unread_count as number) ?? 0,
-    teacher_unread_count: (row.teacher_unread_count as number) ?? 0,
-    created_at: row.created_at as string,
-    teacher_name: teacher?.full_name ?? 'Guru',
-    teacher_avatar: teacher?.avatar_url ?? null,
-    student_name: student?.full_name ?? 'Siswa',
-  }
+  return mapThreadRow(row, profiles)
 }
 
 // ── markThreadRead ─────────────────────────────────────────────────────────

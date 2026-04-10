@@ -1,4 +1,5 @@
 import { supabase } from '@/services/supabase/client'
+
 import { fetchGradebookLegacy, submitGradeLegacy, syncGradebook } from './gradebookApi'
 import { gradebookService as legacyGradebookService } from './legacyGradebookService'
 
@@ -7,7 +8,11 @@ export const gradebookService = {
    * Fetch gradebook data using the modern gradebookApi.
    * Fallback to legacyGradebookService if the modern API fails.
    */
-  async fetchGradebook(tenantId: string, courseId: string, submissionsPage = 0) {
+  async fetchGradebook(tenantId: string, courseId?: string, submissionsPage = 0) {
+    if (!courseId) {
+      return await legacyGradebookService.fetchGradebook(tenantId, submissionsPage)
+    }
+
     try {
       return await fetchGradebookLegacy(tenantId, courseId, submissionsPage)
     } catch {
@@ -25,10 +30,29 @@ export const gradebookService = {
     score: number,
     feedback: string | undefined,
     tenantId: string,
-    courseId: string
+    courseId?: string,
+    gradedBy?: string | null
   ) {
+    if (!courseId) {
+      return await legacyGradebookService.submitGrade(
+        assignmentId,
+        studentId,
+        score,
+        feedback,
+        tenantId
+      )
+    }
+
     try {
-      return await submitGradeLegacy(assignmentId, studentId, courseId, score, feedback, tenantId)
+      return await submitGradeLegacy(
+        assignmentId,
+        studentId,
+        courseId,
+        score,
+        feedback,
+        tenantId,
+        gradedBy
+      )
     } catch {
       return await legacyGradebookService.submitGrade(
         assignmentId,
@@ -52,20 +76,68 @@ export const gradebookService = {
    * Fallback to direct query if needed.
    */
   async getStudentGrades(studentId: string, tenantId: string) {
-    try {
-      return await fetchGradebookLegacy(studentId, tenantId, 0)
-    } catch {
-      // Fallback to direct query if fetchGradebookLegacy fails
-      const { data, error: queryError } = await supabase
-        .from('assignment_submissions')
-        .select('id, score, status, submitted_at, assignments!inner(id, title, classes(name))')
-        .eq('student_id', studentId)
-        .eq('tenant_id', tenantId)
-        .order('submitted_at', { ascending: false })
-        .limit(200)
+    const { data, error: queryError } = await supabase
+      .from('assignment_submissions')
+      .select('id, assignment_id, score, status, submitted_at')
+      .eq('student_id', studentId)
+      .eq('tenant_id', tenantId)
+      .order('submitted_at', { ascending: false })
+      .limit(200)
 
-      if (queryError) throw queryError
-      return data ?? []
-    }
+    if (queryError) throw queryError
+
+    const assignmentIds = (data ?? []).map((submission) => submission.assignment_id)
+    const { data: assignments, error: assignmentError } =
+      assignmentIds.length > 0
+        ? await supabase
+            .from('assignments')
+            .select('id, title, class_id')
+            .eq('tenant_id', tenantId)
+            .in('id', assignmentIds)
+        : { data: [], error: null }
+
+    if (assignmentError) throw assignmentError
+
+    const classIds = ((assignments ?? []) as Array<{ class_id: string | null }>).map(
+      (assignment) => assignment.class_id
+    )
+    const { data: classes, error: classError } =
+      classIds.length > 0
+        ? await supabase
+            .from('classes')
+            .select('id, name')
+            .eq('tenant_id', tenantId)
+            .in(
+              'id',
+              classIds.filter((classId): classId is string => Boolean(classId))
+            )
+        : { data: [], error: null }
+
+    if (classError) throw classError
+
+    const assignmentMap = new Map(
+      ((assignments ?? []) as Array<{ id: string; title: string; class_id: string | null }>).map(
+        (assignment) => [assignment.id, assignment]
+      )
+    )
+    const classMap = new Map(
+      ((classes ?? []) as Array<{ id: string; name: string }>).map((klass) => [klass.id, klass.name])
+    )
+
+    return (data ?? []).map((submission) => {
+      const assignment = assignmentMap.get(submission.assignment_id)
+      return {
+        ...submission,
+        assignments: assignment
+          ? {
+              id: assignment.id,
+              title: assignment.title,
+              classes: assignment.class_id
+                ? { name: classMap.get(assignment.class_id) ?? '' }
+                : null,
+            }
+          : null,
+      }
+    })
   },
 }

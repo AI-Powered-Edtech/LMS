@@ -22,6 +22,30 @@ export interface EnrolledStudent {
   status: string
 }
 
+interface ClassroomRow {
+  id: string
+  name: string
+  course_id?: string
+  teacher_id: string
+  join_code: string
+  max_students?: number
+  created_at: string
+}
+
+interface EnrollmentRow {
+  id: string
+  class_id: string
+  student_id: string
+  status: string
+  joined_at: string
+}
+
+interface ProfileRow {
+  id: string
+  full_name: string | null
+  email: string | null
+}
+
 type UserRole = 'teacher' | 'student' | 'admin'
 
 export const classroomService = {
@@ -32,10 +56,12 @@ export const classroomService = {
    * - student: enrolled classes
    */
   async fetchClassrooms(userId: string, role: UserRole, tenantId: string): Promise<Classroom[]> {
+    const classroomColumns = 'id, name, course_id, teacher_id, join_code, max_students, created_at'
+
     if (role === 'teacher') {
       const { data, error } = await supabase
         .from('classes')
-        .select('id, name, course_id, teacher_id, join_code, max_students, created_at')
+        .select(classroomColumns)
         .eq('teacher_id', userId)
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
@@ -46,26 +72,35 @@ export const classroomService = {
     if (role === 'admin') {
       const { data, error } = await supabase
         .from('classes')
-        .select('id, name, course_id, teacher_id, join_code, max_students, created_at')
+        .select(classroomColumns)
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
       if (error) throw error
       return data ?? []
     }
 
-    // Student: fetch via enrollments
     const { data: enrollments, error } = await supabase
       .from('enrollments')
-      .select(
-        'class_id, classes( id, name, course_id, teacher_id, join_code, max_students, created_at )'
-      )
+      .select('class_id')
       .eq('student_id', userId)
       .eq('tenant_id', tenantId)
       .eq('status', 'ACTIVE')
     if (error) throw error
-    return (enrollments
-      ?.map((e) => (e as unknown as { classes: Classroom }).classes)
-      .filter(Boolean) ?? []) as Classroom[]
+
+    const classIds = (enrollments ?? []).map((item) => item.class_id).filter(Boolean)
+    if (classIds.length === 0) return []
+
+    const { data: classrooms, error: classroomError } = await supabase
+      .from('classes')
+      .select(classroomColumns)
+      .eq('tenant_id', tenantId)
+      .in('id', classIds)
+      .order('created_at', { ascending: false })
+
+    if (classroomError) throw classroomError
+    return ((classrooms ?? []) as ClassroomRow[]).sort(
+      (left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime()
+    )
   },
 
   /**
@@ -249,50 +284,49 @@ export const classroomService = {
   async getEnrolledStudents(classId: string, tenantId: string): Promise<EnrolledStudent[]> {
     const { data, error } = await supabase
       .from('enrollments')
-      .select(
-        `
-        id,
-        joined_at,
-        student:profiles!enrollments_student_id_fkey(id, full_name, email)
-      `
-      )
+      .select('id, student_id, status, joined_at')
       .eq('class_id', classId)
       .eq('tenant_id', tenantId)
       .eq('status', 'ACTIVE')
     if (error) throw error
 
-    return (data || []).map(
-      (e: {
-        id: string
-        joined_at: string
-        student:
-          | { id: string; full_name: string; email: string }
-          | { id: string; full_name: string; email: string }[]
-      }) => {
-        const student = Array.isArray(e.student) ? e.student[0] : e.student
-        return {
-          id: e.id,
-          student_id: student?.id ?? '',
-          full_name: student?.full_name || 'Unnamed',
-          email: student?.email || '-',
-          enrolled_at: e.joined_at,
-          status: 'ACTIVE' as const,
-        }
-      }
+    const enrollments = (data ?? []) as EnrollmentRow[]
+    if (enrollments.length === 0) return []
+
+    const studentIds = enrollments.map((row) => row.student_id).filter(Boolean)
+    const { data: profiles, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .eq('tenant_id', tenantId)
+      .in('id', studentIds)
+
+    if (profileError) throw profileError
+
+    const profileMap = new Map(
+      ((profiles ?? []) as ProfileRow[]).map((profile) => [profile.id, profile])
     )
+
+    return enrollments.map((row) => {
+      const profile = profileMap.get(row.student_id)
+      return {
+        id: row.id,
+        student_id: row.student_id,
+        full_name: profile?.full_name || 'Unnamed',
+        email: profile?.email || '-',
+        enrolled_at: row.joined_at,
+        status: row.status,
+      }
+    })
   },
 
   /**
    * Remove a student from a class (soft delete).
    */
   async removeStudent(enrollmentId: string, removedBy: string, tenantId: string): Promise<void> {
+    void removedBy
     const { error } = await supabase
       .from('enrollments')
-      .update({
-        status: 'REMOVED',
-        removed_at: new Date().toISOString(),
-        removed_by: removedBy,
-      })
+      .update({ status: 'REMOVED' })
       .eq('id', enrollmentId)
       .eq('tenant_id', tenantId)
 

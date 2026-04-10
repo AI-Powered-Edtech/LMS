@@ -1,7 +1,42 @@
-import { getApiClient } from '@/services/api'
+import { getApiBackend, getApiClient } from '@/services/api'
+import { readVilSession } from '@/services/auth/vilSession'
 import { logDevError, logDevWarn } from '@/utils/logDevError'
 
 import type { Course, CourseInsert, CourseUpdate, FetchCoursesOptions } from '../types'
+
+const VIL_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+
+async function requestVil<T>(path: string, init?: RequestInit): Promise<T> {
+  const session = readVilSession()
+  const response = await fetch(`${VIL_BASE_URL}${path}`, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+  })
+
+  if (!response.ok) {
+    const errorPayload = (await response.json().catch(() => null)) as
+      | { message?: string; code?: string; details?: string | null; hint?: string | null }
+      | null
+
+    throw {
+      message: errorPayload?.message ?? `HTTP ${response.status}`,
+      code: errorPayload?.code ?? 'VIL_REQUEST_FAILED',
+      details: errorPayload?.details ?? null,
+      hint: errorPayload?.hint ?? null,
+      status: response.status,
+    }
+  }
+
+  if (response.status === 204) {
+    return null as T
+  }
+
+  return (await response.json()) as T
+}
 
 export const courseService = {
   /**
@@ -15,6 +50,24 @@ export const courseService = {
     search,
     ids,
   }: FetchCoursesOptions): Promise<{ courses: Course[]; count: number }> {
+    if (getApiBackend() === 'vil') {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+      })
+      if (search) params.set('search', search)
+
+      const result = await requestVil<{ courses: Course[]; count: number }>(
+        `/api/v1/courses?${params.toString()}`
+      )
+
+      const courses = ids?.length
+        ? result.courses.filter((course) => ids.includes(course.id))
+        : result.courses
+
+      return { courses, count: result.count }
+    }
+
     const db = getApiClient()
     // Try fetching with joined class data first
     let query = db
@@ -102,6 +155,10 @@ export const courseService = {
    * Gets a specific course by its ID.
    */
   async getCourseById(courseId: string, tenantId: string): Promise<Course | null> {
+    if (getApiBackend() === 'vil') {
+      return await requestVil<Course>(`/api/v1/courses/${courseId}`)
+    }
+
     const db = getApiClient()
     const { data, error } = await db
       .from('courses')
@@ -126,6 +183,19 @@ export const courseService = {
    * but we provide it here explicitly for completeness if the RLS allows it.
    */
   async createCourse(courseData: CourseInsert): Promise<Course | null> {
+    if (getApiBackend() === 'vil') {
+      return await requestVil<Course>('/api/v1/courses', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: courseData.title,
+          description: courseData.description ?? null,
+          subject: courseData.subject ?? null,
+          level: courseData.level ?? null,
+          status: courseData.status ?? 'draft',
+        }),
+      })
+    }
+
     const db = getApiClient()
     const { data, error } = await db
       .from('courses')
@@ -149,6 +219,13 @@ export const courseService = {
     updates: CourseUpdate,
     tenantId: string
   ): Promise<Course | null> {
+    if (getApiBackend() === 'vil') {
+      return await requestVil<Course>(`/api/v1/courses/${courseId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      })
+    }
+
     const db = getApiClient()
     const { data, error } = await db
       .from('courses')
@@ -170,6 +247,13 @@ export const courseService = {
    * Deletes a course.
    */
   async deleteCourse(courseId: string, tenantId: string): Promise<void> {
+    if (getApiBackend() === 'vil') {
+      await requestVil(`/api/v1/courses/${courseId}`, {
+        method: 'DELETE',
+      })
+      return
+    }
+
     const db = getApiClient()
     const { error } = await db
       .from('courses')
@@ -190,8 +274,16 @@ export const courseService = {
     courseId: string,
     tenantId: string
   ): Promise<
-    Array<{ id: string; title: string; order: number; course_id: string; lessons: any[] }>
+    Array<{ id: string; title: string; order: number; course_id: string; lessons: unknown[] }>
   > {
+    if (getApiBackend() === 'vil') {
+      return await requestVil<
+        Array<{ id: string; title: string; order: number; course_id: string; lessons: unknown[] }>
+      >(
+        `/api/v1/courses/${courseId}/modules`
+      )
+    }
+
     const db = getApiClient()
     const { data, error } = await db
       .from('course_modules')
@@ -205,7 +297,13 @@ export const courseService = {
       throw error
     }
 
-    return (data ?? []) as unknown as Array<{ id: string; title: string; order: number; course_id: string; lessons: any[] }>
+    return (data ?? []) as unknown as Array<{
+      id: string
+      title: string
+      order: number
+      course_id: string
+      lessons: unknown[]
+    }>
   },
 
   /**

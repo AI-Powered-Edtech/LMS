@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import { getRealtimeProvider } from '@/services/realtime'
 import { supabase } from '@/services/supabase/client'
 import { logDevError } from '@/utils/logDevError'
@@ -109,6 +110,111 @@ export interface GroupMessage {
   } | null
 }
 
+interface GroupTaskRow {
+  id: string
+  group_id: string
+  title: string
+  description: string | null
+  assigned_to: string | null
+  status: 'todo' | 'in_progress' | 'done'
+  due_date: string | null
+  created_by: string
+  tenant_id: string
+  created_at: string
+}
+
+interface GroupMessageRow {
+  id: string
+  group_id: string
+  user_id: string
+  content: string
+  tenant_id: string
+  created_at: string
+}
+
+function toDisplayName(profile?: {
+  full_name?: string | null
+  first_name?: string | null
+  last_name?: string | null
+} | null): string {
+  if (!profile) return 'Tanpa Nama'
+  if (profile.full_name) return profile.full_name
+  return [profile.first_name, profile.last_name].filter(Boolean).join(' ').trim() || 'Tanpa Nama'
+}
+
+async function fetchProfiles(
+  userIds: string[],
+  tenantId: string
+): Promise<Map<string, { full_name: string | null; avatar_url: string | null; first_name?: string | null; last_name?: string | null }>> {
+  if (userIds.length === 0) return new Map()
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url, first_name, last_name')
+    .eq('tenant_id', tenantId)
+    .in('id', userIds)
+
+  if (error) throw error
+
+  return new Map(
+    ((data ?? []) as Array<{
+      id: string
+      full_name: string | null
+      avatar_url: string | null
+      first_name?: string | null
+      last_name?: string | null
+    }>).map((profile) => [profile.id, profile])
+  )
+}
+
+function mapGroupTask(
+  row: GroupTaskRow,
+  profileMap: Map<
+    string,
+    {
+      full_name: string | null
+      avatar_url: string | null
+      first_name?: string | null
+      last_name?: string | null
+    }
+  >
+): GroupTask {
+  const assignee = row.assigned_to ? profileMap.get(row.assigned_to) : null
+  return {
+    ...row,
+    profiles: assignee
+      ? {
+          first_name: assignee.first_name ?? assignee.full_name ?? '',
+          last_name: assignee.last_name ?? '',
+        }
+      : null,
+  }
+}
+
+function mapGroupMessage(
+  row: GroupMessageRow,
+  profileMap: Map<
+    string,
+    {
+      full_name: string | null
+      avatar_url: string | null
+      first_name?: string | null
+      last_name?: string | null
+    }
+  >
+): GroupMessage {
+  const author = profileMap.get(row.user_id)
+  return {
+    ...row,
+    profiles: author
+      ? {
+          first_name: author.first_name ?? author.full_name ?? '',
+          last_name: author.last_name ?? '',
+        }
+      : null,
+  }
+}
+
 // ============================================================
 // Service
 // ============================================================
@@ -135,7 +241,7 @@ export const groupAssignmentService = {
     // 2. Get enrolled students for the class — scoped to tenant
     const { data: enrolled, error: enrollErr } = await supabase
       .from('enrollments')
-      .select('user_id:student_id, profiles!enrollments_student_id_fkey(full_name, avatar_url)')
+      .select('student_id')
       .eq('class_id', assignment.class_id)
       .eq('tenant_id', tenantId)
       .eq('status', 'ACTIVE')
@@ -147,22 +253,46 @@ export const groupAssignmentService = {
 
     if (!enrolled || enrolled.length === 0) return []
 
+    const studentIds = (enrolled as Array<{ student_id: string }>).map((row) => row.student_id)
+    const profileMap = await fetchProfiles(studentIds, tenantId)
+
     // 3. Get already-assigned member user_ids for this assignment
-    const { data: existingMembers } = await supabase
-      .from('assignment_group_members')
-      .select('user_id, assignment_groups!inner(assignment_id)')
-      .eq('assignment_groups.assignment_id', assignmentId)
+    const { data: groups, error: groupError } = await supabase
+      .from('assignment_groups')
+      .select('id')
+      .eq('assignment_id', assignmentId)
+      .eq('tenant_id', tenantId)
+
+    if (groupError) {
+      logDevError('groupAssignmentService', 'Error fetching assignment groups:', groupError)
+      throw groupError
+    }
+
+    const groupIds = (groups ?? []).map((group) => group.id)
+    const { data: existingMembers, error: memberError } =
+      groupIds.length > 0
+        ? await supabase
+            .from('assignment_group_members')
+            .select('user_id')
+            .eq('tenant_id', tenantId)
+            .in('group_id', groupIds)
+        : { data: [], error: null }
+
+    if (memberError) {
+      logDevError('groupAssignmentService', 'Error fetching group members:', memberError)
+      throw memberError
+    }
 
     const assignedSet = new Set((existingMembers ?? []).map((m) => m.user_id))
 
     // 4. Map and return
-    return (enrolled as Array<Record<string, unknown>>).map((row) => {
-      const profile = row.profiles as { full_name: string; avatar_url: string | null } | null
+    return (enrolled as Array<{ student_id: string }>).map((row) => {
+      const profile = profileMap.get(row.student_id)
       return {
-        user_id: row.user_id as string,
-        full_name: profile?.full_name ?? 'Tanpa Nama',
+        user_id: row.student_id,
+        full_name: toDisplayName(profile),
         avatar_url: profile?.avatar_url ?? null,
-        already_assigned: assignedSet.has(row.user_id as string),
+        already_assigned: assignedSet.has(row.student_id),
       }
     })
   },
@@ -322,9 +452,7 @@ export const groupAssignmentService = {
   async getGroupTasks(groupId: string, tenantId: string): Promise<GroupTask[]> {
     const { data, error } = await supabase
       .from('group_tasks')
-      .select(
-        'id, group_id, title, description, assigned_to, status, due_date, created_by, tenant_id, created_at, profiles!group_tasks_assigned_to_fkey(first_name, last_name)'
-      )
+      .select('id, group_id, title, description, assigned_to, status, due_date, created_by, tenant_id, created_at')
       .eq('group_id', groupId)
       .eq('tenant_id', tenantId)
       .order('created_at', { ascending: true })
@@ -334,7 +462,12 @@ export const groupAssignmentService = {
       throw error
     }
 
-    return (data as unknown as GroupTask[]) ?? []
+    const rows = (data ?? []) as GroupTaskRow[]
+    const assigneeIds = rows
+      .map((row) => row.assigned_to)
+      .filter((assignedTo): assignedTo is string => Boolean(assignedTo))
+    const profileMap = await fetchProfiles(assigneeIds, tenantId)
+    return rows.map((row) => mapGroupTask(row, profileMap))
   },
 
   /**
@@ -357,9 +490,7 @@ export const groupAssignmentService = {
         due_date: taskData.due_date,
         created_by: userId,
       })
-      .select(
-        'id, group_id, title, description, assigned_to, status, due_date, created_by, tenant_id, created_at, profiles!group_tasks_assigned_to_fkey(first_name, last_name)'
-      )
+      .select('id, group_id, title, description, assigned_to, status, due_date, created_by, tenant_id, created_at')
       .single()
 
     if (error) {
@@ -367,7 +498,11 @@ export const groupAssignmentService = {
       throw error
     }
 
-    return newTask as unknown as GroupTask
+    const profileMap = await fetchProfiles(
+      newTask?.assigned_to ? [newTask.assigned_to] : [],
+      tenantId
+    )
+    return mapGroupTask(newTask as GroupTaskRow, profileMap)
   },
 
   /**
@@ -396,9 +531,7 @@ export const groupAssignmentService = {
   async getGroupMessages(groupId: string, tenantId: string): Promise<GroupMessage[]> {
     const { data, error } = await supabase
       .from('group_messages')
-      .select(
-        'id, group_id, user_id, content, tenant_id, created_at, profiles!group_messages_user_id_fkey(first_name, last_name)'
-      )
+      .select('id, group_id, user_id, content, tenant_id, created_at')
       .eq('group_id', groupId)
       .eq('tenant_id', tenantId)
       .order('created_at', { ascending: true })
@@ -408,7 +541,12 @@ export const groupAssignmentService = {
       throw error
     }
 
-    return (data as unknown as GroupMessage[]) ?? []
+    const rows = (data ?? []) as GroupMessageRow[]
+    const profileMap = await fetchProfiles(
+      rows.map((row) => row.user_id),
+      tenantId
+    )
+    return rows.map((row) => mapGroupMessage(row, profileMap))
   },
 
   /**
@@ -428,9 +566,7 @@ export const groupAssignmentService = {
         content,
         user_id: userId,
       })
-      .select(
-        'id, group_id, user_id, content, tenant_id, created_at, profiles!group_messages_user_id_fkey(first_name, last_name)'
-      )
+      .select('id, group_id, user_id, content, tenant_id, created_at')
       .single()
 
     if (error) {
@@ -438,7 +574,8 @@ export const groupAssignmentService = {
       throw error
     }
 
-    return newMessage as unknown as GroupMessage
+    const profileMap = await fetchProfiles([userId], tenantId)
+    return mapGroupMessage(newMessage as GroupMessageRow, profileMap)
   },
 
   /**

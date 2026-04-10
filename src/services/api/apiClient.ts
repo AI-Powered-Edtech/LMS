@@ -1,24 +1,29 @@
+import {
+  getActiveApiBackend,
+  getActiveApiClient,
+  setActiveApiBackend,
+  setActiveApiClient,
+} from './runtime'
 import { createSupabaseApiClient } from './supabaseApiClient'
 import type { ApiBackend, ApiClient } from './types'
 import { createVilApiClient } from './vilApiClient'
 
-let activeBackend: ApiBackend = 'supabase'
-let activeClient: ApiClient | null = null
-
 export function initApiClient(backend: ApiBackend = 'supabase'): ApiClient {
-  activeBackend = backend
-  activeClient = backend === 'vil' ? createVilApiClient() : createSupabaseApiClient()
-  return activeClient
+  setActiveApiBackend(backend)
+  const client = backend === 'vil' ? createVilApiClient() : createSupabaseApiClient()
+  setActiveApiClient(client)
+  return client
 }
 
 export function getApiClient(): ApiClient {
-  if (!activeClient) {
-    return initApiClient(activeBackend)
+  const client = getActiveApiClient()
+  if (!client) {
+    return initApiClient(getActiveApiBackend())
   }
 
-  return activeClient
+  return client
 }
 
 export function getApiBackend(): ApiBackend {
-  return activeBackend
+  return getActiveApiBackend()
 }

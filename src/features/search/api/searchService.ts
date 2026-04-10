@@ -148,11 +148,22 @@ export async function globalSearch(options: SearchOptions): Promise<SearchResult
         .from('profiles')
         .select('id, first_name, last_name, email, tenant_id')
         .eq('tenant_id', tenantId)
-        .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,email.ilike.%${query}%`)
-        .limit(5)
+        .limit(30)
+
+      const normalizedQuery = query.trim().toLowerCase()
+      const filteredUsers = (data ?? []).filter((user) => {
+        const firstName = String(user.first_name ?? '').toLowerCase()
+        const lastName = String(user.last_name ?? '').toLowerCase()
+        const email = String(user.email ?? '').toLowerCase()
+        return (
+          firstName.includes(normalizedQuery) ||
+          lastName.includes(normalizedQuery) ||
+          email.includes(normalizedQuery)
+        )
+      })
 
       results.push(
-        ...(data ?? []).map((u) => ({
+        ...filteredUsers.slice(0, 5).map((u) => ({
           id: u.id,
           type: 'user' as const,
           title: `${u.first_name}${u.last_name ? ` ${u.last_name}` : ''}`.trim(),

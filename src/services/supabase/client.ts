@@ -1,5 +1,9 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
+import { getActiveApiBackend, getActiveApiClient } from '@/services/api/runtime'
+import { getAuthProvider } from '@/services/auth'
+import { getStorageProvider } from '@/services/storage'
+
 let supabaseClient: SupabaseClient | null = null
 let initialized = false
 
@@ -36,6 +40,33 @@ export function setSupabaseClient(client: SupabaseClient): void {
 
 export const supabase = new Proxy({} as SupabaseClient, {
   get(_t, k) {
-    return (getSupabaseClient() as any)[k]
+    const nativeClient = getSupabaseClient()
+    const activeClient = getActiveApiClient()
+
+    if (getActiveApiBackend() !== 'vil') {
+      return Reflect.get(nativeClient, k)
+    }
+
+    if (k === 'from') {
+      return (table: string) => (activeClient ?? nativeClient).from(table)
+    }
+
+    if (k === 'rpc') {
+      return (fn: string, args?: Record<string, unknown>) => (activeClient ?? nativeClient).rpc(fn, args)
+    }
+
+    if (k === 'auth') {
+      return getAuthProvider() as unknown
+    }
+
+    if (k === 'storage') {
+      return getStorageProvider() as unknown
+    }
+
+    if (k === 'functions') {
+      return Reflect.get(nativeClient, 'functions')
+    }
+
+    return Reflect.get(nativeClient, k)
   },
 })

@@ -64,20 +64,7 @@ export function useTeacherActivity() {
       // Fetch paginated activity events using cursor (created_at)
       let query = supabase
         .from('activity_events')
-        .select(
-          `
-          id,
-          event_type,
-          user_id,
-          metadata,
-          created_at,
-          class_id,
-          profiles!activity_events_user_id_fkey (
-            full_name,
-            avatar_url
-          )
-        `
-        )
+        .select('id, event_type, user_id, metadata, created_at, class_id')
         .eq('tenant_id', tenantId!)
         .in('class_id', classIds)
         .in('event_type', RELEVANT_EVENT_TYPES)
@@ -93,10 +80,27 @@ export function useTeacherActivity() {
 
       if (error) throw error
 
-      // Supabase returns joined profiles as an array; normalise to single object or null
+      const userIds = (data ?? []).map((row) => row.user_id)
+      const { data: profiles, error: profileError } =
+        userIds.length > 0
+          ? await supabase
+              .from('profiles')
+              .select('id, full_name, avatar_url')
+              .eq('tenant_id', tenantId!)
+              .in('id', userIds)
+          : { data: [], error: null }
+
+      if (profileError) throw profileError
+
+      const profileMap = new Map(
+        ((profiles ?? []) as Array<{ id: string; full_name: string | null; avatar_url: string | null }>).map(
+          (profile) => [profile.id, { full_name: profile.full_name, avatar_url: profile.avatar_url }]
+        )
+      )
+
       return (data ?? []).map((row) => ({
         ...row,
-        profiles: Array.isArray(row.profiles) ? (row.profiles[0] ?? null) : (row.profiles ?? null),
+        profiles: profileMap.get(row.user_id) ?? null,
       })) as TeacherActivityEvent[]
     },
     initialPageParam: null as string | null,

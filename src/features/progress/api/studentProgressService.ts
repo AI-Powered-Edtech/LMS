@@ -142,11 +142,28 @@ export const studentProgressService = {
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)
 
+    const lessonIds = (data ?? []).map((row) => row.lesson_id)
+    const { data: lessons } =
+      lessonIds.length > 0
+        ? await supabase
+            .from('lessons')
+            .select('id, module_id')
+            .eq('tenant_id', tenantId)
+            .in('id', lessonIds)
+        : { data: [] }
+
+    const lessonModuleMap = new Map(
+      ((lessons ?? []) as Array<{ id: string; module_id: string | null }>).map((lesson) => [
+        lesson.id,
+        lesson.module_id ?? '',
+      ])
+    )
+
     const progressMap: Record<string, LessonProgress> = {}
     ;(data ?? []).forEach((p) => {
       progressMap[p.lesson_id] = {
         lessonId: p.lesson_id,
-        moduleId: (p as any).module_id ?? '',
+        moduleId: lessonModuleMap.get(p.lesson_id) ?? '',
         status: p.completed ? 'completed' : 'in_progress',
         progress: p.completed ? 100 : 50,
         lastAccessed: p.completed_at ? new Date(p.completed_at) : undefined,
@@ -164,23 +181,42 @@ export const studentProgressService = {
   ): Promise<Record<string, QuizAttempt[]>> {
     const { data } = await supabase
       .from('quiz_attempts_v2')
-      .select('id, quiz_id, score, started_at, submitted_at, passed, quizzes(total_points)')
+      .select('id, quiz_id, score, started_at, submitted_at, passed')
       .eq('student_id', userId)
       .eq('tenant_id', tenantId)
       .in('status', ['SUBMITTED', 'GRADED'])
       .order('submitted_at', { ascending: false })
       .limit(500)
 
+    const quizIds = (data ?? []).map((attempt) => attempt.quiz_id)
+    const { data: quizzes } =
+      quizIds.length > 0
+        ? await supabase
+            .from('quizzes')
+            .select('id, total_points')
+            .eq('tenant_id', tenantId)
+            .in('id', quizIds)
+        : { data: [] }
+
+    const quizMap = new Map(
+      ((quizzes ?? []) as Array<{ id: string; total_points: number | null }>).map((quiz) => [
+        quiz.id,
+        quiz.total_points ?? 100,
+      ])
+    )
+
     const attemptsMap: Record<string, QuizAttempt[]> = {}
     ;(data ?? []).forEach((a) => {
+      const totalPoints = quizMap.get(a.quiz_id) ?? 100
       const attempt: QuizAttempt = {
         id: a.id,
         quizId: a.quiz_id,
         score: a.score ?? 0,
-        totalPoints: (a as any).quizzes?.total_points ?? 100,
+        totalPoints,
         percentage: (() => {
-          const tp = (a as any).quizzes?.total_points ?? 100
-          return tp > 0 ? Math.round(((a.score ?? 0) / tp) * 100) : (a.score ?? 0)
+          return totalPoints > 0
+            ? Math.round(((a.score ?? 0) / totalPoints) * 100)
+            : (a.score ?? 0)
         })(),
         passed: a.passed ?? (a.score ?? 0) >= 70,
         completedAt: new Date(a.submitted_at || a.started_at),
@@ -211,16 +247,31 @@ export const studentProgressService = {
   async fetchAchievements(userId: string, tenantId: string): Promise<AchievementData[]> {
     const { data, error } = await supabase
       .from('user_badges')
-      .select('id, earned_at, badges(name, icon)')
+      .select('id, badge_id, earned_at')
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)
 
     if (error) return []
 
+    const badgeIds = (data ?? []).map((badge) => badge.badge_id)
+    const { data: badges, error: badgeError } =
+      badgeIds.length > 0
+        ? await supabase.from('badges').select('id, name, icon').in('id', badgeIds)
+        : { data: [], error: null }
+
+    if (badgeError) return []
+
+    const badgeMap = new Map(
+      ((badges ?? []) as Array<{ id: string; name: string; icon: string }>).map((badge) => [
+        badge.id,
+        badge,
+      ])
+    )
+
     return (data ?? []).map((b) => ({
       id: b.id,
-      title: (b as unknown as { badges?: { name: string; icon: string } }).badges?.name ?? 'Badge',
-      icon: (b as unknown as { badges?: { name: string; icon: string } }).badges?.icon ?? 'star',
+      title: badgeMap.get(b.badge_id)?.name ?? 'Badge',
+      icon: badgeMap.get(b.badge_id)?.icon ?? 'star',
       unlockedAt: b.earned_at ? new Date(b.earned_at) : undefined,
     }))
   },
@@ -247,7 +298,7 @@ export const studentProgressService = {
 
     let query = supabase
       .from('assignments')
-      .select('id, title, due_date, classes(name)')
+      .select('id, title, due_date, class_id')
       .eq('tenant_id', tenantId)
       .order('due_date', { ascending: true })
       .limit(10)
@@ -258,11 +309,27 @@ export const studentProgressService = {
     }
 
     const { data } = await query
+    const classIds = ((data ?? []) as Array<{ class_id: string | null }>).map((row) => row.class_id)
+    const { data: classes } =
+      classIds.length > 0
+        ? await supabase
+            .from('classes')
+            .select('id, name')
+            .eq('tenant_id', tenantId)
+            .in(
+              'id',
+              classIds.filter((classId): classId is string => Boolean(classId))
+            )
+        : { data: [] }
+
+    const classMap = new Map(
+      ((classes ?? []) as Array<{ id: string; name: string }>).map((klass) => [klass.id, klass.name])
+    )
 
     return (data ?? []).map((a) => ({
       id: a.id,
       title: a.title,
-      subject: (a as unknown as { classes?: { name: string } }).classes?.name ?? '',
+      subject: a.class_id ? (classMap.get(a.class_id) ?? '') : '',
       dueDate: a.due_date ? new Date(a.due_date) : new Date(),
       type: 'Tugas' as const,
       urgent: a.due_date ? new Date(a.due_date).getTime() - Date.now() < 86400000 : false,
@@ -313,11 +380,10 @@ export const studentProgressService = {
   /**
    * Add XP to a user via RPC.
    */
-  async addXP(userId: string, amount: number, tenantId: string): Promise<void> {
+  async addXP(userId: string, amount: number, _tenantId: string): Promise<void> {
     const { error } = await supabase.rpc('add_user_points', {
       p_user_id: userId,
       p_points: amount,
-      p_tenant_id: tenantId,
     })
     if (error) if (import.meta.env.DEV) console.error('Error adding XP:', error)
   },

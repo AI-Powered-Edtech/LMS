@@ -1,4 +1,6 @@
 mod auth;
+mod courses;
+mod data_plane;
 mod extractors;
 mod health;
 mod observability;
@@ -24,6 +26,11 @@ use auth::tenant_rpcs::{
     lookup_class_handler, onboard_student_handler, validate_invitation_handler,
 };
 use auth::verify_email::verify_email_handler;
+use courses::{
+    create_course_handler, delete_course_handler, get_course_handler, get_course_modules_handler,
+    list_courses_handler, update_course_handler,
+};
+use data_plane::{query_table_handler, rpc_proxy_handler};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -87,6 +94,22 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/create-tenant", post(create_tenant_handler))
         .state(app_state.clone());
 
+    let course_service = ServiceProcess::new("courses")
+        .prefix("/api/v1")
+        .endpoint(Method::GET, "/courses", get(list_courses_handler))
+        .endpoint(Method::GET, "/courses/:id", get(get_course_handler))
+        .endpoint(Method::POST, "/courses", post(create_course_handler))
+        .endpoint(Method::PUT, "/courses/:id", post(update_course_handler))
+        .endpoint(Method::DELETE, "/courses/:id", delete(delete_course_handler))
+        .endpoint(Method::GET, "/courses/:id/modules", get(get_course_modules_handler))
+        .state(app_state.clone());
+
+    let data_service = ServiceProcess::new("data")
+        .prefix("/api/v1")
+        .endpoint(Method::POST, "/data/:table", post(query_table_handler))
+        .endpoint(Method::POST, "/rpc/:name", post(rpc_proxy_handler))
+        .state(app_state.clone());
+
     VilApp::new("edusync-api")
         .port(port)
         .profile("development")
@@ -94,6 +117,8 @@ async fn main() -> anyhow::Result<()> {
         .state(app_state)
         .service(health_service)
         .service(auth_service)
+        .service(course_service)
+        .service(data_service)
         .run()
         .await;
 

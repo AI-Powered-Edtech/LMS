@@ -1,5 +1,6 @@
-import { supabase } from '@/services/supabase/client'
 import { getStorageProvider } from '@/services/storage'
+/* eslint-disable max-lines */
+import { supabase } from '@/services/supabase/client'
 import { logDevError } from '@/utils/logDevError'
 
 export type AssignmentStatus = 'draft' | 'published' | 'archived'
@@ -432,17 +433,9 @@ export const assignmentService = {
   ): Promise<AssignmentWithSubmission | null> {
     const { data, error } = await supabase
       .from('assignments')
-      .select(
-        `
-           ${ASSIGNMENT_COLUMNS},
-           assignment_submissions!left (
-             ${SUBMISSION_COLUMNS}
-           )
-         `
-      )
+      .select(ASSIGNMENT_COLUMNS)
       .eq('id', assignmentId)
       .eq('tenant_id', tenantId)
-      .eq('assignment_submissions.student_id', studentId)
       .single()
 
     if (error) {
@@ -452,10 +445,11 @@ export const assignmentService = {
 
     if (!data) return null
 
+    const submission = await this.getLatestSubmission(assignmentId, studentId, tenantId)
+
     return {
       ...(data as Assignment),
-      // Add submission data if present
-      submission: data.assignment_submissions?.[0] as AssignmentSubmission | undefined,
+      submission: submission ?? undefined,
     } as AssignmentWithSubmission
   },
 
@@ -466,15 +460,7 @@ export const assignmentService = {
   ): Promise<AssignmentSubmission[]> {
     const { data, error } = await supabase
       .from('assignment_submissions')
-      .select(
-        `
-          ${SUBMISSION_COLUMNS},
-          user_profiles:student_id (
-            full_name,
-            avatar_url
-          )
-        `
-      )
+      .select(SUBMISSION_COLUMNS)
       .eq('assignment_id', assignmentId)
       .eq('tenant_id', tenantId)
       .order('attempt_number', { ascending: false })
@@ -485,7 +471,32 @@ export const assignmentService = {
       throw error
     }
 
-    return (data ?? []).map((row) => mapAssignmentSubmission(row as Record<string, unknown>))
+    const submissions = (data ?? []) as Record<string, unknown>[]
+    const studentIds = submissions.map((row) => String(row.student_id)).filter(Boolean)
+    const { data: profiles, error: profileError } =
+      studentIds.length > 0
+        ? await supabase
+            .from('profiles')
+            .select('id, full_name, avatar_url')
+            .eq('tenant_id', tenantId)
+            .in('id', studentIds)
+        : { data: [], error: null }
+
+    if (profileError) {
+      logDevError('assignmentService', 'Error fetching submission profiles:', profileError)
+      throw profileError
+    }
+
+    const profileMap = new Map(
+      ((profiles ?? []) as Array<Record<string, unknown>>).map((profile) => [String(profile.id), profile])
+    )
+
+    return submissions.map((row) =>
+      mapAssignmentSubmission({
+        ...row,
+        user_profiles: profileMap.get(String(row.student_id)),
+      })
+    )
   },
 
   async getStudentAssignments(
@@ -616,7 +627,11 @@ export const assignmentService = {
     page = 1,
     limit = 20
   ): Promise<{
-    data: any[] | null
+    data:
+      | (AssignmentWithRelations & {
+          assignment_submissions: AssignmentSubmissionWithProfile[]
+        })[]
+      | null
     pagination: { page: number; limit: number; total: number; totalPages: number }
   }> {
     const from = (page - 1) * limit
@@ -624,21 +639,7 @@ export const assignmentService = {
 
     const { data, error, count } = await supabase
       .from('assignments')
-      .select(
-        `
-          ${ASSIGNMENT_COLUMNS},
-          course (title),
-          class (name),
-          lesson (title),
-          assignment_submissions!left (
-            ${SUBMISSION_COLUMNS},
-            user_profiles:student_id (
-              full_name
-            )
-          )
-        `,
-        { count: 'exact' }
-      )
+      .select(ASSIGNMENT_COLUMNS, { count: 'exact' })
       .eq('tenant_id', tenantId)
       .order('due_date', { ascending: true })
       .range(from, to)
@@ -648,15 +649,112 @@ export const assignmentService = {
       throw error
     }
 
-    // Map the relations from array to single object
-    const transformedData =
-      data?.map((assignment) => ({
-        ...assignment,
-        course: assignment.course?.[0] || null,
-        class: assignment.class?.[0] || null,
-        lesson: assignment.lesson?.[0] || null,
-        assignment_submissions: assignment.assignment_submissions ?? [],
-      })) ?? null
+    const assignments = (data ?? []) as Assignment[]
+    const courseIds = assignments.map((row) => row.course_id).filter(Boolean) as string[]
+    const classIds = assignments.map((row) => row.class_id).filter(Boolean) as string[]
+    const lessonIds = assignments.map((row) => row.lesson_id).filter(Boolean) as string[]
+    const assignmentIds = assignments.map((row) => String(row.id)).filter(Boolean)
+
+    const [
+      { data: courses, error: courseError },
+      { data: classes, error: classError },
+      { data: lessons, error: lessonError },
+      { data: submissions, error: submissionError },
+    ] = await Promise.all([
+      courseIds.length > 0
+        ? supabase
+            .from('courses')
+            .select('id, title')
+            .eq('tenant_id', tenantId)
+            .in('id', courseIds)
+        : Promise.resolve({ data: [], error: null }),
+      classIds.length > 0
+        ? supabase
+            .from('classes')
+            .select('id, name')
+            .eq('tenant_id', tenantId)
+            .in('id', classIds)
+        : Promise.resolve({ data: [], error: null }),
+      lessonIds.length > 0
+        ? supabase
+            .from('lessons')
+            .select('id, title')
+            .eq('tenant_id', tenantId)
+            .in('id', lessonIds)
+        : Promise.resolve({ data: [], error: null }),
+      assignmentIds.length > 0
+        ? supabase
+            .from('assignment_submissions')
+            .select(SUBMISSION_COLUMNS)
+            .eq('tenant_id', tenantId)
+            .in('assignment_id', assignmentIds)
+            .order('attempt_number', { ascending: false })
+        : Promise.resolve({ data: [], error: null }),
+    ])
+
+    if (courseError) throw courseError
+    if (classError) throw classError
+    if (lessonError) throw lessonError
+    if (submissionError) throw submissionError
+
+    const submissionRows = (submissions ?? []) as Record<string, unknown>[]
+    const submissionStudentIds = submissionRows.map((row) => String(row.student_id)).filter(Boolean)
+    const { data: profiles, error: profileError } =
+      submissionStudentIds.length > 0
+        ? await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .eq('tenant_id', tenantId)
+            .in('id', submissionStudentIds)
+        : { data: [], error: null }
+
+    if (profileError) throw profileError
+
+    const courseMap = new Map(
+      ((courses ?? []) as Array<Record<string, unknown>>).map((course) => [String(course.id), course])
+    )
+    const classMap = new Map(
+      ((classes ?? []) as Array<Record<string, unknown>>).map((classroom) => [
+        String(classroom.id),
+        classroom,
+      ])
+    )
+    const lessonMap = new Map(
+      ((lessons ?? []) as Array<Record<string, unknown>>).map((lesson) => [String(lesson.id), lesson])
+    )
+    const profileMap = new Map(
+      ((profiles ?? []) as Array<Record<string, unknown>>).map((profile) => [String(profile.id), profile])
+    )
+    const submissionsByAssignment = new Map<string, AssignmentSubmissionWithProfile[]>()
+    submissionRows.forEach((submission) => {
+      const assignmentKey = String(submission.assignment_id)
+      const current = submissionsByAssignment.get(assignmentKey) ?? []
+      current.push(
+        mapAssignmentSubmission({
+          ...submission,
+          user_profiles: profileMap.get(String(submission.student_id)),
+        }) as AssignmentSubmissionWithProfile
+      )
+      submissionsByAssignment.set(assignmentKey, current)
+    })
+
+    const transformedData: Array<
+      AssignmentWithRelations & {
+        assignment_submissions: AssignmentSubmissionWithProfile[]
+      }
+    > = assignments.map((assignment) => ({
+      ...assignment,
+      course: assignment.course_id
+        ? { title: String(courseMap.get(String(assignment.course_id))?.title ?? '') }
+        : null,
+      class: assignment.class_id
+        ? { name: String(classMap.get(String(assignment.class_id))?.name ?? '') }
+        : null,
+      lesson: assignment.lesson_id
+        ? { title: String(lessonMap.get(String(assignment.lesson_id))?.title ?? '') }
+        : null,
+      assignment_submissions: submissionsByAssignment.get(String(assignment.id)) ?? [],
+    }))
 
     return {
       data: transformedData,

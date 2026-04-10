@@ -1,46 +1,35 @@
-# Handoff — Phase 2 → Phase 3
+# Handoff — Phase 2 Status
 
-Dokumentasi ini用于 Phase 2 ke Phase 3 的交接，记录已完成的工件、已知问题和 Phase 3 的前置条件。
-
----
-
-## Phase 2 完成状态
-
-### ✅ 已完成
-
-| 模块                | 状态    | 备注                      |
-| ------------------- | ------- | ------------------------- |
-| Courses CRUD        | ✅ 完成 | All 5 CRUD endpoints      |
-| Lessons + Modules   | ✅ 完成 | Block content JSON        |
-| Classrooms          | ✅ 完成 | Enrollment management     |
-| Course Builder      | ✅ 完成 | Reorder, publish          |
-| Shadow Mode         | ✅ 完成 | Dual-write infrastructure |
-| Quiz Models         | ✅ 完成 | Quiz domain models        |
-| Quiz CRUD           | ✅ 完成 | Teacher + student views   |
-| Quiz Attempt        | ✅ 完成 | Start, autosave, submit   |
-| Quiz Grading        | ✅ 完成 | Auto-grade MCQ            |
-| Assignments         | ✅ 完成 | Submissions + file upload |
-| Gradebook           | ✅ 完成 | Aggregation + SpeedGrader |
-| Analytics RPCs      | ✅ 完成 | Thin wrappers             |
-| User Management     | ✅ 完成 | CRUD + bulk import        |
-| Progress Tracking   | ✅ 完成 | Last-write-wins           |
-| xAPI Statements     | ✅ 完成 | Idempotency               |
-| Notifications       | ✅ 完成 | CRUD + mark-read          |
-| Discussions         | ✅ 完成 | Threads + comments        |
-| Calendar            | ✅ 完成 | Events CRUD               |
-| Attendance          | ✅ 完成 | QR + manual               |
-| Gamification        | ✅ 完成 | XP + badges + leaderboard |
-| Certificates        | ✅ 完成 | CRUD                      |
-| Parent Portal       | ✅ 完成 | Linked children           |
-| Principal Dashboard | ✅ 完成 | Overview + reports        |
-| Onboarding          | ✅ 完成 | Wizard                    |
-| Search + Moderation | ✅ 完成 | ILIKE + reports           |
+Dokumentasi ini mencatat status aktual Phase 2 di codebase saat ini. Implementasi runtime untuk mode `vil` sudah masuk lintas Batch 1–4, tetapi handoff ke Phase 3 **belum final** karena shadow mode, security gate, dan integration suite penuh belum ditutup.
 
 ---
 
-## 交接给 Phase 3 的工件
+## Status Aktual per 2026-04-11
 
-### Rust 后端
+### Yang Sudah Masuk Kode
+
+| Modul | Status | Catatan |
+| --- | --- | --- |
+| Foundation Batch 1 schema audit | ✅ | Skema inti sudah diintrospeksi dan dipetakan ke model/whitelist lokal |
+| Models Batch 1 | ✅ | `course.rs`, `class.rs`, `course_module.rs`, `lesson.rs` cocok dengan skema lokal |
+| Courses CRUD | ✅ | Backend VIL punya route `courses` + modules, dan frontend `courseService` memakai cabang VIL |
+| Generic VIL data plane | ✅ | `/api/v1/data/:table` + `/api/v1/rpc/:name` aktif untuk service layer yang masih memakai `supabase.from/rpc` |
+| Frontend service refactor | ✅ | Service Batch 1–4 yang kritikal sudah dipindah dari nested PostgREST joins ke flat query composition |
+| Auth-adjacent onboarding RPCs | ✅ | `create_school_tenant`, enroll, invitation flow, onboarding flow tersambung ke mode `vil` |
+| Batch 2–4 | ✅ Implemented | Quiz, assignment, gradebook, analytics, progress, parent/onboarding path sudah bisa melewati VIL data plane |
+
+### Yang Masih Tersisa
+
+- Shadow mode + divergence logging formal belum ada
+- Gate 3 security review belum dijalankan
+- Integration suite penuh untuk Batch 1–4 belum tersedia
+- Google OAuth callback Phase 1 masih stub
+
+---
+
+## Artefak yang Relevan Saat Ini
+
+### Rust Backend
 
 ```
 edusync-api/crates/
@@ -50,110 +39,34 @@ edusync-api/crates/
 │   │   ├── class.rs
 │   │   ├── lesson.rs
 │   │   ├── course_module.rs
-│   │   ├── enrollment.rs
-│   │   ├── course_collaborator.rs
-│   │   ├── quiz.rs
-│   │   ├── quiz_dto.rs
-│   │   ├── analytics.rs
-│   │   ├── user.rs
-│   │   ├── bulk_import.rs
-│   │   ├── progress.rs
-│   │   ├── xapi.rs
-│   │   ├── notification.rs
-│   │   ├── discussion.rs
-│   │   ├── calendar.rs
-│   │   ├── attendance.rs
-│   │   ├── certificate.rs
-│   │   ├── gamification.rs
-│   │   ├── parent.rs
-│   │   ├── onboarding.rs
-│   │   ├── survey.rs
-│   │   ├── finance.rs
 │   │   └── lib.rs
-├── middleware/
-│   ├── src/
-│   │   ├── tenant_guard.rs
-│   │   ├── rbac_guard.rs
-│   │   ├── guards/
-│   │   │   ├── course_guard.rs
-│   │   │   └── mod.rs
-│   │   └── mod.rs
-├── macros/
-│   ├── src/
-│   │   └── lib.rs
-│   └── Cargo.toml
-└── server/
-    ├── src/
-    │   ├── routes/
-    │   │   ├── courses.rs
-    │   │   ├── lessons.rs
-    │   │   ├── modules.rs
-    │   │   └── mod.rs
-    │   ├── handlers/
-    │   │   ├── quiz_read.rs
-    │   │   ├── quiz_write.rs
-    │   │   ├── quiz_attempt.rs
-    │   │   ├── quiz_autosave.rs
-    │   │   ├── quiz_submit.rs
-    │   │   ├── analytics.rs
-    │   │   ├── users.rs
-    │   │   ├── bulk_import.rs
-    │   │   ├── progress.rs
-    │   │   ├── xapi.rs
-    │   │   ├── notifications.rs
-    │   │   ├── discussions.rs
-    │   │   ├── calendar.rs
-    │   │   ├── attendance.rs
-    │   │   ├── certificates.rs
-    │   │   ├── gamification.rs
-    │   │   ├── parent.rs
-    │   │   ├── principal.rs
-    │   │   ├── onboarding.rs
-    │   │   ├── surveys.rs
-    │   │   ├── finance.rs
-    │   │   ├── search.rs
-    │   │   ├── moderation.rs
-    │   │   └── mod.rs
-    │   ├── error.rs
-    │   ├── main.rs
-    │   └── routes.rs
-    └── Cargo.toml
+└── api-server/
+    └── src/
+        ├── main.rs
+        ├── extractors.rs
+        ├── courses.rs
+        └── auth/
 ```
 
-### 前端服务层
+### Frontend Service Layer
 
-所有 `src/features/*/api/*.ts` 服务文件应已重构为使用 VIL 端点。
+- `src/services/auth/vilSession.ts` — shared session storage + in-memory auth event bus untuk mode `vil`
+- `src/services/auth/vilAuthProvider.ts` — login/register/refresh/signout/bootstrap/verify/reset flow untuk VIL
+- `src/services/api/runtime.ts` — runtime registry untuk active backend/client
+- `src/services/api/vilApiClient.ts` — query builder VIL + generic RPC proxy untuk mode `vil`
+- `src/features/courses/api/courseService.ts` — sudah punya cabang VIL untuk CRUD course inti
+- `src/features/quizzes/api/*`, `src/features/assignments/api/*`, `src/features/gradebook/api/*`, `src/features/progress/api/*`, `src/features/parent/api/*`, `src/features/lessons/api/*` — service layer inti sudah diadaptasi ke flat query composition yang kompatibel dengan VIL
 
 ---
 
-## 已知问题和限制
+## Known Gaps
 
-### 1. Email Digest
+- Google OAuth callback VIL masih stub
+- `pnpm typecheck`, `pnpm lint`, dan `pnpm build` repo utama masih gagal oleh debt pre-existing di area non-migration seperti `OfflineSyncIndicator`, `useBulkImport`, `ai-builder-copilot`, dan beberapa comprehensive test file
+- `questionBankService` Phase 33A masih memakai join PostgREST lama dan belum termasuk scope Phase 2 ini
+- Realtime, storage, Edge Functions, PDF, dan email digest tetap berada di jalur phase berikutnya
 
-- Email digest (`digestApi.ts`) 仍在 Supabase Edge Function 中
-- 将在 Phase 3C 处理
-
-### 2. Realtime
-
-- Discussions realtime (postgres_changes) 仍在 Supabase Realtime 中
-- 将在 Phase 4 处理
-
-### 3. PDF Generation
-
-- Certificate PDF generation 仍在 Supabase Edge Function (`generate-pdf`)
-- 将在 Phase 3 处理
-
-### 4. Surveys + Finance
-
-- 如果前端模块有 TODO stubs 或 < 50% 功能完成，已跳过
-- 需要在 Phase 2B 或 Phase 3 中重新评估
-
-### 5. Quiz Grading Worker
-
-- 需要配置 `quiz_submission_queue` 表
-- Worker 需要独立部署或作为后台任务
-
-### 6. Test Accounts
+## Test Accounts
 
 | Email                 | Password      | Role    |
 | --------------------- | ------------- | ------- |
@@ -163,31 +76,30 @@ edusync-api/crates/
 
 ---
 
-## Phase 3 前置条件
+## Next Required Before Phase 3
 
-在开始 Phase 3 之前，请确认：
+Sebelum Phase 3 boleh dimulai, minimal hal berikut masih harus selesai:
 
-1. ✅ Phase 2 所有测试通过
-2. ✅ Shadow mode 验证完成
-3. ✅ 手动 cutover triggers 可用
-4. ✅ 前端服务层完全迁移到 VIL
-5. ✅ 安全审查通过 (Gate 3)
+1. Gate 3 security review dijalankan
+2. Shadow mode + divergence logging dipasang untuk flow kritikal
+3. Integration tests Batch 1–4 ditambahkan dan dijalankan
+4. Cleanup debt typecheck/lint repo utama yang masih unrelated ke migration slice
 
 ---
 
-## Phase 3 概述
+## Phase 3 Scope
 
-Phase 3 涵盖：
+Phase 3 nanti akan mencakup:
 
-- **3A:** Email + Push Notification Services (从 Edge Functions 迁移)
+- **3A:** Email + Push Notification Services (migrasi dari Edge Functions)
 - **3B:** External Integrations (LTI, SCORM)
 - **3C:** Advanced Features (AI Tutor, Essay Grading, PDF Generation)
 - **3D:** Performance Optimization (Caching, Rate Limiting)
 
 ---
 
-## 支持信息
+## Support Info
 
-- **Dev App:** `http://localhost:5173` (after `pnpm dev`)
+- **Dev App:** `http://localhost:5173` (setelah `pnpm dev`)
 - **VIL Server:** `http://localhost:8080`
-- **Test JWTs:** See AGENTS.md 或 `/home/rog/Documents/edusync1/LMS/docs/TESTING.md`
+- **Test JWTs:** lihat `AGENTS.md` atau `/home/rog/Documents/edusync1/LMS/docs/TESTING.md`

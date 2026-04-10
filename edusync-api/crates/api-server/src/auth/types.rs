@@ -59,6 +59,8 @@ pub struct OnboardStudentRequest {
 pub struct CreateTenantRequest {
     pub name: String,
     pub slug: String,
+    pub role: Option<String>,
+    pub full_name: Option<String>,
 }
 
 #[derive(Deserialize)]

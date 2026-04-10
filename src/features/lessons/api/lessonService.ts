@@ -1,7 +1,18 @@
+/* eslint-disable max-lines */
 import { supabase } from '@/services/supabase/client'
 import { captureError } from '@/utils/sentry'
 
-import { Lesson, LessonProgress, ProgressQueueItem, SignedProgressQueue } from '../types'
+import {
+  Assignment as LessonAssignment,
+  Lesson,
+  LessonProgress,
+  LessonResource,
+  ProgressQueueItem,
+  Quiz,
+  QuizOption,
+  QuizQuestion,
+  SignedProgressQueue,
+} from '../types'
 
 // ============================================================
 // Security Helpers
@@ -162,6 +173,171 @@ async function saveSecureQueue(queue: ProgressQueueItem[]): Promise<void> {
   _cachedQueueData = structuredClone(queueToStore)
 }
 
+interface LessonRow {
+  id: string
+  module_id: string
+  title: string
+  content: string | null
+  type: string
+  order: number
+  passing_score: number | null
+  is_published: boolean
+  duration_minutes: number | null
+  tenant_id: string
+}
+
+interface LessonQuizRow {
+  id: string
+  lesson_id: string | null
+  title: string
+  instructions: string | null
+  time_limit_minutes: number | null
+  max_attempts: number
+  passing_score?: number | null
+}
+
+interface LessonQuestionRow {
+  id: string
+  quiz_id: string
+  text: string
+  order: number
+}
+
+interface LessonOptionRow {
+  id: string
+  question_id: string
+  text: string
+}
+
+async function hydrateLessons(lessonRows: LessonRow[], tenantId: string): Promise<Lesson[]> {
+  if (lessonRows.length === 0) return []
+
+  const lessonIds = lessonRows.map((lesson) => lesson.id)
+  const moduleIds = Array.from(new Set(lessonRows.map((lesson) => lesson.module_id)))
+
+  const [
+    { data: modules, error: moduleError },
+    { data: resources, error: resourceError },
+    { data: quizzes, error: quizError },
+    { data: assignments, error: assignmentError },
+  ] = await Promise.all([
+    supabase
+      .from('course_modules')
+      .select('id, course_id')
+      .eq('tenant_id', tenantId)
+      .in('id', moduleIds),
+    supabase
+      .from('lesson_resources')
+      .select('id, lesson_id, type, url, title, content, metadata, order_index')
+      .eq('tenant_id', tenantId)
+      .in('lesson_id', lessonIds)
+      .order('order_index', { ascending: true }),
+    supabase
+      .from('quizzes')
+      .select('id, lesson_id, title, instructions, time_limit_minutes, max_attempts, passing_score')
+      .eq('tenant_id', tenantId)
+      .in('lesson_id', lessonIds),
+    supabase
+      .from('assignments')
+      .select(
+        'id, tenant_id, course_id, lesson_id, title, instructions, max_points, max_attempts, is_published, due_date, created_at'
+      )
+      .eq('tenant_id', tenantId)
+      .in('lesson_id', lessonIds),
+  ])
+
+  if (moduleError) throw moduleError
+  if (resourceError) throw resourceError
+  if (quizError) throw quizError
+  if (assignmentError) throw assignmentError
+
+  const quizIds = ((quizzes ?? []) as LessonQuizRow[]).map((quiz) => quiz.id)
+  const { data: questions, error: questionError } =
+    quizIds.length > 0
+      ? await supabase
+          .from('quiz_questions')
+          .select('id, quiz_id, text, "order"')
+          .eq('tenant_id', tenantId)
+          .in('quiz_id', quizIds)
+          .order('order', { ascending: true })
+      : { data: [], error: null }
+
+  if (questionError) throw questionError
+
+  const questionIds = ((questions ?? []) as Array<{ id: string }>).map((question) => question.id)
+  const { data: options, error: optionError } =
+    questionIds.length > 0
+      ? await supabase
+          .from('quiz_options')
+          .select('id, question_id, text')
+          .eq('tenant_id', tenantId)
+          .in('question_id', questionIds)
+      : { data: [], error: null }
+
+  if (optionError) throw optionError
+
+  const courseMap = new Map(
+    ((modules ?? []) as Array<{ id: string; course_id: string | null }>).map((module) => [
+      module.id,
+      module.course_id ?? '',
+    ])
+  )
+
+  const resourceMap = new Map<string, LessonResource[]>()
+  ;((resources ?? []) as LessonResource[]).forEach((resource) => {
+    const lessonId = String(resource.lesson_id)
+    const existing = resourceMap.get(lessonId) ?? []
+    existing.push(resource)
+    resourceMap.set(lessonId, existing)
+  })
+
+  const optionMap = new Map<string, QuizOption[]>()
+  ;((options ?? []) as LessonOptionRow[]).forEach((option) => {
+    const existing = optionMap.get(option.question_id) ?? []
+    existing.push({ id: option.id, text: option.text })
+    optionMap.set(option.question_id, existing)
+  })
+
+  const questionMap = new Map<string, QuizQuestion[]>()
+  ;((questions ?? []) as LessonQuestionRow[]).forEach((question) => {
+      const existing = questionMap.get(question.quiz_id) ?? []
+      existing.push({
+        id: question.id,
+        text: question.text,
+        order: question.order,
+        quiz_options: optionMap.get(question.id) ?? [],
+      })
+      questionMap.set(question.quiz_id, existing)
+    })
+
+  const quizMap = new Map<string, Quiz[]>()
+  ;((quizzes ?? []) as LessonQuizRow[]).forEach((quiz) => {
+    const lessonId = quiz.lesson_id ?? ''
+    const existing = quizMap.get(lessonId) ?? []
+    existing.push({
+      ...quiz,
+      quiz_questions: questionMap.get(quiz.id) ?? [],
+    })
+    quizMap.set(lessonId, existing)
+  })
+
+  const assignmentMap = new Map<string, LessonAssignment[]>()
+  ;((assignments ?? []) as LessonAssignment[]).forEach((assignment) => {
+    const lessonId = String(assignment.lesson_id)
+    const existing = assignmentMap.get(lessonId) ?? []
+    existing.push(assignment)
+    assignmentMap.set(lessonId, existing)
+  })
+
+  return lessonRows.map((lesson) => ({
+    ...lesson,
+    course_id: courseMap.get(lesson.module_id) ?? '',
+    lesson_resources: resourceMap.get(lesson.id) ?? [],
+    quizzes: quizMap.get(lesson.id) ?? [],
+    assignments: assignmentMap.get(lesson.id) ?? [],
+  }))
+}
+
 // ============================================================
 // Service
 // ============================================================
@@ -225,23 +401,10 @@ export const lessonService = {
       if (import.meta.env.DEV) console.error('Error fetching lesson snapshot:', rpcError)
     }
 
-    // Fallback: direct query (works without migration 803)
     const { data, error } = await supabase
       .from('lessons')
       .select(
-        `
-                id, module_id, title, content, type, order,
-                passing_score, is_published, duration_minutes, tenant_id,
-                lesson_resources (id, lesson_id, type, url, title, content, metadata),
-                quizzes (
-                    id, lesson_id, title, instructions, time_limit_minutes, max_attempts,
-                    quiz_questions (id, text, order, quiz_options (id, text))
-                ),
-                assignments (
-                    id, tenant_id, course_id, lesson_id, title, instructions,
-                    max_points, max_attempts, is_published, due_date, created_at
-                )
-            `
+        'id, module_id, title, content, type, "order", passing_score, is_published, duration_minutes, tenant_id'
       )
       .eq('id', lessonId)
       .eq('tenant_id', tenantId)
@@ -252,7 +415,8 @@ export const lessonService = {
       return null
     }
 
-    return data as unknown as Lesson | null
+    const [lesson] = await hydrateLessons((data ? [data as LessonRow] : []), tenantId)
+    return lesson ?? null
   },
 
   /**
@@ -275,19 +439,7 @@ export const lessonService = {
     let query = supabase
       .from('lessons')
       .select(
-        `
-        id, module_id, title, content, type, order,
-        passing_score, is_published, duration_minutes, tenant_id,
-        lesson_resources (id, lesson_id, type, url, title, content, metadata),
-        quizzes (
-          id, lesson_id, title, instructions, time_limit_minutes, max_attempts,
-          quiz_questions (id, text, order, quiz_options (id, text))
-        ),
-        assignments (
-          id, tenant_id, course_id, lesson_id, title, instructions,
-          max_points, max_attempts, is_published, due_date, created_at
-        )
-      `
+        'id, module_id, title, content, type, "order", passing_score, is_published, duration_minutes, tenant_id'
       )
       .eq('module_id', moduleId)
       .eq('tenant_id', tenantId)
@@ -312,6 +464,7 @@ export const lessonService = {
         'id, user_id, lesson_id, status, progress_percentage, last_position, completed, completed_at'
       )
       .eq('user_id', userId)
+      .eq('tenant_id', tenantId)
       .in('lesson_id', lessonIds)
 
     if (progressError) {
@@ -325,7 +478,7 @@ export const lessonService = {
     }
 
     return {
-      lessons: (lessons || []) as unknown as Lesson[],
+      lessons: await hydrateLessons((lessons ?? []) as LessonRow[], tenantId),
       progress,
     }
   },

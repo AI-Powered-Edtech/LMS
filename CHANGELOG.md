@@ -1,5 +1,47 @@
 # EduSync LMS — Changelog
 
+## [Phase 2 VIL Data Plane + Service Migration Pass] — 2026-04-11
+
+### Added
+
+- `edusync-api/crates/api-server/src/data_plane.rs` — generic VIL data plane untuk `POST /api/v1/data/:table` dan `POST /api/v1/rpc/:name`
+- `src/services/api/runtime.ts` — registry active backend/client agar direct `supabase` imports dapat dialihkan ke mode `vil`
+
+### Changed
+
+- `src/services/supabase/client.ts` — `supabase.from()` dan `supabase.rpc()` sekarang dialihkan ke active VIL client saat `VITE_API_BACKEND=vil`, sementara `auth` dan `storage` memakai provider abstraction aktif
+- `src/services/api/vilApiClient.ts` — query builder VIL sekarang mendukung `select/insert/update/delete/upsert`, filter dasar, `single/maybeSingle`, dan fallback generic RPC proxy
+- `edusync-api/crates/api-server/src/data_plane.rs` — whitelist table/RPC diperluas untuk Batch 1–4 (courses, lessons, quizzes, assignments, gradebook, progress, parent/onboarding, gamification dasar)
+- `src/features/classroom/api/classroomService.ts`, `src/features/course-builder/api/courseService.ts`, `src/features/course-builder/api/collaboratorService.ts`, `src/features/quizzes/api/quizCRUD.ts`, `src/features/quizzes/api/quizPlayer.service.ts`, `src/features/quizzes/api/quizAssignment.service.ts`, `src/features/quizzes/api/adminQuiz.service.ts`, `src/features/quizzes/api/suspiciousAttempts.service.ts`, `src/features/assignments/api/assignmentService.ts`, `src/features/assignments/api/groupAssignmentService.ts`, `src/features/gradebook/api/gradebookApi.ts`, `src/features/gradebook/api/gradebookService.ts`, `src/features/progress/api/studentProgressService.ts`, `src/features/lessons/api/lessonService.ts`, `src/features/lessons/queries/lessonQueries.ts`, `src/features/parent/api/parentApi.ts`, `src/features/parent/api/messageApi.ts`, `src/features/dashboards/hooks/useTeacherActivity.ts`, dan `src/features/search/api/searchService.ts` — nested PostgREST joins/ref filters inti diganti menjadi flat query composition yang kompatibel dengan VIL
+- `migration-plan-agents/00_CONTROL_TOWER/CURRENT_STATUS.md`, `migration-plan-agents/03_PHASE_1_AUTH_AND_SCAFFOLD/HANDOFF.md`, dan `migration-plan-agents/04_PHASE_2_CORE_CRUD/HANDOFF.md` — status migrasi diperbarui ke kondisi kode aktual: Phase 1 gate passed, Phase 2 implementation pass complete, formal cutover gates masih pending
+
+### Verified
+
+- `cargo check -p edusync-api-server` lulus dengan `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres`
+- `cargo test` di workspace `edusync-api/` lulus
+- Targeted ESLint untuk file migrasi yang disentuh lulus
+- Smoke test runtime VIL lulus untuk login, generic data query, dan RPC `complete_onboarding_step`
+
+## [Phase 1 Finalization + Phase 2 Batch 1 Start] — 2026-04-11
+
+### Added
+
+- `src/services/auth/vilSession.ts` — shared session storage + auth event bus untuk mode `VITE_API_BACKEND=vil`
+- `edusync-api/crates/api-server/src/courses.rs` — endpoint VIL untuk list/get/create/update/delete course dan `/api/v1/courses/:id/modules`
+- `edusync-api/crates/models/src/course_module.rs` dan `edusync-api/crates/models/src/lesson.rs` — model Batch 1 untuk scaffold CRUD VIL
+- `edusync-api/docs/schema-batch1.md` — audit skema Batch 1 (`courses`, `course_modules`, `lessons`, `classes`, `enrollments`)
+
+### Changed
+
+- `src/services/auth/vilAuthProvider.ts` — tidak lagi stub; sekarang mendukung login, register, sign out, refresh token, auth bootstrap, verifikasi email, reset password, MFA dasar, dan event auth untuk mode `vil`
+- `src/services/api/vilApiClient.ts` — RPC auth dasar (`ensure_profile_exists`, invitation, enroll, onboarding, create tenant`) sekarang tersambung ke endpoint Rust VIL
+- `src/features/courses/api/courseService.ts` — domain `courses` sekarang punya cabang VIL untuk fetch/get/create/update/delete dan load modules
+- `edusync-api/crates/api-server/src/auth/tenant_rpcs.rs` — `create_tenant` sekarang mengembalikan `tenant_id`, mendukung role `teacher`/`admin`, dan menyinkronkan `tenant_memberships`
+- `edusync-api/crates/api-server/src/auth/types.rs` — request `create_tenant` menerima `role` dan `full_name`
+- `edusync-api/crates/models/src/course.rs` dan `class.rs` — diselaraskan dengan skema aktual Batch 1
+- `migration-plan-agents/03_PHASE_1_AUTH_AND_SCAFFOLD/HANDOFF.md` — status Phase 1 diperbarui ke kondisi nyata pasca finalisasi auth/frontend
+- `migration-plan-agents/04_PHASE_2_CORE_CRUD/HANDOFF.md` — klaim "Phase 2 complete" dihapus dan diganti status aktual: masih in progress, Batch 1 baru dimulai
+
 ## [Phase 1B — VIL Auth Handlers] — 2026-04-10
 
 ### Added (`edusync-api/`)

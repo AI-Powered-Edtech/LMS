@@ -28,22 +28,34 @@ export const collaboratorService = {
   async fetchCollaborators(courseId: string, tenantId: string): Promise<Collaborator[]> {
     const { data, error } = await supabase
       .from('course_collaborators')
-      .select(
-        `
-        id, user_id, role,
-        profiles:user_id ( full_name, email )
-      `
-      )
+      .select('id, user_id, role')
       .eq('course_id', courseId)
       .eq('tenant_id', tenantId)
 
     if (error) throw error
 
-    return (data || []).map((c: Record<string, unknown>) => ({
-      id: c.id as string,
-      user_id: c.user_id as string,
-      role: c.role as Collaborator['role'],
-      profile: c.profiles as Collaborator['profile'],
+    const collaborators = (data ?? []) as Array<Record<string, unknown>>
+    const userIds = collaborators.map((row) => String(row.user_id)).filter(Boolean)
+    const { data: profiles, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .eq('tenant_id', tenantId)
+      .in('id', userIds)
+
+    if (profileError) throw profileError
+
+    const profileMap = new Map(
+      ((profiles ?? []) as SearchableUser[]).map((profile) => [profile.id, profile])
+    )
+
+    return collaborators.map((row) => ({
+      id: row.id as string,
+      user_id: row.user_id as string,
+      role: row.role as Collaborator['role'],
+      profile: {
+        full_name: profileMap.get(String(row.user_id))?.full_name ?? '',
+        email: profileMap.get(String(row.user_id))?.email ?? '',
+      },
     }))
   },
 

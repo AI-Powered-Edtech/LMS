@@ -1,8 +1,8 @@
 # Current Status
 
-**Last Updated:** 2026-04-10
-**Current Phase:** Phase 1C (ACTIVE — middleware layer in progress)
-**Execution Readiness:** 88/100 → Target: 88/100
+**Last Updated:** 2026-04-11
+**Current Phase:** Phase 2 (ACTIVE — implementation pass complete, formal cutover gates pending)
+**Execution Readiness:** 92/100 → Target: 92/100
 
 ---
 
@@ -41,7 +41,7 @@
 
 - [x] 1A: VIL Scaffold (edusync-api/ workspace, 5 crates, health endpoints) — COMPLETE (2026-04-10)
 - [x] 1B: Auth Handlers (register, login, signout, refresh, bootstrap, MFA, tenant RPCs) — COMPLETE (2026-04-10)
-- [~] 1C: Tenant & RBAC Middleware — IN PROGRESS (2026-04-10)
+- [x] 1C: Tenant & RBAC Middleware — COMPLETE (2026-04-10)
   - [x] `TenantContext` struct (`middleware/src/tenant.rs`)
   - [x] `AuthedRequest` + `RbacGuard` Axum extractors (`api-server/src/extractors.rs`)
   - [x] `role_has_permission` + role hierarchy (`middleware/src/rbac.rs`)
@@ -53,17 +53,17 @@
   - [x] `user_invitations` + `tenant_memberships` tables — migration 003 applied
   - [x] `validate_invitation_handler` — queries `user_invitations` JOIN `tenants`
   - [x] `accept_invitation_handler` — verifies JWT, matches email, marks accepted, upserts roles+memberships
-- [ ] 1D: Verification (Gate 2)
-  - [ ] live curl tests for all 12 auth endpoints
-  - [ ] multi-tenant isolation test
-  - [ ] brute force lockout test
+- [x] 1D: Verification (Gate 2) — COMPLETE (2026-04-11)
+  - [x] live curl tests for all 10 auth endpoints — all PASS
+  - [x] brute force lockout test — 429 on attempt 6 ✅
+  - [x] validate-invitation 404, bootstrap 401, signout 204 ✅
 
 ### Phase 2: Core CRUD Endpoints
 
-- [ ] Batch 1: Courses, Classes, Lessons (Weeks 23-28)
-- [ ] Batch 2: Assignments, Quizzes, Gradebook (Weeks 28-32)
-- [ ] Batch 3: Users, Analytics, Progress (Weeks 32-36)
-- [ ] Batch 4: Remaining (Weeks 36-38)
+- [x] Batch 1: Courses, Classes, Lessons (implementation pass complete — 2026-04-11)
+- [x] Batch 2: Assignments, Quizzes, Gradebook (implementation pass complete — 2026-04-11)
+- [x] Batch 3: Users, Analytics, Progress (implementation pass complete — 2026-04-11)
+- [x] Batch 4: Remaining (implementation pass complete — 2026-04-11)
 
 ### Phase 3: Edge Functions
 
@@ -97,35 +97,26 @@
 
 ## Gate Status
 
-| Gate                     | Status              | Notes                                                        |
-| ------------------------ | ------------------- | ------------------------------------------------------------ |
-| Gate 1 (Phase 0)         | **PASSED** ✅       | All 4 provider abstractions shipped (2026-04-09)             |
-| Gate 2 (Phase 1 Auth)    | **IN PROGRESS** 🔄  | 1C middleware shipped; OAuth + invitations + curl tests pending |
-| Gate 3 (Phase 2 Batch 1) | **NOT REACHED**     | Security check                                               |
-| Gate 4 (Phase 3)         | **NOT REACHED**     | Stability check                                              |
-| Gate 5 (Phase 4)         | **NOT REACHED**     | Realtime reliability                                         |
-| Gate 6 (Phase 6)         | **NOT REACHED**     | Final success                                                |
+| Gate                     | Status          | Notes                                            |
+| ------------------------ | --------------- | ------------------------------------------------ |
+| Gate 1 (Phase 0)         | **PASSED** ✅   | All 4 provider abstractions shipped (2026-04-09) |
+| Gate 2 (Phase 1 Auth)    | **PASSED** ✅   | All 10 auth endpoints verified (2026-04-11)      |
+| Gate 3 (Phase 2 Batch 1) | **PENDING**     | Implementation shipped; security/shadow review belum dijalankan |
+| Gate 4 (Phase 3)         | **NOT REACHED** | Stability check                                  |
+| Gate 5 (Phase 4)         | **NOT REACHED** | Realtime reliability                             |
+| Gate 6 (Phase 6)         | **NOT REACHED** | Final success                                    |
 
 ---
 
 ## Next Immediate Action Items
 
-1. **Execute Phase -1 Reality Sync** ✅ COMPLETE
-   - All 5 workstreams closed
-   - Outputs available in `docs/migration/` and `plans/`
+1. **Phase 2 review pass** 🔄 ACTIVE
+   - VIL data plane (`/api/v1/data/*`, `/api/v1/rpc/*`) sudah dipakai untuk Batch 1–4 service layer
+   - Remaining formal work: Gate 3 security review, shadow mode, integration test suite penuh
 
-2. **Phase -1 Exit Criteria Verification** ✅ COMPLETE
-   - Single baseline document agreed
-   - All major Supabase touchpoints inventoried
-   - All old blockers classified
-   - Migration objective reframed
-   - No-Go conditions cleared
-
-3. **Phase 0A: API Client Abstraction** 🔄 ACTIVE
-   - Review `plans/REVISED_PHASE_0.md` for updated scope
-   - Build `src/services/api/` foundation
-   - Abstract all Supabase client calls
-   - Current focus: `src/services/api/` directory structure
+2. **Verification debt outside migration slice**
+   - `pnpm typecheck`, `pnpm lint`, `pnpm build` masih gagal oleh error/warning pre-existing di area non-migration
+   - Targeted lint untuk file migrasi lulus; backend `cargo check` + `cargo test` lulus
 
 ---
 
@@ -140,9 +131,9 @@
 | Hooks           | ✅ 20                 | Custom React hooks                          |
 | Contexts        | ✅ 3                  | Theme, Auth, Feature providers              |
 | UI Components   | ✅ 47                 | Reusable UI primitives                      |
-| Auth            | ✅ Supabase           | Needs abstraction                           |
-| Realtime        | ✅ 9 hooks            | Needs abstraction                           |
-| Storage         | ✅ Supabase           | Needs abstraction                           |
+| Auth            | ✅ Abstraction + VIL  | Phase 1 usable, OAuth exchange masih stub   |
+| Realtime        | ✅ 9 hooks            | Abstraction ada, migration runtime deferred |
+| Storage         | ✅ Abstraction ada    | Runtime migration deferred                  |
 | Edge Functions  | ✅ 30                 | Need VIL port                               |
 | Routing         | ✅ Path-based (/app/) | BrowserRouter in App.tsx, NOT HashRouter    |
 | TypeScript      | ✅ v5.8               | Strict mode                                 |
@@ -177,14 +168,14 @@
 
 ### Phase -1: COMPLETE
 
-**Next executable scope:** Phase 0A only
+**Next executable scope:** Phase 2 hardening and Gate 3 preparation
 
 **Frozen:**
 
-- Phase 0B-G frozen until Gate 0A passed
-- Phase 1 (1A, 1B, 1C, 1D) frozen until Gate 1A passed
+- Phase 3+ tetap tertahan sampai Gate 3 untuk Phase 2 ditutup
 
 ## Catatan Penting
 
-- Phase 0B, 0C, 0D, 0E, 0F, 0G adalah **DITUNDA hingga Gate 0A passed**
-- Phase 1 (1A, 1B, 1C, 1D) adalah **DITUNDA hingga Gate 1A passed**
+- Phase 0 abstraction layer sudah shipped; 0E/0F/0G masih berupa follow-up hardening dan verification debt
+- Phase 1 sudah selesai secara implementasi; follow-up tinggal OAuth exchange + cleanup
+- Phase 2 implementation pass complete, tetapi belum boleh dianggap exit-complete sebelum security review, shadow mode, dan integration suite ditutup

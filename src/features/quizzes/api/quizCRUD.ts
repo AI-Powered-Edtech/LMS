@@ -9,6 +9,24 @@ import { supabase } from '@/services/supabase/client'
 
 import type { QuizMode } from '../types/quizzes.types'
 
+interface QuizQuestionRow {
+  id: string
+  quiz_id: string
+  text: string
+  order: number
+  question_type: string
+  points: number
+  explanation?: string | null
+  tenant_id?: string
+}
+
+interface QuizOptionRow {
+  id: string
+  question_id: string
+  text: string
+  is_correct?: boolean
+}
+
 // ── Helper ─────────────────────────────────────────────────────
 
 export function deriveAssignmentStatus(
@@ -32,27 +50,50 @@ export function deriveAssignmentStatus(
 export async function getTeacherQuizzes(tenantId: string) {
   const { data, error } = await supabase
     .from('quizzes')
-    .select(
-      `
-      *,
-      quiz_assignments ( id, class_id ),
-      quiz_questions ( id )
-    `
-    )
+    .select('*')
     .eq('tenant_id', tenantId)
     .order('created_at', { ascending: false })
 
   if (error) throw error
 
-  return (data || []).map(
-    (
-      quiz: Record<string, unknown> & { quiz_assignments?: unknown[]; quiz_questions?: unknown[] }
-    ) => ({
+  const quizzes = (data ?? []) as Array<Record<string, unknown>>
+  const quizIds = quizzes.map((quiz) => String(quiz.id)).filter(Boolean)
+  if (quizIds.length === 0) return []
+
+  const [{ data: assignments, error: assignmentError }, { data: questions, error: questionError }] =
+    await Promise.all([
+      supabase
+        .from('quiz_assignments')
+        .select('id, quiz_id, class_id')
+        .eq('tenant_id', tenantId)
+        .in('quiz_id', quizIds),
+      supabase
+        .from('quiz_questions')
+        .select('id, quiz_id')
+        .eq('tenant_id', tenantId)
+        .in('quiz_id', quizIds),
+    ])
+
+  if (assignmentError) throw assignmentError
+  if (questionError) throw questionError
+
+  const assignmentCountByQuiz = new Map<string, number>()
+  ;((assignments ?? []) as Array<Record<string, unknown>>).forEach((assignment) => {
+    const quizId = String(assignment.quiz_id)
+    assignmentCountByQuiz.set(quizId, (assignmentCountByQuiz.get(quizId) ?? 0) + 1)
+  })
+
+  const questionCountByQuiz = new Map<string, number>()
+  ;((questions ?? []) as Array<Record<string, unknown>>).forEach((question) => {
+    const quizId = String(question.quiz_id)
+    questionCountByQuiz.set(quizId, (questionCountByQuiz.get(quizId) ?? 0) + 1)
+  })
+
+  return quizzes.map((quiz) => ({
       ...quiz,
-      assignment_count: (quiz.quiz_assignments || []).length,
-      question_count: (quiz.quiz_questions || []).length,
-    })
-  )
+      assignment_count: assignmentCountByQuiz.get(String(quiz.id)) ?? 0,
+      question_count: questionCountByQuiz.get(String(quiz.id)) ?? 0,
+    }))
 }
 
 /**
@@ -61,21 +102,63 @@ export async function getTeacherQuizzes(tenantId: string) {
 export async function getQuizzesByCourse(courseId: string, tenantId: string) {
   const { data, error } = await supabase
     .from('quizzes')
-    .select(
-      `
-      *,
-      quiz_questions (
-        id, text, "order", question_type, points,
-        quiz_options (id, text)
-      )
-    `
-    )
+    .select('*')
     .eq('course_id', courseId)
     .eq('tenant_id', tenantId)
     .eq('status', 'published')
 
   if (error) throw error
-  return data
+
+  const quizzes = (data ?? []) as Array<Record<string, unknown>>
+  const quizIds = quizzes.map((quiz) => String(quiz.id)).filter(Boolean)
+  if (quizIds.length === 0) return []
+
+  const { data: questions, error: questionError } = await supabase
+    .from('quiz_questions')
+    .select('id, quiz_id, text, "order", question_type, points')
+    .eq('tenant_id', tenantId)
+    .in('quiz_id', quizIds)
+    .order('"order"', { ascending: true })
+
+  if (questionError) throw questionError
+
+  const questionRows = (questions ?? []) as QuizQuestionRow[]
+  const questionIds = questionRows.map((question) => question.id)
+  const { data: options, error: optionError } =
+    questionIds.length > 0
+      ? await supabase
+          .from('quiz_options')
+          .select('id, question_id, text')
+          .eq('tenant_id', tenantId)
+          .in('question_id', questionIds)
+      : { data: [], error: null }
+
+  if (optionError) throw optionError
+
+  const optionsByQuestion = new Map<string, QuizOptionRow[]>()
+  ;((options ?? []) as QuizOptionRow[]).forEach((option) => {
+    const current = optionsByQuestion.get(option.question_id) ?? []
+    current.push(option)
+    optionsByQuestion.set(option.question_id, current)
+  })
+
+  const questionsByQuiz = new Map<string, Array<Record<string, unknown>>>()
+  questionRows.forEach((question) => {
+    const current = questionsByQuiz.get(question.quiz_id) ?? []
+    current.push({
+      ...question,
+      quiz_options: (optionsByQuestion.get(question.id) ?? []).map((option) => ({
+        id: option.id,
+        text: option.text,
+      })),
+    })
+    questionsByQuiz.set(question.quiz_id, current)
+  })
+
+  return quizzes.map((quiz) => ({
+    ...quiz,
+    quiz_questions: questionsByQuiz.get(String(quiz.id)) ?? [],
+  }))
 }
 
 /**
@@ -84,44 +167,60 @@ export async function getQuizzesByCourse(courseId: string, tenantId: string) {
 export async function getQuizzesByClass(classId: string, tenantId: string) {
   const { data, error } = await supabase
     .from('quiz_assignments')
-    .select(
-      `
-      *,
-      quizzes (
-        id,
-        title,
-        status,
-        mode,
-        time_limit_minutes,
-        max_attempts,
-        passing_score,
-        created_at,
-        updated_at,
-        available_from,
-        available_until,
-        show_correct_answers,
-        shuffle_questions,
-        shuffle_options,
-        quiz_questions ( id )
-      )
-    `
-    )
+    .select('*')
     .eq('class_id', classId)
     .eq('tenant_id', tenantId)
     .order('available_from', { ascending: false })
 
   if (error) throw error
 
-  return (data || []).map(
-    (assignment: Record<string, unknown> & { quizzes?: Record<string, unknown> }) => ({
-      ...(assignment.quizzes || {}),
-      assignment_id: assignment.id,
-      assignment_status: assignment.status,
-      assignment_available_from: assignment.available_from,
-      assignment_due_at: assignment.due_at,
-      question_count: ((assignment.quizzes?.quiz_questions as unknown[]) || []).length,
-    })
+  const assignments = (data ?? []) as Array<Record<string, unknown>>
+  const quizIds = assignments.map((assignment) => String(assignment.quiz_id)).filter(Boolean)
+  if (quizIds.length === 0) return []
+
+  const [{ data: quizzes, error: quizError }, { data: questions, error: questionError }] =
+    await Promise.all([
+      supabase
+        .from('quizzes')
+        .select(
+          'id, title, status, mode, time_limit_minutes, max_attempts, passing_score, created_at, updated_at, available_from, available_until, show_correct_answers, shuffle_questions, shuffle_options'
+        )
+        .eq('tenant_id', tenantId)
+        .in('id', quizIds),
+      supabase
+        .from('quiz_questions')
+        .select('id, quiz_id')
+        .eq('tenant_id', tenantId)
+        .in('quiz_id', quizIds),
+    ])
+
+  if (quizError) throw quizError
+  if (questionError) throw questionError
+
+  const quizMap = new Map(
+    ((quizzes ?? []) as Array<Record<string, unknown>>).map((quiz) => [String(quiz.id), quiz])
   )
+  const questionCountByQuiz = new Map<string, number>()
+  ;((questions ?? []) as Array<Record<string, unknown>>).forEach((question) => {
+    const quizId = String(question.quiz_id)
+    questionCountByQuiz.set(quizId, (questionCountByQuiz.get(quizId) ?? 0) + 1)
+  })
+
+  return assignments
+    .map((assignment) => {
+      const quiz = quizMap.get(String(assignment.quiz_id))
+      if (!quiz) return null
+
+      return {
+        ...quiz,
+        assignment_id: assignment.id,
+        assignment_status: assignment.status,
+        assignment_available_from: assignment.available_from,
+        assignment_due_at: assignment.due_at,
+        question_count: questionCountByQuiz.get(String(assignment.quiz_id)) ?? 0,
+      }
+    })
+    .filter(Boolean)
 }
 
 /**
@@ -130,30 +229,48 @@ export async function getQuizzesByClass(classId: string, tenantId: string) {
 export async function getQuizWithQuestions(quizId: string, tenantId: string) {
   const { data, error } = await supabase
     .from('quizzes')
-    .select(
-      `
-      *,
-      quiz_questions (
-        id,
-        text,
-        "order",
-        question_type,
-        points,
-        explanation,
-        tenant_id,
-        quiz_options ( id, text, is_correct )
-      )
-    `
-    )
+    .select('*')
     .eq('id', quizId)
     .eq('tenant_id', tenantId)
     .single()
 
   if (error) throw error
 
-  if (data?.quiz_questions) {
-    data.quiz_questions.sort((a: { order: number }, b: { order: number }) => a.order - b.order)
-  }
+  const { data: questions, error: questionError } = await supabase
+    .from('quiz_questions')
+    .select('id, quiz_id, text, "order", question_type, points, explanation, tenant_id')
+    .eq('quiz_id', quizId)
+    .eq('tenant_id', tenantId)
+    .order('"order"', { ascending: true })
+
+  if (questionError) throw questionError
+
+  const questionRows = (questions ?? []) as QuizQuestionRow[]
+  const questionIds = questionRows.map((question) => question.id)
+  const { data: options, error: optionError } =
+    questionIds.length > 0
+      ? await supabase
+          .from('quiz_options')
+          .select('id, question_id, text, is_correct')
+          .eq('tenant_id', tenantId)
+          .in('question_id', questionIds)
+      : { data: [], error: null }
+
+  if (optionError) throw optionError
+
+  const optionsByQuestion = new Map<string, QuizOptionRow[]>()
+  ;((options ?? []) as QuizOptionRow[]).forEach((option) => {
+    const current = optionsByQuestion.get(option.question_id) ?? []
+    current.push(option)
+    optionsByQuestion.set(option.question_id, current)
+  })
+
+  data.quiz_questions = questionRows
+    .map((question) => ({
+      ...question,
+      quiz_options: optionsByQuestion.get(question.id) ?? [],
+    }))
+    .sort((a, b) => a.order - b.order)
 
   return data
 }
