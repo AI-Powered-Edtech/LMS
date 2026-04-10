@@ -233,6 +233,7 @@ export function DocumentViewer({
                   >
                     <Paperclip className="w-4 h-4" />
                     Buka Lampiran
+                    <span className="sr-only">(buka di tab baru)</span>
                   </a>
                 )}
                 {linkUrl && (
@@ -244,6 +245,7 @@ export function DocumentViewer({
                   >
                     <ExternalLink className="w-4 h-4" />
                     Buka Link
+                    <span className="sr-only">(buka di tab baru)</span>
                   </a>
                 )}
               </div>
