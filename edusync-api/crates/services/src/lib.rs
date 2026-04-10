@@ -1,1 +1,2 @@
-// Phase 1A scaffold only. Business services land in later phases.
+pub mod email;
+pub use email::EmailService;

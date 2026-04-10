@@ -6,6 +6,7 @@ members = [
     "crates/auth",
     "crates/middleware",
     "crates/services",
+    "crates/integration-tests",
 ]
 
 [workspace.dependencies]
@@ -30,3 +31,6 @@ chrono = { version = "0.4", features = ["serde"] }
 sentry = "0.36"
 sha2 = "0.10"
 hex = "0.4"
+governor = "0.6"
+totp-rs = { version = "5", features = ["qr", "serde_support", "zeroize", "gen_secret", "otpauth"] }
+time = { version = "0.3", features = ["formatting", "macros"] }

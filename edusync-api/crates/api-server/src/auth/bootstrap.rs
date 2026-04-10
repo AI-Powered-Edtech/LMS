@@ -1,0 +1,114 @@
+use std::sync::Arc;
+use axum::{extract::Extension, http::HeaderMap, Json};
+use serde::Serialize;
+use uuid::Uuid;
+use edusync_auth::{AuthError, verify_access_token};
+use crate::state::AppState;
+
+#[derive(Serialize)]
+pub struct BootstrapProfile {
+    pub id: Uuid,
+    pub email: String,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub avatar_url: Option<String>,
+    pub tenant_id: Option<Uuid>,
+}
+
+#[derive(Serialize)]
+pub struct BootstrapMembership {
+    pub role: String,
+    pub status: String,
+    pub is_active: bool,
+    pub joined_at: Option<String>,
+    pub tenant_id: Uuid,
+    pub tenant_logo: Option<String>,
+    pub tenant_name: String,
+    pub tenant_slug: String,
+}
+
+#[derive(Serialize)]
+pub struct BootstrapResponse {
+    pub profile: BootstrapProfile,
+    pub memberships: Vec<BootstrapMembership>,
+    pub default_tenant_id: Option<Uuid>,
+    pub requires_email_verification: bool,
+}
+
+pub async fn bootstrap_handler(
+    Extension(state): Extension<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Result<Json<BootstrapResponse>, AuthError> {
+    let token = headers
+        .get("authorization")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.strip_prefix("Bearer "))
+        .ok_or(AuthError::InvalidToken)?;
+
+    let claims = verify_access_token(token, &state.jwt_secret)?;
+    let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken)?;
+
+    // Get profile + email_confirmed_at
+    let row = sqlx::query!(
+        r#"SELECT p.id, p.first_name, p.last_name, p.avatar_url, p.tenant_id,
+                  COALESCE(u.email, p.email) as "email!",
+                  u.email_confirmed_at
+           FROM public.profiles p
+           LEFT JOIN public.users u ON u.id = p.id
+           WHERE p.id = $1"#,
+        user_id
+    )
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or(AuthError::UserNotFound)?;
+
+    let requires_email_verification = row.email_confirmed_at.is_none();
+
+    // Get memberships via user_roles JOIN tenants
+    let memberships_rows = sqlx::query!(
+        r#"SELECT ur.role::text as "role!", ur.tenant_id, ur.created_at,
+                  t.name as tenant_name, t.slug as tenant_slug,
+                  NULL::text as tenant_logo
+           FROM public.user_roles ur
+           JOIN public.tenants t ON t.id = ur.tenant_id
+           WHERE ur.user_id = $1"#,
+        user_id
+    )
+    .fetch_all(&state.db)
+    .await?;
+
+    let memberships: Vec<BootstrapMembership> = memberships_rows
+        .into_iter()
+        .map(|m| BootstrapMembership {
+            role: m.role,
+            status: "active".to_string(),
+            is_active: true,
+            // OffsetDateTime → RFC3339 string via time crate
+            joined_at: Some(m.created_at.format(&time::format_description::well_known::Rfc3339).unwrap_or_default()),
+            tenant_id: m.tenant_id,
+            tenant_logo: m.tenant_logo,
+            tenant_name: m.tenant_name,
+            tenant_slug: m.tenant_slug,
+        })
+        .collect();
+
+    let default_tenant_id = memberships.first().map(|m| m.tenant_id);
+
+    // first_name / last_name are NOT NULL String in profiles (default '')
+    let first_name = if row.first_name.is_empty() { None } else { Some(row.first_name) };
+    let last_name  = if row.last_name.is_empty()  { None } else { Some(row.last_name) };
+
+    Ok(Json(BootstrapResponse {
+        profile: BootstrapProfile {
+            id: row.id,
+            email: row.email,
+            first_name,
+            last_name,
+            avatar_url: row.avatar_url,
+            tenant_id: row.tenant_id,
+        },
+        memberships,
+        default_tenant_id,
+        requires_email_verification,
+    }))
+}
