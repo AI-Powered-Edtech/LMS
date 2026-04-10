@@ -1,5 +1,53 @@
 # EduSync LMS — Changelog
 
+## [Phase 1B — VIL Auth Handlers] — 2026-04-10
+
+### Added (`edusync-api/`)
+
+- `crates/api-server/src/auth/register.rs` — `POST /api/v1/auth/register` (email/password validation, tx, profile upsert)
+- `crates/api-server/src/auth/login.rs` — `POST /api/v1/auth/login` (Argon2+bcrypt dual-verify, async rehash, MFA check)
+- `crates/api-server/src/auth/signout.rs` — `POST /api/v1/auth/signout` (revoke refresh token, always 204)
+- `crates/api-server/src/auth/refresh.rs` — `POST /api/v1/auth/refresh` (token rotation + reuse detection)
+- `crates/api-server/src/auth/bootstrap.rs` — `GET /api/v1/auth/bootstrap` (shape matches `get_auth_bootstrap()` RPC exactly)
+- `crates/api-server/src/auth/reset_password.rs` — `POST /api/v1/auth/reset-password` and `PUT /api/v1/auth/reset-password`
+- `crates/api-server/src/auth/verify_email.rs` — `POST /api/v1/auth/verify-email`
+- `crates/api-server/src/auth/oauth.rs` — `GET /api/v1/auth/oauth/{provider}` stub (token exchange in Phase 1C)
+- `crates/api-server/src/auth/mfa.rs` — TOTP enroll/verify/unenroll endpoints
+- `crates/api-server/src/auth/tenant_rpcs.rs` — lookup-class, enroll-student, onboard-student, create-tenant RPCs
+- `crates/services/src/email.rs` — `EmailService` (console-log in dev, SMTP in prod)
+- `migrations/001_create_users_table.sql` — `public.users`, `refresh_tokens`, `password_reset_tokens`, `mfa_factors`
+- 4 unit tests (jwt, password), 4 integration tests (register, login, bootstrap, refresh)
+
+### Changed
+
+- `src/services/auth/types.ts` — added `getAuthBootstrap()` + `verifyOtp()` to `AuthProvider` interface
+- `src/services/auth/supabaseAuthProvider.ts` — `getAuthBootstrap()` delegates to `get_auth_bootstrap()` RPC
+- `src/services/auth/vilAuthProvider.ts` — `getAuthBootstrap()` fetches `GET /api/v1/auth/bootstrap`
+- `src/features/auth/api/authService.ts` — `getAuthBootstrap()` routes through `AuthProvider`
+- `src/pages/VerifyEmail.tsx`, `ResetPassword.tsx`, `ForgotPassword.tsx` — replaced direct `supabase.auth.*` calls with `getAuthProvider()`
+
+## [Phase 1A — VIL Server Scaffold] — 2026-04-10
+
+### Added
+
+- `edusync-api/` — Rust workspace with 5 crates: `api-server`, `auth`, `middleware`, `models`, `services`
+- `edusync-api/crates/api-server/src/main.rs` — VIL app entry point with health/ready endpoints
+- `edusync-api/crates/api-server/src/health.rs` — `GET /api/v1/health`, `GET /api/v1/ready`
+- `edusync-api/VIL_API_AUDIT.md` — VIL framework API findings and gotchas
+- `edusync-api/docs/schema-audit.md` — local vs remote DB schema gaps
+- `edusync-api/docs/bootstrap-sample.json` — captured bootstrap JSON from remote Supabase
+
+## [Phase 0 — Frontend Provider Abstraction] — 2026-04-09
+
+### Added
+
+- `src/services/api/` — `ApiClient` interface, `SupabaseApiClient`, `VilApiClient` stub, `getApiClient()` singleton
+- `src/services/auth/` — `AuthProvider` interface, `SupabaseAuthProvider`, `VilAuthProvider` stub, `getAuthProvider()` singleton
+- `src/services/realtime/` — `RealtimeProvider` interface, `SupabaseRealtimeProvider`, `VilRealtimeProvider` stub
+- `src/services/storage/` — `StorageProvider` interface, `SupabaseStorageProvider`, `VilStorageProvider` stub
+- 9 realtime consumer files refactored to `getRealtimeProvider()`
+- `src/main.tsx` — wires all 4 providers at startup
+
 ## [AI Builder Copilot Hardening] — 2026-04-09
 
 ### Changed

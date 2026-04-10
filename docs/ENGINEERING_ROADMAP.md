@@ -78,14 +78,49 @@ Engineering phases 1-30 are complete. However, some features are in transitional
 
 ---
 
+## VIL Backend Migration (Active)
+
+EduSync is migrating from Supabase-centric to a custom Rust/VIL backend. The Strangler Fig pattern routes `/api/v1/*` to the VIL server while Supabase PostgREST/Auth handles the rest.
+
+| Phase | Nama                                              | Status    | Tanggal Selesai |
+| ----- | ------------------------------------------------- | --------- | --------------- |
+| 0A    | API Client Abstraction                            | Completed | 2026-04-09      |
+| 0B    | Auth Provider Abstraction                         | Completed | 2026-04-09      |
+| 0C    | Realtime Provider Abstraction                     | Completed | 2026-04-09      |
+| 0D    | Storage Provider Abstraction                      | Completed | 2026-04-09      |
+| 1A    | VIL Server Scaffold (`edusync-api/`)              | Completed | 2026-04-10      |
+| 1B    | Auth Handlers (register, login, bootstrap, MFA)   | Completed | 2026-04-10      |
+| 1C    | OAuth token exchange (Google)                     | Planned   | —               |
+| 2     | Core CRUD handlers (classes, courses, enrollments) | Planned   | —               |
+| 3     | Edge Function migration to Rust workers           | Planned   | —               |
+| 4     | Realtime via WebSocket server                     | Planned   | —               |
+| 5     | Storage via S3/MinIO                              | Planned   | —               |
+| 6     | Supabase decommission                             | Planned   | —               |
+
+### Architecture: `edusync-api/` workspace
+
+```
+edusync-api/
+├── crates/
+│   ├── api-server/   — Axum/VIL handlers (auth, health)
+│   ├── auth/         — JWT, password, session logic
+│   ├── middleware/   — Shared middleware
+│   ├── models/       — Shared data types
+│   └── services/     — Email, external services
+└── migrations/       — SQL migrations
+```
+
+Tests require `DATABASE_URL` (remote Supabase) — `cargo test` passes with 8/8.
+
+---
+
 ## Next Steps
 
 With all core features complete, focus areas include:
 
+- VIL backend migration (Phase 1C onwards)
 - Performance monitoring & optimization
 - Security audits & penetration testing
 - Customer feedback & iterative improvements
 - Documentation maintenance
 - Dependency updates
-
-The system is now in maintenance mode with regular updates as needed.

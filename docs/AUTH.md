@@ -90,6 +90,50 @@ Quick reference for existing shared dev project:
 - Auth loading flash: on token refresh, `loading || loadingMemberships` may briefly flash before stabilizing (BUG-C2-001, low priority).
 - React controlled inputs: agent-browser and automated tools cannot programmatically fill the login form — it must be filled via keyboard events.
 
+## VIL Auth Backend (Phase 1B)
+
+The VIL Rust backend at `edusync-api/` implements a parallel auth path at `/api/v1/auth/*`. The frontend switches provider via `VITE_AUTH_PROVIDER=vil`.
+
+### Endpoints
+
+| Method | Path                          | Description                          |
+| ------ | ----------------------------- | ------------------------------------ |
+| POST   | `/api/v1/auth/register`       | Email/password registration          |
+| POST   | `/api/v1/auth/login`          | Login, returns access+refresh tokens |
+| POST   | `/api/v1/auth/signout`        | Revoke refresh token                 |
+| POST   | `/api/v1/auth/refresh`        | Token rotation with reuse detection  |
+| GET    | `/api/v1/auth/bootstrap`      | Profile + memberships (parity with `get_auth_bootstrap()`) |
+| POST   | `/api/v1/auth/reset-password` | Request password reset               |
+| PUT    | `/api/v1/auth/reset-password` | Execute reset with token             |
+| POST   | `/api/v1/auth/verify-email`   | Verify email OTP                     |
+| GET    | `/api/v1/auth/oauth/{provider}` | OAuth redirect init (Phase 1C)     |
+| POST   | `/api/v1/auth/mfa/enroll`     | TOTP enroll                          |
+| POST   | `/api/v1/auth/mfa/verify`     | TOTP verify                          |
+| DELETE | `/api/v1/auth/mfa`            | TOTP unenroll                        |
+
+### Token format
+
+- Access token: HS256 JWT, 1h TTL, claims: `sub`, `email`, `tenant_id`, `role`, `exp`, `iat`
+- Refresh token: opaque random bytes, SHA-256 hashed in DB, 30d TTL, single-use (rotated)
+
+### Password format
+
+- Primary: Argon2id
+- Fallback: bcrypt (legacy Supabase users), auto-rehashed to Argon2 on next login
+
+### Bootstrap parity
+
+`GET /api/v1/auth/bootstrap` returns shape identical to Supabase `get_auth_bootstrap()`:
+
+```json
+{
+  "profile": { "id", "email", "first_name", "last_name", "avatar_url", "tenant_id" },
+  "memberships": [{ "role", "status", "is_active", "joined_at", "tenant_id", "tenant_name", "tenant_slug", "tenant_logo" }],
+  "default_tenant_id": "...",
+  "requires_email_verification": false
+}
+```
+
 ## Security Rules
 
 - Never create fake sessions or hardcode tokens in frontend code
