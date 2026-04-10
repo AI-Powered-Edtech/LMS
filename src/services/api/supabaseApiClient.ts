@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { getSupabaseClient } from '@/services/supabase/client'
 
 import type {
   ApiAuthClient,
@@ -75,13 +75,17 @@ function mapSession(session: unknown): ApiSession | null {
   }
 }
 
+function getClient() {
+  return getSupabaseClient()
+}
+
 function castQueryBuilder<T>(query: unknown): ApiQueryBuilder<T> {
   return query as ApiQueryBuilder<T>
 }
 
 const auth: ApiAuthClient = {
   async signInWithPassword(credentials) {
-    const result = await supabase.auth.signInWithPassword(credentials)
+    const result = await getClient().auth.signInWithPassword(credentials)
 
     return {
       data: {
@@ -93,7 +97,7 @@ const auth: ApiAuthClient = {
   },
 
   async signOut() {
-    const result = await supabase.auth.signOut()
+    const result = await getClient().auth.signOut()
 
     return {
       error: normalizeError(result.error),
@@ -101,7 +105,7 @@ const auth: ApiAuthClient = {
   },
 
   async getSession() {
-    const result = await supabase.auth.getSession()
+    const result = await getClient().auth.getSession()
 
     return {
       data: {
@@ -112,7 +116,7 @@ const auth: ApiAuthClient = {
   },
 
   onAuthStateChange(callback) {
-    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data } = getClient().auth.onAuthStateChange((event, session) => {
       callback(event, mapSession(session))
     })
 
@@ -128,7 +132,7 @@ const auth: ApiAuthClient = {
 
 const storage: ApiStorageClient = {
   from(bucket) {
-    const bucketClient = supabase.storage.from(bucket)
+    const bucketClient = getClient().storage.from(bucket)
 
     return {
       async upload(path, file, options) {
@@ -159,11 +163,11 @@ const storage: ApiStorageClient = {
 export function createSupabaseApiClient(): ApiClient {
   return {
     from<T = unknown>(table: string): ApiQueryBuilder<T> {
-      return castQueryBuilder<T>(supabase.from(table))
+      return castQueryBuilder<T>(getClient().from(table))
     },
 
     async rpc<T = unknown>(fn: string, args?: Record<string, unknown>) {
-      const result = await supabase.rpc(fn, args ?? {})
+      const result = await getClient().rpc(fn, args ?? {})
 
       return {
         data: (result.data ?? null) as T | null,
