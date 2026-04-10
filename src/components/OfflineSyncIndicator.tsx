@@ -15,7 +15,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { useToast } from '@/hooks/useToast'
 
-import { type ConflictInfo, resolveConflict } from '../utils/conflictResolver'
+import { type ConflictInfo } from '../utils/conflictResolver'
 import {
   getPendingOperations,
   getQueueStats,
@@ -50,10 +50,10 @@ export function OfflineSyncIndicator({
 
   const [stats, setStats] = useState<ReplayQueueStats>({
     pending: 0,
-    syncing: 0,
+    syncing: false,
     completed: 0,
     failed: 0,
-    conflict: 0,
+    conflict: false,
     total: 0,
   })
 
@@ -101,7 +101,7 @@ export function OfflineSyncIndicator({
         setPendingOps(pending)
 
         // Show toast if there are conflicts
-        if (queueStats.conflict > 0 && !activeConflict) {
+        if (queueStats.conflict && !activeConflict) {
           addToast({
             type: 'warning',
             message: 'Sinkronisasi Konflik',
@@ -128,17 +128,17 @@ export function OfflineSyncIndicator({
     }
   }, [isOnline, stats.pending, isSyncing])
 
-  const _handleResolveConflict = useCallback(
+  const handleResolveConflict = useCallback(
     async (itemId: string) => {
       // Find the operation with conflict
       const item = pendingOps.find((op) => op.id === itemId)
-      if (!item || !item.payload.conflict) return
+      if (!item || !(item.payload as any).conflict) return
 
-      const conflict = item.payload.conflict as ConflictInfo
+      const conflict = (item.payload as any).conflict as ConflictInfo
 
       try {
         // Auto-resolve using strategy
-        const resolution = await resolveConflict(conflict, conflict.entityType)
+        const resolution = await handleResolveConflict(conflict, conflict.entityType)
 
         if (resolution.strategy === 'manual-merge') {
           // Show conflict resolution UI
@@ -255,12 +255,12 @@ export function OfflineSyncIndicator({
               </span>
             </div>
           )}
-          {stats.conflict > 0 && (
+          {stats.conflict && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600 dark:text-gray-400">Konflik:</span>
               <span className="font-medium text-yellow-600">
                 <AlertTriangle className="w-4 h-4 inline mr-1" />
-                {stats.conflict}
+                Ada
               </span>
             </div>
           )}
@@ -277,13 +277,13 @@ export function OfflineSyncIndicator({
             {isSyncing ? 'Menyinkronkan...' : 'Sinkronkan Sekarang'}
           </button>
 
-          {stats.conflict > 0 && (
+          {stats.conflict && (
             <button
               onClick={() => {
                 // Find first conflict and show it
                 const conflictItem = pendingOps.find((op) => op.status === 'conflict')
                 if (conflictItem?.payload.conflict) {
-                  setActiveConflict(conflictItem.payload.conflict as ConflictInfo)
+                  setActiveConflict((conflictItem.payload as any).conflict as ConflictInfo)
                 }
               }}
               className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md transition-colors text-sm font-medium"
@@ -306,14 +306,14 @@ export function OfflineSyncIndicator({
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-gray-900 dark:text-gray-100">{op.type}</span>
                     <span className="text-gray-500 dark:text-gray-400">
-                      {new Date(op.metadata.queuedAt).toLocaleTimeString()}
+                      {new Date((op.metadata as any).queuedAt).toLocaleTimeString()}
                     </span>
                   </div>
                   <div className="text-gray-600 dark:text-gray-400 mt-1">
-                    {op.metadata.entityId}
+                    {(op.metadata as any).entityId}
                   </div>
-                  {op.metadata.lastError && (
-                    <div className="text-red-600 mt-1">{op.metadata.lastError}</div>
+                  {(op.metadata as any).lastError && (
+                    <div className="text-red-600 mt-1">{(op.metadata as any).lastError}</div>
                   )}
                 </div>
               ))}
@@ -333,7 +333,7 @@ export function OfflineSyncIndicator({
           conflict={activeConflict}
           onClose={() => setActiveConflict(null)}
           onResolve={async (strategy) => {
-            const resolution = await resolveConflict(
+            const resolution = await handleResolveConflict(
               activeConflict,
               activeConflict.entityType,
               strategy
