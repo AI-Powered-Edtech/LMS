@@ -703,19 +703,22 @@ LOCKED for Phase 0A
 
 ## Active Routing Reality
 
-- Frontend aktif memakai hash routing: `/#/`
-- Phase 0A TIDAK mengubah routing frontend
+- Frontend aktif memakai **path-based routing**: `/app/`
+- App.tsx uses BrowserRouter (NOT HashRouter)
+- Hash routing adalah LEGACY dari old Supabase auth flow - perlu di-migrate
+- Phase 0A TIDAK mengubah routing frontend (sudah path-based)
 - API abstraction harus netral terhadap mode routing
 
 ## Decision
 
-- Semua task 0A diasumsikan berjalan di atas hash routing yang sudah ada
-- Tidak boleh ada perubahan massal ke path-based routing
+- Semua task 0A berjalan di atas path-based routing yang sudah ada
+- Hash routing adalah legacy yang sudah tidak digunakan
 
 ## Done
 
-- [x] Hash routing acknowledged as current truth
-- [x] Path-based routing explicitly NOT assumed
+- [x] Path-based routing acknowledged as current truth (BrowserRouter)
+- [x] Hash routing identified as legacy (from old Supabase auth)
+- [x] Migration does NOT need to preserve hash routing
 ```
 
 ---
@@ -816,16 +819,16 @@ PR dianggap benar kalau:
 
 ## File Inventory
 
-| Task  | Output                                              | Status |
-| ----- | --------------------------------------------------- | ------ |
-| 0A-1  | `src/services/api/types.ts`                         | ⬜     |
-| 0A-2  | `src/services/api/apiClient.ts`                     | ⬜     |
-| 0A-3  | `src/services/api/supabaseApiClient.ts`             | ⬜     |
-| 0A-4  | `src/services/api/vilApiClient.ts`                  | ⬜     |
-| 0A-5  | `src/services/api/index.ts`                         | ⬜     |
-| 0A-6  | `src/config/env.schema.ts` (patch)                  | ⬜     |
-| 0A-7  | `src/main.tsx` (patch)                              | ⬜     |
-| 0A-8  | `src/features/courses/api/courseService.ts` (patch) | ⬜     |
-| 0A-9  | `docs/migration/ROUTING_COMPATIBILITY_DECISION.md`  | ⬜     |
-| 0A-10 | `docs/migration/CI_WORKFLOW_VERIFICATION.md`        | ⬜     |
-| 0A-11 | Full verification                                   | ⬜     |
+| Task  | Output                                              | Status                     |
+| ----- | --------------------------------------------------- | -------------------------- |
+| 0A-1  | `src/services/api/types.ts`                         | ⬜                         |
+| 0A-2  | `src/services/api/apiClient.ts`                     | ⬜                         |
+| 0A-3  | `src/services/api/supabaseApiClient.ts`             | ⬜                         |
+| 0A-4  | `src/services/api/vilApiClient.ts`                  | ⬜                         |
+| 0A-5  | `src/services/api/index.ts`                         | ⬜                         |
+| 0A-6  | `src/config/env.schema.ts` (patch)                  | ⬜                         |
+| 0A-7  | `src/main.tsx` (patch)                              | ⬜                         |
+| 0A-8  | `src/features/courses/api/courseService.ts` (patch) | ⬜                         |
+| 0A-9  | `docs/migration/ROUTING_COMPATIBILITY_DECISION.md`  | ⏸ N/A (path-based already) |
+| 0A-10 | `docs/migration/CI_WORKFLOW_VERIFICATION.md`        | ⬜                         |
+| 0A-11 | Full verification                                   | ⬜                         |
