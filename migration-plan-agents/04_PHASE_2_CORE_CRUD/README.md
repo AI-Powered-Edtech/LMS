@@ -18,19 +18,23 @@ Dokumentasi ini mencakup migrasi endpoint EduSync LMS dari Supabase PostgREST ke
 
 ### Batch 1: Courses, Classes, Lessons (Minggu 23–28)
 
-**Effort:** ~80–100 jam
+**File:** [`TASK_QUEUE_BATCH_1.md`](TASK_QUEUE_BATCH_1.md)  
+**Effort:** ~80–100 jam  
+**Task Count:** 27 tasks (2B1-00 through 2B1-26)
 
-| Modul             | Tables                                               | Task IDs        |
-| ----------------- | ---------------------------------------------------- | --------------- |
-| Courses           | `courses`, `course_versions`, `course_collaborators` | 2B1-00 → 2B1-09 |
-| Lessons + Modules | `lessons`, `course_modules`                          | 2B1-10 → 2B1-14 |
-| Classrooms        | `classes`, `enrollments`                             | 2B1-15 → 2B1-19 |
-| Course Builder    | Builder API                                          | 2B1-20 → 2B1-22 |
-| Shadow Mode       | Integration                                          | 2B1-23 → 2B1-26 |
+| Modul             | Tables                                               | Task IDs          |
+| ----------------- | ---------------------------------------------------- | ----------------- |
+| Courses           | `courses`, `course_versions`, `course_collaborators` | 2B1-00 → 2B1-09   |
+| Lessons + Modules | `lessons`, `course_modules`                          | 2B1-10 → 2B1-14   |
+| Classrooms        | `classes`, `enrollments`                             | 2B1-15 → 2B1-19   |
+| Course Builder    | Builder API                                          | 2B1-20 → 2B1-22   |
+| Shadow Mode       | Integration                                          | 2B1-23 → 2B1-26   |
 
 ### Batch 2: Quizzes, Assignments, Gradebook (Minggu 28–32)
 
-**Effort:** ~60–80 jam
+**File:** [`TASK_QUEUE_BATCH_2.md`](TASK_QUEUE_BATCH_2.md)  
+**Effort:** ~60–80 jam  
+**Task Count:** 42 tasks (2B-01 through 2B-42)
 
 | Modul             | Tables                                                       | Task IDs      |
 | ----------------- | ------------------------------------------------------------ | ------------- |
@@ -47,7 +51,9 @@ Dokumentasi ini mencakup migrasi endpoint EduSync LMS dari Supabase PostgREST ke
 
 ### Batch 3: Analytics, Users, Progress (Minggu 32–36)
 
-**Effort:** ~50–60 jam
+**File:** [`TASK_QUEUE_BATCH_3.md`](TASK_QUEUE_BATCH_3.md)  
+**Effort:** ~50–60 jam  
+**Task Count:** 7 tasks (2C-1 through 2C-7)
 
 | Modul           | Tables                                      | Task IDs    |
 | --------------- | ------------------------------------------- | ----------- |
@@ -59,6 +65,7 @@ Dokumentasi ini mencakup migrasi endpoint EduSync LMS dari Supabase PostgREST ke
 
 ### Batch 4: Remaining Modules (Minggu 36–38)
 
+**File:** [`TASK_QUEUE_BATCH_4.md`](TASK_QUEUE_BATCH_4.md)  
 **Effort:** ~40–50 jam
 
 | Modul               | Tables                                      | Task IDs |
@@ -118,12 +125,15 @@ Sebelum cutover setiap modul, wajib lakukan security review:
 ## SQL Gotchas
 
 - `courses.status` — gunakan `status = 'published'`, BUKAN `is_published` (kolom tidak ada)
-- `course_modules."order"` —reserved word, wajib quoted dalam SQL
+- `courses.status` enum — includes `'draft'`, `'published'`, `'archived'`, `'in_review'`, `'approved'`
+- `course_modules."order"` — reserved word, wajib quoted dalam SQL
 - `lessons."order"` — sama, wajib quoted
 - `quiz_questions.text` — BUKAN `question_text`
 - `quiz_options.text` — BUKAN `option_text`
 - `enrollments.user_id` — BUKAN `student_id`
 - `student_lesson_signals`: gunakan `total_time_spent`, `last_accessed_at`, `latest_quiz_score` (BUKAN `time_spent_seconds`, `last_event_at`, `quiz_avg_score`)
+- Analytics RPCs: query `user_roles` table langsung, JANGAN pakai `has_role()` (fails saat JWT missing tenant claim)
+- `course_collaborators`: trigger `auto_set_tenant_id()`, BUKAN `set_tenant_id_from_user()`
 
 ---
 
@@ -170,6 +180,8 @@ Setiap batch menambah route baru di `nginx/default.conf`:
 ---
 
 ## Exit Criteria (Phase 2)
+
+See [`ACCEPTANCE_CRITERIA.md`](ACCEPTANCE_CRITERIA.md) for full bash-executable verification.
 
 1. Semua CRUD endpoint untuk Batch 1–4 ter-implement di VIL
 2. Shadow mode berjalan untuk semua modul dengan dual-write
