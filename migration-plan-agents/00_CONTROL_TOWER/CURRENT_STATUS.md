@@ -167,16 +167,10 @@
 
 **Frozen:**
 
-- Phase 0B (Auth Abstraction)
-- Phase 0C (Realtime Abstraction)
-- Phase 0D (Storage Abstraction)
-- Phase 0E (Verification)
-- Phase 1 (Auth + Scaffold)
+- Phase 0B-G frozen until Gate 0A passed
+- Phase 1 (1A, 1B, 1C, 1D) frozen until Gate 1A passed
 
 ## Catatan Penting
 
-Phase 0B, 0C, 0D, 0E, 0F, 0G dan Phase 1 (1A, 1B, 1C, 1D) adalah **DITUNDA** hingga:
-
-- Gate RS (Reality Sync) passed
-- Gate 0A passed
-- Execution readiness mencapai 88/100
+- Phase 0B, 0C, 0D, 0E, 0F, 0G adalah **DITUNDA hingga Gate 0A passed**
+- Phase 1 (1A, 1B, 1C, 1D) adalah **DITUNDA hingga Gate 1A passed**

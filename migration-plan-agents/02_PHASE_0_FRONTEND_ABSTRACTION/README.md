@@ -2,7 +2,7 @@
 
 **EduSync LMS: Supabase → VIL Backend Migration**
 
-**Status:** ⚠️ **DITUNDA** — 0B/0C/0D frozen until Gate RS + Gate 0A passed
+**Status:** ⚠️ **DITUNDA** — Phase 0B-G frozen until Gate 0A passed
 **Execution Readiness:** 68/100 → Target: 88/100
 
 ## Overview
@@ -60,11 +60,7 @@ Phase 0 establishes the **Frontend Abstraction Layer** that decouples all React 
 | **0D** | Storage Abstraction     | Weeks 8-9 | 🚫 DEFERRED   |
 | **0E** | Verification & CI Guard | Week 10   | 🚫 DEFERRED   |
 
-> **NOTE:** Only Wave 0A is allowed for execution. Waves 0B-0E are frozen until:
->
-> - Gate RS (Reality Sync) passed
-> - Gate 0A passed
-> - Execution readiness reaches 88/100
+> **NOTE:** Only Wave 0A is allowed for execution. Phase 0B-G is frozen until Gate 0A passed.
 
 ## Wave 0A: API Client Abstraction (Week 1-4)
 
