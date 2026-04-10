@@ -1,188 +1,121 @@
 # Next Action: Phase 0A - API Client Abstraction
 
 **Priority:** START IMMEDIATELY  
-**Estimated Duration:** 1 week (~40 hours)  
-**Goal:** Synchronize migration plan with actual repository state
+**Estimated Duration:** Weeks 1-4 (~40 hours)  
+**Goal:** Establish `getApiClient()` singleton pattern, refactor courseService as POC
 
 ---
 
-## What is Phase -1?
+## What is Phase 0A?
 
-Phase -1 is a preflight check to reconcile the migration plan with the current repository state. The repo is already at **81/100 Production Candidate**, but some plan assumptions may reference older baselines.
+Phase 0A creates an API client abstraction layer that allows the frontend to switch between Supabase and VIL backends without changing calling code. The key pattern is:
 
-**Why?** Prevent entering Phase 0 with:
+```ts
+// BEFORE (direct Supabase)
+import { supabase } from '@/services/supabase/client'
+const { data } = await supabase.from('courses').select('*')
 
-- Ambiguous source of truth
-- Incomplete coupling inventory
-- Tasks mixed with already-fixed issues
-- CI strategy assuming "no CI exists" (CI already exists)
-
----
-
-## Prerequisites Checklist
-
-Before starting Phase -1, verify:
-
-- [ ] Access to repository (check CLAUDE.md for current path)
-- [ ] `pnpm` installed and working
-- [ ] Access to Supabase project dashboard
-- [ ] Access to VIL framework documentation
-- [ ] Read the migration plan in `migration-plan-agents/` directory
-
----
-
-## How to Start Phase -1
-
-### Step 1: Create Working Directory
-
-```bash
-mkdir -p docs/migration
-cd docs/migration
+// AFTER (abstracted)
+import { getApiClient } from '@/services/api'
+const db = getApiClient()
+const { data } = await db.from('courses').select('*')
 ```
 
-### Step 2: Execute Workstream A — Baseline Truth Refresh
+---
 
-Create `REALITY_SYNC_BASELINE.md`:
+## Phase 0A Prerequisites
 
-```markdown
-# Reality Sync Baseline
-
-**Date:** YYYY-MM-DD
-**Author:** [Agent Name]
-
-## Current Repository State
-
-- Git hash: [latest]
-- Production readiness: 81/100
-- Feature modules: [count]
-- E2E scenarios: 400+ passing (Playwright)
-
-## Supabase Touchpoints
-
-[Inventory all direct Supabase usage]
-
-## Critical Vulnerabilities Status
-
-[Verify if any from old roadmap are already fixed]
-```
-
-### Step 3: Execute Workstream B — Coupling Inventory
-
-Create `SUPABASE_COUPLING_INVENTORY.md`:
-
-Document 7 buckets:
-
-1. **Auth/RPC/Functions** — Direct dependency
-2. **Realtime** — Active with polling fallback
-3. **Storage** — Upload/delete/public URL
-4. **Offline sync** — Queue writes
-5. **RLS policies** — Security layer
-6. **Edge Functions** — 30 functions
-7. **Client SDK** — Type definitions
-
-### Step 4: Execute Workstream C — Gap Classification
-
-Create `GAP_RECLASSIFICATION.md`:
-
-| Gap     | Old Status | New Status           | Reason   |
-| ------- | ---------- | -------------------- | -------- |
-| [gap 1] | [old]      | Live/Stale/Competing | [reason] |
-
-### Step 5: Execute Workstream D — Scope Narrowing
-
-Create `MIGRATION_SCOPE_MATRIX.md`:
-
-| Domain | Decision       | Rationale                  |
-| ------ | -------------- | -------------------------- |
-| [TBD]  | TBD - Decision | Requires Reality Sync data |
-| [TBD]  | TBD - Decision | Requires Reality Sync data |
-| ...    | ...            | ...                        |
-
-NOTE: All domain decisions (migrate-first / migrate-later / stay-on-supabase) will be determined by Reality Sync workstream D. Do NOT pre-assign.
-
-### Step 6: Execute Workstream E — Revised Phase 0
-
-Create `plans/REVISED_PHASE_0.md`:
-
-- Remove tasks already completed
-- Remove duplicate tasks
-- Align with CI-aware approach
-- Add tasks discovered in workstreams A-D
+- [x] Phase -1 Reality Sync COMPLETE (2026-04-09)
+- [x] `src/services/supabase/client.ts` exists
+- [x] Project uses React 19 + Vite + TypeScript
+- [x] `pnpm` available (NOT npm/yarn)
+- [x] All user-visible text in Bahasa Indonesia
 
 ---
 
-## Phase -1 Exit Criteria
+## Phase 0A Task List
 
-Before entering Phase 0, ALL must be true:
+| ID   | Task                   | Goal                                         |
+| ---- | ---------------------- | -------------------------------------------- |
+| 0A-1 | Create api/types.ts    | API client interfaces                        |
+| 0A-2 | Create api/client.ts   | getApiClient() singleton                     |
+| 0A-3 | Create api/database.ts | Database methods (from, insert, update, etc) |
+| 0A-4 | Create api/realtime.ts | Realtime subscription methods                |
+| 0A-5 | Create api/auth.ts     | Auth methods                                 |
+| 0A-6 | Wrap courseService.ts  | First service refactor as POC                |
+| 0A-7 | TypeScript check       | Verify no errors                             |
+| 0A-8 | Smoke test             | Basic functionality works                    |
 
-- [ ] Single baseline document agreed upon
-- [ ] All major Supabase touchpoints inventoried
-- [ ] All old blockers classified (Live vs Stale vs Competing)
-- [ ] Migration objective reframed as "safe surface reduction"
-- [ ] Revised Phase 0 contains no duplicate/obsolete tasks
-- [ ] Domain list: migrate-first / migrate-later / stay-on-supabase
+**EDIT ONLY FILES (DO NOT touch others):**
+
+- `src/services/api/` (NEW - entire directory)
+- `src/features/courses/api/courseService.ts` (refactor ONLY)
+- `.kilo/agents.yaml` (if needed)
+
+---
+
+## Phase 0A Exit Criteria
+
+Before proceeding to Phase 0B, ALL must be true:
+
+- [ ] `getApiClient()` returns Supabase client by default
+- [ ] `db.from('courses').select('*')` works identically to direct Supabase call
+- [ ] No TypeScript errors in `src/services/api/`
+- [ ] courseService refactored as POC with no runtime errors
+- [ ] All UI text remains Bahasa Indonesia
 
 ### No-Go Conditions
 
-**DO NOT enter Phase 0 if:**
+**DO NOT proceed to Phase 0B if:**
 
-- Readiness source of truth still ambiguous
-- Coupling inventory incomplete
-- Migration tasks still mixed with already-fixed issues
-- CI strategy still assumes "no CI exists"
-- Auth/realtime/storage treated as easy-first
+- Phase 0A exit criteria not met
+- Any regression in existing functionality
+- New Supabase dependencies introduced outside api/ layer
 
 ---
 
-## Phase -1 Timeline
+## Phase 0A Timeline
 
-| Day     | Workstream            | Output                           |
-| ------- | --------------------- | -------------------------------- |
-| Day 1   | A: Baseline Truth     | `REALITY_SYNC_BASELINE.md`       |
-| Day 1-2 | B: Coupling Inventory | `SUPABASE_COUPLING_INVENTORY.md` |
-| Day 3   | C: Gap Classification | `GAP_RECLASSIFICATION.md`        |
-| Day 4   | D: Scope Narrowing    | `MIGRATION_SCOPE_MATRIX.md`      |
-| Day 5   | E: Revised Phase 0    | `plans/REVISED_PHASE_0.md`       |
-
----
-
-## After Phase -1
-
-1. Review deliverables with stakeholders
-2. Update master plan if needed
-3. Begin Phase 0 with confidence
-4. Target: Execution Readiness 88/100
+| Week | Focus           | Deliverable                      |
+| ---- | --------------- | -------------------------------- |
+| 1    | Types + Core    | api/types.ts, api/client.ts      |
+| 2    | Database API    | api/database.ts                  |
+| 3    | Auth + Realtime | api/auth.ts, api/realtime.ts     |
+| 4    | Integration     | courseService POC + verification |
 
 ---
 
-## Key Contacts for Phase -1
+## Key Files Created
 
-| Role                     | Responsibility            |
-| ------------------------ | ------------------------- |
-| Agent executing Phase -1 | All workstreams           |
-| Architect                | Baseline truth approval   |
-| Product Owner            | Scope narrowing decisions |
+```
+src/services/api/
+├── types.ts      # ApiClient, ApiDatabase, ApiAuth interfaces
+├── client.ts     # getApiClient() singleton
+├── database.ts   # Database CRUD methods
+├── realtime.ts   # Realtime subscription
+└── auth.ts      # Auth methods
+```
 
 ---
 
 ## Related Documents
 
-- [Control Tower Documents](./)
+- [TASK_QUEUE_0A.md](../02_PHASE_0_FRONTEND_ABSTRACTION/TASK_QUEUE_0A.md)
+- [CONTROL_TOWER](./)
 - [Architecture Doc](../../docs/ARCHITECTURE.md)
-- [Database Schema](../../docs/DATABASE.md)
-- [Phase 0 Directory](../02_PHASE_0_FRONTEND_ABSTRACTION/)
 
 ---
 
-## Status Terkini
+## Status
 
-Execution Readiness: **88/100** → Target: 88/100
+**Current Phase:** Phase 0A (ACTIVE)
+**Execution Readiness:** 88/100
 
 **FROZEN:**
 
-- Phase 0B, 0C, 0D, 0E, 0F, 0G — DITUNDA hingga Gate 0A passed
-- Phase 1 (1A, 1B, 1C, 1D) — DITUNDA hingga Gate 1A passed
+- Phase 0B, 0C, 0D, 0E, 0F, 0G - DITUNDA hingga Gate 0A passed
+- Phase 1 (1A, 1B, 1C, 1D) - DITUNDA hingga Gate 1A passed
 
 **ALLOWED NOW:**
 
-- Phase 0A only (API Client Abstraction)
+- Phase 0A only
