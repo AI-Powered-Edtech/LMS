@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { getApiClient } from '@/services/api'
 import { logDevError, logDevWarn } from '@/utils/logDevError'
 
 import type { Course, CourseInsert, CourseUpdate, FetchCoursesOptions } from '../types'
@@ -15,8 +15,9 @@ export const courseService = {
     search,
     ids,
   }: FetchCoursesOptions): Promise<{ courses: Course[]; count: number }> {
+    const db = getApiClient()
     // Try fetching with joined class data first
-    let query = supabase
+    let query = db
       .from('courses')
       .select(
         `
@@ -62,7 +63,7 @@ export const courseService = {
         'Courses join query failed, falling back to simple fetch:',
         error.message
       )
-      let fallbackQuery = supabase
+      let fallbackQuery = db
         .from('courses')
         .select('id, title, description, status, created_at, updated_at, created_by, tenant_id', {
           count: 'exact',
@@ -101,7 +102,8 @@ export const courseService = {
    * Gets a specific course by its ID.
    */
   async getCourseById(courseId: string, tenantId: string): Promise<Course | null> {
-    const { data, error } = await supabase
+    const db = getApiClient()
+    const { data, error } = await db
       .from('courses')
       .select(
         'id, title, description, status, subject, level, created_at, updated_at, created_by, tenant_id'
@@ -115,7 +117,7 @@ export const courseService = {
       throw error
     }
 
-    return data
+    return data as unknown as Course | null
   },
 
   /**
@@ -124,7 +126,8 @@ export const courseService = {
    * but we provide it here explicitly for completeness if the RLS allows it.
    */
   async createCourse(courseData: CourseInsert): Promise<Course | null> {
-    const { data, error } = await supabase
+    const db = getApiClient()
+    const { data, error } = await db
       .from('courses')
       .insert(courseData)
       .select('id, title, description, status, created_at, updated_at, created_by, tenant_id')
@@ -135,7 +138,7 @@ export const courseService = {
       throw error
     }
 
-    return data
+    return data as unknown as Course | null
   },
 
   /**
@@ -146,7 +149,8 @@ export const courseService = {
     updates: CourseUpdate,
     tenantId: string
   ): Promise<Course | null> {
-    const { data, error } = await supabase
+    const db = getApiClient()
+    const { data, error } = await db
       .from('courses')
       .update(updates)
       .eq('id', courseId)
@@ -159,14 +163,15 @@ export const courseService = {
       throw error
     }
 
-    return data
+    return data as unknown as Course | null
   },
 
   /**
    * Deletes a course.
    */
   async deleteCourse(courseId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const db = getApiClient()
+    const { error } = await db
       .from('courses')
       .delete()
       .eq('id', courseId)
@@ -187,7 +192,8 @@ export const courseService = {
   ): Promise<
     Array<{ id: string; title: string; order: number; course_id: string; lessons: any[] }>
   > {
-    const { data, error } = await supabase
+    const db = getApiClient()
+    const { data, error } = await db
       .from('course_modules')
       .select('id, title, "order", course_id, lessons(id, duration_minutes)')
       .eq('tenant_id', tenantId)
@@ -199,7 +205,7 @@ export const courseService = {
       throw error
     }
 
-    return data ?? []
+    return (data ?? []) as unknown as Array<{ id: string; title: string; order: number; course_id: string; lessons: any[] }>
   },
 
   /**
@@ -211,8 +217,9 @@ export const courseService = {
    * @param tenantId - The tenant context; user must be a member of this tenant
    */
   async getTeacherName(userId: string, tenantId: string): Promise<string | null> {
+    const db = getApiClient()
     // Step 1: verify the user is a member of the requested tenant
-    const { data: membership, error: membershipError } = await supabase
+    const { data: membership, error: membershipError } = await db
       .from('tenant_memberships')
       .select('user_id')
       .eq('user_id', userId)
@@ -234,7 +241,7 @@ export const courseService = {
     }
 
     // Step 2: fetch the profile now that membership is confirmed
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('profiles')
       .select('full_name')
       .eq('id', userId)
@@ -245,7 +252,7 @@ export const courseService = {
       return null
     }
 
-    return data?.full_name ?? null
+    return (data as { full_name?: string } | null)?.full_name ?? null
   },
 
   /**
@@ -266,7 +273,8 @@ export const courseService = {
     | { enrolled: false; errorType: null }
     | { enrolled: false; errorType: 'access_error' }
   > {
-    const { data, error } = await supabase
+    const db = getApiClient()
+    const { data, error } = await db
       .from('course_enrollments')
       .select('id')
       .eq('course_id', courseId)

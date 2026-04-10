@@ -8,11 +8,15 @@ import { AppProviders } from './app/providers'
 import { validateEnv } from './config/env.schema'
 import { normalizeLegacyHashUrl, sanitizeRedirectTarget } from './features/auth/utils/authFlow'
 import { useToast } from './hooks/useToast'
+import { initApiClient } from './services/api'
 import { initSentry } from './utils/sentry'
 import { reportWebVitals } from './utils/webVitals'
 
 // Validate env vars before anything else — fails fast with helpful message
-validateEnv()
+const env = validateEnv()
+const apiBackend = env.VITE_API_BACKEND === 'vil' ? 'vil' : 'supabase'
+
+initApiClient(apiBackend)
 
 // Initialise Sentry before rendering so errors during boot are captured
 initSentry()
