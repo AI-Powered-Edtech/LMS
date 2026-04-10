@@ -34,8 +34,8 @@ export function setSupabaseClient(client: SupabaseClient): void {
   initialized = true
 }
 
-export const supabase = {
-  get client() {
-    return getSupabaseClient()
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_t, k) {
+    return (getSupabaseClient() as any)[k]
   },
-} as { readonly client: SupabaseClient } & Omit<SupabaseClient, 'client'>
+})
