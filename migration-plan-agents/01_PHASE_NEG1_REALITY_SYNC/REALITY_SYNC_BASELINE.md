@@ -1,138 +1,44 @@
-# Reality Sync Baseline — Current Truth Snapshot
+# Reality Sync Baseline
 
-> **Date:** **\*\***\_\_\_**\*\***  
-> **Repo:** AI-Powered-Edtech/LMS  
-> **Prepared by:** **\*\***\_\_\_**\*\***
+**Status:** COMPLETED
 
----
+**Filled deliverable:** `docs/migration/REALITY_SYNC_BASELINE.md`
 
-## 1. Build & Test Status
-
-| Check                   | Status | Notes |
-| ----------------------- | ------ | ----- |
-| `pnpm typecheck`        | ✅/❌  |       |
-| `pnpm lint`             | ✅/❌  |       |
-| `pnpm test:ci`          | ✅/❌  |       |
-| `pnpm build`            | ✅/❌  |       |
-| 51 Playwright E2E tests | ✅/❌  |       |
-
-**Build Command Output:**
-
-```
-[PASTE OUTPUT HERE]
-```
+This file was a template. The actual filled baseline lives at the path above.
 
 ---
 
-## 2. Repository Metrics
+## Key Findings Summary
 
-| Metric                                 | Count |
-| -------------------------------------- | ----- |
-| Feature modules (`src/features/*/`)    | \_\_  |
-| Shared hooks (`src/hooks/`)            | \_\_  |
-| Service files (`src/services/`)        | \_\_  |
-| Edge Functions (`supabase/functions/`) | \_\_  |
-| Context providers (`src/contexts/`)    | \_\_  |
-| Components (`src/components/`)         | \_\_  |
+| Metric                        | Value                                    |
+| ----------------------------- | ---------------------------------------- |
+| Production Readiness          | **81/100** (Production Candidate)        |
+| Migration Execution Readiness | **68/100** (Target: 88/100)              |
+| Supabase-importing files      | **129**                                  |
+| Edge Functions                | **30**                                   |
+| Feature modules               | **49**                                   |
+| Routing                       | Hash-based (`/#/`)                       |
+| CI/CD                         | GitHub Actions exists, needs verification|
+| Program status                | Conditional Go (Phase -1 + 0A only)      |
+| Frozen scope                  | Phase 0B+ and Phase 1+                   |
 
----
+## Architecture Summary
 
-## 3. Supabase Direct Imports
+- Application is **Supabase-centric SaaS LMS** with no traditional backend
+- Business logic lives in PostgreSQL (RLS + SQL functions) and 30 Deno Edge Functions
+- Frontend: React 19 + Vite 6 + TypeScript 5.8 + Tailwind CSS v4
+- State: React Query (server), Zustand (local), React Context (auth)
+- Hash routing active (`/#/` prefix), NOT path-based
 
-```bash
-grep -r "from '@supabase/supabase-js'" src/ | wc -l
-# Expected: Should be isolated to src/services/api/
+## Critical Migration Facts
 
-grep -r "from '@/services/supabase" src/features/ src/contexts/ src/utils/ src/components/ | wc -l
-# Expected: 0
-```
-
-| Path              | Import Count |
-| ----------------- | ------------ |
-| `src/services/`   | \_\_         |
-| `src/features/*/` | \_\_         |
-| `src/contexts/`   | \_\_         |
-| `src/hooks/`      | \_\_         |
-| `src/components/` | \_\_         |
-
----
-
-## 4. CI/CD Pipeline Status
-
-| Component                      | Status | Notes |
-| ------------------------------ | ------ | ----- |
-| GitHub Actions                 | ✅/❌  |       |
-| ESLint (no-restricted-imports) | ✅/❌  |       |
-| Pre-commit hooks               | ✅/❌  |       |
-| Docker build                   | ✅/❌  |       |
+1. Auth deeply coupled to Supabase Auth + RPC patterns
+2. Multi-tenant isolation via RLS + `tenant_id` -- must replicate as TenantGuard middleware
+3. 30 Edge Functions are real backend, not optional
+4. Realtime: 11 subscriptions, native Supabase
+5. Storage: 6 buckets, native Supabase Storage
+6. Abstraction layer does NOT exist yet -- Phase 0A is hard prerequisite
 
 ---
 
-## 5. Readiness Score Breakdown
-
-| Area                  | Score        | Notes |
-| --------------------- | ------------ | ----- |
-| Authentication        | \_\_/25      |       |
-| Authorization (RLS)   | \_\_/25      |       |
-| Database Schema       | \_\_/25      |       |
-| Edge Functions        | \_\_/25      |       |
-| Frontend Completeness | \_\_/25      |       |
-| CI/CD                 | \_\_/25      |       |
-| Security              | \_\_/25      |       |
-| **Total**             | **\_\_/100** |       |
-
----
-
-## 6. Critical Vulnerabilities
-
-| #   | Vulnerability | Status           | Resolution |
-| --- | ------------- | ---------------- | ---------- |
-| 1   |               | Fixed/Stale/Live |            |
-| 2   |               | Fixed/Stale/Live |            |
-| 3   |               | Fixed/Stale/Live |            |
-| 4   |               | Fixed/Stale/Live |            |
-| 5   |               | Fixed/Stale/Live |            |
-
----
-
-## 7. Schema Sync Status
-
-| Check                           | Status |
-| ------------------------------- | ------ |
-| Supabase CLI linked             | ✅/❌  |
-| `supabase db push` works        | ✅/❌  |
-| Migrations in sync              | ✅/❌  |
-| `schema/meta` tables consistent | ✅/❌  |
-
----
-
-## 8. Known Issues
-
-| Issue | Severity | Workaround |
-| ----- | -------- | ---------- |
-|       |          |            |
-|       |          |            |
-|       |          |            |
-
----
-
-## 9. Key Decisions (Pre-Phase 0)
-
-| Decision                       | Value                |
-| ------------------------------ | -------------------- |
-| Hash routing vs path routing   | Hash routing (`/#/`) |
-| Module-level singleton pattern | Yes                  |
-| React Query key factories      | Keep unchanged       |
-| Auth state management          | Via `useAuth()` hook |
-
----
-
-## 10. Sign-Off
-
-| Role     | Name | Date |
-| -------- | ---- | ---- |
-| Author   |      |      |
-| Reviewer |      |      |
-
-**Baseline Version:** 1.0  
-**Status:** Draft → Approved
+**Signed off:** 2026-04-10, Agent (Migration Planning)
