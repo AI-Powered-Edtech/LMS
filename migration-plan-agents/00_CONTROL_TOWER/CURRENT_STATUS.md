@@ -50,7 +50,9 @@
   - [x] `csrf` module — documented pass-through (Bearer-token API, no cookie auth)
   - [x] `BruteForceTracker` wired into `login.rs`
   - [ ] Google OAuth token exchange (still stub — `oauth.rs:52`)
-  - [ ] `invitations`/`tenant_memberships` tables — `validate_invitation`/`accept_invitation` still stubbed
+  - [x] `user_invitations` + `tenant_memberships` tables — migration 003 applied
+  - [x] `validate_invitation_handler` — queries `user_invitations` JOIN `tenants`
+  - [x] `accept_invitation_handler` — verifies JWT, matches email, marks accepted, upserts roles+memberships
 - [ ] 1D: Verification (Gate 2)
   - [ ] live curl tests for all 12 auth endpoints
   - [ ] multi-tenant isolation test

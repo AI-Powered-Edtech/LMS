@@ -61,6 +61,11 @@ pub struct CreateTenantRequest {
     pub slug: String,
 }
 
+#[derive(Deserialize)]
+pub struct AcceptInvitationRequest {
+    pub token: String,
+}
+
 #[derive(Serialize)]
 pub struct AuthResponse {
     pub access_token: String,
