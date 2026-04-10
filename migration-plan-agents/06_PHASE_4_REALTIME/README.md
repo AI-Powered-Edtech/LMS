@@ -1,76 +1,68 @@
 # Phase 4: Realtime Migration
 
-**Timeline:** Weeks 53-60  
+**Timeline:** Weeks 53-60
 **Effort:** ~120 hours
 
 ## Overview
 
-Phase 4 implements WebSocket server with vil_ws for real-time features, migrating from Supabase Realtime to VIL WebSocket with PostgreSQL LISTEN/NOTIFY.
+Phase 4 migrates all real-time features from Supabase Realtime (postgres_changes, broadcast, presence) to a VIL WebSocket server backed by PostgreSQL LISTEN/NOTIFY.
 
-## Goals
-
-1. Deploy vil_ws WebSocket server with room support and presence tracking
-2. Implement pg_notify → LISTEN/NOTIFY forwarding
-3. Migrate 9 realtime consumer hooks
-4. Implement reconnection with exponential backoff
-
-## WebSocket Architecture
+## Architecture
 
 ```
-Client → VIL WebSocket Server → PostgreSQL NOTIFY
-           ↓
-      Room Management
-           ↓
-    Presence Tracking
+Browser  ──WebSocket──►  VIL WS Server  ──LISTEN──►  PostgreSQL
+                              │
+                         Room Manager
+                              │
+                      Presence Tracker
 ```
 
-### Patterns Used
+Three patterns replace Supabase Realtime:
 
-| Pattern   | Use Case                              |
-| --------- | ------------------------------------- |
-| Broadcast | Messages, group assignments           |
-| pg_notify | Notifications, discussions, classroom |
-| Presence  | Collaborative editing                 |
+| Pattern   | Replaces                    | Use Case                                      |
+| --------- | --------------------------- | --------------------------------------------- |
+| pg_notify | `postgres_changes` channels | DB-driven events (notifications, discussions)  |
+| Broadcast | `channel().send()`          | Peer messages (parent chat, group assignments) |
+| Presence  | `channel().track()`         | Who-is-online (collaborative builder)          |
 
-### Reconnection Strategy
+## Realtime Consumers (8 files)
 
-- Exponential backoff: 1s → 2s → 4s → 8s → 16s → max 30s
+| #  | File (relative to `src/`)                                | Current Supabase Pattern   | Target VIL Pattern   |
+| -- | -------------------------------------------------------- | -------------------------- | -------------------- |
+| 1  | `features/course-builder/useBuilderChannel.ts`           | broadcast + presence       | Broadcast + Presence |
+| 2  | `features/course-builder/useBuilderPresence.ts`          | presence                   | Presence             |
+| 3  | `features/notifications/hooks/useNotifications.ts`       | postgres_changes           | pg_notify            |
+| 4  | `features/notifications/hooks/useAdminNotifications.ts`  | postgres_changes           | pg_notify            |
+| 5  | `features/discussions/queries/discussionQueries.ts`      | postgres_changes           | pg_notify            |
+| 6  | `features/parent/hooks/useMessages.ts`                   | channel (broadcast)        | Broadcast            |
+| 7  | `features/classroom/api/classroomService.ts`             | channel (postgres_changes) | pg_notify            |
+| 8  | `features/assignments/api/groupAssignmentService.ts`     | channel (broadcast)        | Broadcast            |
+
+## Reconnection Strategy
+
+- Exponential backoff: 1s, 2s, 4s, 8s, 16s, max 30s
 - Max retry attempts: 10
-- Connection state tracking
-- Automatic reconnection
-
-## Realtime Consumers (9 hooks)
-
-| Hook                      | Pattern              | Status  |
-| ------------------------- | -------------------- | ------- |
-| useBuilderChannel.ts      | Broadcast + presence | Pending |
-| useBuilderPresence.ts     | Presence tracking    | Pending |
-| useNotifications.ts       | pg_notify            | Pending |
-| useAdminNotifications.ts  | pg_notify            | Pending |
-| discussionQueries.ts      | pg_notify            | Pending |
-| useMessages.ts            | Broadcast            | Pending |
-| MessageThread.tsx         | Broadcast            | Pending |
-| classroomService.ts       | pg_notify            | Pending |
-| groupAssignmentService.ts | Broadcast            | Pending |
+- Connection state exposed to UI via hook
+- Automatic reconnection on disconnect
 
 ## Gate 5 Criteria
 
-- [ ] WebSocket server running
-- [ ] pg_notify forwarding working
-- [ ] All 9 consumers migrated
-- [ ] Reconnection tested
+- [ ] WebSocket server running and healthy
+- [ ] pg_notify forwarding working for all 5 trigger tables
+- [ ] All 8 consumers migrated
+- [ ] Reconnection with exponential backoff tested
 - [ ] No message loss on reconnect
 - [ ] Collaborative builder works with 2+ users
 
 ## Rollback
 
-If realtime issues: `VITE_REALTIME_BACKEND=supabase`
+Set `VITE_REALTIME_BACKEND=supabase` to revert all consumers to Supabase Realtime. No data loss; Supabase channels remain unchanged.
 
 ---
 
-## Artefak
+## Artefacts
 
-- [x] README.md (dokumen ini)
-- [x] TASK_QUEUE.md - Antrian tugas Realtime
-- [x] ACCEPTANCE_CRITERIA.md - Kriteria exit
-- [x] HANDOFF.md - Handover ke Phase 5
+- [x] README.md (this document)
+- [x] TASK_QUEUE.md - Task queue with concrete code and verify commands
+- [x] ACCEPTANCE_CRITERIA.md - Bash-executable acceptance tests
+- [x] HANDOFF.md - Entry/exit criteria and file paths for Phase 5
