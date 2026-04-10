@@ -7,7 +7,43 @@
 
 ## Gambaran
 
-Phase 1 membangun fondasi backend VIL dan mengimplementasikan sistem autentikasi lengkap yang paritas dengan Supabase Auth.
+Phase 1 membangun fondasi backend VIL dan mengimplementasikan sistem autentikasi lengkap yang paritas dengan Supabase Auth. VIL menggunakan **Axum-style handler pattern (Pattern A)** dari `VIL_FOR_EDUSYNC.md` — familiar bagi developer TypeScript/Deno, tidak memerlukan zero-copy SHM.
+
+## Current Auth-Related Codebase Files
+
+These are the existing frontend auth files that Phase 1 must achieve parity with:
+
+| File | Lines | Key Details |
+|------|-------|-------------|
+| `src/features/auth/api/authService.ts` | ~120 | 8 RPC calls: `get_auth_bootstrap`, `ensure_profile_exists`, `accept_invitation`, `validate_invitation`, `enroll_student`, `public_lookup_class`, `onboard_student`, `create_school_tenant` |
+| `src/features/auth/api/mfaService.ts` | ~80 | MFA TOTP enroll/verify/unenroll via Supabase Auth MFA API |
+| `src/features/auth/components/ParentRegisterPage.tsx` | ~200 | Parent self-registration flow (must be replicated in VIL) |
+| `src/contexts/auth/useSessionManagement.ts` | 286 | Core session hook: 7 `supabase.auth.*` calls (onAuthStateChange, getSession, getUser, signInWithPassword, signUp, signOut, refreshSession) |
+| `src/features/auth/components/LoginForm.tsx` | ~150 | Login UI — calls authService |
+| `src/features/auth/components/RegisterForm.tsx` | ~150 | Registration UI |
+| `src/features/auth/components/MFASettings.tsx` | ~100 | MFA management UI |
+| `src/features/auth/components/MFASetupPage.tsx` | ~100 | MFA setup flow |
+| `src/features/auth/components/MFAVerifyPage.tsx` | ~80 | MFA verification step |
+
+### Edge Functions (30 total)
+
+The codebase has **30 Edge Functions** in `supabase/functions/` (excluding `_shared/`). Phase 1 does NOT migrate Edge Functions — those stay on Supabase. Phase 1 only migrates auth endpoints.
+
+### VIL Pattern Reference
+
+VIL provides two handler patterns. Phase 1 uses **Pattern A (Axum-style)** exclusively:
+
+```rust
+// Pattern A: Axum-style (recommended for migration)
+async fn login(
+    State(state): State<AppState>,
+    Json(body): Json<LoginRequest>,
+) -> Result<Json<AuthResponse>, AppError> {
+    // Business logic here — nearly identical to TypeScript/Deno patterns
+}
+```
+
+See `migration-plan-agents/10_VIL_BOOTSTRAP_CONTEXT/VIL_FOR_EDUSYNC.md` for full pattern reference.
 
 ## Timeline
 
