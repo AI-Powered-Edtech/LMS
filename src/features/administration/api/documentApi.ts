@@ -1,4 +1,5 @@
 import { supabase } from '@/services/supabase/client'
+import { getStorageProvider } from '@/services/storage'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -154,14 +155,14 @@ export const documentApi = {
     const tenantPrefix = metadata.tenantId ?? 'shared'
     const objectPath = `${tenantPrefix}/${crypto.randomUUID()}.${ext}`
 
-    const { error: uploadError } = await supabase.storage.from(BUCKET).upload(objectPath, file)
+    const { error: uploadError } = await getStorageProvider().from(BUCKET).upload(objectPath, file)
 
     if (uploadError) {
       throw new Error(`Gagal mengunggah file: ${uploadError.message}`)
     }
 
     // Dapatkan public URL
-    const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(objectPath)
+    const { data: urlData } = getStorageProvider().from(BUCKET).getPublicUrl(objectPath)
     const fileUrl = urlData?.publicUrl || ''
 
     // Simpan metadata ke tabel
@@ -183,7 +184,7 @@ export const documentApi = {
 
     if (error) {
       // Cleanup: hapus file yang sudah diupload
-      await supabase.storage.from(BUCKET).remove([objectPath])
+      await getStorageProvider().from(BUCKET).remove([objectPath])
       throw new Error(`Gagal menyimpan dokumen: ${error.message}`)
     }
 
@@ -232,7 +233,7 @@ export const documentApi = {
         const url = new URL(doc.file_url)
         const pathParts = url.pathname.split(`/${BUCKET}/`)
         if (pathParts[1]) {
-          await supabase.storage.from(BUCKET).remove([pathParts[1]])
+          await getStorageProvider().from(BUCKET).remove([pathParts[1]])
         }
       } catch {
         // Jika parsing URL gagal, tetap lanjut (file di storage mungkin sudah hilang)

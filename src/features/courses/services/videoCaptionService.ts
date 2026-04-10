@@ -1,4 +1,5 @@
 import { supabase } from '@/services/supabase/client'
+import { getStorageProvider } from '@/services/storage'
 
 export interface VideoCaption {
   id: string
@@ -43,13 +44,13 @@ export const videoCaptionService = {
     const extension = file.name.split('.').pop()?.toLowerCase() || 'vtt'
     const objectPath = `${tenantId}/${lessonId}/${blockId || 'global'}/${crypto.randomUUID()}.${extension}`
 
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await getStorageProvider()
       .from('video-captions')
       .upload(objectPath, file, { contentType: 'text/vtt' })
 
     if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`)
 
-    const { data: urlData } = supabase.storage.from('video-captions').getPublicUrl(objectPath)
+    const { data: urlData } = getStorageProvider().from('video-captions').getPublicUrl(objectPath)
 
     if (!urlData?.publicUrl) throw new Error('Failed to get public URL')
 
@@ -84,7 +85,7 @@ export const videoCaptionService = {
     const pathParts = url.split('/video-captions/')
     if (pathParts.length > 1) {
       const objectPath = pathParts[1]
-      await supabase.storage
+      await getStorageProvider()
         .from('video-captions')
         .remove([objectPath])
         .catch(() => {})

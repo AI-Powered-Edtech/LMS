@@ -1,4 +1,5 @@
 import { supabase } from '@/services/supabase/client'
+import { getStorageProvider } from '@/services/storage'
 import { logDevError } from '@/utils/logDevError'
 
 export type AssignmentStatus = 'draft' | 'published' | 'archived'
@@ -692,7 +693,7 @@ export const assignmentService = {
 
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
     const storagePath = `${tenantId}/assignments/${assignmentId}/${userId}/${Date.now()}-${safeName}`
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await getStorageProvider()
       .from('assignment-submissions')
       .upload(storagePath, file, { upsert: false })
 
@@ -706,7 +707,7 @@ export const assignmentService = {
   ): Promise<string | null> {
     if (!filePath) return null
 
-    const { data, error } = await supabase.storage
+    const { data, error } = await getStorageProvider()
       .from('assignment-submissions')
       .createSignedUrl(filePath, expiresInSeconds)
 

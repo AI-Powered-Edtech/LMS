@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { getStorageProvider } from '@/services/storage'
 
 import type { UploadProgress } from '../types'
 import { videoAssetService } from './videoAssetService'
@@ -48,11 +48,13 @@ export const videoUploadService = {
 
     onProgress?.({ loaded: 0, total: file.size, percentage: 0, status: 'uploading' })
 
-    const { error: storageError } = await supabase.storage.from(VIDEO_BUCKET).upload(path, file, {
-      cacheControl: '3600',
-      upsert: false,
-      contentType: file.type,
-    })
+    const { error: storageError } = await getStorageProvider()
+      .from(VIDEO_BUCKET)
+      .upload(path, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type,
+      })
 
     if (storageError) {
       await videoAssetService.updateAssetStatus(asset.id, 'error', {
@@ -64,7 +66,7 @@ export const videoUploadService = {
     // Get public URL
     const {
       data: { publicUrl },
-    } = supabase.storage.from(VIDEO_BUCKET).getPublicUrl(path)
+    } = getStorageProvider().from(VIDEO_BUCKET).getPublicUrl(path)
 
     onProgress?.({ loaded: file.size, total: file.size, percentage: 100, status: 'ready' })
 

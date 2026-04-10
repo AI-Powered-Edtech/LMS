@@ -15,6 +15,9 @@ import { createVilAuthProvider } from './services/auth/vilAuthProvider'
 import { setRealtimeProvider } from './services/realtime'
 import { createSupabaseRealtimeProvider } from './services/realtime/supabaseRealtimeProvider'
 import { createVilRealtimeProvider } from './services/realtime/vilRealtimeProvider'
+import { setStorageProvider } from './services/storage'
+import { createSupabaseStorageProvider } from './services/storage/supabaseStorageProvider'
+import { createVilStorageProvider } from './services/storage/vilStorageProvider'
 import { initSentry } from './utils/sentry'
 import { reportWebVitals } from './utils/webVitals'
 
@@ -29,9 +32,13 @@ if (apiBackend === 'vil') {
   setRealtimeProvider(
     createVilRealtimeProvider(import.meta.env.VITE_API_URL || 'http://localhost:8080')
   )
+  setStorageProvider(
+    createVilStorageProvider(import.meta.env.VITE_API_URL || 'http://localhost:8080')
+  )
 } else {
   setAuthProvider(createSupabaseAuthProvider())
   setRealtimeProvider(createSupabaseRealtimeProvider())
+  setStorageProvider(createSupabaseStorageProvider())
 }
 
 // Initialise Sentry before rendering so errors during boot are captured

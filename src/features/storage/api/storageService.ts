@@ -1,4 +1,5 @@
 import { supabase } from '@/services/supabase/client'
+import { getStorageProvider } from '@/services/storage'
 
 import type { UploadOptions, UploadResult } from '../types'
 
@@ -45,7 +46,7 @@ export const storageService = {
     const objectPath = `${opts.tenantId}/${opts.courseId}/${opts.lessonId}/${crypto.randomUUID()}.${extension}`
 
     // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await getStorageProvider()
       .from(opts.bucket)
       .upload(objectPath, file)
 
@@ -77,18 +78,18 @@ export const storageService = {
 
     if (insertError) {
       // Cleanup: delete the uploaded file if INSERT fails
-      await supabase.storage.from(opts.bucket).remove([objectPath])
+      await getStorageProvider().from(opts.bucket).remove([objectPath])
       throw new Error(`Failed to track storage object: ${insertError.message}`)
     }
 
     if (!insertData?.id) {
       // Cleanup: delete the uploaded file if no ID returned
-      await supabase.storage.from(opts.bucket).remove([objectPath])
+      await getStorageProvider().from(opts.bucket).remove([objectPath])
       throw new Error('Failed to retrieve storage object ID')
     }
 
     // Get public URL
-    const { data: urlData } = supabase.storage.from(opts.bucket).getPublicUrl(objectPath)
+    const { data: urlData } = getStorageProvider().from(opts.bucket).getPublicUrl(objectPath)
 
     const publicUrl = urlData?.publicUrl
     if (!publicUrl) {
@@ -122,7 +123,7 @@ export const storageService = {
     }
 
     // Delete from Supabase Storage
-    const { error: storageError } = await supabase.storage
+    const { error: storageError } = await getStorageProvider()
       .from(storageObj.bucket)
       .remove([storageObj.object_path])
 
@@ -145,7 +146,7 @@ export const storageService = {
    * Get public URL for a storage object path.
    */
   getPublicUrl(bucket: string, objectPath: string): string {
-    const { data } = supabase.storage.from(bucket).getPublicUrl(objectPath)
+    const { data } = getStorageProvider().from(bucket).getPublicUrl(objectPath)
     return data?.publicUrl || ''
   },
 }
