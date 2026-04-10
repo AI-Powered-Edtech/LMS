@@ -1,5 +1,9 @@
 # Reality Sync Baseline
 
+## STATUS: Historical Snapshot (2026-04-09)
+
+> **Catatan Penting:** Dokumen ini menangkap kondisi repo pada SAAT Reality Sync berlangsung (2026-04-09). Ini adalah catatan historis, BUKAN dokumen status live. Nilai readiness 68/100 adalah skor PADA SAAT ITU, bukan kondisi saat ini.
+
 ## Metadata
 
 - **Tanggal:** 2026-04-10
