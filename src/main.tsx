@@ -9,6 +9,12 @@ import { validateEnv } from './config/env.schema'
 import { normalizeLegacyHashUrl, sanitizeRedirectTarget } from './features/auth/utils/authFlow'
 import { useToast } from './hooks/useToast'
 import { initApiClient } from './services/api'
+import { setAuthProvider } from './services/auth'
+import { createSupabaseAuthProvider } from './services/auth/supabaseAuthProvider'
+import { createVilAuthProvider } from './services/auth/vilAuthProvider'
+import { setRealtimeProvider } from './services/realtime'
+import { createSupabaseRealtimeProvider } from './services/realtime/supabaseRealtimeProvider'
+import { createVilRealtimeProvider } from './services/realtime/vilRealtimeProvider'
 import { initSentry } from './utils/sentry'
 import { reportWebVitals } from './utils/webVitals'
 
@@ -17,6 +23,16 @@ const env = validateEnv()
 const apiBackend = env.VITE_API_BACKEND === 'vil' ? 'vil' : 'supabase'
 
 initApiClient(apiBackend)
+
+if (apiBackend === 'vil') {
+  setAuthProvider(createVilAuthProvider(import.meta.env.VITE_API_URL || 'http://localhost:8080'))
+  setRealtimeProvider(
+    createVilRealtimeProvider(import.meta.env.VITE_API_URL || 'http://localhost:8080')
+  )
+} else {
+  setAuthProvider(createSupabaseAuthProvider())
+  setRealtimeProvider(createSupabaseRealtimeProvider())
+}
 
 // Initialise Sentry before rendering so errors during boot are captured
 initSentry()

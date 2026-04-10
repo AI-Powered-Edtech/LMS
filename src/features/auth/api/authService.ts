@@ -3,7 +3,8 @@ import {
   isAuthSurfacePath,
   sanitizeRedirectTarget,
 } from '@/features/auth/utils/authFlow'
-import { supabase } from '@/services/supabase/client'
+import { getApiClient } from '@/services/api'
+import { getAuthProvider } from '@/services/auth'
 import { logDevError } from '@/utils/logDevError'
 import { addBreadcrumb, captureError } from '@/utils/sentry'
 
@@ -97,14 +98,14 @@ export const authService = {
    * Ensure a user profile row exists (called after sign-up or missing profile).
    */
   async ensureProfileExists(): Promise<void> {
-    const { error } = await supabase.rpc('ensure_profile_exists')
+    const { error } = await getApiClient().rpc('ensure_profile_exists')
     if (error) throw error
   },
 
   async exchangeOAuthCode(urlOrCode: string) {
     addBreadcrumb('OAuth code exchange started', 'auth')
     const authCode = extractAuthCode(urlOrCode)
-    const { data, error } = await supabase.auth.exchangeCodeForSession(authCode)
+    const { data, error } = await getAuthProvider().exchangeCodeForSession(authCode)
     if (error) throw error
     addBreadcrumb('OAuth code exchange succeeded', 'auth')
     return data
@@ -112,7 +113,7 @@ export const authService = {
 
   async getAuthBootstrap(): Promise<AuthBootstrap> {
     addBreadcrumb('Auth bootstrap request started', 'auth')
-    const { data, error } = await supabase.rpc('get_auth_bootstrap')
+    const { data, error } = await getApiClient().rpc('get_auth_bootstrap')
     if (error) throw error
 
     const bootstrap = (data ?? {}) as Partial<AuthBootstrap>
@@ -171,32 +172,23 @@ export const authService = {
    * Accept a pending invitation, upgrading the user's role.
    */
   async acceptInvitation(token: string): Promise<{ success: boolean }> {
-    const { data, error } = await supabase.rpc('accept_invitation', { p_token: token })
+    const { data, error } = await getApiClient().rpc('accept_invitation', { p_token: token })
     if (error) throw error
     return (data as { success: boolean }) ?? { success: false }
   },
 
-  /**
-   * Enroll the current user in a class via join code.
-   */
   async enrollStudent(joinCode: string): Promise<void> {
-    const { error } = await supabase.rpc('enroll_student', { p_join_code: joinCode })
+    const { error } = await getApiClient().rpc('enroll_student', { p_join_code: joinCode })
     if (error) throw error
   },
 
-  /**
-   * Validate an invitation token without accepting it (used at register step 1).
-   */
   async validateInvitation(token: string): Promise<InvitationInfo | null> {
-    const { data } = await supabase.rpc('validate_invitation', { p_token: token })
+    const { data } = await getApiClient().rpc('validate_invitation', { p_token: token })
     return (data as InvitationInfo) ?? null
   },
 
-  /**
-   * Look up a class by join code (public, no auth required).
-   */
   async publicLookupClass(joinCode: string): Promise<ClassInfo | null> {
-    const { data } = await supabase.rpc('public_lookup_class', { p_join_code: joinCode })
+    const { data } = await getApiClient().rpc('public_lookup_class', { p_join_code: joinCode })
     return (data as ClassInfo) ?? null
   },
 
@@ -220,7 +212,8 @@ export const authService = {
     windowMs: number
   ): Promise<RateLimitResult> {
     try {
-      const { data, error } = await supabase.functions.invoke('check-rate-limit', {
+      const supabase = await import('@/services/supabase/client')
+      const { data, error } = await supabase.supabase.functions.invoke('check-rate-limit', {
         body: { action, key, maxAttempts, windowMs },
       })
 
@@ -253,7 +246,7 @@ export const authService = {
    * Onboard a student by joining a class (used by WorkspaceSelector).
    */
   async onboardStudentJoinClass(params: JoinClassParams): Promise<JoinClassResult> {
-    const { data, error } = await supabase.rpc('onboard_student_join_class', {
+    const { data, error } = await getApiClient().rpc('onboard_student_join_class', {
       p_join_code: params.joinCode,
       p_full_name: params.fullName,
     })
@@ -261,11 +254,8 @@ export const authService = {
     return (data as JoinClassResult) ?? {}
   },
 
-  /**
-   * Create a new school tenant (used by WorkspaceSelector for teacher/admin onboarding).
-   */
   async createSchoolTenant(params: CreateTenantParams): Promise<string> {
-    const { data, error } = await supabase.rpc('create_school_tenant', {
+    const { data, error } = await getApiClient().rpc('create_school_tenant', {
       p_school_name: params.schoolName,
       p_full_name: params.fullName,
       p_role: params.role,

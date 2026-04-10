@@ -1,3 +1,4 @@
+import { getRealtimeProvider } from '@/services/realtime'
 import { supabase } from '@/services/supabase/client'
 import { logDevError } from '@/utils/logDevError'
 
@@ -448,7 +449,7 @@ export const groupAssignmentService = {
     tenantId: string,
     onInsert: (message: GroupMessage) => void
   ) {
-    const channel = supabase
+    const channel = getRealtimeProvider()
       .channel(`group_messages:${groupId}:${tenantId}`)
       .on(
         'postgres_changes',
@@ -466,7 +467,7 @@ export const groupAssignmentService = {
 
     return {
       unsubscribe: () => {
-        void supabase.removeChannel(channel)
+        void getRealtimeProvider().removeChannel(channel)
       },
     }
   },

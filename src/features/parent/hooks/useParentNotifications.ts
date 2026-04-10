@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
+import { getRealtimeProvider, type AppRealtimeChannel } from '@/services/realtime'
 import { supabase } from '@/services/supabase/client'
 import { captureError } from '@/utils/sentry'
 
@@ -87,7 +88,7 @@ export function useParentNotifications(): UseParentNotificationsResult {
   const [preferences, setPreferences] = useState<NotificationPreferences>(DEFAULT_PREFERENCES)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
+  const channelRef = useRef<AppRealtimeChannel | null>(null)
 
   // ── Fetch notifications ────────────────────────────────────────────
 
@@ -154,7 +155,7 @@ export function useParentNotifications(): UseParentNotificationsResult {
     fetchPreferences()
 
     // Subscribe to new notifications via Supabase Realtime
-    const channel = supabase
+    const channel = getRealtimeProvider()
       .channel(`parent-notif-${user.id}`)
       .on(
         'postgres_changes',
@@ -181,7 +182,7 @@ export function useParentNotifications(): UseParentNotificationsResult {
 
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current)
+        void getRealtimeProvider().removeChannel(channelRef.current)
         channelRef.current = null
       }
     }

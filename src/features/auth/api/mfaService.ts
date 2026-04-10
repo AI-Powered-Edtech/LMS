@@ -1,6 +1,6 @@
 import QRCode from 'qrcode'
 
-import { supabase } from '@/services/supabase/client'
+import { getAuthProvider } from '@/services/auth'
 import { captureError } from '@/utils/sentry'
 
 export interface MFAEnrollResult {
@@ -24,12 +24,12 @@ export interface MFAFactor {
 
 export async function startMFAEnrollment(): Promise<MFAEnrollResult | null> {
   try {
-    const { data, error } = await supabase.auth.mfa.enroll({
+    const { data, error } = await getAuthProvider().mfa.enroll({
       factorType: 'totp',
       friendlyName: 'Authenticator App',
     })
 
-    if (error) throw error
+    if (error || !data) throw error || new Error('MFA enrollment failed')
 
     // SECURITY: Generate QR code entirely in the browser using the 'qrcode' library.
     // The TOTP secret NEVER leaves the browser — no external service is called.
@@ -56,7 +56,7 @@ export async function verifyMFAEnrollment(
   code: string
 ): Promise<MFAVerifyResult | null> {
   try {
-    const { error } = await supabase.auth.mfa.challengeAndVerify({
+    const { error } = await getAuthProvider().mfa.challengeAndVerify({
       factorId,
       code,
     })
@@ -75,7 +75,7 @@ export async function verifyMFAEnrollment(
 
 export async function verifyMFAChallenge(factorId: string, code: string): Promise<boolean> {
   try {
-    const { error } = await supabase.auth.mfa.challengeAndVerify({
+    const { error } = await getAuthProvider().mfa.challengeAndVerify({
       factorId,
       code,
     })
@@ -90,7 +90,7 @@ export async function verifyMFAChallenge(factorId: string, code: string): Promis
 
 export async function listMFAFactors(): Promise<MFAFactor[]> {
   try {
-    const { data, error } = await supabase.auth.mfa.listFactors()
+    const { data, error } = await getAuthProvider().mfa.listFactors()
     if (error) throw error
     // Filter to only totp/phone factor types supported by our MFAFactor interface
     return (data?.all ?? []).filter(
@@ -105,7 +105,7 @@ export async function listMFAFactors(): Promise<MFAFactor[]> {
 
 export async function unenrollMFA(factorId: string): Promise<boolean> {
   try {
-    const { error } = await supabase.auth.mfa.unenroll({ factorId })
+    const { error } = await getAuthProvider().mfa.unenroll({ factorId })
     if (error) throw error
     return true
   } catch (err) {

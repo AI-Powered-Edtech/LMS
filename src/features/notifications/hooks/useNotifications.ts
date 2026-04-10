@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/services/supabase/client'
+import { getRealtimeProvider } from '@/services/realtime'
 import { STALE } from '@/utils/queryConstants'
 import { captureError } from '@/utils/sentry'
 
@@ -65,7 +65,7 @@ export function useNotifications(): UseNotificationsReturn {
     // Subscribe to INSERT and UPDATE events on notifications for this user.
     // Updates query cache immediately so the UI reflects new/changed notifications
     // without waiting for the 60s polling interval.
-    const channel = supabase
+    const channel = getRealtimeProvider()
       .channel(`notifications:${user.id}`)
       .on(
         'postgres_changes',
@@ -105,7 +105,7 @@ export function useNotifications(): UseNotificationsReturn {
       .subscribe()
 
     return () => {
-      void supabase.removeChannel(channel)
+      void getRealtimeProvider().removeChannel(channel)
     }
   }, [tenantId, user, queryClient, queryKey])
 

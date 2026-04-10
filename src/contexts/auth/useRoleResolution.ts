@@ -1,8 +1,12 @@
-import type { User } from '@supabase/supabase-js'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { authService } from '@/features/auth/api/authService'
 import { addBreadcrumb, captureError, setSentryUser } from '@/utils/sentry'
+
+interface AuthUser {
+  id: string
+  email?: string
+}
 
 export type Role = 'teacher' | 'student' | 'admin' | 'parent' | 'principal'
 
@@ -152,7 +156,7 @@ export function getPermissions(role: Role): Permissions {
 /**
  * Hook untuk resolve role, profile, dan memberships user dari database.
  */
-export function useRoleResolution(user: User | null): UseRoleResolutionResult {
+export function useRoleResolution(user: AuthUser | null): UseRoleResolutionResult {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [memberships, setMemberships] = useState<TenantMembership[]>([])
   const [rawTenants, setRawTenants] = useState<Record<string, Tenant>>({})

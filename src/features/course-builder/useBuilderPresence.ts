@@ -1,5 +1,6 @@
-import { type RealtimeChannel } from '@supabase/supabase-js'
 import { useCallback, useEffect, useRef, useState } from 'react'
+
+import type { AppRealtimeChannel } from '@/services/realtime'
 
 export interface PresenceData {
   userId: string
@@ -31,7 +32,7 @@ function getColorForUser(userId: string): string {
 }
 
 export function useBuilderPresence(
-  channelRef: React.RefObject<RealtimeChannel | null>,
+  channelRef: React.RefObject<AppRealtimeChannel | null>,
   userId: string | null,
   fullName: string,
   avatarUrl: string | null

@@ -1,3 +1,4 @@
+import { getRealtimeProvider } from '@/services/realtime'
 import { supabase } from '@/services/supabase/client'
 
 export interface Classroom {
@@ -186,7 +187,7 @@ export const classroomService = {
    * Returns cleanup function.
    */
   subscribeToChanges(tenantId: string, onUpdate: () => void): () => void {
-    const channel = supabase
+    const channel = getRealtimeProvider()
       .channel('classrooms-changes')
       .on(
         'postgres_changes',
@@ -211,7 +212,7 @@ export const classroomService = {
       .subscribe()
 
     return () => {
-      void supabase.removeChannel(channel)
+      void getRealtimeProvider().removeChannel(channel)
     }
   },
 

@@ -1,4 +1,3 @@
-import type { Session, User } from '@supabase/supabase-js'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import {
@@ -7,8 +6,23 @@ import {
   isOAuthRedirectPending,
   markOAuthRedirectPending,
 } from '@/features/auth/utils/authFlow'
-import { supabase } from '@/services/supabase/client'
+import { getAuthProvider } from '@/services/auth'
 import { addBreadcrumb, captureError } from '@/utils/sentry'
+
+interface AuthSession {
+  access_token: string
+  refresh_token: string
+  expires_at?: number
+  user: AuthUser
+}
+
+interface AuthUser {
+  id: string
+  email?: string
+  email_confirmed_at?: string
+  app_metadata?: Record<string, unknown>
+  user_metadata?: Record<string, unknown>
+}
 
 export type AuthStatus =
   | 'initializing'
@@ -18,8 +32,8 @@ export type AuthStatus =
   | 'auth_error'
 
 interface UseSessionManagementResult {
-  session: Session | null
-  user: User | null
+  session: AuthSession | null
+  user: AuthUser | null
   loading: boolean
   authStatus: AuthStatus
   authError: string | null
@@ -49,8 +63,8 @@ const AUTH_KEYS = [
  * Mendengarkan perubahan auth state (login, logout, token refresh).
  */
 export function useSessionManagement(): UseSessionManagementResult {
-  const [session, setSession] = useState<Session | null>(null)
-  const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<AuthSession | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [authError, setAuthError] = useState<string | null>(null)
   const [authStatus, setAuthStatus] = useState<AuthStatus>(() =>
@@ -78,7 +92,7 @@ export function useSessionManagement(): UseSessionManagementResult {
     clearOAuthRedirectPending()
 
     try {
-      await supabase.auth.signOut()
+      await getAuthProvider().signOut()
     } catch (err) {
       captureError(err, { context: 'AuthContext.signOut' })
       if (import.meta.env.DEV) {
@@ -90,7 +104,7 @@ export function useSessionManagement(): UseSessionManagementResult {
   const signIn = useCallback(async (email: string, password: string) => {
     setSessionExpired(false)
     setAuthError(null)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error } = await getAuthProvider().signInWithPassword({ email, password })
     if (error) {
       setAuthError(error.message)
       setAuthStatus('auth_error')
@@ -107,7 +121,7 @@ export function useSessionManagement(): UseSessionManagementResult {
       signUpTenantId?: string
     ) => {
       setAuthError(null)
-      const { error } = await supabase.auth.signUp({
+      const { error } = await getAuthProvider().signUp({
         email,
         password,
         options: {
@@ -134,7 +148,7 @@ export function useSessionManagement(): UseSessionManagementResult {
     markOAuthRedirectPending()
     addBreadcrumb('OAuth redirect started', 'auth', { provider: 'google' })
     try {
-      await supabase.auth.signInWithOAuth({
+      await getAuthProvider().signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
@@ -150,7 +164,7 @@ export function useSessionManagement(): UseSessionManagementResult {
   }, [])
 
   useEffect(() => {
-    supabase.auth
+    getAuthProvider()
       .getSession()
       .then(({ data: { session: s } }) => {
         setSession(s)
@@ -178,7 +192,7 @@ export function useSessionManagement(): UseSessionManagementResult {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, s) => {
+    } = getAuthProvider().onAuthStateChange((_event, s) => {
       setSession(s)
       setUser(s?.user ?? null)
       if (s?.user) {
@@ -213,7 +227,7 @@ export function useSessionManagement(): UseSessionManagementResult {
     const REFRESH_THRESHOLD_S = 5 * 60
 
     const checkAndRefresh = async () => {
-      const currentSession = (await supabase.auth.getSession()).data.session
+      const currentSession = (await getAuthProvider().getSession()).data.session
       if (!currentSession) return
 
       const expiresAt = currentSession.expires_at
@@ -228,7 +242,7 @@ export function useSessionManagement(): UseSessionManagementResult {
         }
 
         try {
-          const { error } = await supabase.auth.refreshSession()
+          const { error } = await getAuthProvider().refreshSession()
           if (error) {
             if (import.meta.env.DEV) {
               console.error('[Auth] Proactive token refresh failed:', error)

@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/services/supabase/client'
+import { getRealtimeProvider } from '@/services/realtime'
 import { STALE } from '@/utils/queryConstants'
 
 import type { CreateThreadParams, MessageThread, ThreadMessage } from '../api/messageApi'
@@ -48,7 +48,7 @@ export function useThreads() {
   useEffect(() => {
     if (!user?.id) return
 
-    const channel = supabase
+    const channel = getRealtimeProvider()
       .channel(`parent_threads:${user.id}`)
       .on(
         'postgres_changes',
@@ -65,7 +65,7 @@ export function useThreads() {
       .subscribe()
 
     return () => {
-      void supabase.removeChannel(channel)
+      void getRealtimeProvider().removeChannel(channel)
     }
   }, [user?.id, queryClient])
 
@@ -94,7 +94,7 @@ export function useMessages(threadId: string | undefined) {
   useEffect(() => {
     if (!threadId) return
 
-    const channel = supabase
+    const channel = getRealtimeProvider()
       .channel(`messages:${threadId}`)
       .on(
         'postgres_changes',
@@ -115,7 +115,7 @@ export function useMessages(threadId: string | undefined) {
       .subscribe()
 
     return () => {
-      void supabase.removeChannel(channel)
+      void getRealtimeProvider().removeChannel(channel)
     }
   }, [threadId, user?.id, queryClient])
 

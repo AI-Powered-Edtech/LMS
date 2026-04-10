@@ -15,7 +15,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/services/supabase/client'
+import { getRealtimeProvider } from '@/services/realtime'
 import { cn } from '@/utils/cn'
 
 import type { MessageThread as MessageThreadType, ThreadMessage } from '../api/messageApi'
@@ -188,7 +188,7 @@ export function MessageThread() {
   useEffect(() => {
     if (!threadId) return
 
-    const channel = supabase
+    const channel = getRealtimeProvider()
       .channel(`messages:${threadId}`)
       .on(
         'postgres_changes',
@@ -207,7 +207,7 @@ export function MessageThread() {
       .subscribe()
 
     return () => {
-      void supabase.removeChannel(channel)
+      void getRealtimeProvider().removeChannel(channel)
     }
   }, [threadId, queryClient, user?.id])
 

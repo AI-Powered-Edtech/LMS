@@ -1,4 +1,3 @@
-import type { Session, User } from '@supabase/supabase-js'
 import React, { createContext, ReactNode, useCallback, useContext, useMemo } from 'react'
 
 import {
@@ -12,12 +11,27 @@ import {
   useTenantSwitching,
 } from './auth'
 
+interface AuthUser {
+  id: string
+  email?: string
+  email_confirmed_at?: string
+  app_metadata?: Record<string, unknown>
+  user_metadata?: Record<string, unknown>
+}
+
+interface AuthSession {
+  access_token: string
+  refresh_token: string
+  expires_at?: number
+  user: AuthUser
+}
+
 export type { Permissions, Role, Tenant }
 export { getPermissions, getPrimaryRole }
 
 export interface AuthContextType {
-  user: User | null
-  session: Session | null
+  user: AuthUser | null
+  session: AuthSession | null
   profile: ReturnType<typeof useRoleResolution>['profile']
   tenantId: string | null
   memberships: ReturnType<typeof useRoleResolution>['memberships']

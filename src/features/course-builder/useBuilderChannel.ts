@@ -1,7 +1,6 @@
-import { type RealtimeChannel } from '@supabase/supabase-js'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { supabase } from '@/services/supabase/client'
+import { getRealtimeProvider, type AppRealtimeChannel } from '@/services/realtime'
 import { logDevWarn } from '@/utils/logDevError'
 
 import { auditService } from './api/auditService'
@@ -34,7 +33,7 @@ export function useBuilderChannel(
    */
   authorizedUserIds?: Set<string>
 ) {
-  const channelRef = useRef<RealtimeChannel | null>(null)
+  const channelRef = useRef<AppRealtimeChannel | null>(null)
   const [channelStatus, setChannelStatus] = useState<ChannelStatus>('disconnected')
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reconnectAttemptRef = useRef(0)
@@ -74,7 +73,7 @@ export function useBuilderChannel(
         channelRef.current = null
       }
 
-      const channel = supabase.channel(`builder:${courseId}`, {
+      const channel = getRealtimeProvider().channel(`builder:${courseId}`, {
         config: { broadcast: { self: false } },
       })
 

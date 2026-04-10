@@ -14,6 +14,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
+import { getRealtimeProvider } from '@/services/realtime'
 import { supabase } from '@/services/supabase/client'
 import { STALE } from '@/utils/queryConstants'
 import { captureError } from '@/utils/sentry'
@@ -109,7 +110,7 @@ export function useAdminNotifications(): UseAdminNotificationsReturn {
   useEffect(() => {
     if (!tenantId || !user) return
 
-    const channel = supabase
+    const channel = getRealtimeProvider()
       .channel(`admin-notifications:${user.id}`)
       .on(
         'postgres_changes',
@@ -149,7 +150,7 @@ export function useAdminNotifications(): UseAdminNotificationsReturn {
       .subscribe()
 
     return () => {
-      void supabase.removeChannel(channel)
+      void getRealtimeProvider().removeChannel(channel)
     }
   }, [tenantId, user, queryClient, queryKey])
 

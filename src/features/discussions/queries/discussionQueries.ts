@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
+import { getRealtimeProvider } from '@/services/realtime'
 import { supabase } from '@/services/supabase/client'
 import { GC, STALE } from '@/utils/queryConstants'
 
@@ -36,7 +37,7 @@ export function useDiscussionList() {
   useEffect(() => {
     if (!tenantId) return
 
-    const channel = supabase
+    const channel = getRealtimeProvider()
       .channel(`discussions:tenant:${tenantId}`)
       .on(
         'postgres_changes',
@@ -56,7 +57,7 @@ export function useDiscussionList() {
       .subscribe()
 
     return () => {
-      void supabase.removeChannel(channel)
+      void getRealtimeProvider().removeChannel(channel)
     }
   }, [tenantId, queryClient])
 
