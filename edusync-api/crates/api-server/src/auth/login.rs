@@ -9,6 +9,11 @@ pub async fn login_handler(
     Extension(state): Extension<Arc<AppState>>,
     Json(body): Json<LoginRequest>,
 ) -> Result<Json<AuthResponse>, AuthError> {
+    // Brute force check before any DB query
+    if state.brute_force.is_locked(&body.email) {
+        return Err(AuthError::TooManyRequests);
+    }
+
     let user = sqlx::query!(
         r#"SELECT id, email, encrypted_password,
                   banned_until,
@@ -18,7 +23,10 @@ pub async fn login_handler(
     )
     .fetch_optional(&state.db)
     .await?
-    .ok_or(AuthError::InvalidCredentials)?;
+    .ok_or_else(|| {
+        state.brute_force.record_failure(&body.email);
+        AuthError::InvalidCredentials
+    })?;
 
     // Cek banned
     if let Some(banned_until) = user.banned_until {
@@ -30,6 +38,7 @@ pub async fn login_handler(
 
     let hash = user.encrypted_password.as_deref().unwrap_or("");
     if !verify_password(&body.password, hash)? {
+        state.brute_force.record_failure(&body.email);
         return Err(AuthError::InvalidCredentials);
     }
 
@@ -72,6 +81,9 @@ pub async fn login_handler(
         !mfa_enrolled,  // mfa_verified = true if no MFA enrolled
         &state.jwt_secret,
     ).await?;
+
+    // Successful login — clear brute force counter
+    state.brute_force.record_success(&body.email);
 
     // Update last_sign_in_at
     let _ = sqlx::query!(

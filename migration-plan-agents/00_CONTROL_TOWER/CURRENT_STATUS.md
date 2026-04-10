@@ -1,7 +1,7 @@
 # Current Status
 
-**Last Updated:** 2026-04-10  
-**Current Phase:** Phase 0A (ACTIVE)
+**Last Updated:** 2026-04-10
+**Current Phase:** Phase 1C (ACTIVE — middleware layer in progress)
 **Execution Readiness:** 88/100 → Target: 88/100
 
 ---
@@ -29,20 +29,32 @@
 
 ### Phase 0: Frontend Abstraction Layer
 
-- [ ] 0A: API Client Abstraction (Weeks 1-4) — ACTIVE
-- [ ] 0B: Service Files Refactoring (Weeks 2-6)
-- [ ] 0C: Auth Abstraction (Weeks 6-8)
-- [ ] 0D: Realtime Abstraction (Weeks 8-9)
-- [ ] 0E: Compatibility Contract Freeze (Weeks 8-9)
-- [ ] 0F: Direct Dependency Audit + CI Guard (Weeks 9-10)
-- [ ] 0G: Verification
+- [x] 0A: API Client Abstraction — COMPLETE (2026-04-09)
+- [x] 0B: Auth Provider Abstraction — COMPLETE (2026-04-09)
+- [x] 0C: Realtime Provider Abstraction — COMPLETE (2026-04-09)
+- [x] 0D: Storage Provider Abstraction — COMPLETE (2026-04-09)
+- [ ] 0E: Compatibility Contract Freeze — deferred
+- [ ] 0F: Direct Dependency Audit + CI Guard — deferred
+- [ ] 0G: Verification — partial
 
 ### Phase 1: Auth + Scaffold
 
-- [ ] 1A: VIL Scaffold (Weeks 11-14)
-- [ ] 1B: Auth Implementation (Weeks 14-20)
-- [ ] 1C: Tenant & RBAC Middleware (Weeks 18-20)
-- [ ] 1D: Verification
+- [x] 1A: VIL Scaffold (edusync-api/ workspace, 5 crates, health endpoints) — COMPLETE (2026-04-10)
+- [x] 1B: Auth Handlers (register, login, signout, refresh, bootstrap, MFA, tenant RPCs) — COMPLETE (2026-04-10)
+- [~] 1C: Tenant & RBAC Middleware — IN PROGRESS (2026-04-10)
+  - [x] `TenantContext` struct (`middleware/src/tenant.rs`)
+  - [x] `AuthedRequest` + `RbacGuard` Axum extractors (`api-server/src/extractors.rs`)
+  - [x] `role_has_permission` + role hierarchy (`middleware/src/rbac.rs`)
+  - [x] `BruteForceTracker` — 5 attempts → 15 min lockout (`middleware/src/brute_force.rs`)
+  - [x] `set_rls_context` — SET LOCAL for per-request SQL context (`middleware/src/db_context.rs`)
+  - [x] `csrf` module — documented pass-through (Bearer-token API, no cookie auth)
+  - [x] `BruteForceTracker` wired into `login.rs`
+  - [ ] Google OAuth token exchange (still stub — `oauth.rs:52`)
+  - [ ] `invitations`/`tenant_memberships` tables — `validate_invitation`/`accept_invitation` still stubbed
+- [ ] 1D: Verification (Gate 2)
+  - [ ] live curl tests for all 12 auth endpoints
+  - [ ] multi-tenant isolation test
+  - [ ] brute force lockout test
 
 ### Phase 2: Core CRUD Endpoints
 
@@ -83,14 +95,14 @@
 
 ## Gate Status
 
-| Gate                     | Status          | Notes                         |
-| ------------------------ | --------------- | ----------------------------- |
-| Gate 1 (Phase 0)         | **NOT REACHED** | After Phase 0 completion      |
-| Gate 2 (Phase 1 Auth)    | **NOT REACHED** | **CRITICAL** — Stop if failed |
-| Gate 3 (Phase 2 Batch 1) | **NOT REACHED** | Security check                |
-| Gate 4 (Phase 3)         | **NOT REACHED** | Stability check               |
-| Gate 5 (Phase 4)         | **NOT REACHED** | Realtime reliability          |
-| Gate 6 (Phase 6)         | **NOT REACHED** | Final success                 |
+| Gate                     | Status              | Notes                                                        |
+| ------------------------ | ------------------- | ------------------------------------------------------------ |
+| Gate 1 (Phase 0)         | **PASSED** ✅       | All 4 provider abstractions shipped (2026-04-09)             |
+| Gate 2 (Phase 1 Auth)    | **IN PROGRESS** 🔄  | 1C middleware shipped; OAuth + invitations + curl tests pending |
+| Gate 3 (Phase 2 Batch 1) | **NOT REACHED**     | Security check                                               |
+| Gate 4 (Phase 3)         | **NOT REACHED**     | Stability check                                              |
+| Gate 5 (Phase 4)         | **NOT REACHED**     | Realtime reliability                                         |
+| Gate 6 (Phase 6)         | **NOT REACHED**     | Final success                                                |
 
 ---
 

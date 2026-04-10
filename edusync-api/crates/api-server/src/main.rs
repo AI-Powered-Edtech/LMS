@@ -1,4 +1,5 @@
 mod auth;
+mod extractors;
 mod health;
 mod observability;
 mod state;
@@ -31,6 +32,8 @@ async fn main() -> anyhow::Result<()> {
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let jwt_secret = std::env::var("JWT_SECRET")
         .unwrap_or_else(|_| "dev-secret-change-in-prod".to_string());
+    let jwt_refresh_secret = std::env::var("JWT_REFRESH_SECRET")
+        .unwrap_or_else(|_| "dev-refresh-secret-change-in-prod".to_string());
     let port = std::env::var("PORT")
         .ok()
         .and_then(|value| value.parse::<u16>().ok())
@@ -43,7 +46,9 @@ async fn main() -> anyhow::Result<()> {
 
     let _sentry = observability::init_sentry();
 
-    let app_state = AppState { db, jwt_secret };
+    let brute_force = edusync_middleware::brute_force::BruteForceTracker::new();
+
+    let app_state = AppState { db, jwt_secret, jwt_refresh_secret, brute_force };
 
     let health_service = ServiceProcess::new("system")
         .prefix("/api/v1")

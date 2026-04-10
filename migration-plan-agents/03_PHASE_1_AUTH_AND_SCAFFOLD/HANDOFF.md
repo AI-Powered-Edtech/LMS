@@ -6,7 +6,9 @@
 
 ## Executive Summary
 
-Phase 1 completed the implementation of VIL authentication system with full parity to Supabase Auth. The system is production-ready for auth endpoints with multi-tenant isolation and RBAC enforcement.
+**Status as of 2026-04-10: Phase 1B complete, Phase 1C in progress, Phase 1D not yet started.**
+
+Phase 1A (scaffold) and 1B (auth handlers) are fully implemented and shipping to main. Phase 1C middleware layer is partially complete — core components are in place (TenantContext, RbacGuard, BruteForceTracker, set_rls_context) but OAuth token exchange and invitation endpoints remain stubs. Phase 1D (Gate 2 verification) has not been executed. The items below marked ✅ are verified in code; items marked 🔲 are planned but not yet implemented.
 
 ## Deliverables Completed
 
@@ -30,44 +32,47 @@ Phase 1 completed the implementation of VIL authentication system with full pari
 - Tenant invitation + enrollment RPCs
 - `get_auth_bootstrap` with IDENTICAL shape to Supabase
 
-### 1C: Tenant & RBAC Middleware ✅
+### 1C: Tenant & RBAC Middleware 🔄 PARTIAL
 
-- TenantGuard: extracts + validates tenant_id from JWT
-- RbacGuard: 5 roles (admin, principal, teacher, student, parent) with wildcard permissions
-- SET LOCAL injection for SQL context
-- RLS guards for: profiles, user_roles, tenant_memberships, sessions
-- CSRF protection (exempting public auth endpoints)
-- Brute force protection (5 attempts → 15 min lockout)
+- ✅ `TenantContext` struct (`crates/middleware/src/tenant.rs`)
+- ✅ `AuthedRequest` + `RbacGuard` Axum extractors (`crates/api-server/src/extractors.rs`)
+- ✅ `role_has_permission` + 5-level role hierarchy (`crates/middleware/src/rbac.rs`)
+- ✅ `BruteForceTracker` — in-process, 5 failures → 15 min lockout (`crates/middleware/src/brute_force.rs`)
+- ✅ `set_rls_context` — `SET LOCAL app.current_user_id/tenant_id` (`crates/middleware/src/db_context.rs`)
+- ✅ CSRF module — documented pass-through (Bearer-token API; no cookie auth today)
+- ✅ `BruteForceTracker` wired into `login.rs`
+- 🔲 Google OAuth token exchange — `oauth.rs` still has `TODO: exchange code for tokens`
+- 🔲 `invitations`/`tenant_memberships` tables — `validate_invitation`/`accept_invitation` stubbed
+- 🔲 Per-table RLS guards (`guards/profiles.rs`, etc.) — planned for Phase 2
 
-### 1D: Verification ✅
+### 1D: Verification 🔲 NOT STARTED
 
-- Comprehensive E2E test suite (auth_e2e, auth_cycle_e2e, security_e2e)
-- Multi-tenant isolation tests
-- Parity tests (Supabase vs VIL response shapes)
-- Shadow mode for production comparison
-- Feature flag switch testing
-- Cutover drill completed (< 2 minutes)
+- 🔲 Live curl tests for all 12 auth endpoints against remote DB
+- 🔲 Multi-tenant isolation test (two tenants, cross-tenant access must 401)
+- 🔲 Brute force lockout test (5 failures → 429)
+- 🔲 Bootstrap parity test (VIL vs Supabase response diff)
+- 🔲 Shadow mode comparison
 
-## Gate 2 Status: PASSED
+## Gate 2 Status: IN PROGRESS 🔄
 
-All 23 criteria met:
+Criteria status (as of 2026-04-10):
 
-- [x] TenantGuard middleware deployed
-- [x] RbacGuard with 5 roles configured
-- [x] SET LOCAL replaces auth.uid()
-- [x] Role resolution from user_roles table
-- [x] RLS guards for all key tables
-- [x] Sentry error capture working
-- [x] CSRF + brute force protection
-- [x] 3 dev accounts login via VIL
-- [x] Full auth cycle tested
-- [x] Password hash migration (bcrypt → Argon2)
-- [x] Multi-tenant isolation verified
-- [x] JWT security tests pass
-- [x] `get_auth_bootstrap` IDENTICAL to Supabase
-- [x] Error response shape matches PostgREST
-- [x] Feature flag switch works
-- [x] Cutover drill < 2 minutes
+- [x] `TenantContext` + `AuthedRequest` extractor deployed
+- [x] `RbacGuard` with 5-level role hierarchy (`student < parent < teacher < principal < admin`)
+- [x] `set_rls_context` for SET LOCAL SQL context injection
+- [x] Role resolution from `user_roles` table
+- [x] Brute force protection (5 attempts → 15 min lockout) wired into login
+- [~] Sentry — `_sentry` guard initialized in main.rs; error capture integration not tested
+- [ ] CSRF — documented pass-through (Bearer token API; no cookie auth)
+- [ ] 3 dev accounts login via VIL — not yet curl-tested end-to-end
+- [ ] Full auth cycle tested (register → login → bootstrap → signout)
+- [x] Password hash: Argon2 primary, bcrypt fallback + transparent rehash on login
+- [ ] Multi-tenant isolation verified — not yet tested
+- [x] JWT unit tests pass (jwt_access_round_trip, jwt_refresh_round_trip)
+- [x] `get_auth_bootstrap` shape matches Supabase sample (bootstrap-sample.json)
+- [x] Error response shape matches PostgREST (code/message/details/hint)
+- [ ] OAuth token exchange — stub only
+- [ ] Invitation flow — stub only
 
 ## Architecture Decisions Made
 
@@ -122,11 +127,9 @@ crates/
 │           ├── ensure_profile.rs
 │           ├── reset_password.rs
 │           ├── verify_email.rs
-│           ├── oauth.rs
+│           ├── oauth.rs            # ⚠ stub — token exchange TODO
 │           ├── mfa.rs
-│           ├── invitations.rs
-│           ├── enrollment.rs
-│           └── tenant.rs
+│           └── tenant_rpcs.rs      # ⚠ validate/accept_invitation stubbed
 ├── models/
 │   ├── Cargo.toml
 │   └── src/
@@ -140,28 +143,22 @@ crates/
 │   ├── Cargo.toml
 │   └── src/
 │       ├── lib.rs
-│       ├── error.rs                # AuthError enum
+│       ├── error.rs                # AuthError enum (incl. Unauthorized, Forbidden)
 │       ├── password.rs             # Dual-format hashing
 │       ├── jwt.rs                  # JWT claims + encode/decode
-│       ├── session.rs              # Refresh token management
-│       └── roles.rs                # Role resolution
+│       └── session.rs              # Refresh token management
 ├── middleware/
 │   ├── Cargo.toml
 │   └── src/
 │       ├── lib.rs
-│       ├── errors.rs               # PostgREST format errors
+│       ├── errors.rs               # PostgREST format errors (AppError)
 │       ├── cors.rs
-│       ├── tenant.rs               # TenantGuard
-│       ├── rbac.rs                 # RbacGuard + 5 roles
-│       ├── db_context.rs           # SET LOCAL injection
-│       ├── brute_force.rs          # Login attempt tracking
-│       ├── csrf.rs
-│       └── guards/                 # RLS guards
-│           ├── mod.rs
-│           ├── profiles.rs
-│           ├── user_roles.rs
-│           ├── tenants.rs
-│           └── sessions.rs
+│       ├── tenant.rs               # TenantContext data struct
+│       ├── rbac.rs                 # role_has_permission + 5-level hierarchy
+│       ├── db_context.rs           # set_rls_context (SET LOCAL)
+│       ├── brute_force.rs          # BruteForceTracker (5 fails → 15 min lockout)
+│       └── csrf.rs                 # Documented pass-through (Bearer-token API)
+│   NOTE: guards/ subdirectory not yet created — planned for Phase 2
 └── services/
     ├── Cargo.toml
     └── src/
@@ -308,6 +305,8 @@ If issues detected post-Phase-1:
 
 ---
 
-**Phase 1 Status: COMPLETE ✅**  
-**Gate 2: PASSED ✅**  
-**Ready for Phase 2: YES ✅**
+**Phase 1A Status: COMPLETE ✅**
+**Phase 1B Status: COMPLETE ✅**
+**Phase 1C Status: IN PROGRESS 🔄** — OAuth + invitations pending
+**Phase 1D Status: NOT STARTED 🔲**
+**Gate 2: IN PROGRESS 🔄** — requires 1C completion + curl verification

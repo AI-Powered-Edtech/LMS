@@ -36,6 +36,10 @@ pub enum AuthError {
     InvitationNotFound,
     #[error("Kode kelas tidak ditemukan")]
     ClassNotFound,
+    #[error("Tidak memiliki otorisasi")]
+    Unauthorized,
+    #[error("Akses ditolak")]
+    Forbidden,
     #[error("Internal error: {0}")]
     Internal(String),
     #[error("Database error")]
@@ -69,6 +73,8 @@ impl IntoResponse for AuthError {
             }
             AuthError::InvitationNotFound => (StatusCode::NOT_FOUND, "invitation_not_found"),
             AuthError::ClassNotFound => (StatusCode::NOT_FOUND, "class_not_found"),
+            AuthError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized"),
+            AuthError::Forbidden => (StatusCode::FORBIDDEN, "forbidden"),
             AuthError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal_error"),
             AuthError::Database(_) => (StatusCode::INTERNAL_SERVER_ERROR, "database_error"),
         };
