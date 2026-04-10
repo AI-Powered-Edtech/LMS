@@ -1,0 +1,9 @@
+target
+.git
+.env
+.env.*
+docker-compose.yml
+node_modules
+coverage
+dist
+tmp
