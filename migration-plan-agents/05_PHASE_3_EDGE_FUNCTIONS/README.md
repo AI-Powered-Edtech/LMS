@@ -4,19 +4,78 @@
 
 ## Gambaran
 
-Phase 3 mengimplementasikan dan memigrasikan Edge Functions ke Rust handlers menggunakan VIL Framework. Semua logika bisnis yang sebelumnya berjalan di Supabase Edge Functions (Deno) dipindahkan ke backend VIL yang berjalan di Rust.
+Phase 3 mengimplementasikan dan memigrasikan **30 Edge Functions** ke Rust handlers menggunakan VIL Framework. Semua logika bisnis yang sebelumnya berjalan di Supabase Edge Functions (Deno) dipindahkan ke backend VIL yang berjalan di Rust.
+
+## Complete Edge Function Inventory (30 total)
+
+Source code for each function: `supabase/functions/<function-name>/index.ts`
+
+### AI Functions (8)
+
+| # | Function | Source | Purpose |
+|---|----------|--------|---------|
+| 1 | `ai-grade-essay` | `supabase/functions/ai-grade-essay/index.ts` | AI essay grading via Groq |
+| 2 | `ai-tutor` | `supabase/functions/ai-tutor/index.ts` | AI tutor chat with conversation state |
+| 3 | `generate-ai-content` | `supabase/functions/generate-ai-content/index.ts` | AI content generation |
+| 4 | `generate-course-outline` | `supabase/functions/generate-course-outline/index.ts` | AI course outline generation |
+| 5 | `generate-lesson-draft` | `supabase/functions/generate-lesson-draft/index.ts` | AI lesson draft generation |
+| 6 | `generate-quiz-from-content` | `supabase/functions/generate-quiz-from-content/index.ts` | AI quiz generation from lesson content |
+| 7 | `recommend-learning-path` | `supabase/functions/recommend-learning-path/index.ts` | AI learning path recommendation |
+| 8 | `check-plagiarism` | `supabase/functions/check-plagiarism/index.ts` | AI plagiarism detection |
+
+### LTI Functions (4)
+
+| # | Function | Source | Purpose |
+|---|----------|--------|---------|
+| 9 | `lti-grade-passback` | `supabase/functions/lti-grade-passback/index.ts` | LTI grade passback to platform |
+| 10 | `lti-jwks` | `supabase/functions/lti-jwks/index.ts` | Public JWKS for LTI platforms |
+| 11 | `lti-launch` | `supabase/functions/lti-launch/index.ts` | LTI launch token validation + user provisioning |
+| 12 | `lti-oidc-login` | `supabase/functions/lti-oidc-login/index.ts` | LTI OIDC login initiation |
+
+### Email / Notification Functions (5)
+
+| # | Function | Source | Purpose |
+|---|----------|--------|---------|
+| 13 | `send-email-digest` | `supabase/functions/send-email-digest/index.ts` | Daily email digest sender |
+| 14 | `send-parent-digest` | `supabase/functions/send-parent-digest/index.ts` | Parent digest sending |
+| 15 | `send-parent-otp` | `supabase/functions/send-parent-otp/index.ts` | Parent OTP via WhatsApp |
+| 16 | `send-push` | `supabase/functions/send-push/index.ts` | Push notification via VAPID |
+| 17 | `whatsapp-webhook` | `supabase/functions/whatsapp-webhook/index.ts` | WhatsApp webhook handler |
+
+### Processing Functions (10)
+
+| # | Function | Source | Purpose |
+|---|----------|--------|---------|
+| 18 | `process-progress-events` | `supabase/functions/process-progress-events/index.ts` | Batch progress event processing |
+| 19 | `progress-events` | `supabase/functions/progress-events/index.ts` | Enqueue progress events |
+| 20 | `transform-course-content` | `supabase/functions/transform-course-content/index.ts` | Course content transformation |
+| 21 | `scorm-extract` | `supabase/functions/scorm-extract/index.ts` | SCORM ZIP extraction |
+| 22 | `video-webhook` | `supabase/functions/video-webhook/index.ts` | Video processing webhook |
+| 23 | `generate-pdf` | `supabase/functions/generate-pdf/index.ts` | PDF certificate generation |
+| 24 | `bulk-import-users` | `supabase/functions/bulk-import-users/index.ts` | Bulk user import from CSV |
+| 25 | `generate-executive-report` | `supabase/functions/generate-executive-report/index.ts` | Executive report PDF |
+| 26 | `generate-parent-report` | `supabase/functions/generate-parent-report/index.ts` | Parent report PDF |
+| 27 | `grade-quiz-attempt` | `supabase/functions/grade-quiz-attempt/index.ts` | Background quiz grading |
+
+### Utility Functions (3)
+
+| # | Function | Source | Purpose |
+|---|----------|--------|---------|
+| 28 | `load-quiz-data` | `supabase/functions/load-quiz-data/index.ts` | Load quiz for student |
+| 29 | `check-rate-limit` | `supabase/functions/check-rate-limit/index.ts` | Rate limiting check |
+| 30 | `health-check` | `supabase/functions/health-check/index.ts` | System health status |
 
 ## Timeline
 
 **Weeks 39-52 | ~200 jam total**
 
-| Sub-phase         | Weeks | Jam Est. | Deskripsi                                                    |
-| ----------------- | ----- | -------- | ------------------------------------------------------------ |
-| 3A: AI Functions  | 39-43 | ~45-50   | ai-grade-essay, ai-tutor, generate-ai-content, generate-quiz |
-| 3B: LTI 1.3       | 43-46 | ~25-30   | lti-oidc-login, lti-launch, lti-jwks                         |
-| 3C: Notifications | 46-48 | ~40-45   | Email (digest, parent digest), Push, WhatsApp, PDF           |
-| 3D: Processing    | 49-50 | ~30-35   | Quiz grading, progress events, SCORM, bulk import            |
-| 3E: Cron Jobs     | 50-52 | ~20-25   | Background jobs migration dari pg_cron ke vil_trigger_cron   |
+| Sub-phase         | Weeks | Jam Est. | Functions | Deskripsi                                                    |
+| ----------------- | ----- | -------- | --------- | ------------------------------------------------------------ |
+| 3A: AI Functions  | 39-43 | ~45-50   | 8         | All AI functions (grading, tutor, content gen, quiz gen, outline, lesson draft, learning path, plagiarism) |
+| 3B: LTI 1.3       | 43-46 | ~25-30   | 4         | lti-oidc-login, lti-launch, lti-jwks, lti-grade-passback    |
+| 3C: Notifications | 46-48 | ~40-45   | 5         | Email (digest, parent digest), Push, WhatsApp, OTP           |
+| 3D: Processing    | 49-50 | ~30-35   | 10        | Quiz grading, progress events, SCORM, bulk import, PDF, reports, video webhook, content transform |
+| 3E: Cron Jobs     | 50-52 | ~20-25   | 3 (utility) | Background jobs migration dari pg_cron ke vil_trigger_cron + utility functions |
 
 ## Sub-Phase Structure
 
@@ -24,57 +83,70 @@ Phase 3 mengimplementasikan dan memigrasikan Edge Functions ke Rust handlers men
 
 Menggunakan **VIL SseCollect** untuk streaming proxy ke Groq API dan **CircuitBreaker** untuk fault tolerance.
 
-**Edge Functions yang di-port:**
+**Edge Functions yang di-port (8):**
 
 - `ai-grade-essay` (187 lines) → AI grading dengan rubric-based scoring
-- `ai-tutor` (674 lines) — paling kompleks, conversation state management
-- `generate-ai-content` (476 lines) — content generation dengan validasi
-- `generate-quiz-from-content` (~200 lines) — quiz generation dari lesson content
+- `ai-tutor` (674 lines) → paling kompleks, conversation state management
+- `generate-ai-content` (476 lines) → content generation dengan validasi
+- `generate-course-outline` → course structure generation
+- `generate-lesson-draft` → lesson content draft generation
+- `generate-quiz-from-content` (~200 lines) → quiz generation dari lesson content
+- `recommend-learning-path` → personalized learning path recommendation
+- `check-plagiarism` → plagiarism detection for student submissions
 
 **VIL built-in yang digunakan:**
 
-- `SseCollect::post_to()` — streaming proxy ke Groq
-- `SseDialect::openai()` — handles done-signal detection
-- `CircuitBreaker` — fault tolerance untuk AI service
+- `SseCollect::post_to()` → streaming proxy ke Groq
+- `SseDialect::openai()` → handles done-signal detection
+- `CircuitBreaker` → fault tolerance untuk AI service
 
 ### 3B: LTI 1.3 (Weeks 43-46)
 
 Integrasi Learning Tools Interoperability untuk platform pembelajaran eksternal (Canvas, Moodle).
 
-**Edge Functions yang di-port:**
+**Edge Functions yang di-port (4):**
 
-- `lti-oidc-login` — OIDC login initiation
-- `lti-launch` — LTI launch dengan validasi dan user provisioning
-- `lti-jwks` — Public JWKS untuk platform
+- `lti-oidc-login` → OIDC login initiation
+- `lti-launch` → LTI launch dengan validasi dan user provisioning
+- `lti-jwks` → Public JWKS untuk platform
+- `lti-grade-passback` → Grade passback ke platform (Canvas, Moodle)
 
 ### 3C: Notifications & Communication (Weeks 46-48)
 
-**Edge Functions yang di-port:**
+**Edge Functions yang di-port (5):**
 
-- `send-email-digest` — Daily email digest
-- `send-parent-digest` — Parent report digest
-- `send-push` — Push notifications via VAPID
-- `whatsapp-webhook` — WhatsApp incoming handler
-- `send-parent-otp` — WhatsApp OTP verification
-- `generate-pdf` — Certificate generation
-- `generate-executive-report` — Principal dashboard PDF
-- `generate-parent-report` — Parent progress report
+- `send-email-digest` → Daily email digest
+- `send-parent-digest` → Parent report digest
+- `send-push` → Push notifications via VAPID
+- `whatsapp-webhook` → WhatsApp incoming handler
+- `send-parent-otp` → WhatsApp OTP verification
 
 ### 3D: Processing & Background Jobs (Weeks 49-50)
 
-**Edge Functions yang di-port:**
+**Edge Functions yang di-port (10):**
 
-- `grade-quiz-attempt` — Background quiz grading
-- `process-progress-events` — Batch progress event processor
-- `progress-events` — Event enqueue endpoint
-- `load-quiz-data` — Quiz data loader untuk student
-- `scorm-extract` — SCORM ZIP extraction
-- `bulk-import-users` — Bulk user import (hardened from Phase 31)
-- `health-check` — System health (sudah ada dari Phase 1)
+- `grade-quiz-attempt` → Background quiz grading
+- `process-progress-events` → Batch progress event processor
+- `progress-events` → Event enqueue endpoint
+- `transform-course-content` → Course content transformation pipeline
+- `scorm-extract` → SCORM ZIP extraction
+- `video-webhook` → Video processing webhook (transcoding status)
+- `generate-pdf` → Certificate generation
+- `generate-executive-report` → Principal dashboard PDF
+- `generate-parent-report` → Parent progress report
+- `bulk-import-users` → Bulk user import (hardened from Phase 31)
 
-### 3E: Cron Jobs Migration (Weeks 50-52)
+### 3E: Cron Jobs Migration + Utility (Weeks 50-52)
 
-Migrasi dari `pg_cron` ke `vil_trigger_cron`:
+Migrasi dari `pg_cron` ke `vil_trigger_cron`, plus utility functions:
+
+**Utility functions yang di-port (3):**
+
+- `load-quiz-data` → Quiz data loader untuk student
+- `check-rate-limit` → Rate limiting check
+- `health-check` → System health (sudah ada dari Phase 1)
+
+**Cron schedule:**
 
 | Job                   | Jadwal (UTC)    | Jadwal (WIB)      |
 | --------------------- | --------------- | ----------------- |
