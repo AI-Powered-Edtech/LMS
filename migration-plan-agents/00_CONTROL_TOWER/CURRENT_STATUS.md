@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-04-10  
 **Current Phase:** Phase -1 (COMPLETE)
-**Execution Readiness:** 75/100 → Target: 88/100
+**Execution Readiness:** 68/100 → Target: 88/100
 
 ---
 
@@ -109,7 +109,7 @@
 
 3. **Proceed to Phase 0A: API Client Abstraction**
    - Review `plans/REVISED_PHASE_0.md` for updated scope
-   - Start with `src/lib/api/` foundation
+   - Start with `src/services/api/` foundation
 
 ---
 

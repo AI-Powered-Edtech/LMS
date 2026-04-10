@@ -26,7 +26,7 @@
 | 14  | **Bulk Import/Export**    | **85/100** | 📈📈📈 | ✅ **Hardened**      | 2026-04-06   |
 | 15  | SpeedGrader               | 82/100     | 📈     | 🟡 Needs Improvement | 2026-04-03   |
 | 16  | Activity Feed             | 81/100     | 📈     | 🟡 Needs Improvement | 2026-04-03   |
-| 17  | Parent Portal             | 80/100     | 📈     | 🟡 Needs Improvement | 2026-04-03   |
+| 17  | Parent Portal             | 80/100     |        | 🟡 Needs Improvement | 2026-04-03   |
 | 18  | Principal Dashboard       | 79/100     | 📈     | 🟡 Needs Improvement | 2026-04-03   |
 | 19  | Audit Log System          | 77/100     | 📈     | 🟡 Needs Improvement | 2026-04-03   |
 | 20  | Messaging System          | 75/100     | 📈     | 🟡 Needs Improvement | 2026-04-03   |
