@@ -1,4 +1,4 @@
-//! S3-compatible storage HTTP handlers — uses vil_storage_s3 (VIL Way)
+//! S3-compatible storage HTTP handlers — uses vil_conn_s3 (VIL Way)
 //!
 //! All handlers check that S3 is configured first; when absent they return 503
 //! with a Bahasa Indonesia message. Path validation and bucket allow-listing
@@ -21,31 +21,22 @@
 //! ```
 
 use axum::{
-    extract::{Extension, Multipart, Path, Query},
+    extract::{Multipart, Path, Query},
     http::{header, StatusCode},
     response::{IntoResponse, Response},
-    Json,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use std::time::Duration;
+use vil_server::prelude::*;
 
 use crate::extractors::AuthedRequest;
 use crate::state::AppState;
 
-use super::client::{create_s3_client, S3Client};
+use super::client::{create_s3_client, S3Connector};
 use super::url::{build_s3_key, max_bytes_for_bucket, sanitize_path, validate_bucket};
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
-
-/// Error response body shape (matches existing API error conventions).
-#[derive(Serialize)]
-struct ErrorBody {
-    error: String,
-}
-
-fn err_response(status: StatusCode, msg: &str) -> Response {
-    (status, Json(ErrorBody { error: msg.to_string() })).into_response()
-}
 
 /// Guess a reasonable Content-Type from a file extension.
 fn guess_content_type(filename: &str) -> &'static str {
@@ -72,14 +63,24 @@ fn guess_content_type(filename: &str) -> &'static str {
     }
 }
 
-/// Build an S3Client from state, returning a 503 response if not configured.
-async fn require_s3(state: &AppState) -> Result<S3Client, Response> {
+/// Build an S3Connector from state, returning a VilError 503 if not configured.
+async fn require_s3(state: &AppState) -> Result<S3Connector, VilError> {
     create_s3_client(state).await.ok_or_else(|| {
-        err_response(
-            StatusCode::SERVICE_UNAVAILABLE,
-            "Layanan penyimpanan tidak dikonfigurasi",
-        )
+        VilError::service_unavailable("Layanan penyimpanan tidak dikonfigurasi")
     })
+}
+
+/// Derive the public URL for an S3 key from state config.
+///
+/// Priority: `s3_public_url` env var → fallback to `{endpoint}/{bucket}/{key}`.
+fn public_url_for(state: &AppState, s3_key: &str) -> String {
+    if let Some(base) = &state.s3_public_url {
+        format!("{}/{}", base.trim_end_matches('/'), s3_key)
+    } else if let Some(endpoint) = &state.s3_endpoint {
+        format!("{}/{}/{}", endpoint.trim_end_matches('/'), state.s3_bucket, s3_key)
+    } else {
+        s3_key.to_string()
+    }
 }
 
 // ── Upload handler ────────────────────────────────────────────────────────────
@@ -112,56 +113,49 @@ pub struct UploadResponse {
 ///
 /// Accepts `multipart/form-data` with a single `file` field.
 /// Query params: `bucket`, `path`, `upsert` (optional).
+/// Uses raw Axum Multipart extractor (no ShmSlice — body is multipart, not JSON).
 pub async fn upload_handler(
     AuthedRequest(ctx): AuthedRequest,
-    Extension(state): Extension<Arc<AppState>>,
+    vil_ctx: ServiceCtx,
     Query(query): Query<UploadQuery>,
     mut multipart: Multipart,
-) -> impl IntoResponse {
-    let s3 = match require_s3(&state).await {
-        Ok(c) => c,
-        Err(r) => return r,
-    };
+) -> HandlerResult<VilResponse<UploadResponse>> {
+    let state = vil_ctx.state::<Arc<AppState>>();
+    let s3 = require_s3(state).await?;
 
     // Validate bucket.
     if !validate_bucket(&query.bucket) {
-        return err_response(StatusCode::BAD_REQUEST, "Nama bucket tidak valid");
+        return Err(VilError::bad_request("Nama bucket tidak valid"));
     }
 
     // Validate path.
-    let clean_path = match sanitize_path(&query.path) {
-        Some(p) => p,
-        None => {
-            return err_response(
-                StatusCode::BAD_REQUEST,
-                "Path tidak valid: tidak boleh mengandung '..' atau dimulai dengan '/'",
-            )
-        }
-    };
+    let clean_path = sanitize_path(&query.path).ok_or_else(|| {
+        VilError::bad_request(
+            "Path tidak valid: tidak boleh mengandung '..' atau dimulai dengan '/'",
+        )
+    })?;
 
     let max_size = max_bytes_for_bucket(&query.bucket);
 
     // Read multipart field named "file".
     let mut file_bytes: Option<Vec<u8>> = None;
     let mut content_type = String::from("application/octet-stream");
-    let mut filename = clean_path.clone();
 
     loop {
         let field = match multipart.next_field().await {
             Ok(Some(f)) => f,
             Ok(None) => break,
             Err(e) => {
-                return err_response(
-                    StatusCode::BAD_REQUEST,
-                    &format!("Kesalahan membaca multipart: {}", e),
-                )
+                return Err(VilError::bad_request(&format!(
+                    "Kesalahan membaca multipart: {}",
+                    e
+                )));
             }
         };
 
         if field.name() == Some("file") {
             if let Some(fn_val) = field.file_name() {
-                filename = fn_val.to_string();
-                content_type = guess_content_type(&filename).to_string();
+                content_type = guess_content_type(fn_val).to_string();
             }
             if let Some(ct) = field.content_type() {
                 content_type = ct.to_string();
@@ -169,50 +163,39 @@ pub async fn upload_handler(
             let data = match field.bytes().await {
                 Ok(b) => b.to_vec(),
                 Err(e) => {
-                    return err_response(
-                        StatusCode::BAD_REQUEST,
-                        &format!("Kesalahan membaca data file: {}", e),
-                    )
+                    return Err(VilError::bad_request(&format!(
+                        "Kesalahan membaca data file: {}",
+                        e
+                    )));
                 }
             };
             if data.len() as u64 > max_size {
-                return err_response(
-                    StatusCode::PAYLOAD_TOO_LARGE,
+                return Err(VilError::bad_request(
                     "Ukuran file melebihi batas yang diizinkan",
-                );
+                ));
             }
             file_bytes = Some(data);
             break; // only process the first "file" field
         }
     }
 
-    let bytes = match file_bytes {
-        Some(b) => b,
-        None => return err_response(StatusCode::BAD_REQUEST, "Field 'file' tidak ditemukan"),
-    };
+    let bytes = file_bytes
+        .ok_or_else(|| VilError::bad_request("Field 'file' tidak ditemukan"))?;
 
     let size = bytes.len() as u64;
     let s3_key = build_s3_key(&query.bucket, &ctx.tenant_id, &clean_path);
 
-    match s3.put_object(&s3_key, bytes, &content_type).await {
-        Ok(_) => {
-            let public_url = s3.public_url(&s3_key);
-            (
-                StatusCode::CREATED,
-                Json(UploadResponse {
-                    path: s3_key,
-                    public_url,
-                    size,
-                    content_type,
-                }),
-            )
-                .into_response()
-        }
-        Err(e) => err_response(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            &format!("Gagal mengunggah file: {}", e),
-        ),
-    }
+    s3.put(&s3_key, bytes.into(), Some(&content_type))
+        .await
+        .map_err(|e| VilError::internal(&format!("Gagal mengunggah file: {}", e)))?;
+
+    let public_url = public_url_for(state, &s3_key);
+    Ok(VilResponse::created(UploadResponse {
+        path: s3_key,
+        public_url,
+        size,
+        content_type,
+    }))
 }
 
 // ── Download handler ──────────────────────────────────────────────────────────
@@ -221,29 +204,38 @@ pub async fn upload_handler(
 ///
 /// Streams the object bytes back to the client with the appropriate
 /// Content-Type header derived from the key extension.
+/// Returns raw bytes — kept as `-> impl IntoResponse` since it is not a JSON response.
 pub async fn download_handler(
     AuthedRequest(ctx): AuthedRequest,
-    Extension(state): Extension<Arc<AppState>>,
+    vil_ctx: ServiceCtx,
     Path((bucket, path)): Path<(String, String)>,
 ) -> impl IntoResponse {
-    let s3 = match require_s3(&state).await {
-        Ok(c) => c,
-        Err(r) => return r,
+    let state = vil_ctx.state::<Arc<AppState>>();
+
+    let s3 = match create_s3_client(state).await {
+        Some(c) => c,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                "Layanan penyimpanan tidak dikonfigurasi",
+            )
+                .into_response()
+        }
     };
 
     if !validate_bucket(&bucket) {
-        return err_response(StatusCode::BAD_REQUEST, "Nama bucket tidak valid");
+        return (StatusCode::BAD_REQUEST, "Nama bucket tidak valid").into_response();
     }
 
     let clean_path = match sanitize_path(&path) {
         Some(p) => p,
-        None => return err_response(StatusCode::BAD_REQUEST, "Path tidak valid"),
+        None => return (StatusCode::BAD_REQUEST, "Path tidak valid").into_response(),
     };
 
     let s3_key = build_s3_key(&bucket, &ctx.tenant_id, &clean_path);
     let content_type = guess_content_type(&clean_path);
 
-    match s3.get_object(&s3_key).await {
+    match s3.get(&s3_key).await {
         Ok(bytes) => (
             StatusCode::OK,
             [
@@ -256,12 +248,13 @@ pub async fn download_handler(
         Err(e) => {
             let msg = e.to_string();
             if msg.contains("tidak ditemukan") || msg.contains("NoSuchKey") || msg.contains("404") {
-                err_response(StatusCode::NOT_FOUND, "Objek tidak ditemukan")
+                (StatusCode::NOT_FOUND, "Objek tidak ditemukan").into_response()
             } else {
-                err_response(
+                (
                     StatusCode::INTERNAL_SERVER_ERROR,
-                    &format!("Gagal mengunduh file: {}", e),
+                    format!("Gagal mengunduh file: {}", e),
                 )
+                    .into_response()
             }
         }
     }
@@ -279,23 +272,23 @@ pub struct RemoveRequest {
 /// `DELETE /api/v1/storage/object/{bucket}`
 ///
 /// Deletes one or more objects.  Silently ignores non-existent keys.
+#[vil_handler(shm)]
 pub async fn remove_handler(
     AuthedRequest(ctx): AuthedRequest,
-    Extension(state): Extension<Arc<AppState>>,
+    ctx: ServiceCtx,
     Path(bucket): Path<String>,
-    Json(body): Json<RemoveRequest>,
-) -> impl IntoResponse {
-    let s3 = match require_s3(&state).await {
-        Ok(c) => c,
-        Err(r) => return r,
-    };
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<serde_json::Value>> {
+    let state = ctx.state::<Arc<AppState>>();
+    let s3 = require_s3(state).await?;
+    let body: RemoveRequest = body.json()?;
 
     if !validate_bucket(&bucket) {
-        return err_response(StatusCode::BAD_REQUEST, "Nama bucket tidak valid");
+        return Err(VilError::bad_request("Nama bucket tidak valid"));
     }
 
     if body.paths.is_empty() {
-        return err_response(StatusCode::BAD_REQUEST, "Daftar path tidak boleh kosong");
+        return Err(VilError::bad_request("Daftar path tidak boleh kosong"));
     }
 
     // Build S3 keys; reject any traversal attempt.
@@ -304,31 +297,31 @@ pub async fn remove_handler(
         match sanitize_path(raw_path) {
             Some(p) => keys.push(build_s3_key(&bucket, &ctx.tenant_id, &p)),
             None => {
-                return err_response(
-                    StatusCode::BAD_REQUEST,
-                    &format!("Path tidak valid: {}", raw_path),
-                )
+                return Err(VilError::bad_request(&format!(
+                    "Path tidak valid: {}",
+                    raw_path
+                )));
             }
         }
     }
 
-    // vil_storage_s3 exposes delete_object (single); delete them sequentially.
-    // For batch deletes we fan out concurrently but report total count.
+    // vil_conn_s3 exposes delete (single); delete them sequentially.
     let total = keys.len();
     let mut errors: Vec<String> = Vec::new();
     for key in &keys {
-        if let Err(e) = s3.delete_object(key).await {
+        if let Err(e) = s3.delete(key).await {
             errors.push(format!("{}: {}", key, e));
         }
     }
 
     if errors.is_empty() {
-        (StatusCode::OK, Json(serde_json::json!({ "deleted": total }))).into_response()
+        Ok(VilResponse::ok(serde_json::json!({ "deleted": total })))
     } else {
-        err_response(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            &format!("Gagal menghapus {} file: {}", errors.len(), errors.join("; ")),
-        )
+        Err(VilError::internal(&format!(
+            "Gagal menghapus {} file: {}",
+            errors.len(),
+            errors.join("; ")
+        )))
     }
 }
 
@@ -344,29 +337,30 @@ pub struct PublicUrlResponse {
 ///
 /// Returns the CDN / public URL for an object.  No auth required.
 pub async fn public_url_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    vil_ctx: ServiceCtx,
     Path((bucket, path)): Path<(String, String)>,
-) -> impl IntoResponse {
-    let s3 = match require_s3(&state).await {
-        Ok(c) => c,
-        Err(r) => return r,
-    };
+) -> HandlerResult<VilResponse<PublicUrlResponse>> {
+    let state = vil_ctx.state::<Arc<AppState>>();
 
-    if !validate_bucket(&bucket) {
-        return err_response(StatusCode::BAD_REQUEST, "Nama bucket tidak valid");
+    if !state.s3_endpoint.is_some() {
+        return Err(VilError::service_unavailable(
+            "Layanan penyimpanan tidak dikonfigurasi",
+        ));
     }
 
-    let clean_path = match sanitize_path(&path) {
-        Some(p) => p,
-        None => return err_response(StatusCode::BAD_REQUEST, "Path tidak valid"),
-    };
+    if !validate_bucket(&bucket) {
+        return Err(VilError::bad_request("Nama bucket tidak valid"));
+    }
+
+    let clean_path = sanitize_path(&path)
+        .ok_or_else(|| VilError::bad_request("Path tidak valid"))?;
 
     // For public-url we don't have tenant context (unauthenticated call).
     // The caller must supply the full path including the tenant prefix.
     let s3_key = format!("{}/{}", bucket, clean_path);
-    let public_url = s3.public_url(&s3_key);
+    let public_url = public_url_for(state, &s3_key);
 
-    (StatusCode::OK, Json(PublicUrlResponse { public_url })).into_response()
+    Ok(VilResponse::ok(PublicUrlResponse { public_url }))
 }
 
 // ── Signed URL handler ────────────────────────────────────────────────────────
@@ -390,39 +384,32 @@ pub struct SignedUrlResponse {
 /// `POST /api/v1/storage/sign`
 ///
 /// Returns a presigned GET URL for private objects (e.g. submitted assignments).
+#[vil_handler(shm)]
 pub async fn create_signed_url_handler(
     AuthedRequest(ctx): AuthedRequest,
-    Extension(state): Extension<Arc<AppState>>,
-    Json(body): Json<SignedUrlRequest>,
-) -> impl IntoResponse {
-    let s3 = match require_s3(&state).await {
-        Ok(c) => c,
-        Err(r) => return r,
-    };
+    ctx: ServiceCtx,
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<SignedUrlResponse>> {
+    let state = ctx.state::<Arc<AppState>>();
+    let s3 = require_s3(state).await?;
+    let body: SignedUrlRequest = body.json()?;
 
     if !validate_bucket(&body.bucket) {
-        return err_response(StatusCode::BAD_REQUEST, "Nama bucket tidak valid");
+        return Err(VilError::bad_request("Nama bucket tidak valid"));
     }
 
-    let clean_path = match sanitize_path(&body.path) {
-        Some(p) => p,
-        None => return err_response(StatusCode::BAD_REQUEST, "Path tidak valid"),
-    };
+    let clean_path = sanitize_path(&body.path)
+        .ok_or_else(|| VilError::bad_request("Path tidak valid"))?;
 
     let expires_in = body.expires_in.unwrap_or(3_600).min(604_800); // cap at 7 days
     let s3_key = build_s3_key(&body.bucket, &ctx.tenant_id, &clean_path);
 
-    match s3.presigned_get_url(&s3_key, expires_in).await {
-        Ok(signed_url) => (
-            StatusCode::OK,
-            Json(SignedUrlResponse { signed_url, expires_in }),
-        )
-            .into_response(),
-        Err(e) => err_response(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            &format!("Gagal membuat signed URL: {}", e),
-        ),
-    }
+    let signed_url = s3
+        .presign_get(&s3_key, Duration::from_secs(expires_in))
+        .await
+        .map_err(|e| VilError::internal(&format!("Gagal membuat signed URL: {}", e)))?;
+
+    Ok(VilResponse::ok(SignedUrlResponse { signed_url, expires_in }))
 }
 
 // ── Presigned upload URL handler ──────────────────────────────────────────────
@@ -452,45 +439,40 @@ pub struct PresignUploadResponse {
 ///
 /// Returns a presigned PUT URL so large files (videos) can be uploaded directly
 /// from the browser to S3 without passing through the API server.
+#[vil_handler(shm)]
 pub async fn presign_upload_handler(
     AuthedRequest(ctx): AuthedRequest,
-    Extension(state): Extension<Arc<AppState>>,
-    Json(body): Json<PresignUploadRequest>,
-) -> impl IntoResponse {
-    let s3 = match require_s3(&state).await {
-        Ok(c) => c,
-        Err(r) => return r,
-    };
+    ctx: ServiceCtx,
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<PresignUploadResponse>> {
+    let state = ctx.state::<Arc<AppState>>();
+    let s3 = require_s3(state).await?;
+    let body: PresignUploadRequest = body.json()?;
 
     if !validate_bucket(&body.bucket) {
-        return err_response(StatusCode::BAD_REQUEST, "Nama bucket tidak valid");
+        return Err(VilError::bad_request("Nama bucket tidak valid"));
     }
 
-    let clean_path = match sanitize_path(&body.path) {
-        Some(p) => p,
-        None => return err_response(StatusCode::BAD_REQUEST, "Path tidak valid"),
-    };
+    let clean_path = sanitize_path(&body.path)
+        .ok_or_else(|| VilError::bad_request("Path tidak valid"))?;
 
     let expires_in = body.expires_in.unwrap_or(3_600).min(604_800);
     let s3_key = build_s3_key(&body.bucket, &ctx.tenant_id, &clean_path);
-    let public_url = s3.public_url(&s3_key);
+    let public_url = public_url_for(state, &s3_key);
 
-    match s3.presigned_put_url(&s3_key, expires_in).await {
-        Ok(upload_url) => (
-            StatusCode::OK,
-            Json(PresignUploadResponse {
-                upload_url,
-                public_url,
-                key: s3_key,
-                expires_in,
-            }),
-        )
-            .into_response(),
-        Err(e) => err_response(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            &format!("Gagal membuat presigned upload URL: {}", e),
-        ),
-    }
+    let upload_url = s3
+        .presign_put(&s3_key, Duration::from_secs(expires_in))
+        .await
+        .map_err(|e| {
+            VilError::internal(&format!("Gagal membuat presigned upload URL: {}", e))
+        })?;
+
+    Ok(VilResponse::ok(PresignUploadResponse {
+        upload_url,
+        public_url,
+        key: s3_key,
+        expires_in,
+    }))
 }
 
 // ── List handler ──────────────────────────────────────────────────────────────
@@ -504,30 +486,21 @@ pub struct ListParams {
     pub limit: Option<i32>,
 }
 
-/// Single item in the list response.
-#[derive(Serialize)]
-pub struct ListItem {
-    pub name: String,
-    pub size: i64,
-    pub last_modified: Option<String>,
-}
-
 /// `GET /api/v1/storage/list/{bucket}`
 ///
 /// Lists objects visible to the authenticated tenant within the bucket.
+/// `vil_conn_s3::S3Connector::list` returns `Vec<String>` (keys only).
 pub async fn list_handler(
     AuthedRequest(ctx): AuthedRequest,
-    Extension(state): Extension<Arc<AppState>>,
+    vil_ctx: ServiceCtx,
     Path(bucket): Path<String>,
     Query(params): Query<ListParams>,
-) -> impl IntoResponse {
-    let s3 = match require_s3(&state).await {
-        Ok(c) => c,
-        Err(r) => return r,
-    };
+) -> HandlerResult<VilResponse<serde_json::Value>> {
+    let state = vil_ctx.state::<Arc<AppState>>();
+    let s3 = require_s3(state).await?;
 
     if !validate_bucket(&bucket) {
-        return err_response(StatusCode::BAD_REQUEST, "Nama bucket tidak valid");
+        return Err(VilError::bad_request("Nama bucket não válido"));
     }
 
     // Base prefix always scopes to tenant.
@@ -535,31 +508,20 @@ pub async fn list_handler(
     let full_prefix = match &params.prefix {
         Some(p) => match sanitize_path(p) {
             Some(clean) => format!("{}{}", base_prefix, clean),
-            None => return err_response(StatusCode::BAD_REQUEST, "Prefix tidak valid"),
+            None => return Err(VilError::bad_request("Prefix tidak valid")),
         },
         None => base_prefix,
     };
 
-    let limit = params.limit.unwrap_or(100).clamp(1, 1_000) as u32;
+    let _limit = params.limit.unwrap_or(100).clamp(1, 1_000) as u32;
 
-    match s3.list_objects(&full_prefix, limit).await {
-        Ok(objects) => {
-            let items: Vec<ListItem> = objects
-                .into_iter()
-                .map(|obj| ListItem {
-                    name: obj.key,
-                    size: obj.size,
-                    last_modified: obj.last_modified.map(|dt| dt.to_rfc3339()),
-                })
-                .collect();
-            let count = items.len();
-            (StatusCode::OK, Json(serde_json::json!({ "items": items, "count": count }))).into_response()
-        }
-        Err(e) => err_response(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            &format!("Gagal membuat daftar file: {}", e),
-        ),
-    }
+    let keys: Vec<String> = s3
+        .list(&full_prefix)
+        .await
+        .map_err(|e| VilError::internal(&format!("Gagal membuat daftar file: {}", e)))?;
+
+    let count = keys.len();
+    Ok(VilResponse::ok(serde_json::json!({ "items": keys, "count": count })))
 }
 
 // ── Migration status handler ──────────────────────────────────────────────────
@@ -584,9 +546,10 @@ pub struct MigrationStatusResponse {
 /// Returns the current storage migration state read from `storage_file_migrations`.
 /// Requires any authenticated user.
 pub async fn migration_status_handler(
-    AuthedRequest(_ctx): AuthedRequest,
-    Extension(state): Extension<Arc<AppState>>,
-) -> impl IntoResponse {
+    AuthedRequest(_auth): AuthedRequest,
+    vil_ctx: ServiceCtx,
+) -> HandlerResult<VilResponse<MigrationStatusResponse>> {
+    let state = vil_ctx.state::<Arc<AppState>>();
     let storage_configured = state.s3_endpoint.is_some();
     let bucket = if storage_configured {
         Some(state.s3_bucket.clone())
@@ -595,26 +558,22 @@ pub async fn migration_status_handler(
     };
 
     if !storage_configured {
-        return (
-            StatusCode::OK,
-            Json(MigrationStatusResponse {
-                storage_configured: false,
-                bucket: None,
-                total_files: 0,
-                pending: 0,
-                migrating: 0,
-                completed: 0,
-                failed: 0,
-                skipped: 0,
-                completion_pct: 0.0,
-                status: "tidak dikonfigurasi".to_string(),
-                note: Some(
-                    "Set S3_ENDPOINT dan S3_ACCESS_KEY_ID untuk mengaktifkan penyimpanan S3"
-                        .to_string(),
-                ),
-            }),
-        )
-            .into_response();
+        return Ok(VilResponse::ok(MigrationStatusResponse {
+            storage_configured: false,
+            bucket: None,
+            total_files: 0,
+            pending: 0,
+            migrating: 0,
+            completed: 0,
+            failed: 0,
+            skipped: 0,
+            completion_pct: 0.0,
+            status: "tidak dikonfigurasi".to_string(),
+            note: Some(
+                "Set S3_ENDPOINT dan S3_ACCESS_KEY_ID untuk mengaktifkan penyimpanan S3"
+                    .to_string(),
+            ),
+        }));
     }
 
     // Query aggregate counts from storage_file_migrations
@@ -669,21 +628,17 @@ pub async fn migration_status_handler(
         None
     };
 
-    (
-        StatusCode::OK,
-        Json(MigrationStatusResponse {
-            storage_configured,
-            bucket,
-            total_files: total,
-            pending,
-            migrating,
-            completed,
-            failed,
-            skipped,
-            completion_pct: (completion_pct * 10.0).round() / 10.0, // 1 decimal
-            status,
-            note,
-        }),
-    )
-        .into_response()
+    Ok(VilResponse::ok(MigrationStatusResponse {
+        storage_configured,
+        bucket,
+        total_files: total,
+        pending,
+        migrating,
+        completed,
+        failed,
+        skipped,
+        completion_pct: (completion_pct * 10.0).round() / 10.0, // 1 decimal
+        status,
+        note,
+    }))
 }

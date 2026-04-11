@@ -9,78 +9,19 @@
 ///
 /// Rate limit: 50 calls/hr per user (checked via `ai_quota_usage` table).
 /// CircuitBreaker: checked before every Groq call.
-use axum::{response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use vil_server::prelude::{SseCollect, SseDialect};
+use vil_server::prelude::{HandlerResult, SseCollect, SseDialect, VilError, VilResponse};
 
 use crate::ai::config::{
     groq_circuit_breaker, AI_RATE_LIMIT_PER_HOUR, GROQ_API_URL, GROQ_MODEL, MAX_CONTEXT_CHARS,
     MAX_SESSION_MESSAGES, TUTOR_HISTORY_WINDOW,
 };
 use crate::ai::types::{GroqMessage, TutorChatResponse};
-
-use axum::http::StatusCode;
-use axum::response::Response;
-
-// ─── Error ───────────────────────────────────────────────────────────────────
-
-#[derive(Debug)]
-pub enum TutorError {
-    NotFound,
-    BadRequest(String),
-    RateLimited,
-    Timeout,
-    CircuitOpen,
-    Internal(String),
-}
-
-#[derive(Serialize)]
-struct ErrorBody {
-    error: String,
-}
-
-impl IntoResponse for TutorError {
-    fn into_response(self) -> Response {
-        let (status, msg) = match self {
-            TutorError::NotFound => (StatusCode::NOT_FOUND, "Pelajaran tidak ditemukan".to_string()),
-            TutorError::BadRequest(m) => (StatusCode::BAD_REQUEST, m),
-            TutorError::RateLimited => (
-                StatusCode::TOO_MANY_REQUESTS,
-                "Batas penggunaan AI tercapai, coba lagi nanti".to_string(),
-            ),
-            TutorError::Timeout => (
-                StatusCode::GATEWAY_TIMEOUT,
-                "Layanan AI timeout, coba lagi".to_string(),
-            ),
-            TutorError::CircuitOpen => (
-                StatusCode::SERVICE_UNAVAILABLE,
-                "Layanan AI sedang tidak tersedia, coba lagi nanti".to_string(),
-            ),
-            TutorError::Internal(m) => {
-                tracing::error!("tutor_internal_error: {}", m);
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Terjadi kesalahan server internal".to_string(),
-                )
-            }
-        };
-        (status, Json(ErrorBody { error: msg })).into_response()
-    }
-}
-
-impl From<sqlx::Error> for TutorError {
-    fn from(e: sqlx::Error) -> Self {
-        match e {
-            sqlx::Error::RowNotFound => TutorError::NotFound,
-            _ => TutorError::Internal(e.to_string()),
-        }
-    }
-}
 
 // ─── DB structs ───────────────────────────────────────────────────────────────
 
@@ -105,7 +46,7 @@ struct StudentProgress {
 
 // ─── Rate limit ───────────────────────────────────────────────────────────────
 
-async fn check_rate_limit(db: &PgPool, user_id: Uuid, tenant_id: Uuid) -> Result<(), TutorError> {
+async fn check_rate_limit(db: &PgPool, user_id: Uuid, tenant_id: Uuid) -> Result<(), VilError> {
     let count: i64 = sqlx::query_scalar(
         r#"SELECT COUNT(*)
            FROM public.ai_quota_usage
@@ -120,7 +61,9 @@ async fn check_rate_limit(db: &PgPool, user_id: Uuid, tenant_id: Uuid) -> Result
     .unwrap_or(0);
 
     if count >= AI_RATE_LIMIT_PER_HOUR {
-        return Err(TutorError::RateLimited);
+        return Err(VilError::rate_limited(
+            "Batas penggunaan AI tercapai, coba lagi nanti",
+        ));
     }
     Ok(())
 }
@@ -146,7 +89,7 @@ async fn get_or_create_session(
     lesson_id: Uuid,
     tenant_id: Uuid,
     session_id: Option<Uuid>,
-) -> Result<TutorSession, TutorError> {
+) -> Result<TutorSession, VilError> {
     // 1. Try to load the requested session
     if let Some(sid) = session_id {
         let row = sqlx::query!(
@@ -160,7 +103,7 @@ async fn get_or_create_session(
         )
         .fetch_optional(db)
         .await
-        .map_err(|e| TutorError::Internal(e.to_string()))?;
+        .map_err(|e| VilError::internal(e.to_string()))?;
 
         if let Some(r) = row {
             return Ok(TutorSession {
@@ -184,7 +127,7 @@ async fn get_or_create_session(
     )
     .fetch_optional(db)
     .await
-    .map_err(|e| TutorError::Internal(e.to_string()))?;
+    .map_err(|e| VilError::internal(e.to_string()))?;
 
     if let Some(r) = existing {
         return Ok(TutorSession {
@@ -207,7 +150,7 @@ async fn get_or_create_session(
     )
     .execute(db)
     .await
-    .map_err(|e| TutorError::Internal(format!("Failed to create tutor session: {e}")))?;
+    .map_err(|e| VilError::internal(format!("Failed to create tutor session: {e}")))?;
 
     Ok(TutorSession {
         id: new_id,
@@ -222,7 +165,7 @@ async fn load_lesson(
     db: &PgPool,
     lesson_id: Uuid,
     tenant_id: Uuid,
-) -> Result<LessonContext, TutorError> {
+) -> Result<LessonContext, VilError> {
     let row = sqlx::query!(
         r#"SELECT title, content
            FROM public.lessons
@@ -233,8 +176,8 @@ async fn load_lesson(
     )
     .fetch_optional(db)
     .await
-    .map_err(|e| TutorError::Internal(e.to_string()))?
-    .ok_or(TutorError::NotFound)?;
+    .map_err(|e| VilError::internal(e.to_string()))?
+    .ok_or_else(|| VilError::not_found("Pelajaran tidak ditemukan"))?;
 
     Ok(LessonContext {
         title: row.title,
@@ -274,20 +217,20 @@ async fn load_student_progress(
 
 // ─── Groq call ────────────────────────────────────────────────────────────────
 
-async fn call_groq_tutor(
-    messages: Vec<GroqMessage>,
-) -> Result<String, TutorError> {
+async fn call_groq_tutor(messages: Vec<GroqMessage>) -> Result<String, VilError> {
     let api_key = std::env::var("GROQ_API_KEY")
-        .map_err(|_| TutorError::Internal("GROQ_API_KEY tidak dikonfigurasi".to_string()))?;
+        .map_err(|_| VilError::internal("GROQ_API_KEY tidak dikonfigurasi"))?;
 
     let cb = groq_circuit_breaker();
     if !cb.is_closed() {
-        return Err(TutorError::CircuitOpen);
+        return Err(VilError::service_unavailable(
+            "Layanan AI sedang tidak tersedia, coba lagi nanti",
+        ));
     }
 
     // Serialise GroqMessage vec to serde_json::Value for SseCollect body.
     let messages_json = serde_json::to_value(&messages)
-        .map_err(|e| TutorError::Internal(format!("Failed to serialise messages: {e}")))?;
+        .map_err(|e| VilError::internal(format!("Failed to serialise messages: {e}")))?;
 
     let result = SseCollect::post_to(GROQ_API_URL)
         .dialect(SseDialect::openai())
@@ -309,13 +252,11 @@ async fn call_groq_tutor(
         }
         Ok(_) => {
             cb.record_failure();
-            Err(TutorError::Internal(
-                "Groq returned empty response".to_string(),
-            ))
+            Err(VilError::internal("Groq returned empty response"))
         }
         Err(e) => {
             cb.record_failure();
-            Err(TutorError::Internal(format!("AI tutor gagal: {e}")))
+            Err(VilError::internal(format!("AI tutor gagal: {e}")))
         }
     }
 }
@@ -332,7 +273,7 @@ async fn persist_session_messages(
     current_count: i32,
     user_msg: &str,
     assistant_reply: &str,
-) -> Result<i32, TutorError> {
+) -> Result<i32, VilError> {
     let mut msgs: Vec<Value> = match current_messages {
         Value::Array(a) => a,
         _ => vec![],
@@ -363,7 +304,7 @@ async fn persist_session_messages(
     )
     .execute(db)
     .await
-    .map_err(|e| TutorError::Internal(format!("Failed to update session: {e}")))?;
+    .map_err(|e| VilError::internal(format!("Failed to update session: {e}")))?;
 
     Ok(new_count)
 }
@@ -381,14 +322,14 @@ pub async fn tutor_chat(
     lesson_id: Uuid,
     message: String,
     session_id: Option<Uuid>,
-) -> Result<impl IntoResponse, TutorError> {
+) -> HandlerResult<VilResponse<TutorChatResponse>> {
     // 1. Validate input
     if message.trim().is_empty() {
-        return Err(TutorError::BadRequest("Pesan tidak boleh kosong".to_string()));
+        return Err(VilError::bad_request("Pesan tidak boleh kosong"));
     }
     if message.len() > 2_000 {
-        return Err(TutorError::BadRequest(
-            "Pesan melebihi batas 2000 karakter".to_string(),
+        return Err(VilError::bad_request(
+            "Pesan melebihi batas 2000 karakter",
         ));
     }
 
@@ -411,9 +352,7 @@ pub async fn tutor_chat(
             Value::Array(a) => a.clone(),
             _ => vec![],
         };
-        let window_start = all_msgs
-            .len()
-            .saturating_sub(TUTOR_HISTORY_WINDOW);
+        let window_start = all_msgs.len().saturating_sub(TUTOR_HISTORY_WINDOW);
         all_msgs[window_start..]
             .iter()
             .filter_map(|m| {
@@ -494,7 +433,7 @@ Panduan respons:
     // 11. Record usage (best-effort)
     record_usage(&ctx.db, ctx.user_id, ctx.tenant_id).await;
 
-    Ok(Json(TutorChatResponse {
+    Ok(VilResponse::ok(TutorChatResponse {
         reply,
         session_id: session.id,
         message_count: new_count,

@@ -41,7 +41,7 @@ use std::time::Duration;
 use axum::{
     extract::{
         ws::{Message as AxumWsMessage, WebSocket, WebSocketUpgrade},
-        Extension, Query,
+        Query,
     },
     response::IntoResponse,
 };
@@ -50,7 +50,7 @@ use serde::Deserialize;
 use tokio::sync::mpsc;
 use tokio::task::JoinHandle;
 use tokio::time::interval;
-use vil_server::prelude::WsHub;
+use vil_server::prelude::*;
 
 use edusync_auth::verify_access_token;
 
@@ -120,14 +120,15 @@ enum ClientMessage {
 ///     .prefix("/ws")
 ///     .endpoint(Method::GET, "", get(ws_handler))
 ///     .extension(Arc::clone(&state_arc))
-///     .extension(Arc::clone(&ws_hub));
+///     .extension(ws_hub.clone());
 /// ```
 pub async fn ws_handler(
     ws: WebSocketUpgrade,
     Query(params): Query<WsConnectQuery>,
-    Extension(state): Extension<Arc<AppState>>,
-    Extension(hub): Extension<Arc<WsHub>>,
+    vil_ctx: ServiceCtx,
 ) -> impl IntoResponse {
+    let state = vil_ctx.state::<Arc<AppState>>().clone();
+    let hub = vil_ctx.state::<WsHub>().clone();
     ws.on_upgrade(move |socket| handle_socket(socket, state, hub, params.token))
 }
 
@@ -136,7 +137,7 @@ pub async fn ws_handler(
 async fn handle_socket(
     socket: WebSocket,
     state: Arc<AppState>,
-    hub: Arc<WsHub>,
+    hub: WsHub,
     token: Option<String>,
 ) {
     // ── 1. Optional JWT authentication ────────────────────────────────────────

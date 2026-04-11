@@ -1,8 +1,9 @@
-use axum::{extract::Extension, http::HeaderMap, Json};
+use std::sync::Arc;
+use axum::http::HeaderMap;
 use edusync_auth::{verify_access_token, AuthError};
 use serde::Serialize;
-use std::sync::Arc;
 use uuid::Uuid;
+use vil_server::prelude::{ServiceCtx, VilResponse, VilError, HandlerResult};
 
 use crate::{observability::request_id_from_headers, state::AppState};
 
@@ -37,18 +38,21 @@ pub struct BootstrapResponse {
 }
 
 pub async fn bootstrap_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     headers: HeaderMap,
-) -> Result<Json<BootstrapResponse>, AuthError> {
+) -> HandlerResult<VilResponse<BootstrapResponse>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
+
     let request_id = request_id_from_headers(&headers);
     let token = headers
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .ok_or(AuthError::InvalidToken)?;
+        .ok_or_else(|| VilError::from(AuthError::InvalidToken))?;
 
-    let claims = verify_access_token(token, &state.jwt_secret)?;
-    let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken)?;
+    let claims = verify_access_token(token, &state.jwt_secret)
+        .map_err(VilError::from)?;
+    let user_id: Uuid = claims.sub.parse().map_err(|_| VilError::from(AuthError::InvalidToken))?;
     tracing::info!(
         target: "edusync_api_server::auth",
         request_id = %request_id,
@@ -70,8 +74,9 @@ pub async fn bootstrap_handler(
         user_id
     )
     .fetch_optional(&state.db)
-    .await?
-    .ok_or(AuthError::UserNotFound)?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
+    .ok_or_else(|| VilError::from(AuthError::UserNotFound))?;
 
     let requires_email_verification = row.email_confirmed_at.is_none();
 
@@ -86,7 +91,8 @@ pub async fn bootstrap_handler(
         user_id
     )
     .fetch_all(&state.db)
-    .await?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     let memberships: Vec<BootstrapMembership> = memberships_rows
         .into_iter()
@@ -109,7 +115,7 @@ pub async fn bootstrap_handler(
     let first_name = if row.first_name.is_empty() { None } else { Some(row.first_name) };
     let last_name  = if row.last_name.is_empty()  { None } else { Some(row.last_name) };
 
-    Ok(Json(BootstrapResponse {
+    Ok(VilResponse::ok(BootstrapResponse {
         profile: BootstrapProfile {
             id: row.id,
             email: row.email,

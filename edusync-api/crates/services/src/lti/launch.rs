@@ -31,29 +31,15 @@ use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
+use vil_server::prelude::VilError;
 
 use crate::lti::types::LtiLaunchClaims;
 
 // ─── LTI claim URIs ───────────────────────────────────────────────────────────
 
-const LTI_CLAIM_DEPLOYMENT_ID: &str =
-    "https://purl.imsglobal.org/spec/lti/claim/deployment_id";
+const LTI_CLAIM_DEPLOYMENT_ID: &str = "https://purl.imsglobal.org/spec/lti/claim/deployment_id";
 
-// ─── Error ───────────────────────────────────────────────────────────────────
-
-#[derive(Debug)]
-pub enum LaunchError {
-    MissingToken,
-    InvalidState,
-    NonceExpiredOrInvalid,
-    JwksFetchFailed(String),
-    JwtVerifyFailed(String),
-    InvalidClaims(String),
-    UserProvisionFailed(String),
-    TokenIssueFailed(String),
-    DatabaseError(String),
-    ConfigError(String),
-}
+// ─── HTML error helper ────────────────────────────────────────────────────────
 
 fn error_html(title: &str, detail: &str, status: StatusCode) -> Response {
     let body = format!(
@@ -81,90 +67,6 @@ fn html_escape(s: &str) -> String {
         .replace('"', "&quot;")
 }
 
-impl IntoResponse for LaunchError {
-    fn into_response(self) -> Response {
-        match &self {
-            LaunchError::MissingToken => error_html(
-                "Token Tidak Ditemukan",
-                "Permintaan launch tidak menyertakan id_token yang valid.",
-                StatusCode::BAD_REQUEST,
-            ),
-            LaunchError::InvalidState => error_html(
-                "State Tidak Valid",
-                "Parameter state tidak ditemukan atau sudah kadaluwarsa.",
-                StatusCode::BAD_REQUEST,
-            ),
-            LaunchError::NonceExpiredOrInvalid => error_html(
-                "Nonce Tidak Valid",
-                "Nonce LTI sudah kadaluwarsa atau tidak ditemukan.",
-                StatusCode::BAD_REQUEST,
-            ),
-            LaunchError::JwksFetchFailed(m) => {
-                tracing::error!("lti_jwks_fetch: {m}");
-                error_html(
-                    "Gagal Memuat Kunci Platform",
-                    "Tidak dapat memverifikasi tanda tangan platform.",
-                    StatusCode::BAD_GATEWAY,
-                )
-            }
-            LaunchError::JwtVerifyFailed(m) => {
-                tracing::warn!("lti_jwt_verify_failed: {m}");
-                error_html(
-                    "Token Tidak Valid",
-                    "Tanda tangan id_token tidak dapat diverifikasi.",
-                    StatusCode::UNAUTHORIZED,
-                )
-            }
-            LaunchError::InvalidClaims(m) => {
-                tracing::warn!("lti_invalid_claims: {m}");
-                error_html(
-                    "Klaim Token Tidak Valid",
-                    "id_token tidak memiliki klaim LTI yang diperlukan.",
-                    StatusCode::BAD_REQUEST,
-                )
-            }
-            LaunchError::UserProvisionFailed(m) => {
-                tracing::error!("lti_user_provision: {m}");
-                error_html(
-                    "Gagal Membuat Akun",
-                    "Tidak dapat membuat atau menemukan akun pengguna.",
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                )
-            }
-            LaunchError::TokenIssueFailed(m) => {
-                tracing::error!("lti_token_issue: {m}");
-                error_html(
-                    "Gagal Membuat Sesi",
-                    "Tidak dapat membuat token sesi EduSync.",
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                )
-            }
-            LaunchError::DatabaseError(m) => {
-                tracing::error!("lti_launch_db: {m}");
-                error_html(
-                    "Kesalahan Server",
-                    "Terjadi kesalahan pada database.",
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                )
-            }
-            LaunchError::ConfigError(m) => {
-                tracing::error!("lti_config: {m}");
-                error_html(
-                    "Kesalahan Konfigurasi",
-                    "Server tidak dikonfigurasi dengan benar.",
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                )
-            }
-        }
-    }
-}
-
-impl From<sqlx::Error> for LaunchError {
-    fn from(e: sqlx::Error) -> Self {
-        LaunchError::DatabaseError(e.to_string())
-    }
-}
-
 // ─── Form body ────────────────────────────────────────────────────────────────
 
 /// Form-encoded body sent by the LTI platform.
@@ -177,9 +79,9 @@ pub struct LtiLaunchForm {
 // ─── JWT / JWKS helpers ───────────────────────────────────────────────────────
 
 /// Decode a JWT without signature verification to read the header.
-fn decode_jwt_header(token: &str) -> Result<jsonwebtoken::Header, LaunchError> {
+fn decode_jwt_header(token: &str) -> Result<jsonwebtoken::Header, VilError> {
     jsonwebtoken::decode_header(token)
-        .map_err(|e| LaunchError::JwtVerifyFailed(format!("Header decode: {e}")))
+        .map_err(|e| VilError::bad_request(format!("Header decode: {e}")))
 }
 
 /// Represents one JWK from the platform's JWKS response.
@@ -203,13 +105,13 @@ struct JwksBody {
 async fn fetch_platform_decoding_key(
     jwks_url: &str,
     kid: Option<&str>,
-) -> Result<DecodingKey, LaunchError> {
+) -> Result<DecodingKey, VilError> {
     let resp = reqwest::get(jwks_url)
         .await
-        .map_err(|e| LaunchError::JwksFetchFailed(format!("HTTP error: {e}")))?;
+        .map_err(|e| VilError::service_unavailable(format!("Gagal memuat kunci platform: {e}")))?;
 
     if !resp.status().is_success() {
-        return Err(LaunchError::JwksFetchFailed(format!(
+        return Err(VilError::service_unavailable(format!(
             "JWKS HTTP {}: {}",
             resp.status().as_u16(),
             jwks_url
@@ -219,10 +121,10 @@ async fn fetch_platform_decoding_key(
     let jwks: JwksBody = resp
         .json()
         .await
-        .map_err(|e| LaunchError::JwksFetchFailed(format!("JWKS parse: {e}")))?;
+        .map_err(|e| VilError::internal(format!("JWKS parse: {e}")))?;
 
     if jwks.keys.is_empty() {
-        return Err(LaunchError::JwksFetchFailed("JWKS is empty".to_string()));
+        return Err(VilError::internal("JWKS is empty".to_string()));
     }
 
     // Find matching key: prefer kid match, fall back to first RSA key
@@ -233,21 +135,19 @@ async fn fetch_platform_decoding_key(
     } else {
         jwks.keys.iter().find(|key| key.kty == "RSA")
     }
-    .ok_or_else(|| {
-        LaunchError::JwksFetchFailed(format!("No RSA key found for kid={:?}", kid))
-    })?;
+    .ok_or_else(|| VilError::internal(format!("No RSA key found for kid={:?}", kid)))?;
 
     let n = key
         .n
         .as_deref()
-        .ok_or_else(|| LaunchError::JwksFetchFailed("JWK missing 'n'".to_string()))?;
+        .ok_or_else(|| VilError::internal("JWK missing 'n'".to_string()))?;
     let e = key
         .e
         .as_deref()
-        .ok_or_else(|| LaunchError::JwksFetchFailed("JWK missing 'e'".to_string()))?;
+        .ok_or_else(|| VilError::internal("JWK missing 'e'".to_string()))?;
 
     DecodingKey::from_rsa_components(n, e)
-        .map_err(|e| LaunchError::JwksFetchFailed(format!("DecodingKey build: {e}")))
+        .map_err(|e| VilError::internal(format!("DecodingKey build: {e}")))
 }
 
 // ─── Nonce validation ─────────────────────────────────────────────────────────
@@ -259,12 +159,8 @@ struct NonceRow {
 }
 
 /// Atomically consume (delete) the nonce and return its data.
-/// Returns `NonceExpiredOrInvalid` if not found or expired.
-async fn consume_nonce(
-    db: &PgPool,
-    nonce: &str,
-    state: &str,
-) -> Result<NonceRow, LaunchError> {
+/// Returns bad_request if not found or expired.
+async fn consume_nonce(db: &PgPool, nonce: &str, state: &str) -> Result<NonceRow, VilError> {
     // Delete and return atomically
     let row = sqlx::query!(
         r#"DELETE FROM public.lti_nonces
@@ -275,8 +171,8 @@ async fn consume_nonce(
     )
     .fetch_optional(db)
     .await
-    .map_err(|e| LaunchError::DatabaseError(e.to_string()))?
-    .ok_or(LaunchError::NonceExpiredOrInvalid)?;
+    .map_err(|e| VilError::internal(e.to_string()))?
+    .ok_or_else(|| VilError::bad_request("Nonce LTI sudah kadaluwarsa atau tidak ditemukan"))?;
 
     Ok(NonceRow {
         platform_id: row.platform_id,
@@ -295,7 +191,7 @@ struct PlatformData {
     jwks_url: String,
 }
 
-async fn load_platform(db: &PgPool, platform_id: Uuid) -> Result<PlatformData, LaunchError> {
+async fn load_platform(db: &PgPool, platform_id: Uuid) -> Result<PlatformData, VilError> {
     sqlx::query!(
         r#"SELECT id, tenant_id, client_id, deployment_id, key_set_url
            FROM public.lti_platform_registrations
@@ -305,7 +201,7 @@ async fn load_platform(db: &PgPool, platform_id: Uuid) -> Result<PlatformData, L
     )
     .fetch_optional(db)
     .await
-    .map_err(|e| LaunchError::DatabaseError(e.to_string()))?
+    .map_err(|e| VilError::internal(e.to_string()))?
     .map(|r| PlatformData {
         id: r.id,
         tenant_id: r.tenant_id,
@@ -313,7 +209,7 @@ async fn load_platform(db: &PgPool, platform_id: Uuid) -> Result<PlatformData, L
         deployment_id: r.deployment_id,
         jwks_url: r.key_set_url,
     })
-    .ok_or(LaunchError::InvalidState)
+    .ok_or_else(|| VilError::bad_request("State tidak valid"))
 }
 
 // ─── User provisioning ────────────────────────────────────────────────────────
@@ -339,7 +235,13 @@ fn guest_email(platform_id: Uuid, sub: &str) -> String {
     // Sanitize sub to be email-safe (keep only alphanumeric + safe chars)
     let safe_sub: String = sub
         .chars()
-        .map(|c| if c.is_alphanumeric() || c == '-' || c == '_' { c } else { '-' })
+        .map(|c| {
+            if c.is_alphanumeric() || c == '-' || c == '_' {
+                c
+            } else {
+                '-'
+            }
+        })
         .take(40)
         .collect();
     format!("lti-{short_id}-{safe_sub}@lti.edusync.internal")
@@ -361,7 +263,7 @@ async fn provision_user(
     email: Option<&str>,
     display_name: Option<&str>,
     lti_role: &str,
-) -> Result<ProvisionedUser, LaunchError> {
+) -> Result<ProvisionedUser, VilError> {
     // 1. Check existing link
     let existing_link = sqlx::query!(
         r#"SELECT user_id FROM public.lti_user_links
@@ -373,7 +275,7 @@ async fn provision_user(
     )
     .fetch_optional(db)
     .await
-    .map_err(|e| LaunchError::DatabaseError(e.to_string()))?;
+    .map_err(|e| VilError::internal(e.to_string()))?;
 
     let (user_id, user_email) = if let Some(link) = existing_link {
         // Existing user — get their email
@@ -383,8 +285,8 @@ async fn provision_user(
         )
         .fetch_optional(db)
         .await
-        .map_err(|e| LaunchError::DatabaseError(e.to_string()))?
-        .ok_or_else(|| LaunchError::UserProvisionFailed("Linked user profile missing".to_string()))?;
+        .map_err(|e| VilError::internal(e.to_string()))?
+        .ok_or_else(|| VilError::internal("Profil pengguna LTI tidak ditemukan".to_string()))?;
 
         // Update last_seen
         let _ = sqlx::query(
@@ -423,7 +325,7 @@ async fn provision_user(
         .bind(tenant_id)
         .execute(db)
         .await
-        .map_err(|e| LaunchError::UserProvisionFailed(format!("Profile upsert: {e}")))?;
+        .map_err(|e| VilError::internal(format!("Profile upsert: {e}")))?;
 
         // Fetch the actual ID (may differ on conflict)
         let profile_row = sqlx::query!(
@@ -434,8 +336,8 @@ async fn provision_user(
         )
         .fetch_optional(db)
         .await
-        .map_err(|e| LaunchError::DatabaseError(e.to_string()))?
-        .ok_or_else(|| LaunchError::UserProvisionFailed("Profile not found after upsert".to_string()))?;
+        .map_err(|e| VilError::internal(e.to_string()))?
+        .ok_or_else(|| VilError::internal("Profil tidak ditemukan setelah upsert".to_string()))?;
 
         let actual_user_id = profile_row.id;
 
@@ -450,7 +352,7 @@ async fn provision_user(
         .bind(lti_role)
         .execute(db)
         .await
-        .map_err(|e| LaunchError::UserProvisionFailed(format!("Role insert: {e}")))?;
+        .map_err(|e| VilError::internal(format!("Role insert: {e}")))?;
 
         // Insert lti_user_links
         sqlx::query(
@@ -467,7 +369,7 @@ async fn provision_user(
         .bind(tenant_id)
         .execute(db)
         .await
-        .map_err(|e| LaunchError::UserProvisionFailed(format!("LTI link insert: {e}")))?;
+        .map_err(|e| VilError::internal(format!("LTI link insert: {e}")))?;
 
         (actual_user_id, resolved_email)
     };
@@ -491,19 +393,25 @@ pub struct LaunchContext {
 pub async fn handle_launch(
     ctx: LaunchContext,
     form: LtiLaunchForm,
-) -> Result<impl IntoResponse, LaunchError> {
+) -> Result<impl IntoResponse, VilError> {
     // 1. Extract id_token + state
     let id_token = form
         .id_token
         .as_deref()
         .filter(|t| !t.is_empty())
-        .ok_or(LaunchError::MissingToken)?;
+        .ok_or_else(|| {
+            VilError::bad_request(
+                "Token tidak ditemukan: permintaan launch tidak menyertakan id_token yang valid",
+            )
+        })?;
 
     let state = form
         .state
         .as_deref()
         .filter(|s| !s.is_empty())
-        .ok_or(LaunchError::InvalidState)?;
+        .ok_or_else(|| {
+            VilError::bad_request("Parameter state tidak ditemukan atau sudah kadaluwarsa")
+        })?;
 
     // 2. Decode JWT header (no verification yet) to get `kid`
     let jwt_header = decode_jwt_header(id_token)?;
@@ -513,7 +421,7 @@ pub async fn handle_launch(
     let unverified: serde_json::Value = {
         let parts: Vec<&str> = id_token.split('.').collect();
         if parts.len() != 3 {
-            return Err(LaunchError::JwtVerifyFailed("Malformed JWT".to_string()));
+            return Err(VilError::bad_request("Token tidak valid: format JWT salah"));
         }
         let payload_b64 = parts[1];
         // Add padding
@@ -523,10 +431,10 @@ pub async fn handle_launch(
             _ => payload_b64.to_string(),
         };
         let url_safe = padded.replace('-', "+").replace('_', "/");
-        let bytes =
-            base64_decode_std(&url_safe).map_err(|e| LaunchError::JwtVerifyFailed(format!("Payload decode: {e}")))?;
+        let bytes = base64_decode_std(&url_safe)
+            .map_err(|e| VilError::bad_request(format!("Payload decode: {e}")))?;
         serde_json::from_slice(&bytes)
-            .map_err(|e| LaunchError::JwtVerifyFailed(format!("Payload JSON: {e}")))?
+            .map_err(|e| VilError::bad_request(format!("Payload JSON: {e}")))?
     };
 
     let nonce_in_token = unverified
@@ -559,8 +467,13 @@ pub async fn handle_launch(
     // Do not validate iss here — done manually below against the DB record.
     sig_validation.validate_iss = false;
 
-    let token_data = decode::<LtiLaunchClaims>(id_token, &decoding_key, &sig_validation)
-        .map_err(|e| LaunchError::JwtVerifyFailed(format!("JWT decode: {e}")))?;
+    let token_data =
+        decode::<LtiLaunchClaims>(id_token, &decoding_key, &sig_validation).map_err(|e| {
+            tracing::warn!("lti_jwt_verify_failed: {e}");
+            VilError::unauthorized(format!(
+                "Tanda tangan id_token tidak dapat diverifikasi: {e}"
+            ))
+        })?;
 
     let claims = token_data.claims;
 
@@ -572,8 +485,8 @@ pub async fn handle_launch(
     .bind(platform.id)
     .fetch_optional(&*ctx.db)
     .await
-    .map_err(|e| LaunchError::DatabaseError(e.to_string()))?
-    .ok_or_else(|| LaunchError::InvalidState)?;
+    .map_err(|e| VilError::internal(e.to_string()))?
+    .ok_or_else(|| VilError::bad_request("State tidak valid"))?;
 
     if claims.iss != platform_issuer {
         tracing::warn!(
@@ -581,20 +494,22 @@ pub async fn handle_launch(
             platform_iss = %platform_issuer,
             "lti_launch: iss mismatch"
         );
-        return Err(LaunchError::InvalidClaims(format!(
-            "iss mismatch: token={}, platform={}",
+        return Err(VilError::bad_request(format!(
+            "Klaim token tidak valid: iss mismatch: token={}, platform={}",
             claims.iss, platform_issuer
         )));
     }
     // nonce must match
     if claims.nonce.as_deref() != Some(nonce_in_token) {
-        return Err(LaunchError::InvalidClaims("nonce mismatch".to_string()));
+        return Err(VilError::bad_request(
+            "Klaim token tidak valid: nonce mismatch",
+        ));
     }
     // deployment_id must match
     if let Some(token_dep_id) = &claims.deployment_id {
         if *token_dep_id != platform.deployment_id {
-            return Err(LaunchError::InvalidClaims(format!(
-                "deployment_id mismatch: {} vs {}",
+            return Err(VilError::bad_request(format!(
+                "Klaim token tidak valid: deployment_id mismatch: {} vs {}",
                 token_dep_id, platform.deployment_id
             )));
         }
@@ -624,16 +539,13 @@ pub async fn handle_launch(
         false, // MFA not applicable for LTI guest
         &ctx.jwt_secret,
     )
-    .map_err(|e| LaunchError::TokenIssueFailed(e.to_string()))?;
+    .map_err(|e| VilError::internal(format!("Gagal membuat sesi: {e}")))?;
 
     // 12. Determine redirect target
-    let app_url = std::env::var("APP_URL")
-        .unwrap_or_else(|_| "https://app.edusync.dev".to_string());
+    let app_url =
+        std::env::var("APP_URL").unwrap_or_else(|_| "https://app.edusync.dev".to_string());
 
-    let redirect_path = nonce_row
-        .redirect_uri
-        .as_deref()
-        .unwrap_or("/#/dashboard");
+    let redirect_path = nonce_row.redirect_uri.as_deref().unwrap_or("/#/dashboard");
 
     // Build final redirect: APP_URL/#/lti-launch?token=<jwt>&redirect=<path>
     let redirect_url = format!(
@@ -651,10 +563,7 @@ pub async fn handle_launch(
         "LTI launch successful"
     );
 
-    Ok((
-        StatusCode::FOUND,
-        [(header::LOCATION, redirect_url)],
-    ))
+    Ok((StatusCode::FOUND, [(header::LOCATION, redirect_url)]))
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

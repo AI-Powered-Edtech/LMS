@@ -1,9 +1,8 @@
 // Google OAuth PKCE — Phase 1B stub
 // Full implementation requires GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET env vars
-use axum::{extract::{Extension, Query}, http::StatusCode, response::Redirect};
+use axum::{extract::Query, http::StatusCode, response::Redirect};
 use serde::Deserialize;
-use std::sync::Arc;
-use crate::state::AppState;
+use vil_server::prelude::{ServiceCtx, HandlerResult};
 
 #[derive(Deserialize)]
 pub struct OAuthCallbackQuery {
@@ -13,7 +12,7 @@ pub struct OAuthCallbackQuery {
 }
 
 pub async fn oauth_google_init_handler(
-    Extension(_state): Extension<Arc<AppState>>,
+    _ctx: ServiceCtx,
 ) -> Result<Redirect, StatusCode> {
     let client_id = std::env::var("GOOGLE_CLIENT_ID")
         .unwrap_or_else(|_| "NOT_CONFIGURED".to_string());
@@ -38,7 +37,7 @@ pub async fn oauth_google_init_handler(
 }
 
 pub async fn oauth_google_callback_handler(
-    Extension(_state): Extension<Arc<AppState>>,
+    _ctx: ServiceCtx,
     Query(params): Query<OAuthCallbackQuery>,
 ) -> Result<Redirect, StatusCode> {
     if let Some(err) = params.error {

@@ -7,11 +7,16 @@ EduSync is a multi-tenant SaaS Learning Management System (LMS) for Indonesian s
 ## Tech Stack
 
 - React 19, Vite 6, TypeScript 5.8, Tailwind CSS v4
-- VIL Rust backend (PostgreSQL via sqlx + Auth + RLS)
-- React Router v7 (hash routing)
-- React Query v5 (server state)
-- Zustand v5 (local feature state — quiz player only)
-- Lucide React (icons), Framer Motion/`motion` (animations), Recharts (charts)
+- **VIL backend** (`vil_server = "0.2"`) — process-oriented Rust framework (https://github.com/OceanOS-id/VIL)
+  - Handlers: `#[vil_handler(shm)]` + `ServiceCtx` + `ShmSlice` + `HandlerResult<VilResponse<T>>`
+  - AI streaming: `SseCollect` + `SseDialect::openai()` (Groq API)
+  - Realtime: `WsHub` + `pg_notify` forwarding
+  - Storage: `vil_conn_s3::S3Connector` (MinIO dev / Cloudflare R2 prod)
+  - Cron: VIL `Scheduler` (.every(), .daily_at_utc())
+  - Observer: `/_vil/dashboard/` (live metrics, routes, SHM stats)
+- PostgreSQL 16 self-hosted Docker (`pgvector/pgvector:pg16`) + pgBouncer
+- React Router v7 (hash routing), React Query v5, Zustand v5
+- Lucide React, Framer Motion/`motion`, Recharts
 
 ## Key Conventions
 
@@ -158,6 +163,13 @@ See `COMPONENT_REGISTRY.md` for the complete registry and update procedures.
 Dev app: `http://localhost:5173` (after `pnpm dev`)
 
 ## Engineering Workflow
+
+Before implementing any backend feature:
+
+1. Use VIL Way: `#[vil_handler(shm)]`, `ServiceCtx`, `ShmSlice`, `VilResponse<T>`, `VilError`
+2. No custom error enums — use `VilError` factory methods directly (`VilError::bad_request/not_found/internal/...`)
+3. AI calls: `SseCollect::post_to(url).dialect(SseDialect::openai()).collect_text().await?`
+4. State access: `ctx.state::<Arc<AppState>>()` — never `Extension<Arc<T>>` in handlers
 
 Before implementing any feature:
 

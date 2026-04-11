@@ -12,8 +12,12 @@ LMS (Learning Management System) multi-tenant untuk sekolah Indonesia.
 
 **Backend**
 
-- Rust (Axum 0.7 via `vil_server`), sqlx 0.8, PostgreSQL 16
-- WebSocket native, JWT auth (HS256), S3-compatible storage (aws-sdk-s3)
+- VIL (Vastar Intermediate Language) — Rust process-oriented framework ([github.com/OceanOS-id/VIL](https://github.com/OceanOS-id/VIL))
+  - `vil_server = "0.2"` — built on Axum 0.7 + sqlx 0.8 + PostgreSQL 16
+  - ShmSlice zero-copy body extraction, ServiceCtx typed state, VilResponse SIMD JSON
+  - SseCollect for AI streaming (Groq/OpenAI dialect), WsHub for WebSocket broadcast
+  - VIL Scheduler for background jobs, vil_conn_s3 for S3 storage
+- WebSocket native (WsHub), JWT auth (HS256), S3-compatible storage (vil_conn_s3)
 - TOTP MFA, Argon2/bcrypt password hashing, rate limiting (governor)
 
 **Infrastructure**
@@ -36,13 +40,14 @@ pnpm install
 pnpm dev          # http://localhost:5173
 ```
 
-### Backend (dev)
+### Backend (VIL)
 
 ```bash
 cd edusync-api
-cp .env.example .env   # edit DATABASE_URL, JWT_SECRET, etc.
-docker compose up -d   # PostgreSQL + pgBouncer + MinIO + nginx
-cargo run              # http://localhost:8080
+cp .env.example .env        # edit DATABASE_URL, JWT_SECRET, etc.
+docker compose up -d        # PostgreSQL + pgBouncer + MinIO
+cargo run                   # http://localhost:8080
+# Observer dashboard: http://localhost:8080/_vil/dashboard/
 ```
 
 ## Project Structure
@@ -66,12 +71,12 @@ LMS/
 │   ├── hooks/              # Shared React hooks
 │   ├── components/         # Shared UI components
 │   └── pages/              # Thin route page entry points
-├── edusync-api/            # Rust VIL backend
+├── edusync-api/            # VIL Rust backend (vil_server = "0.2")
 │   ├── crates/
-│   │   ├── api-server/     # Axum server, route handlers, main.rs
+│   │   ├── api-server/     # VilApp entry, #[vil_handler(shm)] route handlers
 │   │   ├── services/       # Business logic services
 │   │   ├── auth/           # JWT + password hashing
-│   │   ├── middleware/      # AppError, RBAC, tenant, brute force
+│   │   ├── middleware/      # AuthedRequest (RBAC), tenant, brute force
 │   │   └── models/         # SQLx models & query types
 │   ├── migrations/         # SQL migration files (001–009)
 │   ├── schema/             # baseline.sql, init-db.sql

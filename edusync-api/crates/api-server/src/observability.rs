@@ -1,9 +1,10 @@
-use axum::{extract::Extension, http::HeaderMap, Json};
+use axum::http::HeaderMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
 use uuid::Uuid;
+use vil_server::prelude::*;
 
 use crate::extractors::AuthedRequest;
 use crate::state::AppState;
@@ -90,21 +91,26 @@ fn should_sample(request_id: &str, sample_rate: f64) -> bool {
 }
 
 pub async fn shadow_config_handler(
-    Extension(state): Extension<Arc<AppState>>,
-) -> Json<ShadowConfigResponse> {
-    Json(ShadowConfigResponse {
+    ctx: ServiceCtx,
+) -> VilResponse<ShadowConfigResponse> {
+    let state = ctx.state::<Arc<AppState>>();
+    VilResponse::ok(ShadowConfigResponse {
         enabled: state.shadow.enabled,
         divergence_sample_rate: state.shadow.divergence_sample_rate,
     })
 }
 
+#[vil_handler(shm)]
 pub async fn divergence_event_handler(
-    Extension(state): Extension<Arc<AppState>>,
-    AuthedRequest(ctx): AuthedRequest,
-    Json(mut event): Json<DivergenceEvent>,
-) -> Json<Value> {
+    AuthedRequest(req_ctx): AuthedRequest,
+    ctx: ServiceCtx,
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<Value>> {
+    let state = ctx.state::<Arc<AppState>>();
+    let mut event: DivergenceEvent = body.json()?;
+
     if !state.shadow.enabled {
-        return Json(Value::Null);
+        return Ok(VilResponse::ok(Value::Null));
     }
 
     if event.request_id.trim().is_empty() {
@@ -112,7 +118,7 @@ pub async fn divergence_event_handler(
     }
 
     if !should_sample(&event.request_id, state.shadow.divergence_sample_rate) {
-        return Json(Value::Null);
+        return Ok(VilResponse::ok(Value::Null));
     }
 
     if event.timestamp.is_none() {
@@ -120,9 +126,9 @@ pub async fn divergence_event_handler(
     }
 
     // Never trust actor identity supplied by the caller for audit events.
-    event.tenant_id = Some(ctx.tenant_id.to_string());
-    event.user_id = Some(ctx.user_id.to_string());
-    event.role = Some(ctx.role.clone());
+    event.tenant_id = Some(req_ctx.tenant_id.to_string());
+    event.user_id = Some(req_ctx.user_id.to_string());
+    event.role = Some(req_ctx.role.clone());
 
     match event.severity.as_str() {
         "error" => tracing::error!(
@@ -187,5 +193,5 @@ pub async fn divergence_event_handler(
         ),
     }
 
-    Json(Value::Null)
+    Ok(VilResponse::ok(Value::Null))
 }

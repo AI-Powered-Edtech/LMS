@@ -9,21 +9,17 @@
 /// Auth: teacher / admin only (via RbacGuard in api-server).
 /// Rate limit: shared with content-gen (20/hr, via `ai_generation_logs`).
 /// CircuitBreaker: checked before every Groq call.
-use axum::{response::IntoResponse, Json};
 use serde::Serialize;
 use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use vil_server::prelude::{SseCollect, SseDialect};
+use vil_server::prelude::{HandlerResult, SseCollect, SseDialect, VilError, VilResponse};
 
 use crate::ai::config::{
     groq_circuit_breaker, CONTENT_GEN_RATE_LIMIT_PER_HOUR, GROQ_API_URL, GROQ_MODEL,
 };
 use crate::ai::types::{GeneratedOption, GeneratedQuestion, GenerateQuizResponse};
-
-use axum::http::StatusCode;
-use axum::response::Response;
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -31,64 +27,13 @@ const MAX_CONTENT_CHARS: usize = 3_000;
 const DEFAULT_COUNT: u8 = 5;
 const MAX_COUNT: u8 = 20;
 
-// ─── Error ───────────────────────────────────────────────────────────────────
-
-#[derive(Debug)]
-pub enum QuizGenError {
-    NotFound,
-    BadRequest(String),
-    Forbidden,
-    RateLimited,
-    Timeout,
-    CircuitOpen,
-    Internal(String),
-}
-
-#[derive(Serialize)]
-struct ErrorBody {
-    error: String,
-}
-
-impl IntoResponse for QuizGenError {
-    fn into_response(self) -> Response {
-        let (status, msg) = match self {
-            QuizGenError::NotFound => (StatusCode::NOT_FOUND, "Pelajaran tidak ditemukan".to_string()),
-            QuizGenError::BadRequest(m) => (StatusCode::BAD_REQUEST, m),
-            QuizGenError::Forbidden => (
-                StatusCode::FORBIDDEN,
-                "Akses ditolak".to_string(),
-            ),
-            QuizGenError::RateLimited => (
-                StatusCode::TOO_MANY_REQUESTS,
-                "Batas pembuatan kuis AI tercapai (20/jam), coba lagi nanti".to_string(),
-            ),
-            QuizGenError::Timeout => (
-                StatusCode::GATEWAY_TIMEOUT,
-                "Layanan AI timeout, coba lagi".to_string(),
-            ),
-            QuizGenError::CircuitOpen => (
-                StatusCode::SERVICE_UNAVAILABLE,
-                "Layanan AI sedang tidak tersedia, coba lagi nanti".to_string(),
-            ),
-            QuizGenError::Internal(m) => {
-                tracing::error!("quiz_gen_internal: {}", m);
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Terjadi kesalahan server internal".to_string(),
-                )
-            }
-        };
-        (status, Json(ErrorBody { error: msg })).into_response()
-    }
-}
-
 // ─── Rate limit ───────────────────────────────────────────────────────────────
 
 async fn check_rate_limit(
     db: &PgPool,
     user_id: Uuid,
     tenant_id: Uuid,
-) -> Result<(), QuizGenError> {
+) -> Result<(), VilError> {
     let count: i64 = sqlx::query_scalar(
         r#"SELECT COUNT(*)
            FROM public.ai_generation_logs
@@ -104,7 +49,9 @@ async fn check_rate_limit(
     .unwrap_or(0);
 
     if count >= CONTENT_GEN_RATE_LIMIT_PER_HOUR {
-        return Err(QuizGenError::RateLimited);
+        return Err(VilError::rate_limited(
+            "Batas pembuatan kuis AI tercapai (20/jam), coba lagi nanti",
+        ));
     }
     Ok(())
 }
@@ -120,7 +67,7 @@ async fn load_lesson_with_resources(
     db: &PgPool,
     lesson_id: Uuid,
     tenant_id: Uuid,
-) -> Result<(LessonData, String), QuizGenError> {
+) -> Result<(LessonData, String), VilError> {
     let lesson = sqlx::query!(
         r#"SELECT title, content
            FROM public.lessons
@@ -131,8 +78,8 @@ async fn load_lesson_with_resources(
     )
     .fetch_optional(db)
     .await
-    .map_err(|e| QuizGenError::Internal(e.to_string()))?
-    .ok_or(QuizGenError::NotFound)?;
+    .map_err(|e| VilError::internal(e.to_string()))?
+    .ok_or_else(|| VilError::not_found("Pelajaran tidak ditemukan"))?;
 
     // Load up to 5 lesson resources for additional context
     let resources = sqlx::query!(
@@ -249,13 +196,15 @@ struct RawOption {
     is_correct: bool,
 }
 
-async fn call_groq_quiz(prompt: &str) -> Result<RawQuizResponse, QuizGenError> {
+async fn call_groq_quiz(prompt: &str) -> Result<RawQuizResponse, VilError> {
     let api_key = std::env::var("GROQ_API_KEY")
-        .map_err(|_| QuizGenError::Internal("GROQ_API_KEY tidak dikonfigurasi".to_string()))?;
+        .map_err(|_| VilError::internal("GROQ_API_KEY tidak dikonfigurasi"))?;
 
     let cb = groq_circuit_breaker();
     if !cb.is_closed() {
-        return Err(QuizGenError::CircuitOpen);
+        return Err(VilError::service_unavailable(
+            "Layanan AI sedang tidak tersedia, coba lagi nanti",
+        ));
     }
 
     let result = SseCollect::post_to(GROQ_API_URL)
@@ -279,19 +228,17 @@ async fn call_groq_quiz(prompt: &str) -> Result<RawQuizResponse, QuizGenError> {
         }
         Ok(_) => {
             cb.record_failure();
-            return Err(QuizGenError::Internal(
-                "Groq returned empty response".to_string(),
-            ));
+            return Err(VilError::internal("Groq returned empty response"));
         }
         Err(e) => {
             cb.record_failure();
-            return Err(QuizGenError::Internal(format!("AI quiz gen gagal: {e}")));
+            return Err(VilError::internal(format!("AI quiz gen gagal: {e}")));
         }
     };
 
     let parsed: RawQuizResponse = serde_json::from_str(&raw_text).map_err(|e| {
         tracing::error!("quiz_gen_parse: {e}, raw={raw_text}");
-        QuizGenError::Internal("Format respons AI tidak valid".to_string())
+        VilError::internal("Format respons AI tidak valid")
     })?;
 
     Ok(parsed)
@@ -335,10 +282,10 @@ pub async fn generate_quiz(
     count: Option<u8>,
     difficulty: Option<String>,
     question_types: Option<Vec<String>>,
-) -> Result<impl IntoResponse, QuizGenError> {
+) -> HandlerResult<VilResponse<GenerateQuizResponse>> {
     // 1. Role check
     if ctx.role == "student" {
-        return Err(QuizGenError::Forbidden);
+        return Err(VilError::forbidden("Akses ditolak"));
     }
 
     // 2. Validate parameters
@@ -353,8 +300,8 @@ pub async fn generate_quiz(
         load_lesson_with_resources(&ctx.db, lesson_id, ctx.tenant_id).await?;
 
     if combined_content.trim().len() < 50 {
-        return Err(QuizGenError::BadRequest(
-            "Konten pelajaran terlalu pendek untuk membuat kuis".to_string(),
+        return Err(VilError::bad_request(
+            "Konten pelajaran terlalu pendek untuk membuat kuis",
         ));
     }
 
@@ -421,7 +368,7 @@ pub async fn generate_quiz(
     // 8. Log success
     log_generation(&ctx.db, ctx.user_id, ctx.tenant_id, "success", None).await;
 
-    Ok(Json(GenerateQuizResponse {
+    Ok(VilResponse::ok(GenerateQuizResponse {
         questions,
         lesson_id,
         lesson_title: lesson_data.title,

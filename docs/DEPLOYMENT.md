@@ -72,14 +72,22 @@ Copy `edusync-api/.env.example` to `edusync-api/.env` and fill in all required v
 | `LTI_LAUNCH_URL`      | Full URL of the LTI launch endpoint       |
 | `APP_URL`             | Base URL of the EduSync app               |
 
+### VIL Runtime
+
+| Variable      | Default | Description                                                            |
+| ------------- | ------- | ---------------------------------------------------------------------- |
+| `VIL_PROFILE` | `dev`   | VIL profile: `dev` / `staging` / `prod`                                |
+| `RUST_LOG`    | `info`  | Log level (`error`/`warn`/`info`/`debug`/`trace`) — use `warn` in prod |
+
+> **Note:** The Observer dashboard (`/_vil/dashboard/`) is enabled in `dev` and `staging` profiles. In `prod` profile it is disabled by default unless explicitly re-enabled with `.observer(true)` in the `VilApp` builder.
+
 ### Server
 
-| Variable              | Default | Description                                       |
-| --------------------- | ------- | ------------------------------------------------- |
-| `PORT`                | `8080`  | API server port                                   |
-| `RUST_LOG`            | `info`  | Log level (`error`/`warn`/`info`/`debug`/`trace`) |
-| `SENTRY_DSN`          | (none)  | Sentry error tracking DSN                         |
-| `SHADOW_MODE_ENABLED` | `false` | Enable shadow mode for traffic comparison         |
+| Variable              | Default | Description                               |
+| --------------------- | ------- | ----------------------------------------- |
+| `PORT`                | `8080`  | API server port                           |
+| `SENTRY_DSN`          | (none)  | Sentry error tracking DSN                 |
+| `SHADOW_MODE_ENABLED` | `false` | Enable shadow mode for traffic comparison |
 
 ## Docker Compose Deployment (Recommended)
 
@@ -149,15 +157,18 @@ Frontend environment variables (prefix: `VITE_`):
 | `VITE_VAPID_PUBLIC_KEY` | VAPID public key for push | (same as backend `VAPID_PUBLIC_KEY`) |
 | `VITE_SENTRY_DSN`       | Frontend Sentry DSN       | (optional)                           |
 
-## Building the Backend
+## Building the Backend (VIL)
 
 ```bash
 cd edusync-api
 
-# Development build + run:
+# Development build + run (dev profile):
 cargo run
 
-# Production build:
+# Run with explicit VIL profile:
+VIL_PROFILE=prod cargo run
+
+# Production release build (standard Rust — no Axum-specific steps):
 cargo build --release
 # Binary: target/release/edusync-api-server
 ```
@@ -173,6 +184,7 @@ cargo build --release
 - [ ] nginx configured with HTTPS (TLS/SSL certificates)
 - [ ] nginx security headers added (`HSTS`, `X-Frame-Options`, `CSP`)
 - [ ] Sentry DSN configured for error tracking
+- [ ] `VIL_PROFILE=prod` set in production environment
 - [ ] `RUST_LOG=warn` or `error` in production (not `debug`)
 - [ ] Secrets are stored in a secrets manager (not `.env` files committed to git)
 - [ ] Database has regular automated backups

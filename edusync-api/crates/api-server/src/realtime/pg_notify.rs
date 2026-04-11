@@ -27,7 +27,6 @@
 //! }
 //! ```
 
-use std::sync::Arc;
 use std::time::Duration;
 
 use sqlx::postgres::PgListener;
@@ -55,7 +54,7 @@ const RETRY_DELAY: Duration = Duration::from_secs(5);
 ///
 /// The task never returns normally; it retries indefinitely on failure with
 /// a 5-second back-off.  It is designed to run for the lifetime of the process.
-pub fn start_pg_listener(db: PgPool, hub: Arc<WsHub>) {
+pub fn start_pg_listener(db: PgPool, hub: WsHub) {
     tokio::spawn(async move {
         loop {
             match run_listener(&db, &hub).await {
@@ -79,7 +78,7 @@ pub fn start_pg_listener(db: PgPool, hub: Arc<WsHub>) {
 
 /// Connect a `PgListener`, subscribe to all channels, and forward notifications
 /// until an error occurs.
-async fn run_listener(db: &PgPool, hub: &Arc<WsHub>) -> Result<(), sqlx::Error> {
+async fn run_listener(db: &PgPool, hub: &WsHub) -> Result<(), sqlx::Error> {
     let mut listener = PgListener::connect_with(db).await?;
 
     listener.listen_all(PG_CHANNELS).await?;
@@ -120,7 +119,7 @@ async fn run_listener(db: &PgPool, hub: &Arc<WsHub>) -> Result<(), sqlx::Error> 
 /// Each branch extracts the discriminating field from `payload`, constructs
 /// the WS channel name, serialises a `WsMessage::postgres_changes` envelope,
 /// and calls `hub.broadcast(ws_channel, json_string)`.
-fn route_pg_notification(pg_channel: &str, payload: serde_json::Value, hub: &Arc<WsHub>) {
+fn route_pg_notification(pg_channel: &str, payload: serde_json::Value, hub: &WsHub) {
     match pg_channel {
         // ── notifications:{user_id} ───────────────────────────────────────────
         "notify_notifications" => {
@@ -235,7 +234,7 @@ fn route_pg_notification(pg_channel: &str, payload: serde_json::Value, hub: &Arc
 
 /// Serialise a `postgres_changes` WsMessage envelope and broadcast it via
 /// `WsHub::broadcast(ws_channel, json_string)`.
-fn forward_to_hub(hub: &Arc<WsHub>, ws_channel: &str, pg_payload: &serde_json::Value) {
+fn forward_to_hub(hub: &WsHub, ws_channel: &str, pg_payload: &serde_json::Value) {
     let ws_payload = build_ws_payload(pg_payload);
     let msg = WsMessage::postgres_changes(ws_channel, ws_payload);
     match serde_json::to_string(&msg) {

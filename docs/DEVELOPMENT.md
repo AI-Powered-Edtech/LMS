@@ -55,13 +55,14 @@ docker compose logs -f postgres
 # Look for: "database system is ready to accept connections"
 ```
 
-### 4. Start the backend API
+### 4. Start the backend API (VIL)
 
 ```bash
 cd edusync-api
-cargo run
+cargo run                     # Start with default (dev) profile
 # Server starts at http://localhost:8080
-# Health check: http://localhost:8080/api/v1/health
+# Health check:         http://localhost:8080/api/v1/health
+# Observer dashboard:   http://localhost:8080/_vil/dashboard/
 ```
 
 ### 5. Start the frontend
@@ -115,14 +116,15 @@ pnpm check:unused     # Check unused exports (knip)
 pnpm bundlesize       # Check bundle size limits
 ```
 
-### Backend
+### Backend (VIL)
 
 ```bash
 cd edusync-api
 cargo check           # Fast compile check (no binary output)
 cargo build           # Debug build
-cargo build --release # Release build
-cargo run             # Run dev server
+cargo build --release # Release build (binary: target/release/edusync-api-server)
+cargo run             # Run with dev profile (VIL_PROFILE=dev)
+VIL_PROFILE=prod cargo run    # Run with production profile
 cargo test            # Run unit tests
 cargo clippy          # Rust linter
 cargo fmt             # Rust formatter
@@ -171,6 +173,44 @@ DATABASE_URL=postgresql://postgres:edusync_local_pass@localhost:5432/edusync \
 DATABASE_URL=postgresql://postgres:edusync_local_pass@localhost:5432/edusync \
   sqlx migrate info
 ```
+
+## VIL Handler Development
+
+When writing new backend handlers, always use the VIL Way:
+
+```rust
+#[vil_handler(shm)]
+pub async fn my_handler(
+    ctx: ServiceCtx,
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<MyResponse>> {
+    let state = ctx.state::<Arc<AppState>>();
+    let req: MyRequest = body.json()?;
+    // ... business logic ...
+    Ok(VilResponse::ok(result))
+}
+```
+
+**Never use:**
+
+| Avoid                        | Use instead                                                                    |
+| ---------------------------- | ------------------------------------------------------------------------------ |
+| `Extension<Arc<AppState>>`   | `ServiceCtx` + `ctx.state::<Arc<AppState>>()`                                  |
+| `Json<T>` body extractor     | `ShmSlice` + `body.json()?`                                                    |
+| Custom error enums           | `VilError::bad_request/not_found/internal/...`                                 |
+| `Json(data)` return          | `VilResponse::ok(data)`                                                        |
+| `reqwest::Client` for AI SSE | `SseCollect::post_to(url).dialect(SseDialect::openai()).collect_text().await?` |
+
+Standard Axum extractors that are still fine to use: `Path<T>`, `Query<T>`, `HeaderMap`, `Form<T>`, `Bytes`.
+
+## Observer Dashboard (dev)
+
+`http://localhost:8080/_vil/dashboard/` — live metrics during development:
+
+- Real-time RPS and latency (P50/P95/P99)
+- Per-route breakdown table
+- SHM pool utilization
+- SLO budget tracking
 
 ## Code Conventions
 

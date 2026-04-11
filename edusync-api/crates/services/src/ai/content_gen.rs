@@ -8,14 +8,13 @@
 /// Bloom levels: C1–C6.
 /// Rate limit: 20 calls/hr per user (checked via `ai_generation_logs` table).
 /// CircuitBreaker: checked before every Groq call.
-use axum::{response::IntoResponse, Json};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use vil_server::prelude::{SseCollect, SseDialect};
+use vil_server::prelude::{HandlerResult, SseCollect, SseDialect, VilError, VilResponse};
 
 use crate::ai::config::{
     groq_circuit_breaker, CONTENT_GEN_RATE_LIMIT_PER_HOUR, GROQ_API_URL, GROQ_MODEL,
@@ -25,63 +24,11 @@ use crate::ai::types::{
     GeneratedQuestion,
 };
 
-use axum::http::StatusCode;
-use axum::response::Response;
-
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const MAX_CONTENT_CHARS: usize = 8_000;
 const DEFAULT_QUESTION_COUNT: u8 = 5;
 const MAX_QUESTION_COUNT: u8 = 20;
-
-// ─── Error ───────────────────────────────────────────────────────────────────
-
-#[derive(Debug)]
-pub enum ContentGenError {
-    BadRequest(String),
-    Forbidden,
-    RateLimited,
-    Timeout,
-    CircuitOpen,
-    Internal(String),
-}
-
-#[derive(Serialize)]
-struct ErrorBody {
-    error: String,
-}
-
-impl IntoResponse for ContentGenError {
-    fn into_response(self) -> Response {
-        let (status, msg) = match self {
-            ContentGenError::BadRequest(m) => (StatusCode::BAD_REQUEST, m),
-            ContentGenError::Forbidden => (
-                StatusCode::FORBIDDEN,
-                "Akses ditolak: hanya guru atau admin yang dapat membuat konten".to_string(),
-            ),
-            ContentGenError::RateLimited => (
-                StatusCode::TOO_MANY_REQUESTS,
-                "Batas pembuatan konten AI tercapai (20/jam), coba lagi nanti".to_string(),
-            ),
-            ContentGenError::Timeout => (
-                StatusCode::GATEWAY_TIMEOUT,
-                "Layanan AI timeout, coba lagi".to_string(),
-            ),
-            ContentGenError::CircuitOpen => (
-                StatusCode::SERVICE_UNAVAILABLE,
-                "Layanan AI sedang tidak tersedia, coba lagi nanti".to_string(),
-            ),
-            ContentGenError::Internal(m) => {
-                tracing::error!("content_gen_internal: {}", m);
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Terjadi kesalahan server internal".to_string(),
-                )
-            }
-        };
-        (status, Json(ErrorBody { error: msg })).into_response()
-    }
-}
 
 // ─── Rate limit ───────────────────────────────────────────────────────────────
 
@@ -89,7 +36,7 @@ async fn check_rate_limit(
     db: &PgPool,
     user_id: Uuid,
     tenant_id: Uuid,
-) -> Result<(), ContentGenError> {
+) -> Result<(), VilError> {
     let count: i64 = sqlx::query_scalar(
         r#"SELECT COUNT(*)
            FROM public.ai_generation_logs
@@ -105,7 +52,9 @@ async fn check_rate_limit(
     .unwrap_or(0); // fail open
 
     if count >= CONTENT_GEN_RATE_LIMIT_PER_HOUR {
-        return Err(ContentGenError::RateLimited);
+        return Err(VilError::rate_limited(
+            "Batas pembuatan konten AI tercapai (20/jam), coba lagi nanti",
+        ));
     }
     Ok(())
 }
@@ -278,13 +227,15 @@ struct RawOption {
     is_correct: bool,
 }
 
-async fn call_groq_content_gen(prompt: &str) -> Result<RawGroqContent, ContentGenError> {
+async fn call_groq_content_gen(prompt: &str) -> Result<RawGroqContent, VilError> {
     let api_key = std::env::var("GROQ_API_KEY")
-        .map_err(|_| ContentGenError::Internal("GROQ_API_KEY tidak dikonfigurasi".to_string()))?;
+        .map_err(|_| VilError::internal("GROQ_API_KEY tidak dikonfigurasi"))?;
 
     let cb = groq_circuit_breaker();
     if !cb.is_closed() {
-        return Err(ContentGenError::CircuitOpen);
+        return Err(VilError::service_unavailable(
+            "Layanan AI sedang tidak tersedia, coba lagi nanti",
+        ));
     }
 
     let result = SseCollect::post_to(GROQ_API_URL)
@@ -308,21 +259,17 @@ async fn call_groq_content_gen(prompt: &str) -> Result<RawGroqContent, ContentGe
         }
         Ok(_) => {
             cb.record_failure();
-            return Err(ContentGenError::Internal(
-                "Groq returned empty content".to_string(),
-            ));
+            return Err(VilError::internal("Groq returned empty content"));
         }
         Err(e) => {
             cb.record_failure();
-            return Err(ContentGenError::Internal(format!(
-                "AI content gen gagal: {e}"
-            )));
+            return Err(VilError::internal(format!("AI content gen gagal: {e}")));
         }
     };
 
     let parsed: RawGroqContent = serde_json::from_str(&raw_text).map_err(|e| {
         tracing::error!("content_gen_parse: {e}, raw={raw_text}");
-        ContentGenError::Internal("Format respons AI tidak valid".to_string())
+        VilError::internal("Format respons AI tidak valid")
     })?;
 
     Ok(parsed)
@@ -337,7 +284,7 @@ async fn save_generated_content(
     content_type: &str,
     title: &str,
     content_json: &serde_json::Value,
-) -> Result<Uuid, ContentGenError> {
+) -> Result<Uuid, VilError> {
     let id = Uuid::new_v4();
     sqlx::query(
         r#"INSERT INTO public.ai_generated_content
@@ -352,7 +299,7 @@ async fn save_generated_content(
     .bind(content_json)
     .execute(db)
     .await
-    .map_err(|e| ContentGenError::Internal(format!("Failed to save generated content: {e}")))?;
+    .map_err(|e| VilError::internal(format!("Failed to save generated content: {e}")))?;
     Ok(id)
 }
 
@@ -369,10 +316,12 @@ pub struct ContentGenContext {
 pub async fn generate_content(
     ctx: ContentGenContext,
     req: GenerateContentRequest,
-) -> Result<impl IntoResponse, ContentGenError> {
+) -> HandlerResult<VilResponse<GenerateContentResponse>> {
     // 1. Role check
     if ctx.role == "student" {
-        return Err(ContentGenError::Forbidden);
+        return Err(VilError::forbidden(
+            "Akses ditolak: hanya guru atau admin yang dapat membuat konten",
+        ));
     }
 
     // 2. Input validation
@@ -384,13 +333,13 @@ pub async fn generate_content(
         .to_string();
 
     if text_content.is_empty() {
-        return Err(ContentGenError::BadRequest(
-            "Konten teks wajib diisi (gunakan field text_content)".to_string(),
+        return Err(VilError::bad_request(
+            "Konten teks wajib diisi (gunakan field text_content)",
         ));
     }
     if text_content.len() < 50 {
-        return Err(ContentGenError::BadRequest(
-            "Konten terlalu pendek (minimal 50 karakter)".to_string(),
+        return Err(VilError::bad_request(
+            "Konten terlalu pendek (minimal 50 karakter)",
         ));
     }
 
@@ -480,7 +429,7 @@ pub async fn generate_content(
     )
     .await;
 
-    Ok(Json(GenerateContentResponse {
+    Ok(VilResponse::ok(GenerateContentResponse {
         summary: raw.summary,
         questions,
         content_id,

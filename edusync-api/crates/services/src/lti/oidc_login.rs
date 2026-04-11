@@ -16,27 +16,24 @@
 use axum::{
     extract::{Form, Query},
     http::{header, StatusCode},
-    response::{IntoResponse, Response},
+    response::IntoResponse,
 };
 use chrono::Utc;
 use serde::Serialize;
 use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
+use vil_server::prelude::VilError;
 
 use crate::lti::types::LtiOidcLoginRequest;
 
-// ─── Error ───────────────────────────────────────────────────────────────────
+// ─── HTML error helper ────────────────────────────────────────────────────────
 
-#[derive(Debug)]
-pub enum OidcLoginError {
-    MissingParam(String),
-    PlatformNotFound(String),
-    DatabaseError(String),
-    ConfigError(String),
-}
-
-fn error_html_response(title: &str, detail: &str, status: StatusCode) -> Response {
+fn error_html_response(
+    title: &str,
+    detail: &str,
+    status: axum::http::StatusCode,
+) -> axum::response::Response {
     let body = format!(
         r#"<!DOCTYPE html>
 <html lang="id"><head><meta charset="utf-8"><title>EduSync LTI Error</title>
@@ -62,49 +59,6 @@ fn html_escape(s: &str) -> String {
         .replace('"', "&quot;")
 }
 
-impl IntoResponse for OidcLoginError {
-    fn into_response(self) -> Response {
-        match self {
-            OidcLoginError::MissingParam(p) => error_html_response(
-                "Parameter Tidak Valid",
-                &format!("Parameter \"{p}\" wajib diisi."),
-                StatusCode::BAD_REQUEST,
-            ),
-            OidcLoginError::PlatformNotFound(iss) => error_html_response(
-                "Platform Tidak Terdaftar",
-                &format!(
-                    "Platform dengan issuer \"{iss}\" belum terdaftar di EduSync. \
-                     Hubungi administrator.",
-                    iss = iss
-                ),
-                StatusCode::NOT_FOUND,
-            ),
-            OidcLoginError::DatabaseError(m) => {
-                tracing::error!("lti_oidc_login_db_error: {m}");
-                error_html_response(
-                    "Kesalahan Server",
-                    "Gagal memproses permintaan. Coba lagi.",
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                )
-            }
-            OidcLoginError::ConfigError(m) => {
-                tracing::error!("lti_oidc_login_config: {m}");
-                error_html_response(
-                    "Kesalahan Konfigurasi",
-                    "Server tidak dikonfigurasi dengan benar.",
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                )
-            }
-        }
-    }
-}
-
-impl From<sqlx::Error> for OidcLoginError {
-    fn from(e: sqlx::Error) -> Self {
-        OidcLoginError::DatabaseError(e.to_string())
-    }
-}
-
 // ─── DB helpers ───────────────────────────────────────────────────────────────
 
 struct PlatformRow {
@@ -118,7 +72,7 @@ async fn lookup_platform(
     db: &PgPool,
     iss: &str,
     client_id: Option<&str>,
-) -> Result<PlatformRow, OidcLoginError> {
+) -> Result<PlatformRow, VilError> {
     let row = if let Some(cid) = client_id {
         sqlx::query!(
             r#"SELECT id, tenant_id, client_id, auth_endpoint
@@ -130,7 +84,7 @@ async fn lookup_platform(
         )
         .fetch_optional(db)
         .await
-        .map_err(|e| OidcLoginError::DatabaseError(e.to_string()))?
+        .map_err(|e| VilError::internal(e.to_string()))?
         .map(|r| PlatformRow {
             id: r.id,
             tenant_id: r.tenant_id,
@@ -147,7 +101,7 @@ async fn lookup_platform(
         )
         .fetch_optional(db)
         .await
-        .map_err(|e| OidcLoginError::DatabaseError(e.to_string()))?
+        .map_err(|e| VilError::internal(e.to_string()))?
         .map(|r| PlatformRow {
             id: r.id,
             tenant_id: r.tenant_id,
@@ -156,7 +110,11 @@ async fn lookup_platform(
         })
     };
 
-    row.ok_or_else(|| OidcLoginError::PlatformNotFound(iss.to_string()))
+    row.ok_or_else(|| {
+        VilError::not_found(format!(
+            "Platform dengan issuer \"{iss}\" belum terdaftar di EduSync"
+        ))
+    })
 }
 
 async fn store_nonce(
@@ -166,7 +124,7 @@ async fn store_nonce(
     platform_id: Uuid,
     tenant_id: Uuid,
     redirect_uri: Option<&str>,
-) -> Result<(), OidcLoginError> {
+) -> Result<(), VilError> {
     sqlx::query(
         r#"INSERT INTO public.lti_nonces
               (nonce, state, platform_id, tenant_id, redirect_uri, expires_at, created_at)
@@ -179,7 +137,7 @@ async fn store_nonce(
     .bind(redirect_uri)
     .execute(db)
     .await
-    .map_err(|e| OidcLoginError::DatabaseError(format!("Failed to store nonce: {e}")))?;
+    .map_err(|e| VilError::internal(format!("Failed to store nonce: {e}")))?;
     Ok(())
 }
 
@@ -196,13 +154,15 @@ pub struct OidcLoginContext {
 pub async fn handle_oidc_login(
     ctx: OidcLoginContext,
     req: LtiOidcLoginRequest,
-) -> Result<impl IntoResponse, OidcLoginError> {
+) -> Result<impl IntoResponse, VilError> {
     // 1. Validate required params
     if req.iss.trim().is_empty() {
-        return Err(OidcLoginError::MissingParam("iss".to_string()));
+        return Err(VilError::bad_request("Parameter \"iss\" wajib diisi"));
     }
     if req.login_hint.trim().is_empty() {
-        return Err(OidcLoginError::MissingParam("login_hint".to_string()));
+        return Err(VilError::bad_request(
+            "Parameter \"login_hint\" wajib diisi",
+        ));
     }
 
     // 2. Look up platform
@@ -233,7 +193,7 @@ pub async fn handle_oidc_login(
 
     // 6. Build OIDC authorization URL
     let mut auth_url = url::Url::parse(&platform.auth_endpoint)
-        .map_err(|e| OidcLoginError::ConfigError(format!("Invalid auth_endpoint: {e}")))?;
+        .map_err(|e| VilError::internal(format!("Invalid auth_endpoint: {e}")))?;
 
     {
         let mut q = auth_url.query_pairs_mut();

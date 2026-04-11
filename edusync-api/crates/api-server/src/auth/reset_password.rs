@@ -1,13 +1,17 @@
 use std::sync::Arc;
-use axum::{extract::Extension, http::StatusCode, Json};
+use axum::http::StatusCode;
 use edusync_auth::{AuthError, password::hash_password, session::revoke_all_user_sessions};
+use vil_server::prelude::{ServiceCtx, ShmSlice, VilResponse, VilError, HandlerResult};
 use crate::state::AppState;
 use super::types::{ResetPasswordRequest, UpdatePasswordRequest};
 
 pub async fn reset_password_handler(
-    Extension(state): Extension<Arc<AppState>>,
-    Json(body): Json<ResetPasswordRequest>,
-) -> StatusCode {
+    svc: ServiceCtx,
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<StatusCode>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
+    let body: ResetPasswordRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
+
     // Always 200 — prevent email enumeration
     let user_id_opt: Option<uuid::Uuid> = sqlx::query_scalar!(
         "SELECT id FROM public.users WHERE email = $1",
@@ -37,15 +41,18 @@ pub async fn reset_password_handler(
         tracing::info!(email = %body.email, reset_url = %reset_url, "Password reset requested");
     }
 
-    StatusCode::OK
+    Ok(VilResponse::ok(StatusCode::OK))
 }
 
 pub async fn update_password_handler(
-    Extension(state): Extension<Arc<AppState>>,
-    Json(body): Json<UpdatePasswordRequest>,
-) -> Result<StatusCode, AuthError> {
+    svc: ServiceCtx,
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<StatusCode>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
+    let body: UpdatePasswordRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
+
     if body.password.len() < 8 {
-        return Err(AuthError::WeakPassword);
+        return Err(VilError::from(AuthError::WeakPassword));
     }
 
     let token_hash = sha256_hex(&body.token);
@@ -57,31 +64,38 @@ pub async fn update_password_handler(
         token_hash, now
     )
     .fetch_optional(&state.db)
-    .await?
-    .ok_or(AuthError::InvalidToken)?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
+    .ok_or_else(|| VilError::from(AuthError::InvalidToken))?;
 
-    let new_hash = hash_password(&body.password)?;
+    let new_hash = hash_password(&body.password).map_err(VilError::from)?;
 
-    let mut tx = state.db.begin().await?;
+    let mut tx = state.db.begin().await
+        .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
+
     sqlx::query!(
         "UPDATE public.users SET encrypted_password = $1, updated_at = now() WHERE id = $2",
         new_hash, row.user_id
     )
     .execute(&mut *tx)
-    .await?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     sqlx::query!(
         "UPDATE public.password_reset_tokens SET used_at = now() WHERE token_hash = $1",
         token_hash
     )
     .execute(&mut *tx)
-    .await?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
-    tx.commit().await?;
+    tx.commit().await
+        .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
-    revoke_all_user_sessions(&state.db, row.user_id).await?;
+    revoke_all_user_sessions(&state.db, row.user_id).await
+        .map_err(VilError::from)?;
 
-    Ok(StatusCode::OK)
+    Ok(VilResponse::ok(StatusCode::OK))
 }
 
 fn sha256_hex(input: &str) -> String {

@@ -136,7 +136,7 @@ async fn main() -> anyhow::Result<()> {
             .unwrap_or_else(|_| "noreply@edusync.dev".to_string()),
     };
 
-    // ── Wave 1D: S3 config (vil_storage_s3 client built per-handler) ──────────
+    // ── Wave 1D: S3 config (vil_conn_s3 client built per-handler) ───────────
     let s3_endpoint = std::env::var("S3_ENDPOINT").ok();
     if s3_endpoint.is_none() {
         tracing::warn!(
@@ -144,7 +144,7 @@ async fn main() -> anyhow::Result<()> {
              Atur S3_ENDPOINT, S3_ACCESS_KEY_ID, dan S3_SECRET_ACCESS_KEY untuk mengaktifkan."
         );
     } else {
-        tracing::info!("S3 config terdeteksi — vil_storage_s3 siap digunakan");
+        tracing::info!("S3 config terdeteksi — vil_conn_s3 siap digunakan");
     }
     let s3_bucket = std::env::var("S3_BUCKET").unwrap_or_else(|_| "edusync".to_string());
     let s3_public_url = std::env::var("S3_PUBLIC_URL").ok();
@@ -176,10 +176,10 @@ async fn main() -> anyhow::Result<()> {
     scheduler.start();
 
     // ── Wave 1D: WsHub replaces manual RoomManager ───────────────────────────
-    let ws_hub: Arc<WsHub> = Arc::new(WsHub::new());
+    let ws_hub = WsHub::new();
 
     // ── Start pg_notify listener — forwards NOTIFY to WsHub ──────────────────
-    start_pg_listener(state_arc.db.clone(), Arc::clone(&ws_hub));
+    start_pg_listener(state_arc.db.clone(), ws_hub.clone());
 
     // ── Service registrations ─────────────────────────────────────────────────
 
@@ -292,9 +292,9 @@ async fn main() -> anyhow::Result<()> {
         .prefix("/ws")
         .endpoint(Method::GET, "", get(ws_handler))
         .extension(Arc::clone(&state_arc))
-        .extension(Arc::clone(&ws_hub));
+        .extension(ws_hub.clone());
 
-    // ── Wave 1D: S3-compatible object storage — vil_storage_s3 ───────────────
+    // ── Wave 1D: S3-compatible object storage — vil_conn_s3 ────────────────
     let storage_service = ServiceProcess::new("storage")
         .prefix("/api/v1/storage")
         .endpoint(Method::POST, "/upload", post(upload_handler))

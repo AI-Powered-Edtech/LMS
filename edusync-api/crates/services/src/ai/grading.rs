@@ -5,95 +5,17 @@
 /// Auth: teacher / principal / admin only (students cannot grade).
 /// Rate limit: 50 calls per user per hour (checked via `ai_quota_usage` table).
 /// CircuitBreaker: checked before every Groq call.
-use axum::{response::IntoResponse, Json};
 use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use vil_server::prelude::{SseCollect, SseDialect};
+use vil_server::prelude::{HandlerResult, VilError, VilResponse};
 
 use crate::ai::config::{
     groq_circuit_breaker, AI_RATE_LIMIT_PER_HOUR, GROQ_API_URL, GROQ_MODEL, MAX_ESSAY_CHARS,
 };
 use crate::ai::types::{GradeEssayRequest, GradeEssayResponse};
-
-// Re-export the error types used by the API server to avoid circular deps.
-// The handler takes `AppError` from edusync-middleware (not imported here — the
-// caller in api-server maps our internal `AiError` to `AppError`).
-// We define our own error enum and implement `IntoResponse` for it.
-
-use axum::http::StatusCode;
-use axum::response::Response;
-use serde::Serialize;
-
-/// Internal error type for AI grading.
-#[derive(Debug)]
-pub enum GradingError {
-    /// Caller's role is not allowed to grade essays.
-    Forbidden,
-    /// Submission / assignment not found or tenant mismatch.
-    NotFound,
-    /// Input validation failed.
-    BadRequest(String),
-    /// Rate limit exceeded.
-    RateLimited,
-    /// Groq API timed out.
-    Timeout,
-    /// Circuit breaker is open.
-    CircuitOpen,
-    /// Any other internal failure.
-    Internal(String),
-}
-
-#[derive(Serialize)]
-struct ErrorBody {
-    error: String,
-}
-
-impl IntoResponse for GradingError {
-    fn into_response(self) -> Response {
-        let (status, msg) = match self {
-            GradingError::Forbidden => (
-                StatusCode::FORBIDDEN,
-                "Akses ditolak: siswa tidak dapat menilai esai".to_string(),
-            ),
-            GradingError::NotFound => (
-                StatusCode::NOT_FOUND,
-                "Pengiriman tidak ditemukan".to_string(),
-            ),
-            GradingError::BadRequest(m) => (StatusCode::BAD_REQUEST, m),
-            GradingError::RateLimited => (
-                StatusCode::TOO_MANY_REQUESTS,
-                "Batas penggunaan AI tercapai, coba lagi nanti".to_string(),
-            ),
-            GradingError::Timeout => (
-                StatusCode::GATEWAY_TIMEOUT,
-                "Layanan AI timeout, coba lagi".to_string(),
-            ),
-            GradingError::CircuitOpen => (
-                StatusCode::SERVICE_UNAVAILABLE,
-                "Layanan AI sedang tidak tersedia, coba lagi nanti".to_string(),
-            ),
-            GradingError::Internal(m) => {
-                tracing::error!("grading_internal_error: {}", m);
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Terjadi kesalahan server internal".to_string(),
-                )
-            }
-        };
-        (status, Json(ErrorBody { error: msg })).into_response()
-    }
-}
-
-impl From<sqlx::Error> for GradingError {
-    fn from(e: sqlx::Error) -> Self {
-        match e {
-            sqlx::Error::RowNotFound => GradingError::NotFound,
-            _ => GradingError::Internal(e.to_string()),
-        }
-    }
-}
+use vil_server::prelude::{SseCollect, SseDialect};
 
 // ─── Rate-limit check ─────────────────────────────────────────────────────────
 
@@ -102,7 +24,7 @@ impl From<sqlx::Error> for GradingError {
 ///
 /// Fails open (allows the call) if the table query itself errors, to prevent
 /// a bad rate-limit table from blocking all AI usage.
-async fn check_rate_limit(db: &PgPool, user_id: Uuid, tenant_id: Uuid) -> Result<(), GradingError> {
+async fn check_rate_limit(db: &PgPool, user_id: Uuid, tenant_id: Uuid) -> Result<(), VilError> {
     let count: i64 = sqlx::query_scalar(
         r#"SELECT COUNT(*)
            FROM public.ai_quota_usage
@@ -117,7 +39,9 @@ async fn check_rate_limit(db: &PgPool, user_id: Uuid, tenant_id: Uuid) -> Result
     .unwrap_or(0); // fail open
 
     if count >= AI_RATE_LIMIT_PER_HOUR {
-        return Err(GradingError::RateLimited);
+        return Err(VilError::rate_limited(
+            "Batas penggunaan AI tercapai, coba lagi nanti",
+        ));
     }
     Ok(())
 }
@@ -144,7 +68,7 @@ async fn validate_tenant_access(
     db: &PgPool,
     submission_id: &str,
     tenant_id: Uuid,
-) -> Result<(), GradingError> {
+) -> Result<(), VilError> {
     // Extract assignment UUID — first UUID-shaped segment before '-'
     let assignment_id_str = submission_id
         .split('-')
@@ -152,9 +76,9 @@ async fn validate_tenant_access(
         .collect::<Vec<_>>()
         .join("-");
 
-    let assignment_id = assignment_id_str.parse::<Uuid>().map_err(|_| {
-        GradingError::BadRequest("Format submissionId tidak valid".to_string())
-    })?;
+    let assignment_id = assignment_id_str
+        .parse::<Uuid>()
+        .map_err(|_| VilError::bad_request("Format submissionId tidak valid"))?;
 
     let row = sqlx::query_scalar::<_, Uuid>(
         r#"SELECT tenant_id FROM public.assignments WHERE id = $1 LIMIT 1"#,
@@ -162,8 +86,8 @@ async fn validate_tenant_access(
     .bind(assignment_id)
     .fetch_optional(db)
     .await
-    .map_err(|e| GradingError::Internal(e.to_string()))?
-    .ok_or(GradingError::NotFound)?;
+    .map_err(|e| VilError::internal(e.to_string()))?
+    .ok_or_else(|| VilError::not_found("Pengiriman tidak ditemukan"))?;
 
     if row != tenant_id {
         tracing::warn!(
@@ -172,7 +96,7 @@ async fn validate_tenant_access(
             found_tenant = %row,
             "grade_essay: tenant mismatch"
         );
-        return Err(GradingError::NotFound); // Don't leak cross-tenant info
+        return Err(VilError::not_found("Pengiriman tidak ditemukan")); // Don't leak cross-tenant info
     }
     Ok(())
 }
@@ -182,7 +106,7 @@ async fn validate_tenant_access(
 async fn call_groq_grader(
     essay_text: &str,
     rubric_text: &str,
-) -> Result<GradeEssayResponse, GradingError> {
+) -> Result<GradeEssayResponse, VilError> {
     let system_prompt = r#"Kamu adalah guru ahli yang menilai esai secara ketat dan adil.
 Nilai esai berdasarkan rubrik yang diberikan.
 Untuk setiap kriteria, berikan skor sampai skor maksimum yang ditentukan dan tulis umpan balik singkat yang konstruktif.
@@ -195,11 +119,13 @@ Selalu kembalikan objek JSON dengan tepat tiga kunci berikut:
     let user_prompt = format!("Rubrik:\n{rubric_text}\n\nEsai:\n{essay_text}");
 
     let api_key = std::env::var("GROQ_API_KEY")
-        .map_err(|_| GradingError::Internal("GROQ_API_KEY tidak dikonfigurasi".to_string()))?;
+        .map_err(|_| VilError::internal("GROQ_API_KEY tidak dikonfigurasi"))?;
 
     let cb = groq_circuit_breaker();
     if !cb.is_closed() {
-        return Err(GradingError::CircuitOpen);
+        return Err(VilError::service_unavailable(
+            "Layanan AI sedang tidak tersedia, coba lagi nanti",
+        ));
     }
 
     let messages = serde_json::json!([
@@ -228,27 +154,25 @@ Selalu kembalikan objek JSON dengan tepat tiga kunci berikut:
         }
         Err(e) => {
             cb.record_failure();
-            return Err(GradingError::Internal(format!("AI grading gagal: {e}")));
+            return Err(VilError::internal(format!("AI grading gagal: {e}")));
         }
     };
 
     if content.trim().is_empty() {
         cb.record_failure();
-        return Err(GradingError::Internal(
-            "Groq returned empty response".to_string(),
-        ));
+        return Err(VilError::internal("Groq returned empty response"));
     }
 
     let parsed: GradeEssayResponse = serde_json::from_str(&content).map_err(|e| {
         tracing::error!("groq_parse_error: {e}, raw: {content}");
-        GradingError::Internal("Format respons AI tidak valid".to_string())
+        VilError::internal("Format respons AI tidak valid")
     })?;
 
     if parsed.scores.is_empty() || parsed.feedback.is_empty() || parsed.overall_feedback.is_empty()
     {
         cb.record_failure();
-        return Err(GradingError::Internal(
-            "Respons AI tidak memiliki semua field yang dibutuhkan".to_string(),
+        return Err(VilError::internal(
+            "Respons AI tidak memiliki semua field yang dibutuhkan",
         ));
     }
 
@@ -276,7 +200,7 @@ pub struct GradeEssayContext {
 ///     Extension(state): Extension<Arc<AppState>>,
 ///     AuthedRequest(ctx): AuthedRequest,
 ///     Json(body): Json<GradeEssayRequest>,
-/// ) -> Result<impl IntoResponse, GradingError> {
+/// ) -> HandlerResult<VilResponse<GradeEssayResponse>> {
 ///     let context = GradeEssayContext {
 ///         db: Arc::new(state.db.clone()),
 ///         user_id: ctx.user_id,
@@ -289,32 +213,32 @@ pub struct GradeEssayContext {
 pub async fn grade_essay(
     ctx: GradeEssayContext,
     req: GradeEssayRequest,
-) -> Result<impl IntoResponse, GradingError> {
+) -> HandlerResult<VilResponse<GradeEssayResponse>> {
     // 1. Role check — students cannot grade
     if ctx.role == "student" {
-        return Err(GradingError::Forbidden);
+        return Err(VilError::forbidden(
+            "Akses ditolak: siswa tidak dapat menilai esai",
+        ));
     }
 
     // 2. Input validation
     if req.submission_id.trim().is_empty() {
-        return Err(GradingError::BadRequest(
-            "submissionId wajib diisi".to_string(),
-        ));
+        return Err(VilError::bad_request("submissionId wajib diisi"));
     }
     if req.essay_text.trim().is_empty() || req.rubric.is_empty() {
-        return Err(GradingError::BadRequest(
-            "essayText dan rubrik wajib diisi".to_string(),
+        return Err(VilError::bad_request(
+            "essayText dan rubrik wajib diisi",
         ));
     }
     if req.essay_text.len() > MAX_ESSAY_CHARS {
-        return Err(GradingError::BadRequest(format!(
+        return Err(VilError::bad_request(format!(
             "Teks esai melebihi batas maksimum {} karakter",
             MAX_ESSAY_CHARS
         )));
     }
     if req.rubric.len() > 20 {
-        return Err(GradingError::BadRequest(
-            "Jumlah kriteria rubrik terlalu banyak (maksimum 20)".to_string(),
+        return Err(VilError::bad_request(
+            "Jumlah kriteria rubrik terlalu banyak (maksimum 20)",
         ));
     }
 
@@ -343,5 +267,5 @@ pub async fn grade_essay(
     // 7. Record usage (best-effort — do not fail the response if this errors)
     record_usage(&ctx.db, ctx.user_id, ctx.tenant_id, "grade_essay").await;
 
-    Ok(Json(result))
+    Ok(VilResponse::ok(result))
 }

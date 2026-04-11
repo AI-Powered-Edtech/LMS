@@ -17,62 +17,25 @@
 ///   base64 = "0.22"          (standard base64 decoding)
 ///
 /// If `rsa` is available it takes priority via the `rsa-pkcs8` feature flag.
-use axum::{
-    http::{header, StatusCode},
-    response::{IntoResponse, Response},
-    Json,
-};
 use serde::Serialize;
+use vil_server::prelude::{HandlerResult, VilError, VilResponse};
 
 use crate::lti::types::{Jwk, JwksResponse};
 
 const LTI_KEY_ID: &str = "edusync-lti-key-1";
 
-// ─── Error ───────────────────────────────────────────────────────────────────
-
-#[derive(Debug)]
-pub enum JwksError {
-    /// `LTI_RSA_PUBLIC_KEY` env var is not set.
-    NotConfigured,
-    /// PEM could not be parsed.
-    ParseError(String),
-}
-
-#[derive(Serialize)]
-struct ErrorBody {
-    error: String,
-}
-
-impl IntoResponse for JwksError {
-    fn into_response(self) -> Response {
-        let (status, msg) = match self {
-            JwksError::NotConfigured => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "JWKS tidak dikonfigurasi".to_string(),
-            ),
-            JwksError::ParseError(m) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Gagal mem-parse kunci publik: {m}"),
-            ),
-        };
-        (status, Json(ErrorBody { error: msg })).into_response()
-    }
-}
-
 // ─── PEM → raw DER bytes ──────────────────────────────────────────────────────
 
 /// Strip PEM armor and decode base64 → DER bytes.
-fn pem_to_der(pem: &str) -> Result<Vec<u8>, JwksError> {
+fn pem_to_der(pem: &str) -> Result<Vec<u8>, VilError> {
     let stripped = pem
         .lines()
         .filter(|l| !l.starts_with("-----"))
         .collect::<Vec<_>>()
         .join("");
 
-    // base64 standard decode
-    use std::io::Read;
     let bytes = base64_decode(&stripped)
-        .map_err(|e| JwksError::ParseError(format!("Base64 decode failed: {e}")))?;
+        .map_err(|e| VilError::internal(format!("Base64 decode failed: {e}")))?;
     Ok(bytes)
 }
 
@@ -102,8 +65,16 @@ fn base64_decode(input: &str) -> Result<Vec<u8>, String> {
         }
         let b0 = lut[input[i] as usize] as u32;
         let b1 = lut[input[i + 1] as usize] as u32;
-        let b2 = if input[i + 2] == b'=' { 0 } else { lut[input[i + 2] as usize] as u32 };
-        let b3 = if input[i + 3] == b'=' { 0 } else { lut[input[i + 3] as usize] as u32 };
+        let b2 = if input[i + 2] == b'=' {
+            0
+        } else {
+            lut[input[i + 2] as usize] as u32
+        };
+        let b3 = if input[i + 3] == b'=' {
+            0
+        } else {
+            lut[input[i + 3] as usize] as u32
+        };
 
         let triple = (b0 << 18) | (b1 << 12) | (b2 << 6) | b3;
 
@@ -141,7 +112,10 @@ fn base64url_encode(data: &[u8]) -> String {
         }
         out
     };
-    standard.replace('+', "-").replace('/', "_").replace('=', "")
+    standard
+        .replace('+', "-")
+        .replace('/', "_")
+        .replace('=', "")
 }
 
 // ─── ASN.1 / DER helpers ──────────────────────────────────────────────────────
@@ -181,38 +155,44 @@ fn der_read_tlv(data: &[u8]) -> Option<(u8, &[u8], usize)> {
 /// Handles two layouts:
 ///   - **SPKI** (`PUBLIC KEY`): SEQUENCE { AlgorithmIdentifier, BIT STRING { SEQUENCE { INTEGER n, INTEGER e } } }
 ///   - **PKCS#1** (`RSA PUBLIC KEY`): SEQUENCE { INTEGER n, INTEGER e }
-fn extract_rsa_components(der: &[u8]) -> Result<(Vec<u8>, Vec<u8>), JwksError> {
+fn extract_rsa_components(der: &[u8]) -> Result<(Vec<u8>, Vec<u8>), VilError> {
     // Top-level SEQUENCE
-    let (tag, seq_data, _) =
-        der_read_tlv(der).ok_or_else(|| JwksError::ParseError("DER top-level read failed".to_string()))?;
+    let (tag, seq_data, _) = der_read_tlv(der)
+        .ok_or_else(|| VilError::internal("DER top-level read failed".to_string()))?;
     if tag != 0x30 {
-        return Err(JwksError::ParseError(format!("Expected SEQUENCE (0x30), got 0x{tag:02x}")));
+        return Err(VilError::internal(format!(
+            "Expected SEQUENCE (0x30), got 0x{tag:02x}"
+        )));
     }
 
     // Peek at first byte of the sequence to distinguish SPKI vs PKCS#1
     // SPKI starts with SEQUENCE (for AlgorithmIdentifier), PKCS#1 starts with INTEGER
-    let (first_tag, _, _) =
-        der_read_tlv(seq_data).ok_or_else(|| JwksError::ParseError("DER inner read failed".to_string()))?;
+    let (first_tag, _, _) = der_read_tlv(seq_data)
+        .ok_or_else(|| VilError::internal("DER inner read failed".to_string()))?;
 
     let rsa_data: &[u8] = if first_tag == 0x30 {
         // SPKI format: skip AlgorithmIdentifier, then BIT STRING
         let (_, _algo_id, consumed1) = der_read_tlv(seq_data)
-            .ok_or_else(|| JwksError::ParseError("SPKI AlgId read failed".to_string()))?;
+            .ok_or_else(|| VilError::internal("SPKI AlgId read failed".to_string()))?;
         let remaining = &seq_data[consumed1..];
         let (bit_tag, bit_data, _) = der_read_tlv(remaining)
-            .ok_or_else(|| JwksError::ParseError("SPKI BIT STRING read failed".to_string()))?;
+            .ok_or_else(|| VilError::internal("SPKI BIT STRING read failed".to_string()))?;
         if bit_tag != 0x03 {
-            return Err(JwksError::ParseError(format!("Expected BIT STRING (0x03), got 0x{bit_tag:02x}")));
+            return Err(VilError::internal(format!(
+                "Expected BIT STRING (0x03), got 0x{bit_tag:02x}"
+            )));
         }
         // BIT STRING value: leading unused-bits byte (0x00), then DER-encoded RSAPublicKey
         if bit_data.is_empty() {
-            return Err(JwksError::ParseError("Empty BIT STRING".to_string()));
+            return Err(VilError::internal("Empty BIT STRING".to_string()));
         }
         let inner = &bit_data[1..]; // skip unused-bits byte
         let (seq_tag, inner_seq, _) = der_read_tlv(inner)
-            .ok_or_else(|| JwksError::ParseError("SPKI inner SEQUENCE read failed".to_string()))?;
+            .ok_or_else(|| VilError::internal("SPKI inner SEQUENCE read failed".to_string()))?;
         if seq_tag != 0x30 {
-            return Err(JwksError::ParseError("Expected SEQUENCE inside BIT STRING".to_string()));
+            return Err(VilError::internal(
+                "Expected SEQUENCE inside BIT STRING".to_string(),
+            ));
         }
         inner_seq
     } else {
@@ -222,21 +202,33 @@ fn extract_rsa_components(der: &[u8]) -> Result<(Vec<u8>, Vec<u8>), JwksError> {
 
     // Read n (INTEGER)
     let (n_tag, n_data, consumed_n) = der_read_tlv(rsa_data)
-        .ok_or_else(|| JwksError::ParseError("Failed to read modulus".to_string()))?;
+        .ok_or_else(|| VilError::internal("Failed to read modulus".to_string()))?;
     if n_tag != 0x02 {
-        return Err(JwksError::ParseError(format!("Expected INTEGER for n, got 0x{n_tag:02x}")));
+        return Err(VilError::internal(format!(
+            "Expected INTEGER for n, got 0x{n_tag:02x}"
+        )));
     }
 
     // Read e (INTEGER)
     let (e_tag, e_data, _) = der_read_tlv(&rsa_data[consumed_n..])
-        .ok_or_else(|| JwksError::ParseError("Failed to read exponent".to_string()))?;
+        .ok_or_else(|| VilError::internal("Failed to read exponent".to_string()))?;
     if e_tag != 0x02 {
-        return Err(JwksError::ParseError(format!("Expected INTEGER for e, got 0x{e_tag:02x}")));
+        return Err(VilError::internal(format!(
+            "Expected INTEGER for e, got 0x{e_tag:02x}"
+        )));
     }
 
     // Strip leading zero byte that DER adds to keep integers positive
-    let n = if n_data.first() == Some(&0x00) { n_data[1..].to_vec() } else { n_data.to_vec() };
-    let e = if e_data.first() == Some(&0x00) { e_data[1..].to_vec() } else { e_data.to_vec() };
+    let n = if n_data.first() == Some(&0x00) {
+        n_data[1..].to_vec()
+    } else {
+        n_data.to_vec()
+    };
+    let e = if e_data.first() == Some(&0x00) {
+        e_data[1..].to_vec()
+    } else {
+        e_data.to_vec()
+    };
 
     Ok((n, e))
 }
@@ -246,8 +238,10 @@ fn extract_rsa_components(der: &[u8]) -> Result<(Vec<u8>, Vec<u8>), JwksError> {
 /// Build and return the JWKS response.
 ///
 /// This function is called by the Axum route handler — no AppState needed.
-pub async fn get_jwks() -> Result<impl IntoResponse, JwksError> {
-    let pem = std::env::var("LTI_RSA_PUBLIC_KEY").map_err(|_| JwksError::NotConfigured)?;
+pub async fn get_jwks() -> HandlerResult<VilResponse<JwksResponse>> {
+    let pem = std::env::var("LTI_RSA_PUBLIC_KEY").map_err(|_| {
+        VilError::internal("JWKS tidak dikonfigurasi: LTI_RSA_PUBLIC_KEY tidak diset")
+    })?;
 
     let der = pem_to_der(&pem)?;
     let (n_bytes, e_bytes) = extract_rsa_components(&der)?;
@@ -261,19 +255,5 @@ pub async fn get_jwks() -> Result<impl IntoResponse, JwksError> {
         kid: LTI_KEY_ID.to_string(),
     };
 
-    // Add Cache-Control header
-    let body = serde_json::to_string(&JwksResponse { keys: vec![jwk] })
-        .map_err(|e| JwksError::ParseError(e.to_string()))?;
-
-    Ok((
-        StatusCode::OK,
-        [
-            (header::CONTENT_TYPE, "application/json"),
-            (
-                header::CACHE_CONTROL,
-                "public, max-age=3600, s-maxage=86400",
-            ),
-        ],
-        body,
-    ))
+    Ok(VilResponse::ok(JwksResponse { keys: vec![jwk] }))
 }

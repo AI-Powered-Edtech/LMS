@@ -1,20 +1,25 @@
 use std::sync::Arc;
-use axum::{extract::Extension, http::HeaderMap, http::StatusCode};
+use axum::http::HeaderMap;
+use axum::http::StatusCode;
 use edusync_auth::{AuthError, verify_access_token};
+use vil_server::prelude::{ServiceCtx, VilResponse, VilError, HandlerResult};
 use crate::state::AppState;
 
 pub async fn ensure_profile_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     headers: HeaderMap,
-) -> Result<StatusCode, AuthError> {
+) -> HandlerResult<VilResponse<StatusCode>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
+
     let token = headers
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .ok_or(AuthError::InvalidToken)?;
+        .ok_or_else(|| VilError::from(AuthError::InvalidToken))?;
 
-    let claims = verify_access_token(token, &state.jwt_secret)?;
-    let user_id: uuid::Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken)?;
+    let claims = verify_access_token(token, &state.jwt_secret)
+        .map_err(VilError::from)?;
+    let user_id: uuid::Uuid = claims.sub.parse().map_err(|_| VilError::from(AuthError::InvalidToken))?;
 
     sqlx::query!(
         r#"INSERT INTO public.profiles (id, email, first_name, last_name, created_at, updated_at)
@@ -24,7 +29,8 @@ pub async fn ensure_profile_handler(
         claims.email,
     )
     .execute(&state.db)
-    .await?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
-    Ok(StatusCode::OK)
+    Ok(VilResponse::ok(StatusCode::OK))
 }

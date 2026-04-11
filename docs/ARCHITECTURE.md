@@ -2,7 +2,9 @@
 
 ## Overview
 
-EduSync is a multi-tenant SaaS LMS built entirely on a Rust/Axum backend (VIL framework) with a React 19 frontend. All data lives in Docker-hosted PostgreSQL 16. There is no Supabase, no GoTrue, no PostgREST, and no Edge Functions.
+EduSync is a multi-tenant SaaS LMS built on a VIL (Vastar Intermediate Language) Rust backend with a React 19 frontend. All data lives in Docker-hosted PostgreSQL 16. There is no Supabase, no GoTrue, no PostgREST, and no Edge Functions.
+
+VIL (`vil_server = "0.2"`) is a process-oriented framework built on Axum 0.7. It provides ShmSlice zero-copy body extraction, ServiceCtx typed state, VilResponse SIMD JSON, SseCollect AI streaming, WsHub WebSocket broadcast, and the VIL Scheduler for background jobs. See https://github.com/OceanOS-id/VIL.
 
 ## ASCII Architecture Diagram
 
@@ -26,7 +28,7 @@ EduSync is a multi-tenant SaaS LMS built entirely on a Rust/Axum backend (VIL fr
 └──────────────────────────┬──────────────────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────────────────┐
-│                    VIL API Server (Rust / Axum 0.7)                     │
+│              VIL API Server (vil_server = "0.2" / Axum 0.7)              │
 │                         Port 8080                                       │
 │                                                                         │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────────┐  │
@@ -40,7 +42,7 @@ EduSync is a multi-tenant SaaS LMS built entirely on a Rust/Axum backend (VIL fr
 │                                                                         │
 │  middleware: RBAC guard │ tenant injection │ brute-force limiter       │
 └──────────┬──────────────────────────────────┬────────────────────────────┘
-           │ sqlx (direct TCP)                │ aws-sdk-s3
+           │ sqlx (direct TCP)                │ vil_conn_s3::S3Connector
 ┌──────────▼──────────────┐       ┌───────────▼──────────────────────────┐
 │     pgBouncer :5433     │       │   S3-compatible Object Storage       │
 │  (transaction pool)     │       │   MinIO (dev) / Cloudflare R2 (prod) │
@@ -198,7 +200,7 @@ See [DATABASE.md](DATABASE.md) for full table and column reference.
 
 - **Local dev**: MinIO at `http://localhost:9000` (S3-compatible)
 - **Production**: Cloudflare R2
-- **SDK**: `aws-sdk-s3` v1 (Rust)
+- **SDK**: `vil_conn_s3::S3Connector` (VIL-native S3 client)
 - **Upload strategy**: files < 10 MB proxy through VIL API; files ≥ 10 MB use presigned PUT direct to S3
 - **Bucket layout**: single S3 bucket, paths prefixed by logical bucket name and tenant_id
 
@@ -263,18 +265,19 @@ pub async fn handler(
 }
 ```
 
-| VIL Primitive            | Replaces                                             | Benefit                                         |
-| ------------------------ | ---------------------------------------------------- | ----------------------------------------------- |
-| `ShmSlice`               | `Json<T>`                                            | Zero-copy body deserialization via ExchangeHeap |
-| `ServiceCtx`             | `Extension<Arc<T>>`                                  | Tri-Lane context + typed state lookup           |
-| `VilResponse::ok(data)`  | `(StatusCode::OK, Json(data))`                       | SIMD JSON serialization                         |
-| `VilResponse::raw(resp)` | `impl IntoResponse` passthrough                      | Binary / SSE responses                          |
-| `VilError`               | Custom `AppError` enum + `(StatusCode, Json)` tuples | Standard RFC 7807 error format                  |
-| `HandlerResult<T>`       | `Result<T, AppError>`                                | Unified `?` propagation                         |
-| `SseCollect`             | Manual `reqwest` SSE loop                            | Built-in SSE dialect handling                   |
-| `WsHub`                  | Manual `RoomManager`                                 | Topic-based broadcast hub                       |
-| `Scheduler`              | Manual `tokio::time::interval`                       | Named job scheduling                            |
-| `vil_storage_s3`         | `aws-sdk-s3`                                         | VIL-native S3 client                            |
+| VIL Primitive              | Replaces                                             | Benefit                                         |
+| -------------------------- | ---------------------------------------------------- | ----------------------------------------------- |
+| `ShmSlice`                 | `Json<T>`                                            | Zero-copy body deserialization via ExchangeHeap |
+| `ServiceCtx`               | `Extension<Arc<T>>`                                  | Tri-Lane context + typed state lookup           |
+| `VilResponse::ok(data)`    | `(StatusCode::OK, Json(data))`                       | SIMD JSON serialization                         |
+| `VilResponse::raw(resp)`   | `impl IntoResponse` passthrough                      | Binary / SSE responses                          |
+| `VilError`                 | Custom `AppError` enum + `(StatusCode, Json)` tuples | Standard RFC 7807 error format                  |
+| `HandlerResult<T>`         | `Result<T, AppError>`                                | Unified `?` propagation                         |
+| `SseCollect`               | Manual `reqwest` SSE loop                            | Built-in SSE dialect handling                   |
+| `WsHub`                    | Manual `RoomManager`                                 | Topic-based broadcast hub                       |
+| `Scheduler`                | Manual `tokio::time::interval`                       | Named job scheduling                            |
+| `vil_conn_s3::S3Connector` | `aws-sdk-s3`                                         | VIL-native S3 client                            |
+| `#[vil_handler(shm)]`      | —                                                    | Enables SHM ExchangeHeap body                   |
 
 ### Special-case extractors (kept as-is)
 
@@ -292,9 +295,10 @@ Some handlers retain non-VIL extractors by design:
 ### VilApp Registration
 
 ```rust
-VilApp::new()
-    .observer(true)                // /_vil/dashboard/ live metrics UI
-    .profile(&vil_profile)         // env-driven profile (dev/staging/prod)
+VilApp::new("edusync-lms")
+    .port(8080)
+    .profile(&vil_profile)         // env-driven profile: dev / staging / prod (VIL_PROFILE)
+    .observer(true)                // /_vil/dashboard/ live metrics UI + /_vil/api/*
     .service(auth_service)
     .service(courses_service)
     .service(data_plane_service)
@@ -306,4 +310,27 @@ VilApp::new()
     .service(realtime_service)
     // All services attach state via:
     //   .extension(Arc::clone(&state_arc))
+    .run()
+    .await;
 ```
+
+## Observer Dashboard
+
+Available at `/_vil/dashboard/` when `.observer(true)` is set (enabled in dev/staging; disabled in prod profile by default):
+
+- Live RPS, latency P50/P95/P99
+- Per-route metrics table
+- SHM pool utilization
+- Service topology graph
+- SLO budget tracking
+
+Auto-registered endpoints (free from VilApp):
+
+| Path                   | Description                       |
+| ---------------------- | --------------------------------- |
+| `GET /health`          | Liveness probe                    |
+| `GET /ready`           | Readiness probe                   |
+| `GET /metrics`         | Prometheus metrics                |
+| `GET /_vil/dashboard/` | VIL Observer UI                   |
+| `GET /_vil/api/routes` | Registered routes JSON            |
+| `GET /_vil/api/system` | OS metrics (cpu, memory, threads) |

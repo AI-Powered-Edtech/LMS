@@ -1,6 +1,25 @@
 # EduSync VIL API Reference
 
-All endpoints are served by the Rust/Axum backend at `http://localhost:8080` (dev) or via nginx at port 80.
+## Backend Framework
+
+All endpoints are served by the VIL (Vastar Intermediate Language) backend.
+VIL is a process-oriented Rust framework (https://github.com/OceanOS-id/VIL)
+built on Axum 0.7.
+
+**Base URL**: `http://localhost:8080` (dev) or via nginx at port 80  
+**Observer**: `http://localhost:8080/_vil/dashboard/` (live metrics)  
+**Auto-registered endpoints** (free from VilApp):
+
+| Method | Path               | Description                       |
+| ------ | ------------------ | --------------------------------- |
+| `GET`  | `/health`          | Liveness probe                    |
+| `GET`  | `/ready`           | Readiness probe                   |
+| `GET`  | `/metrics`         | Prometheus metrics                |
+| `GET`  | `/_vil/dashboard/` | VIL Observer UI                   |
+| `GET`  | `/_vil/api/routes` | Registered routes JSON            |
+| `GET`  | `/_vil/api/system` | OS metrics (cpu, memory, threads) |
+
+---
 
 Base prefix: `/api/v1/`
 
