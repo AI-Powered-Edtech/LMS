@@ -15,12 +15,14 @@ use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
 
+use vil_server::prelude::{SseCollect, SseDialect};
+
 use crate::ai::config::{
-    groq_circuit_breaker, http_client, CONTENT_GEN_RATE_LIMIT_PER_HOUR, GROQ_API_URL, GROQ_MODEL,
+    groq_circuit_breaker, CONTENT_GEN_RATE_LIMIT_PER_HOUR, GROQ_API_URL, GROQ_MODEL,
 };
 use crate::ai::types::{
     AssignmentType, BloomLevel, GenerateContentRequest, GenerateContentResponse, GeneratedOption,
-    GeneratedQuestion, GroqMessage, GroqRequest, GroqResponseFormat,
+    GeneratedQuestion,
 };
 
 use axum::http::StatusCode;
@@ -285,65 +287,44 @@ async fn call_groq_content_gen(prompt: &str) -> Result<RawGroqContent, ContentGe
         return Err(ContentGenError::CircuitOpen);
     }
 
-    let body = GroqRequest {
-        model: GROQ_MODEL.to_string(),
-        messages: vec![GroqMessage {
-            role: "user".to_string(),
-            content: prompt.to_string(),
-        }],
-        temperature: 0.4,
-        response_format: Some(GroqResponseFormat {
-            format_type: "json_object".to_string(),
-        }),
-    };
-
-    let result = http_client()
-        .post(GROQ_API_URL)
-        .bearer_auth(&api_key)
-        .json(&body)
-        .timeout(std::time::Duration::from_secs(30))
-        .send()
+    let result = SseCollect::post_to(GROQ_API_URL)
+        .dialect(SseDialect::openai())
+        .bearer_token(&api_key)
+        .body(serde_json::json!({
+            "model": GROQ_MODEL,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.4,
+            "max_tokens": 2048,
+            "response_format": {"type": "json_object"},
+            "stream": true
+        }))
+        .collect_text()
         .await;
 
-    let response = match result {
-        Ok(r) => r,
-        Err(e) if e.is_timeout() => {
+    let raw_text = match result {
+        Ok(text) if !text.trim().is_empty() => {
+            cb.record_success();
+            text
+        }
+        Ok(_) => {
             cb.record_failure();
-            return Err(ContentGenError::Timeout);
+            return Err(ContentGenError::Internal(
+                "Groq returned empty content".to_string(),
+            ));
         }
         Err(e) => {
             cb.record_failure();
-            return Err(ContentGenError::Internal(format!("Groq request error: {e}")));
+            return Err(ContentGenError::Internal(format!(
+                "AI content gen gagal: {e}"
+            )));
         }
     };
-
-    if !response.status().is_success() {
-        let status = response.status().as_u16();
-        let body_text = response.text().await.unwrap_or_default();
-        cb.record_failure();
-        return Err(ContentGenError::Internal(format!(
-            "Groq API error {status}: {body_text}"
-        )));
-    }
-
-    let groq_resp: crate::ai::types::GroqResponse = response
-        .json()
-        .await
-        .map_err(|e| ContentGenError::Internal(format!("Groq JSON parse: {e}")))?;
-
-    let raw_text = groq_resp
-        .choices
-        .into_iter()
-        .next()
-        .and_then(|c| c.message.content)
-        .ok_or_else(|| ContentGenError::Internal("Groq returned empty content".to_string()))?;
 
     let parsed: RawGroqContent = serde_json::from_str(&raw_text).map_err(|e| {
         tracing::error!("content_gen_parse: {e}, raw={raw_text}");
         ContentGenError::Internal("Format respons AI tidak valid".to_string())
     })?;
 
-    cb.record_success();
     Ok(parsed)
 }
 

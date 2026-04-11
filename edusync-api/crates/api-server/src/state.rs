@@ -1,6 +1,5 @@
 use edusync_middleware::brute_force::BruteForceTracker;
 use sqlx::PgPool;
-use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct ShadowRuntimeConfig {
@@ -19,6 +18,9 @@ pub struct SmtpConfig {
 }
 
 /// Central application state shared across all request handlers.
+///
+/// Access in handlers: `let state = ctx.state::<Arc<AppState>>()?;`
+/// Injection in main.rs: `ServiceProcess::new(...).extension(Arc::new(app_state))`
 ///
 /// All `Option<String>` fields are `None` when the corresponding environment
 /// variable is not set; handlers that need them must return an appropriate
@@ -51,8 +53,15 @@ pub struct AppState {
     /// WhatsApp phone number ID. Set via WHATSAPP_PHONE_NUMBER_ID.
     pub whatsapp_phone_number_id: Option<String>,
 
-    // ── Phase 5A: S3-compatible Storage ──────────────────────────────────────
-    /// S3-compatible storage client (MinIO local / Cloudflare R2 production).
+    // ── Phase VIL / Wave 1A: S3-compatible Storage ────────────────────────────
+    /// S3-compatible endpoint URL (MinIO local / Cloudflare R2 production).
     /// `None` when S3_ENDPOINT is not configured — handlers return 503.
-    pub storage: Option<Arc<crate::storage::S3StorageClient>>,
+    /// The vil_storage_s3 client is constructed per-handler or as a service
+    /// extension using these config values.
+    pub s3_endpoint: Option<String>,
+    /// S3 bucket name. Set via S3_BUCKET environment variable.
+    pub s3_bucket: String,
+    /// Public base URL for serving stored objects. Set via S3_PUBLIC_URL.
+    /// Used to generate public download links without signed URLs.
+    pub s3_public_url: Option<String>,
 }

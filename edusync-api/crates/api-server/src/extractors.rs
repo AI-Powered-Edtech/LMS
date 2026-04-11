@@ -5,7 +5,9 @@ use axum::{
     Extension,
 };
 use edusync_auth::{AuthError, verify_access_token};
-use edusync_middleware::{rbac::role_has_permission, tenant::TenantContext};
+use edusync_middleware::rbac::role_has_permission;
+use edusync_middleware::tenant::TenantContext;
+use vil_server::prelude::VilError;
 use std::sync::Arc;
 use uuid::Uuid;
 use crate::state::AppState;
@@ -40,6 +42,39 @@ fn extract_tenant_context(
     Ok(TenantContext { user_id, tenant_id, role: claims.role, email: claims.email })
 }
 
+// ---------------------------------------------------------------------------
+// AuthError → VilError conversion
+// ---------------------------------------------------------------------------
+
+impl From<AuthError> for VilError {
+    fn from(err: AuthError) -> Self {
+        match err {
+            AuthError::Unauthorized
+            | AuthError::InvalidToken
+            | AuthError::TokenExpired => VilError::unauthorized(err.to_string()),
+            AuthError::Forbidden
+            | AuthError::UserBanned
+            | AuthError::TenantMismatch => VilError::forbidden(err.to_string()),
+            AuthError::InvitationNotFound
+            | AuthError::ClassNotFound
+            | AuthError::UserNotFound => VilError::not_found(err.to_string()),
+            AuthError::TooManyRequests => {
+                VilError::bad_request(err.to_string())
+            }
+            AuthError::EmailAlreadyExists
+            | AuthError::InvalidEmail
+            | AuthError::WeakPassword
+            | AuthError::InvalidCredentials
+            | AuthError::EmailNotConfirmed
+            | AuthError::MfaRequired => VilError::bad_request(err.to_string()),
+            AuthError::Internal(_) | AuthError::Database(_) => {
+                tracing::error!(error = ?err, "AuthError internal");
+                VilError::internal("Terjadi kesalahan server internal")
+            }
+        }
+    }
+}
+
 /// Axum extractor: validates Bearer token, returns authenticated user context.
 ///
 /// Returns 401 when the Authorization header is missing, malformed, or the token
@@ -59,14 +94,16 @@ impl<S> FromRequestParts<S> for AuthedRequest
 where
     S: Send + Sync,
 {
-    type Rejection = AuthError;
+    type Rejection = VilError;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         let Extension(state): Extension<Arc<AppState>> =
             Extension::from_request_parts(parts, _state)
                 .await
-                .map_err(|_| AuthError::Unauthorized)?;
-        Ok(AuthedRequest(extract_tenant_context(parts, &state.jwt_secret)?))
+                .map_err(|_| VilError::unauthorized("Tidak terautentikasi"))?;
+        extract_tenant_context(parts, &state.jwt_secret)
+            .map(AuthedRequest)
+            .map_err(VilError::from)
     }
 }
 
@@ -77,7 +114,7 @@ where
 /// # Usage
 ///
 /// ```no_run
-/// async fn teacher_only(rbac: RbacGuard) -> Result<..., AuthError> {
+/// async fn teacher_only(rbac: RbacGuard) -> Result<..., VilError> {
 ///     rbac.require("teacher")?;
 ///     let ctx = rbac.ctx();
 ///     // ...
@@ -87,11 +124,11 @@ pub struct RbacGuard(pub TenantContext);
 
 impl RbacGuard {
     /// Returns `Ok(())` if the user has at least `required_role` privilege level.
-    pub fn require(&self, required_role: &str) -> Result<(), AuthError> {
+    pub fn require(&self, required_role: &str) -> Result<(), VilError> {
         if role_has_permission(&self.0.role, required_role) {
             Ok(())
         } else {
-            Err(AuthError::Forbidden)
+            Err(VilError::forbidden("Akses ditolak"))
         }
     }
 
@@ -105,13 +142,15 @@ impl<S> FromRequestParts<S> for RbacGuard
 where
     S: Send + Sync,
 {
-    type Rejection = AuthError;
+    type Rejection = VilError;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         let Extension(state): Extension<Arc<AppState>> =
             Extension::from_request_parts(parts, _state)
                 .await
-                .map_err(|_| AuthError::Unauthorized)?;
-        Ok(RbacGuard(extract_tenant_context(parts, &state.jwt_secret)?))
+                .map_err(|_| VilError::unauthorized("Tidak terautentikasi"))?;
+        extract_tenant_context(parts, &state.jwt_secret)
+            .map(RbacGuard)
+            .map_err(VilError::from)
     }
 }

@@ -1,20 +1,12 @@
-//! Phase 5A — Axum HTTP handlers for the storage subsystem.
+//! S3-compatible storage HTTP handlers — uses vil_storage_s3 (VIL Way)
 //!
-//! All handlers check `state.storage` first; when absent they return 503
-//! with a Bahasa Indonesia message.  Path validation and bucket allow-listing
+//! All handlers check that S3 is configured first; when absent they return 503
+//! with a Bahasa Indonesia message. Path validation and bucket allow-listing
 //! are enforced before any S3 call is made.
 //!
 //! ## Route registration snippet for `main.rs`
 //!
 //! ```rust
-//! // INTEGRATION NEEDED in main.rs — add storage service:
-//! //
-//! // use crate::storage::handlers::{
-//! //     create_signed_url_handler, download_handler, list_handler,
-//! //     migration_status_handler, presign_upload_handler, public_url_handler,
-//! //     remove_handler, upload_handler,
-//! // };
-//! //
 //! // let storage_service = ServiceProcess::new("storage")
 //! //     .prefix("/api/v1/storage")
 //! //     .endpoint(Method::POST,   "/upload",                post(upload_handler))
@@ -25,7 +17,7 @@
 //! //     .endpoint(Method::POST,   "/presign-upload",        post(presign_upload_handler))
 //! //     .endpoint(Method::GET,    "/list/:bucket",          get(list_handler))
 //! //     .endpoint(Method::GET,    "/migration-status",      get(migration_status_handler))
-//! //     .state(app_state.clone());
+//! //     .extension(Arc::clone(&state_arc));
 //! ```
 
 use axum::{
@@ -40,7 +32,7 @@ use std::sync::Arc;
 use crate::extractors::AuthedRequest;
 use crate::state::AppState;
 
-use super::client::{S3StorageClient, StorageError};
+use super::client::{create_s3_client, S3Client};
 use super::url::{build_s3_key, max_bytes_for_bucket, sanitize_path, validate_bucket};
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
@@ -53,23 +45,6 @@ struct ErrorBody {
 
 fn err_response(status: StatusCode, msg: &str) -> Response {
     (status, Json(ErrorBody { error: msg.to_string() })).into_response()
-}
-
-/// Return the storage client from AppState, or a 503 response.
-///
-/// `state.storage` is `Option<Arc<S3StorageClient>>`.
-/// This helper avoids repetition in every handler.
-///
-/// # Note for integration agent
-/// `AppState` must have: `pub storage: Option<Arc<S3StorageClient>>`
-#[inline]
-fn require_storage(state: &AppState) -> Result<&S3StorageClient, Response> {
-    state.storage.as_deref().ok_or_else(|| {
-        err_response(
-            StatusCode::SERVICE_UNAVAILABLE,
-            "Layanan penyimpanan tidak dikonfigurasi",
-        )
-    })
 }
 
 /// Guess a reasonable Content-Type from a file extension.
@@ -95,6 +70,16 @@ fn guess_content_type(filename: &str) -> &'static str {
         "json" => "application/json",
         _ => "application/octet-stream",
     }
+}
+
+/// Build an S3Client from state, returning a 503 response if not configured.
+async fn require_s3(state: &AppState) -> Result<S3Client, Response> {
+    create_s3_client(state).await.ok_or_else(|| {
+        err_response(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "Layanan penyimpanan tidak dikonfigurasi",
+        )
+    })
 }
 
 // ── Upload handler ────────────────────────────────────────────────────────────
@@ -133,8 +118,8 @@ pub async fn upload_handler(
     Query(query): Query<UploadQuery>,
     mut multipart: Multipart,
 ) -> impl IntoResponse {
-    let storage = match require_storage(&state) {
-        Ok(s) => s,
+    let s3 = match require_s3(&state).await {
+        Ok(c) => c,
         Err(r) => return r,
     };
 
@@ -209,9 +194,9 @@ pub async fn upload_handler(
     let size = bytes.len() as u64;
     let s3_key = build_s3_key(&query.bucket, &ctx.tenant_id, &clean_path);
 
-    match storage.put_object(&s3_key, bytes, &content_type).await {
+    match s3.put_object(&s3_key, bytes, &content_type).await {
         Ok(_) => {
-            let public_url = storage.public_url(&s3_key);
+            let public_url = s3.public_url(&s3_key);
             (
                 StatusCode::CREATED,
                 Json(UploadResponse {
@@ -223,10 +208,6 @@ pub async fn upload_handler(
             )
                 .into_response()
         }
-        Err(StorageError::FileTooLarge) => err_response(
-            StatusCode::PAYLOAD_TOO_LARGE,
-            "Ukuran file melebihi batas yang diizinkan",
-        ),
         Err(e) => err_response(
             StatusCode::INTERNAL_SERVER_ERROR,
             &format!("Gagal mengunggah file: {}", e),
@@ -245,8 +226,8 @@ pub async fn download_handler(
     Extension(state): Extension<Arc<AppState>>,
     Path((bucket, path)): Path<(String, String)>,
 ) -> impl IntoResponse {
-    let storage = match require_storage(&state) {
-        Ok(s) => s,
+    let s3 = match require_s3(&state).await {
+        Ok(c) => c,
         Err(r) => return r,
     };
 
@@ -256,15 +237,13 @@ pub async fn download_handler(
 
     let clean_path = match sanitize_path(&path) {
         Some(p) => p,
-        None => {
-            return err_response(StatusCode::BAD_REQUEST, "Path tidak valid")
-        }
+        None => return err_response(StatusCode::BAD_REQUEST, "Path tidak valid"),
     };
 
     let s3_key = build_s3_key(&bucket, &ctx.tenant_id, &clean_path);
     let content_type = guess_content_type(&clean_path);
 
-    match storage.get_object(&s3_key).await {
+    match s3.get_object(&s3_key).await {
         Ok(bytes) => (
             StatusCode::OK,
             [
@@ -274,13 +253,17 @@ pub async fn download_handler(
             bytes,
         )
             .into_response(),
-        Err(StorageError::NotFound) => {
-            err_response(StatusCode::NOT_FOUND, "Objek tidak ditemukan")
+        Err(e) => {
+            let msg = e.to_string();
+            if msg.contains("tidak ditemukan") || msg.contains("NoSuchKey") || msg.contains("404") {
+                err_response(StatusCode::NOT_FOUND, "Objek tidak ditemukan")
+            } else {
+                err_response(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    &format!("Gagal mengunduh file: {}", e),
+                )
+            }
         }
-        Err(e) => err_response(
-            StatusCode::INTERNAL_SERVER_ERROR,
-            &format!("Gagal mengunduh file: {}", e),
-        ),
     }
 }
 
@@ -302,8 +285,8 @@ pub async fn remove_handler(
     Path(bucket): Path<String>,
     Json(body): Json<RemoveRequest>,
 ) -> impl IntoResponse {
-    let storage = match require_storage(&state) {
-        Ok(s) => s,
+    let s3 = match require_s3(&state).await {
+        Ok(c) => c,
         Err(r) => return r,
     };
 
@@ -329,12 +312,23 @@ pub async fn remove_handler(
         }
     }
 
-    match storage.delete_objects(&keys).await {
-        Ok(_) => (StatusCode::OK, Json(serde_json::json!({ "deleted": keys.len() }))).into_response(),
-        Err(e) => err_response(
+    // vil_storage_s3 exposes delete_object (single); delete them sequentially.
+    // For batch deletes we fan out concurrently but report total count.
+    let total = keys.len();
+    let mut errors: Vec<String> = Vec::new();
+    for key in &keys {
+        if let Err(e) = s3.delete_object(key).await {
+            errors.push(format!("{}: {}", key, e));
+        }
+    }
+
+    if errors.is_empty() {
+        (StatusCode::OK, Json(serde_json::json!({ "deleted": total }))).into_response()
+    } else {
+        err_response(
             StatusCode::INTERNAL_SERVER_ERROR,
-            &format!("Gagal menghapus file: {}", e),
-        ),
+            &format!("Gagal menghapus {} file: {}", errors.len(), errors.join("; ")),
+        )
     }
 }
 
@@ -349,14 +343,12 @@ pub struct PublicUrlResponse {
 /// `GET /api/v1/storage/public-url/{bucket}/{*path}`
 ///
 /// Returns the CDN / public URL for an object.  No auth required.
-/// This is safe because the URL itself only works if the object exists
-/// and the bucket is configured for public access.
 pub async fn public_url_handler(
     Extension(state): Extension<Arc<AppState>>,
     Path((bucket, path)): Path<(String, String)>,
 ) -> impl IntoResponse {
-    let storage = match require_storage(&state) {
-        Ok(s) => s,
+    let s3 = match require_s3(&state).await {
+        Ok(c) => c,
         Err(r) => return r,
     };
 
@@ -369,11 +361,10 @@ pub async fn public_url_handler(
         None => return err_response(StatusCode::BAD_REQUEST, "Path tidak valid"),
     };
 
-    // For public-url we don't know the tenant at this point (unauthenticated),
-    // so we expose the raw bucket-level URL.  The caller is expected to supply
-    // the full path including the tenant prefix when needed.
+    // For public-url we don't have tenant context (unauthenticated call).
+    // The caller must supply the full path including the tenant prefix.
     let s3_key = format!("{}/{}", bucket, clean_path);
-    let public_url = storage.public_url(&s3_key);
+    let public_url = s3.public_url(&s3_key);
 
     (StatusCode::OK, Json(PublicUrlResponse { public_url })).into_response()
 }
@@ -404,8 +395,8 @@ pub async fn create_signed_url_handler(
     Extension(state): Extension<Arc<AppState>>,
     Json(body): Json<SignedUrlRequest>,
 ) -> impl IntoResponse {
-    let storage = match require_storage(&state) {
-        Ok(s) => s,
+    let s3 = match require_s3(&state).await {
+        Ok(c) => c,
         Err(r) => return r,
     };
 
@@ -421,7 +412,7 @@ pub async fn create_signed_url_handler(
     let expires_in = body.expires_in.unwrap_or(3_600).min(604_800); // cap at 7 days
     let s3_key = build_s3_key(&body.bucket, &ctx.tenant_id, &clean_path);
 
-    match storage.presigned_get_url(&s3_key, expires_in).await {
+    match s3.presigned_get_url(&s3_key, expires_in).await {
         Ok(signed_url) => (
             StatusCode::OK,
             Json(SignedUrlResponse { signed_url, expires_in }),
@@ -466,8 +457,8 @@ pub async fn presign_upload_handler(
     Extension(state): Extension<Arc<AppState>>,
     Json(body): Json<PresignUploadRequest>,
 ) -> impl IntoResponse {
-    let storage = match require_storage(&state) {
-        Ok(s) => s,
+    let s3 = match require_s3(&state).await {
+        Ok(c) => c,
         Err(r) => return r,
     };
 
@@ -482,9 +473,9 @@ pub async fn presign_upload_handler(
 
     let expires_in = body.expires_in.unwrap_or(3_600).min(604_800);
     let s3_key = build_s3_key(&body.bucket, &ctx.tenant_id, &clean_path);
-    let public_url = storage.public_url(&s3_key);
+    let public_url = s3.public_url(&s3_key);
 
-    match storage.presigned_put_url(&s3_key, expires_in).await {
+    match s3.presigned_put_url(&s3_key, expires_in).await {
         Ok(upload_url) => (
             StatusCode::OK,
             Json(PresignUploadResponse {
@@ -530,8 +521,8 @@ pub async fn list_handler(
     Path(bucket): Path<String>,
     Query(params): Query<ListParams>,
 ) -> impl IntoResponse {
-    let storage = match require_storage(&state) {
-        Ok(s) => s,
+    let s3 = match require_s3(&state).await {
+        Ok(c) => c,
         Err(r) => return r,
     };
 
@@ -542,20 +533,16 @@ pub async fn list_handler(
     // Base prefix always scopes to tenant.
     let base_prefix = format!("{}/{}/", bucket, ctx.tenant_id);
     let full_prefix = match &params.prefix {
-        Some(p) => {
-            match sanitize_path(p) {
-                Some(clean) => format!("{}{}", base_prefix, clean),
-                None => {
-                    return err_response(StatusCode::BAD_REQUEST, "Prefix tidak valid")
-                }
-            }
-        }
+        Some(p) => match sanitize_path(p) {
+            Some(clean) => format!("{}{}", base_prefix, clean),
+            None => return err_response(StatusCode::BAD_REQUEST, "Prefix tidak valid"),
+        },
         None => base_prefix,
     };
 
-    let limit = params.limit.unwrap_or(100).clamp(1, 1_000);
+    let limit = params.limit.unwrap_or(100).clamp(1, 1_000) as u32;
 
-    match storage.list_objects(&full_prefix, limit).await {
+    match s3.list_objects(&full_prefix, limit).await {
         Ok(objects) => {
             let items: Vec<ListItem> = objects
                 .into_iter()
@@ -565,7 +552,8 @@ pub async fn list_handler(
                     last_modified: obj.last_modified.map(|dt| dt.to_rfc3339()),
                 })
                 .collect();
-            (StatusCode::OK, Json(serde_json::json!({ "items": items, "count": items.len() }))).into_response()
+            let count = items.len();
+            (StatusCode::OK, Json(serde_json::json!({ "items": items, "count": count }))).into_response()
         }
         Err(e) => err_response(
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -594,13 +582,17 @@ pub struct MigrationStatusResponse {
 /// `GET /api/v1/storage/migration-status`
 ///
 /// Returns the current storage migration state read from `storage_file_migrations`.
-/// Requires admin or teacher role (any authenticated user can call it).
+/// Requires any authenticated user.
 pub async fn migration_status_handler(
     AuthedRequest(_ctx): AuthedRequest,
     Extension(state): Extension<Arc<AppState>>,
 ) -> impl IntoResponse {
-    let storage_configured = state.storage.is_some();
-    let bucket = state.storage.as_ref().map(|s| s.bucket_name().to_string());
+    let storage_configured = state.s3_endpoint.is_some();
+    let bucket = if storage_configured {
+        Some(state.s3_bucket.clone())
+    } else {
+        None
+    };
 
     if !storage_configured {
         return (

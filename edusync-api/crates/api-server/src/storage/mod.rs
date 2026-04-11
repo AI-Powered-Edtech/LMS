@@ -1,25 +1,12 @@
-//! Phase 5A — S3-compatible object storage backend.
+//! S3-compatible object storage backend — uses vil_storage_s3 (VIL Way)
 //!
-//! Provides an `S3StorageClient` that works with both Cloudflare R2 (production)
-//! and MinIO (local development) via endpoint override.
-//!
-//! ## Integration note for `state.rs` / `main.rs`
-//!
-//! ```rust
-//! // INTEGRATION NEEDED in state.rs:
-//! // use crate::storage::client::S3StorageClient;
-//! // pub storage: Option<Arc<S3StorageClient>>,
-//!
-//! // INTEGRATION NEEDED in main.rs:
-//! // let storage = S3StorageClient::from_env().await;
-//! // if storage.is_none() {
-//! //     tracing::warn!("S3_ENDPOINT tidak dikonfigurasi — endpoint storage tidak akan berfungsi");
-//! // }
-//! // // Add to AppState: storage: storage.map(Arc::new),
-//! ```
+//! The `S3Client` (from `vil_storage_s3`) is created per-handler via
+//! `client::create_s3_client(&state)`.  vil_storage_s3 handles connection
+//! pooling internally so constructing the client per-request is cheap.
 
 pub mod client;
 pub mod handlers;
 pub mod url;
 
-pub use client::S3StorageClient;
+// Re-export the VIL S3 client type for other crates that might need it.
+pub use vil_storage_s3::S3Client;

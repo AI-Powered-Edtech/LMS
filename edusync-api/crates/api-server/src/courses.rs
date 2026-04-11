@@ -1,55 +1,21 @@
 use axum::{
-    extract::{Extension, Path, Query},
+    extract::{Path, Query},
     http::HeaderMap,
-    response::{IntoResponse, Response},
-    Json,
 };
-use edusync_auth::AuthError;
-use edusync_middleware::errors::AppError;
 use edusync_models::{course::Course, lesson::Lesson};
 use serde::{Deserialize, Serialize};
 use sqlx::{postgres::PgRow, QueryBuilder, Row};
 use std::sync::Arc;
 use uuid::Uuid;
+use vil_server::prelude::{
+    HandlerResult, NoContent, ServiceCtx, ShmSlice, VilError, VilResponse,
+};
 
 use crate::{
     extractors::{AuthedRequest, RbacGuard},
     observability::request_id_from_headers,
     state::AppState,
 };
-
-#[derive(Debug)]
-pub enum CourseApiError {
-    Auth(AuthError),
-    App(AppError),
-}
-
-impl From<AuthError> for CourseApiError {
-    fn from(value: AuthError) -> Self {
-        Self::Auth(value)
-    }
-}
-
-impl From<AppError> for CourseApiError {
-    fn from(value: AppError) -> Self {
-        Self::App(value)
-    }
-}
-
-impl From<sqlx::Error> for CourseApiError {
-    fn from(value: sqlx::Error) -> Self {
-        Self::App(AppError::from(value))
-    }
-}
-
-impl IntoResponse for CourseApiError {
-    fn into_response(self) -> Response {
-        match self {
-            Self::Auth(error) => error.into_response(),
-            Self::App(error) => error.into_response(),
-        }
-    }
-}
 
 #[derive(Deserialize)]
 pub struct CourseListQuery {
@@ -114,11 +80,12 @@ fn map_course(row: PgRow) -> Result<Course, sqlx::Error> {
 }
 
 pub async fn list_courses_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     headers: HeaderMap,
     AuthedRequest(ctx): AuthedRequest,
     Query(params): Query<CourseListQuery>,
-) -> Result<Json<CourseListResponse>, CourseApiError> {
+) -> HandlerResult<VilResponse<CourseListResponse>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
     let request_id = request_id_from_headers(&headers);
     tracing::info!(
         target: "edusync_api_server::courses",
@@ -165,15 +132,16 @@ pub async fn list_courses_handler(
         courses.push(map_course(row)?);
     }
 
-    Ok(Json(CourseListResponse { courses, count }))
+    Ok(VilResponse::ok(CourseListResponse { courses, count }))
 }
 
 pub async fn get_course_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     headers: HeaderMap,
     AuthedRequest(ctx): AuthedRequest,
     Path(course_id): Path<Uuid>,
-) -> Result<Json<Course>, CourseApiError> {
+) -> HandlerResult<VilResponse<Course>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
     let request_id = request_id_from_headers(&headers);
     tracing::info!(
         target: "edusync_api_server::courses",
@@ -193,24 +161,27 @@ pub async fn get_course_handler(
     .bind(ctx.tenant_id)
     .fetch_optional(&state.db)
     .await?
-    .ok_or(AppError::NotFound)?;
+    .ok_or_else(|| VilError::not_found("Kursus tidak ditemukan"))?;
 
-    Ok(Json(map_course(row)?))
+    Ok(VilResponse::ok(map_course(row)?))
 }
 
 pub async fn create_course_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     rbac: RbacGuard,
-    Json(body): Json<CreateCourseRequest>,
-) -> Result<Json<Course>, CourseApiError> {
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<Course>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
     rbac.require("teacher")?;
+
+    let body: CreateCourseRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     let title = body.title.trim();
     if title.is_empty() {
-        return Err(AppError::BadRequest("Judul kursus wajib diisi".to_string()).into());
+        return Err(VilError::bad_request("Judul kursus wajib diisi"));
     }
     if title.len() > 255 {
-        return Err(AppError::BadRequest("Judul kursus maksimum 255 karakter".to_string()).into());
+        return Err(VilError::bad_request("Judul kursus maksimum 255 karakter"));
     }
 
     let row = sqlx::query(
@@ -229,16 +200,19 @@ pub async fn create_course_handler(
     .fetch_one(&state.db)
     .await?;
 
-    Ok(Json(map_course(row)?))
+    Ok(VilResponse::ok(map_course(row)?))
 }
 
 pub async fn update_course_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     rbac: RbacGuard,
     Path(course_id): Path<Uuid>,
-    Json(body): Json<UpdateCourseRequest>,
-) -> Result<Json<Course>, CourseApiError> {
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<Course>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
     rbac.require("teacher")?;
+
+    let body: UpdateCourseRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
 
     let mut builder = QueryBuilder::new("UPDATE public.courses SET ");
     let mut separated = builder.separated(", ");
@@ -266,7 +240,7 @@ pub async fn update_course_handler(
     }
 
     if !has_updates {
-        return Err(AppError::BadRequest("Tidak ada perubahan untuk disimpan".to_string()).into());
+        return Err(VilError::bad_request("Tidak ada perubahan untuk disimpan"));
     }
 
     separated.push("updated_at = now()");
@@ -284,16 +258,17 @@ pub async fn update_course_handler(
         .build()
         .fetch_optional(&state.db)
         .await?
-        .ok_or(AppError::NotFound)?;
+        .ok_or_else(|| VilError::not_found("Kursus tidak ditemukan"))?;
 
-    Ok(Json(map_course(row)?))
+    Ok(VilResponse::ok(map_course(row)?))
 }
 
 pub async fn delete_course_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     rbac: RbacGuard,
     Path(course_id): Path<Uuid>,
-) -> Result<Response, CourseApiError> {
+) -> HandlerResult<NoContent> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
     rbac.require("teacher")?;
 
     let result = sqlx::query("DELETE FROM public.courses WHERE id = $1 AND tenant_id = $2")
@@ -303,18 +278,19 @@ pub async fn delete_course_handler(
         .await?;
 
     if result.rows_affected() == 0 {
-        return Err(AppError::NotFound.into());
+        return Err(VilError::not_found("Kursus tidak ditemukan"));
     }
 
-    Ok(axum::http::StatusCode::NO_CONTENT.into_response())
+    Ok(NoContent)
 }
 
 pub async fn get_course_modules_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     headers: HeaderMap,
     AuthedRequest(ctx): AuthedRequest,
     Path(course_id): Path<Uuid>,
-) -> Result<Json<Vec<CourseModuleWithLessons>>, CourseApiError> {
+) -> HandlerResult<VilResponse<Vec<CourseModuleWithLessons>>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
     let request_id = request_id_from_headers(&headers);
     tracing::info!(
         target: "edusync_api_server::courses",
@@ -370,5 +346,5 @@ pub async fn get_course_modules_handler(
         })
         .collect();
 
-    Ok(Json(data))
+    Ok(VilResponse::ok(data))
 }

@@ -1,19 +1,18 @@
-/// AI service configuration, shared Groq HTTP client, and CircuitBreaker.
+/// AI service configuration and CircuitBreaker singleton.
 ///
-/// # Dependencies (add to services/Cargo.toml when wiring):
-///   reqwest = { version = "0.12", features = ["json"] }
-///   tokio   = { workspace = true }
+/// HTTP calls to Groq are made via `vil_server::prelude::SseCollect`, which
+/// maintains its own global connection-pooled reqwest client — no manual
+/// `reqwest::Client` needed here.
 ///
-/// CircuitBreaker is implemented manually using `Arc<Mutex<CircuitBreakerState>>`
-/// and `std::sync::OnceLock` (stable since Rust 1.70).
-/// Do NOT import from `vil_server` — it does not export CircuitBreaker.
+/// `vil_server` (0.2.2) does not export a `CircuitBreaker` type, so we keep
+/// the lightweight manual implementation below.
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 pub const GROQ_API_URL: &str = "https://api.groq.com/openai/v1/chat/completions";
-pub const GROQ_MODEL: &str = "llama-3.1-70b-versatile";
+pub const GROQ_MODEL: &str = "llama-3.3-70b-versatile";
 
 /// Per-user rate limit for AI grading/tutor endpoints (requests per hour).
 pub const AI_RATE_LIMIT_PER_HOUR: i64 = 50;
@@ -33,22 +32,11 @@ pub const MAX_SESSION_MESSAGES: usize = 50;
 /// Last N messages loaded as conversation history.
 pub const TUTOR_HISTORY_WINDOW: usize = 10;
 
-// ─── Shared reqwest Client ────────────────────────────────────────────────────
-
-static HTTP_CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
-
-/// Returns a lazily-initialised, shared `reqwest::Client`.
-/// The client is created once and reused for all Groq calls (connection pooling).
-pub fn http_client() -> &'static reqwest::Client {
-    HTTP_CLIENT.get_or_init(|| {
-        reqwest::Client::builder()
-            .timeout(Duration::from_secs(60)) // outer safety timeout
-            .build()
-            .expect("Failed to build reqwest client")
-    })
-}
-
 // ─── CircuitBreaker ───────────────────────────────────────────────────────────
+//
+// vil_server 0.2.2 does not export CircuitBreaker from its prelude.
+// This manual implementation is retained; it is equivalent to the documented
+// VIL primitive in terms of semantics (failure threshold + cooldown window).
 
 /// Internal state for the circuit breaker.
 #[derive(Debug)]
@@ -141,7 +129,7 @@ impl Default for CircuitBreaker {
 ///
 /// let cb = groq_circuit_breaker();
 /// if !cb.is_closed() {
-///     return Err(AppError::Internal("Layanan AI sedang tidak tersedia".into()));
+///     return Err(/* circuit open error */);
 /// }
 /// // … make API call …
 /// cb.record_success();

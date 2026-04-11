@@ -10,11 +10,12 @@ use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
 
+use vil_server::prelude::{SseCollect, SseDialect};
+
 use crate::ai::config::{
-    groq_circuit_breaker, http_client, AI_RATE_LIMIT_PER_HOUR, GROQ_API_URL, GROQ_MODEL,
-    MAX_ESSAY_CHARS,
+    groq_circuit_breaker, AI_RATE_LIMIT_PER_HOUR, GROQ_API_URL, GROQ_MODEL, MAX_ESSAY_CHARS,
 };
-use crate::ai::types::{GradeEssayRequest, GradeEssayResponse, GroqRequest, GroqResponseFormat};
+use crate::ai::types::{GradeEssayRequest, GradeEssayResponse};
 
 // Re-export the error types used by the API server to avoid circular deps.
 // The handler takes `AppError` from edusync-middleware (not imported here — the
@@ -201,64 +202,42 @@ Selalu kembalikan objek JSON dengan tepat tiga kunci berikut:
         return Err(GradingError::CircuitOpen);
     }
 
-    let request_body = GroqRequest {
-        model: GROQ_MODEL.to_string(),
-        messages: vec![
-            crate::ai::types::GroqMessage {
-                role: "system".to_string(),
-                content: system_prompt.to_string(),
-            },
-            crate::ai::types::GroqMessage {
-                role: "user".to_string(),
-                content: user_prompt,
-            },
-        ],
-        temperature: 0.1,
-        response_format: Some(GroqResponseFormat {
-            format_type: "json_object".to_string(),
-        }),
-    };
+    let messages = serde_json::json!([
+        {"role": "system", "content": system_prompt},
+        {"role": "user",   "content": user_prompt}
+    ]);
 
-    let result = http_client()
-        .post(GROQ_API_URL)
-        .bearer_auth(&api_key)
-        .json(&request_body)
-        .timeout(std::time::Duration::from_secs(15))
-        .send()
+    let result = SseCollect::post_to(GROQ_API_URL)
+        .dialect(SseDialect::openai())
+        .bearer_token(&api_key)
+        .body(serde_json::json!({
+            "model": GROQ_MODEL,
+            "messages": messages,
+            "temperature": 0.1,
+            "max_tokens": 1024,
+            "response_format": {"type": "json_object"},
+            "stream": true
+        }))
+        .collect_text()
         .await;
 
-    let response = match result {
-        Ok(r) => r,
-        Err(e) if e.is_timeout() => {
-            cb.record_failure();
-            return Err(GradingError::Timeout);
+    let content = match result {
+        Ok(text) => {
+            cb.record_success();
+            text
         }
         Err(e) => {
             cb.record_failure();
-            return Err(GradingError::Internal(format!("Groq request error: {e}")));
+            return Err(GradingError::Internal(format!("AI grading gagal: {e}")));
         }
     };
 
-    if !response.status().is_success() {
-        let status = response.status().as_u16();
-        let body = response.text().await.unwrap_or_default();
+    if content.trim().is_empty() {
         cb.record_failure();
-        return Err(GradingError::Internal(format!(
-            "Groq API error {status}: {body}"
-        )));
+        return Err(GradingError::Internal(
+            "Groq returned empty response".to_string(),
+        ));
     }
-
-    let groq_resp: crate::ai::types::GroqResponse = response
-        .json()
-        .await
-        .map_err(|e| GradingError::Internal(format!("Groq JSON parse error: {e}")))?;
-
-    let content = groq_resp
-        .choices
-        .into_iter()
-        .next()
-        .and_then(|c| c.message.content)
-        .ok_or_else(|| GradingError::Internal("Groq returned empty response".to_string()))?;
 
     let parsed: GradeEssayResponse = serde_json::from_str(&content).map_err(|e| {
         tracing::error!("groq_parse_error: {e}, raw: {content}");
@@ -273,7 +252,6 @@ Selalu kembalikan objek JSON dengan tepat tiga kunci berikut:
         ));
     }
 
-    cb.record_success();
     Ok(parsed)
 }
 

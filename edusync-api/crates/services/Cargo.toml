@@ -26,6 +26,8 @@ printpdf.workspace = true
 zip.workspace = true
 quick-xml.workspace = true
 csv.workspace = true
+vil_storage_s3.workspace = true
+vil_server.workspace = true
 
 # Sibling crates
 edusync-auth = { path = "../auth" }

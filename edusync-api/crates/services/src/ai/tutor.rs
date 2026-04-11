@@ -16,11 +16,13 @@ use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
 
+use vil_server::prelude::{SseCollect, SseDialect};
+
 use crate::ai::config::{
-    groq_circuit_breaker, http_client, AI_RATE_LIMIT_PER_HOUR, GROQ_API_URL, GROQ_MODEL,
-    MAX_CONTEXT_CHARS, MAX_SESSION_MESSAGES, TUTOR_HISTORY_WINDOW,
+    groq_circuit_breaker, AI_RATE_LIMIT_PER_HOUR, GROQ_API_URL, GROQ_MODEL, MAX_CONTEXT_CHARS,
+    MAX_SESSION_MESSAGES, TUTOR_HISTORY_WINDOW,
 };
-use crate::ai::types::{ChatMessage, ChatRole, GroqMessage, GroqRequest, TutorChatResponse};
+use crate::ai::types::{GroqMessage, TutorChatResponse};
 
 use axum::http::StatusCode;
 use axum::response::Response;
@@ -283,56 +285,39 @@ async fn call_groq_tutor(
         return Err(TutorError::CircuitOpen);
     }
 
-    let body = GroqRequest {
-        model: GROQ_MODEL.to_string(),
-        messages,
-        temperature: 0.7,
-        response_format: None,
-    };
+    // Serialise GroqMessage vec to serde_json::Value for SseCollect body.
+    let messages_json = serde_json::to_value(&messages)
+        .map_err(|e| TutorError::Internal(format!("Failed to serialise messages: {e}")))?;
 
-    let result = http_client()
-        .post(GROQ_API_URL)
-        .bearer_auth(&api_key)
-        .json(&body)
-        .timeout(std::time::Duration::from_secs(15))
-        .send()
+    let result = SseCollect::post_to(GROQ_API_URL)
+        .dialect(SseDialect::openai())
+        .bearer_token(&api_key)
+        .body(serde_json::json!({
+            "model": GROQ_MODEL,
+            "messages": messages_json,
+            "temperature": 0.7,
+            "max_tokens": 1024,
+            "stream": true
+        }))
+        .collect_text()
         .await;
 
-    let response = match result {
-        Ok(r) => r,
-        Err(e) if e.is_timeout() => {
+    match result {
+        Ok(reply) if !reply.trim().is_empty() => {
+            cb.record_success();
+            Ok(reply)
+        }
+        Ok(_) => {
             cb.record_failure();
-            return Err(TutorError::Timeout);
+            Err(TutorError::Internal(
+                "Groq returned empty response".to_string(),
+            ))
         }
         Err(e) => {
             cb.record_failure();
-            return Err(TutorError::Internal(format!("Groq request error: {e}")));
+            Err(TutorError::Internal(format!("AI tutor gagal: {e}")))
         }
-    };
-
-    if !response.status().is_success() {
-        let status = response.status().as_u16();
-        let body_text = response.text().await.unwrap_or_default();
-        cb.record_failure();
-        return Err(TutorError::Internal(format!(
-            "Groq API error {status}: {body_text}"
-        )));
     }
-
-    let groq_resp: crate::ai::types::GroqResponse = response
-        .json()
-        .await
-        .map_err(|e| TutorError::Internal(format!("Groq JSON parse error: {e}")))?;
-
-    let reply = groq_resp
-        .choices
-        .into_iter()
-        .next()
-        .and_then(|c| c.message.content)
-        .ok_or_else(|| TutorError::Internal("Groq returned empty response".to_string()))?;
-
-    cb.record_success();
-    Ok(reply)
 }
 
 // ─── Session update ───────────────────────────────────────────────────────────

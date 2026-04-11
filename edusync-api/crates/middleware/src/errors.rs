@@ -1,71 +1,68 @@
-use axum::{
-    http::StatusCode,
-    response::{IntoResponse, Response},
-    Json,
-};
-use serde::Serialize;
-use thiserror::Error;
+//! Middleware errors — migrated to VilError in Phase VIL (Wave 1A).
+//!
+//! `AppError` is now a type alias for `VilError` from `vil_server`.
+//! All existing code that imports or matches on `AppError` continues to
+//! compile — it is now operating directly on `VilError`.
+//!
+//! Migration guide for handler authors:
+//! ```rust
+//! // Old (Axum):
+//! return Err(AppError::NotFound);
+//!
+//! // New (VIL) — identical import, different underlying type:
+//! return Err(AppError::not_found("Data tidak ditemukan"));
+//! ```
+//!
+//! `VilError` already implements `IntoResponse`; no custom impl needed.
 
-#[derive(Debug, Serialize)]
-pub struct ApiError {
-    pub code: String,
-    pub message: String,
-    pub details: Option<String>,
-    pub hint: Option<String>,
-}
+pub use vil_server::prelude::VilError as AppError;
+pub use vil_server::prelude::VilError;
 
-#[derive(Debug, Error)]
-pub enum AppError {
-    #[error("Data tidak ditemukan")]
-    NotFound,
-    #[error("Tidak terautentikasi")]
-    Unauthorized,
-    #[error("Permintaan tidak valid: {0}")]
-    BadRequest(String),
-    #[error("Terjadi kesalahan server internal")]
-    Internal(String),
-    #[error("Akses ditolak")]
-    Forbidden,
-}
+/// Convenience constructors that mirror the old `AppError` enum variants so
+/// call-sites can migrate incrementally without a flag-day rewrite.
+pub mod compat {
+    use vil_server::prelude::VilError;
 
-impl IntoResponse for AppError {
-    fn into_response(self) -> Response {
-        let (status, code, message) = match &self {
-            AppError::NotFound => (StatusCode::NOT_FOUND, "PGRST116", self.to_string()),
-            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "PGRST301", self.to_string()),
-            AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, "PGRST100", msg.clone()),
-            // Internal: log the raw detail but send only a generic message to the client
-            // to avoid leaking implementation details.
-            AppError::Internal(detail) => {
-                tracing::error!(detail = %detail, "AppError::Internal");
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "PGRST500",
-                    "Terjadi kesalahan server internal".to_string(),
-                )
-            }
-            AppError::Forbidden => (StatusCode::FORBIDDEN, "PGRST302", self.to_string()),
-        };
+    /// Equivalent to `AppError::NotFound`
+    #[inline]
+    pub fn not_found() -> VilError {
+        VilError::not_found("Data tidak ditemukan")
+    }
 
-        (
-            status,
-            Json(ApiError {
-                code: code.to_string(),
-                message,
-                details: None,
-                hint: None,
-            }),
-        )
-            .into_response()
+    /// Equivalent to `AppError::Unauthorized`
+    #[inline]
+    pub fn unauthorized() -> VilError {
+        VilError::unauthorized("Tidak terautentikasi")
+    }
+
+    /// Equivalent to `AppError::BadRequest(msg)`
+    #[inline]
+    pub fn bad_request(msg: impl Into<String>) -> VilError {
+        VilError::bad_request(msg)
+    }
+
+    /// Equivalent to `AppError::Internal(detail)`
+    #[inline]
+    pub fn internal(detail: impl std::fmt::Display) -> VilError {
+        tracing::error!(detail = %detail, "AppError::Internal");
+        VilError::internal("Terjadi kesalahan server internal")
+    }
+
+    /// Equivalent to `AppError::Forbidden`
+    #[inline]
+    pub fn forbidden() -> VilError {
+        VilError::forbidden("Akses ditolak")
     }
 }
 
-impl From<sqlx::Error> for AppError {
+/// `From<sqlx::Error>` conversion preserved for all handlers that use `?`
+/// on database calls.
+impl From<sqlx::Error> for VilError {
     fn from(error: sqlx::Error) -> Self {
         tracing::error!("DB error: {:?}", error);
         match error {
-            sqlx::Error::RowNotFound => AppError::NotFound,
-            _ => AppError::Internal("Terjadi kesalahan pada database".to_string()),
+            sqlx::Error::RowNotFound => VilError::not_found("Data tidak ditemukan"),
+            _ => VilError::internal("Terjadi kesalahan pada database"),
         }
     }
 }

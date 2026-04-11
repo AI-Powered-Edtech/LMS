@@ -1,52 +1,63 @@
 use std::sync::Arc;
-use axum::{extract::Extension, Json};
 use uuid::Uuid;
-use edusync_auth::{AuthError, password::hash_password, session::create_session};
+use edusync_auth::{password::hash_password, session::create_session};
+use vil_server::prelude::{ServiceCtx, ShmSlice, VilResponse, VilError, HandlerResult};
 use crate::state::AppState;
 use super::types::{RegisterRequest, AuthResponse, UserPayload};
 
 pub async fn register_handler(
-    Extension(state): Extension<Arc<AppState>>,
-    Json(body): Json<RegisterRequest>,
-) -> Result<Json<AuthResponse>, AuthError> {
+    svc: ServiceCtx,
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<AuthResponse>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
+    let body: RegisterRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
+
     // Basic email validation: must have non-empty local part, '@', and domain with '.'
     let email_trimmed = body.email.trim();
     if email_trimmed.is_empty() {
-        return Err(AuthError::InvalidEmail);
+        return Err(VilError::bad_request("Format email tidak valid"));
     }
     let mut email_parts = email_trimmed.splitn(2, '@');
     let local = email_parts.next().unwrap_or("");
     let domain = email_parts.next().unwrap_or("");
     if local.is_empty() || !domain.contains('.') {
-        return Err(AuthError::InvalidEmail);
+        return Err(VilError::bad_request("Format email tidak valid"));
     }
     if body.password.len() < 8 {
-        return Err(AuthError::WeakPassword);
+        return Err(VilError::bad_request("Password terlalu lemah (minimal 8 karakter)"));
     }
     // Max length guards to prevent oversized inputs reaching the DB
     if body.email.len() > 254 {
-        return Err(AuthError::InvalidEmail);
+        return Err(VilError::bad_request("Format email tidak valid"));
     }
     if body.password.len() > 128 {
-        return Err(AuthError::WeakPassword);
+        return Err(VilError::bad_request("Password terlalu lemah (minimal 8 karakter)"));
     }
 
-    let mut tx = state.db.begin().await?;
+    let mut tx = state.db.begin().await.map_err(|e| {
+        tracing::error!(error = ?e, "DB error beginning transaction");
+        VilError::internal("Terjadi kesalahan pada database")
+    })?;
 
     let exists: bool = sqlx::query_scalar!(
         "SELECT EXISTS(SELECT 1 FROM public.users WHERE email = $1)",
         body.email
     )
     .fetch_one(&mut *tx)
-    .await?
+    .await
+    .map_err(|e| {
+        tracing::error!(error = ?e, "DB error checking email existence");
+        VilError::internal("Terjadi kesalahan pada database")
+    })?
     .unwrap_or(false);
 
     if exists {
-        return Err(AuthError::EmailAlreadyExists);
+        return Err(VilError::bad_request("Email sudah terdaftar"));
     }
 
     let user_id = Uuid::new_v4();
-    let hash = hash_password(&body.password)?;
+    let hash = hash_password(&body.password)
+        .map_err(|e| VilError::internal(format!("Hash error: {e}")))?;
     let full_name = body.full_name.clone().unwrap_or_default();
     let (first_name, last_name) = split_name(&full_name);
 
@@ -71,7 +82,11 @@ pub async fn register_handler(
         user_id, body.email, hash
     )
     .execute(&mut *tx)
-    .await?;
+    .await
+    .map_err(|e| {
+        tracing::error!(error = ?e, "DB error inserting user");
+        VilError::internal("Terjadi kesalahan pada database")
+    })?;
 
     sqlx::query!(
         r#"INSERT INTO public.profiles (id, email, first_name, last_name, created_at, updated_at)
@@ -80,16 +95,27 @@ pub async fn register_handler(
         user_id, body.email, first_name, last_name
     )
     .execute(&mut *tx)
-    .await?;
+    .await
+    .map_err(|e| {
+        tracing::error!(error = ?e, "DB error inserting profile");
+        VilError::internal("Terjadi kesalahan pada database")
+    })?;
 
-    tx.commit().await?;
+    tx.commit().await.map_err(|e| {
+        tracing::error!(error = ?e, "DB error committing transaction");
+        VilError::internal("Terjadi kesalahan pada database")
+    })?;
 
     let role: String = sqlx::query_scalar!(
         "SELECT role::text FROM public.user_roles WHERE user_id = $1 LIMIT 1",
         user_id
     )
     .fetch_optional(&state.db)
-    .await?
+    .await
+    .map_err(|e| {
+        tracing::error!(error = ?e, "DB error fetching role");
+        VilError::internal("Terjadi kesalahan pada database")
+    })?
     .flatten()
     .unwrap_or_else(|| "STUDENT".to_string());
 
@@ -98,11 +124,17 @@ pub async fn register_handler(
         user_id
     )
     .fetch_optional(&state.db)
-    .await?;
+    .await
+    .map_err(|e| {
+        tracing::error!(error = ?e, "DB error fetching tenant_id");
+        VilError::internal("Terjadi kesalahan pada database")
+    })?;
 
-    let tokens = create_session(&state.db, user_id, &body.email, &role, tenant_id, false, &state.jwt_secret).await?;
+    let tokens = create_session(&state.db, user_id, &body.email, &role, tenant_id, false, &state.jwt_secret)
+        .await
+        .map_err(VilError::from)?;
 
-    Ok(Json(AuthResponse {
+    Ok(VilResponse::ok(AuthResponse {
         access_token: tokens.access_token,
         token_type: "bearer".to_string(),
         expires_in: 3600,

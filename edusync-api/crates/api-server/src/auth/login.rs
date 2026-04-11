@@ -1,17 +1,20 @@
 use std::sync::Arc;
-use axum::{extract::Extension, Json};
 use uuid::Uuid;
-use edusync_auth::{AuthError, password::{verify_password, maybe_rehash}, session::create_session};
+use edusync_auth::{password::{verify_password, maybe_rehash}, session::create_session};
+use vil_server::prelude::{ServiceCtx, ShmSlice, VilResponse, VilError, HandlerResult};
 use crate::state::AppState;
 use super::types::{LoginRequest, AuthResponse, UserPayload};
 
 pub async fn login_handler(
-    Extension(state): Extension<Arc<AppState>>,
-    Json(body): Json<LoginRequest>,
-) -> Result<Json<AuthResponse>, AuthError> {
+    svc: ServiceCtx,
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<AuthResponse>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
+    let body: LoginRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
+
     // Brute force check before any DB query
     if state.brute_force.is_locked(&body.email) {
-        return Err(AuthError::TooManyRequests);
+        return Err(VilError::bad_request("Terlalu banyak percobaan, coba lagi nanti"));
     }
 
     let user = sqlx::query!(
@@ -22,24 +25,30 @@ pub async fn login_handler(
         body.email
     )
     .fetch_optional(&state.db)
-    .await?
+    .await
+    .map_err(|e| {
+        tracing::error!(error = ?e, "DB error in login");
+        VilError::internal("Terjadi kesalahan pada database")
+    })?
     .ok_or_else(|| {
         state.brute_force.record_failure(&body.email);
-        AuthError::InvalidCredentials
+        VilError::bad_request("Email atau password salah")
     })?;
 
     // Cek banned
     if let Some(banned_until) = user.banned_until {
         let now_utc = time::OffsetDateTime::now_utc();
         if banned_until > now_utc {
-            return Err(AuthError::UserBanned);
+            return Err(VilError::forbidden("Akun diblokir"));
         }
     }
 
     let hash = user.encrypted_password.as_deref().unwrap_or("");
-    if !verify_password(&body.password, hash)? {
+    if !verify_password(&body.password, hash)
+        .map_err(|e| VilError::internal(format!("Password verify error: {e}")))?
+    {
         state.brute_force.record_failure(&body.email);
-        return Err(AuthError::InvalidCredentials);
+        return Err(VilError::bad_request("Email atau password salah"));
     }
 
     // Rehash bcrypt → argon2 async (don't block response)
@@ -56,7 +65,11 @@ pub async fn login_handler(
         user.id
     )
     .fetch_optional(&state.db)
-    .await?
+    .await
+    .map_err(|e| {
+        tracing::error!(error = ?e, "DB error fetching role");
+        VilError::internal("Terjadi kesalahan pada database")
+    })?
     .flatten()
     .unwrap_or_else(|| "STUDENT".to_string());
 
@@ -65,7 +78,11 @@ pub async fn login_handler(
         user.id
     )
     .fetch_optional(&state.db)
-    .await?;
+    .await
+    .map_err(|e| {
+        tracing::error!(error = ?e, "DB error fetching tenant_id");
+        VilError::internal("Terjadi kesalahan pada database")
+    })?;
 
     // Check MFA enrollment
     let mfa_enrolled: bool = sqlx::query_scalar!(
@@ -73,14 +90,20 @@ pub async fn login_handler(
         user.id
     )
     .fetch_one(&state.db)
-    .await?
+    .await
+    .map_err(|e| {
+        tracing::error!(error = ?e, "DB error checking MFA");
+        VilError::internal("Terjadi kesalahan pada database")
+    })?
     .unwrap_or(false);
 
     let tokens = create_session(
         &state.db, user.id, &user.email, &role, tenant_id,
         !mfa_enrolled,  // mfa_verified = true if no MFA enrolled
         &state.jwt_secret,
-    ).await?;
+    )
+    .await
+    .map_err(VilError::from)?;
 
     // Successful login — clear brute force counter
     state.brute_force.record_success(&body.email);
@@ -93,7 +116,7 @@ pub async fn login_handler(
     .execute(&state.db)
     .await;
 
-    Ok(Json(AuthResponse {
+    Ok(VilResponse::ok(AuthResponse {
         access_token: tokens.access_token,
         token_type: "bearer".to_string(),
         expires_in: 3600,

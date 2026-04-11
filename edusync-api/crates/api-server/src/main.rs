@@ -15,7 +15,7 @@ mod storage;
 
 use dotenvy::dotenv;
 use health::{health_handler, ready_handler};
-use realtime::{handler::ws_handler, pg_notify::start_pg_listener, RoomManager};
+use realtime::{handler::ws_handler, pg_notify::start_pg_listener, WsHub};
 use sqlx::postgres::PgPoolOptions;
 use state::{AppState, ShadowRuntimeConfig, SmtpConfig};
 use std::sync::Arc;
@@ -94,6 +94,7 @@ async fn main() -> anyhow::Result<()> {
         .ok()
         .and_then(|value| value.parse::<u16>().ok())
         .unwrap_or(8080);
+    let vil_profile = std::env::var("VIL_PROFILE").unwrap_or_else(|_| "dev".to_string());
     let shadow_enabled = std::env::var("SHADOW_MODE_ENABLED")
         .ok()
         .map(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
@@ -135,16 +136,18 @@ async fn main() -> anyhow::Result<()> {
             .unwrap_or_else(|_| "noreply@edusync.dev".to_string()),
     };
 
-    // ── Phase 5A: S3-compatible storage ──────────────────────────────────────
-    let storage_client = storage::client::S3StorageClient::from_env().await;
-    if storage_client.is_none() {
+    // ── Wave 1D: S3 config (vil_storage_s3 client built per-handler) ──────────
+    let s3_endpoint = std::env::var("S3_ENDPOINT").ok();
+    if s3_endpoint.is_none() {
         tracing::warn!(
             "S3_ENDPOINT tidak dikonfigurasi — endpoint storage tidak akan berfungsi. \
              Atur S3_ENDPOINT, S3_ACCESS_KEY_ID, dan S3_SECRET_ACCESS_KEY untuk mengaktifkan."
         );
     } else {
-        tracing::info!("S3 storage client berhasil diinisialisasi");
+        tracing::info!("S3 config terdeteksi — vil_storage_s3 siap digunakan");
     }
+    let s3_bucket = std::env::var("S3_BUCKET").unwrap_or_else(|_| "edusync".to_string());
+    let s3_public_url = std::env::var("S3_PUBLIC_URL").ok();
 
     let app_state = AppState {
         db,
@@ -161,16 +164,22 @@ async fn main() -> anyhow::Result<()> {
         smtp,
         whatsapp_access_token,
         whatsapp_phone_number_id,
-        storage: storage_client.map(std::sync::Arc::new),
+        s3_endpoint,
+        s3_bucket,
+        s3_public_url,
     };
 
-    // ── Start cron jobs ──────────────────────────────────────────────────────
-    let state_arc = Arc::new(app_state.clone());
-    cron::start_cron_jobs(state_arc).await;
+    let state_arc: Arc<AppState> = Arc::new(app_state);
 
-    // ── Phase 4A: Start pg_notify listener ───────────────────────────────────
-    let rooms = Arc::new(RoomManager::new());
-    start_pg_listener(app_state.db.clone(), Arc::clone(&rooms));
+    // ── Wave 1D: VIL Scheduler replaces manual tokio::time::interval cron ────
+    let scheduler = cron::build_scheduler(state_arc.db.clone());
+    scheduler.start();
+
+    // ── Wave 1D: WsHub replaces manual RoomManager ───────────────────────────
+    let ws_hub: Arc<WsHub> = Arc::new(WsHub::new());
+
+    // ── Start pg_notify listener — forwards NOTIFY to WsHub ──────────────────
+    start_pg_listener(state_arc.db.clone(), Arc::clone(&ws_hub));
 
     // ── Service registrations ─────────────────────────────────────────────────
 
@@ -178,7 +187,7 @@ async fn main() -> anyhow::Result<()> {
         .prefix("/api/v1")
         .endpoint(Method::GET, "/health", get(health_handler))
         .endpoint(Method::GET, "/ready", get(ready_handler))
-        .state(app_state.clone());
+        .extension(Arc::clone(&state_arc));
 
     let auth_service = ServiceProcess::new("auth")
         .prefix("/api/v1/auth")
@@ -209,7 +218,7 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/enroll", post(enroll_student_handler))
         .endpoint(Method::POST, "/onboard-student", post(onboard_student_handler))
         .endpoint(Method::POST, "/create-tenant", post(create_tenant_handler))
-        .state(app_state.clone());
+        .extension(Arc::clone(&state_arc));
 
     let course_service = ServiceProcess::new("courses")
         .prefix("/api/v1")
@@ -219,13 +228,13 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::PUT, "/courses/:id", put(update_course_handler))
         .endpoint(Method::DELETE, "/courses/:id", delete(delete_course_handler))
         .endpoint(Method::GET, "/courses/:id/modules", get(get_course_modules_handler))
-        .state(app_state.clone());
+        .extension(Arc::clone(&state_arc));
 
     let data_service = ServiceProcess::new("data")
         .prefix("/api/v1")
         .endpoint(Method::POST, "/data/:table", post(query_table_handler))
         .endpoint(Method::POST, "/rpc/:name", post(rpc_proxy_handler))
-        .state(app_state.clone());
+        .extension(Arc::clone(&state_arc));
 
     let observability_service = ServiceProcess::new("observability")
         .prefix("/api/v1/internal")
@@ -239,7 +248,7 @@ async fn main() -> anyhow::Result<()> {
             "/divergence-events",
             post(observability::divergence_event_handler),
         )
-        .state(app_state.clone());
+        .extension(Arc::clone(&state_arc));
 
     // ── Phase 3A: AI services ─────────────────────────────────────────────────
     let ai_service = ServiceProcess::new("ai")
@@ -248,7 +257,7 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/tutor", post(tutor_chat_handler))
         .endpoint(Method::POST, "/generate-content", post(generate_content_handler))
         .endpoint(Method::POST, "/generate-quiz", post(generate_quiz_handler))
-        .state(app_state.clone());
+        .extension(Arc::clone(&state_arc));
 
     // ── Phase 3B: LTI 1.3 ────────────────────────────────────────────────────
     let lti_service = ServiceProcess::new("lti")
@@ -256,7 +265,7 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::GET, "/jwks", get(lti_jwks_handler))
         .endpoint(Method::GET, "/oidc-login", get(lti_oidc_login_handler))
         .endpoint(Method::POST, "/launch", post(lti_launch_handler))
-        .state(app_state.clone());
+        .extension(Arc::clone(&state_arc));
 
     // ── Phase 3C: Notifications ───────────────────────────────────────────────
     let notification_service = ServiceProcess::new("notifications")
@@ -267,7 +276,7 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/whatsapp/send-otp", post(send_otp_handler))
         .endpoint(Method::POST, "/whatsapp/verify-otp", post(verify_otp_handler))
         .endpoint(Method::POST, "/pdf/certificate", post(generate_pdf_handler))
-        .state(app_state.clone());
+        .extension(Arc::clone(&state_arc));
 
     // ── Phase 3D: Processing ──────────────────────────────────────────────────
     let processing_service = ServiceProcess::new("processing")
@@ -276,16 +285,16 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::GET, "/quiz/:quiz_id/load", get(load_quiz_handler))
         .endpoint(Method::POST, "/scorm/extract", post(extract_scorm_handler))
         .endpoint(Method::POST, "/import/users", post(import_users_handler))
-        .state(app_state.clone());
+        .extension(Arc::clone(&state_arc));
 
-    // ── Phase 4A: WebSocket realtime service ──────────────────────────────────
+    // ── Wave 1D: WebSocket realtime service — WsHub injected ─────────────────
     let ws_service = ServiceProcess::new("realtime")
         .prefix("/ws")
         .endpoint(Method::GET, "", get(ws_handler))
-        .state(app_state.clone())
-        .extension(Arc::clone(&rooms));
+        .extension(Arc::clone(&state_arc))
+        .extension(Arc::clone(&ws_hub));
 
-    // ── Phase 5A: S3-compatible object storage ────────────────────────────────
+    // ── Wave 1D: S3-compatible object storage — vil_storage_s3 ───────────────
     let storage_service = ServiceProcess::new("storage")
         .prefix("/api/v1/storage")
         .endpoint(Method::POST, "/upload", post(upload_handler))
@@ -304,13 +313,13 @@ async fn main() -> anyhow::Result<()> {
             "/migration-status",
             get(migration_status_handler),
         )
-        .state(app_state.clone());
+        .extension(Arc::clone(&state_arc));
 
     VilApp::new("edusync-api")
         .port(port)
-        .profile("development")
+        .profile(&vil_profile)
         .observer(true)
-        .state(app_state)
+        .extension(state_arc)
         .service(health_service)
         .service(auth_service)
         .service(course_service)

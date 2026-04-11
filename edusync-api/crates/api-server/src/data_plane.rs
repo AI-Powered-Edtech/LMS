@@ -1,15 +1,13 @@
 use axum::{
-    extract::{Extension, Path},
+    extract::Path,
     http::HeaderMap,
-    response::{IntoResponse, Response},
-    Json,
 };
-use edusync_auth::AuthError;
-use edusync_middleware::errors::AppError;
+use edusync_middleware::errors::VilError;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use sqlx::{postgres::PgRow, PgPool, Postgres, QueryBuilder, Row, Transaction};
 use std::{collections::BTreeMap, sync::Arc};
+use vil_server::prelude::{HandlerResult, ServiceCtx, ShmSlice, VilResponse};
 
 use crate::{
     extractors::AuthedRequest,
@@ -150,39 +148,6 @@ const ALLOWED_RPCS: &[&str] = &[
     "get_student_progress_bundle",
 ];
 
-#[derive(Debug)]
-pub enum DataPlaneError {
-    Auth(AuthError),
-    App(AppError),
-}
-
-impl From<AuthError> for DataPlaneError {
-    fn from(value: AuthError) -> Self {
-        Self::Auth(value)
-    }
-}
-
-impl From<AppError> for DataPlaneError {
-    fn from(value: AppError) -> Self {
-        Self::App(value)
-    }
-}
-
-impl From<sqlx::Error> for DataPlaneError {
-    fn from(value: sqlx::Error) -> Self {
-        Self::App(AppError::from(value))
-    }
-}
-
-impl IntoResponse for DataPlaneError {
-    fn into_response(self) -> Response {
-        match self {
-            Self::Auth(error) => error.into_response(),
-            Self::App(error) => error.into_response(),
-        }
-    }
-}
-
 #[derive(Debug, Clone)]
 struct ColumnMeta {
     name: String,
@@ -314,7 +279,7 @@ fn quote_type_ident(value: &str) -> String {
 fn normalize_select_columns(
     select: Option<&str>,
     columns: &[ColumnMeta],
-) -> Result<Vec<String>, DataPlaneError> {
+) -> Result<Vec<String>, VilError> {
     if let Some(raw) = select {
         let trimmed = raw.trim();
         if trimmed.is_empty() || trimmed == "*" {
@@ -322,10 +287,9 @@ fn normalize_select_columns(
         }
 
         if trimmed.contains('(') || trimmed.contains(')') || trimmed.contains(':') || trimmed.contains('!') {
-            return Err(AppError::BadRequest(
-                "Select relasional belum didukung oleh generic VIL query".to_string(),
-            )
-            .into());
+            return Err(VilError::bad_request(
+                "Select relasional belum didukung oleh generic VIL query",
+            ));
         }
 
         let available = columns
@@ -337,10 +301,9 @@ fn normalize_select_columns(
         for part in trimmed.split(',') {
             let column = part.trim().trim_matches('"');
             if !is_allowed_identifier(column) || !available.contains(&column) {
-                return Err(AppError::BadRequest(format!(
+                return Err(VilError::bad_request(format!(
                     "Kolom `{column}` tidak valid untuk query VIL"
-                ))
-                .into());
+                )));
             }
             selected.push(column.to_string());
         }
@@ -350,7 +313,7 @@ fn normalize_select_columns(
     Ok(columns.iter().map(|column| column.name.clone()).collect())
 }
 
-async fn fetch_table_columns(pool: &PgPool, table: &str) -> Result<Vec<ColumnMeta>, DataPlaneError> {
+async fn fetch_table_columns(pool: &PgPool, table: &str) -> Result<Vec<ColumnMeta>, VilError> {
     let columns = sqlx::query(
         r#"
         SELECT column_name, data_type, udt_name
@@ -364,7 +327,7 @@ async fn fetch_table_columns(pool: &PgPool, table: &str) -> Result<Vec<ColumnMet
     .await?;
 
     if columns.is_empty() {
-        return Err(AppError::NotFound.into());
+        return Err(VilError::not_found("Tabel tidak ditemukan"));
     }
 
     Ok(columns
@@ -385,48 +348,45 @@ fn column_map(columns: &[ColumnMeta]) -> BTreeMap<String, ColumnMeta> {
         .collect()
 }
 
-fn normalize_json_rows(value: Option<Value>) -> Result<Vec<Map<String, Value>>, DataPlaneError> {
+fn normalize_json_rows(value: Option<Value>) -> Result<Vec<Map<String, Value>>, VilError> {
     match value {
         Some(Value::Object(object)) => Ok(vec![object]),
         Some(Value::Array(items)) => items
             .into_iter()
             .map(|item| match item {
                 Value::Object(object) => Ok(object),
-                _ => Err(AppError::BadRequest(
-                    "Payload values harus object atau array of object".to_string(),
-                )
-                .into()),
+                _ => Err(VilError::bad_request(
+                    "Payload values harus object atau array of object",
+                )),
             })
             .collect(),
-        _ => Err(AppError::BadRequest(
-            "Payload values wajib diisi untuk operasi mutasi".to_string(),
-        )
-        .into()),
+        _ => Err(VilError::bad_request(
+            "Payload values wajib diisi untuk operasi mutasi",
+        )),
     }
 }
 
-fn ensure_allowed_table(table: &str) -> Result<(), DataPlaneError> {
+fn ensure_allowed_table(table: &str) -> Result<(), VilError> {
     if !is_allowed_identifier(table) || !ALLOWED_TABLES.contains(&table) {
-        return Err(AppError::Forbidden.into());
+        return Err(VilError::forbidden("Akses ditolak"));
     }
     Ok(())
 }
 
-fn ensure_allowed_rpc(name: &str) -> Result<(), DataPlaneError> {
+fn ensure_allowed_rpc(name: &str) -> Result<(), VilError> {
     if !is_allowed_identifier(name) || !ALLOWED_RPCS.contains(&name) {
-        return Err(AppError::Forbidden.into());
+        return Err(VilError::forbidden("Akses ditolak"));
     }
     Ok(())
 }
 
-fn coerce_filter_value(filter: &QueryFilter, _column: &ColumnMeta) -> Result<Value, DataPlaneError> {
+fn coerce_filter_value(filter: &QueryFilter, _column: &ColumnMeta) -> Result<Value, VilError> {
     if filter.op == "in" {
         if !filter.value.is_array() {
-            return Err(AppError::BadRequest(format!(
+            return Err(VilError::bad_request(format!(
                 "Filter IN untuk kolom `{}` wajib array",
                 filter.column
-            ))
-            .into());
+            )));
         }
         return Ok(filter.value.clone());
     }
@@ -437,7 +397,7 @@ fn push_filter(
     builder: &mut QueryBuilder<'_, Postgres>,
     filter: &QueryFilter,
     column: &ColumnMeta,
-) -> Result<(), DataPlaneError> {
+) -> Result<(), VilError> {
     let column_name = quote_ident(&column.name);
     let value = coerce_filter_value(filter, column)?;
 
@@ -501,18 +461,17 @@ fn push_filter(
                 builder.push(column_name).push(" IS ").push(if flag { "TRUE" } else { "FALSE" });
             }
             _ => {
-                return Err(AppError::BadRequest(format!(
+                return Err(VilError::bad_request(format!(
                     "Filter IS untuk kolom `{}` hanya mendukung null/boolean",
                     filter.column
-                ))
-                .into());
+                )));
             }
         },
         "not" => {
             let comparator = filter
                 .comparator
                 .as_deref()
-                .ok_or_else(|| AppError::BadRequest("Comparator NOT wajib diisi".to_string()))?;
+                .ok_or_else(|| VilError::bad_request("Comparator NOT wajib diisi"))?;
             match comparator {
                 "is" => match value {
                     Value::Null => {
@@ -525,26 +484,23 @@ fn push_filter(
                             .push(if flag { "TRUE" } else { "FALSE" });
                     }
                     _ => {
-                        return Err(AppError::BadRequest(format!(
+                        return Err(VilError::bad_request(format!(
                             "Comparator NOT IS untuk kolom `{}` hanya mendukung null/boolean",
                             filter.column
-                        ))
-                        .into());
+                        )));
                     }
                 },
                 _ => {
-                    return Err(AppError::BadRequest(format!(
+                    return Err(VilError::bad_request(format!(
                         "Comparator NOT `{comparator}` belum didukung"
-                    ))
-                    .into())
+                    )))
                 }
             }
         }
         other => {
-            return Err(AppError::BadRequest(format!(
+            return Err(VilError::bad_request(format!(
                 "Operator filter `{other}` belum didukung"
-            ))
-            .into())
+            )))
         }
     }
 
@@ -555,7 +511,7 @@ fn push_scalar_cast(
     builder: &mut QueryBuilder<'_, Postgres>,
     value: &Value,
     column: &ColumnMeta,
-) -> Result<(), DataPlaneError> {
+) -> Result<(), VilError> {
     match value {
         Value::Null => {
             builder.push("NULL");
@@ -569,7 +525,7 @@ fn push_scalar_cast(
             } else if let Some(float_value) = number.as_f64() {
                 builder.push_bind(float_value);
             } else {
-                return Err(AppError::BadRequest("Angka payload tidak valid".to_string()).into());
+                return Err(VilError::bad_request("Angka payload tidak valid"));
             }
         }
         Value::String(text) => {
@@ -591,7 +547,7 @@ fn apply_filters(
     request_filters: &[QueryFilter],
     ctx: &crate::extractors::AuthedRequest,
     columns: &BTreeMap<String, ColumnMeta>,
-) -> Result<(), DataPlaneError> {
+) -> Result<(), VilError> {
     let mut filters = request_filters.to_vec();
     if columns.contains_key("tenant_id") {
         let tenant_id = ctx.0.tenant_id.to_string();
@@ -609,7 +565,7 @@ fn apply_filters(
                 ("in", Value::Array(values))
                     if values.iter().all(|value| value.as_str() == Some(tenant_id.as_str())) => {}
                 _ => {
-                    return Err(AppError::Forbidden.into());
+                    return Err(VilError::forbidden("Akses ditolak"));
                 }
             }
 
@@ -637,7 +593,7 @@ fn apply_filters(
 
             let column_name = filter.column.trim_matches('"');
             let column = columns.get(column_name).ok_or_else(|| {
-                AppError::BadRequest(format!("Kolom filter `{column_name}` tidak valid"))
+                VilError::bad_request(format!("Kolom filter `{column_name}` tidak valid"))
             })?;
             push_filter(builder, filter, column)?;
         }
@@ -650,7 +606,7 @@ fn ensure_safe_mutation_filters(
     filters: &[QueryFilter],
     columns: &BTreeMap<String, ColumnMeta>,
     options: &QueryOptions,
-) -> Result<(), DataPlaneError> {
+) -> Result<(), VilError> {
     if options.allow_full_tenant_write.unwrap_or(false) {
         return Ok(());
     }
@@ -661,17 +617,15 @@ fn ensure_safe_mutation_filters(
         .any(|filter| filter.column.trim_matches('"') != "tenant_id");
 
     if requires_non_tenant_filter && !has_non_tenant_filter {
-        return Err(AppError::BadRequest(
-            "Mutasi VIL membutuhkan minimal satu filter bisnis selain tenant_id".to_string(),
-        )
-        .into());
+        return Err(VilError::bad_request(
+            "Mutasi VIL membutuhkan minimal satu filter bisnis selain tenant_id",
+        ));
     }
 
     if !requires_non_tenant_filter && filters.is_empty() {
-        return Err(AppError::BadRequest(
-            "Mutasi VIL membutuhkan filter eksplisit atau allowFullTenantWrite=true".to_string(),
-        )
-        .into());
+        return Err(VilError::bad_request(
+            "Mutasi VIL membutuhkan filter eksplisit atau allowFullTenantWrite=true",
+        ));
     }
 
     Ok(())
@@ -681,7 +635,7 @@ fn push_ordering(
     builder: &mut QueryBuilder<'_, Postgres>,
     orders: &[QueryOrder],
     columns: &BTreeMap<String, ColumnMeta>,
-) -> Result<(), DataPlaneError> {
+) -> Result<(), VilError> {
     if orders.is_empty() {
         return Ok(());
     }
@@ -693,10 +647,9 @@ fn push_ordering(
         }
         let column_name = order.column.trim_matches('"');
         if !columns.contains_key(column_name) {
-            return Err(AppError::BadRequest(format!(
+            return Err(VilError::bad_request(format!(
                 "Kolom order `{column_name}` tidak valid"
-            ))
-            .into());
+            )));
         }
         builder
             .push(quote_ident(column_name))
@@ -718,7 +671,7 @@ fn selected_sql(columns: &[String]) -> String {
         .join(", ")
 }
 
-fn map_rows(rows: Vec<PgRow>) -> Result<Value, DataPlaneError> {
+fn map_rows(rows: Vec<PgRow>) -> Result<Value, VilError> {
     let mut payload = Vec::with_capacity(rows.len());
     for row in rows {
         payload.push(row.try_get::<Value, _>("data").unwrap_or(Value::Null));
@@ -726,17 +679,15 @@ fn map_rows(rows: Vec<PgRow>) -> Result<Value, DataPlaneError> {
     Ok(Value::Array(payload))
 }
 
-fn single_payload(payload: Value, mode: Option<&str>) -> Result<Value, DataPlaneError> {
+fn single_payload(payload: Value, mode: Option<&str>) -> Result<Value, VilError> {
     match mode {
         Some("single") => match payload {
             Value::Array(items) => match items.len() {
-                0 => Err(AppError::NotFound.into()),
+                0 => Err(VilError::not_found("Data tidak ditemukan")),
                 1 => Ok(items.into_iter().next().unwrap_or(Value::Null)),
-                _ => Err(AppError::BadRequest(
-                    "single() mengharapkan tepat satu baris, tetapi menerima lebih dari satu hasil"
-                        .to_string(),
-                )
-                .into()),
+                _ => Err(VilError::bad_request(
+                    "single() mengharapkan tepat satu baris, tetapi menerima lebih dari satu hasil",
+                )),
             },
             other => Ok(other),
         },
@@ -744,11 +695,9 @@ fn single_payload(payload: Value, mode: Option<&str>) -> Result<Value, DataPlane
             Value::Array(items) => match items.len() {
                 0 => Ok(Value::Null),
                 1 => Ok(items.into_iter().next().unwrap_or(Value::Null)),
-                _ => Err(AppError::BadRequest(
-                    "maybeSingle() mengharapkan nol atau satu baris, tetapi menerima lebih dari satu hasil"
-                        .to_string(),
-                )
-                .into()),
+                _ => Err(VilError::bad_request(
+                    "maybeSingle() mengharapkan nol atau satu baris, tetapi menerima lebih dari satu hasil",
+                )),
             },
             other => Ok(other),
         },
@@ -762,7 +711,7 @@ async fn set_request_claims(
     tenant_id: uuid::Uuid,
     role: &str,
     email: &str,
-) -> Result<(), DataPlaneError> {
+) -> Result<(), VilError> {
     let claims = json!({
         "sub": user_id,
         "tenant_id": tenant_id,
@@ -801,19 +750,19 @@ fn push_rpc_call(
     name: &str,
     entries: &[(String, Value)],
     arg_types: &BTreeMap<String, String>,
-) -> Result<(), DataPlaneError> {
+) -> Result<(), VilError> {
     builder.push("public.").push(quote_ident(name)).push("(");
     for (index, (key, value)) in entries.iter().enumerate() {
         if index > 0 {
             builder.push(", ");
         }
         if !is_allowed_identifier(key) {
-            return Err(AppError::BadRequest(format!("Arg RPC `{key}` tidak valid")).into());
+            return Err(VilError::bad_request(format!("Arg RPC `{key}` tidak valid")));
         }
         builder.push(key).push(" := ");
         let arg_type = arg_types
             .get(key)
-            .ok_or_else(|| AppError::BadRequest(format!("Arg RPC `{key}` tidak dikenal")))?;
+            .ok_or_else(|| VilError::bad_request(format!("Arg RPC `{key}` tidak dikenal")))?;
         match value {
             Value::Null => {
                 builder.push("NULL");
@@ -864,7 +813,7 @@ async fn resolve_rpc_signature(
     pool: &PgPool,
     name: &str,
     provided_arg_names: &[String],
-) -> Result<ResolvedRpc, DataPlaneError> {
+) -> Result<ResolvedRpc, VilError> {
     let rows = sqlx::query(
         r#"
         SELECT
@@ -930,26 +879,27 @@ async fn resolve_rpc_signature(
         .collect::<Vec<_>>();
 
     match matches.len() {
-        0 => Err(AppError::BadRequest(format!(
+        0 => Err(VilError::bad_request(format!(
             "Tidak ada signature RPC `{name}` yang cocok dengan argumen yang diberikan"
-        ))
-        .into()),
+        ))),
         1 => Ok(matches.remove(0)),
-        _ => Err(AppError::BadRequest(format!(
+        _ => Err(VilError::bad_request(format!(
             "Signature RPC `{name}` ambigu untuk argumen yang diberikan"
-        ))
-        .into()),
+        ))),
     }
 }
 
 pub async fn query_table_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     headers: HeaderMap,
     ctx: AuthedRequest,
     Path(table): Path<String>,
-    Json(body): Json<QueryRequest>,
-) -> Result<Json<QueryResponse>, DataPlaneError> {
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<QueryResponse>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
     let request_id = request_id_from_headers(&headers);
+    let body: QueryRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
+
     ensure_allowed_table(&table)?;
 
     let all_columns = fetch_table_columns(&state.db, &table).await?;
@@ -984,7 +934,7 @@ pub async fn query_table_handler(
             }
 
             if options.head.unwrap_or(false) {
-                return Ok(Json(QueryResponse { data: Value::Null, count }));
+                return Ok(VilResponse::ok(QueryResponse { data: Value::Null, count }));
             }
 
             let mut builder = QueryBuilder::new("SELECT row_to_json(item)::jsonb AS data FROM (SELECT ");
@@ -1004,7 +954,7 @@ pub async fn query_table_handler(
             let rows = builder.build().fetch_all(&state.db).await?;
             let data = single_payload(map_rows(rows)?, body.single.as_deref())?;
 
-            Ok(Json(QueryResponse { data, count }))
+            Ok(VilResponse::ok(QueryResponse { data, count }))
         }
         "insert" | "upsert" => {
             tracing::info!(
@@ -1061,12 +1011,12 @@ pub async fn query_table_handler(
                     columns_by_name
                         .get(&column)
                         .cloned()
-                        .ok_or_else(|| AppError::BadRequest(format!("Kolom `{column}` tidak valid").to_string()))
+                        .ok_or_else(|| VilError::bad_request(format!("Kolom `{column}` tidak valid")))
                 })
-                .collect::<Result<Vec<_>, AppError>>()?;
+                .collect::<Result<Vec<_>, VilError>>()?;
 
             if allowed_input_columns.is_empty() {
-                return Err(AppError::BadRequest("Tidak ada kolom yang bisa disimpan".to_string()).into());
+                return Err(VilError::bad_request("Tidak ada kolom yang bisa disimpan"));
             }
 
             let payload = Value::Array(rows.into_iter().map(Value::Object).collect());
@@ -1096,7 +1046,7 @@ pub async fn query_table_handler(
                 let on_conflict = options
                     .on_conflict
                     .clone()
-                    .ok_or_else(|| AppError::BadRequest("Upsert VIL membutuhkan onConflict".to_string()))?;
+                    .ok_or_else(|| VilError::bad_request("Upsert VIL membutuhkan onConflict"))?;
                 let conflict_columns = on_conflict
                     .split(',')
                     .map(|value| value.trim().trim_matches('"'))
@@ -1104,7 +1054,7 @@ pub async fn query_table_handler(
                     .collect::<Vec<_>>();
 
                 if conflict_columns.is_empty() {
-                    return Err(AppError::BadRequest("onConflict tidak valid".to_string()).into());
+                    return Err(VilError::bad_request("onConflict tidak valid"));
                 }
 
                 builder.push(" ON CONFLICT (");
@@ -1113,10 +1063,9 @@ pub async fn query_table_handler(
                         builder.push(", ");
                     }
                     if !columns_by_name.contains_key(*column) {
-                        return Err(AppError::BadRequest(format!(
+                        return Err(VilError::bad_request(format!(
                             "Kolom conflict `{column}` tidak valid"
-                        ))
-                        .into());
+                        )));
                     }
                     builder.push(quote_ident(column));
                 }
@@ -1149,7 +1098,7 @@ pub async fn query_table_handler(
                 Value::Null
             };
 
-            Ok(Json(QueryResponse { data, count: None }))
+            Ok(VilResponse::ok(QueryResponse { data, count: None }))
         }
         "update" => {
             tracing::info!(
@@ -1162,15 +1111,15 @@ pub async fn query_table_handler(
                 "data_plane_write"
             );
             let row = normalize_json_rows(body.values)?.into_iter().next().ok_or_else(|| {
-                AppError::BadRequest("Payload update wajib object".to_string())
+                VilError::bad_request("Payload update wajib object")
             })?;
 
             if row.is_empty() {
-                return Err(AppError::BadRequest("Tidak ada kolom update".to_string()).into());
+                return Err(VilError::bad_request("Tidak ada kolom update"));
             }
 
             if row.contains_key("tenant_id") {
-                return Err(AppError::Forbidden.into());
+                return Err(VilError::forbidden("Akses ditolak"));
             }
 
             ensure_safe_mutation_filters(&body.filters, &columns_by_name, &options)?;
@@ -1181,9 +1130,9 @@ pub async fn query_table_handler(
                     columns_by_name
                         .get(column)
                         .cloned()
-                        .ok_or_else(|| AppError::BadRequest(format!("Kolom `{column}` tidak valid").to_string()))
+                        .ok_or_else(|| VilError::bad_request(format!("Kolom `{column}` tidak valid")))
                 })
-                .collect::<Result<Vec<_>, AppError>>()?;
+                .collect::<Result<Vec<_>, VilError>>()?;
 
             // Build: WITH mutated AS (UPDATE public."table" SET col=$1::type, ... WHERE ... RETURNING ...)
             // Bind each value directly — no CTE/FROM-payload needed, avoids column ambiguity.
@@ -1217,7 +1166,7 @@ pub async fn query_table_handler(
                 Value::Null
             };
 
-            Ok(Json(QueryResponse { data, count: None }))
+            Ok(VilResponse::ok(QueryResponse { data, count: None }))
         }
         "delete" => {
             tracing::info!(
@@ -1242,32 +1191,32 @@ pub async fn query_table_handler(
                 Value::Null
             };
 
-            Ok(Json(QueryResponse { data, count: None }))
+            Ok(VilResponse::ok(QueryResponse { data, count: None }))
         }
-        other => Err(AppError::BadRequest(format!(
+        other => Err(VilError::bad_request(format!(
             "Aksi query `{other}` belum didukung"
-        ))
-        .into()),
+        ))),
     }
 }
 
 pub async fn rpc_proxy_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     headers: HeaderMap,
     AuthedRequest(ctx): AuthedRequest,
     Path(name): Path<String>,
-    Json(body): Json<RpcRequest>,
-) -> Result<Json<RpcResponse>, DataPlaneError> {
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<RpcResponse>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
     let request_id = request_id_from_headers(&headers);
+    let body: RpcRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
+
     ensure_allowed_rpc(&name)?;
 
     let args_object = match body.args {
         Value::Null => Map::new(),
         Value::Object(object) => object,
         _ => {
-            return Err(
-                AppError::BadRequest("Args RPC wajib object atau null".to_string()).into(),
-            )
+            return Err(VilError::bad_request("Args RPC wajib object atau null"))
         }
     };
 
@@ -1321,7 +1270,7 @@ pub async fn rpc_proxy_handler(
 
     tx.commit().await?;
 
-    Ok(Json(RpcResponse {
+    Ok(VilResponse::ok(RpcResponse {
         data: payload,
         returns_set: resolved.returns_set,
     }))

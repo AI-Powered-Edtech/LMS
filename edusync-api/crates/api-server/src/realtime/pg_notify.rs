@@ -1,9 +1,9 @@
-//! PostgreSQL LISTEN/NOTIFY → WebSocket forwarding.
+//! PostgreSQL LISTEN/NOTIFY → WebSocket forwarding — uses VIL WsHub (VIL Way)
 //!
 //! Starts a background Tokio task that maintains a `PgListener` connected to
 //! five PostgreSQL notification channels.  When a trigger fires `NOTIFY` on
 //! one of those channels the payload is parsed and routed to the appropriate
-//! WebSocket broadcast channel via `RoomManager::forward_pg_notify`.
+//! WebSocket broadcast channel via `WsHub::broadcast`.
 //!
 //! ## Routing table
 //!
@@ -32,8 +32,9 @@ use std::time::Duration;
 
 use sqlx::postgres::PgListener;
 use sqlx::PgPool;
+use vil_server::prelude::WsHub;
 
-use super::room::RoomManager;
+use super::room::WsMessage;
 
 /// PostgreSQL channels to listen on.
 const PG_CHANNELS: &[&str] = &[
@@ -50,18 +51,15 @@ const RETRY_DELAY: Duration = Duration::from_secs(5);
 // ── Public API ─────────────────────────────────────────────────────────────────
 
 /// Spawn a background Tokio task that forwards PostgreSQL NOTIFY events to
-/// the WebSocket `RoomManager`.
+/// the VIL `WsHub`.
 ///
 /// The task never returns normally; it retries indefinitely on failure with
-/// a 5-second back-off.  It is designed to run for the lifetime of the
-/// process.
-pub fn start_pg_listener(db: PgPool, rooms: Arc<RoomManager>) {
+/// a 5-second back-off.  It is designed to run for the lifetime of the process.
+pub fn start_pg_listener(db: PgPool, hub: Arc<WsHub>) {
     tokio::spawn(async move {
         loop {
-            match run_listener(&db, &rooms).await {
+            match run_listener(&db, &hub).await {
                 Ok(()) => {
-                    // run_listener returning Ok means the stream ended cleanly
-                    // (which should not happen in practice).
                     tracing::info!("pg_notify listener selesai, memulai ulang…");
                 }
                 Err(err) => {
@@ -81,7 +79,7 @@ pub fn start_pg_listener(db: PgPool, rooms: Arc<RoomManager>) {
 
 /// Connect a `PgListener`, subscribe to all channels, and forward notifications
 /// until an error occurs.
-async fn run_listener(db: &PgPool, rooms: &Arc<RoomManager>) -> Result<(), sqlx::Error> {
+async fn run_listener(db: &PgPool, hub: &Arc<WsHub>) -> Result<(), sqlx::Error> {
     let mut listener = PgListener::connect_with(db).await?;
 
     listener.listen_all(PG_CHANNELS).await?;
@@ -104,7 +102,7 @@ async fn run_listener(db: &PgPool, rooms: &Arc<RoomManager>) -> Result<(), sqlx:
         );
 
         match serde_json::from_str::<serde_json::Value>(payload_str) {
-            Ok(payload) => route_pg_notification(pg_channel, payload, rooms),
+            Ok(payload) => route_pg_notification(pg_channel, payload, hub),
             Err(err) => {
                 tracing::warn!(
                     pg_channel,
@@ -119,9 +117,10 @@ async fn run_listener(db: &PgPool, rooms: &Arc<RoomManager>) -> Result<(), sqlx:
 
 /// Route a parsed NOTIFY payload to the correct WebSocket broadcast channel.
 ///
-/// Each branch extracts the discriminating field from `payload` and constructs
-/// the WS channel name.  Unknown/malformed payloads are logged and dropped.
-fn route_pg_notification(pg_channel: &str, payload: serde_json::Value, rooms: &Arc<RoomManager>) {
+/// Each branch extracts the discriminating field from `payload`, constructs
+/// the WS channel name, serialises a `WsMessage::postgres_changes` envelope,
+/// and calls `hub.broadcast(ws_channel, json_string)`.
+fn route_pg_notification(pg_channel: &str, payload: serde_json::Value, hub: &Arc<WsHub>) {
     match pg_channel {
         // ── notifications:{user_id} ───────────────────────────────────────────
         "notify_notifications" => {
@@ -133,9 +132,7 @@ fn route_pg_notification(pg_channel: &str, payload: serde_json::Value, rooms: &A
             match user_id {
                 Some(uid) => {
                     let ws_channel = format!("notifications:{uid}");
-                    let ws_payload = build_ws_payload(&payload);
-                    tracing::debug!(ws_channel, "Meneruskan notifikasi ke channel WS");
-                    rooms.forward_pg_notify(&ws_channel, ws_payload);
+                    forward_to_hub(hub, &ws_channel, &payload);
                 }
                 None => {
                     tracing::warn!(
@@ -156,9 +153,7 @@ fn route_pg_notification(pg_channel: &str, payload: serde_json::Value, rooms: &A
             match room_id {
                 Some(rid) => {
                     let ws_channel = format!("messages:{rid}");
-                    let ws_payload = build_ws_payload(&payload);
-                    tracing::debug!(ws_channel, "Meneruskan pesan ke channel WS");
-                    rooms.forward_pg_notify(&ws_channel, ws_payload);
+                    forward_to_hub(hub, &ws_channel, &payload);
                 }
                 None => {
                     tracing::warn!(
@@ -176,9 +171,7 @@ fn route_pg_notification(pg_channel: &str, payload: serde_json::Value, rooms: &A
             match tenant_id {
                 Some(tid) => {
                     let ws_channel = format!("discussions:tenant:{tid}");
-                    let ws_payload = build_ws_payload(&payload);
-                    tracing::debug!(ws_channel, "Meneruskan diskusi ke channel WS");
-                    rooms.forward_pg_notify(&ws_channel, ws_payload);
+                    forward_to_hub(hub, &ws_channel, &payload);
                 }
                 None => {
                     tracing::warn!(
@@ -191,8 +184,6 @@ fn route_pg_notification(pg_channel: &str, payload: serde_json::Value, rooms: &A
 
         // ── classroom:{class_id} ──────────────────────────────────────────────
         "notify_classroom" => {
-            // Try `record.class_id` first, fall back to `record.id` for
-            // tables that don't have a separate `class_id` column.
             let class_id = payload
                 .get("record")
                 .and_then(|r| r.get("class_id").or_else(|| r.get("id")))
@@ -201,9 +192,7 @@ fn route_pg_notification(pg_channel: &str, payload: serde_json::Value, rooms: &A
             match class_id {
                 Some(cid) => {
                     let ws_channel = format!("classroom:{cid}");
-                    let ws_payload = build_ws_payload(&payload);
-                    tracing::debug!(ws_channel, "Meneruskan aktivitas kelas ke channel WS");
-                    rooms.forward_pg_notify(&ws_channel, ws_payload);
+                    forward_to_hub(hub, &ws_channel, &payload);
                 }
                 None => {
                     tracing::warn!(
@@ -224,9 +213,7 @@ fn route_pg_notification(pg_channel: &str, payload: serde_json::Value, rooms: &A
             match course_id {
                 Some(cid) => {
                     let ws_channel = format!("builder:{cid}");
-                    let ws_payload = build_ws_payload(&payload);
-                    tracing::debug!(ws_channel, "Meneruskan perubahan course ke channel WS");
-                    rooms.forward_pg_notify(&ws_channel, ws_payload);
+                    forward_to_hub(hub, &ws_channel, &payload);
                 }
                 None => {
                     tracing::warn!(
@@ -241,6 +228,26 @@ fn route_pg_notification(pg_channel: &str, payload: serde_json::Value, rooms: &A
             tracing::warn!(
                 pg_channel = other,
                 "pg_notify: channel tidak dikenal, payload diabaikan"
+            );
+        }
+    }
+}
+
+/// Serialise a `postgres_changes` WsMessage envelope and broadcast it via
+/// `WsHub::broadcast(ws_channel, json_string)`.
+fn forward_to_hub(hub: &Arc<WsHub>, ws_channel: &str, pg_payload: &serde_json::Value) {
+    let ws_payload = build_ws_payload(pg_payload);
+    let msg = WsMessage::postgres_changes(ws_channel, ws_payload);
+    match serde_json::to_string(&msg) {
+        Ok(json) => {
+            tracing::debug!(ws_channel, "Meneruskan notifikasi ke WsHub channel");
+            hub.broadcast(ws_channel, json);
+        }
+        Err(e) => {
+            tracing::warn!(
+                ws_channel,
+                error = %e,
+                "Gagal serialisasi WsMessage untuk broadcast"
             );
         }
     }

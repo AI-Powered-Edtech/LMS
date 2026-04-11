@@ -1,4 +1,4 @@
-//! WebSocket upgrade handler for the EduSync realtime subsystem.
+//! WebSocket upgrade handler — uses VIL WsHub (VIL Way)
 //!
 //! Endpoint: `GET /ws?token=<JWT>`
 //!
@@ -12,23 +12,19 @@
 //!  │                                                          │
 //!  │  ws_receiver ──► [parse ClientMessage] ─────────────┐   │
 //!  │                                                      │   │
-//!  │  broadcast::Receiver(s) ──► relay task ──► out_tx   │   │
-//!  │                                              │       │   │
+//!  │  WsHub::subscribe(ch) → Receiver ──► relay task     │   │
+//!  │                                       │  out_tx      │   │
 //!  │  heartbeat tick ──────────────────────► out_tx       │   │
 //!  │                                              │       │   │
 //!  │                                           out_rx ──► ws_sender
 //!  └─────────────────────────────────────────────────────────┘
 //! ```
 //!
-//! ### Broadcast polling strategy
+//! ### Broadcast relay strategy
 //!
-//! Each channel join spawns a lightweight relay task that `recv().await`s on
-//! the `broadcast::Receiver` and forwards messages over an `mpsc` channel
-//! back to the main loop.  This avoids the O(n·channels) polling overhead of
-//! `try_recv` loops and eliminates the 10ms idle spin.
-//!
-//! When the client sends `leave` the relay task is cancelled by dropping the
-//! `JoinHandle`.
+//! Each `join` spawns a relay task that awaits on the `WsHub` channel receiver
+//! and forwards messages over an mpsc channel back to the main loop.
+//! On `leave` the relay task is cancelled by dropping the `JoinHandle`.
 //!
 //! ## Connection lifecycle
 //!
@@ -54,10 +50,11 @@ use serde::Deserialize;
 use tokio::sync::mpsc;
 use tokio::task::JoinHandle;
 use tokio::time::interval;
+use vil_server::prelude::WsHub;
 
 use edusync_auth::verify_access_token;
 
-use super::room::{RoomManager, WsMessage};
+use super::room::WsMessage;
 use crate::state::AppState;
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -117,20 +114,21 @@ enum ClientMessage {
 
 /// `GET /ws` — Axum WebSocket upgrade endpoint.
 ///
-/// Add to the Axum router in `main.rs`:
+/// Registered in `main.rs`:
 /// ```ignore
-/// use axum::routing::get;
-/// let ws_router = Router::new()
-///     .route("/ws", get(ws_handler))
-///     .layer(Extension(Arc::clone(&rooms)));
+/// let ws_service = ServiceProcess::new("realtime")
+///     .prefix("/ws")
+///     .endpoint(Method::GET, "", get(ws_handler))
+///     .extension(Arc::clone(&state_arc))
+///     .extension(Arc::clone(&ws_hub));
 /// ```
 pub async fn ws_handler(
     ws: WebSocketUpgrade,
     Query(params): Query<WsConnectQuery>,
     Extension(state): Extension<Arc<AppState>>,
-    Extension(rooms): Extension<Arc<RoomManager>>,
+    Extension(hub): Extension<Arc<WsHub>>,
 ) -> impl IntoResponse {
-    ws.on_upgrade(move |socket| handle_socket(socket, state, rooms, params.token))
+    ws.on_upgrade(move |socket| handle_socket(socket, state, hub, params.token))
 }
 
 // ── Socket handler ─────────────────────────────────────────────────────────────
@@ -138,13 +136,10 @@ pub async fn ws_handler(
 async fn handle_socket(
     socket: WebSocket,
     state: Arc<AppState>,
-    rooms: Arc<RoomManager>,
+    hub: Arc<WsHub>,
     token: Option<String>,
 ) {
     // ── 1. Optional JWT authentication ────────────────────────────────────────
-    //
-    // If a token is supplied it must be valid.  We reject invalid tokens
-    // before touching the connection counter or spawning any tasks.
     let (user_id, _tenant_id): (Option<String>, Option<String>) = match token.as_deref() {
         Some(tok) => match verify_access_token(tok, &state.jwt_secret) {
             Ok(claims) => {
@@ -157,7 +152,6 @@ async fn handle_socket(
             }
             Err(err) => {
                 tracing::warn!(error = %err, "Token WebSocket tidak valid — koneksi ditolak");
-                // Send an error frame then close without counting this connection.
                 let (mut sender, _receiver) = socket.split();
                 let msg = WsMessage::error("Token tidak valid atau sudah kedaluwarsa");
                 if let Ok(json) = serde_json::to_string(&msg) {
@@ -173,15 +167,7 @@ async fn handle_socket(
         }
     };
 
-    // ── 2. Global connection counter ──────────────────────────────────────────
-    let conn_count = rooms.increment_connections();
-    tracing::info!(
-        conn_count,
-        user_id = ?user_id,
-        "Koneksi WebSocket dibuka"
-    );
-
-    // ── 3. Socket I/O split ───────────────────────────────────────────────────
+    // ── 2. Socket I/O split ───────────────────────────────────────────────────
     let (mut ws_sender, mut ws_receiver) = socket.split();
 
     // All outgoing messages flow through this mpsc channel so the sender task
@@ -206,9 +192,7 @@ async fn handle_socket(
         let _ = ws_sender.close().await;
     });
 
-    // ── 4. Per-connection state ───────────────────────────────────────────────
-    /// Per-channel relay handle: the JoinHandle allows us to cancel the relay
-    /// task when the client leaves a channel.
+    // ── 3. Per-connection state ───────────────────────────────────────────────
     struct ChannelHandle {
         relay: JoinHandle<()>,
     }
@@ -218,18 +202,15 @@ async fn handle_socket(
     let mut heartbeat = interval(HEARTBEAT_INTERVAL);
     heartbeat.tick().await; // discard the immediate first tick
 
-    // ── Helper macro: serialise + enqueue a WsMessage ─────────────────────────
     macro_rules! send_msg {
         ($msg:expr) => {{
             if let Ok(json) = serde_json::to_string(&$msg) {
-                // try_send: if the buffer is full we drop the message rather
-                // than blocking — the client is lagging, not us.
                 let _ = out_tx.try_send(json);
             }
         }};
     }
 
-    // ── 5. Main event loop ────────────────────────────────────────────────────
+    // ── 4. Main event loop ────────────────────────────────────────────────────
     'main: loop {
         tokio::select! {
             // ── A: incoming WebSocket frame ──────────────────────────────────
@@ -248,8 +229,6 @@ async fn handle_socket(
                         break 'main;
                     }
                     Some(Ok(AxumWsMessage::Ping(data))) => {
-                        // Protocol-level ping — Axum replies automatically, but
-                        // we also send an application-level pong for symmetry.
                         drop(data);
                         send_msg!(WsMessage::pong());
                     }
@@ -284,12 +263,15 @@ async fn handle_socket(
                                     continue 'main;
                                 }
 
-                                // Get a broadcast receiver and spawn a relay task.
-                                let rx = rooms.get_or_create(&channel);
+                                // WsHub::subscribe returns a broadcast::Receiver<String>.
+                                // We wrap it in a relay task that deserialises the JSON
+                                // string into WsMessage and forwards to relay_tx.
+                                let rx = hub.subscribe(&channel);
                                 let relay_tx2 = relay_tx.clone();
-                                let relay_task: JoinHandle<()> = tokio::spawn(
-                                    relay_broadcast(rx, relay_tx2)
-                                );
+                                let channel_clone = channel.clone();
+                                let relay_task: JoinHandle<()> = tokio::spawn(async move {
+                                    relay_hub(rx, relay_tx2, channel_clone).await;
+                                });
 
                                 joined.insert(channel.clone(), ChannelHandle { relay: relay_task });
 
@@ -299,10 +281,10 @@ async fn handle_socket(
 
                             Ok(ClientMessage::Leave { channel }) => {
                                 if let Some(handle) = joined.remove(&channel) {
-                                    handle.relay.abort(); // cancel relay task
+                                    handle.relay.abort();
                                     if tracked_channels.remove(&channel) {
                                         if let Some(uid) = user_id.as_deref() {
-                                            rooms.untrack_presence(&channel, uid);
+                                            hub.untrack(&channel, uid);
                                         }
                                     }
                                     tracing::debug!(channel, "Klien keluar dari channel");
@@ -320,7 +302,9 @@ async fn handle_socket(
                                         state: None,
                                         message: None,
                                     };
-                                    rooms.broadcast(&channel, msg);
+                                    if let Ok(json) = serde_json::to_string(&msg) {
+                                        hub.broadcast(&channel, json);
+                                    }
                                 } else {
                                     send_msg!(WsMessage::error(
                                         "Bergabunglah ke channel terlebih dahulu sebelum mengirim pesan"
@@ -337,7 +321,15 @@ async fn handle_socket(
                                     let data = payload.unwrap_or_else(|| {
                                         serde_json::Value::Object(serde_json::Map::new())
                                     });
-                                    rooms.track_presence(&channel, uid, data);
+                                    hub.track(&channel, uid, data);
+                                    // Broadcast updated presence state to all subscribers.
+                                    let state_map = hub.presence_state(&channel);
+                                    let state_json = serde_json::to_value(&state_map)
+                                        .unwrap_or(serde_json::Value::Null);
+                                    let sync_msg = WsMessage::presence_sync(&channel, state_json);
+                                    if let Ok(json) = serde_json::to_string(&sync_msg) {
+                                        hub.broadcast(&channel, json);
+                                    }
                                     tracked_channels.insert(channel);
                                 } else {
                                     send_msg!(WsMessage::error(
@@ -348,8 +340,16 @@ async fn handle_socket(
 
                             Ok(ClientMessage::Untrack { channel }) => {
                                 if let Some(uid) = user_id.as_deref() {
-                                    rooms.untrack_presence(&channel, uid);
+                                    hub.untrack(&channel, uid);
                                     tracked_channels.remove(&channel);
+                                    // Broadcast updated presence state.
+                                    let state_map = hub.presence_state(&channel);
+                                    let state_json = serde_json::to_value(&state_map)
+                                        .unwrap_or(serde_json::Value::Null);
+                                    let sync_msg = WsMessage::presence_sync(&channel, state_json);
+                                    if let Ok(json) = serde_json::to_string(&sync_msg) {
+                                        hub.broadcast(&channel, json);
+                                    }
                                 }
                             }
                         }
@@ -373,47 +373,54 @@ async fn handle_socket(
         }
     }
 
-    // ── 6. Cleanup on disconnect ──────────────────────────────────────────────
-    // Untrack presence from all channels this connection was tracking.
+    // ── 5. Cleanup on disconnect ──────────────────────────────────────────────
     if let Some(uid) = user_id.as_deref() {
         for channel in &tracked_channels {
-            rooms.untrack_presence(channel, uid);
+            hub.untrack(channel, uid);
         }
     }
 
-    // Abort all relay tasks (cancels broadcast::recv().await in each).
     for (channel, handle) in joined {
         handle.relay.abort();
         tracing::debug!(channel, "Relay task dibatalkan saat koneksi ditutup");
     }
 
-    rooms.decrement_connections();
     tracing::info!(user_id = ?user_id, "Koneksi WebSocket dibersihkan");
 
-    // Drop the relay + out channels so the sender task terminates cleanly.
     drop(relay_tx);
     drop(out_tx);
     let _ = sender_task.await;
 }
 
-// ── Broadcast relay task ───────────────────────────────────────────────────────
+// ── Hub relay task ─────────────────────────────────────────────────────────────
 
 /// Run as a separate Tokio task per joined channel.
 ///
-/// Awaits messages on `rx` (a `broadcast::Receiver`) and forwards them
-/// through `relay_tx` to the main connection task.  When the relay task is
-/// aborted (via `JoinHandle::abort`) this function's `await` is cancelled
-/// and any resources are cleaned up automatically.
-async fn relay_broadcast(
-    mut rx: tokio::sync::broadcast::Receiver<WsMessage>,
+/// `WsHub::subscribe` returns a `broadcast::Receiver<String>` where each
+/// message is a JSON string.  We deserialise it back into `WsMessage` here
+/// so the main loop can re-serialise it uniformly.  When deserialisation fails
+/// the raw string is forwarded as a generic `broadcast` WsMessage.
+async fn relay_hub(
+    mut rx: tokio::sync::broadcast::Receiver<String>,
     relay_tx: mpsc::Sender<WsMessage>,
+    channel: String,
 ) {
     loop {
         match rx.recv().await {
-            Ok(msg) => {
+            Ok(json_str) => {
+                // Try to parse as WsMessage; fall back to a plain broadcast wrapper.
+                let msg = serde_json::from_str::<WsMessage>(&json_str).unwrap_or_else(|_| {
+                    WsMessage {
+                        msg_type: "broadcast".into(),
+                        channel: Some(channel.clone()),
+                        event: None,
+                        payload: serde_json::from_str(&json_str).ok(),
+                        state: None,
+                        message: None,
+                    }
+                });
                 if relay_tx.send(msg).await.is_err() {
-                    // Main task has shut down its receiver — exit relay.
-                    break;
+                    break; // Main task has shut down — exit relay.
                 }
             }
             Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
@@ -421,12 +428,10 @@ async fn relay_broadcast(
                     missed = n,
                     "Relay task tertinggal — beberapa pesan broadcast dilewati"
                 );
-                // The receiver is automatically advanced to the current head.
-                // Continue receiving.
+                // Receiver is auto-advanced; continue.
             }
             Err(tokio::sync::broadcast::error::RecvError::Closed) => {
-                // The broadcast channel was dropped — nothing more to relay.
-                break;
+                break; // Broadcast channel dropped — nothing more to relay.
             }
         }
     }
