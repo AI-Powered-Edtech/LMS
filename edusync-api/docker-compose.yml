@@ -1,12 +1,53 @@
 version: '3.9'
 
 services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    command: >
+      postgres
+        -c shared_preload_libraries=pg_stat_statements
+        -c pg_stat_statements.track=all
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-edusync_local_pass}
+      POSTGRES_DB: edusync
+      POSTGRES_INITDB_ARGS: '--encoding=UTF8'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./schema/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./schema/baseline.sql:/docker-entrypoint-initdb.d/02-baseline.sql:ro
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d edusync']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - edusync_net
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-edusync_local_pass}@postgres:5432/edusync
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: '100'
+      DEFAULT_POOL_SIZE: '40'
+    ports:
+      - '5433:5432'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - edusync_net
+
   api:
     build: .
     ports:
       - '8080:8080'
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-edusync_local_pass}@pgbouncer:5432/edusync
       JWT_SECRET: ${JWT_SECRET}
       RUST_LOG: info
       PORT: '8080'
@@ -18,18 +59,14 @@ services:
       S3_BUCKET: ${S3_BUCKET:-edusync}
       S3_PUBLIC_URL: ${S3_PUBLIC_URL:-http://localhost:9000/edusync}
     depends_on:
-      - pgbouncer
-      - minio
-
-  pgbouncer:
-    image: edoburu/pgbouncer:latest
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-      POOL_MODE: transaction
-      MAX_CLIENT_CONN: '100'
-      DEFAULT_POOL_SIZE: '40'
-    ports:
-      - '5433:5432'
+      postgres:
+        condition: service_healthy
+      pgbouncer:
+        condition: service_started
+      minio:
+        condition: service_healthy
+    networks:
+      - edusync_net
 
   # ── Phase 5A: MinIO — S3-compatible object storage for local development ────
   minio:
@@ -49,6 +86,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+    networks:
+      - edusync_net
 
   # One-shot bucket initialiser — runs once MinIO is healthy.
   minio-init:
@@ -64,6 +103,8 @@ services:
         echo 'MinIO bucket edusync siap.';
       "
     restart: on-failure
+    networks:
+      - edusync_net
 
   nginx:
     image: nginx:alpine
@@ -73,6 +114,13 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - api
+    networks:
+      - edusync_net
+
+networks:
+  edusync_net:
+    driver: bridge
 
 volumes:
+  postgres_data:
   minio_data:

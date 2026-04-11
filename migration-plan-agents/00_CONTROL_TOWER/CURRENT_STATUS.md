@@ -108,9 +108,20 @@
 
 ---
 
+## Database
+
+Status: Migrated from Supabase hosting to Docker self-hosted PostgreSQL
+
+- Engine: PostgreSQL 16 (pgvector/pgvector:pg16)
+- RLS: Removed (Migration 009)
+- Schema: edusync-api/schema/baseline.sql
+- Migrations: edusync-api/migrations/001–009
+
+---
+
 ## Next Immediate Action Items
 
-**MIGRATION COMPLETE** — Gate Final PASSED 2026-04-11. 🎉 VIL backend is now the sole API layer. Supabase dependency removed.
+**MIGRATION COMPLETE** — Gate Final PASSED 2026-04-11. 🎉 VIL backend is now the sole API layer. Supabase dependency removed. Database fully self-hosted.
 
 Remaining post-migration items (non-blocking):
 
@@ -120,11 +131,6 @@ Remaining post-migration items (non-blocking):
 2. **Verification debt outside migration slice**
    - `pnpm typecheck`, `pnpm lint`, `pnpm build` masih gagal oleh error/warning pre-existing di area non-migration
    - `typecheck:migration-gate`, `lint:migration-gate`, dan `test:gate3` hijau
-
-3. **Database migration off Supabase hosting** (Phase 7, if planned)
-   - DB masih di Supabase PostgreSQL hosting
-   - Migration 008 sudah tighten anon access
-   - Full RLS removal: run hanya setelah DB dipindah ke independent host
 
 ---
 

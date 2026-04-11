@@ -2,6 +2,19 @@
 
 ## [1.0.0] — 2026-04-11 — MIGRATION COMPLETE 🎉
 
+### Infrastructure: Database Migration (Self-hosted PostgreSQL)
+
+- Database migrated from Supabase-hosted PostgreSQL to Docker self-hosted
+- Engine: pgvector/pgvector:pg16 (PostgreSQL 16 + pgvector extension)
+- pgBouncer retained for connection pooling
+- RLS policies removed: Migration 009 drops all pg_policies
+- schema/baseline.sql: 14,327-line schema from pg_dump (pg_cron and Supabase-only extensions removed)
+- schema/init-db.sql: creates extensions, auth.users compat table, auth.uid() function
+- infrastructure/scripts/: export-from-supabase.sh, import-to-docker.sh, verify-db.sh
+- docs/DATABASE_MIGRATION.md: full migration runbook
+- auth.users: minimal table kept for FK compat; VIL register syncs to both auth.users + profiles
+- No more Supabase dependencies anywhere in the project
+
 ### Phase 6: Decommission (Final)
 
 #### 6A: Remove Shadow Mode

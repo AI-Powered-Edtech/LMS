@@ -50,17 +50,20 @@ pub async fn register_handler(
     let full_name = body.full_name.clone().unwrap_or_default();
     let (first_name, last_name) = split_name(&full_name);
 
-    // Insert into auth.users FIRST — public.profiles.id FK references auth.users.id
-    sqlx::query(
+    // Insert into auth.users for FK compatibility — non-fatal (profiles is source of truth)
+    if let Err(e) = sqlx::query(
         r#"INSERT INTO auth.users (id, email, encrypted_password, created_at, updated_at, aud, role, is_sso_user, is_anonymous)
            VALUES ($1, $2, $3, now(), now(), 'authenticated', 'authenticated', false, false)
-           ON CONFLICT (id) DO NOTHING"#
+           ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, updated_at = NOW()"#
     )
     .bind(user_id)
     .bind(&body.email)
     .bind(&hash)
     .execute(&mut *tx)
-    .await?;
+    .await
+    {
+        tracing::warn!(error = %e, "Gagal sinkronisasi auth.users — diabaikan");
+    }
 
     sqlx::query!(
         r#"INSERT INTO public.users (id, email, encrypted_password, created_at, updated_at)
