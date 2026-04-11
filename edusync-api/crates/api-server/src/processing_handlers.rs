@@ -1,16 +1,24 @@
-//! Phase 3D — Processing & Misc Axum handlers.
+//! Phase 3D — Processing & Misc handlers (VIL Way).
 //!
 //! Covers: progress events, quiz data loader, SCORM extraction, bulk user import.
+//!
+//! Migration notes:
+//! - `enqueue_events_handler`: `Json<Vec<T>>` → `ShmSlice` + `body.json::<Vec<T>>()?`
+//! - `load_quiz_handler`:       GET + `Path<Uuid>` — no body, no change to extractors.
+//! - `extract_scorm_handler`:   raw ZIP upload via `Bytes` — keep `Bytes` extractor;
+//!                              `RbacGuard.require()` now returns `VilError` directly.
+//! - `import_users_handler`:    raw CSV upload via `Bytes` — keep `Bytes` extractor;
+//!                              same RBAC pattern.
+//! - All `Extension<Arc<AppState>>` → `ServiceCtx` + `svc.state::<Arc<AppState>>()?`
+//! - All ad-hoc `(StatusCode, Json)` error tuples → `VilError::*` methods
 
 use axum::{
     body::Bytes,
     extract::Path,
-    http::StatusCode,
-    response::{IntoResponse, Response},
-    Extension, Json,
 };
 use std::sync::Arc;
 use uuid::Uuid;
+use vil_server::prelude::{HandlerResult, ServiceCtx, ShmSlice, VilError, VilResponse};
 
 use crate::extractors::{AuthedRequest, RbacGuard};
 use crate::state::AppState;
@@ -28,138 +36,111 @@ use edusync_services::{
 
 pub async fn enqueue_events_handler(
     AuthedRequest(ctx): AuthedRequest,
-    Extension(state): Extension<Arc<AppState>>,
-    Json(events): Json<Vec<TelemetryEvent>>,
-) -> impl IntoResponse {
-    match enqueue_progress_events(&state.db, ctx.user_id, events).await {
-        Ok(resp) => (StatusCode::OK, Json(resp)).into_response(),
-        Err(ProgressApiError::TooManyEvents(n)) => (
-            StatusCode::BAD_REQUEST,
-            Json(serde_json::json!({
-                "error": format!("Terlalu banyak event: {n}. Maksimum 100 per permintaan.")
-            })),
-        )
-            .into_response(),
-        Err(ProgressApiError::QueueFull) => (
-            StatusCode::SERVICE_UNAVAILABLE,
-            Json(serde_json::json!({ "error": "Server sibuk — antrian penuh, coba lagi nanti" })),
-        )
-            .into_response(),
-        Err(ProgressApiError::Database(msg)) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(serde_json::json!({ "error": msg })),
-        )
-            .into_response(),
-    }
+    svc: ServiceCtx,
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<serde_json::Value>> {
+    let state = svc.state::<Arc<AppState>>()?;
+    let events: Vec<TelemetryEvent> = body
+        .json()
+        .map_err(|e| VilError::bad_request(e.to_string()))?;
+
+    let resp = enqueue_progress_events(&state.db, ctx.user_id, events)
+        .await
+        .map_err(|e| match e {
+            ProgressApiError::TooManyEvents(n) => VilError::bad_request(format!(
+                "Terlalu banyak event: {n}. Maksimum 100 per permintaan."
+            )),
+            ProgressApiError::QueueFull => VilError::service_unavailable(
+                "Server sibuk — antrian penuh, coba lagi nanti",
+            ),
+            ProgressApiError::Database(msg) => VilError::internal(msg),
+        })?;
+
+    Ok(VilResponse::ok(serde_json::to_value(resp).unwrap_or_default()))
 }
 
 // ─── Quiz Loader ──────────────────────────────────────────────────────────────
 
 pub async fn load_quiz_handler(
     AuthedRequest(ctx): AuthedRequest,
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     Path(quiz_id): Path<Uuid>,
-) -> impl IntoResponse {
+) -> HandlerResult<VilResponse<serde_json::Value>> {
     use edusync_services::quiz::loader::QuizLoaderError;
 
-    match load_quiz_for_student(&state.db, quiz_id, ctx.user_id, ctx.tenant_id).await {
-        Ok(resp) => (StatusCode::OK, Json(resp)).into_response(),
-        Err(QuizLoaderError::NotFound) => (
-            StatusCode::NOT_FOUND,
-            Json(serde_json::json!({ "error": "Kuis tidak ditemukan" })),
-        )
-            .into_response(),
-        Err(QuizLoaderError::Forbidden) => (
-            StatusCode::FORBIDDEN,
-            Json(serde_json::json!({
-                "error": "Akses ditolak: Anda belum terdaftar di kursus yang memuat kuis ini"
-            })),
-        )
-            .into_response(),
-        Err(QuizLoaderError::Database(msg)) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(serde_json::json!({ "error": msg })),
-        )
-            .into_response(),
-    }
+    let state = svc.state::<Arc<AppState>>()?;
+
+    let resp = load_quiz_for_student(&state.db, quiz_id, ctx.user_id, ctx.tenant_id)
+        .await
+        .map_err(|e| match e {
+            QuizLoaderError::NotFound => VilError::not_found("Kuis tidak ditemukan"),
+            QuizLoaderError::Forbidden => VilError::forbidden(
+                "Akses ditolak: Anda belum terdaftar di kursus yang memuat kuis ini",
+            ),
+            QuizLoaderError::Database(msg) => VilError::internal(msg),
+        })?;
+
+    Ok(VilResponse::ok(serde_json::to_value(resp).unwrap_or_default()))
 }
 
 // ─── SCORM Extract ────────────────────────────────────────────────────────────
 
+/// Raw ZIP upload — keeps `Bytes` extractor (not JSON).
+/// `RbacGuard::require` now returns `VilError` directly (no early-return dance).
 pub async fn extract_scorm_handler(
     rbac: RbacGuard,
-    Extension(_state): Extension<Arc<AppState>>,
+    _svc: ServiceCtx,
     body: Bytes,
-) -> Response {
-    // Only teachers and admins can upload SCORM content
-    if rbac.require("teacher").is_err() {
-        return (
-            StatusCode::FORBIDDEN,
-            Json(serde_json::json!({ "error": "Akses ditolak" })),
-        )
-            .into_response();
-    }
-
+) -> HandlerResult<VilResponse<serde_json::Value>> {
     use edusync_services::scorm::ScormError;
-    match extract_scorm(&body) {
-        Ok(manifest) => (StatusCode::OK, Json(manifest)).into_response(),
-        Err(ScormError::InvalidZip(msg)) => (
-            StatusCode::BAD_REQUEST,
-            Json(serde_json::json!({ "error": format!("File ZIP tidak valid: {msg}") })),
-        )
-            .into_response(),
-        Err(ScormError::NoManifest(msg)) => (
-            StatusCode::BAD_REQUEST,
-            Json(serde_json::json!({
-                "error": format!("Manifest SCORM tidak ditemukan: {msg}")
-            })),
-        )
-            .into_response(),
-        Err(ScormError::NoEntryPoint) => (
-            StatusCode::BAD_REQUEST,
-            Json(serde_json::json!({
-                "error": "Titik masuk (entry point) tidak ditemukan dalam manifest SCORM"
-            })),
-        )
-            .into_response(),
-        Err(e) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(serde_json::json!({ "error": e.to_string() })),
-        )
-            .into_response(),
-    }
+
+    // Only teachers and admins can upload SCORM content
+    rbac.require("teacher")?;
+
+    let manifest = extract_scorm(&body).map_err(|e| match e {
+        ScormError::InvalidZip(msg) => {
+            VilError::bad_request(format!("File ZIP tidak valid: {msg}"))
+        }
+        ScormError::NoManifest(msg) => {
+            VilError::bad_request(format!("Manifest SCORM tidak ditemukan: {msg}"))
+        }
+        ScormError::NoEntryPoint => VilError::bad_request(
+            "Titik masuk (entry point) tidak ditemukan dalam manifest SCORM",
+        ),
+        e => VilError::internal(e.to_string()),
+    })?;
+
+    Ok(VilResponse::ok(
+        serde_json::to_value(manifest).unwrap_or_default(),
+    ))
 }
 
 // ─── Bulk User Import ─────────────────────────────────────────────────────────
 
+/// Raw CSV upload — keeps `Bytes` extractor (not JSON).
 pub async fn import_users_handler(
     rbac: RbacGuard,
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     body: Bytes,
-) -> Response {
-    // Only admins can import users
-    if rbac.require("admin").is_err() {
-        return (
-            StatusCode::FORBIDDEN,
-            Json(serde_json::json!({ "error": "Akses ditolak: hanya admin yang dapat mengimpor pengguna" })),
-        )
-            .into_response();
-    }
+) -> HandlerResult<VilResponse<serde_json::Value>> {
+    use edusync_services::import::BulkImportError;
 
+    // Only admins can import users
+    rbac.require("admin")?;
+
+    let state = svc.state::<Arc<AppState>>()?;
     let ctx = rbac.ctx();
 
-    use edusync_services::import::BulkImportError;
-    match import_users_from_csv(&state.db, &body, ctx.tenant_id, ctx.user_id).await {
-        Ok(result) => (StatusCode::OK, Json(result)).into_response(),
-        Err(BulkImportError::CsvParse(msg)) => (
-            StatusCode::BAD_REQUEST,
-            Json(serde_json::json!({ "error": format!("Gagal mem-parsing CSV: {msg}") })),
-        )
-            .into_response(),
-        Err(BulkImportError::Database(msg)) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(serde_json::json!({ "error": msg })),
-        )
-            .into_response(),
-    }
+    let result = import_users_from_csv(&state.db, &body, ctx.tenant_id, ctx.user_id)
+        .await
+        .map_err(|e| match e {
+            BulkImportError::CsvParse(msg) => {
+                VilError::bad_request(format!("Gagal mem-parsing CSV: {msg}"))
+            }
+            BulkImportError::Database(msg) => VilError::internal(msg),
+        })?;
+
+    Ok(VilResponse::ok(
+        serde_json::to_value(result).unwrap_or_default(),
+    ))
 }

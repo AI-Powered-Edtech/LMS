@@ -242,3 +242,68 @@ Summary:
 - All secrets validated at startup (JWT secrets must be ≥ 32 characters)
 
 See [SECURITY.md](SECURITY.md) for the complete security model.
+
+## VIL Way — Handler Pattern
+
+All handlers use VIL primitives from `vil_server::prelude`. The migration from
+Axum-only idioms to VIL Way was completed in Wave 1 (courses, auth, data plane,
+storage, realtime) and Wave 2 (ai, lti, notification, processing handlers).
+
+```rust
+// ✅ VIL Way
+pub async fn handler(
+    AuthedRequest(auth): AuthedRequest,
+    svc: ServiceCtx,
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<Response>> {
+    let state = svc.state::<Arc<AppState>>()?;
+    let req: Request = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
+    // ... business logic ...
+    Ok(VilResponse::ok(result))
+}
+```
+
+| VIL Primitive            | Replaces                                             | Benefit                                         |
+| ------------------------ | ---------------------------------------------------- | ----------------------------------------------- |
+| `ShmSlice`               | `Json<T>`                                            | Zero-copy body deserialization via ExchangeHeap |
+| `ServiceCtx`             | `Extension<Arc<T>>`                                  | Tri-Lane context + typed state lookup           |
+| `VilResponse::ok(data)`  | `(StatusCode::OK, Json(data))`                       | SIMD JSON serialization                         |
+| `VilResponse::raw(resp)` | `impl IntoResponse` passthrough                      | Binary / SSE responses                          |
+| `VilError`               | Custom `AppError` enum + `(StatusCode, Json)` tuples | Standard RFC 7807 error format                  |
+| `HandlerResult<T>`       | `Result<T, AppError>`                                | Unified `?` propagation                         |
+| `SseCollect`             | Manual `reqwest` SSE loop                            | Built-in SSE dialect handling                   |
+| `WsHub`                  | Manual `RoomManager`                                 | Topic-based broadcast hub                       |
+| `Scheduler`              | Manual `tokio::time::interval`                       | Named job scheduling                            |
+| `vil_storage_s3`         | `aws-sdk-s3`                                         | VIL-native S3 client                            |
+
+### Special-case extractors (kept as-is)
+
+Some handlers retain non-VIL extractors by design:
+
+| Handler                         | Kept Extractor                   | Reason                                                    |
+| ------------------------------- | -------------------------------- | --------------------------------------------------------- |
+| `lti_oidc_login_handler`        | `Query<T>`                       | Platform sends GET query params, not JSON                 |
+| `lti_launch_handler`            | `Form<T>`                        | LTI 1.3 spec mandates `application/x-www-form-urlencoded` |
+| `extract_scorm_handler`         | `Bytes`                          | Raw ZIP binary upload                                     |
+| `import_users_handler`          | `Bytes`                          | Raw CSV binary upload                                     |
+| `whatsapp_webhook_post_handler` | `Bytes`                          | Raw webhook payload from provider                         |
+| `whatsapp_webhook_get_handler`  | `Query<T>` + plain text response | Hub challenge is plain text, not JSON                     |
+
+### VilApp Registration
+
+```rust
+VilApp::new()
+    .observer(true)                // /_vil/dashboard/ live metrics UI
+    .profile(&vil_profile)         // env-driven profile (dev/staging/prod)
+    .service(auth_service)
+    .service(courses_service)
+    .service(data_plane_service)
+    .service(storage_service)
+    .service(ai_service)
+    .service(lti_service)
+    .service(notification_service)
+    .service(processing_service)
+    .service(realtime_service)
+    // All services attach state via:
+    //   .extension(Arc::clone(&state_arc))
+```
