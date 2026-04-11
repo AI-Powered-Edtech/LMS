@@ -26,3 +26,4 @@ hex.workspace = true
 totp-rs.workspace = true
 time.workspace = true
 reqwest.workspace = true
+futures-util.workspace = true

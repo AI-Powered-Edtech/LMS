@@ -9,10 +9,12 @@ mod lti_handlers;
 mod notification_handlers;
 mod observability;
 mod processing_handlers;
+mod realtime;
 mod state;
 
 use dotenvy::dotenv;
 use health::{health_handler, ready_handler};
+use realtime::{handler::ws_handler, pg_notify::start_pg_listener, RoomManager};
 use sqlx::postgres::PgPoolOptions;
 use state::{AppState, ShadowRuntimeConfig, SmtpConfig};
 use std::sync::Arc;
@@ -149,6 +151,10 @@ async fn main() -> anyhow::Result<()> {
     let state_arc = Arc::new(app_state.clone());
     cron::start_cron_jobs(state_arc).await;
 
+    // ── Phase 4A: Start pg_notify listener ───────────────────────────────────
+    let rooms = Arc::new(RoomManager::new());
+    start_pg_listener(app_state.db.clone(), Arc::clone(&rooms));
+
     // ── Service registrations ─────────────────────────────────────────────────
 
     let health_service = ServiceProcess::new("system")
@@ -255,6 +261,13 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/import/users", post(import_users_handler))
         .state(app_state.clone());
 
+    // ── Phase 4A: WebSocket realtime service ──────────────────────────────────
+    let ws_service = ServiceProcess::new("realtime")
+        .prefix("/ws")
+        .endpoint(Method::GET, "", get(ws_handler))
+        .state(app_state.clone())
+        .extension(Arc::clone(&rooms));
+
     VilApp::new("edusync-api")
         .port(port)
         .profile("development")
@@ -269,6 +282,7 @@ async fn main() -> anyhow::Result<()> {
         .service(lti_service)
         .service(notification_service)
         .service(processing_service)
+        .service(ws_service)
         .run()
         .await;
 

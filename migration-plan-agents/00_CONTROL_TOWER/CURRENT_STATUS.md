@@ -1,7 +1,7 @@
 # Current Status
 
 **Last Updated:** 2026-04-11
-**Current Phase:** Phase 3 COMPLETE — Gate 4 PASSED. Phase 4 ready to start.
+**Current Phase:** Phase 4 COMPLETE — Gate 5 PASSED. Phase 5 ready to start.
 **Execution Readiness:** 97/100
 
 ---
@@ -75,9 +75,9 @@
 
 ### Phase 4: Realtime
 
-- [ ] 4A: WebSocket Server (Weeks 53-55)
-- [ ] 4B: Port 9 Realtime Consumers (Weeks 55-58)
-- [ ] 4C: Verification (Weeks 58-60)
+- [x] 4A: WebSocket Server (Weeks 53-55)
+- [x] 4B: Port 9 Realtime Consumers (Weeks 55-58)
+- [x] 4C: Verification (Weeks 58-60)
 
 ### Phase 5: Storage
 
@@ -103,17 +103,17 @@
 | Gate 2 (Phase 1 Auth)    | **PASSED** ✅   | All 10 auth endpoints verified (2026-04-11)                                                                                                                                                                                                                                             |
 | Gate 3 (Phase 2 Batch 1) | **PASSED** ✅   | Write shadow aktif (quiz_attempts_v2, assignment_submissions, gradebook_entries, dan write RPCs). Security review closed — no critical blockers. 21/21 integration tests hijau. Scoped gates hijau. Data plane UPDATE bug (jsonb_populate_record + SET clause) diperbaiki. (2026-04-11) |
 | Gate 4 (Phase 3)         | **PASSED ✅**   | Phase 3 wiring complete (2026-04-11)                                                                                                                                                                                                                                                    |
-| Gate 5 (Phase 4)         | **NOT REACHED** | Realtime reliability                                                                                                                                                                                                                                                                    |
+| Gate 5 (Phase 4)         | **PASSED ✅**   | Realtime migration complete (2026-04-11)                                                                                                                                                                                                                                                |
 | Gate 6 (Phase 6)         | **NOT REACHED** | Final success                                                                                                                                                                                                                                                                           |
 
 ---
 
 ## Next Immediate Action Items
 
-1. **Phase 4 — Realtime** 🔓 UNLOCKED
-   - Gate 4 passed 2026-04-11. Phase 4 siap dimulai.
-   - Priority: 4A (WebSocket Server) → 4B (Port Realtime Consumers) → 4C (Verification)
-   - Lihat: `migration-plan-agents/06_PHASE_4_REALTIME/`
+1. **Phase 5 — Storage Migration** 🔓 UNLOCKED
+   - Gate 5 passed 2026-04-11. Phase 5 siap dimulai.
+   - Priority: Deploy MinIO/S3/R2 → dual-write → background migration → switch reads + URL rewriting
+   - Lihat: `migration-plan-agents/07_PHASE_5_STORAGE/`
 
 2. **Google OAuth callback** (Phase 1 residual)
    - `auth/oauth.rs:52` masih stub — non-blocking untuk Phase 3 tapi harus ditutup sebelum production

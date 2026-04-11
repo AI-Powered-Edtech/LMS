@@ -2,6 +2,40 @@
 
 ## [Unreleased] — 2026-04-11
 
+### Added (Phase 4: Realtime Migration)
+
+- Phase 4A: Axum-native WebSocket server at `/ws`
+  - Room/channel management with `tokio::sync::broadcast` (capacity 64 per channel)
+  - Per-channel relay tasks with zero-overhead idle channels
+  - Presence tracking with sync/join/leave diff notifications
+  - pg_notify forwarding: PgListener on 5 PostgreSQL channels → WS rooms
+  - Max 10 channel joins per connection, 64KB message size limit
+  - JWT auth via `?token=JWT` query param (anonymous also allowed)
+- Phase 4A: PostgreSQL triggers (migration 006)
+  - `notify_change()` trigger function (SECURITY DEFINER, SET search_path)
+  - Triggers on: notifications, messages, discussions, classroom_activities/classes, courses
+  - Idempotent (DROP IF EXISTS before CREATE)
+- Phase 4B: Frontend `vilRealtimeProvider.ts` fully implemented (was stub)
+  - Single WebSocket connection, multiplexed channels
+  - Exponential backoff reconnection: 1s→2s→4s→8s→16s→max 30s, max 10 retries
+  - Presence state diff (join/leave synthesized from presence_sync)
+  - Token extraction from localStorage (supports all Supabase JWT key formats)
+  - All 9 consumer hooks work unchanged (they use abstraction layer)
+- Phase 4B: All 9 realtime consumers now VIL-compatible:
+  - useBuilderChannel, useBuilderPresence (broadcast + presence)
+  - useNotifications, useAdminNotifications (pg_notify)
+  - discussionQueries (pg_notify)
+  - useMessages (broadcast)
+  - MessageThread (broadcast)
+  - classroomService (pg_notify)
+  - groupAssignmentService (broadcast)
+- `docs/REALTIME_ARCHITECTURE.md` (new, 263 lines)
+- Rollback: set `VITE_REALTIME_BACKEND=supabase`
+
+### Gate
+
+- Gate 5 (Phase 4): PASSED ✅ — 2026-04-11
+
 ### Added (Phase 3: Edge Functions → VIL Services)
 
 - **Phase 3A: AI service handlers** — ai-grade-essay, ai-tutor, generate-ai-content, generate-quiz-from-content
