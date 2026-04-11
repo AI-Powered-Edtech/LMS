@@ -134,6 +134,11 @@ impl S3StorageClient {
         &self.bucket
     }
 
+    /// Returns the name of the configured S3/R2 bucket.
+    pub fn bucket_name(&self) -> &str {
+        &self.bucket
+    }
+
     /// Return the full public URL for an object key.
     ///
     /// `key` is the **full S3 key** (e.g. `course-images/{tenant}/{file}.jpg`).

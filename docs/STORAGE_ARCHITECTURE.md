@@ -35,13 +35,17 @@ reducing server load and upload latency.
 {bucket}/{tenant_id}/{path}
 ```
 
-| Bucket           | Contents                             | Max object size |
-| ---------------- | ------------------------------------ | --------------- |
-| `avatars`        | User profile pictures                | 5 MiB           |
-| `course-media`   | Course cover images, banners         | 20 MiB          |
-| `lesson-content` | Videos, PDFs, SCORM ZIPs             | 2 GiB           |
-| `submissions`    | Student essay and assignment uploads | 50 MiB          |
-| `certificates`   | Generated PDF certificates           | 5 MiB           |
+EduSync uses **7 buckets**:
+
+| Bucket                   | Contents                             | Max object size |
+| ------------------------ | ------------------------------------ | --------------- |
+| `avatars`                | User profile pictures                | 5 MiB           |
+| `course-images`          | Course cover images, banners         | 20 MiB          |
+| `course-videos`          | Lesson video files                   | 2 GiB           |
+| `course-files`           | PDFs, SCORM ZIPs, lesson attachments | 500 MiB         |
+| `assignment-submissions` | Student essay and assignment uploads | 50 MiB          |
+| `video-captions`         | VTT/SRT subtitle files               | 5 MiB           |
+| `certificates`           | Generated PDF certificates           | 5 MiB           |
 
 Tenant isolation is enforced at the RLS layer in Supabase and by the VIL backend
 (all paths include `tenant_id` as the first segment).

@@ -576,45 +576,121 @@ pub async fn list_handler(
 
 // ── Migration status handler ──────────────────────────────────────────────────
 
-/// Status of the background Supabase → S3 file migration.
 #[derive(Serialize)]
 pub struct MigrationStatusResponse {
-    /// Human-readable status.
-    pub status: String,
-    /// Whether the storage client is available.
     pub storage_configured: bool,
-    /// The configured S3 bucket name (if storage is configured).
     pub bucket: Option<String>,
-    /// Note about running the migration script.
-    pub note: String,
+    pub total_files: i64,
+    pub pending: i64,
+    pub migrating: i64,
+    pub completed: i64,
+    pub failed: i64,
+    pub skipped: i64,
+    pub completion_pct: f64,
+    pub status: String,   // "tidak dikonfigurasi" | "idle" | "berjalan" | "selesai"
+    pub note: Option<String>,
 }
 
 /// `GET /api/v1/storage/migration-status`
 ///
-/// Returns a snapshot of the current storage migration state.
-/// In Phase 5A this is a static response; Phase 5B will add a background job
-/// that updates a `migration_progress` table.
+/// Returns the current storage migration state read from `storage_file_migrations`.
+/// Requires admin or teacher role (any authenticated user can call it).
 pub async fn migration_status_handler(
     AuthedRequest(_ctx): AuthedRequest,
     Extension(state): Extension<Arc<AppState>>,
 ) -> impl IntoResponse {
-    // Check whether storage is configured without requiring it.
-    // INTEGRATION: replace with `state.storage.as_ref()` once wired.
-    let storage_configured = false; // will become: state.storage.is_some()
-    let bucket: Option<String> = None; // will become: state.storage.as_ref().map(|s| s.bucket().to_string())
-    let _ = state; // suppress lint
+    let storage_configured = state.storage.is_some();
+    let bucket = state.storage.as_ref().map(|s| s.bucket_name().to_string());
+
+    if !storage_configured {
+        return (
+            StatusCode::OK,
+            Json(MigrationStatusResponse {
+                storage_configured: false,
+                bucket: None,
+                total_files: 0,
+                pending: 0,
+                migrating: 0,
+                completed: 0,
+                failed: 0,
+                skipped: 0,
+                completion_pct: 0.0,
+                status: "tidak dikonfigurasi".to_string(),
+                note: Some(
+                    "Set S3_ENDPOINT dan S3_ACCESS_KEY_ID untuk mengaktifkan penyimpanan S3"
+                        .to_string(),
+                ),
+            }),
+        )
+            .into_response();
+    }
+
+    // Query aggregate counts from storage_file_migrations
+    let row = sqlx::query!(
+        r#"
+        SELECT
+            COUNT(*) FILTER (WHERE status = 'pending')   AS "pending!: i64",
+            COUNT(*) FILTER (WHERE status = 'migrating') AS "migrating!: i64",
+            COUNT(*) FILTER (WHERE status = 'completed') AS "completed!: i64",
+            COUNT(*) FILTER (WHERE status = 'failed')    AS "failed!: i64",
+            COUNT(*) FILTER (WHERE status = 'skipped')   AS "skipped!: i64",
+            COUNT(*)                                     AS "total!: i64"
+        FROM public.storage_file_migrations
+        "#
+    )
+    .fetch_one(&state.db)
+    .await;
+
+    let (pending, migrating, completed, failed, skipped, total) = match row {
+        Ok(r) => (r.pending, r.migrating, r.completed, r.failed, r.skipped, r.total),
+        Err(e) => {
+            tracing::warn!(error = %e, "Gagal membaca storage_file_migrations");
+            (0, 0, 0, 0, 0, 0)
+        }
+    };
+
+    let completion_pct = if total > 0 {
+        ((completed + skipped) as f64 / total as f64) * 100.0
+    } else {
+        0.0
+    };
+
+    let status = if total == 0 {
+        "idle".to_string()
+    } else if migrating > 0 {
+        "berjalan".to_string()
+    } else if pending == 0 && failed == 0 {
+        "selesai".to_string()
+    } else {
+        "sebagian".to_string()
+    };
+
+    let note = if failed > 0 {
+        Some(format!(
+            "{failed} file gagal dimigrasikan. Jalankan infrastructure/scripts/migrate-storage.sh untuk retry."
+        ))
+    } else if total == 0 {
+        Some(
+            "Jalankan infrastructure/scripts/migrate-storage.sh untuk memulai migrasi file dari Supabase Storage ke S3.".to_string(),
+        )
+    } else {
+        None
+    };
 
     (
         StatusCode::OK,
         Json(MigrationStatusResponse {
-            status: if storage_configured {
-                "aktif".to_string()
-            } else {
-                "tidak dikonfigurasi".to_string()
-            },
             storage_configured,
             bucket,
-            note: "Jalankan infrastructure/scripts/migrate-storage.sh untuk migrasi file dari Supabase Storage ke S3".to_string(),
+            total_files: total,
+            pending,
+            migrating,
+            completed,
+            failed,
+            skipped,
+            completion_pct: (completion_pct * 10.0).round() / 10.0, // 1 decimal
+            status,
+            note,
         }),
     )
         .into_response()
