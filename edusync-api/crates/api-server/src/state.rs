@@ -1,5 +1,6 @@
 use edusync_middleware::brute_force::BruteForceTracker;
 use sqlx::PgPool;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct ShadowRuntimeConfig {
@@ -49,4 +50,9 @@ pub struct AppState {
     pub whatsapp_access_token: Option<String>,
     /// WhatsApp phone number ID. Set via WHATSAPP_PHONE_NUMBER_ID.
     pub whatsapp_phone_number_id: Option<String>,
+
+    // ── Phase 5A: S3-compatible Storage ──────────────────────────────────────
+    /// S3-compatible storage client (MinIO local / Cloudflare R2 production).
+    /// `None` when S3_ENDPOINT is not configured — handlers return 503.
+    pub storage: Option<Arc<crate::storage::S3StorageClient>>,
 }

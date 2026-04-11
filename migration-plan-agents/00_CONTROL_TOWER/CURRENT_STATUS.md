@@ -1,8 +1,8 @@
 # Current Status
 
 **Last Updated:** 2026-04-11
-**Current Phase:** Phase 4 COMPLETE — Gate 5 PASSED. Phase 5 ready to start.
-**Execution Readiness:** 97/100
+**Current Phase:** Phase 5 COMPLETE — Gate 6 (final) ready to start.
+**Execution Readiness:** 99/100
 
 ---
 
@@ -81,10 +81,10 @@
 
 ### Phase 5: Storage
 
-- [ ] Deploy MinIO/S3/R2
-- [ ] Dual-write period
-- [ ] Background migration
-- [ ] Switch reads + URL rewriting
+- [x] 5A: Deploy Object Storage (MinIO docker-compose + S3StorageClient Rust backend)
+- [x] 5B: Dual-write period (vilStorageProvider dual-write implemented)
+- [x] 5C: Background Migration (migrate-storage.sh + verify-migration.sh + migration 007)
+- [x] 5D: Cutover (frontend primary storage selector + URL rewriting)
 
 ### Phase 6: Decommission
 
@@ -104,16 +104,16 @@
 | Gate 3 (Phase 2 Batch 1) | **PASSED** ✅   | Write shadow aktif (quiz_attempts_v2, assignment_submissions, gradebook_entries, dan write RPCs). Security review closed — no critical blockers. 21/21 integration tests hijau. Scoped gates hijau. Data plane UPDATE bug (jsonb_populate_record + SET clause) diperbaiki. (2026-04-11) |
 | Gate 4 (Phase 3)         | **PASSED ✅**   | Phase 3 wiring complete (2026-04-11)                                                                                                                                                                                                                                                    |
 | Gate 5 (Phase 4)         | **PASSED ✅**   | Realtime migration complete (2026-04-11)                                                                                                                                                                                                                                                |
-| Gate 6 (Phase 6)         | **NOT REACHED** | Final success                                                                                                                                                                                                                                                                           |
+| Gate 6 (Phase 6)         | **UNLOCKED ✅** | Phase 5 COMPLETE — 2026-04-11. Phase 6 Decommission ready to start.                                                                                                                                                                                                                     |
 
 ---
 
 ## Next Immediate Action Items
 
-1. **Phase 5 — Storage Migration** 🔓 UNLOCKED
-   - Gate 5 passed 2026-04-11. Phase 5 siap dimulai.
-   - Priority: Deploy MinIO/S3/R2 → dual-write → background migration → switch reads + URL rewriting
-   - Lihat: `migration-plan-agents/07_PHASE_5_STORAGE/`
+1. **Phase 6 — Decommission Supabase** 🔓 UNLOCKED
+   - Gate 6 unlocked 2026-04-11. Phase 6 siap dimulai.
+   - Priority: Remove `@supabase/supabase-js` → Remove Edge Functions → Remove Supabase config → Final E2E + load test
+   - Lihat: `migration-plan-agents/08_PHASE_6_DECOMMISSION/`
 
 2. **Google OAuth callback** (Phase 1 residual)
    - `auth/oauth.rs:52` masih stub — non-blocking untuk Phase 3 tapi harus ditutup sebelum production

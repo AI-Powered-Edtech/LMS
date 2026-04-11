@@ -1,33 +1,78 @@
-version: "3.9"
+version: '3.9'
 
 services:
   api:
     build: .
     ports:
-      - "8080:8080"
+      - '8080:8080'
     environment:
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
       RUST_LOG: info
-      PORT: "8080"
+      PORT: '8080'
+      # ── Phase 5A: S3 storage (optional — omit to disable storage endpoints) ──
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-minioadmin}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-minioadmin123}
+      S3_BUCKET: ${S3_BUCKET:-edusync}
+      S3_PUBLIC_URL: ${S3_PUBLIC_URL:-http://localhost:9000/edusync}
     depends_on:
       - pgbouncer
+      - minio
 
   pgbouncer:
     image: edoburu/pgbouncer:latest
     environment:
       DATABASE_URL: ${DATABASE_URL}
       POOL_MODE: transaction
-      MAX_CLIENT_CONN: "100"
-      DEFAULT_POOL_SIZE: "40"
+      MAX_CLIENT_CONN: '100'
+      DEFAULT_POOL_SIZE: '40'
     ports:
-      - "5433:5432"
+      - '5433:5432'
+
+  # ── Phase 5A: MinIO — S3-compatible object storage for local development ────
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - '9000:9000' # S3 API
+      - '9001:9001' # Web console (minioadmin / minioadmin123)
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # One-shot bucket initialiser — runs once MinIO is healthy.
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: |
+      /bin/sh -c "
+        mc alias set local http://minio:9000 minioadmin minioadmin123;
+        mc mb --ignore-existing local/edusync;
+        mc anonymous set download local/edusync/course-images;
+        echo 'MinIO bucket edusync siap.';
+      "
+    restart: on-failure
 
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
+      - '80:80'
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - api
+
+volumes:
+  minio_data:

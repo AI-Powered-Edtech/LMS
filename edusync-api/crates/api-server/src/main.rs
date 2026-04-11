@@ -11,6 +11,7 @@ mod observability;
 mod processing_handlers;
 mod realtime;
 mod state;
+mod storage;
 
 use dotenvy::dotenv;
 use health::{health_handler, ready_handler};
@@ -49,6 +50,10 @@ use notification_handlers::{
 };
 use processing_handlers::{
     enqueue_events_handler, extract_scorm_handler, import_users_handler, load_quiz_handler,
+};
+use storage::handlers::{
+    create_signed_url_handler, download_handler, list_handler, migration_status_handler,
+    presign_upload_handler, public_url_handler, remove_handler, upload_handler,
 };
 
 #[tokio::main]
@@ -130,6 +135,17 @@ async fn main() -> anyhow::Result<()> {
             .unwrap_or_else(|_| "noreply@edusync.dev".to_string()),
     };
 
+    // ── Phase 5A: S3-compatible storage ──────────────────────────────────────
+    let storage_client = storage::client::S3StorageClient::from_env().await;
+    if storage_client.is_none() {
+        tracing::warn!(
+            "S3_ENDPOINT tidak dikonfigurasi — endpoint storage tidak akan berfungsi. \
+             Atur S3_ENDPOINT, S3_ACCESS_KEY_ID, dan S3_SECRET_ACCESS_KEY untuk mengaktifkan."
+        );
+    } else {
+        tracing::info!("S3 storage client berhasil diinisialisasi");
+    }
+
     let app_state = AppState {
         db,
         jwt_secret,
@@ -145,6 +161,7 @@ async fn main() -> anyhow::Result<()> {
         smtp,
         whatsapp_access_token,
         whatsapp_phone_number_id,
+        storage: storage_client.map(std::sync::Arc::new),
     };
 
     // ── Start cron jobs ──────────────────────────────────────────────────────
@@ -268,6 +285,27 @@ async fn main() -> anyhow::Result<()> {
         .state(app_state.clone())
         .extension(Arc::clone(&rooms));
 
+    // ── Phase 5A: S3-compatible object storage ────────────────────────────────
+    let storage_service = ServiceProcess::new("storage")
+        .prefix("/api/v1/storage")
+        .endpoint(Method::POST, "/upload", post(upload_handler))
+        .endpoint(Method::GET, "/object/:bucket/*path", get(download_handler))
+        .endpoint(Method::DELETE, "/object/:bucket", delete(remove_handler))
+        .endpoint(
+            Method::GET,
+            "/public-url/:bucket/*path",
+            get(public_url_handler),
+        )
+        .endpoint(Method::POST, "/sign", post(create_signed_url_handler))
+        .endpoint(Method::POST, "/presign-upload", post(presign_upload_handler))
+        .endpoint(Method::GET, "/list/:bucket", get(list_handler))
+        .endpoint(
+            Method::GET,
+            "/migration-status",
+            get(migration_status_handler),
+        )
+        .state(app_state.clone());
+
     VilApp::new("edusync-api")
         .port(port)
         .profile("development")
@@ -283,6 +321,7 @@ async fn main() -> anyhow::Result<()> {
         .service(notification_service)
         .service(processing_service)
         .service(ws_service)
+        .service(storage_service)
         .run()
         .await;
 

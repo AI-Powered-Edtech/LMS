@@ -2,6 +2,41 @@
 
 ## [Unreleased] — 2026-04-11
 
+### Added (Phase 5: Storage Migration)
+
+- Phase 5A: S3-compatible storage backend in Rust (aws-sdk-s3)
+  - S3StorageClient: upload, download, delete, list, presigned URLs
+  - Single S3 bucket with path-prefix per logical bucket: {bucket}/{tenant_id}/{path}
+  - force_path_style=true for MinIO compatibility; R2 uses endpoint override
+  - Max file sizes enforced: course-images 5MB, assignments 20MB, videos 500MB
+  - 8 Axum handlers: upload, download, remove, public-url, sign, presign-upload, list, migration-status
+  - Bucket allowlist + path traversal prevention
+  - Returns 503 gracefully when S3_ENDPOINT not configured
+- Phase 5A: MinIO in docker-compose (minio + minio-init services)
+  - minio-init bootstraps 'edusync' bucket with public download policy
+- Phase 5B+5D: Frontend vilStorageProvider fully implemented (was stub)
+  - Dual-write: writes to VIL S3 AND Supabase Storage simultaneously (VITE_STORAGE_DUAL_WRITE=true)
+  - Presigned PUT for files > 10MB (direct browser-to-S3, bypasses proxy)
+  - getPublicUrl() returns CDN URL (VITE_CDN_URL) or API proxy URL (sync, as required by interface)
+  - Primary storage selector: VITE_STORAGE_PRIMARY=s3|supabase
+  - Token extraction same pattern as vilRealtimeProvider
+  - All error messages in Bahasa Indonesia
+- Phase 5: CSP updated (img-src, connect-src, media-src for MinIO + R2 + CDN)
+- Phase 5: migration 007 — storage_file_migrations tracking table
+- Phase 5: infrastructure/ — MinIO docker-compose, R2 config templates, migration/verify scripts
+- docs/STORAGE_ARCHITECTURE.md (194 lines)
+
+### Infrastructure
+
+- nginx.conf: /api/v1/storage/ proxy with client_max_body_size 550M, 600s timeout
+- .env.example: S3/MinIO config section added
+
+### Gate
+
+- Gate 6 (Phase 6 Decommission): UNLOCKED — 2026-04-11
+
+---
+
 ### Added (Phase 4: Realtime Migration)
 
 - Phase 4A: Axum-native WebSocket server at `/ws`
