@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 // Custom error types for administration operations
 class AdministrationError extends Error {
@@ -140,7 +140,7 @@ export const administrationService = {
       // Uses a regular (left) join so that a missing modules row does not
       // cause an RLS-driven error — rows without a matching module are
       // simply filtered out in the map below.
-      const { data: tenantModules, error: tenantError } = await supabase
+      const { data: tenantModules, error: tenantError } = await db
         .from('tenant_modules')
         .select(
           `
@@ -219,7 +219,7 @@ export const administrationService = {
    */
   async toggleTenantModule(moduleId: string, isEnabled: boolean): Promise<void> {
     try {
-      const { error } = await supabase
+      const { error } = await db
         .from('tenant_modules')
         .update({ is_enabled: isEnabled, updated_at: new Date().toISOString() })
         .eq('module_id', moduleId)
@@ -241,7 +241,7 @@ export const administrationService = {
   async getSyncHistory(): Promise<SyncHistoryItem[]> {
     try {
       // Try to query activity_logs for sync-related events
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('activity_logs')
         .select('id, tenant_id, user_id, action, metadata, created_at')
         .ilike('action', '%sync%')
@@ -445,7 +445,7 @@ export const administrationService = {
     cursor?: string | null
     limit: number
   }): Promise<AuditLog[]> {
-    const { data, error } = await supabase.rpc('get_audit_logs', {
+    const { data, error } = await db.rpc('get_audit_logs', {
       p_action: params.action ?? null,
       p_cursor: params.cursor ?? null,
       p_limit: params.limit,
@@ -477,10 +477,10 @@ export const administrationService = {
     timestamp: string
     version?: string
   }> {
-    const { error: dbError } = await supabase.from('tenants').select('id').limit(1)
+    const { error: dbError } = await db.from('tenants').select('id').limit(1)
     const dbOk = !dbError
 
-    const { error: sessionError } = await supabase.auth.getSession()
+    const { error: sessionError } = await db.auth.getSession()
     const authOk = !sessionError
 
     let status: 'healthy' | 'degraded' | 'down' = 'healthy'
@@ -505,7 +505,7 @@ export const administrationService = {
    * Fetch recent app metrics for the system health dashboard.
    */
   async getAppMetrics(): Promise<Array<{ metric_name: string; metric_value: number }>> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('app_metrics')
       .select('metric_name, metric_value')
       .order('recorded_at', { ascending: false })
@@ -525,7 +525,7 @@ export const administrationService = {
   async fetchStudentsForInvoice(
     tenantId: string
   ): Promise<Array<{ id: string; full_name: string | null; email: string }>> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('profiles')
       .select('id, full_name, email')
       .eq('tenant_id', tenantId)
@@ -548,7 +548,7 @@ export const administrationService = {
     due_date: string | null
     month_year: string | null
   }): Promise<void> {
-    const { error } = await supabase.rpc('create_invoice', {
+    const { error } = await db.rpc('create_invoice', {
       p_student_id: params.student_id,
       p_amount: params.amount,
       p_description: params.description,

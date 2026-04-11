@@ -185,19 +185,19 @@ test.describe('Critical Path — Quiz Submission Flow', () => {
     }
 
     // VERIFIKASI DATABASE: Pastikan quiz attempt tercatat di database
-    const supabase = page.evaluate(() => {
-      return window.supabase
+    const db = page.evaluate(() => {
+      return window.db
     }) as any
 
-    if (supabase) {
+    if (db) {
       // Dapatkan data student untuk mendapatkan user ID
       const {
         data: { session },
-      } = await supabase.auth.getSession()
+      } = await db.auth.getSession()
       const studentId = session?.user?.id
 
       // Query quiz attempt terbaru untuk student ini
-      const { data: attempts, error } = await supabase
+      const { data: attempts, error } = await db
         .from('quiz_attempts')
         .select('*')
         .eq('student_id', studentId)

@@ -5,7 +5,7 @@
  * All methods require tenantId for proper multi-tenant isolation.
  */
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { LeaderboardEntry } from '../types'
 
@@ -20,7 +20,7 @@ export const leaderboardService = {
    */
   async getLeaderboard(_classId: string, tenantId: string): Promise<LeaderboardEntry[]> {
     // Try with class_id filter (migration 052+)
-    let query = supabase
+    let query = db
       .from('leaderboards')
       .select(
         `
@@ -44,7 +44,7 @@ export const leaderboardService = {
         return []
       // If class_id or score column doesn't exist, try minimal query
       if (error.code === '42703') {
-        const { data: fallback, error: fbError } = await supabase
+        const { data: fallback, error: fbError } = await db
           .from('leaderboards')
           .select('points, rank, user_id, profiles(full_name, avatar_url)')
           .eq('tenant_id', tenantId)
@@ -88,7 +88,7 @@ export const leaderboardService = {
     now.setUTCHours(0, 0, 0, 0)
     const weekStart = now.toISOString()
 
-    let query = supabase
+    let query = db
       .from('leaderboards_weekly')
       .select(
         `

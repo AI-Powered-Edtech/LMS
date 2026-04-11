@@ -11,7 +11,7 @@
  *   - GET /rest/v1/attendance_records?student_id=eq.xxx
  *
  * Cara menjalankan:
- *   SUPABASE_URL=https://xxx.supabase.co \
+ *   SUPABASE_URL=https://xxx.db.co \
  *   SUPABASE_ANON_KEY=eyJ... \
  *   TEST_USER_TOKEN=eyJ... \
  *   k6 run k6/parent-dashboard-load.js

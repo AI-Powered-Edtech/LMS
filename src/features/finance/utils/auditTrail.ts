@@ -1,7 +1,7 @@
 // EduSync LMS — Finance Audit Trail Utility
 // Provides functions for recording and querying finance audit events
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -61,7 +61,7 @@ export async function recordAuditEvent(params: {
   notes?: string
 }): Promise<string | null> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('finance_payment_audit')
       .insert({
         invoice_id: params.invoiceId ?? null,
@@ -94,7 +94,7 @@ export async function recordAuditEvent(params: {
  * Query audit entries with optional filters.
  */
 export async function queryAuditTrail(filter: AuditFilter = {}): Promise<AuditEntry[]> {
-  let query = supabase
+  let query = db
     .from('finance_payment_audit')
     .select('*')
     .order('performed_at', { ascending: false })

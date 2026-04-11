@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { certificateService } from '../api/certificateService'
 
-// Mock supabase
+// Mock db
 const { mockInvoke } = vi.hoisted(() => ({ mockInvoke: vi.fn() }))
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     functions: {
       invoke: mockInvoke,
     },

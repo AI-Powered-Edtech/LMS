@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 // ============================================================
 // Types (exported for use in QuizBlockEditor)
@@ -39,7 +39,7 @@ export interface QuizBlockData {
 
 export const builderQuizService = {
   async getQuizByLesson(lessonId: string, tenantId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('quizzes')
       .select(
         `
@@ -65,7 +65,7 @@ export const builderQuizService = {
     tenantId: string,
     data: QuizBlockData
   ): Promise<{ quiz_id: string }> {
-    const { data: result, error } = await supabase.rpc('save_quiz_builder', {
+    const { data: result, error } = await db.rpc('save_quiz_builder', {
       p_lesson_id: lessonId,
       p_tenant_id: tenantId,
       p_quiz_data: data,
@@ -75,7 +75,7 @@ export const builderQuizService = {
   },
 
   async publishQuiz(quizId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('quizzes')
       .update({ status: 'published' })
       .eq('id', quizId)
@@ -84,7 +84,7 @@ export const builderQuizService = {
   },
 
   async draftQuiz(quizId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('quizzes')
       .update({ status: 'draft' })
       .eq('id', quizId)

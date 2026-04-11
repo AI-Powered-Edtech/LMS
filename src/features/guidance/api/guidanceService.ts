@@ -1,10 +1,10 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { ApplicableGuide, LearningGuide } from '../types'
 
 export const guidanceService = {
   async getApplicableGuides(targetType: string, targetId: string): Promise<ApplicableGuide[]> {
-    const { data, error } = await supabase.rpc('get_applicable_guides', {
+    const { data, error } = await db.rpc('get_applicable_guides', {
       p_target_type: targetType,
       p_target_id: targetId,
     })
@@ -18,7 +18,7 @@ export const guidanceService = {
   },
 
   async recordInteraction(guideId: string, action: string): Promise<void> {
-    const { error } = await supabase.rpc('record_guide_interaction', {
+    const { error } = await db.rpc('record_guide_interaction', {
       p_guide_id: guideId,
       p_action: action,
     })
@@ -29,7 +29,7 @@ export const guidanceService = {
   },
 
   async listGuides(targetType?: string, targetId?: string): Promise<LearningGuide[]> {
-    const { data, error } = await supabase.rpc('list_learning_guides', {
+    const { data, error } = await db.rpc('list_learning_guides', {
       p_target_type: targetType ?? null,
       p_target_id: targetId ?? null,
     })
@@ -43,7 +43,7 @@ export const guidanceService = {
   async upsertGuide(
     params: Partial<LearningGuide> & { target_id: string; title: string; content: string }
   ): Promise<string> {
-    const { data, error } = await supabase.rpc('upsert_learning_guide', {
+    const { data, error } = await db.rpc('upsert_learning_guide', {
       p_guide_id: params.id ?? null,
       p_title: params.title,
       p_content: params.content,
@@ -67,7 +67,7 @@ export const guidanceService = {
   },
 
   async deleteGuide(guideId: string): Promise<void> {
-    const { error } = await supabase.rpc('delete_learning_guide', {
+    const { error } = await db.rpc('delete_learning_guide', {
       p_guide_id: guideId,
     })
     if (error) {

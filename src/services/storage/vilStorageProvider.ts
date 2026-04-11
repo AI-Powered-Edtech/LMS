@@ -5,15 +5,13 @@
  * requests to an S3-compatible store (Cloudflare R2 in prod, MinIO in dev).
  *
  * Dual-write mode (VITE_STORAGE_DUAL_WRITE=true):
- *   - upload()  → writes to VIL S3 AND Supabase Storage (fire-and-forget)
- *   - remove()  → removes from both
+ *   - upload()  → writes to VIL S3 (dual-write to secondary removed)
+ *   - remove()  → removes from VIL S3
  *   - getPublicUrl() → returns CDN/S3 URL when VITE_STORAGE_PRIMARY=s3
  *
  * Cutover mode (VITE_STORAGE_DUAL_WRITE=false, default):
  *   - All operations go to VIL S3 only.
  */
-
-import { getSupabaseClient } from '@/services/supabase/client'
 
 import type {
   StorageBucketClient,
@@ -331,15 +329,9 @@ class VilBucketClient implements StorageBucketClient {
   // -------------------------------------------------------------------------
 
   getPublicUrl(path: string): StoragePublicUrlResponse {
-    // When running in dual-write mode and Supabase is primary, return Supabase URL
+    // When running in dual-write mode with a non-S3 primary, fall through to VIL URL
     if (DUAL_WRITE && STORAGE_PRIMARY !== 's3') {
-      try {
-        const supabaseUrl = getSupabaseClient().storage.from(this.bucket).getPublicUrl(path)
-          .data.publicUrl
-        return { data: { publicUrl: supabaseUrl } }
-      } catch {
-        // Fall through to S3 URL on error
-      }
+      // dual-write via Supabase client removed — VIL storage is now the sole provider
     }
 
     // CDN URL takes precedence over direct API URL
@@ -429,52 +421,20 @@ class VilBucketClient implements StorageBucketClient {
   // Private: dual-write helpers (fire-and-forget)
   // -------------------------------------------------------------------------
 
+  // Dual-write to secondary storage removed — VIL S3 is now the sole storage backend.
+  // These stubs are kept so call-sites inside DUAL_WRITE guards compile without change.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private _dualWriteToSupabase(
-    path: string,
-    file: File | Blob | ArrayBuffer | FormData | ReadableStream,
-    options?: StorageUploadOptions
+    _path: string,
+    _file: File | Blob | ArrayBuffer | FormData | ReadableStream,
+    _options?: StorageUploadOptions
   ): void {
-    // FormData and ReadableStream cannot be re-sent after consumption; skip silently.
-    if (file instanceof FormData || file instanceof ReadableStream) return
-
-    Promise.resolve()
-      .then(() =>
-        getSupabaseClient()
-          .storage.from(this.bucket)
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .upload(path, file as any, options)
-      )
-      .then(({ error }) => {
-        if (error && IS_DEV) {
-          console.warn(
-            `[VilStorage] dual-write ke Supabase gagal (${this.bucket}/${path}):`,
-            error.message
-          )
-        }
-      })
-      .catch((err: unknown) => {
-        if (IS_DEV) {
-          console.warn(`[VilStorage] dual-write ke Supabase error (${this.bucket}/${path}):`, err)
-        }
-      })
+    // no-op: secondary storage decommissioned
   }
 
-  private _dualRemoveFromSupabase(paths: string[]): void {
-    Promise.resolve()
-      .then(() => getSupabaseClient().storage.from(this.bucket).remove(paths))
-      .then(({ error }) => {
-        if (error && IS_DEV) {
-          console.warn(
-            `[VilStorage] dual-remove dari Supabase gagal (${this.bucket}):`,
-            error.message
-          )
-        }
-      })
-      .catch((err: unknown) => {
-        if (IS_DEV) {
-          console.warn(`[VilStorage] dual-remove dari Supabase error (${this.bucket}):`, err)
-        }
-      })
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private _dualRemoveFromSupabase(_paths: string[]): void {
+    // no-op: secondary storage decommissioned
   }
 }
 

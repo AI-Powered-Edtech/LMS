@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import { measureAsync, trackMetric } from '../metrics'
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: vi.fn(),
   },
 }))
@@ -16,7 +16,7 @@ describe('metrics', () => {
 
   beforeEach(() => {
     vi.resetAllMocks()
-    vi.mocked(supabase.from).mockReturnValue({ insert: mockInsert } as any)
+    vi.mocked(db.from).mockReturnValue({ insert: mockInsert } as any)
   })
 
   afterEach(() => {
@@ -31,17 +31,17 @@ describe('metrics', () => {
 
       await trackMetric('page.load_time_ms', 100)
 
-      expect(supabase.from).not.toHaveBeenCalled()
+      expect(db.from).not.toHaveBeenCalled()
       expect(mockInsert).not.toHaveBeenCalled()
     })
 
-    it('should insert into supabase app_metrics in PROD mode', async () => {
+    it('should insert into db app_metrics in PROD mode', async () => {
       vi.stubEnv('DEV', false)
       vi.stubEnv('PROD', true)
 
       await trackMetric('page.load_time_ms', 100)
 
-      expect(supabase.from).toHaveBeenCalledWith('app_metrics')
+      expect(db.from).toHaveBeenCalledWith('app_metrics')
       expect(mockInsert).toHaveBeenCalledWith({
         metric_name: 'page.load_time_ms',
         metric_value: 100,
@@ -49,13 +49,13 @@ describe('metrics', () => {
       })
     })
 
-    it('should insert into supabase app_metrics with metadata in PROD mode', async () => {
+    it('should insert into db app_metrics with metadata in PROD mode', async () => {
       vi.stubEnv('DEV', false)
       vi.stubEnv('PROD', true)
 
       await trackMetric('error.rate', 1, { errorCode: '404' })
 
-      expect(supabase.from).toHaveBeenCalledWith('app_metrics')
+      expect(db.from).toHaveBeenCalledWith('app_metrics')
       expect(mockInsert).toHaveBeenCalledWith({
         metric_name: 'error.rate',
         metric_value: 1,
@@ -63,7 +63,7 @@ describe('metrics', () => {
       })
     })
 
-    it('should silently catch and ignore errors from supabase in PROD mode', async () => {
+    it('should silently catch and ignore errors from db in PROD mode', async () => {
       vi.stubEnv('DEV', false)
       vi.stubEnv('PROD', true)
 
@@ -110,7 +110,7 @@ describe('metrics', () => {
         return 'success'
       })
 
-      expect(supabase.from).toHaveBeenCalledWith('app_metrics')
+      expect(db.from).toHaveBeenCalledWith('app_metrics')
       expect(mockInsert).toHaveBeenCalledWith({
         metric_name: 'api.response_time_ms',
         metric_value: 50,

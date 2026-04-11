@@ -13,7 +13,7 @@ import { useCallback, useRef, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useBuilder } from '@/contexts/BuilderContext'
 import { readVilSession } from '@/services/auth/vilSession'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 interface ScormBlockEditorProps {
   blockId: string
@@ -146,7 +146,7 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
     // Remove the scorm_packages record (cascade will clean up runtime data)
     if (scormMeta?.scorm_package_id) {
       try {
-        await supabase
+        await db
           .from('scorm_packages')
           .delete()
           .eq('id', scormMeta.scorm_package_id)

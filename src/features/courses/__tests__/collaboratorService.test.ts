@@ -34,8 +34,8 @@ const { spyFrom, spySelect, spyInsert, spyDelete, spyEq, spyIlike, spyLimit } = 
 // Each test sets this before calling the service.
 let terminalResult: unknown = { data: null, error: null }
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: (table: string) => {
       spyFrom(table)
       const builder: Record<string, any> = {
@@ -195,7 +195,7 @@ describe('collaboratorService.fetchCollaborators', () => {
     expect(result).toEqual([])
   })
 
-  it('throws the supabase error when the query fails', async () => {
+  it('throws the db error when the query fails', async () => {
     const dbError = new Error('Kesalahan koneksi database')
     terminalResult = { data: null, error: dbError }
     await expect(collaboratorService.fetchCollaborators(COURSE_ID, TENANT_ID)).rejects.toThrow(
@@ -278,7 +278,7 @@ describe('collaboratorService.searchUsers', () => {
     expect(result).toEqual([])
   })
 
-  it('throws the supabase error when the query fails', async () => {
+  it('throws the db error when the query fails', async () => {
     const dbError = new Error('Profil tidak ditemukan')
     terminalResult = { data: null, error: dbError }
     await expect(collaboratorService.searchUsers('budi', TENANT_ID)).rejects.toThrow(
@@ -377,7 +377,7 @@ describe('collaboratorService.addCollaborator', () => {
     expect(spyInsert).toHaveBeenCalledWith(expect.objectContaining({ role: 'publisher' }))
   })
 
-  it('throws the supabase error when the insert fails', async () => {
+  it('throws the db error when the insert fails', async () => {
     const dbError = new Error('Pelanggaran kunci unik')
     terminalResult = { error: dbError }
     await expect(
@@ -437,7 +437,7 @@ describe('collaboratorService.removeCollaborator', () => {
     expect(result).toBeUndefined()
   })
 
-  it('throws the supabase error when the delete fails', async () => {
+  it('throws the db error when the delete fails', async () => {
     const dbError = new Error('Rekaman tidak ditemukan')
     terminalResult = { error: dbError }
     await expect(

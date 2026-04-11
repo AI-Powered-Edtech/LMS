@@ -4,7 +4,7 @@
 // Supabase queries for Principal Executive Dashboard.
 // ==========================================================================
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type {
   ExecutiveOverview,
@@ -29,7 +29,7 @@ import type {
 export async function getExecutiveOverviewCached(
   tenantId: string
 ): Promise<ExecutiveOverview & { from_cache: boolean }> {
-  const { data: cached, error: cachedError } = await supabase.rpc('get_principal_overview_cached', {
+  const { data: cached, error: cachedError } = await db.rpc('get_principal_overview_cached', {
     p_tenant_id: tenantId,
   })
 
@@ -60,7 +60,7 @@ export async function getExecutiveOverviewCached(
  * Calls the get_executive_overview() RPC created in Wave 3.
  */
 export async function getExecutiveOverview(tenantId: string): Promise<ExecutiveOverview> {
-  const { data, error } = await supabase.rpc('get_executive_overview', {
+  const { data, error } = await db.rpc('get_executive_overview', {
     p_tenant_id: tenantId,
   })
 
@@ -104,7 +104,7 @@ export async function getMonthlyTrend(
   tenantId: string,
   months: number = 6
 ): Promise<MonthlyTrend[]> {
-  const { data, error } = await supabase.rpc('get_principal_monthly_trend_cached', {
+  const { data, error } = await db.rpc('get_principal_monthly_trend_cached', {
     p_tenant_id: tenantId,
     p_months: months,
   })
@@ -126,7 +126,7 @@ export async function getMonthlyTrend(
 // ── Principal Settings ─────────────────────────────────────────
 
 export async function getPrincipalSettings(tenantId: string): Promise<PrincipalSettings | null> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('principal_settings')
     .select('*')
     .eq('tenant_id', tenantId)
@@ -144,7 +144,7 @@ export async function updatePrincipalSettings(
   tenantId: string,
   settings: Partial<PrincipalSettings>
 ): Promise<void> {
-  const { error } = await supabase
+  const { error } = await db
     .from('principal_settings')
     .upsert(
       { ...settings, tenant_id: tenantId, updated_at: new Date().toISOString() },
@@ -169,7 +169,7 @@ export async function updatePrincipalSettings(
  */
 export async function getROIMetrics(tenantId: string): Promise<ROIMetrics> {
   // Fetch activity counts for the last 30 days
-  const { data, error } = await supabase.rpc('get_tenant_activity_counts', {
+  const { data, error } = await db.rpc('get_tenant_activity_counts', {
     p_tenant_id: tenantId,
     p_days: 30,
   })
@@ -217,7 +217,7 @@ export async function getROIMetrics(tenantId: string): Promise<ROIMetrics> {
  * Fetch baseline metrics (data "sebelum LMS") dari school_baseline_metrics.
  */
 export async function getBaselineMetrics(tenantId: string): Promise<SchoolBaselineMetrics | null> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('school_baseline_metrics')
     .select('*')
     .eq('tenant_id', tenantId)
@@ -238,7 +238,7 @@ export async function saveBaselineMetrics(
   tenantId: string,
   data: Omit<SchoolBaselineMetrics, 'id' | 'tenant_id' | 'created_at' | 'updated_at'>
 ): Promise<void> {
-  const { error } = await supabase
+  const { error } = await db
     .from('school_baseline_metrics')
     .upsert(
       { ...data, tenant_id: tenantId, updated_at: new Date().toISOString() },

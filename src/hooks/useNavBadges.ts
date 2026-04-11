@@ -13,7 +13,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { assignmentService } from '@/features/assignments/api/assignmentService'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 const BADGE_STALE = 2 * 60 * 1000 // 2 menit
 
@@ -56,7 +56,7 @@ export function useNavBadges(): NavBadges {
   const { data: unreadNotifications = 0 } = useQuery({
     queryKey: navBadgeKeys.unreadNotifications(user?.id ?? '', tenantId ?? ''),
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_unread_notification_count', {
+      const { data, error } = await db.rpc('get_unread_notification_count', {
         p_user_id: user!.id,
       })
 

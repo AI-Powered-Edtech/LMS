@@ -110,19 +110,19 @@ test.describe('Critical Path — Grade Publication Flow', () => {
     // VERIFIKASI DATABASE: Pastikan data di CSV sesuai dengan data di database
     // Kita tidak bisa langsung verifikasi isi CSV karena itu file di client,
     // tapi kita bisa verifikasi bahwa data di database konsisten
-    const supabase = page.evaluate(() => {
-      return window.supabase
+    const db = page.evaluate(() => {
+      return window.db
     }) as any
 
-    if (supabase) {
+    if (db) {
       // Dapatkan data gradebook dari database
       const {
         data: { session },
-      } = await supabase.auth.getSession()
+      } = await db.auth.getSession()
       const teacherId = session?.user?.id
 
       // Query gradebook entries untuk teacher ini
-      const { data: grades, error } = await supabase
+      const { data: grades, error } = await db
         .from('grades')
         .select('*')
         .eq('teacher_id', teacherId)

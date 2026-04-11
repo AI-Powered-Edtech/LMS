@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 // ============================================================
 // Types (exported for use in AssignmentBlockEditor)
@@ -20,7 +20,7 @@ export interface AssignmentBlockData {
 
 export const builderAssignmentService = {
   async getAssignmentByLesson(lessonId: string, tenantId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('assignments')
       .select(
         'id, lesson_id, course_id, tenant_id, title, instructions, max_points, max_attempts, is_published, due_date, created_at'
@@ -40,7 +40,7 @@ export const builderAssignmentService = {
     data: AssignmentBlockData
   ) {
     if (data.id) {
-      const { data: result, error } = await supabase
+      const { data: result, error } = await db
         .from('assignments')
         .update({
           title: data.title,
@@ -59,7 +59,7 @@ export const builderAssignmentService = {
       if (error) throw new Error(error.message)
       return result
     } else {
-      const { data: result, error } = await supabase
+      const { data: result, error } = await db
         .from('assignments')
         .insert({
           lesson_id: lessonId,

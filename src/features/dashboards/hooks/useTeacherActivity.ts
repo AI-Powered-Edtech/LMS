@@ -1,7 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { createQueryKeys } from '@/shared/lib/queryKeys'
 
 export type TeacherActivityEventType =
@@ -48,7 +48,7 @@ export function useTeacherActivity() {
     queryKey: [...activityKeys.all(tenantId!), 'feed', user?.id],
     queryFn: async ({ pageParam }) => {
       // Fetch the IDs of classes taught by this teacher
-      const { data: classes, error: classesError } = await supabase
+      const { data: classes, error: classesError } = await db
         .from('classes')
         .select('id')
         .eq('teacher_id', user!.id)
@@ -62,7 +62,7 @@ export function useTeacherActivity() {
       const classIds = classes.map((c) => c.id)
 
       // Fetch paginated activity events using cursor (created_at)
-      let query = supabase
+      let query = db
         .from('activity_events')
         .select('id, event_type, user_id, metadata, created_at, class_id')
         .eq('tenant_id', tenantId!)
@@ -83,7 +83,7 @@ export function useTeacherActivity() {
       const userIds = (data ?? []).map((row) => row.user_id)
       const { data: profiles, error: profileError } =
         userIds.length > 0
-          ? await supabase
+          ? await db
               .from('profiles')
               .select('id, full_name, avatar_url')
               .eq('tenant_id', tenantId!)

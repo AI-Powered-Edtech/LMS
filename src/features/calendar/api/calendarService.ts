@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 export interface CalendarEvent {
   id: string
@@ -26,17 +26,17 @@ export const calendarService = {
 
     // Fetch all 3 sources in parallel (was sequential — caused ~5s LCP)
     const [{ data: assignments }, { data: schedules }, { data: quizzes }] = await Promise.all([
-      supabase
+      db
         .from('assignments')
         .select('id, title, due_date, description')
         .eq('tenant_id', tenantId)
         .not('due_date', 'is', null)
         .order('due_date'),
-      supabase
+      db
         .from('class_schedules')
         .select('id, day, start_time, end_time, tenant_id, classes(name)')
         .eq('tenant_id', tenantId),
-      supabase
+      db
         .from('quizzes')
         .select('id, title, created_at')
         .eq('tenant_id', tenantId)

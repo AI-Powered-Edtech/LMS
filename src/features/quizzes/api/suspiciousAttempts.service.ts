@@ -5,7 +5,7 @@
  * Teachers can mark attempts as reviewed or override scores.
  */
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { validateArray } from '@/shared/lib/validate'
 import { CheatingSignalRowSchema } from '@/shared/schemas'
 
@@ -54,7 +54,7 @@ export async function getSuspiciousAttempts(
   quizId: string,
   tenantId: string
 ): Promise<SuspiciousAttempt[]> {
-  const { data: attempts, error: attemptError } = await supabase
+  const { data: attempts, error: attemptError } = await db
     .from('quiz_attempts_v2')
     .select('id, student_id, quiz_id, score, status, is_reviewed')
     .eq('quiz_id', quizId)
@@ -76,7 +76,7 @@ export async function getSuspiciousAttempts(
   const attemptIds = attemptRows.map((attempt) => attempt.id)
   if (attemptIds.length === 0) return []
 
-  const { data: signals, error: signalError } = await supabase
+  const { data: signals, error: signalError } = await db
     .from('quiz_cheating_signals')
     .select('id, attempt_id, signal_type, metadata, created_at')
     .in('attempt_id', attemptIds)
@@ -93,13 +93,13 @@ export async function getSuspiciousAttempts(
   const studentIds = attemptRows.map((attempt) => attempt.student_id)
   const [{ data: profiles }, { data: quizzes }] = await Promise.all([
     studentIds.length > 0
-      ? supabase
+      ? db
           .from('profiles')
           .select('id, full_name')
           .eq('tenant_id', tenantId)
           .in('id', studentIds)
       : Promise.resolve({ data: [], error: null }),
-    supabase.from('quizzes').select('id, title').eq('tenant_id', tenantId).eq('id', quizId),
+    db.from('quizzes').select('id, title').eq('tenant_id', tenantId).eq('id', quizId),
   ])
 
   // Group signals by attempt_id
@@ -196,7 +196,7 @@ export async function getSuspiciousAttempts(
  */
 export async function getSuspiciousAttemptCount(quizId: string, tenantId: string): Promise<number> {
   // Step 1: resolve attempt IDs for this quiz + tenant
-  const { data: attempts, error: attemptsError } = await supabase
+  const { data: attempts, error: attemptsError } = await db
     .from('quiz_attempts_v2')
     .select('id')
     .eq('quiz_id', quizId)
@@ -211,7 +211,7 @@ export async function getSuspiciousAttemptCount(quizId: string, tenantId: string
   if (attemptIds.length === 0) return 0
 
   // Step 2: count cheating signals for those attempts
-  const { count, error } = await supabase
+  const { count, error } = await db
     .from('quiz_cheating_signals')
     .select('attempt_id', { count: 'exact', head: true })
     .in('attempt_id', attemptIds)

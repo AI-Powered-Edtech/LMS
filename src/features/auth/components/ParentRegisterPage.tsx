@@ -15,7 +15,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { cn } from '@/utils/cn'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -246,7 +246,7 @@ export function ParentRegisterPage() {
       const normalized = normalizePhone(phone)
 
       // Panggil RPC untuk membuat OTP
-      const { data, error: rpcError } = await supabase.rpc('request_parent_otp', {
+      const { data, error: rpcError } = await db.rpc('request_parent_otp', {
         p_phone: normalized,
         p_tenant_id: null,
       })
@@ -296,7 +296,7 @@ export function ParentRegisterPage() {
     try {
       const normalized = normalizePhone(phone)
 
-      const { data, error: rpcError } = await supabase.rpc('verify_parent_otp', {
+      const { data, error: rpcError } = await db.rpc('verify_parent_otp', {
         p_phone: normalized,
         p_otp_code: otp,
       })
@@ -340,7 +340,7 @@ export function ParentRegisterPage() {
       const tempPassword = generateSecurePassword()
 
       // Buat akun Supabase Auth dengan email sementara
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await db.auth.signUp({
         email: tempEmail,
         password: tempPassword,
         options: {
@@ -361,7 +361,7 @@ export function ParentRegisterPage() {
       const userId = signUpData.user.id
 
       // Update profil di tabel profiles
-      const { error: profileError } = await supabase.from('profiles').upsert({
+      const { error: profileError } = await db.from('profiles').upsert({
         id: userId,
         email: profile.email || tempEmail,
         first_name: profile.fullName.split(' ')[0] ?? profile.fullName,
@@ -375,7 +375,7 @@ export function ParentRegisterPage() {
       }
 
       // Langsung sign in agar sesi aktif
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: signInError } = await db.auth.signInWithPassword({
         email: tempEmail,
         password: tempPassword,
       })

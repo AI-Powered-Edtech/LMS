@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 export interface StudentProgressData {
   profile: {
@@ -41,7 +41,7 @@ export const progressService = {
     _tenantId: string
   ): Promise<StudentProgressData> {
     try {
-      const { data, error } = await supabase.rpc('get_student_progress_bundle', {
+      const { data, error } = await db.rpc('get_student_progress_bundle', {
         p_student_id: studentId,
       })
 

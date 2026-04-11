@@ -78,7 +78,7 @@ export function StepCreateClass({
 
       await classroomService.createClassroom(user.id, fullName, tenantId)
 
-      const { data, error: fetchErr } = await (await import('@/services/supabase/client')).supabase
+      const { data, error: fetchErr } = await (await import('@/services/db')).db
         .from('classes')
         .select('id, join_code')
         .eq('teacher_id', user.id)

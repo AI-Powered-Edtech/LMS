@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { FinanceOverview, InvoiceFilter, InvoiceRecord, MonthlyData } from '../types/finance'
 
@@ -56,7 +56,7 @@ export async function fetchFinancePage(
   tenantId: string,
   filter: InvoiceFilter
 ): Promise<FinancePageResult> {
-  const { data, error } = await supabase.rpc('get_finance_dashboard_page', {
+  const { data, error } = await db.rpc('get_finance_dashboard_page', {
     p_tenant_id: tenantId,
     p_status: filter.status,
     p_search: filter.search.trim(),
@@ -77,7 +77,7 @@ export async function fetchFinancePage(
 }
 
 export async function fetchFinanceOverview(tenantId: string): Promise<FinanceOverview> {
-  const { data, error } = await supabase.rpc('get_finance_overview', {
+  const { data, error } = await db.rpc('get_finance_overview', {
     p_tenant_id: tenantId,
   })
 
@@ -95,7 +95,7 @@ export async function fetchFinanceOverview(tenantId: string): Promise<FinanceOve
 }
 
 export async function fetchFinanceMonthly(tenantId: string): Promise<MonthlyData[]> {
-  const { data, error } = await supabase.rpc('get_finance_monthly', {
+  const { data, error } = await db.rpc('get_finance_monthly', {
     p_tenant_id: tenantId,
   })
 
@@ -115,7 +115,7 @@ export async function fetchFinanceMonthly(tenantId: string): Promise<MonthlyData
 export async function reconcileInvoicePayment(
   input: ReconcilePaymentInput
 ): Promise<ReconcilePaymentResult> {
-  const { data, error } = await supabase.rpc('reconcile_invoice_payment', {
+  const { data, error } = await db.rpc('reconcile_invoice_payment', {
     p_invoice_id: input.invoiceId,
     p_amount: input.amount,
     p_method: input.method,
@@ -147,7 +147,7 @@ export async function sendInvoiceReminders(
   tenantId: string,
   invoiceIds?: string[]
 ): Promise<ReminderResult[]> {
-  const { data, error } = await supabase.rpc('send_invoice_reminders', {
+  const { data, error } = await db.rpc('send_invoice_reminders', {
     p_tenant_id: tenantId,
     p_invoice_ids: invoiceIds && invoiceIds.length > 0 ? invoiceIds : null,
   })

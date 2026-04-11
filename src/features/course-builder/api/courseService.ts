@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { mapCourse } from '@/shared/types/courseMappers'
 import { DomainCourse } from '@/shared/types/courseTypes'
 import { mapModule } from '@/shared/types/moduleMappers'
@@ -24,7 +24,7 @@ export const builderCourseService = {
     course: DomainCourse
     modules: DomainModule[]
   }> {
-    const { data: course, error: courseErr } = await supabase
+    const { data: course, error: courseErr } = await db
       .from('courses')
       .select('id, title, description, status, created_at, updated_at, tenant_id')
       .eq('id', courseId)
@@ -33,7 +33,7 @@ export const builderCourseService = {
 
     if (courseErr || !course) throw new Error('Materi tidak ditemukan')
 
-    const { data: modules, error: modErr } = await supabase
+    const { data: modules, error: modErr } = await db
       .from('course_modules')
       .select('id, title, "order", course_id, tenant_id')
       .eq('course_id', courseId)
@@ -47,7 +47,7 @@ export const builderCourseService = {
 
     let lessonRows: Array<Record<string, unknown>> = []
     if (moduleIds.length > 0) {
-      const { data: lessons, error: lessonErr } = await supabase
+      const { data: lessons, error: lessonErr } = await db
         .from('lessons')
         .select(
           'id, module_id, title, "order", type, is_published, duration_minutes, passing_score, tenant_id'
@@ -84,7 +84,7 @@ export const builderCourseService = {
 
   /** Use RPC to publish a course and update status/publishing timestamps */
   async publishCourse(courseId: string, _tenantId: string): Promise<void> {
-    const { error } = await supabase.rpc('rpc_publish_course', {
+    const { error } = await db.rpc('rpc_publish_course', {
       p_course_id: courseId,
     })
     if (error) throw new Error(error.message)
@@ -92,7 +92,7 @@ export const builderCourseService = {
 
   /** Manually drafted via update instead of full RPC for now, for completeness */
   async draftCourse(courseId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('courses')
       .update({ status: 'draft' })
       .eq('id', courseId)
@@ -101,7 +101,7 @@ export const builderCourseService = {
   },
 
   async submitForReview(courseId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('courses')
       .update({ status: 'in_review' })
       .eq('id', courseId)
@@ -110,7 +110,7 @@ export const builderCourseService = {
   },
 
   async approveCourse(courseId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('courses')
       .update({ status: 'approved' })
       .eq('id', courseId)

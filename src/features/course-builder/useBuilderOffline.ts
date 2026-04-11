@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import {
   type BuilderDraft,
   deleteBuilderDraft,
@@ -138,7 +138,7 @@ export function useBuilderOffline(
         }
 
         // Fetch server's updated_at for this course
-        const { data: serverCourse } = await supabase
+        const { data: serverCourse } = await db
           .from('courses')
           .select('updated_at')
           .eq('id', courseId)

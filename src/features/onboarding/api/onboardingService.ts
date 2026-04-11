@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 /**
  * Onboarding Progress Service
@@ -21,7 +21,7 @@ export const onboardingService = {
    * { step, completed_at }[] agar kompatibel dengan pemanggil lama.
    */
   async getProgress(userId: string): Promise<Array<{ step: string; completed_at: string }>> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('onboarding_progress')
       .select('steps_completed, completed_at')
       .eq('user_id', userId)
@@ -51,7 +51,7 @@ export const onboardingService = {
    * tetapi auth context di RPC yang dipakai untuk menentukan user.
    */
   async completeStep(_userId: string, _tenantId: string, step: string): Promise<void> {
-    const { error } = await supabase.rpc('complete_onboarding_step', {
+    const { error } = await db.rpc('complete_onboarding_step', {
       p_step_name: step,
       p_metadata: {},
     })
@@ -70,7 +70,7 @@ export const onboardingService = {
       completed_at: string | null
     }>
   > {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('onboarding_progress')
       .select('id, user_id, steps_completed, completed_at, tenant_id')
       .eq('tenant_id', tenantId)
@@ -89,7 +89,7 @@ export const onboardingService = {
    * yang sudah tersimpan di JSONB.
    */
   async upsert(payload: { user_id: string; tenant_id: string; step: string }): Promise<void> {
-    const { error } = await supabase.rpc('complete_onboarding_step', {
+    const { error } = await db.rpc('complete_onboarding_step', {
       p_step_name: payload.step,
       p_metadata: {},
     })

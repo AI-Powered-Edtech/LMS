@@ -1,6 +1,6 @@
 import { getStorageProvider } from '@/services/storage'
 /* eslint-disable max-lines */
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { logDevError } from '@/utils/logDevError'
 
 export type AssignmentStatus = 'draft' | 'published' | 'archived'
@@ -265,7 +265,7 @@ export const assignmentService = {
       is_published: input.status === 'published' || input.is_published,
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('assignments')
       .insert(payload)
       .select(ASSIGNMENT_COLUMNS)
@@ -293,7 +293,7 @@ export const assignmentService = {
   ): Promise<AssignmentSubmission> {
     await ensureSubmitRateLimit(studentId)
 
-    const { data, error } = await supabase.rpc('submit_assignment_attempt', {
+    const { data, error } = await db.rpc('submit_assignment_attempt', {
       p_assignment_id: assignmentId,
       p_submission_text: submission.text?.trim() || null,
       p_file_url: submission.fileUrl ?? null,
@@ -321,7 +321,7 @@ export const assignmentService = {
     studentId: string,
     tenantId: string
   ): Promise<AssignmentSubmission> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('assignment_submissions')
       .update({
         status: 'DRAFT',
@@ -351,7 +351,7 @@ export const assignmentService = {
     feedback: string,
     status: SubmissionStatus = 'graded'
   ): Promise<AssignmentSubmission> {
-    const { data: existing, error: existingError } = await supabase
+    const { data: existing, error: existingError } = await db
       .from('assignment_submissions')
       .select('late_penalty_percent')
       .eq('id', submissionId)
@@ -366,7 +366,7 @@ export const assignmentService = {
     const latePenaltyPercent = Number(existing?.late_penalty_percent ?? 0)
     const score = calculateEffectiveScore(rawScore, latePenaltyPercent)
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('assignment_submissions')
       .update({
         raw_score: rawScore,
@@ -389,7 +389,7 @@ export const assignmentService = {
   },
 
   async getAssignmentByClass(classId: string, tenantId: string): Promise<Assignment | null> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('assignments')
       .select(ASSIGNMENT_COLUMNS)
       .eq('class_id', classId)
@@ -417,7 +417,7 @@ export const assignmentService = {
     studentId: string,
     tenantId: string
   ): Promise<AssignmentWithSubmission | null> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('assignments')
       .select(ASSIGNMENT_COLUMNS)
       .eq('id', assignmentId)
@@ -444,7 +444,7 @@ export const assignmentService = {
     tenantId: string,
     limit: number = 100
   ): Promise<AssignmentSubmission[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('assignment_submissions')
       .select(SUBMISSION_COLUMNS)
       .eq('assignment_id', assignmentId)
@@ -461,7 +461,7 @@ export const assignmentService = {
     const studentIds = submissions.map((row) => String(row.student_id)).filter(Boolean)
     const { data: profiles, error: profileError } =
       studentIds.length > 0
-        ? await supabase
+        ? await db
             .from('profiles')
             .select('id, full_name, avatar_url')
             .eq('tenant_id', tenantId)
@@ -519,7 +519,7 @@ export const assignmentService = {
     page: number = 0,
     pageSize: number = 50
   ): Promise<Assignment[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('assignments')
       .select(ASSIGNMENT_COLUMNS)
       .eq('tenant_id', tenantId)
@@ -541,7 +541,7 @@ export const assignmentService = {
   },
 
   async getAssignmentById(assignmentId: string, tenantId: string): Promise<Assignment | null> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('assignments')
       .select(ASSIGNMENT_COLUMNS)
       .eq('id', assignmentId)
@@ -578,7 +578,7 @@ export const assignmentService = {
     studentId: string,
     tenantId: string
   ): Promise<AssignmentSubmission | null> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('assignment_submissions')
       .select(SUBMISSION_COLUMNS)
       .eq('assignment_id', assignmentId)
@@ -626,7 +626,7 @@ export const assignmentService = {
     const from = (page - 1) * limit
     const to = from + limit - 1
 
-    const { data, error, count } = await supabase
+    const { data, error, count } = await db
       .from('assignments')
       .select(ASSIGNMENT_COLUMNS, { count: 'exact' })
       .eq('tenant_id', tenantId)
@@ -651,16 +651,16 @@ export const assignmentService = {
       { data: submissions, error: submissionError },
     ] = await Promise.all([
       courseIds.length > 0
-        ? supabase.from('courses').select('id, title').eq('tenant_id', tenantId).in('id', courseIds)
+        ? db.from('courses').select('id, title').eq('tenant_id', tenantId).in('id', courseIds)
         : Promise.resolve({ data: [], error: null }),
       classIds.length > 0
-        ? supabase.from('classes').select('id, name').eq('tenant_id', tenantId).in('id', classIds)
+        ? db.from('classes').select('id, name').eq('tenant_id', tenantId).in('id', classIds)
         : Promise.resolve({ data: [], error: null }),
       lessonIds.length > 0
-        ? supabase.from('lessons').select('id, title').eq('tenant_id', tenantId).in('id', lessonIds)
+        ? db.from('lessons').select('id, title').eq('tenant_id', tenantId).in('id', lessonIds)
         : Promise.resolve({ data: [], error: null }),
       assignmentIds.length > 0
-        ? supabase
+        ? db
             .from('assignment_submissions')
             .select(SUBMISSION_COLUMNS)
             .eq('tenant_id', tenantId)
@@ -678,7 +678,7 @@ export const assignmentService = {
     const submissionStudentIds = submissionRows.map((row) => String(row.student_id)).filter(Boolean)
     const { data: profiles, error: profileError } =
       submissionStudentIds.length > 0
-        ? await supabase
+        ? await db
             .from('profiles')
             .select('id, full_name')
             .eq('tenant_id', tenantId)
@@ -804,7 +804,7 @@ export const assignmentService = {
   },
 
   async getPendingAssignmentCount(tenantId: string, userId: string): Promise<number> {
-    const { data: enrollments, error: eErr } = await supabase
+    const { data: enrollments, error: eErr } = await db
       .from('course_enrollments')
       .select('course_id')
       .eq('user_id', userId)
@@ -821,7 +821,7 @@ export const assignmentService = {
 
     const enrolledCourseIds = enrollments.map((e) => e.course_id)
 
-    const { data: allAssignments, error: aErr } = await supabase
+    const { data: allAssignments, error: aErr } = await db
       .from('assignments')
       .select('id')
       .eq('tenant_id', tenantId)
@@ -836,7 +836,7 @@ export const assignmentService = {
 
     if (!allAssignments || allAssignments.length === 0) return 0
 
-    const { data: submitted, error: sErr } = await supabase
+    const { data: submitted, error: sErr } = await db
       .from('assignment_submissions')
       .select('assignment_id')
       .eq('student_id', userId)
@@ -862,7 +862,7 @@ export const assignmentService = {
     studentId: string,
     _tenantId: string
   ): Promise<AssignmentSubmissionBundle> {
-    const { data, error } = await supabase.rpc('get_assignment_submission_bundle', {
+    const { data, error } = await db.rpc('get_assignment_submission_bundle', {
       p_assignment_id: assignmentId,
       p_student_id: studentId,
     })
@@ -899,7 +899,7 @@ export const assignmentService = {
     assignmentId: string,
     _tenantId: string
   ): Promise<AssignmentGradingQueue> {
-    const { data, error } = await supabase.rpc('get_assignment_grading_queue', {
+    const { data, error } = await db.rpc('get_assignment_grading_queue', {
       p_assignment_id: assignmentId,
     })
 
@@ -915,7 +915,7 @@ export const assignmentService = {
     assignmentId: string,
     _tenantId: string
   ): Promise<AssignmentAnalytics> {
-    const { data, error } = await supabase.rpc('get_assignment_analytics', {
+    const { data, error } = await db.rpc('get_assignment_analytics', {
       p_assignment_id: assignmentId,
     })
 
@@ -931,7 +931,7 @@ export const assignmentService = {
     assignmentId: string,
     _tenantId: string
   ): Promise<{ recipient_count: number; assignment_id: string }> {
-    const { data, error } = await supabase.rpc('send_assignment_reminders', {
+    const { data, error } = await db.rpc('send_assignment_reminders', {
       p_assignment_id: assignmentId,
     })
 

@@ -4,8 +4,8 @@ import { fetchNotifications, markAllAsRead, markAsRead } from '../api/notificati
 
 const mockFrom = vi.fn()
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: (...args: unknown[]) => mockFrom(...args),
   },
 }))

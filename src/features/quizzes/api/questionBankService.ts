@@ -5,7 +5,7 @@
 // All queries are tenant-scoped with explicit columns (no SELECT *).
 // =============================================================================
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -44,7 +44,7 @@ export interface BankQuestion {
  * Ordered by title, max 100.
  */
 export async function getQuestionBanks(tenantId: string): Promise<QuestionBankSummary[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('question_banks')
     .select('id, title, description, question_count')
     .eq('tenant_id', tenantId)
@@ -59,7 +59,7 @@ export async function getQuestionBanks(tenantId: string): Promise<QuestionBankSu
  * Fetch all pool configs attached to a quiz.
  */
 export async function getPoolConfigs(quizId: string, tenantId: string): Promise<PoolConfig[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('quiz_pool_config')
     .select('id, quiz_id, bank_id, draw_count, points_per_question')
     .eq('quiz_id', quizId)
@@ -78,7 +78,7 @@ export async function savePoolConfig(
   config: PoolConfigInput,
   tenantId: string
 ): Promise<PoolConfig> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('quiz_pool_config')
     .upsert(
       {
@@ -101,7 +101,7 @@ export async function savePoolConfig(
  * Delete a pool config by id.
  */
 export async function deletePoolConfig(id: string, tenantId: string): Promise<void> {
-  const { error } = await supabase
+  const { error } = await db
     .from('quiz_pool_config')
     .delete()
     .eq('id', id)
@@ -119,7 +119,7 @@ export async function getQuestionsInBank(
   tenantId: string,
   limit = 50
 ): Promise<BankQuestion[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('question_bank_members')
     .select(
       `
@@ -151,7 +151,7 @@ export async function getQuestionsInBank(
  * Returns true if at least one pool config exists.
  */
 export async function hasPoolConfigs(quizId: string, tenantId: string): Promise<boolean> {
-  const { count, error } = await supabase
+  const { count, error } = await db
     .from('quiz_pool_config')
     .select('id', { count: 'exact', head: true })
     .eq('quiz_id', quizId)

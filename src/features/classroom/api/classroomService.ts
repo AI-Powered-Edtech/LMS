@@ -1,5 +1,5 @@
 import { getRealtimeProvider } from '@/services/realtime'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 export interface Classroom {
   id: string
@@ -59,7 +59,7 @@ export const classroomService = {
     const classroomColumns = 'id, name, course_id, teacher_id, join_code, max_students, created_at'
 
     if (role === 'teacher') {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('classes')
         .select(classroomColumns)
         .eq('teacher_id', userId)
@@ -70,7 +70,7 @@ export const classroomService = {
     }
 
     if (role === 'admin') {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('classes')
         .select(classroomColumns)
         .eq('tenant_id', tenantId)
@@ -79,7 +79,7 @@ export const classroomService = {
       return data ?? []
     }
 
-    const { data: enrollments, error } = await supabase
+    const { data: enrollments, error } = await db
       .from('enrollments')
       .select('class_id')
       .eq('student_id', userId)
@@ -90,7 +90,7 @@ export const classroomService = {
     const classIds = (enrollments ?? []).map((item) => item.class_id).filter(Boolean)
     if (classIds.length === 0) return []
 
-    const { data: classrooms, error: classroomError } = await supabase
+    const { data: classrooms, error: classroomError } = await db
       .from('classes')
       .select(classroomColumns)
       .eq('tenant_id', tenantId)
@@ -120,7 +120,7 @@ export const classroomService = {
         }
       }
     }
-    const { error } = await supabase.from('classes').insert({
+    const { error } = await db.from('classes').insert({
       name,
       teacher_id: teacherId,
       join_code: joinCode,
@@ -133,7 +133,7 @@ export const classroomService = {
    * Update classroom name.
    */
   async updateClassroom(id: string, name: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('classes')
       .update({ name })
       .eq('id', id)
@@ -146,7 +146,7 @@ export const classroomService = {
    * Note: student_id and tenant_id are inferred by the RPC from auth context.
    */
   async joinClassroom(joinCode: string): Promise<void> {
-    const { error } = await supabase.rpc('enroll_student', {
+    const { error } = await db.rpc('enroll_student', {
       p_join_code: joinCode.toUpperCase(),
     })
 
@@ -180,7 +180,7 @@ export const classroomService = {
    * Assign a course to a class.
    */
   async assignCourseToClass(courseId: string, classId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase.from('course_classes').insert({
+    const { error } = await db.from('course_classes').insert({
       course_id: courseId,
       class_id: classId,
       tenant_id: tenantId,
@@ -196,7 +196,7 @@ export const classroomService = {
     classId: string,
     tenantId: string
   ): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('course_classes')
       .delete()
       .eq('course_id', courseId)
@@ -209,7 +209,7 @@ export const classroomService = {
    * Fetch classes assigned to a specific course.
    */
   async fetchAssignedClassesForCourse(courseId: string): Promise<string[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('course_classes')
       .select('class_id')
       .eq('course_id', courseId)
@@ -255,7 +255,7 @@ export const classroomService = {
    * Delete a classroom by ID.
    */
   async deleteClassroom(classId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('classes')
       .delete()
       .eq('id', classId)
@@ -267,7 +267,7 @@ export const classroomService = {
    * Count active enrollments for a class.
    */
   async getActiveEnrollmentCount(classId: string, tenantId: string): Promise<number> {
-    const { count, error } = await supabase
+    const { count, error } = await db
       .from('enrollments')
       .select('id', { count: 'exact', head: true })
       .eq('class_id', classId)
@@ -282,7 +282,7 @@ export const classroomService = {
    * Fetch enrolled students with profile info for class management.
    */
   async getEnrolledStudents(classId: string, tenantId: string): Promise<EnrolledStudent[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('enrollments')
       .select('id, student_id, status, joined_at')
       .eq('class_id', classId)
@@ -294,7 +294,7 @@ export const classroomService = {
     if (enrollments.length === 0) return []
 
     const studentIds = enrollments.map((row) => row.student_id).filter(Boolean)
-    const { data: profiles, error: profileError } = await supabase
+    const { data: profiles, error: profileError } = await db
       .from('profiles')
       .select('id, full_name, email')
       .eq('tenant_id', tenantId)
@@ -324,7 +324,7 @@ export const classroomService = {
    */
   async removeStudent(enrollmentId: string, removedBy: string, tenantId: string): Promise<void> {
     void removedBy
-    const { error } = await supabase
+    const { error } = await db
       .from('enrollments')
       .update({ status: 'REMOVED' })
       .eq('id', enrollmentId)

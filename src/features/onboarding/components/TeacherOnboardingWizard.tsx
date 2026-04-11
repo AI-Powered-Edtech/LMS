@@ -170,7 +170,7 @@ function StepCreateClass({
       await classroomService.createClassroom(user.id, fullName, tenantId)
 
       // Fetch the newly created class to get its ID and join_code
-      const { data, error: fetchErr } = await (await import('@/services/supabase/client')).supabase
+      const { data, error: fetchErr } = await (await import('@/services/db')).db
         .from('classes')
         .select('id, join_code')
         .eq('teacher_id', user.id)

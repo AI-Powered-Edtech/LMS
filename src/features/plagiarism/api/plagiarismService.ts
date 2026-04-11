@@ -1,5 +1,5 @@
 import { readVilSession } from '@/services/auth/vilSession'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { logDevError } from '@/utils/logDevError'
 
 import type { CheckPlagiarismResult, PlagiarismCheck } from '../types'
@@ -46,7 +46,7 @@ export const plagiarismService = {
    * Returns an empty array if none found or on error.
    */
   async getAllChecks(tenantId: string, limit = 50): Promise<PlagiarismCheck[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('plagiarism_checks')
       .select(PLAGIARISM_COLUMNS)
       .eq('tenant_id', tenantId)
@@ -66,7 +66,7 @@ export const plagiarismService = {
    * Returns null if no check has been run yet.
    */
   async getCheckResult(submissionId: string, tenantId: string): Promise<PlagiarismCheck | null> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('plagiarism_checks')
       .select(PLAGIARISM_COLUMNS)
       .eq('submission_id', submissionId)

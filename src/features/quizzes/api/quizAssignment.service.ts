@@ -1,7 +1,7 @@
 // Quiz Assignment Service - Assignment Management API
 // Extracted from quizService.ts for the Quiz Engine Refactor
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { AssignmentUpsertInput, QuizAssignment } from '../types/quizzes.types'
 
@@ -47,10 +47,10 @@ export async function assignQuizToClasses(
 ) {
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await db.auth.getUser()
 
   // Get quiz details
-  const { data: quiz, error: quizError } = await supabase
+  const { data: quiz, error: quizError } = await db
     .from('quizzes')
     .select('status, max_attempts')
     .eq('id', quizId)
@@ -70,7 +70,7 @@ export async function assignQuizToClasses(
     status: deriveAssignmentStatus(quiz.status, assignment.available_from, assignment.due_at),
   }))
 
-  const { error } = await supabase
+  const { error } = await db
     .from('quiz_assignments')
     .upsert(rows, { onConflict: 'quiz_id,class_id' })
 
@@ -81,7 +81,7 @@ export async function assignQuizToClasses(
  * Get all assignments for a specific quiz
  */
 export async function getAssignmentsByQuiz(quizId: string, tenantId: string) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('quiz_assignments')
     .select('id, quiz_id, class_id, tenant_id, status, available_from, due_at, max_attempts')
     .eq('quiz_id', quizId)
@@ -94,7 +94,7 @@ export async function getAssignmentsByQuiz(quizId: string, tenantId: string) {
   const classIds = rows.map((row) => row.class_id)
   const { data: classes, error: classError } =
     classIds.length > 0
-      ? await supabase
+      ? await db
           .from('classes')
           .select('id, name')
           .eq('tenant_id', tenantId)
@@ -117,7 +117,7 @@ export async function getAssignmentsByQuiz(quizId: string, tenantId: string) {
  * Get all assignments for a specific class
  */
 export async function getAssignmentsByClass(classId: string, tenantId: string) {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('quiz_assignments')
     .select('id, quiz_id, class_id, tenant_id, status, available_from, due_at, max_attempts')
     .eq('class_id', classId)
@@ -130,13 +130,13 @@ export async function getAssignmentsByClass(classId: string, tenantId: string) {
 
   const [{ data: classes, error: classError }, { data: quizzes, error: quizError }] =
     await Promise.all([
-      supabase
+      db
         .from('classes')
         .select('id, name')
         .eq('tenant_id', tenantId)
         .eq('id', classId),
       quizIds.length > 0
-        ? supabase
+        ? db
             .from('quizzes')
             .select(
               'id, title, mode, passing_score, status, time_limit_minutes, max_attempts'
@@ -151,7 +151,7 @@ export async function getAssignmentsByClass(classId: string, tenantId: string) {
 
   const { data: questions, error: questionError } =
     quizIds.length > 0
-      ? await supabase
+      ? await db
           .from('quiz_questions')
           .select('id, quiz_id')
           .eq('tenant_id', tenantId)
@@ -196,7 +196,7 @@ export async function getAssignmentsByClass(classId: string, tenantId: string) {
  * Remove a quiz assignment (unassign from class)
  */
 export async function removeQuizAssignment(assignmentId: string, tenantId: string) {
-  const { error } = await supabase
+  const { error } = await db
     .from('quiz_assignments')
     .delete()
     .eq('id', assignmentId)
@@ -221,7 +221,7 @@ export async function getClassQuizAssignments(
     max_attempts: number | null
   }>
 > {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('quiz_assignments')
     .select('id, quiz_id, max_attempts')
     .eq('class_id', classId)
@@ -234,7 +234,7 @@ export async function getClassQuizAssignments(
   const quizIds = rows.map((row) => row.quiz_id)
   const { data: quizzes, error: quizError } =
     quizIds.length > 0
-      ? await supabase
+      ? await db
           .from('quizzes')
           .select('id, title, passing_score, max_attempts, status')
           .eq('tenant_id', tenantId)
@@ -275,7 +275,7 @@ export async function getTeacherClasses(
   teacherId: string,
   tenantId: string
 ): Promise<Array<{ id: string; name: string }>> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('classes')
     .select('id, name')
     .eq('teacher_id', teacherId)

@@ -3,7 +3,7 @@
  * All Supabase calls for the Learning Quests system.
  */
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { Quest, QuestDefinition } from '../types'
 
@@ -16,7 +16,7 @@ export const questService = {
    * Uses SECURITY DEFINER function — tenant and user isolation enforced server-side.
    */
   async getActiveQuestsWithProgress(tenantId: string): Promise<Quest[]> {
-    const { data, error } = await supabase.rpc('get_active_quests_with_progress', {
+    const { data, error } = await db.rpc('get_active_quests_with_progress', {
       p_tenant_id: tenantId,
     })
 
@@ -40,7 +40,7 @@ export const questService = {
    * Ordered by sort_order then creation time.
    */
   async getQuestDefinitions(tenantId: string): Promise<QuestDefinition[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('quests')
       .select(QUEST_DEFINITION_COLUMNS)
       .eq('tenant_id', tenantId)
@@ -63,7 +63,7 @@ export const questService = {
     quest: Omit<Partial<QuestDefinition>, 'id' | 'tenant_id'>,
     tenantId: string
   ): Promise<QuestDefinition> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('quests')
       .insert({ ...quest, tenant_id: tenantId })
       .select(QUEST_DEFINITION_COLUMNS)
@@ -81,7 +81,7 @@ export const questService = {
     updates: Partial<Omit<QuestDefinition, 'id' | 'tenant_id'>>,
     tenantId: string
   ): Promise<QuestDefinition> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('quests')
       .update(updates)
       .eq('id', questId)
@@ -98,7 +98,7 @@ export const questService = {
    * Active quests in progress should not be orphaned.
    */
   async deleteQuest(questId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('quests')
       .update({ is_active: false })
       .eq('id', questId)

@@ -4,8 +4,8 @@ const mockInvoke = vi.fn()
 const mockRpc = vi.fn()
 const mockFrom = vi.fn()
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     functions: {
       invoke: (...args: unknown[]) => mockInvoke(...args),
     },

@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { captureError } from '@/utils/sentry'
 
 import type { EventMetadata, LearningEvent, LearningEventType } from '../types/events.types'
@@ -77,7 +77,7 @@ async function flushEvents() {
       if (import.meta.env.DEV) console.debug('[Analytics] Flushing', batch.length, 'events')
     }
 
-    const { error } = await supabase.rpc('insert_learning_events', {
+    const { error } = await db.rpc('insert_learning_events', {
       p_events: batch,
     })
 

@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { getRealtimeProvider } from '@/services/realtime'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { GC, STALE } from '@/utils/queryConstants'
 
 import { discussionService } from '../api/discussionService'
@@ -99,7 +99,7 @@ export function useForumParticipationStats(
       options?.dateTo
     ),
     queryFn: async (): Promise<ForumParticipationDashboard> => {
-      const { data, error } = await supabase.rpc('get_forum_participation', {
+      const { data, error } = await db.rpc('get_forum_participation', {
         p_course_id: courseId,
         p_tenant_id: tenantId!,
         p_class_id: options?.classId || null,

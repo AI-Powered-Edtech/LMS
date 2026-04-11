@@ -3,7 +3,7 @@
  * All queries include tenant_id for multi-tenant isolation
  */
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { logDevError } from '@/utils/logDevError'
 
 import type { Notification, NotificationPreferences } from '../types'
@@ -33,7 +33,7 @@ export async function fetchNotifications(
   limit = 50,
   offset = 0
 ): Promise<Notification[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('notifications')
     .select(NOTIFICATION_COLUMNS)
     .eq('user_id', userId)
@@ -61,7 +61,7 @@ export async function markNotificationRead(
 ): Promise<void> {
   // Only update is_read — read_at column may not exist in baseline schema
   // FIXED: Scoped to tenant_id + user_id so a user cannot mark another user's notification as read
-  const { error } = await supabase
+  const { error } = await db
     .from('notifications')
     .update({ is_read: true })
     .eq('id', id)
@@ -78,7 +78,7 @@ export async function markNotificationRead(
  * Mark all unread notifications as read for a user within a tenant
  */
 export async function markAllNotificationsRead(userId: string, tenantId: string): Promise<void> {
-  const { error } = await supabase
+  const { error } = await db
     .from('notifications')
     .update({ is_read: true })
     .eq('user_id', userId)
@@ -95,7 +95,7 @@ export async function markAllNotificationsRead(userId: string, tenantId: string)
  * Fetch the count of unread notifications
  */
 export async function fetchUnreadCount(userId: string, tenantId: string): Promise<number> {
-  const { count, error } = await supabase
+  const { count, error } = await db
     .from('notifications')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
@@ -117,7 +117,7 @@ export async function fetchNotificationPreferences(
   userId: string,
   tenantId: string
 ): Promise<NotificationPreferences | null> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('notification_preferences')
     .select(
       'id, tenant_id, user_id, email_enabled, push_enabled, quiet_hours_start, quiet_hours_end, disabled_types, push_subscription'
@@ -140,7 +140,7 @@ export async function fetchNotificationPreferences(
 export async function upsertNotificationPreferences(
   prefs: Partial<NotificationPreferences> & { user_id: string; tenant_id: string }
 ): Promise<NotificationPreferences> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('notification_preferences')
     .upsert(prefs, { onConflict: 'user_id,tenant_id' })
     .select(

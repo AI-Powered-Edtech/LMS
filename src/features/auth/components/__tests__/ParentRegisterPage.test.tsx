@@ -9,8 +9,8 @@ const mockAuthSignUp = vi.fn()
 const mockAuthSignIn = vi.fn()
 const mockFromUpsert = vi.fn()
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     rpc: (...args: unknown[]) => mockRpc(...args),
     auth: {
       signUp: (...args: unknown[]) => mockAuthSignUp(...args),

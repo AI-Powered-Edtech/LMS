@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { XAPIContext, XAPIObjectType, XAPIResult, XAPIVerb } from '../types/index'
 
@@ -18,7 +18,7 @@ export const xapiService = {
     context: XAPIContext = {}
   ): Promise<string | null> {
     try {
-      const { data, error } = await supabase.rpc('record_xapi_statement', {
+      const { data, error } = await db.rpc('record_xapi_statement', {
         p_verb: verb,
         p_object_type: objectType,
         p_object_id: objectId,

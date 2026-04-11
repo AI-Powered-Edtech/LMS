@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { getStorageProvider } from '@/services/storage'
 
 import type { UploadOptions, UploadResult } from '../types'
@@ -59,7 +59,7 @@ export const storageService = {
     }
 
     // Insert into storage_objects table
-    const { data: insertData, error: insertError } = await supabase
+    const { data: insertData, error: insertError } = await db
       .from('storage_objects')
       .insert({
         tenant_id: opts.tenantId,
@@ -108,7 +108,7 @@ export const storageService = {
    */
   async deleteFile(storageObjectId: string): Promise<void> {
     // Get the storage object record
-    const { data: storageObj, error: selectError } = await supabase
+    const { data: storageObj, error: selectError } = await db
       .from('storage_objects')
       .select('bucket, object_path')
       .eq('id', storageObjectId)
@@ -132,7 +132,7 @@ export const storageService = {
     }
 
     // Delete from storage_objects table
-    const { error: deleteError } = await supabase
+    const { error: deleteError } = await db
       .from('storage_objects')
       .delete()
       .eq('id', storageObjectId)

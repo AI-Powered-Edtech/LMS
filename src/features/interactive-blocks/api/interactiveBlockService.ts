@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { InteractionProgress } from '../types'
 
@@ -14,7 +14,7 @@ export const interactiveBlockService = {
     isCompleted: boolean,
     score?: number
   ): Promise<void> {
-    const { error } = await supabase.rpc('save_interactive_progress', {
+    const { error } = await db.rpc('save_interactive_progress', {
       p_block_id: blockId,
       p_lesson_id: lessonId,
       p_interaction_data: interactionData,
@@ -34,7 +34,7 @@ export const interactiveBlockService = {
     userId: string,
     tenantId: string
   ): Promise<InteractionProgress | null> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('interactive_block_progress')
       .select('interaction_data, is_completed, score, attempts')
       .eq('block_id', blockId)

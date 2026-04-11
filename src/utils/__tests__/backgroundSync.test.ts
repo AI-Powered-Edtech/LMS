@@ -13,8 +13,8 @@ vi.mock('../offlineQueue', () => ({
   processSyncQueue: vi.fn(),
 }))
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: vi.fn(),
   },
 }))

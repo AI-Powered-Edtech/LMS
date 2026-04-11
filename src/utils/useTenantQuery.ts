@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import { useAuth } from '../contexts/AuthContext'
 
@@ -38,7 +38,7 @@ export function useTenantQuery(): {
    */
   const tenantQuery = useCallback(
     (table: string, columns = 'id') => {
-      const query = supabase.from(table)
+      const query = db.from(table)
       if (tenantId) {
         return query.select(columns).eq('tenant_id', tenantId)
       }
@@ -54,7 +54,7 @@ export function useTenantQuery(): {
   const tenantInsert = useCallback(
     async (table: string, data: Record<string, unknown>) => {
       const record = tenantId ? { ...data, tenant_id: tenantId } : data
-      return supabase.from(table).insert(record)
+      return db.from(table).insert(record)
     },
     [tenantId]
   )

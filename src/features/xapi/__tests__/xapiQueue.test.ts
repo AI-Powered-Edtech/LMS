@@ -12,8 +12,8 @@ vi.mock('@/utils/sentry', () => ({
   captureError: vi.fn(),
 }))
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     rpc: vi.fn().mockResolvedValue({ data: 'stmt-uuid', error: null }),
   },
 }))

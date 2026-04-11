@@ -5,7 +5,7 @@
 // Extracted from analyticsService.ts for modularity.
 // ==========================================================================
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type {
   ActivityTimePoint,
@@ -34,7 +34,7 @@ import { parseRpcError } from './analyticsAggregation'
  * Refreshes the pre-aggregated course_stats.
  */
 export async function refreshCourseStats(courseId: string, tenantId: string): Promise<void> {
-  const { error } = await supabase.rpc('refresh_course_stats', {
+  const { error } = await db.rpc('refresh_course_stats', {
     p_course_id: courseId,
     p_tenant_id: tenantId,
   })
@@ -52,7 +52,7 @@ export async function getTeacherAnalytics(
   courseId: string,
   tenantId: string
 ): Promise<TeacherAnalyticsData | null> {
-  const { data, error } = await supabase.rpc('get_teacher_analytics', {
+  const { data, error } = await db.rpc('get_teacher_analytics', {
     p_course_id: courseId,
     p_tenant_id: tenantId,
   })
@@ -69,7 +69,7 @@ export async function getTeacherAnalytics(
  * Refresh all course stats (admin only)
  */
 export async function refreshAllCourseStats(tenantId: string): Promise<void> {
-  const { error } = await supabase.rpc('refresh_all_course_stats', {
+  const { error } = await db.rpc('refresh_all_course_stats', {
     p_tenant_id: tenantId,
   })
 
@@ -84,7 +84,7 @@ export async function refreshAllCourseStats(tenantId: string): Promise<void> {
  */
 export async function fetchTenantCourseStats(tenantId: string): Promise<CourseStatsRow[]> {
   // NOTE: 'last_refreshed_at' column removed — does not exist in current schema.
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('course_stats')
     .select('course_id, tenant_id, total_enrolled, active_students, avg_progress, avg_quiz_score')
     .eq('tenant_id', tenantId)
@@ -106,7 +106,7 @@ export async function fetchActivityCounts(
   tenantId: string,
   days: number
 ): Promise<{ event_type: string; count: number }[]> {
-  const { data, error } = await supabase.rpc('get_tenant_activity_counts', {
+  const { data, error } = await db.rpc('get_tenant_activity_counts', {
     p_tenant_id: tenantId,
     p_days: days,
   })
@@ -124,7 +124,7 @@ export async function fetchActivityCounts(
  * Fetches course engagement data via RPC.
  */
 export async function fetchCourseEngagement(tenantId: string): Promise<CourseEngagement[]> {
-  const { data, error } = await supabase.rpc('get_course_engagement', {
+  const { data, error } = await db.rpc('get_course_engagement', {
     p_tenant_id: tenantId,
   })
   if (error) {
@@ -159,7 +159,7 @@ export async function fetchActivityTimeline(
 ): Promise<ActivityTimePoint[]> {
   // Cap days to a safe range to prevent excessive DB load
   const safeDays = Math.min(Math.max(1, days), 365)
-  const { data, error } = await supabase.rpc('get_activity_timeline', {
+  const { data, error } = await db.rpc('get_activity_timeline', {
     p_tenant_id: tenantId,
     p_days: safeDays,
   })
@@ -203,7 +203,7 @@ export async function getCourseAnalyticsDashboard(
   courseId: string,
   tenantId: string
 ): Promise<CourseAnalytics | null> {
-  const { data, error } = await supabase.rpc('get_course_analytics', {
+  const { data, error } = await db.rpc('get_course_analytics', {
     p_course_id: courseId,
     p_tenant_id: tenantId,
   })
@@ -215,7 +215,7 @@ export async function getLessonAnalyticsDashboard(
   courseId: string,
   tenantId: string
 ): Promise<LessonAnalytics[]> {
-  const { data, error } = await supabase.rpc('get_lesson_analytics', {
+  const { data, error } = await db.rpc('get_lesson_analytics', {
     p_course_id: courseId,
     p_tenant_id: tenantId,
   })
@@ -228,7 +228,7 @@ export async function getStudentSignalsDashboard(
   tenantId: string,
   lessonId?: string
 ): Promise<StudentSignal[]> {
-  const { data, error } = await supabase.rpc('get_student_signals', {
+  const { data, error } = await db.rpc('get_student_signals', {
     p_course_id: courseId,
     p_tenant_id: tenantId,
     p_lesson_id: lessonId ?? null,
@@ -245,7 +245,7 @@ export async function saveFunnelDefinition(
   courseId?: string,
   funnelId?: string
 ): Promise<string> {
-  const { data, error } = await supabase.rpc('save_funnel_definition', {
+  const { data, error } = await db.rpc('save_funnel_definition', {
     p_name: name,
     p_steps: steps,
     p_course_id: courseId ?? null,
@@ -256,7 +256,7 @@ export async function saveFunnelDefinition(
 }
 
 export async function listFunnelDefinitions(courseId?: string): Promise<FunnelDefinition[]> {
-  const { data, error } = await supabase.rpc('list_funnel_definitions', {
+  const { data, error } = await db.rpc('list_funnel_definitions', {
     p_course_id: courseId ?? null,
   })
   if (error) throw parseRpcError(error)
@@ -276,12 +276,12 @@ export async function listFunnelDefinitions(courseId?: string): Promise<FunnelDe
 }
 
 export async function deleteFunnelDefinition(funnelId: string): Promise<void> {
-  const { error } = await supabase.rpc('delete_funnel_definition', { p_funnel_id: funnelId })
+  const { error } = await db.rpc('delete_funnel_definition', { p_funnel_id: funnelId })
   if (error) throw parseRpcError(error)
 }
 
 export async function getFunnelResults(funnelId: string): Promise<FunnelStepResult[]> {
-  const { data, error } = await supabase.rpc('get_funnel_results', { p_funnel_id: funnelId })
+  const { data, error } = await db.rpc('get_funnel_results', { p_funnel_id: funnelId })
   if (error) throw parseRpcError(error)
   return (data as FunnelStepResult[]) ?? []
 }
@@ -292,7 +292,7 @@ export async function getRetentionMatrix(
   courseId: string,
   weeksBack: number = 8
 ): Promise<RetentionRow[]> {
-  const { data, error } = await supabase.rpc('get_retention_matrix', {
+  const { data, error } = await db.rpc('get_retention_matrix', {
     p_course_id: courseId,
     p_weeks_back: weeksBack,
   })
@@ -303,7 +303,7 @@ export async function getRetentionMatrix(
 // ── SP-16: Engagement Scoring ──────────────────────────────────
 
 export async function getEngagementSummary(courseId: string): Promise<EngagementSummaryRow[]> {
-  const { data, error } = await supabase.rpc('get_engagement_summary', { p_course_id: courseId })
+  const { data, error } = await db.rpc('get_engagement_summary', { p_course_id: courseId })
   if (error) throw parseRpcError(error)
   return (data as EngagementSummaryRow[]) ?? []
 }
@@ -312,7 +312,7 @@ export async function getEngagementTrend(
   courseId: string,
   days: number = 30
 ): Promise<EngagementTrendPoint[]> {
-  const { data, error } = await supabase.rpc('get_engagement_trend', {
+  const { data, error } = await db.rpc('get_engagement_trend', {
     p_course_id: courseId,
     p_days: days,
   })
@@ -326,7 +326,7 @@ export async function getLearningPaths(
   courseId: string,
   minUsers: number = 1
 ): Promise<LearningPath[]> {
-  const { data, error } = await supabase.rpc('get_learning_paths', {
+  const { data, error } = await db.rpc('get_learning_paths', {
     p_course_id: courseId,
     p_min_users: minUsers,
   })
@@ -335,7 +335,7 @@ export async function getLearningPaths(
 }
 
 export async function getStudentPath(userId: string, courseId: string): Promise<StudentPathStep[]> {
-  const { data, error } = await supabase.rpc('get_student_path', {
+  const { data, error } = await db.rpc('get_student_path', {
     p_user_id: userId,
     p_course_id: courseId,
   })
@@ -349,7 +349,7 @@ export async function getAtRiskStudents(
   courseId: string,
   minRisk: number = 0.3
 ): Promise<StudentPrediction[]> {
-  const { data, error } = await supabase.rpc('get_at_risk_students', {
+  const { data, error } = await db.rpc('get_at_risk_students', {
     p_course_id: courseId,
     p_min_risk: minRisk,
   })
@@ -361,7 +361,7 @@ export async function getStudentPrediction(
   userId: string,
   courseId: string
 ): Promise<PredictionDetail | null> {
-  const { data, error } = await supabase.rpc('get_student_prediction', {
+  const { data, error } = await db.rpc('get_student_prediction', {
     p_user_id: userId,
     p_course_id: courseId,
   })
@@ -370,7 +370,7 @@ export async function getStudentPrediction(
 }
 
 export async function getPredictionSummary(courseId: string): Promise<PredictionSummary | null> {
-  const { data, error } = await supabase.rpc('get_prediction_summary', {
+  const { data, error } = await db.rpc('get_prediction_summary', {
     p_course_id: courseId,
   })
   if (error) throw parseRpcError(error)
@@ -395,7 +395,7 @@ export interface LiveEvent {
  * Fetch the latest learning events for a tenant (used by LiveActivityFeed).
  */
 export async function fetchLatestEvents(tenantId: string, limit = 10): Promise<LiveEvent[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('learning_events')
     .select('id, user_id, event_type, lesson_id, course_id, created_at, metadata')
     .eq('tenant_id', tenantId)

@@ -1,5 +1,5 @@
 import { readVilSession } from '@/services/auth/vilSession'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type {
   AIAuthoringQuestion,
@@ -216,7 +216,7 @@ export const aiAuthoringService = {
    * Returns the 20 most recent entries, newest first.
    */
   async fetchHistory(userId: string): Promise<AIGeneratedContent[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('ai_generated_content')
       .select(
         'id, file_name, file_type, assignment_type, bloom_level, question_count, summary, questions, used_at, created_at, updated_at, tenant_id, created_by, source_type, lesson_id, subject, grade_level, curriculum_ref'
@@ -233,7 +233,7 @@ export const aiAuthoringService = {
    * Mark a generation as used (stamps used_at with the current timestamp).
    */
   async markAsUsed(id: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('ai_generated_content')
       .update({ used_at: new Date().toISOString() })
       .eq('id', id)
@@ -245,7 +245,7 @@ export const aiAuthoringService = {
    * Persist edited questions back to the saved generation row.
    */
   async updateQuestions(id: string, questions: AIAuthoringQuestion[]): Promise<void> {
-    const { error } = await supabase.from('ai_generated_content').update({ questions }).eq('id', id)
+    const { error } = await db.from('ai_generated_content').update({ questions }).eq('id', id)
 
     if (error) throw new Error(error.message)
   },
@@ -254,7 +254,7 @@ export const aiAuthoringService = {
    * Permanently delete a saved generation from history.
    */
   async deleteGeneration(id: string): Promise<void> {
-    const { error } = await supabase.from('ai_generated_content').delete().eq('id', id)
+    const { error } = await db.from('ai_generated_content').delete().eq('id', id)
 
     if (error) throw new Error(error.message)
   },

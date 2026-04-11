@@ -15,7 +15,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo, useState } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { captureError } from '@/utils/sentry'
 
 // ── Types ─────────────────────────────────────────────────────────────────
@@ -124,7 +124,7 @@ export function useChildActivityHistory(childId: string): UseChildActivityHistor
       if (!tenantId || !childId) return { activities: [], total: 0 }
 
       try {
-        const { data: result, error: rpcError } = await supabase.rpc(
+        const { data: result, error: rpcError } = await db.rpc(
           'get_child_activity_timeline',
           {
             p_child_id: childId,

@@ -1,7 +1,7 @@
 /* eslint-disable max-lines */
 import Papa from 'papaparse'
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { GradebookColumn, GradebookEntry, GradebookSettings } from '../types'
 
@@ -52,7 +52,7 @@ export async function fetchGradebookEntries(
   // NOTE: gradebook_entries uses entity_type/entity_id pattern, NOT assignment_id/quiz_id.
   // Columns: id, tenant_id, course_id, student_id, entity_type, entity_id, score, max_score,
   //          feedback, graded_by, graded_at, created_at, updated_at
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('gradebook_entries')
     .select(
       `id, tenant_id, student_id, course_id, entity_type, entity_id,
@@ -69,7 +69,7 @@ export async function fetchGradebookEntries(
   const studentIds = rows.map((row) => String(row.student_id)).filter(Boolean)
   const { data: profiles, error: profileError } =
     studentIds.length > 0
-      ? await supabase
+      ? await db
           .from('profiles')
           .select('id, full_name, email')
           .eq('tenant_id', tenantId)
@@ -133,7 +133,7 @@ export async function updateGradebookEntry(
   if (updates.score !== undefined) dbUpdates.score = updates.score
   if (updates.notes !== undefined) dbUpdates.feedback = updates.notes // DB column is 'feedback'
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('gradebook_entries')
     .update(dbUpdates)
     .eq('id', id)
@@ -172,7 +172,7 @@ export async function upsertGradebookEntry(
   const entityType = entry.quiz_id ? 'quiz' : 'assignment'
   const entityId = entry.quiz_id ?? entry.assignment_id
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('gradebook_entries')
     .upsert(
       {
@@ -225,7 +225,7 @@ export async function addGradebookItem(data: {
   const newEntityId = crypto.randomUUID()
 
   // Determine the next order value for this course
-  const { data: existingColumns } = await supabase
+  const { data: existingColumns } = await db
     .from('gradebook_columns')
     .select('order')
     .eq('course_id', data.courseId)
@@ -246,7 +246,7 @@ export async function addGradebookItem(data: {
   const nextOrder = Number.isFinite(latestOrder) ? latestOrder + 1 : 0
 
   // Insert into the dedicated gradebook_columns table
-  const { error: columnError } = await supabase.from('gradebook_columns').insert({
+  const { error: columnError } = await db.from('gradebook_columns').insert({
     course_id: data.courseId,
     tenant_id: data.tenantId,
     name: data.title,
@@ -264,7 +264,7 @@ export async function addGradebookItem(data: {
 
   // Also create a sentinel row in gradebook_entries for backward compatibility
   // with components that derive columns from entries (GradebookTable.buildColumns).
-  const { data: result, error } = await supabase
+  const { data: result, error } = await db
     .from('gradebook_entries')
     .insert({
       course_id: data.courseId,
@@ -300,7 +300,7 @@ export async function fetchGradebookColumns(
   tenantId: string
 ): Promise<GradebookColumn[]> {
   // Try the dedicated table first
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('gradebook_columns')
     .select('id, name, type, weight, order, created_at')
     .eq('course_id', courseId)
@@ -319,7 +319,7 @@ export async function fetchGradebookColumns(
   }
 
   // Fallback: derive from sentinel entries (backward compat)
-  const { data: entries, error: entriesError } = await supabase
+  const { data: entries, error: entriesError } = await db
     .from('gradebook_entries')
     .select('entity_type, entity_id, title, max_score')
     .eq('course_id', courseId)
@@ -352,7 +352,7 @@ export async function fetchGradebookColumns(
  * ke gradebook_entries. Mengembalikan jumlah baris yang di-upsert.
  */
 export async function syncGradebook(courseId: string, tenantId: string): Promise<number> {
-  const { data, error } = await supabase.rpc('sync_gradebook_entries', {
+  const { data, error } = await db.rpc('sync_gradebook_entries', {
     p_course_id: courseId,
     p_tenant_id: tenantId,
   })
@@ -372,7 +372,7 @@ export async function fetchGradebookSettings(
   courseId: string,
   tenantId: string
 ): Promise<GradebookSettings | null> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('gradebook_settings')
     .select(`id, tenant_id, course_id, grading_scale, weight_quizzes, weight_assignments`)
     .eq('course_id', courseId)
@@ -390,7 +390,7 @@ export async function fetchGradebookSettings(
 export async function upsertGradebookSettings(
   settings: Omit<GradebookSettings, 'id'>
 ): Promise<GradebookSettings> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('gradebook_settings')
     .upsert(settings, { onConflict: 'tenant_id,course_id' })
     .select(`id, tenant_id, course_id, grading_scale, weight_quizzes, weight_assignments`)
@@ -417,7 +417,7 @@ export async function fetchGradebookLegacy(
     fetchGradebookEntries(courseId, tenantId),
     fetchGradebookColumns(courseId, tenantId),
     // Server-side student filtering via RPC
-    supabase.rpc('get_gradebook_students', { p_tenant_id: tenantId }),
+    db.rpc('get_gradebook_students', { p_tenant_id: tenantId }),
   ])
 
   // Transform entries to legacy format

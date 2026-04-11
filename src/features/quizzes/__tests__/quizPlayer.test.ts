@@ -5,8 +5,8 @@ const mockGetSession = vi.fn()
 const mockInvoke = vi.fn()
 const mockFrom = vi.fn()
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     rpc: (...args: unknown[]) => mockRpc(...args),
     auth: {
       getSession: () => mockGetSession(),

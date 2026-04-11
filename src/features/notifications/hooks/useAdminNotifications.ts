@@ -15,7 +15,7 @@ import { useEffect } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { getRealtimeProvider } from '@/services/realtime'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { STALE } from '@/utils/queryConstants'
 import { captureError } from '@/utils/sentry'
 
@@ -60,7 +60,7 @@ async function fetchAdminNotifications(
   tenantId: string,
   limit = 50
 ): Promise<Notification[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('notifications')
     .select(NOTIFICATION_COLUMNS)
     .eq('user_id', userId)
@@ -157,7 +157,7 @@ export function useAdminNotifications(): UseAdminNotificationsReturn {
   // ─── Mark Single Read (optimistic) ──────────────────────────────────────────
   const markReadMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('notifications').update({ is_read: true }).eq('id', id)
+      const { error } = await db.from('notifications').update({ is_read: true }).eq('id', id)
       if (error) throw error
     },
     onMutate: async (id) => {
@@ -180,7 +180,7 @@ export function useAdminNotifications(): UseAdminNotificationsReturn {
   // ─── Mark All Read (optimistic) ─────────────────────────────────────────────
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      const { error } = await db
         .from('notifications')
         .update({ is_read: true })
         .eq('user_id', user!.id)

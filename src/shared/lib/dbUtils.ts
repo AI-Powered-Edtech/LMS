@@ -2,7 +2,7 @@ import { captureError } from '@/utils/sentry'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface SupabaseError {
+interface DbError {
   message: string
   code?: string
   details?: string
@@ -10,8 +10,8 @@ interface SupabaseError {
 }
 
 /**
- * Minimal interface untuk Supabase query builder yang mendukung `.eq()` dan `.range()`.
- * Digunakan agar utilities tidak bergantung pada tipe internal Supabase secara eksplisit.
+ * Minimal interface untuk db query builder yang mendukung `.eq()` dan `.range()`.
+ * Digunakan agar utilities tidak bergantung pada tipe internal db secara eksplisit.
  */
 interface FilterableQuery<T> {
   eq(column: string, value: unknown): T
@@ -21,14 +21,14 @@ interface FilterableQuery<T> {
 // ── withTenantId ─────────────────────────────────────────────────────────────
 
 /**
- * Menambahkan filter `.eq('tenant_id', tenantId)` ke query Supabase secara otomatis.
+ * Menambahkan filter `.eq('tenant_id', tenantId)` ke query db secara otomatis.
  *
  * Gunakan ini pada semua query yang membutuhkan tenant isolation untuk
  * memastikan tidak ada kebocoran data lintas tenant.
  *
  * @example
  * const { data } = await withTenantId(
- *   supabase.from('courses').select('*'),
+ *   db.from('courses').select('*'),
  *   tenantId
  * )
  */
@@ -39,15 +39,15 @@ export function withTenantId<T extends FilterableQuery<T>>(query: T, tenantId: s
 // ── paginate ──────────────────────────────────────────────────────────────────
 
 /**
- * Menambahkan `.range()` untuk pagination berbasis page/limit ke query Supabase.
+ * Menambahkan `.range()` untuk pagination berbasis page/limit ke query db.
  *
- * @param query  - Query builder Supabase
+ * @param query  - Query builder db
  * @param page   - Nomor halaman (0-indexed)
  * @param limit  - Jumlah item per halaman (default: 20)
  *
  * @example
  * const { data } = await paginate(
- *   supabase.from('students').select('*'),
+ *   db.from('students').select('*'),
  *   page,
  *   20
  * )
@@ -61,7 +61,7 @@ export function paginate<T extends FilterableQuery<T>>(query: T, page: number, l
 // ── withTimeout ───────────────────────────────────────────────────────────────
 
 /**
- * Wrapper untuk Supabase query dengan timeout menggunakan AbortSignal.
+ * Wrapper untuk db query dengan timeout menggunakan AbortSignal.
  *
  * Jika query melebihi `ms` milliseconds, request dibatalkan dan
  * melempar Error dengan pesan timeout.
@@ -71,7 +71,7 @@ export function paginate<T extends FilterableQuery<T>>(query: T, page: number, l
  *
  * @example
  * const { data, error } = await withTimeout(
- *   () => supabase.from('courses').select('*').eq('tenant_id', tenantId),
+ *   () => db.from('courses').select('*').eq('tenant_id', tenantId),
  *   5000
  * )
  */
@@ -94,24 +94,24 @@ export async function withTimeout<T>(
   }
 }
 
-// ── handleSupabaseError ───────────────────────────────────────────────────────
+// ── handleDbError ─────────────────────────────────────────────────────────────
 
 /**
- * Penanganan error Supabase yang konsisten — log ke Sentry (production)
+ * Penanganan error db yang konsisten — log ke Sentry (production)
  * atau console (development), lalu melempar Error baru yang user-friendly.
  *
  * Gunakan ini di semua service layer untuk error handling yang seragam.
  *
- * @param error    - Error object dari Supabase (`.error` property dari response)
+ * @param error    - Error object dari db (`.error` property dari response)
  * @param context  - Konteks tambahan untuk logging (nama fungsi / modul)
  *
  * @throws Error dengan pesan yang sesuai
  *
  * @example
- * const { data, error } = await supabase.from('courses').select('*')
- * if (error) handleSupabaseError(error, 'fetchCourses')
+ * const { data, error } = await db.from('courses').select('*')
+ * if (error) handleDbError(error, 'fetchCourses')
  */
-export function handleSupabaseError(error: SupabaseError | null, context?: string): never {
+export function handleDbError(error: DbError | null, context?: string): never {
   if (!error) {
     throw new Error('Terjadi kesalahan tidak diketahui')
   }
@@ -121,7 +121,7 @@ export function handleSupabaseError(error: SupabaseError | null, context?: strin
 
   // Log ke console di development
   if (import.meta.env.DEV) {
-    console.error(`[Supabase Error]${context ? ` (${context})` : ''}:`, {
+    console.error(`[DB Error]${context ? ` (${context})` : ''}:`, {
       message,
       code: errorCode,
       details: error.details,
@@ -134,7 +134,7 @@ export function handleSupabaseError(error: SupabaseError | null, context?: strin
   const isRlsViolation = typeof errorCode === 'string' && errorCode.startsWith('PGRST3')
   if (!isRlsViolation) {
     captureError(new Error(message), {
-      context: context ?? 'supabaseUtils',
+      context: context ?? 'dbUtils',
       errorCode: errorCode ?? 'unknown',
     })
   }
@@ -144,7 +144,14 @@ export function handleSupabaseError(error: SupabaseError | null, context?: strin
   throw new Error(userMessage)
 }
 
-/** Terjemahkan kode error Supabase/PostgreSQL ke pesan Bahasa Indonesia */
+/**
+ * @deprecated Use handleDbError instead.
+ */
+export function handleSupabaseError(error: DbError | null, context?: string): never {
+  return handleDbError(error, context)
+}
+
+/** Terjemahkan kode error db/PostgreSQL ke pesan Bahasa Indonesia */
 function getLocalizedErrorMessage(code: string | undefined, fallback: string): string {
   switch (code) {
     case 'PGRST116':
@@ -176,7 +183,7 @@ function getLocalizedErrorMessage(code: string | undefined, fallback: string): s
  * @example
  * const cols = selectColumns(['id', 'name', 'email'])
  * // → 'id, name, email'
- * supabase.from('users').select(cols)
+ * db.from('users').select(cols)
  */
 export function selectColumns(columns: string[]): string {
   if (columns.length === 0) return '*'

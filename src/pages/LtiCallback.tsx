@@ -2,7 +2,7 @@ import { AlertTriangle, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 // ==========================================================================
 // LtiCallback — Handles the redirect after LTI launch
@@ -37,7 +37,7 @@ export function LtiCallback() {
 
       try {
         // Verify the OTP token to establish a Supabase session
-        const { data, error } = await supabase.auth.verifyOtp({
+        const { data, error } = await db.auth.verifyOtp({
           token_hash: token,
           type: type as 'magiclink',
         })

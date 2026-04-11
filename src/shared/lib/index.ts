@@ -1,2 +1,2 @@
 export * from './queryKeys'
-export * from './supabaseUtils'
+export * from './dbUtils'

@@ -2,14 +2,17 @@
 import { getApiBackend, getApiClient } from '@/services/api'
 import { buildRequestHeaders, createRequestId, runShadowComparison } from '@/services/api/shadow'
 import { readVilSession } from '@/services/auth/vilSession'
-import { getSupabaseClient } from '@/services/supabase/client'
+import { getSupabaseClient } from '@/services/db'
 import { logDevError, logDevWarn } from '@/utils/logDevError'
 
 import type { Course, CourseInsert, CourseUpdate, FetchCoursesOptions } from '../types'
 
 const VIL_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 
-async function requestVil<T>(path: string, init?: RequestInit & { requestId?: string }): Promise<T> {
+async function requestVil<T>(
+  path: string,
+  init?: RequestInit & { requestId?: string }
+): Promise<T> {
   const requestId = init?.requestId ?? createRequestId()
   const response = await fetch(`${VIL_BASE_URL}${path}`, {
     ...init,
@@ -17,9 +20,12 @@ async function requestVil<T>(path: string, init?: RequestInit & { requestId?: st
   })
 
   if (!response.ok) {
-    const errorPayload = (await response.json().catch(() => null)) as
-      | { message?: string; code?: string; details?: string | null; hint?: string | null }
-      | null
+    const errorPayload = (await response.json().catch(() => null)) as {
+      message?: string
+      code?: string
+      details?: string | null
+      hint?: string | null
+    } | null
 
     throw {
       message: errorPayload?.message ?? `HTTP ${response.status}`,
@@ -67,7 +73,9 @@ async function fetchSupabaseCoursesShadow(
   }
 
   return {
-    courses: ((data ?? []) as unknown as Course[]).filter((course) => (ids?.length ? ids.includes(course.id) : true)),
+    courses: ((data ?? []) as unknown as Course[]).filter((course) =>
+      ids?.length ? ids.includes(course.id) : true
+    ),
     count: count ?? 0,
   }
 }
@@ -75,7 +83,9 @@ async function fetchSupabaseCoursesShadow(
 async function fetchSupabaseCourseModulesShadow(
   courseId: string,
   tenantId: string
-): Promise<Array<{ id: string; title: string; order: number; course_id: string; lessons: unknown[] }>> {
+): Promise<
+  Array<{ id: string; title: string; order: number; course_id: string; lessons: unknown[] }>
+> {
   const { data: modules, error } = await getSupabaseClient()
     .from('course_modules')
     .select('id, title, "order", course_id')
@@ -102,17 +112,19 @@ async function fetchSupabaseCourseModulesShadow(
     throw lessonError
   }
 
-  return ((modules ?? []) as Array<{ id: string; title: string; order: number; course_id: string }>).map(
-    (module) => ({
-      ...module,
-      lessons: ((lessons ?? []) as Array<{ id: string; module_id: string; duration_minutes: number | null }>)
-        .filter((lesson) => lesson.module_id === module.id)
-        .map((lesson) => ({
-          id: lesson.id,
-          duration_minutes: lesson.duration_minutes,
-        })),
-    })
-  )
+  return (
+    (modules ?? []) as Array<{ id: string; title: string; order: number; course_id: string }>
+  ).map((module) => ({
+    ...module,
+    lessons: (
+      (lessons ?? []) as Array<{ id: string; module_id: string; duration_minutes: number | null }>
+    )
+      .filter((lesson) => lesson.module_id === module.id)
+      .map((lesson) => ({
+        id: lesson.id,
+        duration_minutes: lesson.duration_minutes,
+      })),
+  }))
 }
 
 export const courseService = {
@@ -146,7 +158,8 @@ export const courseService = {
 
       const session = readVilSession()
       const shadowTenantId =
-        tenantId || (typeof session?.user?.user_metadata?.tenant_id === 'string'
+        tenantId ||
+        (typeof session?.user?.user_metadata?.tenant_id === 'string'
           ? session.user.user_metadata.tenant_id
           : '')
 
@@ -157,7 +170,7 @@ export const courseService = {
           method: 'GET',
           shadowMode: 'read',
           primaryBackend: 'vil',
-          shadowBackend: 'supabase',
+          shadowBackend: 'vil',
           requestSignature: { page, limit, search, ids },
           requestId,
           primaryResult: { data: { courses, count: result.count } },
@@ -267,7 +280,7 @@ export const courseService = {
         method: 'GET',
         shadowMode: 'read',
         primaryBackend: 'vil',
-        shadowBackend: 'supabase',
+        shadowBackend: 'vil',
         requestSignature: { courseId },
         requestId,
         primaryResult: { data: result },
@@ -387,11 +400,7 @@ export const courseService = {
     }
 
     const db = getApiClient()
-    const { error } = await db
-      .from('courses')
-      .delete()
-      .eq('id', courseId)
-      .eq('tenant_id', tenantId)
+    const { error } = await db.from('courses').delete().eq('id', courseId).eq('tenant_id', tenantId)
 
     if (error) {
       logDevError('courseService', 'Error deleting course:', error)
@@ -420,7 +429,7 @@ export const courseService = {
         method: 'GET',
         shadowMode: 'read',
         primaryBackend: 'vil',
-        shadowBackend: 'supabase',
+        shadowBackend: 'vil',
         requestSignature: { courseId },
         requestId,
         primaryResult: { data: result },
@@ -487,11 +496,7 @@ export const courseService = {
     }
 
     // Step 2: fetch the profile now that membership is confirmed
-    const { data, error } = await db
-      .from('profiles')
-      .select('full_name')
-      .eq('id', userId)
-      .single()
+    const { data, error } = await db.from('profiles').select('full_name').eq('id', userId).single()
 
     if (error) {
       logDevWarn('courseService', 'Error fetching teacher name:', error.message)

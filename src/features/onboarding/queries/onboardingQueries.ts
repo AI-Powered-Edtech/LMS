@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { createQueryKeys } from '@/shared/lib/queryKeys'
 import { GC, STALE } from '@/utils/queryConstants'
 
@@ -22,7 +22,7 @@ export function useOnboardingProgress(tenantId: string, userId: string) {
   return useQuery({
     queryKey: onboardingKeys.progress(tenantId, userId),
     queryFn: async (): Promise<OnboardingProgress | null> => {
-      const { data } = await supabase
+      const { data } = await db
         .from('onboarding_progress')
         .select('id, tenant_id, user_id, steps_completed, completed_at')
         .eq('tenant_id', tenantId)
@@ -50,7 +50,7 @@ export function useUpdateOnboardingProgress(tenantId: string, userId: string) {
       stepsCompleted: Record<string, boolean>
     }): Promise<OnboardingProgress> => {
       const allDone = Object.values(stepsCompleted).every(Boolean)
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('onboarding_progress')
         .update({
           steps_completed: stepsCompleted,

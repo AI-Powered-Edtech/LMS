@@ -6,7 +6,7 @@
 // RLS di DB memastikan hanya participant yang bisa mengakses.
 // ==========================================================================
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { messageRateLimiter } from '@/utils/rateLimiter'
 
 // ── Types ─────────────────────────────────────────────────────────────────
@@ -53,7 +53,7 @@ type ProfileLookup = Record<string, { full_name?: string; avatar_url?: string | 
 async function fetchProfiles(userIds: string[]): Promise<ProfileLookup> {
   if (userIds.length === 0) return {}
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('profiles')
     .select('id, full_name, avatar_url')
     .in('id', userIds)
@@ -114,7 +114,7 @@ function mapMessageRow(row: Record<string, unknown>, profiles: ProfileLookup): T
  * Diurutkan berdasarkan last_message_at terbaru.
  */
 export async function getThreads(parentId: string): Promise<MessageThread[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('parent_teacher_threads')
     .select(
       'id, tenant_id, parent_id, teacher_id, student_id, subject, last_message_at, parent_unread_count, teacher_unread_count, created_at'
@@ -143,7 +143,7 @@ export async function getThreads(parentId: string): Promise<MessageThread[]> {
  * Mengambil semua pesan dalam sebuah thread, diurutkan dari terlama ke terbaru.
  */
 export async function getMessages(threadId: string): Promise<ThreadMessage[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('parent_teacher_messages')
     .select('id, thread_id, tenant_id, sender_id, content, created_at')
     .eq('thread_id', threadId)
@@ -176,7 +176,7 @@ export async function sendMessage(threadId: string, content: string): Promise<Th
     throw new Error(`Terlalu banyak pesan. Coba lagi dalam ${waitSeconds} detik.`)
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('parent_teacher_messages')
     .insert({
       thread_id: threadId,
@@ -204,7 +204,7 @@ export async function sendMessage(threadId: string, content: string): Promise<Th
  */
 export async function createThread(params: CreateThreadParams): Promise<MessageThread> {
   // Coba upsert — jika sudah ada, kembalikan existing
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('parent_teacher_threads')
     .upsert(
       {
@@ -226,7 +226,7 @@ export async function createThread(params: CreateThreadParams): Promise<MessageT
   if (error) {
     if (import.meta.env.DEV) console.error('[MessageApi] createThread error:', error)
     // Coba fetch thread yang sudah ada
-    const { data: existing, error: fetchError } = await supabase
+    const { data: existing, error: fetchError } = await db
       .from('parent_teacher_threads')
       .select(
         'id, tenant_id, parent_id, teacher_id, student_id, subject, last_message_at, parent_unread_count, teacher_unread_count, created_at'
@@ -261,7 +261,7 @@ export async function createThread(params: CreateThreadParams): Promise<MessageT
 export async function markThreadRead(threadId: string, role: 'parent' | 'teacher'): Promise<void> {
   const field = role === 'parent' ? 'parent_unread_count' : 'teacher_unread_count'
 
-  const { error } = await supabase
+  const { error } = await db
     .from('parent_teacher_threads')
     .update({ [field]: 0 })
     .eq('id', threadId)

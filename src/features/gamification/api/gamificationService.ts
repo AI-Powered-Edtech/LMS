@@ -5,7 +5,7 @@
  * All methods require tenantId for proper multi-tenant isolation.
  */
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type {
   Badge,
@@ -27,7 +27,7 @@ export const gamificationService = {
    * Fetches the current streak for the authenticated user.
    */
   async getUserStreak(userId: string, tenantId: string): Promise<UserStreak | null> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('user_streaks')
       .select('user_id, tenant_id, current_streak, longest_streak, last_activity_date, updated_at')
       .eq('user_id', userId)
@@ -46,7 +46,7 @@ export const gamificationService = {
    * Fetches the badges earned by the authenticated user (v1 compat).
    */
   async getUserBadges(userId: string, tenantId: string): Promise<UserBadge[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('user_badges')
       .select(
         `
@@ -71,7 +71,7 @@ export const gamificationService = {
    * Fetches all available badges (v1 compat).
    */
   async getAllBadges(): Promise<Badge[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('badges')
       .select(
         'id, name, description, icon, xp_reward, condition_type, condition_threshold, tenant_id, created_at'
@@ -93,7 +93,7 @@ export const gamificationService = {
 
   /** Get all badge definitions with earned status for a student */
   async getStudentBadges(userId: string): Promise<BadgeDefinition[]> {
-    const { data, error } = await supabase.rpc('get_student_badges', {
+    const { data, error } = await db.rpc('get_student_badges', {
       p_user_id: userId,
     })
     if (error) {
@@ -105,7 +105,7 @@ export const gamificationService = {
 
   /** Get student certificates */
   async getStudentCertificates(userId: string): Promise<Certificate[]> {
-    const { data, error } = await supabase.rpc('get_student_certificates', {
+    const { data, error } = await db.rpc('get_student_certificates', {
       p_user_id: userId,
     })
     if (error) {
@@ -117,7 +117,7 @@ export const gamificationService = {
 
   /** Teacher issues a certificate */
   async issueCertificate(userId: string, courseId: string) {
-    const { data, error } = await supabase.rpc('issue_certificate', {
+    const { data, error } = await db.rpc('issue_certificate', {
       p_user_id: userId,
       p_course_id: courseId,
     })
@@ -139,7 +139,7 @@ export const gamificationService = {
     tenant_id: string
   }) {
     if (badge.id) {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('badge_definitions')
         .update({
           name: badge.name,
@@ -159,7 +159,7 @@ export const gamificationService = {
       if (error) throw error
       return data
     } else {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('badge_definitions')
         .insert({
           tenant_id: badge.tenant_id,
@@ -183,7 +183,7 @@ export const gamificationService = {
 
   /** Get all badge definitions for teacher management */
   async getBadgeDefinitions(tenantId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('badge_definitions')
       .select(
         'id, tenant_id, name, description, icon_emoji, badge_type, criteria, xp_reward, rarity, is_active, created_at'
@@ -200,7 +200,7 @@ export const gamificationService = {
 
   /** Get student XP profile */
   async getStudentXPProfile(userId: string): Promise<StudentXPProfile | null> {
-    const { data, error } = await supabase.rpc('get_student_xp_profile', {
+    const { data, error } = await db.rpc('get_student_xp_profile', {
       p_user_id: userId,
     })
     if (error) {
@@ -230,7 +230,7 @@ export const gamificationService = {
     period?: LeaderboardPeriod
     limit?: number
   }): Promise<LeaderboardV2Entry[]> {
-    const { data, error } = await supabase.rpc('get_leaderboard_v2', {
+    const { data, error } = await db.rpc('get_leaderboard_v2', {
       p_course_id: params.courseId ?? null,
       p_sort_by: params.sortBy ?? 'xp',
       p_period: params.period ?? 'all_time',

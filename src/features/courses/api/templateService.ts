@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { logDevError } from '@/utils/logDevError'
 
 export interface ContentTemplate {
@@ -17,7 +17,7 @@ export const templateService = {
    * Fetches the templates for a specific type
    */
   async fetchTemplates(type: 'course' | 'module' | 'lesson', tenantId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('content_templates')
       .select('id, type, title, description, content, created_at, created_by, tenant_id')
       .eq('type', type)
@@ -42,7 +42,7 @@ export const templateService = {
     description: string,
     sourceId: string
   ) {
-    const { data, error } = await supabase.rpc('save_content_template', {
+    const { data, error } = await db.rpc('save_content_template', {
       p_type: type,
       p_title: title,
       p_description: description,
@@ -61,7 +61,7 @@ export const templateService = {
    * Imports a template to a specific target
    */
   async importTemplate(templateId: string, targetId: string, order?: number) {
-    const { data, error } = await supabase.rpc('import_content_template', {
+    const { data, error } = await db.rpc('import_content_template', {
       p_template_id: templateId,
       p_target_id: targetId,
       p_order: order,

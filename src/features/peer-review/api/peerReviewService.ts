@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { logDevError } from '@/utils/logDevError'
 
 import type { PeerReview, PeerReviewConfig, PeerReviewConfigInsert } from '../types'
@@ -18,7 +18,7 @@ export const peerReviewService = {
     assignmentId: string,
     tenantId: string
   ): Promise<PeerReviewConfig | null> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('peer_review_config')
       .select(CONFIG_COLUMNS)
       .eq('assignment_id', assignmentId)
@@ -43,7 +43,7 @@ export const peerReviewService = {
     tenantId: string,
     createdBy: string
   ): Promise<PeerReviewConfig> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('peer_review_config')
       .upsert(
         { ...config, tenant_id: tenantId, created_by: createdBy },
@@ -65,7 +65,7 @@ export const peerReviewService = {
    * Returns total number of review assignments created.
    */
   async assignReviews(configId: string): Promise<number> {
-    const { data, error } = await supabase.rpc('assign_peer_reviews', {
+    const { data, error } = await db.rpc('assign_peer_reviews', {
       p_config_id: configId,
     })
 
@@ -82,7 +82,7 @@ export const peerReviewService = {
    * Excludes already submitted reviews. Paginated to 20.
    */
   async getMyReviews(userId: string, tenantId: string): Promise<PeerReview[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('peer_reviews')
       .select(
         'id, config_id, submission_id, status, overall_score, overall_comment, submitted_at, reviewer_id, tenant_id, created_at'
@@ -106,7 +106,7 @@ export const peerReviewService = {
    * Used by teacher summary panel — shows scores and comments.
    */
   async getReviewsBySubmission(submissionId: string, tenantId: string): Promise<PeerReview[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('peer_reviews')
       .select(
         'id, reviewer_id, overall_score, overall_comment, status, submitted_at, config_id, submission_id, tenant_id, created_at'
@@ -134,7 +134,7 @@ export const peerReviewService = {
     comment: string,
     tenantId: string
   ): Promise<PeerReview> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('peer_reviews')
       .update({
         overall_score: score,
@@ -163,7 +163,7 @@ export const peerReviewService = {
     submissionId: string,
     tenantId: string
   ): Promise<{ id: string; submission_text: string | null; file_url: string | null } | null> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('assignment_submissions')
       .select('id, submission_text, file_url')
       .eq('id', submissionId)

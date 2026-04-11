@@ -5,7 +5,7 @@
  * Used by the Admin Quiz Overview dashboard.
  */
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { validateArray } from '@/shared/lib/validate'
 import { QuizRowSchema } from '@/shared/schemas'
 
@@ -41,7 +41,7 @@ export interface AntiCheatAuditEntry {
  * Returns all quizzes in the tenant with aggregated stats.
  */
 export async function getSchoolQuizOverview(tenantId: string): Promise<AdminQuizOverviewItem[]> {
-  const { data: quizzes, error } = await supabase
+  const { data: quizzes, error } = await db
     .from('quizzes')
     .select('id, title, status, created_at, class_id')
     .eq('tenant_id', tenantId)
@@ -60,18 +60,18 @@ export async function getSchoolQuizOverview(tenantId: string): Promise<AdminQuiz
 
   const [{ data: stats }, { data: questions }, { data: classes, error: classesError }] =
     await Promise.all([
-      supabase
+      db
         .from('quiz_stats')
         .select('quiz_id, total_attempts, avg_score, pass_rate')
         .in('quiz_id', quizIds)
         .eq('tenant_id', tenantId),
-      supabase
+      db
         .from('quiz_questions')
         .select('id, quiz_id')
         .in('quiz_id', quizIds)
         .eq('tenant_id', tenantId),
       classIds.length > 0
-        ? supabase
+        ? db
             .from('classes')
             .select('id, name, teacher_id')
             .eq('tenant_id', tenantId)
@@ -87,7 +87,7 @@ export async function getSchoolQuizOverview(tenantId: string): Promise<AdminQuiz
 
   const { data: teachers, error: teacherError } =
     teacherIds.length > 0
-      ? await supabase
+      ? await db
           .from('profiles')
           .select('id, full_name')
           .eq('tenant_id', tenantId)
@@ -140,7 +140,7 @@ export async function getAntiCheatAuditLog(
   tenantId: string,
   limit: number = 50
 ): Promise<AntiCheatAuditEntry[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('quiz_cheating_signals')
     .select('id, attempt_id, signal_type, created_at')
     .order('created_at', { ascending: false })
@@ -154,7 +154,7 @@ export async function getAntiCheatAuditLog(
   if (!data || data.length === 0) return []
 
   const attemptIds = data.map((row) => row.attempt_id)
-  const { data: attempts, error: attemptError } = await supabase
+  const { data: attempts, error: attemptError } = await db
     .from('quiz_attempts_v2')
     .select('id, student_id, quiz_id, tenant_id')
     .eq('tenant_id', tenantId)
@@ -174,14 +174,14 @@ export async function getAntiCheatAuditLog(
   const [{ data: profiles, error: profileError }, { data: quizzes, error: quizError }] =
     await Promise.all([
       studentIds.length > 0
-        ? supabase
+        ? db
             .from('profiles')
             .select('id, full_name')
             .eq('tenant_id', tenantId)
             .in('id', studentIds)
         : Promise.resolve({ data: [], error: null }),
       quizIds.length > 0
-        ? supabase
+        ? db
             .from('quizzes')
             .select('id, title')
             .eq('tenant_id', tenantId)

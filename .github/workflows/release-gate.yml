@@ -40,15 +40,9 @@ jobs:
 
       - name: Unit Tests (CI mode)
         run: pnpm test:ci
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
       - name: Build
         run: pnpm build
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
       - name: Check unused exports
         run: pnpm check:unused
@@ -106,59 +100,44 @@ jobs:
 
       - name: Validate E2E environment
         run: |
-          if [ -z "${VITE_SUPABASE_URL:-}" ] || [ -z "${VITE_SUPABASE_ANON_KEY:-}" ]; then
-            echo "::error::Missing Supabase env vars for E2E gate"
+          if [ -z "${VITE_API_URL:-}" ]; then
+            echo "::error::Missing VITE_API_URL env var for E2E gate"
             exit 1
           fi
-          if [[ "$VITE_SUPABASE_URL" == *"placeholder"* ]] || [ "$VITE_SUPABASE_ANON_KEY" = "placeholder-key" ]; then
-            echo "::error::Placeholder Supabase env vars are not allowed in release gate"
+          if [[ "$VITE_API_URL" == *"localhost"* ]]; then
+            echo "::error::Localhost VITE_API_URL is not allowed in release gate"
             exit 1
           fi
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
       - name: Run E2E Tests (Student role)
         run: pnpm exec playwright test --reporter=line e2e/flows/student-journey.spec.ts e2e/critical-paths/login.spec.ts
         env:
           CI: true
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
       - name: Run E2E Tests (Teacher role)
         run: pnpm exec playwright test --reporter=line e2e/flows/teacher-journey.spec.ts
         env:
           CI: true
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
       - name: Run E2E Tests (Admin role)
         run: pnpm exec playwright test --reporter=line e2e/admin.spec.ts e2e/flows/admin-journey.spec.ts
         env:
           CI: true
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
       - name: Run E2E Tests (Parent role)
         run: pnpm exec playwright test --reporter=line e2e/flows-phase26-30/parent-dashboard.spec.ts e2e/flows-phase26-30/parent-registration.spec.ts
         env:
           CI: true
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
       - name: Run E2E Tests (Principal role)
         run: pnpm exec playwright test --reporter=line e2e/flows-phase26-30/principal-dashboard.spec.ts
         env:
           CI: true
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
       - name: Run Cross-tenant Security Tests
         run: pnpm exec playwright test --reporter=line e2e/security/cross-tenant-admin.spec.ts e2e/security/tenant-isolation.spec.ts e2e/security/parent-data-isolation.spec.ts
         env:
           CI: true
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
@@ -216,23 +195,17 @@ jobs:
 
       - name: Build
         run: pnpm build
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
       - name: Validate Performance environment
         run: |
-          if [ -z "${VITE_SUPABASE_URL:-}" ] || [ -z "${VITE_SUPABASE_ANON_KEY:-}" ]; then
-            echo "::error::Missing Supabase env vars for performance gate"
+          if [ -z "${VITE_API_URL:-}" ]; then
+            echo "::error::Missing VITE_API_URL env var for performance gate"
             exit 1
           fi
-          if [[ "$VITE_SUPABASE_URL" == *"placeholder"* ]] || [ "$VITE_SUPABASE_ANON_KEY" = "placeholder-key" ]; then
-            echo "::error::Placeholder Supabase env vars are not allowed in performance gate"
+          if [[ "$VITE_API_URL" == *"localhost"* ]]; then
+            echo "::error::Localhost VITE_API_URL is not allowed in performance gate"
             exit 1
           fi
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
       - name: Start preview server
         run: pnpm preview -- --host 0.0.0.0 --port 4173 &
@@ -296,9 +269,9 @@ jobs:
 
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             git fetch --depth=1 origin "${{ github.base_ref }}"
-            mapfile -t SQL_FILES < <(git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -E '^supabase/migrations/.*\.sql$' || true)
+            mapfile -t SQL_FILES < <(git diff --name-only "origin/${{ github.base_ref }}...HEAD" | grep -E '^edusync-api/migrations/.*\.sql$' || true)
           else
-            mapfile -t SQL_FILES < <(git diff --name-only HEAD~1 HEAD | grep -E '^supabase/migrations/.*\.sql$' || true)
+            mapfile -t SQL_FILES < <(git diff --name-only HEAD~1 HEAD | grep -E '^edusync-api/migrations/.*\.sql$' || true)
           fi
 
           if [ "${#SQL_FILES[@]}" -eq 0 ]; then

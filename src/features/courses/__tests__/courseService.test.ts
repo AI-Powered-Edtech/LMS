@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { courseService } from '../api/courseService'
 
-// Mock supabase
+// Mock db
 const {
   mockRange,
   mockLimit,
@@ -31,8 +31,8 @@ const {
   mockFrom: vi.fn(),
 }))
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: (table: string) => {
       mockFrom(table)
       return {

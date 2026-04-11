@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -32,7 +32,7 @@ interface AddAnnotationInput {
  * RLS memastikan hanya teacher/admin tenant yang bisa mengakses.
  */
 export async function fetchAnnotations(submissionId: string): Promise<SubmissionAnnotation[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('submission_annotations')
     .select(
       'id, tenant_id, submission_id, annotator_id, x_percent, y_percent, content, color, created_at, updated_at'
@@ -53,10 +53,10 @@ export async function fetchAnnotations(submissionId: string): Promise<Submission
  * annotator_id diisi otomatis dari auth.uid().
  */
 export async function addAnnotation(input: AddAnnotationInput): Promise<SubmissionAnnotation> {
-  const { data: userData, error: userError } = await supabase.auth.getUser()
+  const { data: userData, error: userError } = await db.auth.getUser()
   if (userError || !userData.user) throw new Error('Pengguna tidak terautentikasi')
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('submission_annotations')
     .insert({
       submission_id: input.submission_id,
@@ -82,7 +82,7 @@ export async function addAnnotation(input: AddAnnotationInput): Promise<Submissi
  * Memperbarui teks konten anotasi yang sudah ada.
  */
 export async function updateAnnotation(id: string, content: string): Promise<SubmissionAnnotation> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('submission_annotations')
     .update({ content, updated_at: new Date().toISOString() })
     .eq('id', id)
@@ -102,7 +102,7 @@ export async function updateAnnotation(id: string, content: string): Promise<Sub
  * Menghapus anotasi berdasarkan ID.
  */
 export async function deleteAnnotation(id: string): Promise<void> {
-  const { error } = await supabase.from('submission_annotations').delete().eq('id', id)
+  const { error } = await db.from('submission_annotations').delete().eq('id', id)
 
   if (error) throw error
 }

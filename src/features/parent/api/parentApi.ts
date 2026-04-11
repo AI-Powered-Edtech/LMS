@@ -6,7 +6,7 @@
 // RLS di DB memastikan orang tua hanya bisa melihat data anak mereka sendiri.
 // ==========================================================================
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type {
   AttendanceDay,
@@ -24,7 +24,7 @@ import type {
  * dengan orang tua yang sedang login.
  */
 export async function getMyChildren(): Promise<ChildInfo[]> {
-  const { data, error } = await supabase.rpc('get_my_children')
+  const { data, error } = await db.rpc('get_my_children')
 
   if (error) {
     if (import.meta.env.DEV) console.error('[Parent] get_my_children error:', error)
@@ -46,7 +46,7 @@ export async function getParentDashboardSnapshot(
   tenantId: string,
   parentId: string
 ): Promise<ChildDashboardData[]> {
-  const { data, error } = await supabase.rpc('get_parent_dashboard_snapshot', {
+  const { data, error } = await db.rpc('get_parent_dashboard_snapshot', {
     p_tenant_id: tenantId,
     p_parent_id: parentId,
   })
@@ -78,7 +78,7 @@ export async function getParentDashboardSnapshot(
  * Dikelompokkan per mata pelajaran (course), ambil 2 nilai terakhir untuk tren.
  */
 export async function getChildGrades(studentId: string): Promise<ChildGradeSummary[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('gradebook_entries')
     .select('score, max_score, created_at, course_id')
     .eq('student_id', studentId)
@@ -97,7 +97,7 @@ export async function getChildGrades(studentId: string): Promise<ChildGradeSumma
     .filter(Boolean) as string[]
   const { data: courses, error: courseError } =
     courseIds.length > 0
-      ? await supabase.from('courses').select('id, title').in('id', courseIds)
+      ? await db.from('courses').select('id, title').in('id', courseIds)
       : { data: [], error: null }
 
   if (courseError) {
@@ -166,7 +166,7 @@ export async function getMonthlyAttendance(
   const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0]
   const endDate = new Date(year, month, 0).toISOString().split('T')[0]
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('attendance_records')
     .select('date, status')
     .eq('student_id', studentId)
@@ -208,7 +208,7 @@ export async function getChildAttendance(
   const endStr = endDate.toISOString().split('T')[0]
 
   // attendance_records tidak memiliki kolom student_id — harus join via enrollment_id
-  const { data: enrollments } = await supabase
+  const { data: enrollments } = await db
     .from('enrollments')
     .select('id')
     .eq('student_id', studentId)
@@ -220,7 +220,7 @@ export async function getChildAttendance(
     return generateWeekSlots(weekStart)
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('attendance_records')
     .select('date, status')
     .in('enrollment_id', enrollmentIds)
@@ -288,7 +288,7 @@ export async function getChildPendingAssignments(
 
   // Ambil semua assignment published untuk enrollment siswa ini.
   // Menggunakan kolom student_id sesuai dengan skema enrollments.
-  const { data: enrollments, error: eErr } = await supabase
+  const { data: enrollments, error: eErr } = await db
     .from('enrollments')
     .select('course_id')
     .eq('student_id', studentId)
@@ -298,7 +298,7 @@ export async function getChildPendingAssignments(
 
   const courseIds = enrollments.map((e: Record<string, unknown>) => e.course_id as string)
 
-  const { data: assignments, error: aErr } = await supabase
+  const { data: assignments, error: aErr } = await db
     .from('assignments')
     .select('id, title, due_date, course_id')
     .eq('tenant_id', tenantId)
@@ -314,7 +314,7 @@ export async function getChildPendingAssignments(
     .filter(Boolean) as string[]
   const { data: courses, error: courseError } =
     assignmentCourseIds.length > 0
-      ? await supabase
+      ? await db
           .from('courses')
           .select('id, title')
           .eq('tenant_id', tenantId)
@@ -335,7 +335,7 @@ export async function getChildPendingAssignments(
   // Ambil submission yang sudah ada dari siswa ini
   const assignmentIds = (assignments as Record<string, unknown>[]).map((a) => a.id as string)
 
-  const { data: submissions, error: sErr } = await supabase
+  const { data: submissions, error: sErr } = await db
     .from('assignment_submissions')
     .select('assignment_id')
     .eq('student_id', studentId)
@@ -382,7 +382,7 @@ export async function getChildAchievements(studentId: string): Promise<string[]>
   since.setDate(since.getDate() - 7)
 
   // Coba ambil dari activity_events — badge awarded / XP gained
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('activity_events')
     .select('event_type, metadata, created_at')
     .eq('user_id', studentId)

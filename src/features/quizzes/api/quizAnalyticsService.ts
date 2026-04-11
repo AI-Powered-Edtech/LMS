@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { logDevError } from '@/utils/logDevError'
 
 // --- Types ---
@@ -92,7 +92,7 @@ export const quizAnalyticsService = {
    * Shows student's selected option vs correct option per question.
    */
   async getAttemptDetail(attemptId: string): Promise<AttemptDetailAnswer[]> {
-    const { data, error } = await supabase.rpc('get_attempt_detail', {
+    const { data, error } = await db.rpc('get_attempt_detail', {
       p_attempt_id: attemptId,
     })
 
@@ -109,7 +109,7 @@ export const quizAnalyticsService = {
    * Returns percentage of students who answered each question correctly.
    */
   async getQuestionDifficulty(assignmentId: string): Promise<QuestionDifficulty[]> {
-    const { data, error } = await supabase.rpc('get_question_difficulty', {
+    const { data, error } = await db.rpc('get_question_difficulty', {
       p_assignment_id: assignmentId,
     })
 
@@ -125,7 +125,7 @@ export const quizAnalyticsService = {
    * Fetch quiz stats from the precomputed quiz_stats table.
    */
   async getQuizStats(quizId: string, tenantId?: string): Promise<QuizStats | null> {
-    let query = supabase
+    let query = db
       .from('quiz_stats')
       .select(
         'quiz_id, tenant_id, total_attempts, total_unique_students, avg_score, median_score, highest_score, lowest_score, avg_time_seconds, pass_rate, updated_at'
@@ -217,7 +217,7 @@ export const quizAnalyticsService = {
    * Polling-based — call every 10 seconds.
    */
   async getLiveStatus(assignmentId: string, tenantId: string): Promise<QuizLiveStatus[]> {
-    const { data, error } = await supabase.rpc('get_quiz_live_status', {
+    const { data, error } = await db.rpc('get_quiz_live_status', {
       p_assignment_id: assignmentId,
       p_tenant_id: tenantId,
     })
@@ -236,7 +236,7 @@ export const quizAnalyticsService = {
  */
 export async function getQuestionStats(quizId: string): Promise<QuestionStatsWithQuestion[]> {
   // Get question stats
-  const { data: stats, error } = await supabase
+  const { data: stats, error } = await db
     .from('question_stats')
     .select(
       'id, question_id, quiz_id, tenant_id, total_answers, correct_answers, difficulty_rate, avg_time_seconds, updated_at'
@@ -255,7 +255,7 @@ export async function getQuestionStats(quizId: string): Promise<QuestionStatsWit
 
   // Get question text and order for display
   const questionIds = stats.map((s) => s.question_id)
-  const { data: questions, error: questionError } = await supabase
+  const { data: questions, error: questionError } = await db
     .from('quiz_questions')
     .select('id, text, "order"')
     .in('id', questionIds)

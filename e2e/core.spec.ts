@@ -101,7 +101,7 @@ test.describe('Core — Application Shell', () => {
   test('no broken JS bundle imports', async ({ page }) => {
     const failedJS: string[] = [];
     page.on('requestfailed', (req) => {
-      if (req.url().includes('.js') && !req.url().includes('supabase')) {
+      if (req.url().includes('.js') && !req.url().includes('db')) {
         failedJS.push(req.url());
       }
     });

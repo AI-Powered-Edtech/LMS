@@ -2,7 +2,7 @@
 // Tenant-aware, rollout-percentage feature flag system backed by Supabase
 
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 export interface FeatureFlag {
   flag_name: string
@@ -26,7 +26,7 @@ export async function loadFeatureFlags(): Promise<void> {
   // is a per-flag allowlist — not per-tenant rows. Tenant isolation is enforced
   // in isFeatureEnabled() by checking flag.tenant_ids.includes(tenantId).
   // RLS on the feature_flags table enforces this server-side.
-  const { data } = await supabase
+  const { data } = await db
     .from('feature_flags')
     .select('flag_name, enabled, tenant_ids, rollout_percentage')
 
@@ -104,7 +104,7 @@ export async function updateFeatureFlag(
   flagName: string,
   updates: Partial<Omit<FeatureFlag, 'flag_name'>>
 ): Promise<void> {
-  await supabase.from('feature_flags').update(updates).eq('flag_name', flagName)
+  await db.from('feature_flags').update(updates).eq('flag_name', flagName)
 
   // Invalidate so the next read refreshes from DB
   invalidateFlagCache()

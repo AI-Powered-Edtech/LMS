@@ -217,9 +217,9 @@ export function ScormPlayer({
         bridge.attach(window)
         bridgeRef.current = bridge
 
-        // 5. Build iframe URL from Supabase Storage
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-        const contentUrl = `${supabaseUrl}/storage/v1/object/public/scorm-packages/${pkg.storage_path}/${pkg.entry_point}`
+        // 5. Build iframe URL from VIL Storage
+        const vilApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+        const contentUrl = `${vilApiUrl}/storage/scorm-packages/${pkg.storage_path}/${pkg.entry_point}`
         setIframeUrl(contentUrl)
 
         // Check if already completed

@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { logDevError } from '@/utils/logDevError'
 
 import type { Rubric, RubricInsert, RubricScore, RubricTemplateSummary } from '../types'
@@ -11,7 +11,7 @@ export const rubricService = {
    * Returns null if no rubric has been attached to this assignment.
    */
   async getRubricByAssignment(assignmentId: string, tenantId: string): Promise<Rubric | null> {
-    const { data: rubricRow, error: findError } = await supabase
+    const { data: rubricRow, error: findError } = await db
       .from('rubrics')
       .select('id')
       .eq('assignment_id', assignmentId)
@@ -25,7 +25,7 @@ export const rubricService = {
 
     if (!rubricRow) return null
 
-    const { data, error } = await supabase.rpc('get_rubric_with_criteria', {
+    const { data, error } = await db.rpc('get_rubric_with_criteria', {
       p_rubric_id: rubricRow.id,
     })
 
@@ -42,7 +42,7 @@ export const rubricService = {
    * Explicit columns only — no SELECT *.
    */
   async getRubricTemplates(tenantId: string): Promise<RubricTemplateSummary[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('rubrics')
       .select('id, title, description, total_points, created_at')
       .eq('is_template', true)
@@ -63,7 +63,7 @@ export const rubricService = {
    * Returns the rubric UUID.
    */
   async saveRubric(rubric: RubricInsert & { id?: string }): Promise<string> {
-    const { data, error } = await supabase.rpc('save_rubric', {
+    const { data, error } = await db.rpc('save_rubric', {
       p_rubric: rubric as unknown as Record<string, unknown>,
     })
 
@@ -79,7 +79,7 @@ export const rubricService = {
    * Bulk-upsert rubric scores for a submission (one row per criterion).
    */
   async scoreSubmission(submissionId: string, scores: RubricScore[]): Promise<void> {
-    const { error } = await supabase.rpc('score_submission_rubric', {
+    const { error } = await db.rpc('score_submission_rubric', {
       p_submission_id: submissionId,
       p_scores: scores as unknown as Record<string, unknown>[],
     })
@@ -95,7 +95,7 @@ export const rubricService = {
    * Tenant isolation is enforced via RLS + explicit tenant_id filter.
    */
   async getRubricScores(submissionId: string, tenantId: string): Promise<RubricScore[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('rubric_scores')
       .select(RUBRIC_SCORE_COLUMNS)
       .eq('submission_id', submissionId)
@@ -113,7 +113,7 @@ export const rubricService = {
    * Delete a rubric by ID (cascades to criteria, levels, and scores via DB).
    */
   async deleteRubric(rubricId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('rubrics')
       .delete()
       .eq('id', rubricId)
@@ -130,7 +130,7 @@ export const rubricService = {
    * Used by template import to get full rubric data.
    */
   async getRubricById(rubricId: string): Promise<Rubric | null> {
-    const { data, error } = await supabase.rpc('get_rubric_with_criteria', {
+    const { data, error } = await db.rpc('get_rubric_with_criteria', {
       p_rubric_id: rubricId,
     })
 

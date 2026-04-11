@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { validate } from '@/shared/lib/validate'
 import { DiscussionPostRowSchema } from '@/shared/schemas'
 
@@ -28,7 +28,7 @@ export const commentService = {
     authorId: string,
     text: string
   ): Promise<{ id: string; created_at: string }> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('discussion_posts')
       .insert({
         thread_id: threadId,

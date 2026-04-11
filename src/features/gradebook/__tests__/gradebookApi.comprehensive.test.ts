@@ -24,8 +24,8 @@ function makeChain(resolveWith: { data: unknown; error: unknown }) {
   return chain
 }
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: (...args: unknown[]) => mockFrom(...args),
     rpc: (...args: unknown[]) => mockRpc(...args),
     auth: { getUser: () => mockGetUser() },

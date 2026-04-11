@@ -5,7 +5,7 @@
 // Extracted from quizPlayer.service.ts for modularity.
 // ==========================================================================
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { logDevError } from '@/utils/logDevError'
 
 import type { QuizAttemptQuestion, SubmitAnswer } from '../types/quizzes.types'
@@ -18,7 +18,7 @@ export async function recordCheatingSignal(
   signalType: string,
   metadata: Record<string, unknown> = {}
 ): Promise<void> {
-  const { error } = await supabase.rpc('record_cheating_signal', {
+  const { error } = await db.rpc('record_cheating_signal', {
     p_attempt_id: attemptId,
     p_signal_type: signalType,
     p_metadata: metadata,
@@ -33,7 +33,7 @@ export async function recordCheatingSignal(
  * Record a heartbeat to indicate the quiz is still in progress
  */
 export async function recordHeartbeat(attemptId: string): Promise<boolean> {
-  const { data, error } = await supabase.rpc('record_quiz_heartbeat', {
+  const { data, error } = await db.rpc('record_quiz_heartbeat', {
     p_attempt_id: attemptId,
   })
 

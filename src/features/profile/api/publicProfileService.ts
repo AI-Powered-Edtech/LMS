@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 export interface PublicProfileStats {
   total_xp: number
@@ -33,7 +33,7 @@ export interface PublicProfileData {
 
 export const publicProfileService = {
   async getPublicProfile(userId: string): Promise<PublicProfileData | null> {
-    const { data, error } = await supabase.rpc('get_public_profile', {
+    const { data, error } = await db.rpc('get_public_profile', {
       p_user_id: userId,
     })
     if (error) throw error
@@ -41,7 +41,7 @@ export const publicProfileService = {
   },
 
   async getProfileByUsername(username: string): Promise<{ id: string } | null> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('profiles')
       .select('id')
       .ilike('username', username)
@@ -51,14 +51,14 @@ export const publicProfileService = {
   },
 
   async updatePrivacy(isPublic: boolean): Promise<void> {
-    const { error } = await supabase.rpc('update_profile_privacy', {
+    const { error } = await db.rpc('update_profile_privacy', {
       p_is_public: isPublic,
     })
     if (error) throw error
   },
 
   async updateUsername(userId: string, username: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('profiles')
       .update({ username: username.trim() || null, updated_at: new Date().toISOString() })
       .eq('id', userId)
@@ -66,7 +66,7 @@ export const publicProfileService = {
   },
 
   async updateBio(userId: string, bio: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('profiles')
       .update({ bio: bio.trim(), updated_at: new Date().toISOString() })
       .eq('id', userId)
@@ -80,7 +80,7 @@ export const publicProfileService = {
   async updateProfileName(userId: string, fullName: string): Promise<void> {
     const [firstName, ...rest] = fullName.trim().split(' ')
     const lastName = rest.join(' ')
-    const { error } = await supabase
+    const { error } = await db
       .from('profiles')
       .update({
         first_name: firstName,

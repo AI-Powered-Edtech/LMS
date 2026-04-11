@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type {
   CreateLtiPlatformParams,
@@ -16,7 +16,7 @@ const COLUMNS =
 export const ltiService = {
   /** Fetch all LTI platform registrations for the current tenant */
   async fetchPlatforms(tenantId: string): Promise<LtiPlatformRegistration[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('lti_platform_registrations')
       .select(COLUMNS)
       .eq('tenant_id', tenantId)
@@ -28,7 +28,7 @@ export const ltiService = {
 
   /** Fetch a single LTI platform registration */
   async fetchPlatform(id: string, tenantId: string): Promise<LtiPlatformRegistration | null> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('lti_platform_registrations')
       .select(COLUMNS)
       .eq('id', id)
@@ -41,7 +41,7 @@ export const ltiService = {
 
   /** Create a new LTI platform registration */
   async createPlatform(params: CreateLtiPlatformParams): Promise<LtiPlatformRegistration> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('lti_platform_registrations')
       .insert({
         name: params.name,
@@ -66,7 +66,7 @@ export const ltiService = {
     tenantId: string
   ): Promise<LtiPlatformRegistration> {
     const { id, ...updates } = params
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('lti_platform_registrations')
       .update(updates)
       .eq('id', id)
@@ -80,7 +80,7 @@ export const ltiService = {
 
   /** Delete an LTI platform registration */
   async deletePlatform(id: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('lti_platform_registrations')
       .delete()
       .eq('id', id)
@@ -91,7 +91,7 @@ export const ltiService = {
 
   /** Toggle is_active flag */
   async togglePlatform(id: string, isActive: boolean, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('lti_platform_registrations')
       .update({ is_active: isActive })
       .eq('id', id)

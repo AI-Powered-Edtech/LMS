@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { VideoAsset } from '../types'
 
@@ -7,7 +7,7 @@ const VIDEO_ASSET_COLUMNS =
 
 export const videoAssetService = {
   async getByBlockId(blockId: string, tenantId: string): Promise<VideoAsset | null> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('video_assets')
       .select(VIDEO_ASSET_COLUMNS)
       .eq('block_id', blockId)
@@ -19,7 +19,7 @@ export const videoAssetService = {
   },
 
   async getByLessonId(lessonId: string, tenantId: string): Promise<VideoAsset[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('video_assets')
       .select(VIDEO_ASSET_COLUMNS)
       .eq('lesson_id', lessonId)
@@ -31,7 +31,7 @@ export const videoAssetService = {
   },
 
   async createAsset(asset: Partial<VideoAsset>): Promise<VideoAsset> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('video_assets')
       .insert({
         lesson_id: asset.lesson_id ?? null,
@@ -53,7 +53,7 @@ export const videoAssetService = {
     status: string,
     extra?: Partial<VideoAsset>
   ): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('video_assets')
       .update({ status, ...extra, updated_at: new Date().toISOString() })
       .eq('id', assetId)
@@ -61,7 +61,7 @@ export const videoAssetService = {
   },
 
   async deleteAsset(assetId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('video_assets')
       .update({ status: 'deleted' })
       .eq('id', assetId)

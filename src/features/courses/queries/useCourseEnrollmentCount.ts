@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import { courseKeys } from './courseKeys'
 
@@ -17,7 +17,7 @@ export function useCourseEnrollmentCount(courseId: string | null) {
     queryFn: async () => {
       if (!courseId || !tenantId) return 0
 
-      const { count, error } = await supabase
+      const { count, error } = await db
         .from('course_classes')
         .select('id', { count: 'exact', head: true })
         .eq('course_id', courseId)

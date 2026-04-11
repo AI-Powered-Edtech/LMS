@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { logDevError } from '@/utils/logDevError'
 
 export interface CourseVersion {
@@ -52,7 +52,7 @@ export const versionService = {
    * Fetches the version history for a course without the heavy snapshot data.
    */
   async fetchCourseVersions(courseId: string, tenantId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('course_versions')
       .select('id, course_id, version_number, commit_message, created_at, created_by, tenant_id')
       .eq('course_id', courseId)
@@ -71,7 +71,7 @@ export const versionService = {
    * Saves a new version (checkpoint) of a course.
    */
   async saveCourseVersion(courseId: string, commitMessage: string) {
-    const { data, error } = await supabase.rpc('save_course_version', {
+    const { data, error } = await db.rpc('save_course_version', {
       p_course_id: courseId,
       p_message: commitMessage,
     })
@@ -88,7 +88,7 @@ export const versionService = {
    * Restores a course to a specific version.
    */
   async restoreCourseVersion(versionId: string) {
-    const { data, error } = await supabase.rpc('restore_course_version', {
+    const { data, error } = await db.rpc('restore_course_version', {
       p_version_id: versionId,
     })
 
@@ -108,7 +108,7 @@ export const versionService = {
     versionId: string,
     tenantId: string
   ): Promise<VersionSnapshotModule[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('course_versions')
       .select('snapshot')
       .eq('id', versionId)

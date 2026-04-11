@@ -46,17 +46,11 @@ jobs:
 
       - name: Copy environment file
         run: cp .env.example .env.local 2>/dev/null || true
-        # E2E harus bisa jalan tanpa Supabase credentials untuk unauthenticated tests
-        # Authenticated tests akan di-skip otomatis jika env tidak ada
 
       - name: Run E2E tests
         run: pnpm exec playwright test --reporter=github
         env:
           CI: true
-          # Supabase credentials harus dikonfigurasi sebagai GitHub Secrets
-          # Tanpa ini, authenticated tests akan skip (bukan fail)
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4

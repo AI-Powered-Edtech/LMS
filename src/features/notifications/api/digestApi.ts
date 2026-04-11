@@ -5,7 +5,7 @@
 // API functions untuk parent_digest_settings.
 // ==========================================================================
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { readVilSession } from '@/services/auth/vilSession'
 
 // ── Types ─────────────────────────────────────────────────────────────────
@@ -36,7 +36,7 @@ export interface DigestSettingsUpdate {
  * Mengembalikan null jika belum ada pengaturan (belum pernah disimpan).
  */
 export async function getDigestSettings(parentId: string): Promise<DigestSettings | null> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('parent_digest_settings')
     .select('*')
     .eq('parent_id', parentId)
@@ -61,7 +61,7 @@ export async function updateDigestSettings(
   tenantId: string,
   updates: DigestSettingsUpdate
 ): Promise<DigestSettings> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('parent_digest_settings')
     .upsert(
       {

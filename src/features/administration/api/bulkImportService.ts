@@ -1,5 +1,5 @@
 import { readVilSession } from '@/services/auth/vilSession'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 export interface BulkImportRow {
   email: string
@@ -45,10 +45,10 @@ export interface BulkImportJobRow {
 export async function createImportJob(tenantId: string): Promise<string> {
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await db.auth.getUser()
   if (!user) throw new Error('User tidak ditemukan')
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('bulk_import_jobs')
     .insert({
       tenant_id: tenantId,
@@ -89,7 +89,7 @@ export async function runBulkImport(
 }
 
 export async function getImportJobStatus(importJobId: string): Promise<BulkImportJobStatus> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('bulk_import_jobs')
     .select('id, status, total_rows, success_rows, failed_rows')
     .eq('id', importJobId)
@@ -100,7 +100,7 @@ export async function getImportJobStatus(importJobId: string): Promise<BulkImpor
 }
 
 export async function getImportJobRows(importJobId: string): Promise<BulkImportJobRow[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('bulk_import_job_rows')
     .select('row_number, email, full_name, role, nis, nomor_hp, status, error_reason')
     .eq('job_id', importJobId)

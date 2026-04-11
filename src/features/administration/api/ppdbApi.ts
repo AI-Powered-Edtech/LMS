@@ -5,7 +5,7 @@
  * Tenant isolation dilakukan via RLS policy + auto_set_tenant_id trigger.
  */
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type {
   PPDBPeriod,
@@ -24,10 +24,10 @@ import type {
 async function getMyTenantId(): Promise<string | null> {
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await db.auth.getUser()
   if (!user) return null
 
-  const { data } = await supabase.from('profiles').select('tenant_id').eq('id', user.id).single()
+  const { data } = await db.from('profiles').select('tenant_id').eq('id', user.id).single()
 
   return data?.tenant_id ?? null
 }
@@ -38,7 +38,7 @@ async function getMyTenantId(): Promise<string | null> {
 
 /** Ambil semua periode PPDB tenant */
 export async function fetchPPDBPeriods(): Promise<PPDBPeriod[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('ppdb_periods')
     .select('*')
     .order('created_at', { ascending: false })
@@ -56,7 +56,7 @@ export async function createPPDBPeriod(input: PPDBPeriodInput): Promise<PPDBPeri
   const tenantId = await getMyTenantId()
   if (!tenantId) throw new Error('Tidak dapat menentukan tenant')
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('ppdb_periods')
     .insert({
       tenant_id: tenantId,
@@ -79,7 +79,7 @@ export async function updatePeriodStatus(
   periodId: string,
   status: PPDBPeriodStatus
 ): Promise<void> {
-  const { error } = await supabase.from('ppdb_periods').update({ status }).eq('id', periodId)
+  const { error } = await db.from('ppdb_periods').update({ status }).eq('id', periodId)
 
   if (error) throw new Error(error.message)
 }
@@ -89,7 +89,7 @@ export async function updatePPDBPeriod(
   periodId: string,
   input: Partial<PPDBPeriodInput>
 ): Promise<void> {
-  const { error } = await supabase.from('ppdb_periods').update(input).eq('id', periodId)
+  const { error } = await db.from('ppdb_periods').update(input).eq('id', periodId)
 
   if (error) throw new Error(error.message)
 }
@@ -106,7 +106,7 @@ export async function fetchRegistrations(
   const from = (filter.page - 1) * filter.pageSize
   const to = from + filter.pageSize - 1
 
-  let query = supabase
+  let query = db
     .from('ppdb_registrations')
     .select('*', { count: 'exact' })
     .eq('period_id', periodId)
@@ -135,13 +135,13 @@ export async function fetchRegistrations(
 
 /** Ambil ringkasan statistik pendaftar */
 export async function fetchPPDBSummary(periodId: string): Promise<PPDBSummary> {
-  const { data: period } = await supabase
+  const { data: period } = await db
     .from('ppdb_periods')
     .select('quota')
     .eq('id', periodId)
     .single()
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('ppdb_registrations')
     .select('status')
     .eq('period_id', periodId)
@@ -179,7 +179,7 @@ export async function updateRegistrationStatus(
 ): Promise<void> {
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await db.auth.getUser()
 
   const updatePayload: Record<string, unknown> = {
     status,
@@ -190,7 +190,7 @@ export async function updateRegistrationStatus(
     updatePayload.notes = notes
   }
 
-  const { error } = await supabase
+  const { error } = await db
     .from('ppdb_registrations')
     .update(updatePayload)
     .eq('id', registrationId)
@@ -205,9 +205,9 @@ export async function bulkUpdateRegistrationStatus(
 ): Promise<void> {
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await db.auth.getUser()
 
-  const { error } = await supabase
+  const { error } = await db
     .from('ppdb_registrations')
     .update({
       status,
@@ -237,7 +237,7 @@ export async function createRegistration(
   if (!tenantId) throw new Error('Tidak dapat menentukan tenant')
 
   // Generate registration number
-  const { count } = await supabase
+  const { count } = await db
     .from('ppdb_registrations')
     .select('id', { count: 'exact', head: true })
     .eq('period_id', periodId)
@@ -246,7 +246,7 @@ export async function createRegistration(
   const seq = String((count ?? 0) + 1).padStart(4, '0')
   const registrationNumber = `PPDB-${year}-${seq}`
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('ppdb_registrations')
     .insert({
       tenant_id: tenantId,

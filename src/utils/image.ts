@@ -17,7 +17,7 @@ interface SupabaseTransformOptions {
  * @param options - Transformation options
  */
 export function getOptimizedImageUrl(url: string, options: SupabaseTransformOptions = {}): string {
-  if (!url || !url.includes('.supabase.co/storage/v1/object/public/')) {
+  if (!url || !url.includes('.db.co/storage/v1/object/public/')) {
     return url
   }
 

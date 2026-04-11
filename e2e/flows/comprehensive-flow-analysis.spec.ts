@@ -86,19 +86,19 @@ test.describe('Teacher — Comprehensive Course Creation Flow', () => {
     await expect(page.locator('text=/Terbit|Published/i')).toBeVisible({ timeout: 10000 })
 
     // VERIFIKASI DATABASE: Pastikan course benar-benar diterbitkan di database
-    const supabase = page.evaluate(() => {
-      return window.supabase
+    const db = page.evaluate(() => {
+      return window.db
     }) as any
 
-    if (supabase) {
+    if (db) {
       // Dapatkan data teacher untuk mendapatkan user ID
       const {
         data: { session },
-      } = await supabase.auth.getSession()
+      } = await db.auth.getSession()
       const teacherId = session?.user?.id
 
       // Query course yang baru dibuat (dengan timestamp terbaru)
-      const { data: courses, error } = await supabase
+      const { data: courses, error } = await db
         .from('courses')
         .select('id, title, course_status, created_by')
         .eq('created_by', teacherId)

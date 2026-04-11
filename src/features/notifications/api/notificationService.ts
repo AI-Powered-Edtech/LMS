@@ -3,7 +3,7 @@
  * All functions accept tenantId for defense-in-depth tenant isolation
  */
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { Notification } from '../types'
 
@@ -14,7 +14,7 @@ export async function fetchNotifications(
   userId: string,
   tenantId: string
 ): Promise<Notification[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('notifications')
     .select(
       `
@@ -42,7 +42,7 @@ export async function fetchNotifications(
  * Mark a single notification as read with tenant verification
  */
 export async function markAsRead(id: string, tenantId: string): Promise<void> {
-  const { error } = await supabase
+  const { error } = await db
     .from('notifications')
     .update({ is_read: true })
     .eq('id', id)
@@ -58,7 +58,7 @@ export async function markAsRead(id: string, tenantId: string): Promise<void> {
  * Mark all notifications as read with tenant verification
  */
 export async function markAllAsRead(userId: string, tenantId: string): Promise<void> {
-  const { error } = await supabase
+  const { error } = await db
     .from('notifications')
     .update({ is_read: true })
     .eq('tenant_id', tenantId)
@@ -84,7 +84,7 @@ export async function sendNotification(
   type: string = 'system',
   tenantId: string
 ): Promise<void> {
-  const { error } = await supabase.rpc('create_notification', {
+  const { error } = await db.rpc('create_notification', {
     p_user_id: userId,
     p_tenant_id: tenantId,
     p_title: title,

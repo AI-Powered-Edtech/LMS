@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 import { getRealtimeProvider } from '@/services/realtime'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { logDevError } from '@/utils/logDevError'
 
 // ============================================================
@@ -148,7 +148,7 @@ async function fetchProfiles(
 ): Promise<Map<string, { full_name: string | null; avatar_url: string | null; first_name?: string | null; last_name?: string | null }>> {
   if (userIds.length === 0) return new Map()
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('profiles')
     .select('id, full_name, avatar_url, first_name, last_name')
     .eq('tenant_id', tenantId)
@@ -226,7 +226,7 @@ export const groupAssignmentService = {
    */
   async getEligibleStudents(assignmentId: string, tenantId: string): Promise<EligibleStudent[]> {
     // 1. Get class_id from the assignment — scoped to tenant
-    const { data: assignment, error: asgErr } = await supabase
+    const { data: assignment, error: asgErr } = await db
       .from('assignments')
       .select('class_id')
       .eq('id', assignmentId)
@@ -239,7 +239,7 @@ export const groupAssignmentService = {
     }
 
     // 2. Get enrolled students for the class — scoped to tenant
-    const { data: enrolled, error: enrollErr } = await supabase
+    const { data: enrolled, error: enrollErr } = await db
       .from('enrollments')
       .select('student_id')
       .eq('class_id', assignment.class_id)
@@ -257,7 +257,7 @@ export const groupAssignmentService = {
     const profileMap = await fetchProfiles(studentIds, tenantId)
 
     // 3. Get already-assigned member user_ids for this assignment
-    const { data: groups, error: groupError } = await supabase
+    const { data: groups, error: groupError } = await db
       .from('assignment_groups')
       .select('id')
       .eq('assignment_id', assignmentId)
@@ -271,7 +271,7 @@ export const groupAssignmentService = {
     const groupIds = (groups ?? []).map((group) => group.id)
     const { data: existingMembers, error: memberError } =
       groupIds.length > 0
-        ? await supabase
+        ? await db
             .from('assignment_group_members')
             .select('user_id')
             .eq('tenant_id', tenantId)
@@ -301,7 +301,7 @@ export const groupAssignmentService = {
    * Returns the group, members, and submission for the calling student.
    */
   async getStudentGroup(userId: string, assignmentId: string): Promise<StudentGroupData | null> {
-    const { data, error } = await supabase.rpc('get_student_group_assignment', {
+    const { data, error } = await db.rpc('get_student_group_assignment', {
       p_user_id: userId,
       p_assignment_id: assignmentId,
     })
@@ -323,7 +323,7 @@ export const groupAssignmentService = {
    * Returns all groups with members and submission status for a teacher.
    */
   async getTeacherGroups(assignmentId: string): Promise<TeacherGroupEntry[]> {
-    const { data, error } = await supabase.rpc('get_teacher_group_overview', {
+    const { data, error } = await db.rpc('get_teacher_group_overview', {
       p_assignment_id: assignmentId,
     })
 
@@ -341,7 +341,7 @@ export const groupAssignmentService = {
    * Teacher creates groups with assigned members for an assignment.
    */
   async createGroups(assignmentId: string, groups: CreateGroupInput[]): Promise<void> {
-    const { error } = await supabase.rpc('create_assignment_groups', {
+    const { error } = await db.rpc('create_assignment_groups', {
       p_assignment_id: assignmentId,
       p_groups: groups,
     })
@@ -361,7 +361,7 @@ export const groupAssignmentService = {
     content?: string
     fileUrl?: string
   }): Promise<string> {
-    const { data, error } = await supabase.rpc('submit_group_assignment', {
+    const { data, error } = await db.rpc('submit_group_assignment', {
       p_group_id: params.groupId,
       p_assignment_id: params.assignmentId,
       p_content: params.content ?? null,
@@ -393,7 +393,7 @@ export const groupAssignmentService = {
     grade: number
     feedback?: string
   }): Promise<void> {
-    const { error } = await supabase.rpc('grade_group_submission', {
+    const { error } = await db.rpc('grade_group_submission', {
       p_submission_id: params.submissionId,
       p_grade: params.grade,
       p_feedback: params.feedback ?? null,
@@ -409,7 +409,7 @@ export const groupAssignmentService = {
    * Returns group settings for an assignment.
    */
   async getGroupSettings(assignmentId: string): Promise<GroupSettings> {
-    const { data, error } = await supabase.rpc('get_group_settings', {
+    const { data, error } = await db.rpc('get_group_settings', {
       p_assignment_id: assignmentId,
     })
 
@@ -435,7 +435,7 @@ export const groupAssignmentService = {
    * Updates group settings for an assignment (teacher only).
    */
   async updateGroupSettings(assignmentId: string, settings: GroupSettings): Promise<void> {
-    const { error } = await supabase.rpc('update_group_settings', {
+    const { error } = await db.rpc('update_group_settings', {
       p_assignment_id: assignmentId,
       p_settings: settings,
     })
@@ -450,7 +450,7 @@ export const groupAssignmentService = {
    * Fetches tasks for a specific group with tenant isolation.
    */
   async getGroupTasks(groupId: string, tenantId: string): Promise<GroupTask[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('group_tasks')
       .select('id, group_id, title, description, assigned_to, status, due_date, created_by, tenant_id, created_at')
       .eq('group_id', groupId)
@@ -479,7 +479,7 @@ export const groupAssignmentService = {
     userId: string,
     tenantId: string
   ): Promise<GroupTask> {
-    const { data: newTask, error } = await supabase
+    const { data: newTask, error } = await db
       .from('group_tasks')
       .insert({
         group_id: groupId,
@@ -513,7 +513,7 @@ export const groupAssignmentService = {
     status: 'todo' | 'in_progress' | 'done',
     tenantId: string
   ): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('group_tasks')
       .update({ status })
       .eq('id', taskId)
@@ -529,7 +529,7 @@ export const groupAssignmentService = {
    * Fetches messages for a specific group chat with tenant isolation.
    */
   async getGroupMessages(groupId: string, tenantId: string): Promise<GroupMessage[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('group_messages')
       .select('id, group_id, user_id, content, tenant_id, created_at')
       .eq('group_id', groupId)
@@ -558,7 +558,7 @@ export const groupAssignmentService = {
     userId: string,
     tenantId: string
   ): Promise<GroupMessage> {
-    const { data: newMessage, error } = await supabase
+    const { data: newMessage, error } = await db
       .from('group_messages')
       .insert({
         group_id: groupId,
@@ -652,7 +652,7 @@ export const groupAssignmentTaskService = {
   },
 
   async deleteGroupTask(taskId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('group_tasks')
       .delete()
       .eq('id', taskId)

@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Zap } from 'lucide-react'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { cn } from '@/utils/cn'
 
 const MAX_PER_HOUR = 20
@@ -18,7 +18,7 @@ function useHourlyUsage() {
     queryKey: ['ai-creator', 'quota', tenantId, user?.id],
     queryFn: async () => {
       const since = new Date(Date.now() - 3_600_000).toISOString()
-      const { count, error } = await supabase
+      const { count, error } = await db
         .from('ai_generation_logs')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user!.id)

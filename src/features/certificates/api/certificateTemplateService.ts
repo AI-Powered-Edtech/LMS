@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { CertificateTemplate, CertificateTemplateInsert } from '../types'
 
@@ -15,7 +15,7 @@ export const certificateTemplateService = {
    * Returns default templates first, then sorted alphabetically.
    */
   async getTemplates(tenantId: string): Promise<CertificateTemplate[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('certificate_templates')
       .select(COLUMNS)
       .eq('tenant_id', tenantId)
@@ -36,7 +36,7 @@ export const certificateTemplateService = {
     tenantId: string
   ): Promise<CertificateTemplate | null> {
     // First: try course-specific template
-    const { data: courseTemplate } = await supabase
+    const { data: courseTemplate } = await db
       .from('certificate_templates')
       .select(COLUMNS)
       .eq('course_id', courseId)
@@ -47,7 +47,7 @@ export const certificateTemplateService = {
     if (courseTemplate) return courseTemplate as CertificateTemplate
 
     // Fallback: tenant's default template
-    const { data: defaultTemplate } = await supabase
+    const { data: defaultTemplate } = await db
       .from('certificate_templates')
       .select(COLUMNS)
       .eq('tenant_id', tenantId)
@@ -69,7 +69,7 @@ export const certificateTemplateService = {
     if (template.id) {
       // Update existing
       const { id, ...updates } = template
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('certificate_templates')
         .update(updates)
         .eq('id', id)
@@ -82,7 +82,7 @@ export const certificateTemplateService = {
     }
 
     // Insert new
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('certificate_templates')
       .insert({ ...template, tenant_id: tenantId })
       .select(COLUMNS)
@@ -98,7 +98,7 @@ export const certificateTemplateService = {
    */
   async setDefault(templateId: string, tenantId: string): Promise<void> {
     // Clear all defaults for this tenant
-    const { error: clearError } = await supabase
+    const { error: clearError } = await db
       .from('certificate_templates')
       .update({ is_default: false })
       .eq('tenant_id', tenantId)
@@ -106,7 +106,7 @@ export const certificateTemplateService = {
     if (clearError) throw clearError
 
     // Set the new default
-    const { error: setError } = await supabase
+    const { error: setError } = await db
       .from('certificate_templates')
       .update({ is_default: true })
       .eq('id', templateId)
@@ -119,7 +119,7 @@ export const certificateTemplateService = {
    * Delete a certificate template by id.
    */
   async deleteTemplate(templateId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('certificate_templates')
       .delete()
       .eq('id', templateId)

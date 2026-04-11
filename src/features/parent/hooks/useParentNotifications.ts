@@ -12,7 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { getRealtimeProvider, type AppRealtimeChannel } from '@/services/realtime'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { captureError } from '@/utils/sentry'
 
 // ── Types ─────────────────────────────────────────────────────────────────
@@ -98,7 +98,7 @@ export function useParentNotifications(): UseParentNotificationsResult {
     setError(null)
 
     try {
-      const { data, error: fetchError } = await supabase
+      const { data, error: fetchError } = await db
         .from('parent_notifications')
         .select('*')
         .eq('parent_id', user.id)
@@ -123,7 +123,7 @@ export function useParentNotifications(): UseParentNotificationsResult {
     if (!user?.id || !tenantId) return
 
     try {
-      const { data } = await supabase
+      const { data } = await db
         .from('parent_notification_preferences')
         .select('*')
         .eq('parent_id', user.id)
@@ -194,7 +194,7 @@ export function useParentNotifications(): UseParentNotificationsResult {
     if (!ids.length) return
 
     try {
-      await supabase.from('parent_notifications').update({ read: true }).in('id', ids)
+      await db.from('parent_notifications').update({ read: true }).in('id', ids)
 
       setNotifications((prev) => prev.map((n) => (ids.includes(n.id) ? { ...n, read: true } : n)))
     } catch (err) {
@@ -206,7 +206,7 @@ export function useParentNotifications(): UseParentNotificationsResult {
     if (!user?.id || !tenantId) return
 
     try {
-      await supabase
+      await db
         .from('parent_notifications')
         .update({ read: true })
         .eq('parent_id', user.id)
@@ -229,7 +229,7 @@ export function useParentNotifications(): UseParentNotificationsResult {
       setPreferences(updated)
 
       try {
-        await supabase.from('parent_notification_preferences').upsert({
+        await db.from('parent_notification_preferences').upsert({
           parent_id: user.id,
           tenant_id: tenantId,
           ...updated,

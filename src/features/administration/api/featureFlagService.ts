@@ -2,7 +2,7 @@
  * Feature Flag Service — service layer for the FeatureFlags admin page.
  * Keeps inline Supabase calls out of page components.
  */
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { type FeatureFlag, invalidateFlagCache } from '@/utils/featureFlags'
 
 export const featureFlagService = {
@@ -11,7 +11,7 @@ export const featureFlagService = {
    */
   async fetchFlags(tenantId: string): Promise<FeatureFlag[]> {
     // feature_flags.tenant_ids is an array; use @> (contains) to filter by tenant
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('feature_flags')
       .select('flag_name, enabled, tenant_ids, rollout_percentage')
       .contains('tenant_ids', [tenantId])
@@ -34,7 +34,7 @@ export const featureFlagService = {
     dirtyFlags: Array<{ flag_name: string; enabled: boolean; rollout_percentage: number }>
   ): Promise<void> {
     for (const flag of dirtyFlags) {
-      const { error } = await supabase
+      const { error } = await db
         .from('feature_flags')
         .update({
           enabled: flag.enabled,

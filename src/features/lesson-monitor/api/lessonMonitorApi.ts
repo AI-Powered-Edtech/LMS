@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { LessonMonitorData } from '../types'
 
@@ -24,7 +24,7 @@ export async function fetchLessonMonitorData(
     },
   }
 
-  const { data, error } = await supabase.rpc('get_lesson_progress_monitor', {
+  const { data, error } = await db.rpc('get_lesson_progress_monitor', {
     p_course_id: courseId,
     p_tenant_id: tenantId,
   })

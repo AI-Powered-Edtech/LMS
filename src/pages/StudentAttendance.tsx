@@ -6,7 +6,7 @@ import { EmptyState } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import { ProgressSkeleton } from '@/features/progress/components/ProgressSkeleton'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 const STATUS_CONFIG = {
   hadir: {
@@ -49,7 +49,7 @@ export function StudentAttendance() {
     queryKey: ['student-attendance', user?.id, tenantId],
     queryFn: async () => {
       // First get the student's enrollment IDs for this tenant
-      const { data: enrollments, error: enrollError } = await supabase
+      const { data: enrollments, error: enrollError } = await db
         .from('enrollments')
         .select('id, class_id, classes(name)')
         .eq('tenant_id', tenantId!)
@@ -61,7 +61,7 @@ export function StudentAttendance() {
 
       const enrollmentIds = enrollments.map((e) => e.id)
 
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('attendance_records')
         .select('id, date, scan_date, status, enrollment_id')
         .eq('tenant_id', tenantId!)

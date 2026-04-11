@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import { useAuth } from '../../contexts/AuthContext'
 import { useTenantQuery } from '../useTenantQuery'
@@ -18,9 +18,9 @@ const fromMock = vi.fn(() => ({
   insert: insertMock,
 }))
 
-vi.mock('@/services/supabase/client', () => {
+vi.mock('@/services/db', () => {
   return {
-    supabase: {
+    db: {
       from: vi.fn(() => fromMock()),
     },
   }
@@ -43,7 +43,7 @@ describe('useTenantQuery', () => {
       result.current.tenantQuery('courses')
 
       // Assert
-      expect(supabase.from).toHaveBeenCalledWith('courses')
+      expect(db.from).toHaveBeenCalledWith('courses')
       expect(selectMock).toHaveBeenCalledWith('id')
       expect(eqMock).toHaveBeenCalledWith('tenant_id', mockTenantId)
     })
@@ -57,7 +57,7 @@ describe('useTenantQuery', () => {
       result.current.tenantQuery('courses')
 
       // Assert
-      expect(supabase.from).toHaveBeenCalledWith('courses')
+      expect(db.from).toHaveBeenCalledWith('courses')
       expect(selectMock).toHaveBeenCalledWith('id')
       expect(eqMock).not.toHaveBeenCalled()
     })
@@ -74,7 +74,7 @@ describe('useTenantQuery', () => {
       await result.current.tenantInsert('courses', dataToInsert)
 
       // Assert
-      expect(supabase.from).toHaveBeenCalledWith('courses')
+      expect(db.from).toHaveBeenCalledWith('courses')
       expect(insertMock).toHaveBeenCalledWith({
         ...dataToInsert,
         tenant_id: mockTenantId,
@@ -91,7 +91,7 @@ describe('useTenantQuery', () => {
       await result.current.tenantInsert('courses', dataToInsert)
 
       // Assert
-      expect(supabase.from).toHaveBeenCalledWith('courses')
+      expect(db.from).toHaveBeenCalledWith('courses')
       expect(insertMock).toHaveBeenCalledWith(dataToInsert)
     })
   })

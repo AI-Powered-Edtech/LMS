@@ -8,7 +8,7 @@
 // ==========================================================================
 
 import { readVilSession } from '@/services/auth/vilSession'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { AvailableReportMonth, ParentMonthlyReport } from '../types'
 
@@ -80,7 +80,7 @@ export async function getAvailableReportMonths(
 ): Promise<AvailableReportMonth[]> {
   // Ambil tanggal completion pelajaran per bulan
   // lesson_progress menggunakan user_id (bukan student_id)
-  const { data: lessonData, error: lessonError } = await supabase
+  const { data: lessonData, error: lessonError } = await db
     .from('lesson_progress')
     .select('completed_at')
     .eq('user_id', studentId)
@@ -97,7 +97,7 @@ export async function getAvailableReportMonths(
 
   // Ambil juga dari attendance_records sebagai fallback
   // attendance_records tidak memiliki student_id — join via enrollment_id
-  const { data: enrollments } = await supabase
+  const { data: enrollments } = await db
     .from('enrollments')
     .select('id')
     .eq('student_id', studentId)
@@ -109,7 +109,7 @@ export async function getAvailableReportMonths(
   let attendanceError: unknown = null
 
   if (enrollmentIds.length > 0) {
-    const { data: attData, error: attError } = await supabase
+    const { data: attData, error: attError } = await db
       .from('attendance_records')
       .select('date')
       .in('enrollment_id', enrollmentIds)

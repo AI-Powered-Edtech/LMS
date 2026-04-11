@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { AttendanceRecord, ClassOption, ClassStudent, UpsertAttendanceParams } from '../types'
 
@@ -9,7 +9,7 @@ import type { AttendanceRecord, ClassOption, ClassStudent, UpsertAttendanceParam
 export const attendanceService = {
   /** Fetch classes taught by a specific teacher */
   async fetchTeacherClasses(tenantId: string, teacherId: string): Promise<ClassOption[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('classes')
       .select('id, name')
       .eq('tenant_id', tenantId)
@@ -23,7 +23,7 @@ export const attendanceService = {
   /** Fetch enrolled students for a class */
   // FIXED: Added tenantId parameter to enforce tenant scoping on enrollments query
   async fetchClassStudents(classId: string, tenantId: string): Promise<ClassStudent[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('enrollments')
       .select('student_id, profiles!enrollments_student_id_fkey(full_name)')
       .eq('class_id', classId)
@@ -53,7 +53,7 @@ export const attendanceService = {
     classId: string,
     limit = 30
   ): Promise<AttendanceRecord[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('attendance_records')
       .select(
         'id, tenant_id, class_id, scan_date, scanned_by, present_count, absent_count, sick_count, permit_count, details, created_at, classes(name)'
@@ -70,7 +70,7 @@ export const attendanceService = {
   /** Fetch today's attendance record for a class (if exists) */
   async fetchTodayRecord(tenantId: string, classId: string): Promise<AttendanceRecord | null> {
     const today = new Date().toISOString().split('T')[0]
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('attendance_records')
       .select(
         'id, tenant_id, class_id, scan_date, scanned_by, present_count, absent_count, sick_count, permit_count, details, created_at'
@@ -86,7 +86,7 @@ export const attendanceService = {
 
   /** Upsert (create or update) an attendance record via RPC */
   async upsertAttendance(params: UpsertAttendanceParams): Promise<string> {
-    const { data, error } = await supabase.rpc('upsert_attendance_record', {
+    const { data, error } = await db.rpc('upsert_attendance_record', {
       p_class_id: params.class_id,
       p_scan_date: params.scan_date,
       p_details: params.details,
@@ -102,7 +102,7 @@ export const attendanceService = {
 
   /** Delete an attendance record */
   async deleteAttendance(id: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('attendance_records')
       .delete()
       .eq('id', id)

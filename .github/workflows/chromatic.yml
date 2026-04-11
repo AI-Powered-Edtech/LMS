@@ -50,6 +50,3 @@ jobs:
           buildScriptName: build-storybook
           # Allow TurboSnap to skip unchanged stories
           zip: true
-        env:
-          VITE_SUPABASE_URL: 'https://placeholder.supabase.co'
-          VITE_SUPABASE_ANON_KEY: 'placeholder-key'

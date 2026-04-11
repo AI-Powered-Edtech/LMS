@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { getStorageProvider } from '@/services/storage'
 
 export interface VideoCaption {
@@ -16,7 +16,7 @@ export interface VideoCaption {
 
 export const videoCaptionService = {
   async getCaptions(lessonId: string, blockId?: string): Promise<VideoCaption[]> {
-    let query = supabase
+    let query = db
       .from('lesson_video_captions')
       .select('*')
       .eq('lesson_id', lessonId)
@@ -54,7 +54,7 @@ export const videoCaptionService = {
 
     if (!urlData?.publicUrl) throw new Error('Failed to get public URL')
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('lesson_video_captions')
       .insert({
         tenant_id: tenantId,
@@ -73,7 +73,7 @@ export const videoCaptionService = {
   },
 
   async deleteCaption(captionId: string): Promise<void> {
-    const { data: caption, error: selectError } = await supabase
+    const { data: caption, error: selectError } = await db
       .from('lesson_video_captions')
       .select('vtt_url')
       .eq('id', captionId)
@@ -91,18 +91,18 @@ export const videoCaptionService = {
         .catch(() => {})
     }
 
-    const { error } = await supabase.from('lesson_video_captions').delete().eq('id', captionId)
+    const { error } = await db.from('lesson_video_captions').delete().eq('id', captionId)
 
     if (error) throw new Error(`Failed to delete caption: ${error.message}`)
   },
 
   async setDefaultCaption(captionId: string, lessonId: string): Promise<void> {
-    await supabase
+    await db
       .from('lesson_video_captions')
       .update({ is_default: false })
       .eq('lesson_id', lessonId)
 
-    const { error } = await supabase
+    const { error } = await db
       .from('lesson_video_captions')
       .update({ is_default: true })
       .eq('id', captionId)

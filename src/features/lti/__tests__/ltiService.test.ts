@@ -5,8 +5,8 @@ import { ltiService } from '../api/ltiService'
 // ── Supabase mock ──────────────────────────────────────────────
 const mockFrom = vi.fn()
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: (...args: unknown[]) => mockFrom(...args),
   },
 }))
@@ -51,7 +51,7 @@ describe('ltiService.fetchPlatforms', () => {
     expect(result).toEqual(mockData)
   })
 
-  it('throws on supabase error', async () => {
+  it('throws on db error', async () => {
     mockFrom.mockReturnValue(makeChain({ data: null, error: { message: 'DB error' } }))
 
     await expect(ltiService.fetchPlatforms('t1')).rejects.toEqual({

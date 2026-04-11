@@ -17,7 +17,7 @@ import { useToast } from '@/components/ui/Toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { useDebounce } from '@/hooks/useDebounce'
 import { usePageTitle } from '@/hooks/usePageTitle'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { cn } from '@/utils/cn'
 
 // --- UTILS ---
@@ -115,7 +115,7 @@ export function BillingDashboard() {
       setLoading(true)
 
       try {
-        const { data: invData, error: invErr } = await supabase
+        const { data: invData, error: invErr } = await db
           .from('invoices')
           .select('id, amount_due, amount_paid, status, due_date, created_at')
           .eq('tenant_id', tenantId)
@@ -124,7 +124,7 @@ export function BillingDashboard() {
 
         if (invErr) throw invErr
 
-        const { data: subData, error: subErr } = await supabase
+        const { data: subData, error: subErr } = await db
           .from('tenant_subscriptions')
           .select(`id, status, current_period_end, plan_id`)
           .eq('tenant_id', tenantId)
@@ -134,7 +134,7 @@ export function BillingDashboard() {
         if (subErr) throw subErr
 
         if (subData) {
-          const { data: planData } = await supabase
+          const { data: planData } = await db
             .from('billing_plans')
             .select('id, name, price')
             .eq('id', subData.plan_id)

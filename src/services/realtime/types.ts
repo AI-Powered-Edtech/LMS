@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Realtime abstraction types
-// Consumers import from '@/services/realtime', NOT from '@supabase/supabase-js'
+// Consumers import from '@/services/realtime', NOT from '@db/db-js'
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type RealtimeChannelStatus = 'SUBSCRIBED' | 'TIMED_OUT' | 'CLOSED' | 'CHANNEL_ERROR'

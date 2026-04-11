@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import { gradebookService } from '../api/legacyGradebookService'
 
 // Mock the Supabase client — must include both `from` AND `rpc` since
-// legacyGradebookService calls supabase.rpc('get_gradebook_students', ...)
+// legacyGradebookService calls db.rpc('get_gradebook_students', ...)
 // for student data instead of querying the `profiles` table directly.
-vi.mock('@/services/supabase/client', () => {
+vi.mock('@/services/db', () => {
   return {
-    supabase: {
+    db: {
       from: vi.fn(),
       rpc: vi.fn(),
     },
@@ -94,7 +94,7 @@ describe('Gradebook Service', () => {
       },
     ]
 
-    ;(supabase.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
+    ;(db.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
       switch (table) {
         case 'assignments':
           return makeChain({ data: mockAssignments, error: null })
@@ -108,18 +108,18 @@ describe('Gradebook Service', () => {
     })
 
     // Mock the RPC call used for student lookup
-    ;(supabase.rpc as ReturnType<typeof vi.fn>).mockResolvedValue({
+    ;(db.rpc as ReturnType<typeof vi.fn>).mockResolvedValue({
       data: mockProfiles,
       error: null,
     })
 
     const result = await gradebookService.fetchGradebook('tenant-123')
 
-    expect(supabase.from).toHaveBeenCalledWith('assignments')
-    expect(supabase.from).toHaveBeenCalledWith('assignment_submissions')
-    expect(supabase.from).toHaveBeenCalledWith('quiz_attempts_v2')
+    expect(db.from).toHaveBeenCalledWith('assignments')
+    expect(db.from).toHaveBeenCalledWith('assignment_submissions')
+    expect(db.from).toHaveBeenCalledWith('quiz_attempts_v2')
     // Students are now fetched via RPC, not from('profiles')
-    expect(supabase.rpc).toHaveBeenCalledWith('get_gradebook_students', {
+    expect(db.rpc).toHaveBeenCalledWith('get_gradebook_students', {
       p_tenant_id: 'tenant-123',
     })
 
@@ -165,7 +165,7 @@ describe('Gradebook Service', () => {
       },
     ]
 
-    ;(supabase.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
+    ;(db.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
       switch (table) {
         case 'assignments':
           return makeChain({ data: mockAssignments, error: null })
@@ -177,7 +177,7 @@ describe('Gradebook Service', () => {
           return makeChain({ data: [], error: null })
       }
     })
-    ;(supabase.rpc as ReturnType<typeof vi.fn>).mockResolvedValue({
+    ;(db.rpc as ReturnType<typeof vi.fn>).mockResolvedValue({
       data: mockProfiles,
       error: null,
     })
@@ -218,7 +218,7 @@ describe('Gradebook Service', () => {
       },
     ]
 
-    ;(supabase.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
+    ;(db.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
       switch (table) {
         case 'assignments':
           return makeChain({ data: [], error: null })
@@ -230,7 +230,7 @@ describe('Gradebook Service', () => {
           return makeChain({ data: [], error: null })
       }
     })
-    ;(supabase.rpc as ReturnType<typeof vi.fn>).mockResolvedValue({
+    ;(db.rpc as ReturnType<typeof vi.fn>).mockResolvedValue({
       data: mockProfiles,
       error: null,
     })
@@ -246,10 +246,10 @@ describe('Gradebook Service', () => {
   })
 
   it('should return empty gradebook when no students exist', async () => {
-    ;(supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() =>
+    ;(db.from as ReturnType<typeof vi.fn>).mockImplementation(() =>
       makeChain({ data: [], error: null })
     )
-    ;(supabase.rpc as ReturnType<typeof vi.fn>).mockResolvedValue({
+    ;(db.rpc as ReturnType<typeof vi.fn>).mockResolvedValue({
       data: [],
       error: null,
     })
@@ -265,8 +265,8 @@ describe('Gradebook Service', () => {
     await expect(gradebookService.fetchGradebook('')).rejects.toThrow(
       'tenantId is required for fetchGradebook'
     )
-    expect(supabase.from).not.toHaveBeenCalled()
-    expect(supabase.rpc).not.toHaveBeenCalled()
+    expect(db.from).not.toHaveBeenCalled()
+    expect(db.rpc).not.toHaveBeenCalled()
   })
 
   it('should handle multiple assignments and students without mixing data', async () => {
@@ -347,7 +347,7 @@ describe('Gradebook Service', () => {
       },
     ]
 
-    ;(supabase.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
+    ;(db.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
       switch (table) {
         case 'assignments':
           return makeChain({ data: mockAssignments, error: null })
@@ -359,7 +359,7 @@ describe('Gradebook Service', () => {
           return makeChain({ data: [], error: null })
       }
     })
-    ;(supabase.rpc as ReturnType<typeof vi.fn>).mockResolvedValue({
+    ;(db.rpc as ReturnType<typeof vi.fn>).mockResolvedValue({
       data: mockProfiles,
       error: null,
     })
@@ -379,7 +379,7 @@ describe('Gradebook Service', () => {
     const dbError = new Error('Database connection failed')
 
     // Make all `from()` queries reject
-    ;(supabase.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
+    ;(db.from as ReturnType<typeof vi.fn>).mockImplementation(() => {
       const chain: Record<string, unknown> = {}
       const methods = ['select', 'eq', 'order', 'limit', 'match', 'range']
       for (const m of methods) {
@@ -391,7 +391,7 @@ describe('Gradebook Service', () => {
     })
 
     // Also make the RPC call reject to ensure the error propagates
-    ;(supabase.rpc as ReturnType<typeof vi.fn>).mockRejectedValue(dbError)
+    ;(db.rpc as ReturnType<typeof vi.fn>).mockRejectedValue(dbError)
 
     await expect(gradebookService.fetchGradebook('tenant-123')).rejects.toThrow(
       'Database connection failed'

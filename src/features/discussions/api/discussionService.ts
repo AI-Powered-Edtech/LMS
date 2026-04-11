@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 export interface Discussion {
   id: string
@@ -53,7 +53,7 @@ export const discussionService = {
     courseId?: string
     parentId?: string | null
   }) {
-    let query = supabase
+    let query = db
       .from('discussions')
       .select(DISCUSSION_COLUMNS)
       .order('is_pinned', { ascending: false })
@@ -95,7 +95,7 @@ export const discussionService = {
   async saveDiscussion(
     discussion: Partial<Discussion> & { tenant_id: string; author_id: string; content: string }
   ) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('discussions')
       .upsert(discussion)
       .select(DISCUSSION_COLUMNS)
@@ -113,7 +113,7 @@ export const discussionService = {
    * Soft delete a discussion entry (preserves thread integrity)
    */
   async deleteDiscussion(id: string, tenantId: string) {
-    const { error } = await supabase
+    const { error } = await db
       .from('discussions')
       .update({
         is_deleted: true,
@@ -132,7 +132,7 @@ export const discussionService = {
    * Toggle the pinned status of a discussion
    */
   async togglePin(id: string, is_pinned: boolean, tenantId: string) {
-    const { error } = await supabase
+    const { error } = await db
       .from('discussions')
       .update({ is_pinned })
       .eq('id', id)
@@ -154,7 +154,7 @@ export const discussionService = {
     pageSize: number = 20,
     courseId?: string
   ): Promise<Discussion[]> {
-    let query = supabase
+    let query = db
       .from('discussions')
       .select(DISCUSSION_COLUMNS)
       .eq('tenant_id', tenantId)
@@ -183,7 +183,7 @@ export const discussionService = {
    * Returns false if vote was rejected (already voted or self-vote).
    */
   async voteDiscussion(discussionId: string): Promise<{ success: boolean; reason?: string }> {
-    const { data, error } = await supabase.rpc('vote_discussion_secure', {
+    const { data, error } = await db.rpc('vote_discussion_secure', {
       p_discussion_id: discussionId,
     })
     if (error) {
@@ -214,7 +214,7 @@ export const discussionService = {
     postId: string,
     voteType: 'upvote' | 'downvote' = 'upvote'
   ): Promise<{ action: 'added' | 'removed' | 'changed'; post_id: string }> {
-    const { data, error } = await supabase.rpc('toggle_post_vote', {
+    const { data, error } = await db.rpc('toggle_post_vote', {
       p_post_id: postId,
       p_vote_type: voteType,
     })
@@ -238,7 +238,7 @@ export const discussionService = {
     userId: string,
     tenantId: string
   ): Promise<{ vote_type: 'upvote' | 'downvote' } | null> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('discussion_votes')
       .select('vote_type')
       .eq('post_id', postId)
@@ -259,7 +259,7 @@ export const discussionService = {
    * in the thread atomically.
    */
   async acceptDiscussionAnswer(postId: string): Promise<void> {
-    const { error } = await supabase.rpc('accept_discussion_answer', {
+    const { error } = await db.rpc('accept_discussion_answer', {
       p_post_id: postId,
     })
     if (error) {
@@ -283,7 +283,7 @@ export const discussionService = {
   async setBestAnswer(postId: string, commentId: string, tenantId: string): Promise<void> {
     // FIXED: Pre-verify tenant ownership before calling RPC.
     // Ensures the discussion post belongs to this tenant — prevents cross-tenant writes.
-    const { data: post, error: postError } = await supabase
+    const { data: post, error: postError } = await db
       .from('discussions')
       .select('id')
       .eq('id', postId)
@@ -299,7 +299,7 @@ export const discussionService = {
       throw new Error('Post tidak ditemukan atau tidak ada akses ke tenant ini.')
     }
 
-    const { error } = await supabase.rpc('set_best_answer', {
+    const { error } = await db.rpc('set_best_answer', {
       p_discussion_id: postId,
       p_answer_id: commentId,
     })

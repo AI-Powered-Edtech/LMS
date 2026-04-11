@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { mapBlock } from '@/shared/types/blockMappers'
 import { DomainBlock } from '@/shared/types/blockTypes'
 
@@ -7,7 +7,7 @@ import { DomainBlock } from '@/shared/types/blockTypes'
  */
 export const builderBlockService = {
   async fetchLessonBlocks(lessonId: string, tenantId: string): Promise<DomainBlock[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('lesson_resources')
       .select('id, lesson_id, tenant_id, order_index, type, url, title, content, metadata')
       .eq('lesson_id', lessonId)
@@ -20,7 +20,7 @@ export const builderBlockService = {
 
   async createBlock(lessonId: string, type: string, tenantId: string): Promise<DomainBlock> {
     // Get next order_index using MAX+1 to avoid race conditions with COUNT pattern
-    const { data: maxRow } = await supabase
+    const { data: maxRow } = await db
       .from('lesson_resources')
       .select('order_index')
       .eq('lesson_id', lessonId)
@@ -31,7 +31,7 @@ export const builderBlockService = {
 
     const nextOrderIndex = (maxRow?.order_index ?? -1) + 1
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('lesson_resources')
       .insert({
         lesson_id: lessonId,
@@ -54,7 +54,7 @@ export const builderBlockService = {
     if (data.metadata !== undefined) dbUpdate.metadata = data.metadata
     if (data.orderIndex !== undefined) dbUpdate.order_index = data.orderIndex
 
-    const { error } = await supabase
+    const { error } = await db
       .from('lesson_resources')
       .update(dbUpdate)
       .eq('id', blockId)
@@ -64,7 +64,7 @@ export const builderBlockService = {
   },
 
   async deleteBlock(blockId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('lesson_resources')
       .delete()
       .eq('id', blockId)
@@ -75,7 +75,7 @@ export const builderBlockService = {
 
   async reorderBlocks(lessonId: string, blockIds: string[], tenantId: string): Promise<void> {
     // Optimized RPC call using WITH ORDINALITY
-    const { error } = await supabase.rpc('rpc_reorder_lesson_resources', {
+    const { error } = await db.rpc('rpc_reorder_lesson_resources', {
       p_lesson_id: lessonId,
       p_resource_ids: blockIds,
       p_tenant_id: tenantId,

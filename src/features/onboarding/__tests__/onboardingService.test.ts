@@ -13,8 +13,8 @@ const { mockEq, mockFrom } = vi.hoisted(() => {
   return { mockEq, mockFrom }
 })
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: mockFrom,
     rpc: vi.fn(),
     auth: {

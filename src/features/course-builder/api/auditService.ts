@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { logDevError, logDevWarn } from '@/utils/logDevError'
 
 // ============================================================
@@ -43,7 +43,7 @@ export const auditService = {
     metadata: Record<string, unknown> = {}
   ): Promise<void> {
     // getSession() reads from memory — no network call
-    const { data: sessionData } = await supabase.auth.getSession()
+    const { data: sessionData } = await db.auth.getSession()
     const userId = sessionData?.session?.user?.id
 
     // If no authenticated user, skip insert rather than writing an invalid UUID
@@ -55,7 +55,7 @@ export const auditService = {
       return
     }
 
-    const { error } = await supabase.from('course_action_logs').insert({
+    const { error } = await db.from('course_action_logs').insert({
       course_id: courseId,
       action_type: actionType,
       metadata,
@@ -82,7 +82,7 @@ export const auditService = {
     tenantId: string,
     limit = 20
   ): Promise<CourseActionLog[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('course_action_logs')
       .select('id, tenant_id, course_id, user_id, action_type, metadata, created_at')
       .eq('course_id', courseId)
@@ -104,7 +104,7 @@ export const auditService = {
    * Returns false if auth is missing or on any error.
    */
   async checkBuilderAccess(courseId: string): Promise<boolean> {
-    const { data, error } = await supabase.rpc('rpc_check_builder_access', {
+    const { data, error } = await db.rpc('rpc_check_builder_access', {
       p_course_id: courseId,
     })
 

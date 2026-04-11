@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { RubricInsert } from '../types'
 
@@ -28,7 +28,7 @@ export const aiRubricService = {
   ): Promise<RubricInsert> {
     const {
       data: { session },
-    } = await supabase.auth.getSession()
+    } = await db.auth.getSession()
     if (!session) throw new Error('Tidak terautentikasi')
 
     const prompt = `Buat rubrik penilaian untuk tugas berikut dalam Bahasa Indonesia.

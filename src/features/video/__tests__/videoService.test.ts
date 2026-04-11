@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockFrom = vi.fn()
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: (...args: unknown[]) => mockFrom(...args),
   },
 }))
@@ -291,9 +291,9 @@ describe('videoUploadService', () => {
         upload: mockStorageUpload,
       })
 
-      vi.mocked(await import('@/services/supabase/client')).supabase.storage = {
+      vi.mocked(await import('@/services/db')).db.storage = {
         from: mockStorageFrom,
-      } as unknown as typeof import('@/services/supabase/client').supabase.storage
+      } as unknown as typeof import('@/services/db').db.storage
 
       await expect(
         videoUploadService.uploadVideo(file, 'lesson-1', null, 'tenant-1', progressFn)

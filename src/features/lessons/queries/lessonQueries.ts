@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { createQueryKeys } from '@/shared/lib/queryKeys'
 import { STALE } from '@/utils/queryConstants'
 
@@ -37,7 +37,7 @@ export function useStudentEnrollments() {
     queryFn: async (): Promise<EnrolledCourse[]> => {
       if (!tenantId || !user?.id) return []
 
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('course_enrollments')
         .select('course_id')
         .eq('user_id', user.id)
@@ -49,7 +49,7 @@ export function useStudentEnrollments() {
       const courseIds = (data ?? []).map((enrollment) => enrollment.course_id)
       if (courseIds.length === 0) return []
 
-      const { data: courses, error: courseError } = await supabase
+      const { data: courses, error: courseError } = await db
         .from('courses')
         .select('id, title, description, status')
         .eq('tenant_id', tenantId)

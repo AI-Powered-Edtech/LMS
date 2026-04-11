@@ -8,8 +8,8 @@ const mockInvoke = vi.fn()
 const mockUpload = vi.fn()
 const mockCreateSignedUrl = vi.fn()
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: (...args: unknown[]) => mockFrom(...args),
     rpc: (...args: unknown[]) => mockRpc(...args),
     functions: {

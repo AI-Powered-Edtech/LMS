@@ -5,7 +5,7 @@
 // Extracted from quizManager.service.ts for modularity.
 // ==========================================================================
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { QuestionType } from '../types/quizzes.types'
 
@@ -25,7 +25,7 @@ export async function addQuestionToQuiz(
     options?: { text: string; is_correct: boolean }[]
   }
 ) {
-  const { data: questionRow, error: questionError } = await supabase
+  const { data: questionRow, error: questionError } = await db
     .from('quiz_questions')
     .insert({
       quiz_id: quizId,
@@ -43,7 +43,7 @@ export async function addQuestionToQuiz(
 
   // Add options if provided
   if (question.options && question.options.length > 0) {
-    const { error: optionError } = await supabase.from('quiz_options').insert(
+    const { error: optionError } = await db.from('quiz_options').insert(
       question.options.map((option) => ({
         question_id: questionRow.id,
         text: option.text,
@@ -66,7 +66,7 @@ export async function updateQuizQuestion(
   updates: Record<string, unknown>,
   tenantId: string
 ) {
-  const { error } = await supabase
+  const { error } = await db
     .from('quiz_questions')
     .update(updates)
     .eq('id', questionId)
@@ -85,7 +85,7 @@ export async function replaceQuestionOptions(
   options: { text: string; is_correct: boolean }[]
 ) {
   // Delete existing options
-  await supabase
+  await db
     .from('quiz_options')
     .delete()
     .eq('question_id', questionId)
@@ -93,7 +93,7 @@ export async function replaceQuestionOptions(
 
   // Insert new options
   if (options.length > 0) {
-    const { error } = await supabase.from('quiz_options').insert(
+    const { error } = await db.from('quiz_options').insert(
       options.map((option) => ({
         question_id: questionId,
         text: option.text,
@@ -123,7 +123,7 @@ export async function gradeAttemptQuestion(
   points_earned: number
   is_correct: boolean
 }> {
-  const { data, error } = await supabase.rpc('grade_attempt_question', {
+  const { data, error } = await db.rpc('grade_attempt_question', {
     p_attempt_id: attemptId,
     p_question_id: questionId,
     p_points_earned: pointsEarned,
@@ -151,10 +151,10 @@ export async function gradeAttemptQuestion(
 export async function getAssignmentResults(assignmentId: string, _tenantId: string) {
   const {
     data: { session },
-  } = await supabase.auth.getSession()
+  } = await db.auth.getSession()
   if (!session) throw new Error('Not authenticated')
 
-  const { data, error } = await supabase.rpc('v1_get_assignment_results', {
+  const { data, error } = await db.rpc('v1_get_assignment_results', {
     p_assignment_id: assignmentId,
   })
 
@@ -166,7 +166,7 @@ export async function getAssignmentResults(assignmentId: string, _tenantId: stri
   return data || []
 }
 export async function deleteQuizQuestion(questionId: string, tenantId: string) {
-  const { error } = await supabase
+  const { error } = await db
     .from('quiz_questions')
     .delete()
     .eq('id', questionId)

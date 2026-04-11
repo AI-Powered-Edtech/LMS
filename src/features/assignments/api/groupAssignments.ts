@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { captureError } from '@/utils/sentry'
 
 export const groupAssignmentsService = {
@@ -7,7 +7,7 @@ export const groupAssignmentsService = {
    */
   async getGroupAssignments(assignmentId: string, tenantId: string) {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('assignment_groups')
         .select(
           `
@@ -39,7 +39,7 @@ export const groupAssignmentsService = {
     tenantId: string
   ) {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('group_submissions')
         .upsert(
           {
@@ -72,7 +72,7 @@ export const groupAssignmentsService = {
     teacherId: string
   ) {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('group_submissions')
         .update({
           score,

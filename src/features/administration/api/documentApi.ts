@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { getStorageProvider } from '@/services/storage'
 
 // ---------------------------------------------------------------------------
@@ -78,7 +78,7 @@ export const documentApi = {
     const from = (page - 1) * limit
     const to = from + limit - 1
 
-    let query = supabase
+    let query = db
       .from('school_documents')
       .select('*')
       .order('created_at', { ascending: false })
@@ -103,7 +103,7 @@ export const documentApi = {
    */
   async getCategoryCounts(tenantId?: string): Promise<Record<DocumentCategory, number>> {
     // FIXED: Add .eq('tenant_id', tenantId) to isolate counts per tenant
-    let query = supabase.from('school_documents').select('category')
+    let query = db.from('school_documents').select('category')
     if (tenantId) {
       query = query.eq('tenant_id', tenantId)
     }
@@ -146,7 +146,7 @@ export const documentApi = {
     // Dapatkan user
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await db.auth.getUser()
     if (!user) throw new Error('Pengguna tidak ditemukan')
 
     // Upload ke Storage
@@ -166,7 +166,7 @@ export const documentApi = {
     const fileUrl = urlData?.publicUrl || ''
 
     // Simpan metadata ke tabel
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('school_documents')
       .insert({
         title: metadata.title,
@@ -195,7 +195,7 @@ export const documentApi = {
    * Update metadata dokumen (tanpa mengganti file).
    */
   async updateDocument(id: string, updates: Partial<DocumentMetadata>): Promise<SchoolDocument> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('school_documents')
       .update({
         ...updates,
@@ -214,7 +214,7 @@ export const documentApi = {
    */
   async deleteDocument(id: string): Promise<void> {
     // Ambil info file dulu
-    const { data: doc, error: selectError } = await supabase
+    const { data: doc, error: selectError } = await db
       .from('school_documents')
       .select('file_url')
       .eq('id', id)
@@ -223,7 +223,7 @@ export const documentApi = {
     if (selectError) throw new Error(`Dokumen tidak ditemukan: ${selectError.message}`)
 
     // Hapus dari tabel
-    const { error: deleteError } = await supabase.from('school_documents').delete().eq('id', id)
+    const { error: deleteError } = await db.from('school_documents').delete().eq('id', id)
 
     if (deleteError) throw new Error(`Gagal menghapus dokumen: ${deleteError.message}`)
 

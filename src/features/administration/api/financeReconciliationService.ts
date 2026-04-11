@@ -5,7 +5,7 @@
  * and audit trail queries.
  */
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 /**
  * Service for finance reconciliation API calls
@@ -15,7 +15,7 @@ export const financeReconciliationService = {
    * Lock a transaction for editing
    */
   async lockTransaction(transactionId: string, userId: string) {
-    const { data, error } = await supabase.rpc('lock_finance_transaction', {
+    const { data, error } = await db.rpc('lock_finance_transaction', {
       p_transaction_id: transactionId,
       p_user_id: userId,
     })
@@ -35,7 +35,7 @@ export const financeReconciliationService = {
    * Release a transaction lock
    */
   async unlockTransaction(transactionId: string, userId: string): Promise<boolean> {
-    const { data, error } = await supabase.rpc('unlock_finance_transaction', {
+    const { data, error } = await db.rpc('unlock_finance_transaction', {
       p_transaction_id: transactionId,
       p_user_id: userId,
     })
@@ -52,7 +52,7 @@ export const financeReconciliationService = {
     userId: string,
     notes?: string
   ): Promise<boolean> {
-    const { data, error } = await supabase.rpc('reconcile_finance_transaction', {
+    const { data, error } = await db.rpc('reconcile_finance_transaction', {
       p_transaction_id: transactionId,
       p_user_id: userId,
       p_notes: notes ?? null,
@@ -70,7 +70,7 @@ export const financeReconciliationService = {
     userId: string,
     reason: string
   ): Promise<boolean> {
-    const { data, error } = await supabase.rpc('dispute_finance_transaction', {
+    const { data, error } = await db.rpc('dispute_finance_transaction', {
       p_transaction_id: transactionId,
       p_user_id: userId,
       p_reason: reason,
@@ -84,7 +84,7 @@ export const financeReconciliationService = {
    * Get audit log for a transaction
    */
   async getTransactionAuditLog(transactionId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('finance_audit_log')
       .select(
         `
@@ -103,7 +103,7 @@ export const financeReconciliationService = {
    * Get reconciliation stats from materialized view
    */
   async getReconciliationStats(tenantId: string, days: number = 30) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('mv_finance_reconciliation_stats')
       .select('*')
       .eq('tenant_id', tenantId)
@@ -118,7 +118,7 @@ export const financeReconciliationService = {
    * Get pending reconciliation items
    */
   async getPendingReconciliation(tenantId: string, limit: number = 50) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('finance_transactions')
       .select(
         `
@@ -139,7 +139,7 @@ export const financeReconciliationService = {
    * Get disputed transactions
    */
   async getDisputedTransactions(tenantId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('finance_transactions')
       .select(
         `

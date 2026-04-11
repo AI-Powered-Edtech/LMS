@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mockFrom = vi.fn()
 const mockRpc = vi.fn()
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: (...args: unknown[]) => mockFrom(...args),
     rpc: (...args: unknown[]) => mockRpc(...args),
   },
@@ -17,7 +17,7 @@ describe('quizzes.service', () => {
 
   describe('getQuizWithQuestions', () => {
     // FIXED: A3 — removed catch-all try/catch that made test always pass.
-    // Now asserts that supabase.from() is actually called with 'quizzes'.
+    // Now asserts that db.from() is actually called with 'quizzes'.
     it('queries quizzes table with quiz ID', async () => {
       const mockChain = {
         select: vi.fn().mockReturnThis(),

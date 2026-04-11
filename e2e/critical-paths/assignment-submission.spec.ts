@@ -206,19 +206,19 @@ test.describe('Critical Path — Assignment Submission → Grade Flow', () => {
     await expect(page).not.toHaveURL(/login/)
 
     // VERIFIKASI DATABASE: Pastikan submission tersimpan di database
-    const supabase = page.evaluate(() => {
-      return window.supabase
+    const db = page.evaluate(() => {
+      return window.db
     }) as any
 
-    if (supabase) {
+    if (db) {
       // Dapatkan data student untuk mendapatkan user ID
       const {
         data: { session },
-      } = await supabase.auth.getSession()
+      } = await db.auth.getSession()
       const studentId = session?.user?.id
 
       // Query submission terbaru untuk student ini
-      const { data: submissions, error } = await supabase
+      const { data: submissions, error } = await db
         .from('submissions')
         .select('*')
         .eq('student_id', studentId)

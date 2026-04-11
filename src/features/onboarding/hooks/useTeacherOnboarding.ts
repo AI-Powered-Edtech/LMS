@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 export interface TeacherOnboardingState {
   id: string | null
@@ -76,7 +76,7 @@ export function useTeacherOnboarding(): UseTeacherOnboardingReturn {
 
     async function loadProgress() {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await db
           .from('teacher_onboarding_progress')
           .select(
             'id, current_step, completed_steps, is_completed, dismissed, created_class_id, created_class_join_code, created_course_id'
@@ -146,7 +146,7 @@ export function useTeacherOnboarding(): UseTeacherOnboardingReturn {
       }
 
       try {
-        const { data, error } = await supabase
+        const { data, error } = await db
           .from('teacher_onboarding_progress')
           .upsert(payload, { onConflict: 'user_id,tenant_id' })
           .select('id')

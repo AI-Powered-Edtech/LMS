@@ -1,7 +1,7 @@
 // EduSync LMS — Survey Analytics Service
 // Uses the get_survey_results RPC for aggregated analytics
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -54,7 +54,7 @@ export const surveyAnalyticsService = {
    * Returns per-question analytics with rating averages, yes/no counts, and text answers.
    */
   async getSurveyResults(tenantId: string, surveyId: string): Promise<SurveyAnalyticsResult> {
-    const { data, error } = await supabase.rpc('get_survey_results', {
+    const { data, error } = await db.rpc('get_survey_results', {
       p_tenant_id: tenantId,
       p_survey_id: surveyId,
     })
@@ -106,7 +106,7 @@ export const surveyAnalyticsService = {
    * Returns high-level metrics for all surveys.
    */
   async getSurveySummary(tenantId: string): Promise<SurveySummary[]> {
-    const { data, error } = await supabase.rpc('get_survey_summary', {
+    const { data, error } = await db.rpc('get_survey_summary', {
       p_tenant_id: tenantId,
     })
 
@@ -146,7 +146,7 @@ export const surveyAnalyticsService = {
       answerValue: string
     }>
   > {
-    const { data, error } = await supabase.rpc('export_survey_responses', {
+    const { data, error } = await db.rpc('export_survey_responses', {
       p_tenant_id: tenantId,
       p_survey_id: surveyId,
     })

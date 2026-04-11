@@ -8,8 +8,8 @@ const mockSelect = vi.fn(() => ({ order: mockOrder }))
 const mockUpdate = vi.fn(() => ({ eq: mockUpdateEq }))
 const mockUpdateEq = vi.fn()
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: (...args: unknown[]) => {
       const table = args[0] as string
       if (table === 'tenant_modules') {

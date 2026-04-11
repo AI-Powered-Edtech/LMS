@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 // --- Types (shared with consumers) ---
 
@@ -59,7 +59,7 @@ export const studentProgressService = {
    * When userId is provided, derives module status from lesson progress.
    */
   async fetchModules(tenantId: string, userId?: string): Promise<ModuleData[]> {
-    const { data: moduleData } = await supabase
+    const { data: moduleData } = await db
       .from('course_modules')
       .select('id, title, order, course_id')
       .eq('tenant_id', tenantId)
@@ -77,13 +77,13 @@ export const studentProgressService = {
     }
 
     const moduleIds = moduleData.map((m) => m.id)
-    const { data: lessonData } = await supabase
+    const { data: lessonData } = await db
       .from('lessons')
       .select('id, module_id')
       .in('module_id', moduleIds)
       .eq('tenant_id', tenantId)
 
-    const { data: progressData } = await supabase
+    const { data: progressData } = await db
       .from('lesson_progress')
       .select('lesson_id, completed')
       .eq('user_id', userId)
@@ -136,7 +136,7 @@ export const studentProgressService = {
     userId: string,
     tenantId: string
   ): Promise<Record<string, LessonProgress>> {
-    const { data } = await supabase
+    const { data } = await db
       .from('lesson_progress')
       .select('lesson_id, completed, completed_at')
       .eq('user_id', userId)
@@ -145,7 +145,7 @@ export const studentProgressService = {
     const lessonIds = (data ?? []).map((row) => row.lesson_id)
     const { data: lessons } =
       lessonIds.length > 0
-        ? await supabase
+        ? await db
             .from('lessons')
             .select('id, module_id')
             .eq('tenant_id', tenantId)
@@ -179,7 +179,7 @@ export const studentProgressService = {
     userId: string,
     tenantId: string
   ): Promise<Record<string, QuizAttempt[]>> {
-    const { data } = await supabase
+    const { data } = await db
       .from('quiz_attempts_v2')
       .select('id, quiz_id, score, started_at, submitted_at, passed')
       .eq('student_id', userId)
@@ -191,7 +191,7 @@ export const studentProgressService = {
     const quizIds = (data ?? []).map((attempt) => attempt.quiz_id)
     const { data: quizzes } =
       quizIds.length > 0
-        ? await supabase
+        ? await db
             .from('quizzes')
             .select('id, total_points')
             .eq('tenant_id', tenantId)
@@ -232,7 +232,7 @@ export const studentProgressService = {
    * Fetch user XP total within a tenant.
    */
   async fetchXP(userId: string, tenantId: string): Promise<number> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('user_points')
       .select('points')
       .eq('user_id', userId)
@@ -245,7 +245,7 @@ export const studentProgressService = {
    * Fetch user badges/achievements within a tenant.
    */
   async fetchAchievements(userId: string, tenantId: string): Promise<AchievementData[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('user_badges')
       .select('id, badge_id, earned_at')
       .eq('user_id', userId)
@@ -256,7 +256,7 @@ export const studentProgressService = {
     const badgeIds = (data ?? []).map((badge) => badge.badge_id)
     const { data: badges, error: badgeError } =
       badgeIds.length > 0
-        ? await supabase.from('badges').select('id, name, icon').in('id', badgeIds)
+        ? await db.from('badges').select('id, name, icon').in('id', badgeIds)
         : { data: [], error: null }
 
     if (badgeError) return []
@@ -285,7 +285,7 @@ export const studentProgressService = {
     let enrolledClassIds: string[] | null = null
 
     if (studentId) {
-      const { data: enrollments } = await supabase
+      const { data: enrollments } = await db
         .from('enrollments')
         .select('class_id')
         .eq('student_id', studentId)
@@ -296,7 +296,7 @@ export const studentProgressService = {
       }
     }
 
-    let query = supabase
+    let query = db
       .from('assignments')
       .select('id, title, due_date, class_id')
       .eq('tenant_id', tenantId)
@@ -312,7 +312,7 @@ export const studentProgressService = {
     const classIds = ((data ?? []) as Array<{ class_id: string | null }>).map((row) => row.class_id)
     const { data: classes } =
       classIds.length > 0
-        ? await supabase
+        ? await db
             .from('classes')
             .select('id, name')
             .eq('tenant_id', tenantId)
@@ -348,7 +348,7 @@ export const studentProgressService = {
     completed: boolean,
     tenantId: string
   ): Promise<void> {
-    const { error } = await supabase.from('lesson_progress').upsert(
+    const { error } = await db.from('lesson_progress').upsert(
       {
         user_id: userId,
         lesson_id: lessonId,
@@ -381,7 +381,7 @@ export const studentProgressService = {
    * Add XP to a user via RPC.
    */
   async addXP(userId: string, amount: number, _tenantId: string): Promise<void> {
-    const { error } = await supabase.rpc('add_user_points', {
+    const { error } = await db.rpc('add_user_points', {
       p_user_id: userId,
       p_points: amount,
     })

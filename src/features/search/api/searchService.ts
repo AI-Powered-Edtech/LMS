@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { captureError } from '@/utils/sentry'
 
 /**
@@ -44,7 +44,7 @@ export async function globalSearch(options: SearchOptions): Promise<SearchResult
   // Search courses
   if (typeFilter.includes('course')) {
     try {
-      const { data } = await supabase
+      const { data } = await db
         .from('courses')
         .select('id, title, description, tenant_id')
         .eq('tenant_id', tenantId)
@@ -69,7 +69,7 @@ export async function globalSearch(options: SearchOptions): Promise<SearchResult
   // Search lessons
   if (typeFilter.includes('lesson')) {
     try {
-      const { data } = await supabase
+      const { data } = await db
         .from('lessons')
         .select('id, title, description, tenant_id, module_id')
         .eq('tenant_id', tenantId)
@@ -94,7 +94,7 @@ export async function globalSearch(options: SearchOptions): Promise<SearchResult
   // Search assignments
   if (typeFilter.includes('assignment')) {
     try {
-      const { data } = await supabase
+      const { data } = await db
         .from('assignments')
         .select('id, title, description, tenant_id, course_id')
         .eq('tenant_id', tenantId)
@@ -119,7 +119,7 @@ export async function globalSearch(options: SearchOptions): Promise<SearchResult
   // Search quizzes
   if (typeFilter.includes('quiz')) {
     try {
-      const { data } = await supabase
+      const { data } = await db
         .from('quizzes')
         .select('id, title, description, tenant_id')
         .eq('tenant_id', tenantId)
@@ -144,7 +144,7 @@ export async function globalSearch(options: SearchOptions): Promise<SearchResult
   // Search users (profiles)
   if (typeFilter.includes('user')) {
     try {
-      const { data } = await supabase
+      const { data } = await db
         .from('profiles')
         .select('id, first_name, last_name, email, tenant_id')
         .eq('tenant_id', tenantId)

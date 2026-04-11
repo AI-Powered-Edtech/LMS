@@ -10,7 +10,7 @@ interface ShadowComparisonConfig<TPrimary, TShadow> {
   method: string
   shadowMode: 'read' | 'write'
   primaryBackend: 'vil'
-  shadowBackend: 'supabase'
+  shadowBackend: 'vil'
   requestSignature: unknown
   requestId: string
   primaryResult: {
@@ -35,7 +35,7 @@ interface DivergenceEventPayload {
   endpoint: string
   method: string
   primary_backend: 'vil'
-  shadow_backend: 'supabase'
+  shadow_backend: 'vil'
   normalized_request_signature: string
   result_hash_primary: string | null
   result_hash_shadow: string | null

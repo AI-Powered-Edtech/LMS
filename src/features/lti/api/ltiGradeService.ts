@@ -1,5 +1,5 @@
 import { readVilSession } from '@/services/auth/vilSession'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 /**
  * LTI Grade Passback Service
@@ -72,7 +72,7 @@ export const ltiGradeService = {
       created_at: string
     }>
   > {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('lti_grade_passback_log')
       .select(
         'id, resource_type, resource_id, score_sent, max_score, status, error_message, created_at'

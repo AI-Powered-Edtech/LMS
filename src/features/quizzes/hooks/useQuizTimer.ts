@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 interface UseQuizTimerOptions {
   expiresAt: string | null
@@ -93,7 +93,7 @@ export function useQuizTimer({
     if (isPaused || pauseCount >= MAX_PAUSES || isPauseLoading) return
     setIsPauseLoading(true)
     try {
-      const { data, error } = await supabase.rpc('pause_quiz_attempt', {
+      const { data, error } = await db.rpc('pause_quiz_attempt', {
         p_attempt_id: attemptId,
       })
       if (error) throw error
@@ -120,7 +120,7 @@ export function useQuizTimer({
     if (!isPaused || isPauseLoading) return
     setIsPauseLoading(true)
     try {
-      const { error } = await supabase.rpc('resume_quiz_attempt', {
+      const { error } = await db.rpc('resume_quiz_attempt', {
         p_attempt_id: attemptId,
       })
       if (error) throw error

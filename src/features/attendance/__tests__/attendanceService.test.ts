@@ -6,8 +6,8 @@ import { attendanceService } from '../api/attendanceService'
 const mockFrom = vi.fn()
 const mockRpc = vi.fn()
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: (...args: unknown[]) => mockFrom(...args),
     rpc: (...args: unknown[]) => mockRpc(...args),
   },
@@ -44,7 +44,7 @@ describe('attendanceService.fetchTeacherClasses', () => {
     expect(result).toEqual(mockData)
   })
 
-  it('throws on supabase error', async () => {
+  it('throws on db error', async () => {
     mockFrom.mockReturnValue(makeChain({ data: null, error: { message: 'DB error' } }))
 
     await expect(attendanceService.fetchTeacherClasses('t1', 'teacher1')).rejects.toEqual({

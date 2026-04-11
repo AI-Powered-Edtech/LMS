@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 // FIXED: Persist user-created calendar events to DB (calendar_events table)
 
@@ -35,7 +35,7 @@ export const calendarEventService = {
     tenantId: string,
     userId: string
   ): Promise<PersistedCalendarEvent> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('calendar_events')
       .insert({
         tenant_id: tenantId,
@@ -61,7 +61,7 @@ export const calendarEventService = {
     tenantId: string,
     dateRange: { from: string; to: string }
   ): Promise<PersistedCalendarEvent[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('calendar_events')
       .select('*')
       .eq('tenant_id', tenantId)
@@ -82,7 +82,7 @@ export const calendarEventService = {
    * Delete a user-created calendar event.
    */
   async deleteCalendarEvent(id: string): Promise<void> {
-    const { error } = await supabase.from('calendar_events').delete().eq('id', id)
+    const { error } = await db.from('calendar_events').delete().eq('id', id)
     if (error) throw new Error(`Gagal menghapus acara kalender: ${error.message}`)
   },
 }

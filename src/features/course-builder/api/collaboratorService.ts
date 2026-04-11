@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 // ============================================================
 // Types
@@ -26,7 +26,7 @@ export const collaboratorService = {
    * Fetch all collaborators for a given course within a tenant.
    */
   async fetchCollaborators(courseId: string, tenantId: string): Promise<Collaborator[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('course_collaborators')
       .select('id, user_id, role')
       .eq('course_id', courseId)
@@ -36,7 +36,7 @@ export const collaboratorService = {
 
     const collaborators = (data ?? []) as Array<Record<string, unknown>>
     const userIds = collaborators.map((row) => String(row.user_id)).filter(Boolean)
-    const { data: profiles, error: profileError } = await supabase
+    const { data: profiles, error: profileError } = await db
       .from('profiles')
       .select('id, full_name, email')
       .eq('tenant_id', tenantId)
@@ -65,7 +65,7 @@ export const collaboratorService = {
   async searchUsers(query: string, tenantId: string): Promise<SearchableUser[]> {
     if (!query) return []
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('profiles')
       .select('id, full_name, email')
       .eq('tenant_id', tenantId)
@@ -85,7 +85,7 @@ export const collaboratorService = {
     role: Collaborator['role'],
     tenantId: string
   ): Promise<void> {
-    const { error } = await supabase.from('course_collaborators').insert({
+    const { error } = await db.from('course_collaborators').insert({
       course_id: courseId,
       user_id: userId,
       role,
@@ -98,7 +98,7 @@ export const collaboratorService = {
    * Remove a collaborator by record ID.
    */
   async removeCollaborator(id: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('course_collaborators')
       .delete()
       .eq('id', id)

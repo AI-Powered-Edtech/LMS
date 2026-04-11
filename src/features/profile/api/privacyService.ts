@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { captureError } from '@/utils/sentry'
 
 export interface UserDataExport {
@@ -16,36 +16,36 @@ export async function exportUserData(
   tenantId: string
 ): Promise<UserDataExport | null> {
   try {
-    const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single()
+    const { data: profile } = await db.from('profiles').select('*').eq('id', userId).single()
 
-    const { data: enrollments } = await supabase
+    const { data: enrollments } = await db
       .from('enrollments')
       .select('*')
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)
 
-    const { data: progress } = await supabase
+    const { data: progress } = await db
       .from('lesson_progress')
       .select('*')
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)
       .limit(1000)
 
-    const { data: grades } = await supabase
+    const { data: grades } = await db
       .from('grades')
       .select('*')
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)
       .limit(1000)
 
-    const { data: messages } = await supabase
+    const { data: messages } = await db
       .from('messages')
       .select('*')
       .eq('sender_id', userId)
       .eq('tenant_id', tenantId)
       .limit(1000)
 
-    const { data: certificates } = await supabase
+    const { data: certificates } = await db
       .from('certificates')
       .select('*')
       .eq('user_id', userId)
@@ -81,7 +81,7 @@ export function downloadExport(data: UserDataExport): void {
 
 export async function requestAccountDeletion(userId: string, reason: string): Promise<boolean> {
   try {
-    const { error } = await supabase.from('account_deletion_requests').insert({
+    const { error } = await db.from('account_deletion_requests').insert({
       user_id: userId,
       reason,
       status: 'pending',

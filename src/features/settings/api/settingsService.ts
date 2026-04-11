@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 /**
  * Settings Service
@@ -12,7 +12,7 @@ export const settingsService = {
     userId: string,
     data: { firstName: string; lastName: string }
   ): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('profiles')
       .update({
         first_name: data.firstName,
@@ -27,7 +27,7 @@ export const settingsService = {
    * Change the authenticated user's password via Supabase Auth.
    */
   async changePassword(newPassword: string): Promise<void> {
-    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    const { error } = await db.auth.updateUser({ password: newPassword })
     if (error) throw error
   },
 }

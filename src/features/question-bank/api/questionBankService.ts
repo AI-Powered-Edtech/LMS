@@ -1,5 +1,5 @@
 import type { QuestionType } from '@/features/quizzes'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 // ────────────────────────────────────────────────────────────
 // Types
@@ -57,7 +57,7 @@ interface SearchQuestionsFilters {
 
 export const questionBankService = {
   async createQuestion(payload: CreateQuestionPayload) {
-    const { data, error } = await supabase.rpc('create_question', {
+    const { data, error } = await db.rpc('create_question', {
       p_subject_id: payload.subject_id || null,
       p_topic_id: payload.topic_id || null,
       p_question_type: payload.type,
@@ -83,7 +83,7 @@ export const questionBankService = {
       })
     )
 
-    const { data, error } = await supabase.rpc('update_question', {
+    const { data, error } = await db.rpc('update_question', {
       p_question_id: payload.id,
       p_subject_id: payload.subject_id || null,
       p_topic_id: payload.topic_id || null,
@@ -100,7 +100,7 @@ export const questionBankService = {
   },
 
   async searchQuestions(filters: SearchQuestionsFilters): Promise<QuestionBankItem[]> {
-    const { data, error } = await supabase.rpc('search_questions', {
+    const { data, error } = await db.rpc('search_questions', {
       p_subject_id: filters.subject || null,
       p_topic_id: filters.topic || null,
       p_difficulty_level: filters.difficulty || null,
@@ -116,7 +116,7 @@ export const questionBankService = {
   },
 
   async getQuestion(questionId: string): Promise<QuestionBankItem> {
-    const { data, error } = await supabase.rpc('get_question', {
+    const { data, error } = await db.rpc('get_question', {
       p_question_id: questionId,
     })
 
@@ -125,7 +125,7 @@ export const questionBankService = {
   },
 
   async getQuestionOptions(questionId: string): Promise<QuestionBankOption[]> {
-    const { data, error } = await supabase.rpc('get_question_options', {
+    const { data, error } = await db.rpc('get_question_options', {
       p_question_id: questionId,
     })
 
@@ -139,7 +139,7 @@ export const questionBankService = {
     _points: number = 1,
     orderIndex: number = 0
   ) {
-    const { data, error } = await supabase.rpc('add_question_to_quiz', {
+    const { data, error } = await db.rpc('add_question_to_quiz', {
       p_quiz_id: quizId,
       p_question_bank_id: questionId,
       p_order: orderIndex,
@@ -150,7 +150,7 @@ export const questionBankService = {
   },
 
   async archiveQuestion(questionId: string) {
-    const { data, error } = await supabase.rpc('archive_question', {
+    const { data, error } = await db.rpc('archive_question', {
       p_question_id: questionId,
     })
 

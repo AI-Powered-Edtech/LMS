@@ -4,7 +4,7 @@
 import type { Metric } from 'web-vitals'
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals'
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 /* ─── Helpers ──────────────────────────────────────────────── */
 
@@ -41,7 +41,7 @@ async function sendMetricProd(metric: Metric): Promise<void> {
   if (Math.random() > 0.1) return
 
   try {
-    await supabase.from('activity_events').insert({
+    await db.from('activity_events').insert({
       event_type: 'WEB_VITAL',
       event_data: {
         name: metric.name,

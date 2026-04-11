@@ -1,9 +1,9 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { ReportCardData, Semester, SemesterFormData } from '../types'
 
 export async function fetchSemesters(tenantId: string): Promise<Semester[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('semesters')
     .select(
       'id, tenant_id, name, academic_year, term, start_date, end_date, status, created_at, updated_at'
@@ -17,7 +17,7 @@ export async function fetchSemesters(tenantId: string): Promise<Semester[]> {
 }
 
 export async function fetchSemesterById(id: string, tenantId: string): Promise<Semester | null> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('semesters')
     .select(
       'id, tenant_id, name, academic_year, term, start_date, end_date, status, created_at, updated_at'
@@ -34,7 +34,7 @@ export async function createSemester(
   formData: SemesterFormData,
   tenantId: string
 ): Promise<Semester> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('semesters')
     .insert({
       tenant_id: tenantId,
@@ -59,7 +59,7 @@ export async function updateSemester(
   updates: Partial<SemesterFormData>,
   tenantId: string
 ): Promise<Semester> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('semesters')
     .update({
       ...updates,
@@ -77,7 +77,7 @@ export async function updateSemester(
 }
 
 export async function closeSemester(id: string, tenantId: string): Promise<Semester> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('semesters')
     .update({
       status: 'closed',
@@ -99,7 +99,7 @@ export async function cloneCourseToSemester(
   targetSemesterId: string,
   tenantId: string
 ): Promise<string> {
-  const { data, error } = await supabase.rpc('clone_course_to_semester', {
+  const { data, error } = await db.rpc('clone_course_to_semester', {
     p_course_id: courseId,
     p_target_semester_id: targetSemesterId,
     p_tenant_id: tenantId,
@@ -114,7 +114,7 @@ export async function promoteStudentsToNextClass(
   newClass: string,
   tenantId: string
 ): Promise<number> {
-  const { data, error } = await supabase.rpc('promote_students_to_next_class', {
+  const { data, error } = await db.rpc('promote_students_to_next_class', {
     p_tenant_id: tenantId,
     p_student_ids: studentIds,
     p_new_class: newClass,
@@ -129,7 +129,7 @@ export async function generateSemesterReportCard(
   studentId: string,
   tenantId: string
 ): Promise<ReportCardData> {
-  const { data, error } = await supabase.rpc('generate_semester_report_card', {
+  const { data, error } = await db.rpc('generate_semester_report_card', {
     p_semester_id: semesterId,
     p_student_id: studentId,
     p_tenant_id: tenantId,

@@ -6,7 +6,7 @@
 // timer/helpers to quizTimerService.ts.
 // ==========================================================================
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type {
   QuestionType,
@@ -65,11 +65,11 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
   // QUIZ-CRIT-01/02: Auth check — verify the user owns this attempt
   const {
     data: { session },
-  } = await supabase.auth.getSession()
+  } = await db.auth.getSession()
   if (!session?.user) throw new Error('Tidak terautentikasi')
 
   // Get the question manifest from the attempt, scoped to the authenticated student
-  const { data: attempt, error: attemptError } = await supabase
+  const { data: attempt, error: attemptError } = await db
     .from('quiz_attempts_v2')
     .select('question_manifest, student_id, tenant_id')
     .eq('id', attemptId)
@@ -79,7 +79,7 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
   if (attemptError) throw attemptError
 
   // Get all existing answers for this attempt
-  const { data: answers, error: answersError } = await supabase
+  const { data: answers, error: answersError } = await db
     .from('quiz_attempt_questions_v2')
     .select('attempt_id, question_id, student_answers, points_earned, is_correct')
     .eq('attempt_id', attemptId)
@@ -90,7 +90,7 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
   if (manifest.length === 0) return []
 
   // Fetch all questions in the manifest, scoped to the attempt's tenant
-  const { data: questions, error: questionError } = await supabase
+  const { data: questions, error: questionError } = await db
     .from('quiz_questions')
     .select('id, text, explanation, "order", question_type, points')
     .in('id', manifest)
@@ -101,7 +101,7 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
   const questionIds = (questions ?? []).map((question) => question.id)
   const { data: options, error: optionError } =
     questionIds.length > 0
-      ? await supabase
+      ? await db
           .from('quiz_options')
           .select('id, question_id, text')
           .eq('tenant_id', attempt.tenant_id)
@@ -186,11 +186,11 @@ export async function getStudentQuizAssignments(
 ): Promise<StudentQuizAssignment[]> {
   const {
     data: { session },
-  } = await supabase.auth.getSession()
+  } = await db.auth.getSession()
   if (!session) throw new Error('Not authenticated')
 
   // Get student's enrolled classes
-  const { data: enrollments, error: enrollmentError } = await supabase
+  const { data: enrollments, error: enrollmentError } = await db
     .from('enrollments')
     .select('class_id')
     .eq('student_id', session.user.id)
@@ -210,7 +210,7 @@ export async function getStudentQuizAssignments(
   if (classIds.length === 0) return []
 
   // Get quiz assignments for those classes
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('quiz_assignments')
     .select('id, quiz_id, class_id, status, available_from, due_at, max_attempts')
     .eq('tenant_id', tenantId)
@@ -228,7 +228,7 @@ export async function getStudentQuizAssignments(
   const [{ data: quizzes, error: quizError }, { data: classes, error: classError }] =
     await Promise.all([
       assignedQuizIds.length > 0
-        ? supabase
+        ? db
             .from('quizzes')
             .select(
               'id, title, instructions, mode, time_limit_minutes, max_attempts, passing_score, show_correct_answers, status, available_from, available_until'
@@ -238,7 +238,7 @@ export async function getStudentQuizAssignments(
             .in('id', assignedQuizIds)
         : Promise.resolve({ data: [], error: null }),
       assignedClassIds.length > 0
-        ? supabase
+        ? db
             .from('classes')
             .select('id, name')
             .eq('tenant_id', tenantId)
@@ -255,7 +255,7 @@ export async function getStudentQuizAssignments(
   const questionCounts = new Map<string, Array<{ id: string }>>()
 
   if (publishedQuizIds.size > 0) {
-    const { data: quizQuestions, error: quizQuestionError } = await supabase
+    const { data: quizQuestions, error: quizQuestionError } = await db
       .from('quiz_questions')
       .select('id, quiz_id')
       .eq('tenant_id', tenantId)
@@ -312,13 +312,13 @@ export async function getStudentQuizAssignments(
 export async function getUserAttempts(tenantId: string): Promise<QuizAttempt[]> {
   const {
     data: { session },
-  } = await supabase.auth.getSession()
+  } = await db.auth.getSession()
   if (!session) throw new Error('Not authenticated')
 
   // NOTE: Nested joins (quizzes, quiz_assignments) removed — FK relationships
   // may not be registered in PostgREST schema cache on all environments,
   // causing a 400 error. Fetch only flat columns to maximise compatibility.
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('quiz_attempts_v2')
     .select(
       `

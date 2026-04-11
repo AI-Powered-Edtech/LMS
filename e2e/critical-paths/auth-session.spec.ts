@@ -262,7 +262,7 @@ test.describe('Critical Path — Auth Session Flow', () => {
       const keysToRemove: string[] = []
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i)
-        if (key && (key.includes('supabase') || key.includes('session') || key.includes('token'))) {
+        if (key && (key.includes('db') || key.includes('session') || key.includes('token'))) {
           keysToRemove.push(key)
         }
       }
@@ -271,7 +271,7 @@ test.describe('Critical Path — Auth Session Flow', () => {
       // Juga hapus sessionStorage
       for (let i = 0; i < sessionStorage.length; i++) {
         const key = sessionStorage.key(i)
-        if (key && (key.includes('supabase') || key.includes('session'))) {
+        if (key && (key.includes('db') || key.includes('session'))) {
           sessionStorage.removeItem(key)
         }
       }
@@ -298,7 +298,7 @@ test.describe('Critical Path — Auth Session Flow', () => {
       const keysToRemove: string[] = []
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i)
-        if (key && (key.includes('supabase') || key.includes('session') || key.includes('token'))) {
+        if (key && (key.includes('db') || key.includes('session') || key.includes('token'))) {
           keysToRemove.push(key)
         }
       }

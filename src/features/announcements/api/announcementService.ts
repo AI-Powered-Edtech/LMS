@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import { Announcement, AnnouncementRSVP } from '../types'
 
@@ -16,7 +16,7 @@ export const announcementService = {
       search?: string
     } = {}
   ) {
-    let query = supabase
+    let query = db
       .from('announcements')
       .select(
         `
@@ -68,7 +68,7 @@ export const announcementService = {
    * Get announcement by ID with tenant isolation
    */
   async getAnnouncementById(id: string, tenantId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('announcements')
       .select(
         `
@@ -95,7 +95,7 @@ export const announcementService = {
   async saveAnnouncement(
     announcement: Partial<Announcement> & { tenant_id: string; created_by: string }
   ) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('announcements')
       .upsert(announcement)
       .select(
@@ -117,7 +117,7 @@ export const announcementService = {
    * Delete announcement with tenant isolation
    */
   async deleteAnnouncement(id: string, tenantId: string) {
-    const { error } = await supabase
+    const { error } = await db
       .from('announcements')
       .delete()
       .eq('id', id)
@@ -135,7 +135,7 @@ export const announcementService = {
     userId: string,
     response: 'yes' | 'no' | 'maybe'
   ) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('announcement_rsvps')
       .upsert({
         announcement_id: announcementId,
@@ -159,7 +159,7 @@ export const announcementService = {
    * Get RSVP status for a user/announcement with tenant isolation
    */
   async getUserRSVP(announcementId: string, userId: string, tenantId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('announcement_rsvps')
       .select('id, tenant_id, announcement_id, user_id, response, responded_at')
       .eq('announcement_id', announcementId)

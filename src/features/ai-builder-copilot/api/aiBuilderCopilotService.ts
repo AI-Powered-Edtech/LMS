@@ -1,5 +1,5 @@
 import { readVilSession } from '@/services/auth/vilSession'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type {
   AIBuilderArtifact,
@@ -208,7 +208,7 @@ export const aiBuilderCopilotService = {
     courseId: string,
     selectedModules: object[]
   ): Promise<ApplyOutlineResult> {
-    const { data, error } = await supabase.rpc('apply_ai_outline_artifact', {
+    const { data, error } = await db.rpc('apply_ai_outline_artifact', {
       p_artifact_id: artifactId,
       p_course_id: courseId,
       p_selected_modules: selectedModules,
@@ -231,7 +231,7 @@ export const aiBuilderCopilotService = {
     quizPayload?: object | null,
     assignmentPayload?: object | null
   ): Promise<ApplyLessonDraftResult> {
-    const { data, error } = await supabase.rpc('apply_ai_lesson_artifact', {
+    const { data, error } = await db.rpc('apply_ai_lesson_artifact', {
       p_artifact_id: artifactId,
       p_lesson_id: lessonId,
       p_selected_blocks: selectedBlocks,
@@ -256,7 +256,7 @@ export const aiBuilderCopilotService = {
     cursor: string | null = null,
     limit = 20
   ): Promise<{ items: AIBuilderArtifact[]; hasMore: boolean }> {
-    let query = supabase
+    let query = db
       .from('ai_builder_artifacts')
       .select(
         'id, tenant_id, course_id, created_by, artifact_kind, target_type, target_id, source_type, source_ref_id, prompt_config, output, status, created_at, updated_at'
@@ -286,7 +286,7 @@ export const aiBuilderCopilotService = {
   // ─── Dismiss ─────────────────────────────────────────────────────────────────
 
   async dismissArtifact(artifactId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('ai_builder_artifacts')
       .update({ status: 'dismissed' })
       .eq('id', artifactId)
@@ -297,7 +297,7 @@ export const aiBuilderCopilotService = {
   // ─── Reapply (fetch full artifact for re-preview) ──────────────────────────
 
   async reapplyArtifact(artifactId: string): Promise<AIBuilderArtifact> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('ai_builder_artifacts')
       .select(
         'id, tenant_id, course_id, created_by, artifact_kind, target_type, target_id, source_type, source_ref_id, prompt_config, output, status, created_at, updated_at'

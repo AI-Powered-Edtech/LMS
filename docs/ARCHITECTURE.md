@@ -2,7 +2,7 @@
 
 ## Overview
 
-EduSync is a Supabase-centric SaaS LMS. There is no traditional backend server. All business logic lives in PostgreSQL (SQL functions, triggers, RLS) or Supabase Edge Functions. The frontend is a React SPA that communicates directly with Supabase.
+EduSync is a VIL-native SaaS LMS. The VIL Rust backend (`edusync-api/`) serves as the sole API, auth, storage, and realtime layer. All business logic lives in PostgreSQL (SQL functions, triggers, RLS) or VIL backend handlers. The frontend is a React SPA that communicates with VIL over HTTP/WebSocket.
 
 ## Frontend
 
@@ -113,8 +113,11 @@ Large page components were refactored from monolithic files into feature-module 
 
 While domain-specific API logic is collocated within feature modules (`src/features/*/api/`), core infrastructure services remain in a top-level directory:
 
-- `src/services/supabase/client.ts` — Shared Supabase client initialization and singleton export.
-- `src/services/supabase/auth.ts` — Auth-related helper methods (if present).
+- `src/services/api/` — VIL HTTP client and shadow comparison utilities.
+- `src/services/auth/` — VIL auth provider (JWT-based session management).
+- `src/services/storage/` — VIL storage provider.
+- `src/services/realtime/` — VIL WebSocket realtime provider.
+- `src/services/db/` — Database client (used for direct query paths).
 - `src/lib/` — Third-party library wrappers and generic utilities.
 
 Oversized legacy service files have been split and moved to their respective feature modules under `src/features/*/api/`.
@@ -181,7 +184,7 @@ Each feature follows a standard structure in `src/features/{domain}/`:
 
 ```
 src/features/{domain}/
-├── api/            ← Supabase calls (DB queries, RPC, Edge Functions)
+├── api/            ← VIL API calls (HTTP requests, RPC, DB queries)
 ├── queries/        ← React Query hooks (useQuery, useMutation)
 ├── hooks/          ← Custom React hooks (non-query business logic)
 ├── types/          ← TypeScript interfaces (index.ts)
@@ -199,49 +202,15 @@ src/features/{domain}/
 
 ## Database Architecture
 
-- PostgreSQL on Supabase with Row-Level Security
+- PostgreSQL (migrated from Supabase hosting, accessed via VIL sqlx) with Row-Level Security
 - 200+ tables with RLS enabled
 - 400+ RLS policies
-- 133 migration files (including archived)
+- Migrations in `edusync-api/migrations/`
 - All tables use `tenant_id` for multi-tenant isolation
 - `auto_set_tenant_id()` trigger on all new tables
 - SQL functions use `SECURITY DEFINER` with `SET search_path TO 'public'`
 
 See [DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md) for complete table and RPC reference.
-
-## Edge Functions
-
-28 Deno Edge Functions deployed to Supabase (`supabase/functions/`):
-
-| Function                     | Purpose                         | Auth              |
-| ---------------------------- | ------------------------------- | ----------------- |
-| `ai-grade-essay`             | AI essay grading via Groq       | User JWT          |
-| `ai-tutor`                   | AI tutor chat                   | User JWT          |
-| `generate-ai-content`        | AI content generation           | User JWT          |
-| `generate-pdf`               | PDF certificate generation      | User JWT          |
-| `grade-quiz-attempt`         | Background quiz grading         | Service role      |
-| `health-check`               | System health status            | None (public)     |
-| `load-quiz-data`             | Load quiz for student           | User JWT          |
-| `process-progress-events`    | Batch progress event processing | API key           |
-| `progress-events`            | Enqueue progress events         | User JWT          |
-| `send-email-digest`          | Email digest sender             | Service role      |
-| `send-push`                  | Push notification sender        | User JWT          |
-| `lti-jwks`                   | Public JWKS for LTI platforms   | None (public GET) |
-| `lti-oidc-login`             | LTI OIDC login initiation       | None (platform)   |
-| `lti-launch`                 | LTI launch token validation     | None (LTI)        |
-| `lti-grade-passback`         | LTI 1.3 grade passback          | Service role      |
-| `scorm-extract`              | SCORM ZIP extraction            | User JWT          |
-| `check-plagiarism`           | Plagiarism detection check      | User JWT          |
-| `generate-quiz-from-content` | AI quiz generation              | User JWT          |
-| `recommend-learning-path`    | AI path recommendation          | User JWT          |
-| `video-webhook`              | Video processing webhook        | Service role      |
-| `generate-executive-report`  | Executive report generation     | Service role      |
-| `generate-parent-report`     | Parent report generation        | Service role      |
-| `bulk-import-users`          | Bulk user import                | Service role      |
-| `check-rate-limit`           | Rate limiting check             | Service role      |
-| `send-parent-digest`         | Parent digest sending           | Service role      |
-| `send-parent-otp`            | Parent OTP sending              | Service role      |
-| `whatsapp-webhook`           | WhatsApp webhook handler        | Service role      |
 
 ## Security Model
 
@@ -249,7 +218,7 @@ See [DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md) for complete table and 
 - **Tenant isolation** — `tenant_id = get_my_tenant_id()` policy on all tables
 - **CSP headers** — enforced Content-Security-Policy in `index.html`
 - **Sentry monitoring** — error tracking with PII scrubbing
-- **Rate limiting** — server-side rate limiting via `check-rate-limit` Edge Function
+- **Rate limiting** — server-side rate limiting via VIL middleware
 - **Input sanitization** — `escapeHtml()` and `sanitizeUrl()` utilities
 
 See [SECURITY.md](SECURITY.md) for complete security documentation.

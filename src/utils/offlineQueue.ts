@@ -1,7 +1,7 @@
 // EduSync LMS — Offline Queue with Retry & Conflict Resolution
 // Builds on top of existing offlineStorage.ts IndexedDB infrastructure
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { captureError } from '@/utils/sentry'
 
 import {
@@ -149,7 +149,7 @@ async function processOperation(
 
     switch (item.type) {
       case 'quiz-submission': {
-        const { error } = await supabase
+        const { error } = await db
           .from('quiz_attempts_v2')
           .update({
             answers: payload.answers,
@@ -162,7 +162,7 @@ async function processOperation(
       }
 
       case 'assignment-upload': {
-        const { error } = await supabase
+        const { error } = await db
           .from('assignment_submissions')
           .update({
             file_url: payload.fileUrl,
@@ -174,7 +174,7 @@ async function processOperation(
       }
 
       case 'grade-update': {
-        const { error } = await supabase
+        const { error } = await db
           .from('gradebook_entries')
           .update({
             score: payload.score,
@@ -187,7 +187,7 @@ async function processOperation(
       }
 
       case 'attendance-mark': {
-        const { error } = await supabase
+        const { error } = await db
           .from('attendance_records')
           .update({
             status: payload.status,
@@ -199,7 +199,7 @@ async function processOperation(
       }
 
       case 'message-send': {
-        const { error } = await supabase.from('messages').insert({
+        const { error } = await db.from('messages').insert({
           sender_id: payload.senderId,
           recipient_id: payload.recipientId,
           content: payload.content,
@@ -210,7 +210,7 @@ async function processOperation(
       }
 
       case 'form-submit': {
-        const { error } = await supabase
+        const { error } = await db
           .from(payload.tableName as string)
           .insert(payload.data as never)
         result = { error }
@@ -218,7 +218,7 @@ async function processOperation(
       }
 
       case 'xapi-statement': {
-        const { error } = await supabase.rpc('record_xapi_statement', {
+        const { error } = await db.rpc('record_xapi_statement', {
           p_verb: payload.verb,
           p_object_type: payload.objectType,
           p_object_id: payload.objectId,

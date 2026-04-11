@@ -12,7 +12,7 @@ import { OfflineFormNotice } from '@/components/ui/OfflineFormNotice'
 import type { Theme } from '@/contexts/ThemeContext'
 import { MFASettings } from '@/features/auth/components/MFASettings'
 import { publicProfileService } from '@/features/profile/api/publicProfileService'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { type ProfileFormData, ProfileFormSchema } from '@/shared/schemas/forms'
 import { cn } from '@/utils/cn'
 import { captureError } from '@/utils/sentry'
@@ -232,10 +232,10 @@ export function SecurityTab() {
     }
     setSavingPassword(true)
     try {
-      const { data: user } = await supabase.auth.getUser()
+      const { data: user } = await db.auth.getUser()
       const email = user.user?.email
       if (email) {
-        const { error: verifyError } = await supabase.auth.signInWithPassword({
+        const { error: verifyError } = await db.auth.signInWithPassword({
           email,
           password: currentPassword,
         })
@@ -243,7 +243,7 @@ export function SecurityTab() {
           throw new Error('Kata sandi lama tidak valid.')
         }
       }
-      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      const { error } = await db.auth.updateUser({ password: newPassword })
       if (error) throw error
       setPasswordMessage({ type: 'success', text: 'Kata sandi berhasil diubah.' })
       setCurrentPassword('')

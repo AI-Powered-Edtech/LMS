@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 export type GradeStatus = 'ungraded' | 'graded' | 'needs_revision'
 
@@ -52,13 +52,13 @@ export const gradebookService = {
       { data: profilesData },
       { data: quizAttempts },
     ] = await Promise.all([
-      supabase
+      db
         .from('assignments')
         .select('id, title, due_date, created_at, tenant_id')
         .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
         .limit(500),
-      supabase
+      db
         .from('assignment_submissions')
         .select('id, assignment_id, student_id, status, score, feedback')
         .eq('tenant_id', tenantId)
@@ -66,11 +66,11 @@ export const gradebookService = {
         .range(submissionsFrom, submissionsTo),
       // Server-side student filtering via RPC — avoids fetching non-student profiles
       // and eliminates the PostgREST 400 error from !inner join on user_roles.
-      supabase.rpc('get_gradebook_students', { p_tenant_id: tenantId }),
+      db.rpc('get_gradebook_students', { p_tenant_id: tenantId }),
       // Graceful fallback: if quiz_attempts_v2 table does not exist, return empty array
       (async () => {
         try {
-          return await supabase
+          return await db
             .from('quiz_attempts_v2')
             .select('id, quiz_id, student_id, score, status, tenant_id')
             .eq('tenant_id', tenantId)
@@ -150,7 +150,7 @@ export const gradebookService = {
     if (!tenantId) throw new Error('tenantId is required for submitGrade')
 
     // Use direct Supabase update with RLS - more reliable than edge function
-    const { error } = await supabase
+    const { error } = await db
       .from('assignment_submissions')
       .update({
         score,

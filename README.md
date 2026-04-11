@@ -4,7 +4,7 @@
 ![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL+RLS-3FCF8E?logo=supabase&logoColor=white)
+![VIL](https://img.shields.io/badge/VIL-Rust+PostgreSQL+RLS-orange)
 ![Status](https://img.shields.io/badge/status-release--candidate-orange)
 
 A multi-tenant SaaS Learning Management System built for Indonesian schools. EduSync supports multiple school organizations (tenants) on a shared platform with complete data isolation via PostgreSQL Row-Level Security. All student/teacher-facing UI text is in Bahasa Indonesia.
@@ -30,14 +30,14 @@ See [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md) for complete setup instructions.
 ## Architecture
 
 - **Frontend:** React 19 + Vite 6 + TypeScript 5.8 + Tailwind CSS v4
-- **Backend:** Supabase (PostgreSQL + Auth + RLS + 28 Edge Functions)
+- **Backend:** VIL Rust backend (PostgreSQL via sqlx + Auth + RLS)
 - **State:** React Query v5 (server), Zustand v5 (local quiz state)
 - **Routing:** React Router v7 (hash routing — all URLs use `/#/` prefix)
 - **Testing:** Vitest (unit), Playwright (E2E — 400+ scenarios across 50+ suites)
 
 ### Key Principles
 
-- **Supabase-centric** — no traditional backend server. All business logic lives in PostgreSQL (SQL functions, triggers, RLS) or Supabase Edge Functions
+- **VIL-native** — VIL Rust backend handles all API, auth, storage, and realtime. Business logic lives in PostgreSQL (SQL functions, triggers, RLS) and VIL handlers (`edusync-api/`)
 - **Multi-tenant** — every tenant is a school. Data isolation via `tenant_id` + RLS policies
 - **Role-based access** — 5 roles: `student`, `teacher`, `admin`, `parent`, `principal`
 - **Feature modules** — 49 domain-based modules under `src/features/`
@@ -61,7 +61,7 @@ src/
 ├── hooks/                  # Shared custom hooks
 ├── lib/                    # Utility libraries
 ├── pages/                  # Thin page entry points
-├── services/               # Supabase client
+├── services/               # VIL service clients (api, auth, storage, realtime)
 ├── shared/                 # Shared types, schemas, config
 ├── styles/                 # Global styles
 ├── testing/                # Testing utilities
@@ -145,7 +145,7 @@ src/
 > ⚠️ **Production Security:** These credentials are for local development only.  
 > See [docs/DEVELOPER_RUNBOOK.md](docs/DEVELOPER_RUNBOOK.md) for test account management.
 
-For production deployment, use proper Supabase auth with real credentials or disable public registration in Supabase dashboard.
+For production deployment, configure VIL backend credentials via environment variables. See `edusync-api/` for backend setup.
 
 ---
 

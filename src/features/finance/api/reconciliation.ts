@@ -1,7 +1,7 @@
 // EduSync LMS — Finance Reconciliation Service
 // Handles payment recording with locking, batch reconciliation, and audit trail
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -73,7 +73,7 @@ export const financeReconciliationService = {
     method: string = 'transfer',
     notes?: string
   ): Promise<PaymentResult> {
-    const { data, error } = await supabase.rpc('record_payment_with_lock', {
+    const { data, error } = await db.rpc('record_payment_with_lock', {
       p_invoice_id: invoiceId,
       p_amount: amount,
       p_method: method,
@@ -98,7 +98,7 @@ export const financeReconciliationService = {
    * Creates a reconciliation batch and audits each invoice.
    */
   async reconcileInvoices(invoiceIds: string[], notes?: string): Promise<ReconciliationResult> {
-    const { data, error } = await supabase.rpc('reconcile_invoices', {
+    const { data, error } = await db.rpc('reconcile_invoices', {
       p_invoice_ids: invoiceIds,
       p_batch_notes: notes ?? null,
     })
@@ -121,7 +121,7 @@ export const financeReconciliationService = {
    * Get finance dashboard summary metrics.
    */
   async getSummary(): Promise<FinanceSummary> {
-    const { data, error } = await supabase.rpc('get_finance_summary')
+    const { data, error } = await db.rpc('get_finance_summary')
 
     if (error) {
       if (import.meta.env.DEV) console.error('[Finance] getSummary error:', error)
@@ -144,7 +144,7 @@ export const financeReconciliationService = {
    * Get payment audit trail for an invoice.
    */
   async getPaymentAudit(invoiceId: string): Promise<PaymentAuditEntry[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('finance_payment_audit')
       .select('*')
       .eq('invoice_id', invoiceId)
@@ -173,7 +173,7 @@ export const financeReconciliationService = {
    * Get reconciliation batches.
    */
   async getReconciliationBatches(limit: number = 20): Promise<ReconciliationBatch[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('finance_reconciliation_batches')
       .select('*')
       .order('created_at', { ascending: false })

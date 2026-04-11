@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockFunctionsInvoke = vi.fn()
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     functions: {
       invoke: (...args: unknown[]) => mockFunctionsInvoke(...args),
     },

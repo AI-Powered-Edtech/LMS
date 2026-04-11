@@ -1,7 +1,7 @@
 // EduSync LMS — Application metrics tracking
 // Fire-and-forget: sends metrics to app_metrics table without blocking UI
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 export type MetricName =
   | 'quiz.completion_rate'
@@ -24,7 +24,7 @@ export async function trackMetric(
   if (import.meta.env.DEV) return
 
   try {
-    await supabase.from('app_metrics').insert({
+    await db.from('app_metrics').insert({
       metric_name: name,
       metric_value: value,
       metadata: metadata ?? {},

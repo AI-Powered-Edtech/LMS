@@ -6,8 +6,8 @@ const { mockFrom } = vi.hoisted(() => {
   return { mockFrom }
 })
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: (...args: unknown[]) => mockFrom(...args),
   },
 }))

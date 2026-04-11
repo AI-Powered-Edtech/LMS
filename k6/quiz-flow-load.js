@@ -12,7 +12,7 @@
  *   - POST /rest/v1/rpc/v1_submit_quiz_attempt
  *
  * Cara menjalankan:
- *   SUPABASE_URL=https://xxx.supabase.co \
+ *   SUPABASE_URL=https://xxx.db.co \
  *   SUPABASE_ANON_KEY=eyJ... \
  *   TEST_USER_TOKEN=eyJ... \
  *   TEST_QUIZ_ID=uuid-of-quiz \

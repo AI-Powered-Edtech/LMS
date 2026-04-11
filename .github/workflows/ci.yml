@@ -47,16 +47,10 @@ jobs:
       - name: Unit Tests
         run: pnpm test --run --coverage
         # pnpm test maps to vitest; --run disables watch mode, --coverage enables coverage
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
 # Build (catches type errors missed by tsc --noEmit and Vite-specific issues)
     - name: Build
       run: pnpm build
-      env:
-        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-        VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
     # Check if build output exists
     - name: Check build output
       run: test -f dist/index.html || (echo "Build failed: dist/index.html not found" && exit 1)
@@ -66,9 +60,6 @@ jobs:
       # Smoke test for build artifact
       - name: Smoke Test
         run: bash scripts/smoke-build.sh
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
       # Bundle size enforcement — only runs when bundlesize.config.json is present
       - name: Bundle size check
@@ -82,18 +73,15 @@ jobs:
           # Find the largest index-*.js (main app chunk, not tiny entry shims)
           MAIN_SIZE=$(ls -lS dist/assets/index-*.js 2>/dev/null | head -1 | awk '{print $5}')
           VENDOR_REACT=$(ls -l dist/assets/vendor-react-*.js 2>/dev/null | awk '{print $5}' | head -1)
-          VENDOR_SUPABASE=$(ls -l dist/assets/vendor-supabase-*.js 2>/dev/null | awk '{print $5}' | head -1)
 
           # Convert to KB (integer division)
           MAIN_KB=$((${MAIN_SIZE:-0} / 1024))
           REACT_KB=$((${VENDOR_REACT:-0} / 1024))
-          SUPA_KB=$((${VENDOR_SUPABASE:-0} / 1024))
-          TOTAL_KB=$((MAIN_KB + REACT_KB + SUPA_KB))
+          TOTAL_KB=$((MAIN_KB + REACT_KB))
 
           # Read budgets from bundlesize.config.json
           MAIN_BUDGET=500
           REACT_BUDGET=150
-          SUPA_BUDGET=200
           TOTAL_BUDGET=700
 
           FAIL=0
@@ -110,7 +98,6 @@ jobs:
 
           check_budget "main" "$MAIN_KB" "$MAIN_BUDGET"
           check_budget "vendor-react" "$REACT_KB" "$REACT_BUDGET"
-          check_budget "vendor-supabase" "$SUPA_KB" "$SUPA_BUDGET"
           check_budget "total-initial" "$TOTAL_KB" "$TOTAL_BUDGET"
 
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -189,9 +176,6 @@ jobs:
 
       - name: E2E Tests
         run: pnpm test:e2e
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-key' }}
 
       - name: Upload E2E report
         uses: actions/upload-artifact@v4

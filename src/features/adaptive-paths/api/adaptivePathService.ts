@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { EvaluationResult, PathRule, PathRuleInsert } from '../types'
 
@@ -7,7 +7,7 @@ export const adaptivePathService = {
    * Fetch all path rules for a course, ordered by priority descending.
    */
   async getPathRules(courseId: string, tenantId: string): Promise<PathRule[]> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('learning_path_rules')
       .select(
         'id, course_id, source_lesson_id, condition_type, condition_value, target_lesson_id, priority, is_active, label, tenant_id, created_by, created_at'
@@ -30,9 +30,9 @@ export const adaptivePathService = {
   async createPathRule(rule: PathRuleInsert, tenantId: string): Promise<PathRule> {
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await db.auth.getUser()
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('learning_path_rules')
       .insert({
         course_id: rule.course_id,
@@ -76,7 +76,7 @@ export const adaptivePathService = {
       ...updateData
     } = data
 
-    const { data: updated, error } = await supabase
+    const { data: updated, error } = await db
       .from('learning_path_rules')
       .update({
         ...updateData,
@@ -101,7 +101,7 @@ export const adaptivePathService = {
    * Delete a path rule by ID within the given tenant.
    */
   async deletePathRule(ruleId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('learning_path_rules')
       .delete()
       .eq('id', ruleId)
@@ -122,7 +122,7 @@ export const adaptivePathService = {
     currentLessonId: string,
     tenantId: string
   ): Promise<EvaluationResult> {
-    const { data, error } = await supabase.rpc('evaluate_next_lesson', {
+    const { data, error } = await db.rpc('evaluate_next_lesson', {
       p_user_id: userId,
       p_course_id: courseId,
       p_current_lesson_id: currentLessonId,
@@ -154,7 +154,7 @@ export const adaptivePathService = {
    * Mark or unmark a lesson as remedial.
    */
   async setLessonRemedial(lessonId: string, isRemedial: boolean, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('lessons')
       .update({ is_remedial: isRemedial })
       .eq('id', lessonId)

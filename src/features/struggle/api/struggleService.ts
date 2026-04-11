@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type { LessonStatus, StruggleAlert, StruggleConfig } from '../types'
 
@@ -9,7 +9,7 @@ export const struggleService = {
    * defense-in-depth cache keying only.
    */
   async getStruggleConfig(_tenantId: string): Promise<StruggleConfig | null> {
-    const { data, error } = await supabase.rpc('get_struggle_config')
+    const { data, error } = await db.rpc('get_struggle_config')
     if (error) {
       if (import.meta.env.DEV) console.error('[struggleService] getStruggleConfig:', error)
       throw error
@@ -21,7 +21,7 @@ export const struggleService = {
    * Persist updated struggle detection thresholds.
    */
   async updateStruggleConfig(_tenantId: string, updates: Partial<StruggleConfig>): Promise<void> {
-    const { error } = await supabase.rpc('update_struggle_config', {
+    const { error } = await db.rpc('update_struggle_config', {
       p_threshold_medium: updates.threshold_medium,
       p_threshold_high: updates.threshold_high,
       p_notification_enabled: updates.notification_enabled,
@@ -45,7 +45,7 @@ export const struggleService = {
       limit?: number
     }
   ): Promise<StruggleAlert[]> {
-    const { data, error } = await supabase.rpc('get_struggle_alerts', {
+    const { data, error } = await db.rpc('get_struggle_alerts', {
       p_unread_only: options?.unreadOnly ?? false,
       p_course_id: options?.courseId ?? null,
       p_limit: options?.limit ?? 50,
@@ -62,7 +62,7 @@ export const struggleService = {
    */
   async markAlertsRead(_tenantId: string, alertIds: string[]): Promise<void> {
     if (alertIds.length === 0) return
-    const { error } = await supabase.rpc('mark_alerts_read', {
+    const { error } = await db.rpc('mark_alerts_read', {
       p_alert_ids: alertIds,
     })
     if (error) {
@@ -75,7 +75,7 @@ export const struggleService = {
    * Fetch the current student's struggle status for a specific lesson.
    */
   async getMyLessonStatus(_tenantId: string, lessonId: string): Promise<LessonStatus | null> {
-    const { data, error } = await supabase.rpc('get_my_lesson_status', {
+    const { data, error } = await db.rpc('get_my_lesson_status', {
       p_lesson_id: lessonId,
     })
     if (error) {

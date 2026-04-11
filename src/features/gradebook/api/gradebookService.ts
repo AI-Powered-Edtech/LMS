@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import { fetchGradebookLegacy, submitGradeLegacy, syncGradebook } from './gradebookApi'
 import { gradebookService as legacyGradebookService } from './legacyGradebookService'
@@ -76,7 +76,7 @@ export const gradebookService = {
    * Fallback to direct query if needed.
    */
   async getStudentGrades(studentId: string, tenantId: string) {
-    const { data, error: queryError } = await supabase
+    const { data, error: queryError } = await db
       .from('assignment_submissions')
       .select('id, assignment_id, score, status, submitted_at')
       .eq('student_id', studentId)
@@ -89,7 +89,7 @@ export const gradebookService = {
     const assignmentIds = (data ?? []).map((submission) => submission.assignment_id)
     const { data: assignments, error: assignmentError } =
       assignmentIds.length > 0
-        ? await supabase
+        ? await db
             .from('assignments')
             .select('id, title, class_id')
             .eq('tenant_id', tenantId)
@@ -103,7 +103,7 @@ export const gradebookService = {
     )
     const { data: classes, error: classError } =
       classIds.length > 0
-        ? await supabase
+        ? await db
             .from('classes')
             .select('id, name')
             .eq('tenant_id', tenantId)

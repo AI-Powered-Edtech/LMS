@@ -4,7 +4,7 @@
 // Supabase queries untuk Satisfaction Survey System.
 // ==========================================================================
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import type {
   CreateSurveyInput,
@@ -19,7 +19,7 @@ import type {
  * Ambil semua survey untuk tenant saat ini.
  */
 export async function getSurveys(): Promise<SatisfactionSurvey[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('satisfaction_surveys')
     .select(
       'id, title, target_audience, questions, status, start_date, end_date, created_at, created_by, tenant_id'
@@ -37,7 +37,7 @@ export async function getSurveys(): Promise<SatisfactionSurvey[]> {
 // ── Create Survey ──────────────────────────────────────────────
 
 export async function createSurvey(input: CreateSurveyInput): Promise<SatisfactionSurvey> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('satisfaction_surveys')
     .insert({
       title: input.title,
@@ -66,7 +66,7 @@ export async function updateSurvey(
   id: string,
   input: Partial<CreateSurveyInput>
 ): Promise<SatisfactionSurvey> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('satisfaction_surveys')
     .update({
       ...input,
@@ -88,7 +88,7 @@ export async function updateSurvey(
 // ── Publish Survey ─────────────────────────────────────────────
 
 export async function publishSurvey(id: string): Promise<void> {
-  const { error } = await supabase
+  const { error } = await db
     .from('satisfaction_surveys')
     .update({ status: 'active' })
     .eq('id', id)
@@ -102,7 +102,7 @@ export async function publishSurvey(id: string): Promise<void> {
 // ── Close Survey ───────────────────────────────────────────────
 
 export async function closeSurvey(id: string): Promise<void> {
-  const { error } = await supabase
+  const { error } = await db
     .from('satisfaction_surveys')
     .update({ status: 'closed' })
     .eq('id', id)
@@ -116,7 +116,7 @@ export async function closeSurvey(id: string): Promise<void> {
 // ── Delete Survey ──────────────────────────────────────────────
 
 export async function deleteSurvey(id: string): Promise<void> {
-  const { error } = await supabase.from('satisfaction_surveys').delete().eq('id', id)
+  const { error } = await db.from('satisfaction_surveys').delete().eq('id', id)
 
   if (error) {
     if (import.meta.env.DEV) console.error('[Survey] deleteSurvey error:', error)
@@ -131,7 +131,7 @@ export async function getSurveyResults(
   tenantId?: string
 ): Promise<SurveyResultsData> {
   // Fetch survey detail
-  const { data: survey, error: surveyError } = await supabase
+  const { data: survey, error: surveyError } = await db
     .from('satisfaction_surveys')
     .select(
       'id, title, target_audience, questions, status, start_date, end_date, created_at, created_by, tenant_id'
@@ -145,8 +145,8 @@ export async function getSurveyResults(
 
   const surveyData = survey as SatisfactionSurvey
 
-  if (typeof supabase.rpc !== 'function') {
-    const { data: responses, error: responsesError } = await supabase
+  if (typeof db.rpc !== 'function') {
+    const { data: responses, error: responsesError } = await db
       .from('survey_responses')
       .select('id, survey_id, respondent_id, answers, created_at')
       .eq('survey_id', surveyId)
@@ -206,7 +206,7 @@ export async function getSurveyResults(
     }
   }
 
-  const { data: rows, error: resultsError } = await supabase.rpc('get_survey_results', {
+  const { data: rows, error: resultsError } = await db.rpc('get_survey_results', {
     p_tenant_id: tenantId ?? surveyData.tenant_id,
     p_survey_id: surveyId,
   })
@@ -266,7 +266,7 @@ export async function getSurveyResults(
  * RLS akan memfilter berdasarkan tenant secara otomatis.
  */
 export async function getActiveSurveys(): Promise<SatisfactionSurvey[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('satisfaction_surveys')
     .select(
       'id, title, target_audience, questions, status, created_at, start_date, end_date, tenant_id, created_by'
@@ -290,7 +290,7 @@ export async function getActiveSurveys(): Promise<SatisfactionSurvey[]> {
  * Digunakan oleh SurveyResponseForm.
  */
 export async function getSurveyById(surveyId: string): Promise<SatisfactionSurvey> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('satisfaction_surveys')
     .select(
       'id, title, target_audience, questions, status, created_at, start_date, end_date, tenant_id, created_by'
@@ -315,10 +315,10 @@ export async function getSurveyById(surveyId: string): Promise<SatisfactionSurve
 export async function hasRespondedToSurvey(surveyId: string): Promise<boolean> {
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await db.auth.getUser()
   if (!user) return false
 
-  const { count, error } = await supabase
+  const { count, error } = await db
     .from('survey_responses')
     .select('id', { count: 'exact', head: true })
     .eq('survey_id', surveyId)
@@ -341,10 +341,10 @@ export async function submitSurveyResponse(
   // Get current user ID — required by RLS policy (respondent_id = auth.uid())
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await db.auth.getUser()
   if (!user) throw new Error('Pengguna tidak terautentikasi')
 
-  const { error } = await supabase
+  const { error } = await db
     .from('survey_responses')
     .insert({
       survey_id: surveyId,

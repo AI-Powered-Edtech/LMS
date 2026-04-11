@@ -2,12 +2,12 @@
 
 ## Project Overview
 
-EduSync is a multi-tenant SaaS Learning Management System (LMS) for Indonesian schools. It runs on a Supabase-centric architecture with no traditional backend. PostgreSQL (RLS + SQL functions) is the logic layer. The frontend is React 19 + Vite + TypeScript + Tailwind. All user-visible text is in Bahasa Indonesia.
+EduSync is a multi-tenant SaaS Learning Management System (LMS) for Indonesian schools. It uses a VIL Rust backend with PostgreSQL (RLS + SQL functions) as the data layer. The frontend is React 19 + Vite + TypeScript + Tailwind. All user-visible text is in Bahasa Indonesia.
 
 ## Tech Stack
 
 - React 19, Vite 6, TypeScript 5.8, Tailwind CSS v4
-- Supabase JS v2 (PostgreSQL + Auth + RLS + Edge Functions)
+- VIL Rust backend (PostgreSQL via sqlx + Auth + RLS)
 - React Router v7 (hash routing)
 - React Query v5 (server state)
 - Zustand v5 (local feature state — quiz player only)
@@ -39,7 +39,7 @@ EduSync is a multi-tenant SaaS Learning Management System (LMS) for Indonesian s
 
 - All user-visible strings must be Bahasa Indonesia
 - No English labels, button text, error messages, or headers in the UI
-- Supabase English error messages must be translated (see `translateAuthError()` in Login.tsx)
+- Backend error messages must be translated (see `translateAuthError()` in Login.tsx)
 
 ### Dark Mode
 
@@ -75,7 +75,7 @@ EduSync is a multi-tenant SaaS Learning Management System (LMS) for Indonesian s
 
 - `.test` TLD emails fail GoTrue validation — use `.dev` or real domains for test accounts
 - React controlled inputs: login form cannot be filled programmatically — requires keyboard events
-- `signOut()` must clear React state eagerly BEFORE calling `supabase.auth.signOut()` (prevents infinite spinner)
+- `signOut()` must clear React state eagerly BEFORE calling the auth provider's signOut (prevents infinite spinner)
 
 ### Routing
 
@@ -104,12 +104,12 @@ Key docs:
 
 ## Component Registry
 
-Maintain the component registry at `COMPONENT_REGISTRY.md`. This document tracks all feature modules, Edge Functions, shared hooks, UI primitives, and other key components.
+Maintain the component registry at `COMPONENT_REGISTRY.md`. This document tracks all feature modules, VIL backend handlers, shared hooks, UI primitives, and other key components.
 
 **Update after any significant change:**
 
 - New feature module (folder in `src/features/`)
-- New Edge Function (file in `supabase/functions/`)
+- New VIL backend handler (file in `edusync-api/`)
 - New shared hook (file in `src/hooks/`)
 - New UI primitive (component in `src/components/ui/`)
 - New Zustand store or Context provider
@@ -130,36 +130,7 @@ sed -i 's/<OLD_HASH>/<NEW_HASH>/g' COMPONENT_REGISTRY.md
 
 See `COMPONENT_REGISTRY.md` for the complete registry and update procedures.
 
-## Edge Functions
-
-All Edge Functions live in `supabase/functions/`. Each is self-contained (no shared module). Use `Deno.serve`, `jsr:` imports, and the standard CORS/response helpers.
-
-| Function                    | Purpose                                         | Auth                          |
-| --------------------------- | ----------------------------------------------- | ----------------------------- |
-| `ai-grade-essay`            | AI essay grading via Groq                       | User JWT                      |
-| `ai-tutor`                  | AI tutor chat                                   | User JWT                      |
-| `generate-ai-content`       | AI content generation                           | User JWT                      |
-| `generate-pdf`              | PDF certificate generation                      | User JWT                      |
-| `grade-quiz-attempt`        | Background quiz grading                         | Service role                  |
-| `health-check`              | System health status                            | None (public)                 |
-| `load-quiz-data`            | Load quiz for student                           | User JWT                      |
-| `process-progress-events`   | Batch progress event processing                 | API key                       |
-| `progress-events`           | Enqueue progress events                         | User JWT                      |
-| `send-email-digest`         | Email digest sender                             | Service role                  |
-| `send-push`                 | Push notification sender                        | User JWT                      |
-| `lti-jwks`                  | Public JWKS for LTI platforms                   | None (public GET)             |
-| `lti-oidc-login`            | LTI OIDC login initiation                       | None (platform-initiated)     |
-| `lti-launch`                | LTI launch token validation + user provisioning | None (validates LTI id_token) |
-| `scorm-extract`             | SCORM ZIP upload, validation, extraction        | User JWT (teacher/admin)      |
-| `generate-executive-report` | Executive report generation                     | Service role                  |
-| `generate-parent-report`    | Parent report generation                        | Service role                  |
-| `bulk-import-users`         | Bulk user import                                | Service role                  |
-| `check-rate-limit`          | Rate limiting check                             | Service role                  |
-| `send-parent-digest`        | Parent digest sending                           | Service role                  |
-| `send-parent-otp`           | Parent OTP sending                              | Service role                  |
-| `whatsapp-webhook`          | WhatsApp webhook handler                        | Service role                  |
-
-### LTI/SCORM Environment Variables
+## LTI/SCORM Environment Variables
 
 | Variable              | Used By                  |
 | --------------------- | ------------------------ |

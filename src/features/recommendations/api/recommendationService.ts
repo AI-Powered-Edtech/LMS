@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { logDevError } from '@/utils/logDevError'
 
 import type { Recommendation } from '../types'
@@ -7,7 +7,7 @@ export const recommendationService = {
   async getRecommendations(userId: string, limit = 5): Promise<Recommendation[]> {
     // FIXED: Graceful degradation — return empty array instead of throwing on RPC failure
     try {
-      const { data, error } = await supabase.rpc('get_student_recommendations', {
+      const { data, error } = await db.rpc('get_student_recommendations', {
         p_user_id: userId,
         p_limit: limit,
       })
@@ -25,7 +25,7 @@ export const recommendationService = {
   async recordAction(recommendationId: string, action: 'accepted' | 'dismissed'): Promise<void> {
     // FIXED: Graceful degradation — log error but don't throw on action recording failure
     try {
-      const { error } = await supabase.rpc('record_recommendation_action', {
+      const { error } = await db.rpc('record_recommendation_action', {
         p_recommendation_id: recommendationId,
         p_action: action,
       })

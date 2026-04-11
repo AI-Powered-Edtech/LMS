@@ -17,7 +17,7 @@ const mockQueryClient = {
 }
 
 // Mock all dependencies with functional defaults so runtime hook tests are meaningful.
-vi.mock('@/services/supabase/client')
+vi.mock('@/services/db')
 vi.mock('@tanstack/react-query', () => ({
   useQuery: vi.fn(),
   useMutation: vi.fn(),

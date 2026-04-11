@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import * as v from 'valibot'
 
 import { useToast } from '@/hooks/useToast'
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import { useAuth } from '../../contexts/AuthContext'
 import { FormField } from '../ui/FormField'
@@ -51,7 +51,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
         return
       }
 
-      const { data: insertData, error: insertError } = await supabase
+      const { data: insertData, error: insertError } = await db
         .from('tenant_invitations')
         .insert({
           tenant_id: tenantId,

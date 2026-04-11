@@ -39,14 +39,14 @@ test.describe('Critical Path — Student Login & Dashboard', () => {
     await expect(page).not.toHaveURL(/login/)
 
     // Verifikasi data di database: token dan role
-    const supabase = page.evaluate(() => {
-      return window.supabase
+    const db = page.evaluate(() => {
+      return window.db
     }) as any
 
-    if (supabase) {
+    if (db) {
       const {
         data: { session },
-      } = await supabase.auth.getSession()
+      } = await db.auth.getSession()
       expect(session?.user?.email).toBe('student@edusync.dev')
       expect(session?.user?.role).toBe('student')
     }
@@ -66,14 +66,14 @@ test.describe('Critical Path — Student Login & Dashboard', () => {
     expect(bodyLen).toBeGreaterThan(100)
 
     // Verifikasi data di database: token dan role
-    const supabase = page.evaluate(() => {
-      return window.supabase
+    const db = page.evaluate(() => {
+      return window.db
     }) as any
 
-    if (supabase) {
+    if (db) {
       const {
         data: { session },
-      } = await supabase.auth.getSession()
+      } = await db.auth.getSession()
       expect(session?.user?.email).toBe('student@edusync.dev')
       expect(session?.user?.role).toBe('student')
     }

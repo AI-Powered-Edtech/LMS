@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { mapLesson } from '@/shared/types/lessonMappers'
 import { DomainLesson } from '@/shared/types/lessonTypes'
 
@@ -13,7 +13,7 @@ export const builderLessonService = {
     tenantId: string
   ): Promise<DomainLesson> {
     // Get next order using MAX+1 to avoid race conditions with COUNT pattern
-    const { data: maxRow } = await supabase
+    const { data: maxRow } = await db
       .from('lessons')
       .select('"order"')
       .eq('module_id', moduleId)
@@ -24,7 +24,7 @@ export const builderLessonService = {
 
     const nextOrder = (maxRow?.order ?? -1) + 1
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('lessons')
       .insert({
         module_id: moduleId,
@@ -54,7 +54,7 @@ export const builderLessonService = {
     if (data.isPublished !== undefined) dbUpdate.is_published = data.isPublished
     if (data.durationMinutes !== undefined) dbUpdate.duration_minutes = data.durationMinutes
 
-    const { error } = await supabase
+    const { error } = await db
       .from('lessons')
       .update(dbUpdate)
       .eq('id', lessonId)
@@ -64,7 +64,7 @@ export const builderLessonService = {
   },
 
   async deleteLesson(lessonId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await db
       .from('lessons')
       .delete()
       .eq('id', lessonId)
@@ -73,7 +73,7 @@ export const builderLessonService = {
   },
 
   async reorderLessons(moduleId: string, lessonIds: string[], tenantId: string): Promise<void> {
-    const { error } = await supabase.rpc('rpc_reorder_module_lessons', {
+    const { error } = await db.rpc('rpc_reorder_module_lessons', {
       p_module_id: moduleId,
       p_lesson_ids: lessonIds,
       p_tenant_id: tenantId,

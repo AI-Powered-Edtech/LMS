@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/services/db', () => ({
+  db: {
     from: vi.fn(),
     auth: {
       getSession: vi.fn(),
@@ -11,7 +11,7 @@ vi.mock('@/services/supabase/client', () => ({
   },
 }))
 
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 
 import { lessonService, ProgressQueueItem, SignedProgressQueue } from '..'
 
@@ -19,14 +19,14 @@ describe('lessonService.fetchLesson', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('calls get_lesson_snapshot RPC', async () => {
-    ;(supabase.auth.getSession as ReturnType<typeof vi.fn>).mockResolvedValue({
+    ;(db.auth.getSession as ReturnType<typeof vi.fn>).mockResolvedValue({
       data: { session: null },
     })
-    ;(supabase.rpc as ReturnType<typeof vi.fn>).mockResolvedValue({
+    ;(db.rpc as ReturnType<typeof vi.fn>).mockResolvedValue({
       data: { lesson: { id: 'l1' } },
       error: null,
     })
-    ;(supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
+    ;(db.from as ReturnType<typeof vi.fn>).mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: null, error: null }),
@@ -40,12 +40,12 @@ describe('lessonService.fetchLesson', () => {
   })
 
   it('returns null when lesson not found', async () => {
-    ;(supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
+    ;(db.from as ReturnType<typeof vi.fn>).mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: null, error: null }),
     })
-    ;(supabase.auth.getSession as ReturnType<typeof vi.fn>).mockResolvedValue({
+    ;(db.auth.getSession as ReturnType<typeof vi.fn>).mockResolvedValue({
       data: { session: null },
     })
     // The service has complex fallback logic — just ensure it handles null
@@ -87,7 +87,7 @@ describe('lessonService Security Fix', () => {
     ]
 
     // Mock a valid session
-    ;(supabase.auth.getSession as ReturnType<typeof vi.fn>).mockResolvedValue({
+    ;(db.auth.getSession as ReturnType<typeof vi.fn>).mockResolvedValue({
       data: { session: { user: { id: 'user-1' }, expires_at: 1000 } },
     })
 
@@ -99,10 +99,10 @@ describe('lessonService Security Fix', () => {
     sessionStorage.setItem('edusync_progress_queue', JSON.stringify(signedQueue))
 
     // Use queueProgressUpdate to trigger loadSecureQueue
-    ;(supabase.rpc as ReturnType<typeof vi.fn>).mockResolvedValue({
+    ;(db.rpc as ReturnType<typeof vi.fn>).mockResolvedValue({
       error: new Error('Network error'),
     }) // Force error to use queue
-    ;(supabase.auth.getUser as ReturnType<typeof vi.fn>).mockResolvedValue({
+    ;(db.auth.getUser as ReturnType<typeof vi.fn>).mockResolvedValue({
       data: { user: { id: 'user-1' } },
     })
 

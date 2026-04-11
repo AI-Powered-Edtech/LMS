@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { captureError } from '@/utils/sentry'
 
 import {
@@ -65,7 +65,7 @@ async function verifySignature(
 async function getSessionKey(): Promise<string | null> {
   const {
     data: { session },
-  } = await supabase.auth.getSession()
+  } = await db.auth.getSession()
   if (!session || !session.user) return null
   // NOTE: Using created_at (stable per-user) rather than expires_at (per-token) as the
   // HMAC key suffix. This means the key is the same across sessions for the same user,
@@ -221,23 +221,19 @@ async function hydrateLessons(lessonRows: LessonRow[], tenantId: string): Promis
     { data: quizzes, error: quizError },
     { data: assignments, error: assignmentError },
   ] = await Promise.all([
-    supabase
-      .from('course_modules')
-      .select('id, course_id')
-      .eq('tenant_id', tenantId)
-      .in('id', moduleIds),
-    supabase
+    db.from('course_modules').select('id, course_id').eq('tenant_id', tenantId).in('id', moduleIds),
+    db
       .from('lesson_resources')
       .select('id, lesson_id, type, url, title, content, metadata, order_index')
       .eq('tenant_id', tenantId)
       .in('lesson_id', lessonIds)
       .order('order_index', { ascending: true }),
-    supabase
+    db
       .from('quizzes')
       .select('id, lesson_id, title, instructions, time_limit_minutes, max_attempts, passing_score')
       .eq('tenant_id', tenantId)
       .in('lesson_id', lessonIds),
-    supabase
+    db
       .from('assignments')
       .select(
         'id, tenant_id, course_id, lesson_id, title, instructions, max_points, max_attempts, is_published, due_date, created_at'
@@ -254,7 +250,7 @@ async function hydrateLessons(lessonRows: LessonRow[], tenantId: string): Promis
   const quizIds = ((quizzes ?? []) as LessonQuizRow[]).map((quiz) => quiz.id)
   const { data: questions, error: questionError } =
     quizIds.length > 0
-      ? await supabase
+      ? await db
           .from('quiz_questions')
           .select('id, quiz_id, text, "order"')
           .eq('tenant_id', tenantId)
@@ -267,7 +263,7 @@ async function hydrateLessons(lessonRows: LessonRow[], tenantId: string): Promis
   const questionIds = ((questions ?? []) as Array<{ id: string }>).map((question) => question.id)
   const { data: options, error: optionError } =
     questionIds.length > 0
-      ? await supabase
+      ? await db
           .from('quiz_options')
           .select('id, question_id, text')
           .eq('tenant_id', tenantId)
@@ -300,15 +296,15 @@ async function hydrateLessons(lessonRows: LessonRow[], tenantId: string): Promis
 
   const questionMap = new Map<string, QuizQuestion[]>()
   ;((questions ?? []) as LessonQuestionRow[]).forEach((question) => {
-      const existing = questionMap.get(question.quiz_id) ?? []
-      existing.push({
-        id: question.id,
-        text: question.text,
-        order: question.order,
-        quiz_options: optionMap.get(question.id) ?? [],
-      })
-      questionMap.set(question.quiz_id, existing)
+    const existing = questionMap.get(question.quiz_id) ?? []
+    existing.push({
+      id: question.id,
+      text: question.text,
+      order: question.order,
+      quiz_options: optionMap.get(question.id) ?? [],
     })
+    questionMap.set(question.quiz_id, existing)
+  })
 
   const quizMap = new Map<string, Quiz[]>()
   ;((quizzes ?? []) as LessonQuizRow[]).forEach((quiz) => {
@@ -361,7 +357,7 @@ export const lessonService = {
    */
   async fetchLesson(lessonId: string, tenantId: string): Promise<Lesson | null> {
     // Try RPC first (migration 803+), fallback to direct query
-    const { data: rpcData, error: rpcError } = await supabase.rpc('get_lesson_snapshot', {
+    const { data: rpcData, error: rpcError } = await db.rpc('get_lesson_snapshot', {
       p_lesson_id: lessonId,
       p_tenant_id: tenantId,
     })
@@ -401,7 +397,7 @@ export const lessonService = {
       if (import.meta.env.DEV) console.error('Error fetching lesson snapshot:', rpcError)
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('lessons')
       .select(
         'id, module_id, title, content, type, "order", passing_score, is_published, duration_minutes, tenant_id'
@@ -415,7 +411,7 @@ export const lessonService = {
       return null
     }
 
-    const [lesson] = await hydrateLessons((data ? [data as LessonRow] : []), tenantId)
+    const [lesson] = await hydrateLessons(data ? [data as LessonRow] : [], tenantId)
     return lesson ?? null
   },
 
@@ -436,7 +432,7 @@ export const lessonService = {
   }> {
     // Fetch lessons
     // FIXED: C1 — build query conditionally based on caller role
-    let query = supabase
+    let query = db
       .from('lessons')
       .select(
         'id, module_id, title, content, type, "order", passing_score, is_published, duration_minutes, tenant_id'
@@ -458,7 +454,7 @@ export const lessonService = {
 
     // Fetch progress for all lessons in this module
     const lessonIds = (lessons || []).map((l) => l.id)
-    const { data: progressData, error: progressError } = await supabase
+    const { data: progressData, error: progressError } = await db
       .from('lesson_progress')
       .select(
         'id, user_id, lesson_id, status, progress_percentage, last_position, completed, completed_at'
@@ -504,10 +500,10 @@ export const lessonService = {
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser()
+    } = await db.auth.getUser()
     if (authError || !user) throw new Error('Not authenticated')
 
-    const { error } = await supabase.rpc('update_lesson_progress_monotonic', {
+    const { error } = await db.rpc('update_lesson_progress_monotonic', {
       p_user_id: user.id,
       p_lesson_id: lessonId,
       p_tenant_id: tenantId,
@@ -702,7 +698,7 @@ export const lessonService = {
     userId: string,
     tenantId: string
   ): Promise<LessonProgress | null> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('lesson_progress')
       .select(
         'id, user_id, lesson_id, status, progress_percentage, last_position, completed, completed_at'
@@ -735,7 +731,7 @@ export const lessonService = {
     storage_path: string
     entry_point: string
   } | null> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('scorm_packages')
       .select('id, tenant_id, lesson_id, title, scorm_version, storage_path, entry_point')
       .eq('id', packageId)
@@ -771,7 +767,7 @@ export const lessonService = {
     total_time: number | null
     suspend_data: string | null
   } | null> {
-    const { data } = await supabase
+    const { data } = await db
       .from('scorm_runtime_data')
       .select('cmi_data, score_raw, lesson_status, total_time, suspend_data')
       .eq('user_id', userId)
@@ -789,7 +785,7 @@ export const lessonService = {
   async getCompletedLessonIds(userId: string, lessonIds: string[]): Promise<Set<string>> {
     if (lessonIds.length === 0) return new Set()
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('lesson_progress')
       .select('lesson_id, completed')
       .eq('user_id', userId)
@@ -809,7 +805,7 @@ export const lessonService = {
    * Used by ScormPlayer to save CMI data on commit and terminate.
    */
   async upsertScormRuntime(params: UpsertScormRuntimeParams): Promise<void> {
-    const { error } = await supabase.rpc('upsert_scorm_runtime', {
+    const { error } = await db.rpc('upsert_scorm_runtime', {
       p_user_id: params.userId,
       p_scorm_package_id: params.scormPackageId,
       p_tenant_id: params.tenantId,
@@ -830,7 +826,7 @@ export const lessonService = {
    * Fetch the title of a course module by ID.
    */
   async getModuleTitle(moduleId: string, tenantId: string): Promise<string | null> {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('course_modules')
       .select('title')
       .eq('id', moduleId)
@@ -847,7 +843,7 @@ export const lessonService = {
   /**
    * Fire-and-forget SCORM runtime upsert using fetch with keepalive.
    * Used by ScormPlayer's beforeunload handler to persist state during page unload.
-   * Uses raw fetch instead of supabase-js because keepalive is needed for page unload.
+   * Uses raw fetch instead of db-js because keepalive is needed for page unload.
    */
   sendBeaconUpsert(params: UpsertScormRuntimeParams): void {
     const body = JSON.stringify({
@@ -862,28 +858,24 @@ export const lessonService = {
       p_suspend_data: params.suspendData ?? null,
     })
 
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
-    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+    const vilApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+    const scormApiUrl = `${vilApiUrl}/api/v1/scorm/runtime`
 
-    // Retrieve the current session token for auth header
-    const sessionStr = localStorage.getItem(
-      'sb-' + new URL(supabaseUrl).hostname.split('.')[0] + '-auth-token'
-    )
+    // Retrieve VIL session token for auth header
+    const vilSessionStr = localStorage.getItem('vil-session')
     const accessToken = (() => {
       try {
-        return sessionStr ? JSON.parse(sessionStr)?.access_token : anonKey
+        return vilSessionStr ? JSON.parse(vilSessionStr)?.access_token : ''
       } catch {
-        return anonKey
+        return ''
       }
     })()
 
-    const scormApiUrl = `${supabaseUrl}/rest/v1/rpc/upsert_scorm_runtime`
-
     // Validate URL before fetch — prevent SSRF
-    // Strict origin match: the request URL's origin must equal the configured Supabase URL's origin.
+    // Strict origin match: the request URL's origin must equal the configured VIL API URL's origin.
     try {
       const requestedOrigin = new URL(scormApiUrl).origin
-      const allowedOrigin = new URL(import.meta.env.VITE_SUPABASE_URL || '').origin
+      const allowedOrigin = new URL(vilApiUrl).origin
       if (requestedOrigin !== allowedOrigin) {
         captureError(new Error('SSRF blocked: SCORM API URL origin mismatch'), {
           context: 'lessonService.postScormRuntime',
@@ -904,8 +896,7 @@ export const lessonService = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          apikey: anonKey,
-          Authorization: `Bearer ${accessToken || anonKey}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body,
         keepalive: true,

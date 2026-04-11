@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { db } from '@/services/db'
 import { validateArray } from '@/shared/lib/validate'
 import { TenantInvitationRowSchema } from '@/shared/schemas'
 
@@ -34,7 +34,7 @@ export interface GetUsersParams {
 }
 
 export async function getTenantUsers(params: GetUsersParams = {}): Promise<TenantUser[]> {
-  const { data, error } = await supabase.rpc('get_tenant_users', {
+  const { data, error } = await db.rpc('get_tenant_users', {
     p_search: params.search || null,
     p_role: params.role || null,
     p_cursor: params.cursor || null,
@@ -49,7 +49,7 @@ export async function updateUserRole(
   userId: string,
   newRole: string
 ): Promise<{ old_role: string; new_role: string }> {
-  const { data, error } = await supabase.rpc('update_user_role', {
+  const { data, error } = await db.rpc('update_user_role', {
     p_user_id: userId,
     p_new_role: newRole,
   })
@@ -59,7 +59,7 @@ export async function updateUserRole(
 }
 
 export async function deactivateUser(userId: string, active: boolean = false): Promise<void> {
-  const { error } = await supabase.rpc('deactivate_user', {
+  const { error } = await db.rpc('deactivate_user', {
     p_user_id: userId,
     p_active: active,
   })
@@ -68,7 +68,7 @@ export async function deactivateUser(userId: string, active: boolean = false): P
 }
 
 export async function getInvitations(): Promise<TenantInvitation[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('tenant_invitations')
     .select('id, email, role, status, token, expires_at, created_at, accepted_at')
     .order('created_at', { ascending: false })
@@ -79,7 +79,7 @@ export async function getInvitations(): Promise<TenantInvitation[]> {
 }
 
 export async function revokeInvitation(id: string): Promise<void> {
-  const { error } = await supabase
+  const { error } = await db
     .from('tenant_invitations')
     .update({ status: 'revoked' })
     .eq('id', id)
