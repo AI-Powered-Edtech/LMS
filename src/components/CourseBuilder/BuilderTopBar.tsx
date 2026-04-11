@@ -179,7 +179,7 @@ export function BuilderTopBar({
           <>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+              className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
               aria-label="Menu opsi"
             >
               <MoreVertical className="w-5 h-5" />
