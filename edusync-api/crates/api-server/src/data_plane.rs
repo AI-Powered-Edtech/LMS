@@ -1185,41 +1185,28 @@ pub async fn query_table_handler(
                 })
                 .collect::<Result<Vec<_>, AppError>>()?;
 
-            let record_columns = update_columns
+            // Build: WITH mutated AS (UPDATE public."table" SET col=$1::type, ... WHERE ... RETURNING ...)
+            // Bind each value directly — no CTE/FROM-payload needed, avoids column ambiguity.
+            let update_values: Vec<(ColumnMeta, Value)> = update_columns
                 .iter()
-                .map(|column| format!("{} {}", quote_ident(&column.name), column.sql_type()))
-                .collect::<Vec<_>>()
-                .join(", ");
+                .map(|col| {
+                    let val = row.get(&col.name).cloned().unwrap_or(Value::Null);
+                    (col.clone(), val)
+                })
+                .collect();
 
-            let payload = Value::Object(row);
-
-            let mut builder = QueryBuilder::new("WITH payload AS (SELECT ");
-            builder.push(
-                update_columns
-                    .iter()
-                    .map(|column| quote_ident(&column.name))
-                    .collect::<Vec<_>>()
-                    .join(", "),
-            );
-            builder.push(" FROM jsonb_populate_record(NULL::public.");
+            let mut builder = QueryBuilder::new("WITH mutated AS (UPDATE public.");
             builder.push(quote_ident(&table));
-            builder.push(", ");
-            builder.push_bind(sqlx::types::Json(payload));
-            builder.push("::jsonb) AS item(");
-            builder.push(record_columns);
-            builder.push(")), mutated AS (UPDATE public.");
-            builder.push(quote_ident(&table));
-            builder.push(" AS target SET ");
+            builder.push(" SET ");
 
-            let mut separated = builder.separated(", ");
-            for column in update_columns.iter() {
-                separated
-                    .push(quote_ident(&column.name))
-                    .push(" = payload.")
-                    .push(quote_ident(&column.name));
+            for (index, (column, value)) in update_values.iter().enumerate() {
+                if index > 0 {
+                    builder.push(", ");
+                }
+                builder.push(quote_ident(&column.name)).push(" = ");
+                push_scalar_cast(&mut builder, value, column)?;
             }
-            separated.push_unseparated("");
-            builder.push(" FROM payload");
+
             apply_filters(&mut builder, &body.filters, &ctx, &columns_by_name)?;
             builder.push(" RETURNING ").push(selected_sql).push(") SELECT row_to_json(item)::jsonb AS data FROM mutated item");
 

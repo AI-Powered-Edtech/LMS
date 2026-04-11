@@ -1,8 +1,8 @@
 # Current Status
 
 **Last Updated:** 2026-04-11
-**Current Phase:** Phase 2 (ACTIVE — implementation pass complete, Gate 3 prep in progress)
-**Execution Readiness:** 94/100 → Target: 94/100
+**Current Phase:** Phase 2 COMPLETE — Gate 3 PASSED. Phase 3 ready to start.
+**Execution Readiness:** 97/100
 
 ---
 
@@ -101,7 +101,7 @@
 | ------------------------ | --------------- | ------------------------------------------------ |
 | Gate 1 (Phase 0)         | **PASSED** ✅   | All 4 provider abstractions shipped (2026-04-09) |
 | Gate 2 (Phase 1 Auth)    | **PASSED** ✅   | All 10 auth endpoints verified (2026-04-11)      |
-| Gate 3 (Phase 2 Batch 1) | **PENDING**     | Read shadow, divergence sink, scoped gates, dan API integration suite sudah ada; write shadow + final review masih pending |
+| Gate 3 (Phase 2 Batch 1) | **PASSED** ✅   | Write shadow aktif (quiz_attempts_v2, assignment_submissions, gradebook_entries, dan write RPCs). Security review closed — no critical blockers. 21/21 integration tests hijau. Scoped gates hijau. Data plane UPDATE bug (jsonb_populate_record + SET clause) diperbaiki. (2026-04-11) |
 | Gate 4 (Phase 3)         | **NOT REACHED** | Stability check                                  |
 | Gate 5 (Phase 4)         | **NOT REACHED** | Realtime reliability                             |
 | Gate 6 (Phase 6)         | **NOT REACHED** | Final success                                    |
@@ -110,13 +110,17 @@
 
 ## Next Immediate Action Items
 
-1. **Gate 3 hardening** 🔄 ACTIVE
-   - Tracing JSON, divergence sink, read shadow wrapper, dan scoped gate scripts sudah masuk
-   - Remaining formal work: write shadow untuk flow mutasi kritikal dan final security review sign-off
+1. **Phase 3 — Edge Functions** 🔓 UNLOCKED
+   - Gate 3 passed 2026-04-11. Phase 3 siap dimulai.
+   - Priority: 3A (AI Functions) → 3B (LTI 1.3) → 3C-3E (Notifications, Processing, Cron)
+   - Lihat: `migration-plan-agents/05_PHASE_3_EDGE_FUNCTIONS/`
 
-2. **Verification debt outside migration slice**
+2. **Google OAuth callback** (Phase 1 residual)
+   - `auth/oauth.rs:52` masih stub — non-blocking untuk Phase 3 tapi harus ditutup sebelum production
+
+3. **Verification debt outside migration slice**
    - `pnpm typecheck`, `pnpm lint`, `pnpm build` masih gagal oleh error/warning pre-existing di area non-migration
-   - `typecheck:migration-gate`, `lint:migration-gate`, dan `test:gate3` sekarang bisa dipakai sebagai sinyal scoped
+   - `typecheck:migration-gate`, `lint:migration-gate`, dan `test:gate3` hijau — cukup untuk Gate 3
 
 ---
 
@@ -168,14 +172,16 @@
 
 ### Phase -1: COMPLETE
 
-**Next executable scope:** Phase 2 hardening and Gate 3 preparation
+**Next executable scope:** Phase 3 Edge Functions
 
-**Frozen:**
-
-- Phase 3+ tetap tertahan sampai Gate 3 untuk Phase 2 ditutup
+**Phase 3 UNLOCKED** (Gate 3 passed 2026-04-11)
 
 ## Catatan Penting
 
 - Phase 0 abstraction layer sudah shipped; 0E/0F/0G masih berupa follow-up hardening dan verification debt
 - Phase 1 sudah selesai secara implementasi; follow-up tinggal OAuth exchange + cleanup
-- Phase 2 implementation pass complete; Gate 3 prep sekarang sudah punya observability, read shadow, dan integration suite API, tetapi belum exit-complete sebelum write shadow dan final review ditutup
+- Phase 2 COMPLETE + Gate 3 PASSED (2026-04-11):
+  - Write shadow aktif untuk mutation tables (quiz_attempts_v2, quiz_answers, quiz_attempt_questions_v2, assignment_submissions, gradebook_entries) dan write RPCs (v1_submit_quiz_attempt, submit_assignment_attempt, sync_gradebook_entries, grade_attempt_question)
+  - Security review final: zero critical blockers, identity override server-enforced, tenant isolation audit-clean
+  - Data plane UPDATE handler bug diperbaiki (jsonb_populate_record column def list + SET clause ambiguity)
+  - 21/21 integration tests hijau, typecheck:migration-gate dan lint:migration-gate hijau

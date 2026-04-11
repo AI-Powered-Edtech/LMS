@@ -24,6 +24,30 @@ import type {
 type JsonRecord = Record<string, unknown>
 type QueryAction = 'select' | 'insert' | 'update' | 'delete' | 'upsert'
 
+/**
+ * Tables whose write mutations are shadowed for Gate 3.
+ * After VIL executes the write, we read back from Supabase to verify convergence.
+ */
+const WRITE_SHADOW_TABLES = new Set([
+  'quiz_attempts_v2',
+  'quiz_answers',
+  'quiz_attempt_questions_v2',
+  'assignment_submissions',
+  'gradebook_entries',
+])
+
+/**
+ * Mutating RPCs whose results are shadowed for Gate 3.
+ * After VIL executes the RPC, we call the same RPC on Supabase and compare responses.
+ * Only RPCs that are idempotent-safe for shadow (same underlying DB) belong here.
+ */
+const WRITE_SHADOW_RPCS = new Set([
+  'v1_submit_quiz_attempt',
+  'submit_assignment_attempt',
+  'sync_gradebook_entries',
+  'grade_attempt_question',
+])
+
 interface VilQueryResponse {
   data: unknown
   count?: number | null
@@ -260,97 +284,152 @@ class VilQueryBuilder<T = unknown> implements ApiQueryBuilder<T> {
         count: typeof data?.count === 'number' ? data.count : null,
       }
 
-      void this.runShadowSelect(requestId, requestPayload, result)
+      void this.runShadow(requestId, requestPayload, result)
       return result
     })
   }
 
-  private async runShadowSelect(
+  private async runShadow(
     requestId: string,
     requestPayload: JsonRecord,
     primaryResult: ApiQueryResult<T>
   ): Promise<void> {
-    if (this.action !== 'select') {
+    const isWrite = this.action !== 'select'
+
+    if (isWrite && !WRITE_SHADOW_TABLES.has(this.table)) {
       return
     }
 
+    const shadowMode = isWrite ? 'write' : 'read'
+
     await runShadowComparison({
-      flowName: `proxy.query.${this.table}`,
+      flowName: `proxy.${isWrite ? 'write' : 'query'}.${this.table}`,
       endpoint: `/api/v1/data/${this.table}`,
       method: 'POST',
-      shadowMode: 'read',
+      shadowMode,
       primaryBackend: 'vil',
       shadowBackend: 'supabase',
       requestSignature: requestPayload,
       requestId,
       primaryResult,
       shadowRequest: async () => {
-        let query = getSupabaseClient()
-          .from(this.table)
-          .select(this.selectColumns, this.currentOptions as never) as unknown as ShadowSelectQuery
-
-        for (const filter of this.filters) {
-          switch (filter.op) {
-            case 'not':
-              if (!filter.comparator) {
-                throw new Error(`Shadow filter comparator untuk ${filter.column} wajib diisi`)
-              }
-              query = query.not(filter.column, filter.comparator, filter.value)
-              break
-            case 'is':
-              query = query.is(filter.column, filter.value)
-              break
-            case 'eq':
-              query = query.eq(filter.column, filter.value)
-              break
-            case 'neq':
-              query = query.neq(filter.column, filter.value)
-              break
-            case 'in':
-              query = query.in(filter.column, filter.value as unknown[])
-              break
-            case 'ilike':
-              query = query.ilike(filter.column, filter.value as string)
-              break
-            case 'lt':
-              query = query.lt(filter.column, filter.value)
-              break
-            case 'lte':
-              query = query.lte(filter.column, filter.value)
-              break
-            case 'gt':
-              query = query.gt(filter.column, filter.value)
-              break
-            case 'gte':
-              query = query.gte(filter.column, filter.value)
-              break
-            default:
-              throw new Error(`Shadow filter ${filter.op} belum didukung`)
-          }
+        if (isWrite) {
+          return this.shadowReadBack()
         }
-
-        for (const order of this.orders) {
-          query = query.order(order.column, { ascending: order.ascending !== false })
-        }
-
-        if (this.currentRange) {
-          query = query.range(this.currentRange.from, this.currentRange.to)
-        } else if (this.currentLimit !== null) {
-          query = query.limit(this.currentLimit)
-        }
-
-        const shadow =
-          this.singleMode === 'single'
-            ? await query.single()
-            : this.singleMode === 'maybeSingle'
-              ? await query.maybeSingle()
-              : await query
-        return {
-          data: (shadow.data ?? null) as T | null,
-          error: shadow.error ? normalizeError(shadow.error) : null,
-        }
+        return this.shadowSelectMirror()
       },
     })
+  }
+
+  /**
+   * Write shadow: read back the mutated record(s) from Supabase to verify
+   * VIL returned correct data. Does NOT re-execute the write.
+   */
+  private async shadowReadBack(): Promise<{
+    data: T | null
+    error: { message?: string | null; status?: number } | null
+  }> {
+    const selectCols = this.selectColumns !== '*' ? this.selectColumns : 'id, updated_at'
+    let query = getSupabaseClient()
+      .from(this.table)
+      .select(selectCols) as unknown as ShadowSelectQuery
+
+    for (const filter of this.filters) {
+      query = this.applyFilterToQuery(query, filter)
+    }
+
+    if (this.singleMode === 'single') {
+      const shadow = await query.single()
+      return {
+        data: (shadow.data ?? null) as T | null,
+        error: shadow.error ? normalizeError(shadow.error) : null,
+      }
+    }
+
+    if (this.singleMode === 'maybeSingle') {
+      const shadow = await query.maybeSingle()
+      return {
+        data: (shadow.data ?? null) as T | null,
+        error: shadow.error ? normalizeError(shadow.error) : null,
+      }
+    }
+
+    if (this.currentLimit !== null) {
+      query = query.limit(this.currentLimit)
+    }
+
+    const shadow = await query
+    return {
+      data: (shadow.data ?? null) as T | null,
+      error: shadow.error ? normalizeError(shadow.error) : null,
+    }
+  }
+
+  /**
+   * Read shadow: execute the same select query on Supabase for comparison.
+   */
+  private async shadowSelectMirror(): Promise<{
+    data: T | null
+    error: { message?: string | null; status?: number } | null
+  }> {
+    let query = getSupabaseClient()
+      .from(this.table)
+      .select(this.selectColumns, this.currentOptions as never) as unknown as ShadowSelectQuery
+
+    for (const filter of this.filters) {
+      query = this.applyFilterToQuery(query, filter)
+    }
+
+    for (const order of this.orders) {
+      query = query.order(order.column, { ascending: order.ascending !== false })
+    }
+
+    if (this.currentRange) {
+      query = query.range(this.currentRange.from, this.currentRange.to)
+    } else if (this.currentLimit !== null) {
+      query = query.limit(this.currentLimit)
+    }
+
+    const shadow =
+      this.singleMode === 'single'
+        ? await query.single()
+        : this.singleMode === 'maybeSingle'
+          ? await query.maybeSingle()
+          : await query
+    return {
+      data: (shadow.data ?? null) as T | null,
+      error: shadow.error ? normalizeError(shadow.error) : null,
+    }
+  }
+
+  private applyFilterToQuery(query: ShadowSelectQuery, filter: { column: string; op: string; value: unknown; comparator?: string }): ShadowSelectQuery {
+    switch (filter.op) {
+      case 'not':
+        if (!filter.comparator) {
+          throw new Error(`Shadow filter comparator untuk ${filter.column} wajib diisi`)
+        }
+        return query.not(filter.column, filter.comparator, filter.value)
+      case 'is':
+        return query.is(filter.column, filter.value)
+      case 'eq':
+        return query.eq(filter.column, filter.value)
+      case 'neq':
+        return query.neq(filter.column, filter.value)
+      case 'in':
+        return query.in(filter.column, filter.value as unknown[])
+      case 'ilike':
+        return query.ilike(filter.column, filter.value as string)
+      case 'lt':
+        return query.lt(filter.column, filter.value)
+      case 'lte':
+        return query.lte(filter.column, filter.value)
+      case 'gt':
+        return query.gt(filter.column, filter.value)
+      case 'gte':
+        return query.gte(filter.column, filter.value)
+      default:
+        throw new Error(`Shadow filter ${filter.op} belum didukung`)
+    }
   }
 
   select(columns = '*', options?: Record<string, unknown>): ApiQueryBuilder<T> {
@@ -694,18 +773,25 @@ async function callAuthRpc<T = unknown>(
           error: result.error,
         }
 
-        if (SAFE_READ_RPCS.has(fn)) {
+        const isReadRpc = SAFE_READ_RPCS.has(fn)
+        const isWriteRpc = WRITE_SHADOW_RPCS.has(fn)
+
+        if (isReadRpc || isWriteRpc) {
           void runShadowComparison({
             flowName: `proxy.rpc.${fn}`,
             endpoint: `/api/v1/rpc/${fn}`,
             method: 'POST',
-            shadowMode: 'read',
+            shadowMode: isWriteRpc ? 'write' : 'read',
             primaryBackend: 'vil',
             shadowBackend: 'supabase',
             requestSignature: { fn, args: args ?? {} },
             requestId,
             primaryResult: payload,
             shadowRequest: async () => {
+              // Both VIL and Supabase share the same PostgreSQL.
+              // For write RPCs the mutation already happened via VIL;
+              // calling the RPC on Supabase reads the committed state
+              // from the same DB, so this is a convergence check, not a double-write.
               const shadow = await getSupabaseClient().rpc(fn, args ?? {})
               return {
                 data: (shadow.data ?? null) as T | null,

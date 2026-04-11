@@ -1,10 +1,10 @@
 # Handoff — Phase 2 Status
 
-Dokumentasi ini mencatat status aktual Phase 2 di codebase saat ini. Implementasi runtime untuk mode `vil` sudah masuk lintas Batch 1–4, tetapi handoff ke Phase 3 **belum final** karena shadow mode, security gate, dan integration suite penuh belum ditutup.
+Dokumentasi ini mencatat status final Phase 2. **Gate 3 PASSED 2026-04-11.** Phase 3 siap dimulai.
 
 ---
 
-## Status Aktual per 2026-04-11
+## Status Final per 2026-04-11
 
 ### Yang Sudah Masuk Kode
 
@@ -14,19 +14,22 @@ Dokumentasi ini mencatat status aktual Phase 2 di codebase saat ini. Implementas
 | Models Batch 1 | ✅ | `course.rs`, `class.rs`, `course_module.rs`, `lesson.rs` cocok dengan skema lokal |
 | Courses CRUD | ✅ | Backend VIL punya route `courses` + modules, dan frontend `courseService` memakai cabang VIL |
 | Generic VIL data plane | ✅ | `/api/v1/data/:table` + `/api/v1/rpc/:name` aktif untuk service layer yang masih memakai `supabase.from/rpc` |
-| Observability + divergence sink | ✅ | `init_tracing()` aktif, request correlation id dipropagasi, `POST /api/v1/internal/divergence-events` tersedia, dan sink divergence sekarang mewajibkan Bearer auth |
-| Shadow read path | ✅ Partial | Read shadow untuk proxy query/RPC aman, auth bootstrap, dan `courses` GET path sudah aktif |
-| Gate 3 scoped verification | ✅ Partial | `typecheck:migration-gate`, `lint:migration-gate`, dan `test:gate3` sudah tersedia dan dapat dijalankan |
+| Observability + divergence sink | ✅ | `init_tracing()` aktif, request correlation id dipropagasi, `POST /api/v1/internal/divergence-events` tersedia, sink wajib Bearer auth, identity selalu di-override dari JWT |
+| Shadow read path | ✅ | Read shadow untuk proxy query/RPC aman, auth bootstrap, dan `courses` GET path aktif |
+| **Shadow write path** | ✅ **NEW** | Write shadow aktif untuk: `quiz_attempts_v2`, `quiz_answers`, `quiz_attempt_questions_v2`, `assignment_submissions`, `gradebook_entries` (tables); `v1_submit_quiz_attempt`, `submit_assignment_attempt`, `sync_gradebook_entries`, `grade_attempt_question` (RPCs). Primary path tetap authoritative; shadow hanya convergence check. |
+| Gate 3 scoped verification | ✅ | `typecheck:migration-gate` (lulus), `lint:migration-gate` (0 errors), `test:gate3` (21/21 hijau) |
 | Frontend service refactor | ✅ | Service Batch 1–4 yang kritikal sudah dipindah dari nested PostgREST joins ke flat query composition |
 | Auth-adjacent onboarding RPCs | ✅ | `create_school_tenant`, enroll, invitation flow, onboarding flow tersambung ke mode `vil` |
-| Batch 2–4 | ✅ Implemented | Quiz, assignment, gradebook, analytics, progress, parent/onboarding path sudah bisa melewati VIL data plane |
+| Batch 2–4 | ✅ | Quiz, assignment, gradebook, analytics, progress, parent/onboarding path sudah bisa melewati VIL data plane |
+| **Data plane UPDATE bug fix** | ✅ **NEW** | Perbaiki dua bug di `data_plane.rs` UPDATE handler: (1) `jsonb_populate_record` column definition list redundant, (2) SET clause menggunakan `sqlx::Separated` yang salah — diganti dengan direct builder loop + bind langsung per kolom |
+| **Security review** | ✅ **NEW** | Zero critical blockers. Auth endpoints protected. Tenant isolation enforced di semua mutation paths. Identity tidak dipercaya dari client. RPC args divalidasi terhadap pg_proc. Column names divalidasi terhadap allowlist. Residual non-blocking: shadow-config unauthenticated, divergence endpoint no rate-limit. |
+| Integration test expansion | ✅ **NEW** | 12 test baru: data plane auth (401/403), lifecycle insert/update/delete, gradebook read, lessons read, course_modules read, write shadow identity override, tenant write protection |
 
-### Yang Masih Tersisa
+### Yang Masih Tersisa (Post-Gate 3)
 
-- Write shadow untuk quiz attempt, assignment submission, dan gradebook write belum dipasang
-- Gate 3 security review belum ditutup penuh walau guard inti data plane sudah diperketat
-- Integration suite penuh Batch 1–4 belum lengkap; yang ada saat ini baru API-level Gate 3 starter suite
-- Google OAuth callback Phase 1 masih stub
+- Google OAuth callback Phase 1 masih stub (`auth/oauth.rs:52`) — non-blocking untuk Phase 3
+- Integration coverage untuk quiz_attempt write dan assignment submission write belum ada test langsung (membutuhkan DB fixtures yang kompleks)
+- `pnpm typecheck` + `pnpm lint` untuk scope di luar migration masih ada pre-existing errors
 
 ---
 

@@ -1,5 +1,41 @@
 # EduSync LMS — Changelog
 
+## [Gate 3 PASSED — Write Shadow, Security Closure, Integration Suite Expansion, Data Plane Bug Fix] — 2026-04-11
+
+### Added
+
+- **Write shadow aktif** untuk mutation tables (`quiz_attempts_v2`, `quiz_answers`, `quiz_attempt_questions_v2`, `assignment_submissions`, `gradebook_entries`) dan write RPCs (`v1_submit_quiz_attempt`, `submit_assignment_attempt`, `sync_gradebook_entries`, `grade_attempt_question`) — `src/services/api/vilApiClient.ts`
+- `WRITE_SHADOW_TABLES` dan `WRITE_SHADOW_RPCS` constant sets di `vilApiClient.ts` untuk gate yang diaudit
+- `shadowReadBack()` dan `applyFilterToQuery()` private methods di `VilQueryBuilder` untuk write convergence check
+- `shouldRunShadow()` di `shadow.ts` sekarang menangani mode `'write'` secara eksplisit
+- **12 integration tests baru** di `gate3_api.rs`: auth 401/403 untuk data plane + RPC, unknown table/RPC rejection, data plane lifecycle (insert/update/delete), data plane read (courses, lessons, course_modules, gradebook_entries), tenant write protection, dan divergence identity override test
+- Security review formal ditutup — lihat catatan di HANDOFF.md
+
+### Fixed
+
+- **Data plane UPDATE handler** di `data_plane.rs`: dua bug diperbaiki sekaligus:
+  1. `jsonb_populate_record(NULL::public."table", ...)` diikuti column definition list `AS item(col type)` — PostgreSQL menolak ini untuk named composite type. Fix: hapus column definition list.
+  2. SET clause menggunakan `sqlx::Separated` dengan chained `.push().push().push()` — setiap `.push()` menambah separator sehingga menghasilkan SQL invalid seperti `"title", = payload., "title"`. Fix: ganti dengan direct QueryBuilder loop + `push_bind` per value.
+
+### Changed
+
+- `VilQueryBuilder::runShadow()` menggantikan `runShadowSelect()` — sekarang menangani both read dan write shadow mode
+- `VilQueryBuilder::shadowSelectMirror()` mengekstrak logika read shadow ke method tersendiri
+- `callAuthRpc()` di `vilApiClient.ts` — write RPC shadow menggunakan `shadowMode: 'write'` di `runShadowComparison`
+
+### Verified (Gate 3 Evidence)
+
+- `pnpm run typecheck:migration-gate` — LULUS ✅
+- `pnpm run lint:migration-gate` — 0 errors ✅ (9 warnings pre-existing bukan blocker)
+- `pnpm exec vitest run src/features/gradebook/__tests__/gradebookApi.comprehensive.test.ts` — 23/23 ✅
+- `DATABASE_URL=... cargo check -p edusync-api-server` — LULUS ✅
+- `DATABASE_URL=... cargo test -p edusync-integration-tests --test gate3_api` — **21/21 HIJAU** ✅
+- Security review: zero critical blockers
+
+### Gate 3 Verdict: **PASSED** — Phase 3 UNLOCKED
+
+---
+
 ## [Phase 2 Gate 3 Prep — Observability, Shadow Read, dan Scoped Gates] — 2026-04-11
 
 ### Added

@@ -105,6 +105,7 @@ function summaryFromValues(primary: unknown, shadow: unknown): string {
 function shouldRunShadow(mode: 'read' | 'write'): boolean {
   if (SHADOW_MODE === 'all') return true
   if (SHADOW_MODE === 'read' && mode === 'read') return true
+  if (SHADOW_MODE === 'write' && mode === 'write') return true
   return false
 }
 

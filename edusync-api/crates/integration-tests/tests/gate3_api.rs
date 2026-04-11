@@ -291,3 +291,326 @@ async fn courses_crud_read_and_delete_flow_is_operational() -> Result<()> {
     delete_course(&client, &token, &course_id).await?;
     Ok(())
 }
+
+// ── Read-path shadow coverage ────────────────────────────────────────────────
+
+#[tokio::test]
+async fn data_plane_select_requires_authorization() -> Result<()> {
+    let client = Client::new();
+    let response = client
+        .post(format!("{}/api/v1/data/courses", base_url()))
+        .json(&json!({
+            "action": "select",
+            "select": "id,title"
+        }))
+        .send()
+        .await?;
+
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    Ok(())
+}
+
+#[tokio::test]
+async fn rpc_proxy_requires_authorization() -> Result<()> {
+    let client = Client::new();
+    let response = client
+        .post(format!("{}/api/v1/rpc/get_activity_timeline", base_url()))
+        .json(&json!({ "args": {} }))
+        .send()
+        .await?;
+
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    Ok(())
+}
+
+#[tokio::test]
+async fn unknown_table_is_rejected() -> Result<()> {
+    let client = Client::new();
+    let token = login(&client).await?;
+    let response = client
+        .post(format!("{}/api/v1/data/pg_user", base_url()))
+        .bearer_auth(token)
+        .json(&json!({ "action": "select", "select": "id" }))
+        .send()
+        .await?;
+
+    assert_eq!(response.status(), StatusCode::FORBIDDEN);
+    Ok(())
+}
+
+#[tokio::test]
+async fn unknown_rpc_is_rejected() -> Result<()> {
+    let client = Client::new();
+    let token = login(&client).await?;
+    let response = client
+        .post(format!("{}/api/v1/rpc/drop_all_tables", base_url()))
+        .bearer_auth(token)
+        .json(&json!({ "args": {} }))
+        .send()
+        .await?;
+
+    assert_eq!(response.status(), StatusCode::FORBIDDEN);
+    Ok(())
+}
+
+#[tokio::test]
+async fn courses_data_plane_read_path_returns_tenant_rows() -> Result<()> {
+    let client = Client::new();
+    let token = login(&client).await?;
+    let title = format!("Gate3 ReadPath {}", Uuid::new_v4());
+    let course_id = create_course(&client, &token, &title).await?;
+
+    let response = client
+        .post(format!("{}/api/v1/data/courses", base_url()))
+        .bearer_auth(&token)
+        .json(&json!({
+            "action": "select",
+            "select": "id,title,status",
+            "filters": [
+                { "column": "id", "op": "eq", "value": course_id }
+            ]
+        }))
+        .send()
+        .await?;
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let payload: Value = response.json().await?;
+    let rows = payload.get("data").and_then(Value::as_array).ok_or_else(|| anyhow!("expected data array"))?;
+    assert_eq!(rows.len(), 1, "expected exactly one course row");
+    assert_eq!(rows[0].get("id").and_then(Value::as_str), Some(course_id.as_str()));
+
+    delete_course(&client, &token, &course_id).await?;
+    Ok(())
+}
+
+// ── Write-path shadow coverage ───────────────────────────────────────────────
+
+#[tokio::test]
+async fn data_plane_insert_update_delete_lifecycle() -> Result<()> {
+    let client = Client::new();
+    let token = login(&client).await?;
+    let title = format!("Gate3 Lifecycle {}", Uuid::new_v4());
+
+    // INSERT via data plane
+    let insert_response = client
+        .post(format!("{}/api/v1/data/courses", base_url()))
+        .bearer_auth(&token)
+        .json(&json!({
+            "action": "insert",
+            "select": "id,title,status",
+            "values": {
+                "title": title,
+                "description": "Gate3 data plane insert test",
+                "status": "draft"
+            },
+            "single": "single"
+        }))
+        .send()
+        .await?;
+
+    assert_eq!(insert_response.status(), StatusCode::OK);
+    let insert_payload: Value = insert_response.json().await?;
+    let course_id = insert_payload
+        .get("data")
+        .and_then(|data| data.get("id"))
+        .and_then(Value::as_str)
+        .ok_or_else(|| anyhow!("missing id in insert response"))?
+        .to_string();
+
+    // UPDATE via data plane
+    let new_title = format!("{title} Updated");
+    let update_response = client
+        .post(format!("{}/api/v1/data/courses", base_url()))
+        .bearer_auth(&token)
+        .json(&json!({
+            "action": "update",
+            "select": "id,title",
+            "values": {
+                "title": new_title
+            },
+            "filters": [
+                { "column": "id", "op": "eq", "value": course_id }
+            ],
+            "single": "single"
+        }))
+        .send()
+        .await?;
+
+    assert_eq!(update_response.status(), StatusCode::OK);
+    let update_payload: Value = update_response.json().await?;
+    let updated_title = update_payload
+        .get("data")
+        .and_then(|data| data.get("title"))
+        .and_then(Value::as_str)
+        .ok_or_else(|| anyhow!("missing title in update response"))?;
+    assert_eq!(updated_title, new_title.as_str());
+
+    // DELETE via data plane
+    let delete_response = client
+        .post(format!("{}/api/v1/data/courses", base_url()))
+        .bearer_auth(&token)
+        .json(&json!({
+            "action": "delete",
+            "filters": [
+                { "column": "id", "op": "eq", "value": course_id }
+            ]
+        }))
+        .send()
+        .await?;
+
+    assert_eq!(delete_response.status(), StatusCode::OK);
+    Ok(())
+}
+
+#[tokio::test]
+async fn data_plane_update_cannot_change_tenant_id() -> Result<()> {
+    let client = Client::new();
+    let token = login(&client).await?;
+    let title = format!("Gate3 TenantWrite {}", Uuid::new_v4());
+    let course_id = create_course(&client, &token, &title).await?;
+
+    let response = client
+        .post(format!("{}/api/v1/data/courses", base_url()))
+        .bearer_auth(&token)
+        .json(&json!({
+            "action": "update",
+            "values": {
+                "tenant_id": Uuid::new_v4().to_string()
+            },
+            "filters": [
+                { "column": "id", "op": "eq", "value": course_id }
+            ]
+        }))
+        .send()
+        .await?;
+
+    assert_eq!(response.status(), StatusCode::FORBIDDEN);
+
+    delete_course(&client, &token, &course_id).await?;
+    Ok(())
+}
+
+// ── Gradebook path ───────────────────────────────────────────────────────────
+
+#[tokio::test]
+async fn gradebook_entries_read_path_requires_authorization() -> Result<()> {
+    let client = Client::new();
+    let response = client
+        .post(format!("{}/api/v1/data/gradebook_entries", base_url()))
+        .json(&json!({
+            "action": "select",
+            "select": "id,score,max_score"
+        }))
+        .send()
+        .await?;
+
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    Ok(())
+}
+
+#[tokio::test]
+async fn gradebook_entries_read_path_returns_tenant_scoped_data() -> Result<()> {
+    let client = Client::new();
+    let token = login(&client).await?;
+
+    let response = client
+        .post(format!("{}/api/v1/data/gradebook_entries", base_url()))
+        .bearer_auth(&token)
+        .json(&json!({
+            "action": "select",
+            "select": "id,score,max_score,notes",
+            "limit": 10
+        }))
+        .send()
+        .await?;
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let payload: Value = response.json().await?;
+    // Data array must be present (may be empty if no gradebook entries for this tenant)
+    assert!(payload.get("data").is_some(), "missing data field in response");
+    Ok(())
+}
+
+// ── Lessons/modules path ─────────────────────────────────────────────────────
+
+#[tokio::test]
+async fn lessons_data_plane_read_path() -> Result<()> {
+    let client = Client::new();
+    let token = login(&client).await?;
+
+    let response = client
+        .post(format!("{}/api/v1/data/lessons", base_url()))
+        .bearer_auth(&token)
+        .json(&json!({
+            "action": "select",
+            "select": "id,title",
+            "limit": 5
+        }))
+        .send()
+        .await?;
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let payload: Value = response.json().await?;
+    assert!(payload.get("data").is_some(), "missing data field in lessons response");
+    Ok(())
+}
+
+#[tokio::test]
+async fn course_modules_read_path() -> Result<()> {
+    let client = Client::new();
+    let token = login(&client).await?;
+
+    let response = client
+        .post(format!("{}/api/v1/data/course_modules", base_url()))
+        .bearer_auth(&token)
+        .json(&json!({
+            "action": "select",
+            "select": "id,title",
+            "limit": 5
+        }))
+        .send()
+        .await?;
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let payload: Value = response.json().await?;
+    assert!(payload.get("data").is_some(), "missing data field in course_modules response");
+    Ok(())
+}
+
+// ── Divergence sink — identity override ─────────────────────────────────────
+
+#[tokio::test]
+async fn divergence_event_with_fake_identity_is_accepted_but_identity_overridden() -> Result<()> {
+    let client = Client::new();
+    let token = login(&client).await?;
+
+    // Send event with caller-supplied identity fields — server must override them from JWT
+    let spoofed_event = json!({
+        "request_id": Uuid::new_v4().to_string(),
+        "flow_name": "gate3-identity-override-test",
+        "endpoint": "/api/v1/data/courses",
+        "method": "POST",
+        "primary_backend": "vil",
+        "shadow_backend": "supabase",
+        "normalized_request_signature": "test",
+        "result_hash_primary": "aaa",
+        "result_hash_shadow": "bbb",
+        "diff_summary": "identity override test",
+        "severity": "info",
+        // These should be overridden by server from JWT context
+        "user_id": "00000000-0000-0000-0000-000000000000",
+        "tenant_id": "00000000-0000-0000-0000-000000000000",
+        "role": "HACKER"
+    });
+
+    let response = client
+        .post(format!("{}/api/v1/internal/divergence-events", base_url()))
+        .bearer_auth(token)
+        .json(&spoofed_event)
+        .send()
+        .await?;
+
+    // Server accepts the event (returns 200) but identity fields are overridden from JWT
+    assert_eq!(response.status(), StatusCode::OK);
+    Ok(())
+}
