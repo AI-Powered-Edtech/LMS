@@ -1,8 +1,9 @@
 use std::sync::Arc;
-use axum::{extract::{Extension, Query}, http::{HeaderMap, StatusCode}, Json};
+use axum::{extract::Query, http::HeaderMap};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use edusync_auth::{AuthError, verify_access_token};
+use vil_server::prelude::{ServiceCtx, ShmSlice, VilResponse, VilError, HandlerResult};
 use crate::state::AppState;
 use super::types::{OnboardStudentRequest, EnrollStudentRequest, CreateTenantRequest, AcceptInvitationRequest};
 use super::types::{AuthResponse, UserPayload};
@@ -23,9 +24,11 @@ pub struct InvitationInfo {
 }
 
 pub async fn validate_invitation_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     Query(params): Query<ValidateInvitationQuery>,
-) -> Result<Json<InvitationInfo>, AuthError> {
+) -> HandlerResult<VilResponse<InvitationInfo>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
+
     let row = sqlx::query!(
         r#"SELECT i.email, i.role::text as "role!", i.tenant_id, t.name as tenant_name
            FROM public.user_invitations i
@@ -36,10 +39,11 @@ pub async fn validate_invitation_handler(
         params.token
     )
     .fetch_optional(&state.db)
-    .await?
-    .ok_or(AuthError::InvitationNotFound)?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
+    .ok_or_else(|| VilError::from(AuthError::InvitationNotFound))?;
 
-    Ok(Json(InvitationInfo {
+    Ok(VilResponse::ok(InvitationInfo {
         email: row.email,
         role: row.role.to_lowercase(),
         tenant_id: row.tenant_id,
@@ -49,19 +53,23 @@ pub async fn validate_invitation_handler(
 
 // --- 1B-17: Accept invitation (requires Bearer JWT) ---
 pub async fn accept_invitation_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     headers: HeaderMap,
-    Json(body): Json<AcceptInvitationRequest>,
-) -> Result<Json<serde_json::Value>, AuthError> {
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<serde_json::Value>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
+    let body: AcceptInvitationRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
+
     // Verify JWT
     let token_str = headers
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .ok_or(AuthError::Unauthorized)?;
+        .ok_or_else(|| VilError::from(AuthError::Unauthorized))?;
 
-    let claims = verify_access_token(token_str, &state.jwt_secret)?;
-    let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken)?;
+    let claims = verify_access_token(token_str, &state.jwt_secret)
+        .map_err(VilError::from)?;
+    let user_id: Uuid = claims.sub.parse().map_err(|_| VilError::from(AuthError::InvalidToken))?;
 
     // Look up pending, non-expired invitation
     let inv = sqlx::query!(
@@ -71,8 +79,9 @@ pub async fn accept_invitation_handler(
         body.token
     )
     .fetch_optional(&state.db)
-    .await?
-    .ok_or(AuthError::InvitationNotFound)?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
+    .ok_or_else(|| VilError::from(AuthError::InvitationNotFound))?;
 
     // Verify the logged-in user's email matches the invitation
     let user_email: String = sqlx::query_scalar!(
@@ -80,17 +89,19 @@ pub async fn accept_invitation_handler(
         user_id
     )
     .fetch_optional(&state.db)
-    .await?
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
     .flatten()
-    .ok_or(AuthError::UserNotFound)?;
+    .ok_or_else(|| VilError::from(AuthError::UserNotFound))?;
 
     if user_email.trim().to_lowercase() != inv.email.trim().to_lowercase() {
-        return Err(AuthError::TenantMismatch);
+        return Err(VilError::from(AuthError::TenantMismatch));
     }
 
     let role_upper = inv.role.to_uppercase();
 
-    let mut tx = state.db.begin().await?;
+    let mut tx = state.db.begin().await
+        .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     // 1. Mark invitation accepted
     sqlx::query!(
@@ -98,7 +109,8 @@ pub async fn accept_invitation_handler(
         inv.id
     )
     .execute(&mut *tx)
-    .await?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     // 2. Upsert tenant_memberships
     sqlx::query!(
@@ -109,7 +121,8 @@ pub async fn accept_invitation_handler(
         inv.tenant_id, user_id, role_upper
     )
     .execute(&mut *tx)
-    .await?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     // 3. Upsert user_roles — mirrors sync_user_tenant_access:
     //    remove existing (user, tenant) entry first to avoid unique(user_id, tenant_id) conflict,
@@ -120,7 +133,8 @@ pub async fn accept_invitation_handler(
     .bind(user_id)
     .bind(inv.tenant_id)
     .execute(&mut *tx)
-    .await?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     // Use non-macro query for app_role enum cast (sqlx! macro has no built-in app_role mapping)
     sqlx::query(
@@ -133,7 +147,8 @@ pub async fn accept_invitation_handler(
     .bind(inv.tenant_id)
     .bind(&role_upper)
     .execute(&mut *tx)
-    .await?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     // 4. Update profile tenant_id if currently unset
     sqlx::query!(
@@ -141,11 +156,13 @@ pub async fn accept_invitation_handler(
         inv.tenant_id, user_id
     )
     .execute(&mut *tx)
-    .await?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
-    tx.commit().await?;
+    tx.commit().await
+        .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
-    Ok(Json(serde_json::json!({
+    Ok(VilResponse::ok(serde_json::json!({
         "success": true,
         "tenant_id": inv.tenant_id,
         "role": inv.role.to_lowercase()
@@ -167,9 +184,11 @@ pub struct ClassInfo {
 }
 
 pub async fn lookup_class_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     Query(params): Query<LookupClassQuery>,
-) -> Result<Json<ClassInfo>, AuthError> {
+) -> HandlerResult<VilResponse<ClassInfo>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
+
     let class = sqlx::query!(
         r#"SELECT c.id, c.name, c.tenant_id, t.name as tenant_name
            FROM public.classes c
@@ -178,10 +197,11 @@ pub async fn lookup_class_handler(
         params.code
     )
     .fetch_optional(&state.db)
-    .await?
-    .ok_or(AuthError::ClassNotFound)?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
+    .ok_or_else(|| VilError::from(AuthError::ClassNotFound))?;
 
-    Ok(Json(ClassInfo {
+    Ok(VilResponse::ok(ClassInfo {
         id: class.id,
         name: class.name,
         tenant_id: class.tenant_id,
@@ -191,26 +211,31 @@ pub async fn lookup_class_handler(
 
 // --- 1B-19: Enroll student via join code ---
 pub async fn enroll_student_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     headers: HeaderMap,
-    Json(body): Json<EnrollStudentRequest>,
-) -> Result<StatusCode, AuthError> {
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<serde_json::Value>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
+    let body: EnrollStudentRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
+
     let token = headers
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .ok_or(AuthError::InvalidToken)?;
+        .ok_or_else(|| VilError::from(AuthError::InvalidToken))?;
 
-    let claims = verify_access_token(token, &state.jwt_secret)?;
-    let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken)?;
+    let claims = verify_access_token(token, &state.jwt_secret)
+        .map_err(VilError::from)?;
+    let user_id: Uuid = claims.sub.parse().map_err(|_| VilError::from(AuthError::InvalidToken))?;
 
     let class = sqlx::query!(
         "SELECT id, tenant_id FROM public.classes WHERE join_code = $1",
         body.join_code
     )
     .fetch_optional(&state.db)
-    .await?
-    .ok_or(AuthError::ClassNotFound)?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
+    .ok_or_else(|| VilError::from(AuthError::ClassNotFound))?;
 
     // Upsert enrollment (use student_id per schema)
     // enrollments has no unique constraint on (class_id, student_id) — use plain INSERT with conflict guard
@@ -219,7 +244,8 @@ pub async fn enroll_student_handler(
         class.id, user_id
     )
     .fetch_one(&state.db)
-    .await?
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
     .unwrap_or(false);
 
     if !existing {
@@ -229,19 +255,27 @@ pub async fn enroll_student_handler(
             class.id, user_id, class.tenant_id
         )
         .execute(&state.db)
-        .await?;
+        .await
+        .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
     }
 
-    Ok(StatusCode::OK)
+    Ok(VilResponse::ok(serde_json::json!({ "success": true })))
 }
 
 // --- 1B-21: Onboard student (register + enroll in one tx) ---
 pub async fn onboard_student_handler(
-    Extension(state): Extension<Arc<AppState>>,
-    Json(body): Json<OnboardStudentRequest>,
-) -> Result<Json<AuthResponse>, AuthError> {
-    if !body.email.contains('@') { return Err(AuthError::InvalidEmail); }
-    if body.password.len() < 8   { return Err(AuthError::WeakPassword); }
+    svc: ServiceCtx,
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<AuthResponse>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
+    let body: OnboardStudentRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
+
+    if !body.email.contains('@') {
+        return Err(VilError::from(AuthError::InvalidEmail));
+    }
+    if body.password.len() < 8 {
+        return Err(VilError::from(AuthError::WeakPassword));
+    }
 
     // Find class
     let class = sqlx::query!(
@@ -249,24 +283,29 @@ pub async fn onboard_student_handler(
         body.join_code
     )
     .fetch_optional(&state.db)
-    .await?
-    .ok_or(AuthError::ClassNotFound)?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
+    .ok_or_else(|| VilError::from(AuthError::ClassNotFound))?;
 
     let exists: bool = sqlx::query_scalar!(
         "SELECT EXISTS(SELECT 1 FROM public.users WHERE email = $1)",
         body.email
     )
     .fetch_one(&state.db)
-    .await?
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
     .unwrap_or(false);
 
-    if exists { return Err(AuthError::EmailAlreadyExists); }
+    if exists {
+        return Err(VilError::from(AuthError::EmailAlreadyExists));
+    }
 
     let user_id = Uuid::new_v4();
-    let hash = hash_password(&body.password)?;
+    let hash = hash_password(&body.password).map_err(VilError::from)?;
     let (first_name, last_name) = split_name(body.full_name.as_deref().unwrap_or(""));
 
-    let mut tx = state.db.begin().await?;
+    let mut tx = state.db.begin().await
+        .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     // Insert into auth.users FIRST — public.profiles.id FK references auth.users.id
     sqlx::query(
@@ -277,44 +316,55 @@ pub async fn onboard_student_handler(
     .bind(user_id)
     .bind(&body.email)
     .bind(&hash)
-    .execute(&mut *tx).await?;
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     sqlx::query!(
         r#"INSERT INTO public.users (id, email, encrypted_password, created_at, updated_at)
            VALUES ($1, $2, $3, now(), now())"#,
         user_id, body.email, hash
     )
-    .execute(&mut *tx).await?;
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     sqlx::query!(
         r#"INSERT INTO public.profiles (id, email, first_name, last_name, tenant_id, created_at, updated_at)
            VALUES ($1, $2, $3, $4, $5, now(), now())"#,
         user_id, body.email, first_name, last_name, class.tenant_id
     )
-    .execute(&mut *tx).await?;
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     sqlx::query!(
         r#"INSERT INTO public.user_roles (user_id, role, tenant_id)
            VALUES ($1, 'STUDENT', $2)"#,
         user_id, class.tenant_id
     )
-    .execute(&mut *tx).await?;
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     sqlx::query!(
         r#"INSERT INTO public.enrollments (class_id, student_id, tenant_id)
            VALUES ($1, $2, $3)"#,
         class.id, user_id, class.tenant_id
     )
-    .execute(&mut *tx).await?;
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
-    tx.commit().await?;
+    tx.commit().await
+        .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     let tokens = create_session(
         &state.db, user_id, &body.email, "STUDENT",
         Some(class.tenant_id), false, &state.jwt_secret,
-    ).await?;
+    ).await.map_err(VilError::from)?;
 
-    Ok(Json(AuthResponse {
+    Ok(VilResponse::ok(AuthResponse {
         access_token: tokens.access_token,
         token_type: "bearer".to_string(),
         expires_in: 3600,
@@ -325,20 +375,25 @@ pub async fn onboard_student_handler(
 
 // --- 1B-22: Create tenant ---
 pub async fn create_tenant_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     headers: HeaderMap,
-    Json(body): Json<CreateTenantRequest>,
-) -> Result<Json<serde_json::Value>, AuthError> {
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<serde_json::Value>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
+    let body: CreateTenantRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
+
     let token = headers
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .ok_or(AuthError::InvalidToken)?;
+        .ok_or_else(|| VilError::from(AuthError::InvalidToken))?;
 
-    let claims = verify_access_token(token, &state.jwt_secret)?;
-    let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken)?;
+    let claims = verify_access_token(token, &state.jwt_secret)
+        .map_err(VilError::from)?;
+    let user_id: Uuid = claims.sub.parse().map_err(|_| VilError::from(AuthError::InvalidToken))?;
 
-    let mut tx = state.db.begin().await?;
+    let mut tx = state.db.begin().await
+        .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
     let tenant_id = Uuid::new_v4();
     let requested_role = body
         .role
@@ -352,7 +407,9 @@ pub async fn create_tenant_handler(
            VALUES ($1, $2, $3, now(), now())"#,
         tenant_id, body.name, body.slug
     )
-    .execute(&mut *tx).await?;
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     sqlx::query(
         r#"INSERT INTO public.user_roles (user_id, role, tenant_id)
@@ -362,7 +419,8 @@ pub async fn create_tenant_handler(
     .bind(&requested_role)
     .bind(tenant_id)
     .execute(&mut *tx)
-    .await?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     sqlx::query!(
         r#"INSERT INTO public.tenant_memberships (tenant_id, user_id, role, status, joined_at, created_at, updated_at)
@@ -371,7 +429,9 @@ pub async fn create_tenant_handler(
            SET role = EXCLUDED.role, status = 'active', updated_at = now()"#,
         tenant_id, user_id, requested_role
     )
-    .execute(&mut *tx).await?;
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     if let Some(full_name) = body.full_name.as_deref() {
         let (first_name, last_name) = split_name(full_name);
@@ -387,18 +447,24 @@ pub async fn create_tenant_handler(
             tenant_id,
             user_id
         )
-        .execute(&mut *tx).await?;
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
     } else {
         sqlx::query!(
             "UPDATE public.profiles SET tenant_id = COALESCE(tenant_id, $1), updated_at = now() WHERE id = $2",
             tenant_id,
             user_id
         )
-        .execute(&mut *tx).await?;
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
     }
 
-    tx.commit().await?;
-    Ok(Json(serde_json::json!({
+    tx.commit().await
+        .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
+
+    Ok(VilResponse::ok(serde_json::json!({
         "tenant_id": tenant_id,
         "role": requested_role.to_lowercase(),
     })))

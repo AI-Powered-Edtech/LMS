@@ -48,14 +48,13 @@ jobs:
         run: pnpm test --run --coverage
         # pnpm test maps to vitest; --run disables watch mode, --coverage enables coverage
 
-# Build (catches type errors missed by tsc --noEmit and Vite-specific issues)
-    - name: Build
-      run: pnpm build
-    # Check if build output exists
-    - name: Check build output
-      run: test -f dist/index.html || (echo "Build failed: dist/index.html not found" && exit 1)
+      # Build (catches type errors missed by tsc --noEmit and Vite-specific issues)
+      - name: Build
+        run: pnpm build
 
-    # Smoke test for build artifact
+      # Check if build output exists
+      - name: Check build output
+        run: 'test -f dist/index.html || (echo "Build failed: dist/index.html not found" && exit 1)'
 
       # Smoke test for build artifact
       - name: Smoke Test

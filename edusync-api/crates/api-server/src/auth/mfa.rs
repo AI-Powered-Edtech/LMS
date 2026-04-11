@@ -1,9 +1,10 @@
 use std::sync::Arc;
-use axum::{extract::Extension, http::{HeaderMap, StatusCode}, Json};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use edusync_auth::{AuthError, verify_access_token};
+use vil_server::prelude::{ServiceCtx, ShmSlice, VilResponse, VilError, HandlerResult};
 use crate::state::AppState;
+use axum::http::HeaderMap;
 
 #[derive(Deserialize)]
 pub struct MfaEnrollRequest {
@@ -31,19 +32,23 @@ pub struct TotpInfo {
 }
 
 pub async fn mfa_enroll_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     headers: HeaderMap,
-    Json(body): Json<MfaEnrollRequest>,
-) -> Result<Json<MfaEnrollResponse>, AuthError> {
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<MfaEnrollResponse>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
+    let body: MfaEnrollRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
+
     let token = extract_bearer(&headers)?;
-    let claims = verify_access_token(token, &state.jwt_secret)?;
-    let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken)?;
+    let claims = verify_access_token(token, &state.jwt_secret)
+        .map_err(VilError::from)?;
+    let user_id: Uuid = claims.sub.parse().map_err(|_| VilError::from(AuthError::InvalidToken))?;
 
     let secret = totp_rs::Secret::generate_secret();
     let secret_encoded = secret.to_encoded();
     let secret_base32 = secret_encoded.to_string();
     let secret_bytes: Vec<u8> = secret.to_bytes()
-        .map_err(|e: totp_rs::SecretParseError| AuthError::Internal(e.to_string()))?;
+        .map_err(|e: totp_rs::SecretParseError| VilError::from(AuthError::Internal(e.to_string())))?;
     let factor_id = Uuid::new_v4();
 
     sqlx::query!(
@@ -55,7 +60,8 @@ pub async fn mfa_enroll_handler(
         secret_base32,
     )
     .execute(&state.db)
-    .await?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
     let totp = totp_rs::TOTP::new(
         totp_rs::Algorithm::SHA1, 6, 1, 30,
@@ -63,10 +69,10 @@ pub async fn mfa_enroll_handler(
         Some("EduSync".to_string()),
         claims.email.clone(),
     )
-    .map_err(|e| AuthError::Internal(e.to_string()))?;
+    .map_err(|e| VilError::from(AuthError::Internal(e.to_string())))?;
 
     let qr_code = totp.get_qr_base64()
-        .map_err(|e| AuthError::Internal(e.to_string()))?;
+        .map_err(|e| VilError::from(AuthError::Internal(e.to_string())))?;
     let uri = totp.get_url();
 
     // Generate 10 recovery codes
@@ -74,7 +80,7 @@ pub async fn mfa_enroll_handler(
         .map(|_| format!("{}-{}", &Uuid::new_v4().to_string()[..8], &Uuid::new_v4().to_string()[..8]))
         .collect();
 
-    Ok(Json(MfaEnrollResponse {
+    Ok(VilResponse::ok(MfaEnrollResponse {
         id: factor_id,
         totp: TotpInfo { secret: secret_base32, qr_code, uri },
         recovery_codes,
@@ -82,33 +88,38 @@ pub async fn mfa_enroll_handler(
 }
 
 pub async fn mfa_verify_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     headers: HeaderMap,
-    Json(body): Json<MfaVerifyRequest>,
-) -> Result<StatusCode, AuthError> {
+    body: ShmSlice,
+) -> HandlerResult<VilResponse<serde_json::Value>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
+    let body: MfaVerifyRequest = body.json().map_err(|e| VilError::bad_request(e.to_string()))?;
+
     let token = extract_bearer(&headers)?;
-    let claims = verify_access_token(token, &state.jwt_secret)?;
-    let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken)?;
+    let claims = verify_access_token(token, &state.jwt_secret)
+        .map_err(VilError::from)?;
+    let user_id: Uuid = claims.sub.parse().map_err(|_| VilError::from(AuthError::InvalidToken))?;
 
     let factor = sqlx::query!(
         "SELECT secret FROM public.mfa_factors WHERE id = $1 AND user_id = $2",
         body.factor_id, user_id
     )
     .fetch_optional(&state.db)
-    .await?
-    .ok_or(AuthError::InvalidToken)?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?
+    .ok_or_else(|| VilError::from(AuthError::InvalidToken))?;
 
     let secret_bytes = totp_rs::Secret::Encoded(factor.secret.unwrap_or_default())
         .to_bytes()
-        .map_err(|e: totp_rs::SecretParseError| AuthError::Internal(e.to_string()))?;
+        .map_err(|e: totp_rs::SecretParseError| VilError::from(AuthError::Internal(e.to_string())))?;
 
     let totp = totp_rs::TOTP::new(
         totp_rs::Algorithm::SHA1, 6, 1, 30, secret_bytes, None, "".to_string()
     )
-    .map_err(|e| AuthError::Internal(e.to_string()))?;
+    .map_err(|e| VilError::from(AuthError::Internal(e.to_string())))?;
 
-    if !totp.check_current(&body.code).map_err(|e| AuthError::Internal(e.to_string()))? {
-        return Err(AuthError::InvalidCredentials);
+    if !totp.check_current(&body.code).map_err(|e| VilError::from(AuthError::Internal(e.to_string())))? {
+        return Err(VilError::from(AuthError::InvalidCredentials));
     }
 
     sqlx::query!(
@@ -116,33 +127,38 @@ pub async fn mfa_verify_handler(
         body.factor_id
     )
     .execute(&state.db)
-    .await?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
-    Ok(StatusCode::OK)
+    Ok(VilResponse::ok(serde_json::json!({ "success": true })))
 }
 
 pub async fn mfa_unenroll_handler(
-    Extension(state): Extension<Arc<AppState>>,
+    svc: ServiceCtx,
     headers: HeaderMap,
-) -> Result<StatusCode, AuthError> {
+) -> HandlerResult<VilResponse<serde_json::Value>> {
+    let state = svc.state::<Arc<AppState>>()?.clone();
+
     let token = extract_bearer(&headers)?;
-    let claims = verify_access_token(token, &state.jwt_secret)?;
-    let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken)?;
+    let claims = verify_access_token(token, &state.jwt_secret)
+        .map_err(VilError::from)?;
+    let user_id: Uuid = claims.sub.parse().map_err(|_| VilError::from(AuthError::InvalidToken))?;
 
     sqlx::query!(
         "DELETE FROM public.mfa_factors WHERE user_id = $1",
         user_id
     )
     .execute(&state.db)
-    .await?;
+    .await
+    .map_err(|e| VilError::from(AuthError::Database(e.to_string())))?;
 
-    Ok(StatusCode::OK)
+    Ok(VilResponse::ok(serde_json::json!({ "success": true })))
 }
 
-fn extract_bearer(headers: &HeaderMap) -> Result<&str, AuthError> {
+fn extract_bearer(headers: &HeaderMap) -> Result<&str, VilError> {
     headers
         .get("authorization")
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-        .ok_or(AuthError::InvalidToken)
+        .ok_or_else(|| VilError::from(AuthError::InvalidToken))
 }

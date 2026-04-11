@@ -1,1 +1,0 @@
-export { PrefetchLink } from './PrefetchLink'

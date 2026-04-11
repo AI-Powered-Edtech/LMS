@@ -1,7 +1,0 @@
-export { CourseDetailSkeleton } from '../../features/courses/components/CourseDetailSkeleton'
-export { CourseListSkeleton } from '../../features/courses/components/CourseListSkeleton'
-export { DashboardSkeleton } from './DashboardSkeleton'
-export { LeaderboardSkeleton } from './LeaderboardSkeleton'
-export { ProfileSkeleton } from './ProfileSkeleton'
-export { QuizSkeleton } from './QuizSkeleton'
-export { SmartPlayerSkeleton } from './SmartPlayerSkeleton'
