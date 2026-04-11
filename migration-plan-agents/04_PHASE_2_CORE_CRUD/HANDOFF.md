@@ -59,20 +59,21 @@ edusync-api/crates/
 - `src/services/auth/vilSession.ts` — shared session storage + in-memory auth event bus untuk mode `vil`
 - `src/services/auth/vilAuthProvider.ts` — login/register/refresh/signout/bootstrap/verify/reset flow untuk VIL
 - `src/services/api/runtime.ts` — runtime registry untuk active backend/client
-- `src/services/api/shadow.ts` — helper shadow read, hashing hasil, dan pengiriman divergence event
+- `src/services/api/shadow.ts` — helper shadow read/write, hashing hasil, dan pengiriman divergence event
 - `src/services/api/vilApiClient.ts` — query builder VIL + generic RPC proxy untuk mode `vil`
 - `src/features/courses/api/courseService.ts` — sudah punya cabang VIL untuk CRUD course inti
 - `src/features/quizzes/api/*`, `src/features/assignments/api/*`, `src/features/gradebook/api/*`, `src/features/progress/api/*`, `src/features/parent/api/*`, `src/features/lessons/api/*` — service layer inti sudah diadaptasi ke flat query composition yang kompatibel dengan VIL
 
 ---
 
-## Known Gaps
+## Known Gaps (Post-Gate 3 Residual)
 
-- Google OAuth callback VIL masih stub
-- Shadow saat ini masih fokus di read/idempotent path; write shadow belum dibuka
+- Google OAuth callback VIL masih stub (`auth/oauth.rs:52`) — non-blocking untuk Phase 3, production blocker
 - `pnpm typecheck`, `pnpm lint`, dan `pnpm build` repo utama masih gagal oleh debt pre-existing di area non-migration seperti `OfflineSyncIndicator`, `useBulkImport`, `ai-builder-copilot`, dan beberapa comprehensive test file
 - `questionBankService` Phase 33A masih memakai join PostgREST lama dan belum termasuk scope Phase 2 ini
 - Realtime, storage, Edge Functions, PDF, dan email digest tetap berada di jalur phase berikutnya
+- `shadow-config` endpoint unauthenticated (low risk — hanya expose feature flags)
+- Divergence endpoint tidak ada rate-limit (mitigated: auth required)
 
 ## Test Accounts
 
@@ -84,25 +85,28 @@ edusync-api/crates/
 
 ---
 
-## Next Required Before Phase 3
+## Gate 3 Closure Summary
 
-Sebelum Phase 3 boleh dimulai, minimal hal berikut masih harus selesai:
+Semua prasyarat Phase 3 sudah terpenuhi per commit `a21d6a69` (2026-04-11):
 
-1. Write shadow dipasang untuk flow mutasi kritikal
-2. Gate 3 security review ditutup penuh
-3. Integration tests Batch 1–4 diperluas dari starter suite yang ada sekarang
-4. Cleanup debt typecheck/lint repo utama yang masih unrelated ke migration slice
+1. ✅ Write shadow dipasang untuk flow mutasi kritikal (tables + RPCs)
+2. ✅ Gate 3 security review ditutup — zero critical blockers
+3. ✅ Integration tests diperluas: 21/21 hijau
+4. ⚠️ Debt typecheck/lint repo di luar migration slice **tidak** menjadi blocker Gate 3 (scoped gates hijau)
 
 ---
 
-## Phase 3 Scope
+## Phase 3 Scope (Unlocked)
 
-Phase 3 nanti akan mencakup:
+Phase 3 mencakup migrasi Edge Functions ke VIL Rust handlers:
 
-- **3A:** Email + Push Notification Services (migrasi dari Edge Functions)
-- **3B:** External Integrations (LTI, SCORM)
-- **3C:** Advanced Features (AI Tutor, Essay Grading, PDF Generation)
-- **3D:** Performance Optimization (Caching, Rate Limiting)
+- **3A:** AI Functions — ai-grade-essay, ai-tutor, generate-ai-content, generate-quiz-from-content
+- **3B:** LTI 1.3 — lti-oidc-login, lti-launch, lti-jwks
+- **3C:** Notifications — email digests, push, WhatsApp, PDF generation
+- **3D:** Processing — quiz grading, progress events, SCORM, bulk import
+- **3E:** Cron Jobs — scheduled task migration
+
+Lihat: `migration-plan-agents/05_PHASE_3_EDGE_FUNCTIONS/` untuk task queues dan acceptance criteria.
 
 ---
 
