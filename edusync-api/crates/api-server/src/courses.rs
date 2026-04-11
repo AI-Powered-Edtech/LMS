@@ -205,8 +205,12 @@ pub async fn create_course_handler(
 ) -> Result<Json<Course>, CourseApiError> {
     rbac.require("teacher")?;
 
-    if body.title.trim().is_empty() {
+    let title = body.title.trim();
+    if title.is_empty() {
         return Err(AppError::BadRequest("Judul kursus wajib diisi".to_string()).into());
+    }
+    if title.len() > 255 {
+        return Err(AppError::BadRequest("Judul kursus maksimum 255 karakter".to_string()).into());
     }
 
     let row = sqlx::query(
@@ -215,7 +219,7 @@ pub async fn create_course_handler(
            RETURNING id, title, description, subject, level, created_by, created_at, updated_at, tenant_id, status::text AS status, published_at"#,
     )
     .bind(Uuid::new_v4())
-    .bind(body.title.trim())
+    .bind(title)
     .bind(body.description)
     .bind(body.subject)
     .bind(body.level)

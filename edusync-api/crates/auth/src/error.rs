@@ -40,9 +40,11 @@ pub enum AuthError {
     Unauthorized,
     #[error("Akses ditolak")]
     Forbidden,
-    #[error("Internal error: {0}")]
+    /// Internal error: detail is logged server-side but NOT sent to the client.
+    #[error("Terjadi kesalahan server internal")]
     Internal(String),
-    #[error("Database error")]
+    /// Database error: detail is logged server-side but NOT sent to the client.
+    #[error("Terjadi kesalahan pada database")]
     Database(#[from] sqlx::Error),
 }
 
@@ -56,6 +58,17 @@ struct AuthErrorBody {
 
 impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
+        // Log internal details server-side before stripping them from the response.
+        match &self {
+            AuthError::Internal(detail) => {
+                tracing::error!(detail = %detail, "AuthError::Internal");
+            }
+            AuthError::Database(db_err) => {
+                tracing::error!(error = ?db_err, "AuthError::Database");
+            }
+            _ => {}
+        }
+
         let (status, code) = match &self {
             AuthError::EmailAlreadyExists => (StatusCode::UNPROCESSABLE_ENTITY, "email_exists"),
             AuthError::InvalidEmail => (StatusCode::UNPROCESSABLE_ENTITY, "invalid_email"),
@@ -79,6 +92,8 @@ impl IntoResponse for AuthError {
             AuthError::Database(_) => (StatusCode::INTERNAL_SERVER_ERROR, "database_error"),
         };
 
+        // Use self.to_string() for the client message — Internal/Database now produce
+        // generic Indonesian messages rather than leaking internal detail.
         (
             status,
             Json(AuthErrorBody {

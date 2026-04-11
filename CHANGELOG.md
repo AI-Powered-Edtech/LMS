@@ -1,5 +1,47 @@
 # EduSync LMS — Changelog
 
+## [Unreleased] — 2026-04-11
+
+### Added (Phase 3: Edge Functions → VIL Services)
+
+- **Phase 3A: AI service handlers** — ai-grade-essay, ai-tutor, generate-ai-content, generate-quiz-from-content
+  - CircuitBreaker with 5-failure threshold / 60s reset window
+  - Rate limiting: 50/hr per user for grading/tutor, 20/hr for content generation
+  - All prompts and responses in Bahasa Indonesia
+- **Phase 3B: LTI 1.3 handlers** — lti-oidc-login, lti-launch, lti-jwks
+  - RS256 JWT validation with platform JWKS
+  - Guest user provisioning (`lti-{platformId8}-{sub}@lti.edusync.internal`)
+  - Nonce replay prevention
+- **Phase 3C: Notification & Communication handlers**
+  - Email digest (lettre SMTP, daily 17:00 WIB) with Bahasa Indonesia templates
+  - Parent digest (daily 17:30 WIB) with activity/attendance/grade summary
+  - Push notifications (VAPID via ring ECDSA P-256)
+  - WhatsApp webhook + OTP (multi-provider: WaBusiness/Fonnte/Wablas/Mock)
+  - PDF certificate generation (printpdf, A4 landscape, Bahasa Indonesia)
+- **Phase 3D: Processing service handlers**
+  - Quiz grading worker with FOR UPDATE SKIP LOCKED + retry logic (3 retries, exponential backoff)
+  - Progress events API with queue backpressure check (50k limit)
+  - Progress batch processor updating student_lesson_signals
+  - Quiz data loader (options without is_correct for student view)
+  - SCORM ZIP extractor with imsmanifest.xml parsing
+  - Bulk user import from CSV with per-row error collection
+- **Phase 3E: Background cron jobs** registered via `tokio::time::interval`
+  - Email digest: 10:00 UTC (17:00 WIB)
+  - Parent digest: 10:30 UTC (17:30 WIB)
+  - Analytics refresh: every 15 minutes
+  - Progress processor + quiz grader: every 30 seconds
+- **DB migrations**: `ai_tutor_sessions` (004), `lti_platform_registrations/lti_nonces/lti_user_links` (005)
+- **Nginx routes**: `/api/v1/ai/*`, `/api/v1/lti/*`, `/api/v1/push/*`, `/api/v1/webhooks/*`, `/api/v1/whatsapp/*`, `/api/v1/pdf/*`, `/api/v1/progress`, `/api/v1/quiz/*`, `/api/v1/grading/*`, `/api/v1/scorm/*`, `/api/v1/import/*`
+- **Cargo.toml wiring**: workspace deps for reqwest, url, rand, lettre, ring, base64, printpdf, zip, quick-xml, csv, once_cell. `edusync-services` crate added to `api-server` dependencies.
+- **`edusync-services/src/lib.rs`**: all Phase 3 modules declared (ai, email, grading, import, lti, pdf, progress, push, quiz, scorm, whatsapp)
+- Handler modules: `ai_handlers.rs`, `lti_handlers.rs`, `notification_handlers.rs`, `processing_handlers.rs`, `cron.rs`
+
+### Gate
+
+- **Gate 4 (Phase 3): PASSED ✅** — 2026-04-11
+
+---
+
 ## [Gate 3 PASSED — Write Shadow, Security Closure, Integration Suite Expansion, Data Plane Bug Fix] — 2026-04-11
 
 ### Added

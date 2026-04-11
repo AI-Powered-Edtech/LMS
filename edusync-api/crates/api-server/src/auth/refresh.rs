@@ -9,7 +9,7 @@ pub async fn refresh_handler(
     Extension(state): Extension<Arc<AppState>>,
     Json(body): Json<RefreshRequest>,
 ) -> Result<Json<AuthResponse>, AuthError> {
-    let claims = verify_refresh_token(&body.refresh_token, &state.jwt_secret)?;
+    let claims = verify_refresh_token(&body.refresh_token, &state.jwt_refresh_secret)?;
     let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken)?;
 
     // Load current user data

@@ -9,10 +9,25 @@ pub async fn register_handler(
     Extension(state): Extension<Arc<AppState>>,
     Json(body): Json<RegisterRequest>,
 ) -> Result<Json<AuthResponse>, AuthError> {
-    if !body.email.contains('@') {
+    // Basic email validation: must have non-empty local part, '@', and domain with '.'
+    let email_trimmed = body.email.trim();
+    if email_trimmed.is_empty() {
+        return Err(AuthError::InvalidEmail);
+    }
+    let mut email_parts = email_trimmed.splitn(2, '@');
+    let local = email_parts.next().unwrap_or("");
+    let domain = email_parts.next().unwrap_or("");
+    if local.is_empty() || !domain.contains('.') {
         return Err(AuthError::InvalidEmail);
     }
     if body.password.len() < 8 {
+        return Err(AuthError::WeakPassword);
+    }
+    // Max length guards to prevent oversized inputs reaching the DB
+    if body.email.len() > 254 {
+        return Err(AuthError::InvalidEmail);
+    }
+    if body.password.len() > 128 {
         return Err(AuthError::WeakPassword);
     }
 

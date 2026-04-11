@@ -18,9 +18,11 @@ sentry.workspace = true
 edusync-auth = { path = "../auth" }
 edusync-middleware = { path = "../middleware" }
 edusync-models = { path = "../models" }
+edusync-services = { path = "../services" }
 chrono.workspace = true
 uuid.workspace = true
 sha2.workspace = true
 hex.workspace = true
 totp-rs.workspace = true
 time.workspace = true
+reqwest.workspace = true

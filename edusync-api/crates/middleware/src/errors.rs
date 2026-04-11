@@ -16,15 +16,15 @@ pub struct ApiError {
 
 #[derive(Debug, Error)]
 pub enum AppError {
-    #[error("Not found")]
+    #[error("Data tidak ditemukan")]
     NotFound,
-    #[error("Unauthorized")]
+    #[error("Tidak terautentikasi")]
     Unauthorized,
-    #[error("Bad request: {0}")]
+    #[error("Permintaan tidak valid: {0}")]
     BadRequest(String),
-    #[error("Internal error: {0}")]
+    #[error("Terjadi kesalahan server internal")]
     Internal(String),
-    #[error("Forbidden")]
+    #[error("Akses ditolak")]
     Forbidden,
 }
 
@@ -32,12 +32,17 @@ impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let (status, code, message) = match &self {
             AppError::NotFound => (StatusCode::NOT_FOUND, "PGRST116", self.to_string()),
-            AppError::Unauthorized => {
-                (StatusCode::UNAUTHORIZED, "PGRST301", self.to_string())
-            }
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "PGRST301", self.to_string()),
             AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, "PGRST100", msg.clone()),
-            AppError::Internal(msg) => {
-                (StatusCode::INTERNAL_SERVER_ERROR, "PGRST500", msg.clone())
+            // Internal: log the raw detail but send only a generic message to the client
+            // to avoid leaking implementation details.
+            AppError::Internal(detail) => {
+                tracing::error!(detail = %detail, "AppError::Internal");
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "PGRST500",
+                    "Terjadi kesalahan server internal".to_string(),
+                )
             }
             AppError::Forbidden => (StatusCode::FORBIDDEN, "PGRST302", self.to_string()),
         };
@@ -60,7 +65,7 @@ impl From<sqlx::Error> for AppError {
         tracing::error!("DB error: {:?}", error);
         match error {
             sqlx::Error::RowNotFound => AppError::NotFound,
-            _ => AppError::Internal(error.to_string()),
+            _ => AppError::Internal("Terjadi kesalahan pada database".to_string()),
         }
     }
 }

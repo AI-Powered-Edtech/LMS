@@ -1,0 +1,153 @@
+/// AI service configuration, shared Groq HTTP client, and CircuitBreaker.
+///
+/// # Dependencies (add to services/Cargo.toml when wiring):
+///   reqwest = { version = "0.12", features = ["json"] }
+///   tokio   = { workspace = true }
+///
+/// CircuitBreaker is implemented manually using `Arc<Mutex<CircuitBreakerState>>`
+/// and `std::sync::OnceLock` (stable since Rust 1.70).
+/// Do NOT import from `vil_server` — it does not export CircuitBreaker.
+use std::sync::{Arc, Mutex, OnceLock};
+use std::time::{Duration, Instant};
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+pub const GROQ_API_URL: &str = "https://api.groq.com/openai/v1/chat/completions";
+pub const GROQ_MODEL: &str = "llama-3.1-70b-versatile";
+
+/// Per-user rate limit for AI grading/tutor endpoints (requests per hour).
+pub const AI_RATE_LIMIT_PER_HOUR: i64 = 50;
+
+/// Per-user rate limit for content-generation endpoint (requests per hour).
+pub const CONTENT_GEN_RATE_LIMIT_PER_HOUR: i64 = 20;
+
+/// Maximum characters in a single essay submission.
+pub const MAX_ESSAY_CHARS: usize = 10_000;
+
+/// Maximum characters of lesson/resource context fed to the model.
+pub const MAX_CONTEXT_CHARS: usize = 10_000;
+
+/// Maximum messages kept per tutor session.
+pub const MAX_SESSION_MESSAGES: usize = 50;
+
+/// Last N messages loaded as conversation history.
+pub const TUTOR_HISTORY_WINDOW: usize = 10;
+
+// ─── Shared reqwest Client ────────────────────────────────────────────────────
+
+static HTTP_CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
+
+/// Returns a lazily-initialised, shared `reqwest::Client`.
+/// The client is created once and reused for all Groq calls (connection pooling).
+pub fn http_client() -> &'static reqwest::Client {
+    HTTP_CLIENT.get_or_init(|| {
+        reqwest::Client::builder()
+            .timeout(Duration::from_secs(60)) // outer safety timeout
+            .build()
+            .expect("Failed to build reqwest client")
+    })
+}
+
+// ─── CircuitBreaker ───────────────────────────────────────────────────────────
+
+/// Internal state for the circuit breaker.
+#[derive(Debug)]
+pub struct CircuitBreakerState {
+    /// Number of consecutive failures since last reset.
+    pub failure_count: u32,
+    /// When the circuit was last opened (set when threshold is crossed).
+    pub opened_at: Option<Instant>,
+}
+
+/// Threshold: open the circuit after this many consecutive failures.
+const CB_FAILURE_THRESHOLD: u32 = 5;
+
+/// How long the circuit stays open before allowing a probe request.
+const CB_RESET_AFTER: Duration = Duration::from_secs(60);
+
+/// Thread-safe circuit breaker wrapping mutable state.
+#[derive(Clone, Debug)]
+pub struct CircuitBreaker {
+    state: Arc<Mutex<CircuitBreakerState>>,
+}
+
+impl CircuitBreaker {
+    pub fn new() -> Self {
+        Self {
+            state: Arc::new(Mutex::new(CircuitBreakerState {
+                failure_count: 0,
+                opened_at: None,
+            })),
+        }
+    }
+
+    /// Returns `true` if the circuit is **closed** (requests are allowed).
+    /// Returns `false` if the circuit is **open** (requests should be rejected).
+    ///
+    /// Half-open probing: if the reset window has elapsed, one request is
+    /// allowed through regardless — on success the circuit closes again.
+    pub fn is_closed(&self) -> bool {
+        let state = self.state.lock().expect("CircuitBreaker mutex poisoned");
+
+        match state.opened_at {
+            None => true, // circuit is closed
+            Some(opened_at) => {
+                // Half-open: allow one probe after the reset window
+                opened_at.elapsed() >= CB_RESET_AFTER
+            }
+        }
+    }
+
+    /// Record a successful API call.
+    /// Resets the failure counter and closes the circuit.
+    pub fn record_success(&self) {
+        let mut state = self.state.lock().expect("CircuitBreaker mutex poisoned");
+        state.failure_count = 0;
+        state.opened_at = None;
+    }
+
+    /// Record a failed API call.
+    /// Opens the circuit when the failure threshold is crossed.
+    pub fn record_failure(&self) {
+        let mut state = self.state.lock().expect("CircuitBreaker mutex poisoned");
+        state.failure_count += 1;
+        if state.failure_count >= CB_FAILURE_THRESHOLD {
+            // Only set opened_at once (avoid resetting the timer on each new failure)
+            if state.opened_at.is_none() {
+                tracing::warn!(
+                    failure_count = state.failure_count,
+                    "CircuitBreaker: opening circuit after {} consecutive failures",
+                    state.failure_count,
+                );
+                state.opened_at = Some(Instant::now());
+            }
+        }
+    }
+}
+
+impl Default for CircuitBreaker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+// ─── Singleton CircuitBreaker ─────────────────────────────────────────────────
+
+/// Process-wide singleton circuit breaker for all Groq AI calls.
+///
+/// Usage:
+/// ```rust
+/// use edusync_services::ai::config::groq_circuit_breaker;
+///
+/// let cb = groq_circuit_breaker();
+/// if !cb.is_closed() {
+///     return Err(AppError::Internal("Layanan AI sedang tidak tersedia".into()));
+/// }
+/// // … make API call …
+/// cb.record_success();
+/// ```
+static GROQ_CB: OnceLock<CircuitBreaker> = OnceLock::new();
+
+pub fn groq_circuit_breaker() -> &'static CircuitBreaker {
+    GROQ_CB.get_or_init(CircuitBreaker::new)
+}

@@ -488,7 +488,10 @@ export const assignmentService = {
     }
 
     const profileMap = new Map(
-      ((profiles ?? []) as Array<Record<string, unknown>>).map((profile) => [String(profile.id), profile])
+      ((profiles ?? []) as Array<Record<string, unknown>>).map((profile) => [
+        String(profile.id),
+        profile,
+      ])
     )
 
     return submissions.map((row) =>
@@ -662,25 +665,13 @@ export const assignmentService = {
       { data: submissions, error: submissionError },
     ] = await Promise.all([
       courseIds.length > 0
-        ? supabase
-            .from('courses')
-            .select('id, title')
-            .eq('tenant_id', tenantId)
-            .in('id', courseIds)
+        ? supabase.from('courses').select('id, title').eq('tenant_id', tenantId).in('id', courseIds)
         : Promise.resolve({ data: [], error: null }),
       classIds.length > 0
-        ? supabase
-            .from('classes')
-            .select('id, name')
-            .eq('tenant_id', tenantId)
-            .in('id', classIds)
+        ? supabase.from('classes').select('id, name').eq('tenant_id', tenantId).in('id', classIds)
         : Promise.resolve({ data: [], error: null }),
       lessonIds.length > 0
-        ? supabase
-            .from('lessons')
-            .select('id, title')
-            .eq('tenant_id', tenantId)
-            .in('id', lessonIds)
+        ? supabase.from('lessons').select('id, title').eq('tenant_id', tenantId).in('id', lessonIds)
         : Promise.resolve({ data: [], error: null }),
       assignmentIds.length > 0
         ? supabase
@@ -711,7 +702,10 @@ export const assignmentService = {
     if (profileError) throw profileError
 
     const courseMap = new Map(
-      ((courses ?? []) as Array<Record<string, unknown>>).map((course) => [String(course.id), course])
+      ((courses ?? []) as Array<Record<string, unknown>>).map((course) => [
+        String(course.id),
+        course,
+      ])
     )
     const classMap = new Map(
       ((classes ?? []) as Array<Record<string, unknown>>).map((classroom) => [
@@ -720,10 +714,16 @@ export const assignmentService = {
       ])
     )
     const lessonMap = new Map(
-      ((lessons ?? []) as Array<Record<string, unknown>>).map((lesson) => [String(lesson.id), lesson])
+      ((lessons ?? []) as Array<Record<string, unknown>>).map((lesson) => [
+        String(lesson.id),
+        lesson,
+      ])
     )
     const profileMap = new Map(
-      ((profiles ?? []) as Array<Record<string, unknown>>).map((profile) => [String(profile.id), profile])
+      ((profiles ?? []) as Array<Record<string, unknown>>).map((profile) => [
+        String(profile.id),
+        profile,
+      ])
     )
     const submissionsByAssignment = new Map<string, AssignmentSubmissionWithProfile[]>()
     submissionRows.forEach((submission) => {
@@ -854,6 +854,7 @@ export const assignmentService = {
       .from('assignment_submissions')
       .select('assignment_id')
       .eq('student_id', userId)
+      .eq('tenant_id', tenantId)
       .neq('status', 'DRAFT')
       .in(
         'assignment_id',

@@ -117,7 +117,11 @@ function shouldSample(requestId: string): boolean {
   return sampleBucket <= SHADOW_SAMPLE_RATE
 }
 
-function buildActorContext(): { tenantId: string | null; userId: string | null; role: string | null } {
+function buildActorContext(): {
+  tenantId: string | null
+  userId: string | null
+  role: string | null
+} {
   const session = readVilSession()
   return {
     tenantId:
@@ -126,9 +130,7 @@ function buildActorContext(): { tenantId: string | null; userId: string | null; 
         : null,
     userId: session?.user?.id ?? null,
     role:
-      typeof session?.user?.app_metadata?.role === 'string'
-        ? session.user.app_metadata.role
-        : null,
+      typeof session?.user?.app_metadata?.role === 'string' ? session.user.app_metadata.role : null,
   }
 }
 
@@ -222,7 +224,7 @@ export async function runShadowComparison<TPrimary, TShadow>({
       method: 'POST',
       headers: buildRequestHeaders({}, { withAuth: true, requestId }),
       body: JSON.stringify(payload),
-    })
+    }).catch(() => undefined)
   } catch (error) {
     const message = error instanceof Error ? error.message : 'shadow_request_failed'
     const payload: DivergenceEventPayload = {

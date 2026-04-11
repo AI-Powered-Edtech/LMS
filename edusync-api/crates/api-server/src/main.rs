@@ -1,17 +1,26 @@
+mod ai_handlers;
 mod auth;
 mod courses;
+mod cron;
 mod data_plane;
 mod extractors;
 mod health;
+mod lti_handlers;
+mod notification_handlers;
 mod observability;
+mod processing_handlers;
 mod state;
 
 use dotenvy::dotenv;
 use health::{health_handler, ready_handler};
 use sqlx::postgres::PgPoolOptions;
-use state::{AppState, ShadowRuntimeConfig};
-use vil_server::prelude::{delete, get, post, Method, ServiceProcess, VilApp};
+use state::{AppState, ShadowRuntimeConfig, SmtpConfig};
+use std::sync::Arc;
+use vil_server::prelude::{delete, get, post, put, Method, ServiceProcess, VilApp};
 
+use ai_handlers::{
+    generate_content_handler, generate_quiz_handler, grade_essay_handler, tutor_chat_handler,
+};
 use auth::bootstrap::bootstrap_handler;
 use auth::ensure_profile::ensure_profile_handler;
 use auth::login::login_handler;
@@ -31,6 +40,14 @@ use courses::{
     list_courses_handler, update_course_handler,
 };
 use data_plane::{query_table_handler, rpc_proxy_handler};
+use lti_handlers::{lti_jwks_handler, lti_launch_handler, lti_oidc_login_handler};
+use notification_handlers::{
+    generate_pdf_handler, send_otp_handler, send_push_handler, verify_otp_handler,
+    whatsapp_webhook_get_handler, whatsapp_webhook_post_handler,
+};
+use processing_handlers::{
+    enqueue_events_handler, extract_scorm_handler, import_users_handler, load_quiz_handler,
+};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -38,10 +55,34 @@ async fn main() -> anyhow::Result<()> {
     observability::init_tracing();
 
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let jwt_secret = std::env::var("JWT_SECRET")
-        .unwrap_or_else(|_| "dev-secret-change-in-prod".to_string());
-    let jwt_refresh_secret = std::env::var("JWT_REFRESH_SECRET")
-        .unwrap_or_else(|_| "dev-refresh-secret-change-in-prod".to_string());
+    let jwt_secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| {
+        let secret = "dev-secret-change-in-prod".to_string();
+        tracing::warn!(
+            "JWT_SECRET tidak dikonfigurasi — menggunakan nilai default yang TIDAK AMAN. \
+             Atur JWT_SECRET di environment sebelum deploy ke produksi."
+        );
+        secret
+    });
+    if jwt_secret.len() < 32 {
+        tracing::error!(
+            "JWT_SECRET terlalu pendek ({} karakter). Minimal 32 karakter untuk keamanan.",
+            jwt_secret.len()
+        );
+    }
+    let jwt_refresh_secret = std::env::var("JWT_REFRESH_SECRET").unwrap_or_else(|_| {
+        let secret = "dev-refresh-secret-change-in-prod".to_string();
+        tracing::warn!(
+            "JWT_REFRESH_SECRET tidak dikonfigurasi — menggunakan nilai default yang TIDAK AMAN. \
+             Atur JWT_REFRESH_SECRET di environment sebelum deploy ke produksi."
+        );
+        secret
+    });
+    if jwt_refresh_secret.len() < 32 {
+        tracing::error!(
+            "JWT_REFRESH_SECRET terlalu pendek ({} karakter). Minimal 32 karakter untuk keamanan.",
+            jwt_refresh_secret.len()
+        );
+    }
     let port = std::env::var("PORT")
         .ok()
         .and_then(|value| value.parse::<u16>().ok())
@@ -65,6 +106,28 @@ async fn main() -> anyhow::Result<()> {
 
     let brute_force = edusync_middleware::brute_force::BruteForceTracker::new();
 
+    // ── Phase 3 configuration from environment ────────────────────────────────
+    let groq_api_key = std::env::var("GROQ_API_KEY").ok();
+    if groq_api_key.is_none() {
+        tracing::warn!("GROQ_API_KEY tidak dikonfigurasi — endpoint AI tidak akan berfungsi");
+    }
+    let vapid_private_key = std::env::var("VAPID_PRIVATE_KEY").ok();
+    let vapid_public_key = std::env::var("VAPID_PUBLIC_KEY").ok();
+    let whatsapp_access_token = std::env::var("WHATSAPP_ACCESS_TOKEN").ok();
+    let whatsapp_phone_number_id = std::env::var("WHATSAPP_PHONE_NUMBER_ID").ok();
+
+    let smtp = SmtpConfig {
+        host: std::env::var("SMTP_HOST").ok(),
+        port: std::env::var("SMTP_PORT")
+            .ok()
+            .and_then(|v| v.parse::<u16>().ok())
+            .unwrap_or(587),
+        username: std::env::var("SMTP_USERNAME").ok(),
+        password: std::env::var("SMTP_PASSWORD").ok(),
+        from_email: std::env::var("SMTP_FROM_EMAIL")
+            .unwrap_or_else(|_| "noreply@edusync.dev".to_string()),
+    };
+
     let app_state = AppState {
         db,
         jwt_secret,
@@ -74,7 +137,19 @@ async fn main() -> anyhow::Result<()> {
             enabled: shadow_enabled,
             divergence_sample_rate,
         },
+        groq_api_key,
+        vapid_private_key,
+        vapid_public_key,
+        smtp,
+        whatsapp_access_token,
+        whatsapp_phone_number_id,
     };
+
+    // ── Start cron jobs ──────────────────────────────────────────────────────
+    let state_arc = Arc::new(app_state.clone());
+    cron::start_cron_jobs(state_arc).await;
+
+    // ── Service registrations ─────────────────────────────────────────────────
 
     let health_service = ServiceProcess::new("system")
         .prefix("/api/v1")
@@ -118,7 +193,7 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::GET, "/courses", get(list_courses_handler))
         .endpoint(Method::GET, "/courses/:id", get(get_course_handler))
         .endpoint(Method::POST, "/courses", post(create_course_handler))
-        .endpoint(Method::PUT, "/courses/:id", post(update_course_handler))
+        .endpoint(Method::PUT, "/courses/:id", put(update_course_handler))
         .endpoint(Method::DELETE, "/courses/:id", delete(delete_course_handler))
         .endpoint(Method::GET, "/courses/:id/modules", get(get_course_modules_handler))
         .state(app_state.clone());
@@ -143,6 +218,43 @@ async fn main() -> anyhow::Result<()> {
         )
         .state(app_state.clone());
 
+    // ── Phase 3A: AI services ─────────────────────────────────────────────────
+    let ai_service = ServiceProcess::new("ai")
+        .prefix("/api/v1/ai")
+        .endpoint(Method::POST, "/grade-essay", post(grade_essay_handler))
+        .endpoint(Method::POST, "/tutor", post(tutor_chat_handler))
+        .endpoint(Method::POST, "/generate-content", post(generate_content_handler))
+        .endpoint(Method::POST, "/generate-quiz", post(generate_quiz_handler))
+        .state(app_state.clone());
+
+    // ── Phase 3B: LTI 1.3 ────────────────────────────────────────────────────
+    let lti_service = ServiceProcess::new("lti")
+        .prefix("/api/v1/lti")
+        .endpoint(Method::GET, "/jwks", get(lti_jwks_handler))
+        .endpoint(Method::GET, "/oidc-login", get(lti_oidc_login_handler))
+        .endpoint(Method::POST, "/launch", post(lti_launch_handler))
+        .state(app_state.clone());
+
+    // ── Phase 3C: Notifications ───────────────────────────────────────────────
+    let notification_service = ServiceProcess::new("notifications")
+        .prefix("/api/v1")
+        .endpoint(Method::POST, "/push/send", post(send_push_handler))
+        .endpoint(Method::GET, "/webhooks/whatsapp", get(whatsapp_webhook_get_handler))
+        .endpoint(Method::POST, "/webhooks/whatsapp", post(whatsapp_webhook_post_handler))
+        .endpoint(Method::POST, "/whatsapp/send-otp", post(send_otp_handler))
+        .endpoint(Method::POST, "/whatsapp/verify-otp", post(verify_otp_handler))
+        .endpoint(Method::POST, "/pdf/certificate", post(generate_pdf_handler))
+        .state(app_state.clone());
+
+    // ── Phase 3D: Processing ──────────────────────────────────────────────────
+    let processing_service = ServiceProcess::new("processing")
+        .prefix("/api/v1")
+        .endpoint(Method::POST, "/progress", post(enqueue_events_handler))
+        .endpoint(Method::GET, "/quiz/:quiz_id/load", get(load_quiz_handler))
+        .endpoint(Method::POST, "/scorm/extract", post(extract_scorm_handler))
+        .endpoint(Method::POST, "/import/users", post(import_users_handler))
+        .state(app_state.clone());
+
     VilApp::new("edusync-api")
         .port(port)
         .profile("development")
@@ -153,6 +265,10 @@ async fn main() -> anyhow::Result<()> {
         .service(course_service)
         .service(data_service)
         .service(observability_service)
+        .service(ai_service)
+        .service(lti_service)
+        .service(notification_service)
+        .service(processing_service)
         .run()
         .await;
 

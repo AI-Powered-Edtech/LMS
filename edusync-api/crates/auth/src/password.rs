@@ -29,7 +29,11 @@ pub fn verify_password(plain: &str, hash: &str) -> Result<bool, AuthError> {
         return bcrypt::verify(plain, hash).map_err(|error| AuthError::Internal(error.to_string()));
     }
 
-    Err(AuthError::Internal("Unknown hash format".to_string()))
+    // Unknown hash format — treat as verification failure, not an internal error,
+    // to avoid leaking implementation details and to maintain constant-time-like
+    // failure behaviour at the call site.
+    tracing::warn!("verify_password: format hash tidak dikenal, dianggap tidak valid");
+    Ok(false)
 }
 
 pub async fn maybe_rehash(
