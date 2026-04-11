@@ -2,240 +2,243 @@
 
 ## Overview
 
-EduSync is a VIL-native SaaS LMS. The VIL Rust backend (`edusync-api/`) serves as the sole API, auth, storage, and realtime layer. All business logic lives in PostgreSQL (SQL functions, triggers, RLS) or VIL backend handlers. The frontend is a React SPA that communicates with VIL over HTTP/WebSocket.
+EduSync is a multi-tenant SaaS LMS built entirely on a Rust/Axum backend (VIL framework) with a React 19 frontend. All data lives in Docker-hosted PostgreSQL 16. There is no Supabase, no GoTrue, no PostgREST, and no Edge Functions.
 
-## Frontend
-
-| Technology               | Version | Role                              |
-| ------------------------ | ------- | --------------------------------- |
-| React                    | 19      | UI framework                      |
-| Vite                     | 6       | Build tool, dev server            |
-| TypeScript               | 5.8     | Type safety                       |
-| Tailwind CSS             | 4       | Styling                           |
-| React Router             | 7       | Hash-based routing                |
-| React Query              | 5       | Server state, caching             |
-| Zustand                  | 5       | Local feature state (quiz player) |
-| Framer Motion (`motion`) | 12      | Animations                        |
-| Recharts                 | 3       | Analytics charts                  |
-| Lucide React             | 0.546   | Icons                             |
-
-## Routing
-
-- Hash-based routing: all URLs use `/#/` prefix (configured via `HashRouter` in `src/main.tsx`).
-- Primary guard chain: `AuthGuard` → `TenantGuard` → `Layout` → `RoleGuard` / `RoleRoute`
-- `RoleRoute` wraps individual routes to restrict by role string or array
-- `RoleGuard` is used inside `/app/student`, `/app/teacher`, `/app/admin` prefixed routes
-- `CourseEnrollmentGuard` verifies enrollment before allowing lesson access
-- `TenantGuard` redirects to `/workspace-selector` if user has no active tenant
-- Unauthenticated users are redirected to `/#/login`
-
-**Key files:**
-
-- `src/app/routes/index.tsx` — route tree orchestrator (imports from domain route files)
-- `src/app/routes/` — domain-based route splits (see below)
-- `src/app/lazyPages.tsx` — all lazy-loaded page imports with error boundaries
-- `src/app/legacyRedirects.tsx` — backward-compatible URL redirects
-- `src/components/guards/` — all guard components (AuthGuard, RoleGuard, TenantGuard, CourseEnrollmentGuard, RoleResolver)
-
-### Route Splitting (Phase 21C)
-
-The monolithic route tree was split into domain-based files under `src/app/routes/`:
-
-| File                  | Purpose                                       | Roles               |
-| --------------------- | --------------------------------------------- | ------------------- |
-| `index.tsx`           | Re-exports and composes all route segments    | All                 |
-| `studentRoutes.tsx`   | All `/app/student/*` routes                   | student             |
-| `teacherRoutes.tsx`   | All `/app/teacher/*` and `/teaching/*` routes | teacher             |
-| `adminRoutes.tsx`     | All `/app/admin/*` and `/admin/*` routes      | admin               |
-| `parentRoutes.tsx`    | All `/app/parent/*` routes                    | parent, admin       |
-| `principalRoutes.tsx` | All `/app/principal/*` routes                 | principal, admin    |
-| `sharedRoutes.tsx`    | Routes accessible to multiple roles           | All (auth + public) |
-| `legacyRedirects.tsx` | Backward-compatible URL redirects             | All                 |
-| `utils.tsx`           | Shared route utilities (guards, wrappers)     | All                 |
-
-### Route Structure
+## ASCII Architecture Diagram
 
 ```
-Public Routes:
-  /#/login                           → Login page
-  /#/forgot-password                 → Password recovery
-  /#/reset-password                  → Password reset
-  /#/verify-email                    → Email verification
-  /#/workspace-selector              → Tenant picker
-  /#/unauthorized                    → Access denied
-  /#/404                             → Not found
-  /#/offline                         → Offline fallback
-  /#/invite/:token                   → Invite redemption
-  /#/join                            → Class join
-  /#/register-parent                 → Parent registration
-  /#/lti/callback                    → LTI callback
-
-Student Routes (/#/app/student/):
-  /dashboard, /courses, /quizzes, /assignments, /classes/:classId,
-  /certificates, /grades, /attendance, /gamification, /leaderboard
-
-Teacher Routes (/#/app/teacher/):
-  /dashboard, /teaching-hub, /courses, /course-builder, /quiz-manager,
-  /question-bank, /quiz-gradebook, /assignment-gradebook, /gradebook,
-  /grader, /course-analytics, /dashboards, /classes, /analytics,
-  /scan-attendance, /documents, /creator, /student-progress, /leaderboard,
-  /moderation, /struggle, /preview/:courseId
-
-Admin Routes (/#/app/admin/):
-  /dashboard, /users, /billing, /moderation, /finance, /ppdb, /administration,
-  /audit, /analytics, /course-analytics, /documents, /creator, /courses,
-  /course-builder, /quiz-manager, /question-bank, /gradebook, /quiz-gradebook,
-  /assignment-gradebook, /grader, /classes, /scan-attendance, /student-progress,
-  /system-health, /feature-flags, /struggle
-
-Parent Routes (/#/app/parent/):
-  /dashboard, /nilai, /kehadiran, /pesan, /pesan/:threadId, /pengaturan,
-  /laporan, /laporan/:studentId/:year/:month
-
-Principal Routes (/#/app/principal/):
-  /dashboard, /settings, /report, /analytics, /survey
-
-Shared Auth Routes:
-  /#/forum, /#/profile, /#/p/:username, /#/settings, /#/calendar,
-  /#/announcements, /#/assignments, /#/group-assignment, /#/directory,
-  /#/social-hub, /#/notifications
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          CLIENT (Browser / PWA)                         │
+│                                                                         │
+│  React 19 + Vite 6 + TypeScript                                         │
+│  ┌──────────┐  ┌──────────┐  ┌───────────┐  ┌──────────────────────┐  │
+│  │ Features │  │  Pages   │  │  Hooks    │  │ Services (abstracted) │  │
+│  │ courses  │  │ (thin)   │  │ useAuth() │  │ db / auth / storage  │  │
+│  │ gradebook│  │          │  │ useQuery()│  │ realtime             │  │
+│  │ analytics│  │          │  │           │  │                      │  │
+│  └──────────┘  └──────────┘  └───────────┘  └──────────────────────┘  │
+└──────────────────────────┬──────────────────────┬───────────────────────┘
+                           │ HTTP/REST            │ WebSocket
+                           │ /api/v1/...          │ /ws?token=JWT
+┌──────────────────────────▼──────────────────────▼───────────────────────┐
+│                         nginx (reverse proxy)                           │
+│  Port 80 → api:8080  |  /ws → WebSocket upgrade  |  /storage → 550MB  │
+└──────────────────────────┬──────────────────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────────────────┐
+│                    VIL API Server (Rust / Axum 0.7)                     │
+│                         Port 8080                                       │
+│                                                                         │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────────┐  │
+│  │   auth   │ │  courses │ │   data   │ │  storage │ │  realtime   │  │
+│  │ crate    │ │ handlers │ │  plane   │ │ handlers │ │  WebSocket  │  │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └─────────────┘  │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────────┐  │
+│  │    ai    │ │   lti    │ │ notifs   │ │ processing│ │   cron     │  │
+│  │ handlers │ │ handlers │ │ handlers │ │ handlers  │ │   jobs     │  │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └─────────────┘  │
+│                                                                         │
+│  middleware: RBAC guard │ tenant injection │ brute-force limiter       │
+└──────────┬──────────────────────────────────┬────────────────────────────┘
+           │ sqlx (direct TCP)                │ aws-sdk-s3
+┌──────────▼──────────────┐       ┌───────────▼──────────────────────────┐
+│     pgBouncer :5433     │       │   S3-compatible Object Storage       │
+│  (transaction pool)     │       │   MinIO (dev) / Cloudflare R2 (prod) │
+└──────────┬──────────────┘       └──────────────────────────────────────┘
+           │ PostgreSQL protocol
+┌──────────▼──────────────┐
+│  PostgreSQL 16 :5432    │
+│  (pgvector image)       │
+│  Extensions:            │
+│   uuid-ossp, pgcrypto   │
+│   citext, pg_trgm       │
+│   pgvector, unaccent    │
+│   pg_stat_statements    │
+└─────────────────────────┘
 ```
 
-### Page Refactors (Phase 21C)
+## Frontend Layer
 
-Large page components were refactored from monolithic files into feature-module hooks and components:
+### Framework & Libraries
 
-- Logic extracted into `src/features/*/hooks/` custom hooks
-- UI split into smaller, composable components in `src/features/*/components/`
-- Pages in `src/pages/` became thin entry points that compose hooks and components
+| Library                  | Version | Purpose                        |
+| ------------------------ | ------- | ------------------------------ |
+| React                    | 19      | UI framework                   |
+| Vite                     | 6       | Build tool                     |
+| TypeScript               | 5.8     | Type safety                    |
+| Tailwind CSS             | v4      | Styling                        |
+| React Router             | v7      | Hash-based routing             |
+| React Query              | v5      | Server state, caching          |
+| Zustand                  | v5      | Local state (quiz player only) |
+| Lucide React             | latest  | Icon set                       |
+| Framer Motion (`motion`) | 12      | Animations                     |
+| Recharts                 | 3       | Data charts                    |
+| Valibot                  | 1       | Schema validation              |
+| hls.js                   | 1.5     | HLS video streaming            |
+| jsPDF                    | 4       | PDF generation                 |
 
-### Service Architecture
+### Service Abstraction Layer
 
-While domain-specific API logic is collocated within feature modules (`src/features/*/api/`), core infrastructure services remain in a top-level directory:
+All backend interaction goes through four abstracted service providers in `src/services/`:
 
-- `src/services/api/` — VIL HTTP client and shadow comparison utilities.
-- `src/services/auth/` — VIL auth provider (JWT-based session management).
-- `src/services/storage/` — VIL storage provider.
-- `src/services/realtime/` — VIL WebSocket realtime provider.
-- `src/services/db/` — Database client (used for direct query paths).
-- `src/lib/` — Third-party library wrappers and generic utilities.
-
-Oversized legacy service files have been split and moved to their respective feature modules under `src/features/*/api/`.
-
-## Multi-Tenant Architecture
-
-EduSync is multi-tenant. Each tenant represents a school organization. See [TENANT_ARCHITECTURE.md](TENANT_ARCHITECTURE.md) for the complete flow.
-
-**Key points:**
-
-- Every tenant-scoped table has a `tenant_id UUID NOT NULL` column with FK to `tenants(id)`
-- `get_my_tenant_id()` SQL function returns the calling user's tenant from their profile
-- `custom_access_token_hook` injects `tenant_id` into every JWT so the frontend can read it without a DB call
-- `auto_set_tenant_id` trigger auto-fills `tenant_id` on INSERT as a safety net
-- RLS policies on all tables enforce `tenant_id = get_my_tenant_id()`
-
-## Role System
-
-- Enum: `app_role` — values are `ADMIN`, `TEACHER`, `STUDENT` (stored UPPERCASE)
-- Roles stored in `user_roles` table: `(user_id, role, tenant_id)` — NOT in `profiles.role`
-- Frontend receives role via `AuthContext` and normalizes to lowercase for route guards
-- `has_role(app_role)` SQL function checks role within the caller's tenant
-- Additional roles (`parent`, `principal`) are managed at the application level
-
-**Frontend role access:**
-
-```tsx
-// Always use useAuth() for identity
-const { user, profile, role, tenantId } = useAuth()
-
-// role values: 'student' | 'teacher' | 'admin' | 'parent' | 'principal' (lowercase)
-// Role comes from user_roles table, NOT profile.role
-
-// Route protection
-<RoleRoute role="teacher">
-  <TeacherPage />
-</RoleRoute>
-
-// Multiple roles
-<RoleRoute role={["student", "teacher"]}>
-  <SharedPage />
-</RoleRoute>
-
-// Guard chain: AuthGuard → TenantGuard → RoleGuard
+```
+src/services/
+├── db/
+│   └── index.ts          # Unified db facade — delegates to:
+│                         #   .from()  → VIL data plane API
+│                         #   .rpc()   → VIL RPC proxy API
+│                         #   .auth    → vilAuthProvider
+│                         #   .storage → vilStorageProvider
+│                         #   .channel() → vilRealtimeProvider
+├── auth/
+│   ├── index.ts          # getAuthProvider() factory
+│   └── vilAuthProvider.ts # JWT auth: login, register, refresh, MFA
+├── storage/
+│   ├── index.ts          # getStorageProvider() factory
+│   └── vilStorageProvider.ts # S3 via VIL API; presigned PUT for >10MB
+├── realtime/
+│   ├── index.ts          # getRealtimeProvider() factory
+│   └── vilRealtimeProvider.ts # WebSocket multiplexed channels
+└── api/
+    └── runtime.ts        # Active API client + shadow mode config
 ```
 
-## State Management
+Feature code imports `db` from `@/services/db` and uses the familiar `.from(table)`, `.rpc(fn)` pattern, making the underlying transport invisible.
 
-| Layer          | Tool           | Purpose                              |
-| -------------- | -------------- | ------------------------------------ |
-| Server state   | React Query v5 | Data fetching, caching, invalidation |
-| Local state    | Zustand v5     | Quiz player state only               |
-| Global context | React Context  | Auth, Theme, Builder                 |
+### Routing
 
-**React Query patterns:**
+- Hash routing (`/#/path`) via React Router v7
+- Route protection via `<RoleRoute role="teacher" />` or `<RoleRoute role={["student", "teacher"]} />`
+- Student routes: `/#/app/student/...`
+- Teacher routes: `/#/app/teacher/...` or `/#/teaching/...`
+- Admin routes: `/#/app/admin/...` or `/#/admin/...`
 
-- Queries in `src/features/*/queries/`
-- Query keys in `src/shared/lib/queryKeys.ts`
-- Stale time constants in `src/utils/queryConstants.ts` (`STALE.STATIC`, `STALE.MODERATE`, `STALE.DYNAMIC`, `STALE.REALTIME`)
+### Feature Module Structure
 
-## Feature Module Structure
-
-Each feature follows a standard structure in `src/features/{domain}/`:
+New features live in `src/features/{domain}/` with the following internal layout:
 
 ```
 src/features/{domain}/
-├── api/            ← VIL API calls (HTTP requests, RPC, DB queries)
-├── queries/        ← React Query hooks (useQuery, useMutation)
-├── hooks/          ← Custom React hooks (non-query business logic)
-├── types/          ← TypeScript interfaces (index.ts)
-├── components/     ← React components for this domain
-├── store/          ← Zustand store (only if needed — e.g., quizzes)
-├── utils/          ← Pure utility functions
-├── __tests__/      ← Vitest unit tests
-├── index.ts        ← Public barrel export
-└── README.md       ← Feature documentation
+├── api/         # API call functions
+├── queries/     # React Query query/mutation definitions
+├── hooks/       # Custom React hooks
+├── store/       # Zustand store (if needed)
+├── types/       # TypeScript types
+├── components/  # UI components
+└── utils/       # Pure utility functions
 ```
 
-**49 feature modules:**
+## Backend Layer
 
-`accessibility`, `adaptive-paths`, `administration`, `ai-authoring`, `ai-quiz-gen`, `ai-recommendations`, `ai-tutor`, `analytics`, `announcements`, `assignments`, `attendance`, `auth`, `calendar`, `certificates`, `classroom`, `course-builder`, `courses`, `creator`, `dashboards`, `discussions`, `gamification`, `gradebook`, `guidance`, `interactive-blocks`, `lessons`, `lti`, `moderation`, `notifications`, `onboarding`, `parent`, `peer-review`, `plagiarism`, `principal`, `profile`, `progress`, `question-bank`, `quests`, `quizzes`, `recommendations`, `reports`, `rubrics`, `search`, `semester`, `settings`, `storage`, `struggle`, `surveys`, `video`, `xapi`
+### VIL Framework
 
-## Database Architecture
+The backend uses `vil_server` (v0.2.2), a Rust framework built on Axum 0.7. Services are registered as `ServiceProcess` instances and composed into a `VilApp`.
 
-- PostgreSQL (migrated from Supabase hosting, accessed via VIL sqlx) with Row-Level Security
-- 200+ tables with RLS enabled
-- 400+ RLS policies
-- Migrations in `edusync-api/migrations/`
-- All tables use `tenant_id` for multi-tenant isolation
-- `auto_set_tenant_id()` trigger on all new tables
-- SQL functions use `SECURITY DEFINER` with `SET search_path TO 'public'`
+### Crate Structure
 
-See [DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md) for complete table and RPC reference.
+```
+edusync-api/crates/
+├── api-server/     # Main binary: main.rs registers all service routes
+│   ├── ai_handlers.rs
+│   ├── auth/       # login, register, refresh, signout, MFA, OAuth, tenant RPCs
+│   ├── courses.rs
+│   ├── cron.rs     # Scheduled background jobs
+│   ├── data_plane.rs  # PostgREST-compatible /data/:table + /rpc/:name
+│   ├── lti_handlers.rs
+│   ├── notification_handlers.rs
+│   ├── observability.rs  # Shadow mode, divergence events
+│   ├── processing_handlers.rs  # Events, quiz load, SCORM, CSV import
+│   ├── realtime/   # WebSocket handler + pg_notify listener + RoomManager
+│   ├── state.rs    # AppState, SmtpConfig, ShadowRuntimeConfig
+│   └── storage/    # S3 upload, download, sign, presign, list, delete
+├── auth/           # JWT encode/decode, Argon2/bcrypt hashing
+├── middleware/     # RBAC extractor (AuthedRequest), brute force, AppError
+├── models/         # SQLx row types
+├── services/       # Business logic (reusable service functions)
+└── integration-tests/  # Gate 3 integration test suite
+```
+
+### AppState
+
+Shared across all handlers via Arc:
+
+```rust
+struct AppState {
+    db: PgPool,                           // sqlx connection pool (max 50)
+    jwt_secret: String,                   // HS256 access token secret
+    jwt_refresh_secret: String,           // HS256 refresh token secret
+    brute_force: BruteForceTracker,       // IP-based rate limiter
+    shadow: ShadowRuntimeConfig,          // Shadow mode config
+    groq_api_key: Option<String>,         // Groq LLM API key
+    vapid_private_key: Option<String>,    // Web Push VAPID key
+    vapid_public_key: Option<String>,
+    smtp: SmtpConfig,                     // Email (lettre)
+    whatsapp_access_token: Option<String>,
+    whatsapp_phone_number_id: Option<String>,
+    storage: Option<Arc<S3StorageClient>>, // S3/MinIO/R2 client
+}
+```
+
+### Cron Jobs
+
+Background jobs started at server boot (`cron::start_cron_jobs`). Tasks include digest notifications, session cleanup, and similar periodic work.
+
+## Database Layer
+
+- **Engine**: PostgreSQL 16 (`pgvector/pgvector:pg16` Docker image)
+- **Connection pooling**: pgBouncer in transaction mode (port 5433); backend API connects to pgBouncer, not directly to Postgres
+- **Direct access**: PostgreSQL port 5432 (for migrations, admin)
+- **Schema initialization**: `schema/init-db.sql` + `schema/baseline.sql` auto-loaded at Docker first-run
+- **Migrations**: `migrations/001` through `migrations/009` (applied by the API server at startup via sqlx)
+- **Extensions**: `uuid-ossp`, `pgcrypto`, `citext`, `pg_trgm`, `pgvector`, `unaccent`, `pg_stat_statements`
+
+See [DATABASE.md](DATABASE.md) for full table and column reference.
+
+## Storage Layer
+
+- **Local dev**: MinIO at `http://localhost:9000` (S3-compatible)
+- **Production**: Cloudflare R2
+- **SDK**: `aws-sdk-s3` v1 (Rust)
+- **Upload strategy**: files < 10 MB proxy through VIL API; files ≥ 10 MB use presigned PUT direct to S3
+- **Bucket layout**: single S3 bucket, paths prefixed by logical bucket name and tenant_id
+
+See [STORAGE.md](STORAGE.md) for bucket definitions and URL types.
+
+## Realtime Layer
+
+- **Transport**: native WebSocket (`/ws?token=JWT`)
+- **Architecture**: single WebSocket connection per client, multiplexed channels
+- **Server push**: `pg_notify` on 5 PostgreSQL channels → routed to WebSocket rooms by `RoomManager`
+- **Reconnection**: exponential backoff 1 s → 30 s (max 10 retries)
+- **Presence**: track/untrack per channel, state diff events
+
+See [REALTIME.md](REALTIME.md) for channel patterns and message protocol.
+
+## Auth Flow
+
+See [AUTH.md](AUTH.md) for the complete auth architecture.
+
+Summary:
+
+1. `POST /api/v1/auth/register` → creates user + profile + user_roles row
+2. `POST /api/v1/auth/login` → validates password (Argon2), issues access token (15 min HS256) + refresh token (7 days)
+3. `GET /api/v1/auth/bootstrap` → frontend calls on load to restore session and fetch profile
+4. `POST /api/v1/auth/refresh` → exchanges refresh token for a new token pair
+5. `POST /api/v1/auth/signout` → invalidates refresh token in DB
+
+## Multi-Tenancy
+
+- Every data table has a `tenant_id UUID` column
+- All query handlers inject the caller's `tenant_id` (from JWT claims) into every WHERE clause
+- No cross-tenant data leakage is possible at the query level
+- The `auto_set_tenant_id()` trigger automatically fills `tenant_id` on INSERT for tables that use it
 
 ## Security Model
 
-- **Row-Level Security** — all tenant-scoped tables have RLS enabled
-- **Tenant isolation** — `tenant_id = get_my_tenant_id()` policy on all tables
-- **CSP headers** — enforced Content-Security-Policy in `index.html`
-- **Sentry monitoring** — error tracking with PII scrubbing
-- **Rate limiting** — server-side rate limiting via VIL middleware
-- **Input sanitization** — `escapeHtml()` and `sanitizeUrl()` utilities
+- No Row-Level Security (RLS) at the database layer — removed in Phase 6
+- Tenant isolation enforced entirely by VIL middleware (JWT → tenant_id injection)
+- RBAC via `AuthedRequest` extractor and `RbacGuard` in Rust
+- Brute force protection: 5 failed login attempts per IP per 15 minutes
+- All secrets validated at startup (JWT secrets must be ≥ 32 characters)
 
-See [SECURITY.md](SECURITY.md) for complete security documentation.
-
-## Testing
-
-| Type          | Tool       | Location                                                                                                         | Count          |
-| ------------- | ---------- | ---------------------------------------------------------------------------------------------------------------- | -------------- |
-| Unit          | Vitest     | `src/**/__tests__/*.test.ts(x)`                                                                                  | 700+ tests     |
-| E2E           | Playwright | `e2e/*.spec.ts`, `e2e/critical-paths/`, `e2e/flows/`, `e2e/flows-phase26-30/`, `e2e/gradebook/`, `e2e/security/` | 400+ scenarios |
-| Cross-cutting | Playwright | `e2e/visual-regression.spec.ts`, `e2e/dark-mode.spec.ts`                                                         | 4 suites       |
-
-See [TESTING.md](TESTING.md) for complete testing guide.
-
-## CI/CD
-
-- GitHub Actions for typecheck, lint, test, build, bundle size check
-- Pre-commit hooks via Husky + lint-staged
-- Bundle size enforcement via bundlesize2
-- E2E tests run on PR with pre-authenticated storage states
+See [SECURITY.md](SECURITY.md) for the complete security model.
