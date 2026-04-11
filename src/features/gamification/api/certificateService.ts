@@ -1,4 +1,4 @@
-import { supabase } from '@/services/supabase/client'
+import { readVilSession } from '@/services/auth/vilSession'
 
 interface CertificatePdfParams {
   studentName: string
@@ -10,36 +10,38 @@ interface CertificatePdfParams {
 
 /**
  * Certificate Service
- * Wraps the generate-pdf Edge Function for certificate PDF generation.
+ * Wraps the VIL /api/v1/pdf/certificate endpoint for certificate PDF generation.
  */
 export const certificateService = {
   /**
-   * Generate a certificate PDF via the generate-pdf Edge Function.
+   * Generate a certificate PDF via the VIL API.
    * Returns a Blob containing the PDF data.
    */
   async generatePdf(params: CertificatePdfParams): Promise<Blob> {
     try {
-      const { data, error } = await supabase.functions.invoke('generate-pdf', {
-        body: {
+      const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+      const token = readVilSession()?.access_token
+
+      const response = await fetch(`${apiUrl}/api/v1/pdf/certificate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
           type: 'certificate',
           data: params,
-        },
+        }),
       })
 
-      if (error) {
-        const msg = error.message ?? ''
-        const edgeError = error as { code?: string }
-        if (
-          msg.includes('not found') ||
-          msg.includes('404') ||
-          edgeError.code === 'PGRST202'
-        ) {
+      if (!response.ok) {
+        if (response.status === 404) {
           throw new Error('Layanan pembuatan sertifikat sedang tidak tersedia. Coba lagi nanti.')
         }
-        throw error
+        throw new Error(`HTTP ${response.status}`)
       }
 
-      return data instanceof Blob ? data : new Blob([data], { type: 'application/pdf' })
+      return response.blob()
     } catch (err: unknown) {
       const error = err as { message?: string; code?: string }
       if (

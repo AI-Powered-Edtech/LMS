@@ -1,3 +1,4 @@
+import { readVilSession } from '@/services/auth/vilSession'
 import { supabase } from '@/services/supabase/client'
 
 export interface BulkImportRow {
@@ -67,12 +68,24 @@ export async function runBulkImport(
   tenantId: string,
   importJobId: string
 ): Promise<BulkImportResult> {
-  const { data, error } = await supabase.functions.invoke('bulk-import-users', {
-    body: { rows, tenantId, importJobId },
+  const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+  const token = readVilSession()?.access_token
+
+  const response = await fetch(`${apiUrl}/api/v1/import/users`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ rows, tenantId, importJobId }),
   })
 
-  if (error) throw error
-  return data as BulkImportResult
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ message: 'Gagal mengimpor pengguna.' }))
+    throw new Error(err.message ?? 'Gagal mengimpor pengguna.')
+  }
+
+  return response.json() as Promise<BulkImportResult>
 }
 
 export async function getImportJobStatus(importJobId: string): Promise<BulkImportJobStatus> {

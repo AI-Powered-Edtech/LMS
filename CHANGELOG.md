@@ -1,5 +1,76 @@
 # EduSync LMS — Changelog
 
+## [1.0.0] — 2026-04-11 — MIGRATION COMPLETE 🎉
+
+### Phase 6: Decommission (Final)
+
+#### 6A: Remove Shadow Mode
+
+- Stripped ~265 baris shadow infrastructure dari `vilApiClient.ts`
+  (WRITE_SHADOW_TABLES, WRITE_SHADOW_RPCS, SAFE_READ_RPCS, runShadow(), shadowReadBack(), shadowSelectMirror())
+- Stripped ~28 baris shadow auth dari `vilAuthProvider.ts`
+- Removed `getSupabaseClient` import dari VIL providers
+
+#### 6A: Migrate Edge Function Calls (20 file, 14+ calls)
+
+- `ai-grade-essay` → `POST /api/v1/ai/grade-essay`
+- `ai-tutor` → `POST /api/v1/ai/tutor`
+- `generate-ai-content` → `POST /api/v1/ai/generate-content`
+- `generate-quiz-from-content` → `POST /api/v1/ai/generate-quiz`
+- `generate-pdf` → `POST /api/v1/pdf/certificate`
+- `generate-executive-report` → `POST /api/v1/pdf/executive-report`
+- `generate-parent-report` → `POST /api/v1/pdf/parent-report`
+- `bulk-import-users` → `POST /api/v1/import/users`
+- `scorm-extract` → `POST /api/v1/scorm/extract`
+- Dan 5 lainnya
+
+#### 6A: Infrastructure Updates
+
+- `nginx.conf`: Hapus upstream supabase + catch-all → return 404
+- `vite.config.ts`: Replace workbox Supabase URL patterns → VIL API patterns
+- `vite.config.ts`: Hapus `vendor-supabase` manual chunk
+- CSP: Remove `*.supabase.co` domains, add VIL/CDN domains
+- `vite-env.d.ts`: VITE*SUPABASE*\* → optional (deprecated); VIL vars added
+- `main.tsx`: Default backend `'supabase'` → hardcoded `'vil'`; removed Supabase provider init
+
+#### 6B: Remove Supabase Providers
+
+- Deleted: `src/services/api/supabaseApiClient.ts`
+- Deleted: `src/services/auth/supabaseAuthProvider.ts`
+- Deleted: `src/services/storage/supabaseStorageProvider.ts`
+- Deleted: `src/services/realtime/supabaseRealtimeProvider.ts`
+- Updated: `src/services/{storage,realtime}/index.ts` — removed Supabase re-exports
+- Updated: `src/services/api/{apiClient,types,runtime}.ts` — hardcoded VIL
+- Replaced: `src/services/supabase/client.ts` — VIL-native (no @supabase/supabase-js import)
+  - 127 consumer files work unchanged via VIL-native proxy surface
+- Updated: `src/config/env.schema.ts` — SUPABASE vars → optional
+
+#### 6C: Final Cleanup
+
+- Removed: `@supabase/supabase-js` from `package.json` dependencies
+- Deleted: `supabase/functions/` (30 Edge Functions — all ported to VIL in Phase 3)
+- Migration 008: `REVOKE anon` on all app tables (tighten PostgREST access)
+- `docs/DECOMMISSION_AUDIT.md` (audit trail)
+- `.env.example` updated: VITE_API_BACKEND=vil as default
+
+### Final Stack
+
+| Component  | Solution                                        |
+| ---------- | ----------------------------------------------- |
+| API Server | VIL (Rust, Axum 0.7)                            |
+| Database   | PostgreSQL (Supabase-hosted, pending migration) |
+| Auth       | VIL JWT Auth                                    |
+| Storage    | S3/R2 (MinIO for dev)                           |
+| Realtime   | VIL WebSocket + pg_notify                       |
+| Frontend   | React 19 + Vite 6 + TypeScript                  |
+
+### Gate
+
+- Gate Final (Phase 6): PASSED ✅ — 2026-04-11
+- **PROJECT MIGRATION COMPLETE** 🎉
+
+---
+
 ## [Unreleased] — 2026-04-11
 
 ### Added (Phase 5: Storage Migration)

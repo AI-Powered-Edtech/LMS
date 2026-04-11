@@ -1,7 +1,7 @@
 /**
- * AI Tutor Service — Client for the AI Tutor Edge Function
+ * AI Tutor Service — Client for the VIL AI Tutor API
  *
- * Handles communication with the Supabase Edge Function for AI-powered
+ * Handles communication with the VIL API for AI-powered
  * tutoring within the Smart Player.
  */
 
@@ -16,8 +16,8 @@ export {
   validateQuestion,
 } from './promptBuilder'
 
-// Import supabase for internal use
-import { supabase } from '@/services/supabase/client'
+// Import VIL session for auth token
+import { readVilSession } from '@/services/auth/vilSession'
 
 /**
  * Ask a question to the AI Tutor
@@ -33,24 +33,32 @@ export async function askTutor(
   sessionId?: string
 ): Promise<{ data?: import('../types').AITutorResponse; error?: import('../types').AITutorError }> {
   try {
-    const { data, error } = await supabase.functions.invoke('ai-tutor', {
-      body: {
+    const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+    const token = readVilSession()?.access_token
+
+    const response = await fetch(`${apiUrl}/api/v1/ai/tutor`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
         lesson_id: lessonId,
         question: question.trim(),
         tenant_id: tenantId,
         session_id: sessionId,
-      },
+      }),
     })
 
-    if (error) {
-      if (import.meta.env.DEV) console.error('[AI Tutor] Edge Function error:', error)
-      // Translate raw Supabase SDK network/invoke errors to Indonesian
-      const rawMsg: string = error.message ?? ''
-      const indonesianMsg = rawMsg.includes('Failed to send a request')
-        ? 'Tutor AI sedang tidak tersedia. Silakan coba lagi nanti.'
-        : rawMsg.includes('network') || rawMsg.includes('fetch')
-          ? 'Koneksi terputus. Periksa internet Anda.'
-          : 'Terjadi kesalahan pada sistem tutor'
+    if (!response.ok) {
+      if (import.meta.env.DEV) console.error('[AI Tutor] API error:', response.status)
+      // Translate HTTP errors to Indonesian
+      const indonesianMsg =
+        response.status === 503
+          ? 'Tutor AI sedang tidak tersedia. Silakan coba lagi nanti.'
+          : response.status === 0 || response.status >= 500
+            ? 'Koneksi terputus. Periksa internet Anda.'
+            : 'Terjadi kesalahan pada sistem tutor'
       return {
         error: {
           message: indonesianMsg,
@@ -59,7 +67,9 @@ export async function askTutor(
       }
     }
 
-    // Check for error responses from the Edge Function
+    const data = await response.json()
+
+    // Check for error responses from the API
     if (data?.error) {
       const errorMsg =
         typeof data.error === 'string'

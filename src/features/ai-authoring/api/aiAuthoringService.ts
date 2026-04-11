@@ -1,3 +1,4 @@
+import { readVilSession } from '@/services/auth/vilSession'
 import { supabase } from '@/services/supabase/client'
 
 import type {
@@ -22,9 +23,27 @@ export const aiAuthoringService = {
    * Calls the generate-ai-content Supabase Edge Function.
    */
   async generateFromFile(formData: FormData): Promise<GenerateFromFileResponse> {
-    const { data, error } = await supabase.functions.invoke('generate-ai-content', {
+    const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+    const token = readVilSession()?.access_token
+
+    const res = await fetch(`${apiUrl}/api/v1/ai/generate-content`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        // Do NOT set Content-Type — browser sets it automatically for FormData (multipart/form-data)
+      },
       body: formData,
     })
+
+    let data: Record<string, unknown> | null = null
+    let error: { message: string } | null = null
+
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}))
+      error = { message: (errBody as { error?: string }).error ?? `HTTP ${res.status}` }
+    } else {
+      data = (await res.json()) as Record<string, unknown>
+    }
 
     if (error) {
       const msg = error.message ?? ''
@@ -86,7 +105,8 @@ export const aiAuthoringService = {
     }
 
     // Normalise legacy response: map `id` → `generation_id` if present
-    const generation_id: string | null = data.generation_id ?? data.id ?? null
+    const generation_id: string | null =
+      (data!.generation_id as string | null) ?? (data!.id as string | null) ?? null
 
     return {
       generation_id,
@@ -104,8 +124,16 @@ export const aiAuthoringService = {
    * Calls the generate-quiz-from-content Supabase Edge Function.
    */
   async generateFromLesson(config: GenerateFromLessonConfig): Promise<GenerateFromLessonResponse> {
-    const { data, error } = await supabase.functions.invoke('generate-quiz-from-content', {
-      body: {
+    const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+    const token = readVilSession()?.access_token
+
+    const res = await fetch(`${apiUrl}/api/v1/ai/generate-quiz`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
         lesson_id: config.lessonId,
         question_count: config.questionCount,
         question_types: config.questionTypes,
@@ -113,8 +141,18 @@ export const aiAuthoringService = {
         subject: config.subject,
         grade_level: config.gradeLevel,
         curriculum_ref: config.curriculumRef,
-      },
+      }),
     })
+
+    let data: Record<string, unknown> | null = null
+    let error: { message: string } | null = null
+
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}))
+      error = { message: (errBody as { error?: string }).error ?? `HTTP ${res.status}` }
+    } else {
+      data = (await res.json()) as Record<string, unknown>
+    }
 
     if (error) {
       const msg = error.message ?? ''
@@ -162,12 +200,12 @@ export const aiAuthoringService = {
       throw new Error(friendlyErrors[errCode] ?? 'Gagal membuat soal. Coba lagi.')
     }
 
-    const generation_id: string | null = data.generation_id ?? null
+    const generation_id: string | null = (data!.generation_id as string | null) ?? null
 
     return {
       generation_id,
-      questions: data.questions,
-      lesson_title: data.lesson_title,
+      questions: data!.questions,
+      lesson_title: data!.lesson_title,
     } as GenerateFromLessonResponse
   },
 

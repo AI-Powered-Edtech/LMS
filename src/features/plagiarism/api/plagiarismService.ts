@@ -1,3 +1,4 @@
+import { readVilSession } from '@/services/auth/vilSession'
 import { supabase } from '@/services/supabase/client'
 import { logDevError } from '@/utils/logDevError'
 
@@ -8,24 +9,26 @@ const PLAGIARISM_COLUMNS =
 
 export const plagiarismService = {
   /**
-   * Calls the check-plagiarism Edge Function to run similarity analysis.
+   * Calls the VIL plagiarism check endpoint to run similarity analysis.
    * Returns the similarity score and matched submissions.
+   *
+   * TODO: Phase 6 — check-plagiarism belum punya VIL endpoint resmi.
+   * Saat VIL mengimplementasi endpoint ini, ganti dengan /api/v1/plagiarism/check.
    */
   async checkPlagiarism(submissionId: string): Promise<CheckPlagiarismResult> {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    if (!session?.access_token) {
+    const token = readVilSession()?.access_token
+    if (!token) {
       throw new Error('Tidak terautentikasi')
     }
 
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
-    const res = await fetch(`${supabaseUrl}/functions/v1/check-plagiarism`, {
+    const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+
+    // TODO: Phase 6 — ganti dengan /api/v1/plagiarism/check saat endpoint tersedia di VIL.
+    const res = await fetch(`${apiUrl}/api/v1/plagiarism/check`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${session.access_token}`,
-        apikey: import.meta.env.VITE_SUPABASE_ANON_KEY as string,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ submission_id: submissionId }),
     })

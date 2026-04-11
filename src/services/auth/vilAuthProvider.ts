@@ -1,7 +1,6 @@
 /* eslint-disable max-lines */
-import { createRequestId, runShadowComparison } from '@/services/api/shadow'
+import { createRequestId } from '@/services/api/shadow'
 
-import { createSupabaseAuthProvider } from './supabaseAuthProvider'
 import type {
   AuthBootstrap,
   AuthError,
@@ -73,7 +72,10 @@ function buildSession(payload: VilAuthResponse): AuthSession {
   }
 }
 
-async function parseResponse<T>(response: Response, fallbackMessage: string): Promise<{
+async function parseResponse<T>(
+  response: Response,
+  fallbackMessage: string
+): Promise<{
   data: T | null
   error: AuthError | null
 }> {
@@ -179,35 +181,6 @@ export function createVilAuthProvider(baseUrl = 'http://localhost:8080'): AuthPr
         'Gagal memuat bootstrap autentikasi.'
       )
 
-      if (!result.error) {
-        void runShadowComparison({
-          flowName: 'auth.bootstrap',
-          endpoint: '/api/v1/auth/bootstrap',
-          method: 'GET',
-          shadowMode: 'read',
-          primaryBackend: 'vil',
-          shadowBackend: 'supabase',
-          requestSignature: { userId: session.user.id },
-          requestId,
-          primaryResult: {
-            data: result.data,
-            error: result.error ?? undefined,
-          },
-          shadowRequest: async () => {
-            const shadow = await createSupabaseAuthProvider().getAuthBootstrap()
-            return {
-              data: shadow.data,
-              error: shadow.error
-                ? {
-                    message: shadow.error.message,
-                    status: shadow.error.status,
-                  }
-                : null,
-            }
-          },
-        })
-      }
-
       return result
     },
 
@@ -279,8 +252,7 @@ export function createVilAuthProvider(baseUrl = 'http://localhost:8080'): AuthPr
         return { error: notImplemented('Provider OAuth ini belum didukung.') }
       }
 
-      const redirectTo =
-        options?.redirectTo ?? `${window.location.origin}/auth/callback`
+      const redirectTo = options?.redirectTo ?? `${window.location.origin}/auth/callback`
       const url = new URL(`${baseUrl}/api/v1/auth/login/google`)
       url.searchParams.set('redirect_to', redirectTo)
       window.location.assign(url.toString())

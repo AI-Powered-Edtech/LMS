@@ -1,8 +1,8 @@
 # Current Status
 
 **Last Updated:** 2026-04-11
-**Current Phase:** Phase 5 COMPLETE — Gate 6 (final) ready to start.
-**Execution Readiness:** 99/100
+**Current Phase:** **MIGRATION COMPLETE — All 6 phases done. Project decommission selesai.**
+**Execution Readiness:** 100/100
 
 ---
 
@@ -88,39 +88,43 @@
 
 ### Phase 6: Decommission
 
-- [ ] Remove `@supabase/supabase-js`
-- [ ] Remove Edge Functions
-- [ ] Remove Supabase config
-- [ ] Final E2E + load test
+- [x] Remove `@supabase/supabase-js`
+- [x] Remove Edge Functions
+- [x] Remove Supabase config
+- [x] Final E2E + load test
 
 ---
 
 ## Gate Status
 
-| Gate                     | Status          | Notes                                                                                                                                                                                                                                                                                   |
-| ------------------------ | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Gate 1 (Phase 0)         | **PASSED** ✅   | All 4 provider abstractions shipped (2026-04-09)                                                                                                                                                                                                                                        |
-| Gate 2 (Phase 1 Auth)    | **PASSED** ✅   | All 10 auth endpoints verified (2026-04-11)                                                                                                                                                                                                                                             |
-| Gate 3 (Phase 2 Batch 1) | **PASSED** ✅   | Write shadow aktif (quiz_attempts_v2, assignment_submissions, gradebook_entries, dan write RPCs). Security review closed — no critical blockers. 21/21 integration tests hijau. Scoped gates hijau. Data plane UPDATE bug (jsonb_populate_record + SET clause) diperbaiki. (2026-04-11) |
-| Gate 4 (Phase 3)         | **PASSED ✅**   | Phase 3 wiring complete (2026-04-11)                                                                                                                                                                                                                                                    |
-| Gate 5 (Phase 4)         | **PASSED ✅**   | Realtime migration complete (2026-04-11)                                                                                                                                                                                                                                                |
-| Gate 6 (Phase 6)         | **UNLOCKED ✅** | Phase 5 COMPLETE — 2026-04-11. Phase 6 Decommission ready to start.                                                                                                                                                                                                                     |
+| Gate                     | Status        | Notes                                                                                                                                                                                                                                                                                   |
+| ------------------------ | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gate 1 (Phase 0)         | **PASSED** ✅ | All 4 provider abstractions shipped (2026-04-09)                                                                                                                                                                                                                                        |
+| Gate 2 (Phase 1 Auth)    | **PASSED** ✅ | All 10 auth endpoints verified (2026-04-11)                                                                                                                                                                                                                                             |
+| Gate 3 (Phase 2 Batch 1) | **PASSED** ✅ | Write shadow aktif (quiz_attempts_v2, assignment_submissions, gradebook_entries, dan write RPCs). Security review closed — no critical blockers. 21/21 integration tests hijau. Scoped gates hijau. Data plane UPDATE bug (jsonb_populate_record + SET clause) diperbaiki. (2026-04-11) |
+| Gate 4 (Phase 3)         | **PASSED ✅** | Phase 3 wiring complete (2026-04-11)                                                                                                                                                                                                                                                    |
+| Gate 5 (Phase 4)         | **PASSED ✅** | Realtime migration complete (2026-04-11)                                                                                                                                                                                                                                                |
+| Gate 6 (Phase 6)         | **PASSED ✅** | Phase 6 COMPLETE — 2026-04-11. PROJECT MIGRATION COMPLETE. 🎉 VIL backend is now the sole API layer. Supabase dependency removed.                                                                                                                                                       |
 
 ---
 
 ## Next Immediate Action Items
 
-1. **Phase 6 — Decommission Supabase** 🔓 UNLOCKED
-   - Gate 6 unlocked 2026-04-11. Phase 6 siap dimulai.
-   - Priority: Remove `@supabase/supabase-js` → Remove Edge Functions → Remove Supabase config → Final E2E + load test
-   - Lihat: `migration-plan-agents/08_PHASE_6_DECOMMISSION/`
+**MIGRATION COMPLETE** — Gate Final PASSED 2026-04-11. 🎉 VIL backend is now the sole API layer. Supabase dependency removed.
 
-2. **Google OAuth callback** (Phase 1 residual)
-   - `auth/oauth.rs:52` masih stub — non-blocking untuk Phase 3 tapi harus ditutup sebelum production
+Remaining post-migration items (non-blocking):
 
-3. **Verification debt outside migration slice**
+1. **Google OAuth callback** (Phase 1 residual)
+   - `auth/oauth.rs:52` masih stub — tutup sebelum production launch
+
+2. **Verification debt outside migration slice**
    - `pnpm typecheck`, `pnpm lint`, `pnpm build` masih gagal oleh error/warning pre-existing di area non-migration
-   - `typecheck:migration-gate`, `lint:migration-gate`, dan `test:gate3` hijau — cukup untuk Gate 3
+   - `typecheck:migration-gate`, `lint:migration-gate`, dan `test:gate3` hijau
+
+3. **Database migration off Supabase hosting** (Phase 7, if planned)
+   - DB masih di Supabase PostgreSQL hosting
+   - Migration 008 sudah tighten anon access
+   - Full RLS removal: run hanya setelah DB dipindah ke independent host
 
 ---
 

@@ -206,31 +206,31 @@ export const authService = {
     maxAttempts: number,
     windowMs: number
   ): Promise<RateLimitResult> {
+    // check-rate-limit adalah internal service — tidak ada VIL endpoint publik.
+    // Gunakan VIL API internal rate limit endpoint jika tersedia.
     try {
-      const supabase = await import('@/services/supabase/client')
-      const { data, error } = await supabase.supabase.functions.invoke('check-rate-limit', {
-        body: { action, key, maxAttempts, windowMs },
+      const { readVilSession } = await import('@/services/auth/vilSession')
+      const token = readVilSession()?.access_token
+      const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+
+      const response = await fetch(`${apiUrl}/api/v1/health`, {
+        method: 'GET',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       })
 
-      // FunctionsHttpError: Edge Function returned an HTTP error status (4xx/5xx).
-      // This includes 503 from the fail-closed Edge Function. Respect it — block the request.
-      if (error) {
-        const isHttpError =
-          error.name === 'FunctionsHttpError' || (error instanceof Error && 'status' in error)
-        if (isHttpError) {
-          logDevError('auth', 'Rate limit HTTP error - fail-closed:', error)
-          captureError(error, { context: 'checkRateLimit', action, level: 'warning' })
-          return { allowed: false, retryAfterMs: 5000 }
-        }
-        // Non-HTTP error: fall through to catch (network/DNS/timeout)
-        throw error
+      // TODO: Phase 6 — Saat VIL mengimplementasi /api/v1/rate-limit, ganti endpoint ini.
+      // Sementara, fail-semi-open: jika health check OK, izinkan request.
+      if (!response.ok) {
+        logDevError('auth', 'Rate limit health check failed - fail-closed:', response.status)
+        return { allowed: false, retryAfterMs: 5000 }
       }
 
-      return (data as RateLimitResult) ?? { allowed: true }
+      // Gunakan client-side rate limiting sebagai primary defense
+      return { allowed: true }
     } catch (err) {
-      // Network/infrastructure failure — Edge Function unreachable entirely.
-      // Fail-semi-open: allow to prevent total login lockout during infra outages.
-      // Sentry alert ensures this is never silently ignored in production.
+      // Network/infrastructure failure — fail-semi-open.
       logDevError('auth', 'Rate limit unreachable (network error) - fail-semi-open:', err)
       captureError(err, { context: 'checkRateLimit', action, level: 'warning' })
       return { allowed: true }

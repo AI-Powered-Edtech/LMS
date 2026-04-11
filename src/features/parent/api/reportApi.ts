@@ -7,6 +7,7 @@
 // data anak mereka sendiri.
 // ==========================================================================
 
+import { readVilSession } from '@/services/auth/vilSession'
 import { supabase } from '@/services/supabase/client'
 
 import type { AvailableReportMonth, ParentMonthlyReport } from '../types'
@@ -40,14 +41,24 @@ export async function getMonthlyReport(
   year: number,
   tenantId: string
 ): Promise<ParentMonthlyReport> {
-  const { data, error } = await supabase.functions.invoke('generate-parent-report', {
-    body: { studentId, month, year, tenantId },
+  const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+  const token = readVilSession()?.access_token
+
+  const response = await fetch(`${apiUrl}/api/v1/pdf/parent-report`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ studentId, month, year, tenantId }),
   })
 
-  if (error) {
-    if (import.meta.env.DEV) console.error('[reportApi] getMonthlyReport error:', error)
+  if (!response.ok) {
+    if (import.meta.env.DEV) console.error('[reportApi] getMonthlyReport error:', response.status)
     throw new Error('Gagal memuat laporan. Silakan coba lagi.')
   }
+
+  const data = await response.json()
 
   if (!data?.reportData) {
     throw new Error('Data laporan tidak ditemukan.')

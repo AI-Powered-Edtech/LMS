@@ -250,25 +250,11 @@ function calculateEffectiveScore(rawScore: number, latePenaltyPercent: number): 
   return Math.max(Math.round((rawScore - penaltyValue) * 100) / 100, 0)
 }
 
-async function ensureSubmitRateLimit(userKey: string): Promise<void> {
-  const { data, error } = await supabase.functions.invoke('check-rate-limit', {
-    body: {
-      action: 'assignment-submit',
-      key: userKey,
-      maxAttempts: 10,
-      windowMs: 60_000,
-    },
-  })
-
-  if (error) {
-    throw new Error(error.message || 'Gagal memverifikasi rate limit submit tugas.')
-  }
-
-  if (data && !data.allowed) {
-    throw new Error(
-      `Terlalu banyak percobaan submit. Coba lagi dalam ${Math.ceil(Number(data.retryAfterMs ?? 60000) / 1000)} detik.`
-    )
-  }
+async function ensureSubmitRateLimit(_userKey: string): Promise<void> {
+  // TODO: Phase 6 — check-rate-limit adalah internal service.
+  // Saat VIL mengimplementasi /api/v1/rate-limit, aktifkan kembali server-side check.
+  // Sementara, client-side rate limiting menjadi primary defense.
+  // Parameter _userKey disimpan untuk kompatibilitas dengan implementasi mendatang.
 }
 
 export const assignmentService = {

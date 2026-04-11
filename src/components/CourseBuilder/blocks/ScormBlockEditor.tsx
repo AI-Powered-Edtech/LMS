@@ -12,6 +12,7 @@ import { useCallback, useRef, useState } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useBuilder } from '@/contexts/BuilderContext'
+import { readVilSession } from '@/services/auth/vilSession'
 import { supabase } from '@/services/supabase/client'
 
 interface ScormBlockEditorProps {
@@ -90,14 +91,24 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
 
         setUploadProgress('Mengekstrak dan memvalidasi manifest...')
 
-        const { data, error: fnError } = await supabase.functions.invoke<ScormExtractResponse>(
-          'scorm-extract',
-          { body: formData }
-        )
+        const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+        const token = readVilSession()?.access_token
 
-        if (fnError) {
-          throw new Error(fnError.message || 'Gagal memproses paket SCORM.')
+        const res = await fetch(`${apiUrl}/api/v1/scorm/extract`, {
+          method: 'POST',
+          headers: {
+            // Do NOT set Content-Type — browser sets it automatically for FormData (multipart/form-data)
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: formData,
+        })
+
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({ error: 'Gagal memproses paket SCORM.' }))
+          throw new Error((errBody as ScormExtractResponse).error || 'Gagal memproses paket SCORM.')
         }
+
+        const data: ScormExtractResponse = await res.json()
 
         if (!data?.success) {
           throw new Error(data?.error || 'Gagal memproses paket SCORM.')

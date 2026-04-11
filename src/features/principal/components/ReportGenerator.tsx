@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/Button'
 import { Modal, ModalBody, ModalFooter, ModalHeader } from '@/components/ui/Modal'
 import { Select } from '@/components/ui/Select'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/services/supabase/client'
+import { readVilSession } from '@/services/auth/vilSession'
 
 import type { ExecutiveReportData, ReportFormat, ReportGeneratorState, ReportType } from '../types'
 import { exportToCSV } from '../utils/reportExport'
@@ -109,18 +109,26 @@ export function ReportGenerator({ open, onClose }: ReportGeneratorProps) {
 
       if (wantCSV) {
         // Fetch report data for CSV
-        const { data, error: fnError } = await supabase.functions.invoke(
-          'generate-executive-report',
-          {
-            body: {
-              tenantId,
-              reportType: state.reportType,
-              month: state.month,
-              year: state.year,
-            },
-          }
-        )
-        if (fnError) throw fnError
+        const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+        const token = readVilSession()?.access_token
+
+        const response = await fetch(`${apiUrl}/api/v1/pdf/executive-report`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            tenantId,
+            reportType: state.reportType,
+            month: state.month,
+            year: state.year,
+          }),
+        })
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        const data = await response.json()
+
         if (data?.reportData) {
           exportToCSV(data.reportData as ExecutiveReportData)
         }

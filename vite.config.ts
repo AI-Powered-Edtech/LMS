@@ -26,9 +26,11 @@ const cspDirectives = [
   // 'unsafe-inline' kept: React inline style props (style={{}}) and Tailwind generate inline styles.
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   // fonts.gstatic.com is only in font-src, NOT duplicated in img-src
-  "img-src 'self' data: blob: https://*.supabase.co https://*.cloudfront.net https://api.dicebear.com",
+  // Phase 6: supabase.co removed from img-src; CDN and local VIL storage added
+  "img-src 'self' data: blob: https://cdn.edusync.dev https://*.cloudfront.net https://api.dicebear.com",
   "font-src 'self' https://fonts.gstatic.com",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://sentry.io https://*.vercel.app",
+  // Phase 6: supabase.co removed from connect-src; VIL API and WebSocket added
+  "connect-src 'self' http://localhost:8080 ws://localhost:8080 https://cdn.edusync.dev https://sentry.io https://*.vercel.app",
   "media-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
   "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
   "frame-ancestors 'none'",
@@ -144,20 +146,9 @@ export default defineConfig(({ mode }) => {
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
           navigateFallback: '/index.html',
-          navigateFallbackDenylist: [/^\/api/, /^\/supabase/],
+          navigateFallbackDenylist: [/^\/api/],
           runtimeCaching: [
-            // NEVER cache: RPC endpoints with user context (POST requests)
-            {
-              urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/rpc\//i,
-              handler: 'NetworkOnly' as const,
-              method: 'POST',
-            },
-            // NEVER cache: Auth endpoints
-            {
-              urlPattern: /^https:\/\/.*\.supabase\.co\/auth\//i,
-              handler: 'NetworkOnly' as const,
-            },
-            // NEVER cache: All POST/PUT/DELETE requests
+            // NEVER cache: All mutating requests
             {
               urlPattern: /.*/i,
               handler: 'NetworkOnly' as const,
@@ -173,23 +164,32 @@ export default defineConfig(({ mode }) => {
               handler: 'NetworkOnly' as const,
               method: 'DELETE',
             },
-            // API data: NetworkFirst with short cache (1 hour)
+            // VIL API routes — NetworkFirst (Phase 6: replaces Supabase PostgREST entries)
             {
-              urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/(?!rpc)/i,
+              urlPattern: /^http:\/\/localhost:8080\/api\/v1\//,
               handler: 'NetworkFirst' as const,
               options: {
-                cacheName: 'supabase-api',
-                networkTimeoutSeconds: 5,
-                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 },
+                cacheName: 'vil-api',
+                expiration: { maxEntries: 50, maxAgeSeconds: 60 },
+                networkTimeoutSeconds: 10,
               },
             },
-            // Storage: StaleWhileRevalidate with shorter cache (1 day instead of 7)
+            // VIL Storage — StaleWhileRevalidate
             {
-              urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/v1\/object\/.*/i,
+              urlPattern: /^http:\/\/localhost:8080\/api\/v1\/storage\//,
               handler: 'StaleWhileRevalidate' as const,
               options: {
-                cacheName: 'supabase-storage',
-                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 },
+                cacheName: 'vil-storage',
+                expiration: { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 },
+              },
+            },
+            // S3/R2/CDN storage — StaleWhileRevalidate
+            {
+              urlPattern: /^https:\/\/cdn\.edusync\.dev\/.*/,
+              handler: 'StaleWhileRevalidate' as const,
+              options: {
+                cacheName: 'cdn-storage',
+                expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 },
               },
             },
             // Images: CacheFirst with 30 days
@@ -242,7 +242,7 @@ export default defineConfig(({ mode }) => {
           manualChunks: {
             // ── Vendor chunks ───────────────────────────────────────────────
             'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-            'vendor-supabase': ['@supabase/supabase-js'],
+            // Phase 6: vendor-supabase chunk removed (@supabase/supabase-js decommissioned)
             'vendor-recharts': ['recharts'],
             'vendor-katex': ['katex'],
             'vendor-query': ['@tanstack/react-query', '@tanstack/react-virtual'],

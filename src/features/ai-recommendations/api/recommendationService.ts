@@ -1,24 +1,27 @@
-import { supabase } from '@/services/supabase/client'
+import { readVilSession } from '@/services/auth/vilSession'
 
 import type { RecommendationResult } from '../types'
 
 export const aiRecommendationService = {
+  /**
+   * TODO: Phase 6 — recommend-learning-path belum punya VIL endpoint resmi.
+   * Saat VIL mengimplementasi endpoint ini, ganti dengan /api/v1/ai/recommend-learning-path.
+   * Sementara menggunakan /api/v1/ai/generate-content sebagai proxy terdekat.
+   */
   async getRecommendations(courseId: string): Promise<RecommendationResult> {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    if (!session) throw new Error('Tidak terautentikasi')
+    const token = readVilSession()?.access_token
+    if (!token) throw new Error('Tidak terautentikasi')
 
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
-    if (!supabaseUrl) throw new Error('Supabase URL tidak dikonfigurasi')
+    const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
 
-    const response = await fetch(`${supabaseUrl}/functions/v1/recommend-learning-path`, {
+    // TODO: Phase 6 — ganti dengan /api/v1/ai/recommend-learning-path saat endpoint tersedia.
+    const response = await fetch(`${apiUrl}/api/v1/ai/generate-content`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${session.access_token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ course_id: courseId }),
+      body: JSON.stringify({ function: 'recommend-learning-path', course_id: courseId }),
     })
 
     if (!response.ok) {

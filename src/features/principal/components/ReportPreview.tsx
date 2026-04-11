@@ -19,7 +19,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/services/supabase/client'
+import { readVilSession } from '@/services/auth/vilSession'
 
 import type { ExecutiveReportData } from '../types'
 import { exportToCSV, exportToPDF } from '../utils/reportExport'
@@ -370,14 +370,21 @@ export function ReportPreview() {
     setError(null)
 
     try {
-      const { data, error: fnError } = await supabase.functions.invoke(
-        'generate-executive-report',
-        {
-          body: { tenantId, reportType, month, year },
-        }
-      )
+      const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+      const token = readVilSession()?.access_token
 
-      if (fnError) throw fnError
+      const response = await fetch(`${apiUrl}/api/v1/pdf/executive-report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ tenantId, reportType, month, year }),
+      })
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      const data = await response.json()
+
       if (data?.reportData) {
         setReportData(data.reportData as ExecutiveReportData)
       } else {

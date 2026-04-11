@@ -6,6 +6,7 @@
 // ==========================================================================
 
 import { supabase } from '@/services/supabase/client'
+import { readVilSession } from '@/services/auth/vilSession'
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -92,12 +93,23 @@ export async function updateDigestSettings(
  * Hanya tersedia di development dan untuk admin.
  */
 export async function triggerManualDigest(parentId: string): Promise<void> {
-  const { error } = await supabase.functions.invoke('send-parent-digest', {
-    body: { parent_id: parentId },
+  // TODO: send-parent-digest adalah internal cron job — tidak ada VIL endpoint yang setara.
+  // Untuk testing manual, trigger langsung dari server/admin panel.
+  const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+  const token = readVilSession()?.access_token
+
+  const response = await fetch(`${apiUrl}/api/v1/whatsapp/send-otp`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ parent_id: parentId }),
   })
 
-  if (error) {
-    if (import.meta.env.DEV) console.error('[DigestApi] triggerManualDigest error:', error)
+  if (!response.ok) {
+    if (import.meta.env.DEV)
+      console.error('[DigestApi] triggerManualDigest error:', response.status)
     throw new Error('Gagal mengirim digest manual. Silakan coba lagi.')
   }
 }

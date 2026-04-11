@@ -1,5 +1,5 @@
 import type { InferOutput } from 'valibot'
-import { minLength, object, optional, parse, pipe, string, url } from 'valibot'
+import { object, optional, parse, string } from 'valibot'
 
 /**
  * Environment variable schema for EduSync LMS.
@@ -8,9 +8,9 @@ import { minLength, object, optional, parse, pipe, string, url } from 'valibot'
  * Optional vars degrade gracefully (features disabled).
  */
 const envSchema = object({
-  // ── Required ────────────────────────────────────────────
-  VITE_SUPABASE_URL: pipe(string(), url(), minLength(1)),
-  VITE_SUPABASE_ANON_KEY: pipe(string(), minLength(1)),
+  // ── Optional (legacy Supabase — decommissioned in Phase 6) ────────────────
+  VITE_SUPABASE_URL: optional(string()),
+  VITE_SUPABASE_ANON_KEY: optional(string()),
 
   // ── Optional ────────────────────────────────────────────
   VITE_API_BACKEND: optional(string()),

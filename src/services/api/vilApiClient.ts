@@ -7,9 +7,7 @@ import {
   subscribeVilSession,
   writeVilSession,
 } from '@/services/auth/vilSession'
-import { getSupabaseClient } from '@/services/supabase/client'
-
-import { buildRequestHeaders, createRequestId, runShadowComparison } from './shadow'
+import { buildRequestHeaders, createRequestId } from './shadow'
 import type {
   ApiAuthClient,
   ApiClient,
@@ -24,30 +22,6 @@ import type {
 type JsonRecord = Record<string, unknown>
 type QueryAction = 'select' | 'insert' | 'update' | 'delete' | 'upsert'
 
-/**
- * Tables whose write mutations are shadowed for Gate 3.
- * After VIL executes the write, we read back from Supabase to verify convergence.
- */
-const WRITE_SHADOW_TABLES = new Set([
-  'quiz_attempts_v2',
-  'quiz_answers',
-  'quiz_attempt_questions_v2',
-  'assignment_submissions',
-  'gradebook_entries',
-])
-
-/**
- * Mutating RPCs whose results are shadowed for Gate 3.
- * After VIL executes the RPC, we call the same RPC on Supabase and compare responses.
- * Only RPCs that are idempotent-safe for shadow (same underlying DB) belong here.
- */
-const WRITE_SHADOW_RPCS = new Set([
-  'v1_submit_quiz_attempt',
-  'submit_assignment_attempt',
-  'sync_gradebook_entries',
-  'grade_attempt_question',
-])
-
 interface VilQueryResponse {
   data: unknown
   count?: number | null
@@ -58,64 +32,7 @@ interface VilRpcResponse {
   returns_set: boolean
 }
 
-interface ShadowSelectResult {
-  data: unknown
-  error: unknown
-}
-
-interface ShadowSelectQuery extends PromiseLike<ShadowSelectResult> {
-  eq(column: string, value: unknown): ShadowSelectQuery
-  neq(column: string, value: unknown): ShadowSelectQuery
-  in(column: string, values: unknown[]): ShadowSelectQuery
-  ilike(column: string, pattern: string): ShadowSelectQuery
-  lt(column: string, value: unknown): ShadowSelectQuery
-  lte(column: string, value: unknown): ShadowSelectQuery
-  gt(column: string, value: unknown): ShadowSelectQuery
-  gte(column: string, value: unknown): ShadowSelectQuery
-  is(column: string, value: unknown): ShadowSelectQuery
-  not(column: string, operator: string, value: unknown): ShadowSelectQuery
-  order(column: string, options?: { ascending?: boolean }): ShadowSelectQuery
-  range(from: number, to: number): ShadowSelectQuery
-  limit(count: number): ShadowSelectQuery
-  single(): PromiseLike<ShadowSelectResult>
-  maybeSingle(): PromiseLike<ShadowSelectResult>
-}
-
 const DEFAULT_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
-const SAFE_READ_RPCS = new Set([
-  'get_activity_timeline',
-  'get_assignment_analytics',
-  'get_assignment_grading_queue',
-  'get_assignment_submission_bundle',
-  'get_at_risk_students',
-  'get_attempt_detail',
-  'get_course_analytics',
-  'get_course_engagement',
-  'get_engagement_summary',
-  'get_engagement_trend',
-  'get_executive_overview',
-  'get_gradebook_students',
-  'get_group_settings',
-  'get_lesson_analytics',
-  'get_my_children',
-  'get_parent_dashboard_snapshot',
-  'get_principal_monthly_trend_cached',
-  'get_principal_overview_cached',
-  'get_question_difficulty',
-  'get_quiz_live_status',
-  'get_student_group_assignment',
-  'get_student_path',
-  'get_student_prediction',
-  'get_student_progress_bundle',
-  'get_student_signals',
-  'get_survey_results',
-  'get_teacher_analytics',
-  'get_teacher_group_overview',
-  'get_tenant_activity_counts',
-  'list_funnel_definitions',
-  'rpc_check_builder_access',
-  'validate_invitation',
-])
 
 function normalizeError(error: unknown, fallback = 'Permintaan VIL gagal.'): ApiError {
   if (!error || typeof error !== 'object') {
@@ -204,7 +121,8 @@ function mapUser(session: ApiSession | null): ApiUser | null {
 function buildSession(payload: JsonRecord): ApiSession | null {
   const accessToken = typeof payload.access_token === 'string' ? payload.access_token : null
   const refreshToken = typeof payload.refresh_token === 'string' ? payload.refresh_token : null
-  const user = payload.user && typeof payload.user === 'object' ? (payload.user as JsonRecord) : null
+  const user =
+    payload.user && typeof payload.user === 'object' ? (payload.user as JsonRecord) : null
 
   if (!accessToken || !refreshToken || !user || typeof user.id !== 'string') {
     return null
@@ -222,8 +140,7 @@ function buildSession(payload: JsonRecord): ApiSession | null {
       id: user.id,
       email: typeof user.email === 'string' ? user.email : undefined,
       role: typeof user.role === 'string' ? user.role : undefined,
-      user_metadata:
-        typeof user.tenant_id === 'string' ? { tenant_id: user.tenant_id } : undefined,
+      user_metadata: typeof user.tenant_id === 'string' ? { tenant_id: user.tenant_id } : undefined,
     },
   }
 }
@@ -278,158 +195,12 @@ class VilQueryBuilder<T = unknown> implements ApiQueryBuilder<T> {
       headers: buildHeaders(true, requestId),
       body: JSON.stringify(requestPayload),
     }).then(({ data, error }) => {
-      const result = {
+      return {
         data: ((data?.data ?? null) as T | null) ?? null,
         error,
         count: typeof data?.count === 'number' ? data.count : null,
       }
-
-      void this.runShadow(requestId, requestPayload, result)
-      return result
     })
-  }
-
-  private async runShadow(
-    requestId: string,
-    requestPayload: JsonRecord,
-    primaryResult: ApiQueryResult<T>
-  ): Promise<void> {
-    const isWrite = this.action !== 'select'
-
-    if (isWrite && !WRITE_SHADOW_TABLES.has(this.table)) {
-      return
-    }
-
-    const shadowMode = isWrite ? 'write' : 'read'
-
-    await runShadowComparison({
-      flowName: `proxy.${isWrite ? 'write' : 'query'}.${this.table}`,
-      endpoint: `/api/v1/data/${this.table}`,
-      method: 'POST',
-      shadowMode,
-      primaryBackend: 'vil',
-      shadowBackend: 'supabase',
-      requestSignature: requestPayload,
-      requestId,
-      primaryResult,
-      shadowRequest: async () => {
-        if (isWrite) {
-          return this.shadowReadBack()
-        }
-        return this.shadowSelectMirror()
-      },
-    })
-  }
-
-  /**
-   * Write shadow: read back the mutated record(s) from Supabase to verify
-   * VIL returned correct data. Does NOT re-execute the write.
-   */
-  private async shadowReadBack(): Promise<{
-    data: T | null
-    error: { message?: string | null; status?: number } | null
-  }> {
-    const selectCols = this.selectColumns !== '*' ? this.selectColumns : 'id, updated_at'
-    let query = getSupabaseClient()
-      .from(this.table)
-      .select(selectCols) as unknown as ShadowSelectQuery
-
-    for (const filter of this.filters) {
-      query = this.applyFilterToQuery(query, filter)
-    }
-
-    if (this.singleMode === 'single') {
-      const shadow = await query.single()
-      return {
-        data: (shadow.data ?? null) as T | null,
-        error: shadow.error ? normalizeError(shadow.error) : null,
-      }
-    }
-
-    if (this.singleMode === 'maybeSingle') {
-      const shadow = await query.maybeSingle()
-      return {
-        data: (shadow.data ?? null) as T | null,
-        error: shadow.error ? normalizeError(shadow.error) : null,
-      }
-    }
-
-    if (this.currentLimit !== null) {
-      query = query.limit(this.currentLimit)
-    }
-
-    const shadow = await query
-    return {
-      data: (shadow.data ?? null) as T | null,
-      error: shadow.error ? normalizeError(shadow.error) : null,
-    }
-  }
-
-  /**
-   * Read shadow: execute the same select query on Supabase for comparison.
-   */
-  private async shadowSelectMirror(): Promise<{
-    data: T | null
-    error: { message?: string | null; status?: number } | null
-  }> {
-    let query = getSupabaseClient()
-      .from(this.table)
-      .select(this.selectColumns, this.currentOptions as never) as unknown as ShadowSelectQuery
-
-    for (const filter of this.filters) {
-      query = this.applyFilterToQuery(query, filter)
-    }
-
-    for (const order of this.orders) {
-      query = query.order(order.column, { ascending: order.ascending !== false })
-    }
-
-    if (this.currentRange) {
-      query = query.range(this.currentRange.from, this.currentRange.to)
-    } else if (this.currentLimit !== null) {
-      query = query.limit(this.currentLimit)
-    }
-
-    const shadow =
-      this.singleMode === 'single'
-        ? await query.single()
-        : this.singleMode === 'maybeSingle'
-          ? await query.maybeSingle()
-          : await query
-    return {
-      data: (shadow.data ?? null) as T | null,
-      error: shadow.error ? normalizeError(shadow.error) : null,
-    }
-  }
-
-  private applyFilterToQuery(query: ShadowSelectQuery, filter: { column: string; op: string; value: unknown; comparator?: string }): ShadowSelectQuery {
-    switch (filter.op) {
-      case 'not':
-        if (!filter.comparator) {
-          throw new Error(`Shadow filter comparator untuk ${filter.column} wajib diisi`)
-        }
-        return query.not(filter.column, filter.comparator, filter.value)
-      case 'is':
-        return query.is(filter.column, filter.value)
-      case 'eq':
-        return query.eq(filter.column, filter.value)
-      case 'neq':
-        return query.neq(filter.column, filter.value)
-      case 'in':
-        return query.in(filter.column, filter.value as unknown[])
-      case 'ilike':
-        return query.ilike(filter.column, filter.value as string)
-      case 'lt':
-        return query.lt(filter.column, filter.value)
-      case 'lte':
-        return query.lte(filter.column, filter.value)
-      case 'gt':
-        return query.gt(filter.column, filter.value)
-      case 'gte':
-        return query.gte(filter.column, filter.value)
-      default:
-        throw new Error(`Shadow filter ${filter.op} belum didukung`)
-    }
   }
 
   select(columns = '*', options?: Record<string, unknown>): ApiQueryBuilder<T> {
@@ -688,121 +459,85 @@ async function callAuthRpc<T = unknown>(
         }
       )
 
-    case 'onboard_student_join_class':
-      {
-        const lookup = await requestJson<JsonRecord>(
-          `/api/v1/auth/lookup-class?code=${encodeURIComponent(String(args?.p_join_code ?? ''))}`,
-          {
-            method: 'GET',
-            headers: buildHeaders(false, createRequestId()),
-          }
-        )
-
-        if (lookup.error || !lookup.data) {
-          return { data: null, error: lookup.error }
+    case 'onboard_student_join_class': {
+      const lookup = await requestJson<JsonRecord>(
+        `/api/v1/auth/lookup-class?code=${encodeURIComponent(String(args?.p_join_code ?? ''))}`,
+        {
+          method: 'GET',
+          headers: buildHeaders(false, createRequestId()),
         }
+      )
 
-        const enroll = await requestJson<unknown>('/api/v1/auth/enroll', {
-          method: 'POST',
-          headers: buildHeaders(true, createRequestId()),
-          body: JSON.stringify({ join_code: args?.p_join_code }),
-        })
-
-        if (enroll.error) {
-          return { data: null, error: enroll.error }
-        }
-
-        return {
-          data: {
-            class_name:
-              typeof lookup.data.name === 'string' ? lookup.data.name : '',
-            school_name:
-              typeof lookup.data.tenant_name === 'string'
-                ? lookup.data.tenant_name
-                : typeof lookup.data.tenant_id === 'string'
-                  ? 'Sekolah Anda'
-                  : '',
-            tenant_id:
-              typeof lookup.data.tenant_id === 'string' ? lookup.data.tenant_id : null,
-          } as T,
-          error: null,
-        }
+      if (lookup.error || !lookup.data) {
+        return { data: null, error: lookup.error }
       }
 
-    case 'create_school_tenant':
-      {
-        const result = await requestJson<JsonRecord>('/api/v1/auth/create-tenant', {
-          method: 'POST',
-          headers: buildHeaders(true, createRequestId()),
-          body: JSON.stringify({
-            name: args?.p_school_name,
-            slug:
-              typeof args?.p_school_name === 'string'
-                ? args.p_school_name
-                    .toLowerCase()
-                    .trim()
-                    .replace(/[^a-z0-9]+/g, '-')
-                    .replace(/^-+|-+$/g, '')
+      const enroll = await requestJson<unknown>('/api/v1/auth/enroll', {
+        method: 'POST',
+        headers: buildHeaders(true, createRequestId()),
+        body: JSON.stringify({ join_code: args?.p_join_code }),
+      })
+
+      if (enroll.error) {
+        return { data: null, error: enroll.error }
+      }
+
+      return {
+        data: {
+          class_name: typeof lookup.data.name === 'string' ? lookup.data.name : '',
+          school_name:
+            typeof lookup.data.tenant_name === 'string'
+              ? lookup.data.tenant_name
+              : typeof lookup.data.tenant_id === 'string'
+                ? 'Sekolah Anda'
                 : '',
-            role: args?.p_role,
-            full_name: args?.p_full_name,
-          }),
-        })
+          tenant_id: typeof lookup.data.tenant_id === 'string' ? lookup.data.tenant_id : null,
+        } as T,
+        error: null,
+      }
+    }
 
-        if (result.error || !result.data) {
-          return { data: null, error: result.error }
-        }
+    case 'create_school_tenant': {
+      const result = await requestJson<JsonRecord>('/api/v1/auth/create-tenant', {
+        method: 'POST',
+        headers: buildHeaders(true, createRequestId()),
+        body: JSON.stringify({
+          name: args?.p_school_name,
+          slug:
+            typeof args?.p_school_name === 'string'
+              ? args.p_school_name
+                  .toLowerCase()
+                  .trim()
+                  .replace(/[^a-z0-9]+/g, '-')
+                  .replace(/^-+|-+$/g, '')
+              : '',
+          role: args?.p_role,
+          full_name: args?.p_full_name,
+        }),
+      })
 
-        return {
-          data: (result.data.tenant_id as T) ?? null,
-          error: null,
-        }
+      if (result.error || !result.data) {
+        return { data: null, error: result.error }
       }
 
-    default:
-      {
-        const requestId = createRequestId()
-        const result = await requestJson<VilRpcResponse>(`/api/v1/rpc/${fn}`, {
-          method: 'POST',
-          headers: buildHeaders(true, requestId),
-          body: JSON.stringify({ args: args ?? {} }),
-        })
-
-        const payload = {
-          data: ((result.data?.data ?? null) as T | null) ?? null,
-          error: result.error,
-        }
-
-        const isReadRpc = SAFE_READ_RPCS.has(fn)
-        const isWriteRpc = WRITE_SHADOW_RPCS.has(fn)
-
-        if (isReadRpc || isWriteRpc) {
-          void runShadowComparison({
-            flowName: `proxy.rpc.${fn}`,
-            endpoint: `/api/v1/rpc/${fn}`,
-            method: 'POST',
-            shadowMode: isWriteRpc ? 'write' : 'read',
-            primaryBackend: 'vil',
-            shadowBackend: 'supabase',
-            requestSignature: { fn, args: args ?? {} },
-            requestId,
-            primaryResult: payload,
-            shadowRequest: async () => {
-              // Both VIL and Supabase share the same PostgreSQL.
-              // For write RPCs the mutation already happened via VIL;
-              // calling the RPC on Supabase reads the committed state
-              // from the same DB, so this is a convergence check, not a double-write.
-              const shadow = await getSupabaseClient().rpc(fn, args ?? {})
-              return {
-                data: (shadow.data ?? null) as T | null,
-                error: shadow.error ? normalizeError(shadow.error) : null,
-              }
-            },
-          })
-        }
-
-        return payload
+      return {
+        data: (result.data.tenant_id as T) ?? null,
+        error: null,
       }
+    }
+    default: {
+      const requestId = createRequestId()
+      const result = await requestJson<VilRpcResponse>(`/api/v1/rpc/${fn}`, {
+        method: 'POST',
+        headers: buildHeaders(true, requestId),
+        body: JSON.stringify({ args: args ?? {} }),
+      })
+
+      return {
+        data: ((result.data?.data ?? null) as T | null) ?? null,
+        error: result.error,
+      }
+    }
   }
 }
 

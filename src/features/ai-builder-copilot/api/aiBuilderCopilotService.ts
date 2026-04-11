@@ -1,3 +1,4 @@
+import { readVilSession } from '@/services/auth/vilSession'
 import { supabase } from '@/services/supabase/client'
 
 import type {
@@ -67,48 +68,99 @@ export const aiBuilderCopilotService = {
   // ─── Generate Outline ────────────────────────────────────────────────────────
 
   async generateOutline(req: GenerateOutlineRequest): Promise<GenerateOutlineResponse> {
-    const { data, error } = await supabase.functions.invoke('generate-course-outline', {
-      body: req,
+    // TODO: Phase 6 — generate-course-outline belum punya VIL endpoint resmi.
+    // Menggunakan /api/v1/ai/generate-content sebagai proxy terdekat.
+    const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+    const token = readVilSession()?.access_token
+
+    const res = await fetch(`${apiUrl}/api/v1/ai/generate-content`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ function: 'generate-course-outline', ...req }),
     })
+
+    let data: Record<string, unknown> | null = null
+    let error: { message: string } | null = null
+
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}))
+      error = { message: (errBody as { error?: string }).error ?? `HTTP ${res.status}` }
+    } else {
+      data = (await res.json()) as Record<string, unknown>
+    }
 
     handleFunctionError(error, data)
 
-    if (!data?.outline?.modules || !Array.isArray(data.outline.modules)) {
+    const d = data as Record<string, unknown>
+    const outline = d?.outline as { modules?: unknown[] } | undefined
+
+    if (!outline?.modules || !Array.isArray(outline.modules)) {
       throw new Error('Respons AI tidak valid. Coba lagi.')
     }
 
     return {
-      artifact_id: data.artifact_id ?? null,
-      outline: data.outline,
+      artifact_id: (d.artifact_id as string | null) ?? null,
+      outline: d.outline as GenerateOutlineResponse['outline'],
     }
   },
 
   // ─── Generate Lesson Draft ───────────────────────────────────────────────────
 
   async generateLessonDraft(req: GenerateLessonDraftRequest): Promise<GenerateLessonDraftResponse> {
-    const { data, error } = await supabase.functions.invoke('generate-lesson-draft', {
-      body: req,
+    // TODO: Phase 6 — generate-lesson-draft belum punya VIL endpoint resmi.
+    // Menggunakan /api/v1/ai/generate-content sebagai proxy terdekat.
+    const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+    const token = readVilSession()?.access_token
+
+    const res = await fetch(`${apiUrl}/api/v1/ai/generate-content`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ function: 'generate-lesson-draft', ...req }),
     })
+
+    let data: Record<string, unknown> | null = null
+    let error: { message: string } | null = null
+
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}))
+      error = { message: (errBody as { error?: string }).error ?? `HTTP ${res.status}` }
+    } else {
+      data = (await res.json()) as Record<string, unknown>
+    }
 
     handleFunctionError(error, data)
 
-    const hasBlocks = Array.isArray(data?.draft?.blocks)
-    const hasQuizPayload =
-      !!data?.draft?.quiz_payload && typeof data.draft.quiz_payload === 'object'
+    const d = data as Record<string, unknown>
+    const draft = d?.draft as Record<string, unknown> | undefined
+
+    const hasBlocks = Array.isArray(draft?.blocks)
+    const hasQuizPayload = !!draft?.quiz_payload && typeof draft.quiz_payload === 'object'
     const hasAssignmentPayload =
-      !!data?.draft?.assignment_payload && typeof data.draft.assignment_payload === 'object'
+      !!draft?.assignment_payload && typeof draft.assignment_payload === 'object'
 
     if (!hasBlocks && !hasQuizPayload && !hasAssignmentPayload) {
       throw new Error('Respons AI tidak valid. Coba lagi.')
     }
 
     return {
-      artifact_id: data.artifact_id ?? null,
+      artifact_id: (d.artifact_id as string | null) ?? null,
       draft: {
-        blocks: hasBlocks ? data.draft.blocks : [],
-        assessment_suggestions: data.draft.assessment_suggestions ?? undefined,
-        quiz_payload: hasQuizPayload ? data.draft.quiz_payload : undefined,
-        assignment_payload: hasAssignmentPayload ? data.draft.assignment_payload : undefined,
+        blocks: hasBlocks ? (draft!.blocks as import('../types').LessonDraftBlock[]) : [],
+        assessment_suggestions: draft?.assessment_suggestions as
+          | import('../types').AssessmentSuggestions
+          | undefined,
+        quiz_payload: hasQuizPayload
+          ? (draft!.quiz_payload as import('../types').QuizDraftPayload)
+          : undefined,
+        assignment_payload: hasAssignmentPayload
+          ? (draft!.assignment_payload as import('../types').AssignmentDraftPayload)
+          : undefined,
       },
     }
   },
@@ -116,15 +168,36 @@ export const aiBuilderCopilotService = {
   // ─── Transform Content ───────────────────────────────────────────────────────
 
   async transformContent(req: TransformContentRequest): Promise<TransformContentResponse> {
-    const { data, error } = await supabase.functions.invoke('transform-course-content', {
-      body: req,
+    // TODO: Phase 6 — transform-course-content belum punya VIL endpoint resmi.
+    // Menggunakan /api/v1/ai/generate-content sebagai proxy terdekat.
+    const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+    const token = readVilSession()?.access_token
+
+    const res = await fetch(`${apiUrl}/api/v1/ai/generate-content`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ function: 'transform-course-content', ...req }),
     })
+
+    let data: Record<string, unknown> | null = null
+    let error: { message: string } | null = null
+
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}))
+      error = { message: (errBody as { error?: string }).error ?? `HTTP ${res.status}` }
+    } else {
+      data = (await res.json()) as Record<string, unknown>
+    }
 
     handleFunctionError(error, data)
 
+    const d = (data ?? {}) as Record<string, unknown>
     return {
-      artifact_id: data.artifact_id ?? null,
-      result: data.result ?? data,
+      artifact_id: (d.artifact_id as string | null) ?? null,
+      result: (d.result as Record<string, unknown> | undefined) ?? d,
     }
   },
 

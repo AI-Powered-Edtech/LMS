@@ -1,4 +1,4 @@
-export type ApiBackend = 'supabase' | 'vil'
+export type ApiBackend = 'vil'
 
 export interface ApiError {
   message: string

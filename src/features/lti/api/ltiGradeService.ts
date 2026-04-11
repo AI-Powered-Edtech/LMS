@@ -1,3 +1,4 @@
+import { readVilSession } from '@/services/auth/vilSession'
 import { supabase } from '@/services/supabase/client'
 
 /**
@@ -11,6 +12,10 @@ export const ltiGradeService = {
   /**
    * Trigger a grade passback to the LTI platform for a quiz or assignment.
    * Fire-and-forget: returns immediately, errors are silently suppressed.
+   *
+   * TODO: Phase 6 — lti-grade-passback belum punya VIL endpoint resmi.
+   * Saat VIL mengimplementasi endpoint ini, ganti dengan /api/v1/lti/grade-passback.
+   * Sementara, menggunakan VIL API auth token untuk request.
    */
   triggerPassback(
     tenantId: string,
@@ -23,16 +28,16 @@ export const ltiGradeService = {
     // Async IIFE — intentionally NOT awaited
     void (async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
-        if (!session) return
+        const token = readVilSession()?.access_token
+        const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
 
-        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/lti-grade-passback`, {
+        // TODO: Phase 6 — ganti dengan /api/v1/lti/grade-passback saat endpoint tersedia di VIL.
+        // Endpoint ini sementara di-no-op sampai VIL mengimplementasinya.
+        await fetch(`${apiUrl}/api/v1/lti/grade-passback`, {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${session.access_token}`,
             'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({
             tenant_id: tenantId,

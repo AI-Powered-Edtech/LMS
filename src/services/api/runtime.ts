@@ -1,6 +1,6 @@
 import type { ApiBackend, ApiClient } from './types'
 
-let activeBackend: ApiBackend = 'supabase'
+let activeBackend: ApiBackend = 'vil'
 let activeClient: ApiClient | null = null
 
 export function setActiveApiBackend(backend: ApiBackend): void {

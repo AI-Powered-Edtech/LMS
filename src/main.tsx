@@ -10,36 +10,27 @@ import { normalizeLegacyHashUrl, sanitizeRedirectTarget } from './features/auth/
 import { useToast } from './hooks/useToast'
 import { initApiClient } from './services/api'
 import { setAuthProvider } from './services/auth'
-import { createSupabaseAuthProvider } from './services/auth/supabaseAuthProvider'
 import { createVilAuthProvider } from './services/auth/vilAuthProvider'
 import { setRealtimeProvider } from './services/realtime'
-import { createSupabaseRealtimeProvider } from './services/realtime/supabaseRealtimeProvider'
 import { createVilRealtimeProvider } from './services/realtime/vilRealtimeProvider'
 import { setStorageProvider } from './services/storage'
-import { createSupabaseStorageProvider } from './services/storage/supabaseStorageProvider'
 import { createVilStorageProvider } from './services/storage/vilStorageProvider'
 import { initSentry } from './utils/sentry'
 import { reportWebVitals } from './utils/webVitals'
 
 // Validate env vars before anything else — fails fast with helpful message
-const env = validateEnv()
-const apiBackend = env.VITE_API_BACKEND === 'vil' ? 'vil' : 'supabase'
+validateEnv()
+
+// Phase 6: VIL is now the default and only supported backend
+// Note: Supabase fallback removed in Phase 6
+const apiBackend: 'vil' = 'vil'
 
 initApiClient(apiBackend)
 
-if (apiBackend === 'vil') {
-  setAuthProvider(createVilAuthProvider(import.meta.env.VITE_API_URL || 'http://localhost:8080'))
-  setRealtimeProvider(
-    createVilRealtimeProvider(import.meta.env.VITE_API_URL || 'http://localhost:8080')
-  )
-  setStorageProvider(
-    createVilStorageProvider(import.meta.env.VITE_API_URL || 'http://localhost:8080')
-  )
-} else {
-  setAuthProvider(createSupabaseAuthProvider())
-  setRealtimeProvider(createSupabaseRealtimeProvider())
-  setStorageProvider(createSupabaseStorageProvider())
-}
+const vilApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+setAuthProvider(createVilAuthProvider(vilApiUrl))
+setRealtimeProvider(createVilRealtimeProvider(vilApiUrl))
+setStorageProvider(createVilStorageProvider(vilApiUrl))
 
 // Initialise Sentry before rendering so errors during boot are captured
 initSentry()

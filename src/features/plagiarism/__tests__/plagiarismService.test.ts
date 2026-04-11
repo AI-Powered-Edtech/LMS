@@ -3,15 +3,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 // ── Supabase Mock ────────────────────────────────────────────────────────────
 
 const mockFrom = vi.fn()
-const mockGetSession = vi.fn()
 
 vi.mock('@/services/supabase/client', () => ({
   supabase: {
-    auth: {
-      getSession: (...args: unknown[]) => mockGetSession(...args),
-    },
     from: (...args: unknown[]) => mockFrom(...args),
   },
+}))
+
+// ── VIL Session Mock ──────────────────────────────────────────────────────────
+
+vi.mock('@/services/auth/vilSession', () => ({
+  readVilSession: vi.fn(() => ({ access_token: 'mock-token' })),
 }))
 
 import { plagiarismService } from '../api/plagiarismService'
@@ -40,12 +42,7 @@ describe('plagiarismService', () => {
   })
 
   describe('checkPlagiarism', () => {
-    it('memanggil Edge Function check-plagiarism dan mengembalikan hasil', async () => {
-      mockGetSession.mockResolvedValue({
-        data: { session: { access_token: 'token-123' } },
-        error: null,
-      })
-
+    it('memanggil VIL plagiarism endpoint dan mengembalikan hasil', async () => {
       const mockFetch = vi.fn().mockResolvedValue({
         ok: true,
         json: vi.fn().mockResolvedValue({
@@ -62,7 +59,7 @@ describe('plagiarismService', () => {
       const result = await plagiarismService.checkPlagiarism('sub-1')
 
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/functions/v1/check-plagiarism'),
+        expect.stringContaining('/api/v1/plagiarism/check'),
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({ submission_id: 'sub-1' }),
@@ -76,22 +73,15 @@ describe('plagiarismService', () => {
     })
 
     it('melempar error ketika tidak terautentikasi', async () => {
-      mockGetSession.mockResolvedValue({
-        data: { session: null },
-        error: null,
-      })
+      const { readVilSession } = await import('@/services/auth/vilSession')
+      vi.mocked(readVilSession).mockReturnValueOnce(null)
 
       await expect(plagiarismService.checkPlagiarism('sub-1')).rejects.toThrow(
         'Tidak terautentikasi'
       )
     })
 
-    it('melempar error ketika Edge Function gagal', async () => {
-      mockGetSession.mockResolvedValue({
-        data: { session: { access_token: 'token-123' } },
-        error: null,
-      })
-
+    it('melempar error ketika API gagal', async () => {
       const mockFetch = vi.fn().mockResolvedValue({
         ok: false,
         json: vi.fn().mockResolvedValue({ error: 'Internal server error' }),
@@ -106,11 +96,6 @@ describe('plagiarismService', () => {
     })
 
     it('menggunakan pesan default ketika body error tidak ada', async () => {
-      mockGetSession.mockResolvedValue({
-        data: { session: { access_token: 'token-123' } },
-        error: null,
-      })
-
       const mockFetch = vi.fn().mockResolvedValue({
         ok: false,
         json: vi.fn().mockResolvedValue({}),
