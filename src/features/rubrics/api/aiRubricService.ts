@@ -1,4 +1,3 @@
-import { readVilSession } from '@/services/auth/vilSession'
 import { supabase } from '@/services/supabase/client'
 
 import type { RubricInsert } from '../types'
@@ -58,19 +57,18 @@ Kembalikan HANYA JSON (tanpa teks lain):
   ]
 }`
 
-    const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
-    const token = readVilSession()?.access_token
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ai-content`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ type: 'rubric', prompt, format: 'json' }),
+      }
+    )
 
-    const response = await fetch(`${apiUrl}/api/v1/ai/generate-content`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({ type: 'rubric', prompt, format: 'json' }),
-    })
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let data: any = {}
     if (!response.ok) {
       const err = await response.json().catch(() => ({}))

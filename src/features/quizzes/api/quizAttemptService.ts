@@ -57,10 +57,22 @@ export async function submitQuizAttempt(
   if (!session) throw new Error('Not authenticated')
 
   // SERVER-SIDE RATE LIMITING
-  // TODO: Phase 6 — check-rate-limit adalah internal service.
-  // Saat VIL mengimplementasi /api/v1/rate-limit, aktifkan kembali server-side check.
-  // Sementara, client-side rate limiting (via rateLimiter.ts) menjadi primary defense.
-  // const limitData = await checkVilRateLimit('quiz-submit', session.user.id, 10, 60000)
+  // Protect against brute-force or spam submissions.
+  // Calls the server-side Edge Function to increment counter and check limits.
+  const { data: limitData } = await supabase.functions.invoke('check-rate-limit', {
+    body: {
+      action: 'quiz-submit',
+      key: session.user.id,
+      maxAttempts: 10,
+      windowMs: 60000, // 10 attempts per minute
+    },
+  })
+
+  if (limitData && !limitData.allowed) {
+    throw new Error(
+      `Terlalu banyak percobaan submit. Coba lagi dalam ${Math.ceil(limitData.retryAfterMs / 1000)} detik.`
+    )
+  }
 
   const normalizedAnswers = normalizeFinalAnswers(answers)
 
