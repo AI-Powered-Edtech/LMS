@@ -1,9 +1,4 @@
-## 2024-05-20 - Fix Overly Permissive CORS Configuration
-**Vulnerability:** Edge functions (`ai-grade-essay` and `generate-ai-content`) had a hardcoded `Access-Control-Allow-Origin: '*'` header, which is overly permissive and allows any domain to interact with the API endpoints.
-**Learning:** This existed because edge functions default to generic CORS setups during prototyping and development, and the specific `CORS_ORIGIN` environment variable fallback was not uniformly adopted across all functions.
-**Prevention:** In this codebase, use the established pattern `Deno.env.get('CORS_ORIGIN') ?? '*'` to ensure production environments can restrict origins via environment variables, instead of hardcoding `*`.
-
-## 2024-03-18 - [Prevent Reverse Tabnabbing in Article Viewer]
-**Vulnerability:** The `ArticleViewer.tsx` component used `DOMPurify` to sanitize user-provided HTML but allowed arbitrary links to be rendered without enforcing `target="_blank"` and `rel="noopener noreferrer"`. This could expose users to reverse tabnabbing attacks if a malicious link is clicked.
-**Learning:** When using DOMPurify within a React component (e.g., inside a `useMemo` block), adding a hook to the global `DOMPurify` object is an unsafe pattern as it mutates global state during the render phase and `removeHook` would wipe out all hooks globally.
-**Prevention:** Always instantiate a local DOMPurify instance (`const localDOMPurify = DOMPurify(window)`) when adding custom hooks in a component to ensure the changes are safely isolated.
+## 2024-04-11 - Prevent XSS and Open Redirect in window.location.assign
+**Vulnerability:** The `GlobalSearchModal` component directly assigned an unsanitized URL from search results to `window.location.assign(url)`, opening up potential Cross-Site Scripting (XSS) via `javascript:` or `data:` URIs, or Open Redirect vulnerabilities if the API ever returned a malicious link.
+**Learning:** Even when links are assumed to come from a trusted backend search API, defense-in-depth requires validating the URL before redirecting. The project already has a `sanitizeRedirectTarget` helper for this purpose.
+**Prevention:** Always use `sanitizeRedirectTarget` from `authFlow.ts` before setting `window.location.href` or `window.location.assign()`. Since `sanitizeRedirectTarget` returns `null` for unsafe URLs, handle the `null` case explicitly by falling back to a safe route like `/app`, rather than using `?? url` which would silently execute the malicious input.
