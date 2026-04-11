@@ -9,7 +9,7 @@ mod state;
 use dotenvy::dotenv;
 use health::{health_handler, ready_handler};
 use sqlx::postgres::PgPoolOptions;
-use state::AppState;
+use state::{AppState, ShadowRuntimeConfig};
 use vil_server::prelude::{delete, get, post, Method, ServiceProcess, VilApp};
 
 use auth::bootstrap::bootstrap_handler;
@@ -35,6 +35,7 @@ use data_plane::{query_table_handler, rpc_proxy_handler};
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
+    observability::init_tracing();
 
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let jwt_secret = std::env::var("JWT_SECRET")
@@ -45,6 +46,15 @@ async fn main() -> anyhow::Result<()> {
         .ok()
         .and_then(|value| value.parse::<u16>().ok())
         .unwrap_or(8080);
+    let shadow_enabled = std::env::var("SHADOW_MODE_ENABLED")
+        .ok()
+        .map(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
+        .unwrap_or(false);
+    let divergence_sample_rate = std::env::var("DIVERGENCE_SAMPLE_RATE")
+        .ok()
+        .and_then(|value| value.parse::<f64>().ok())
+        .map(|value| value.clamp(0.0, 1.0))
+        .unwrap_or(if shadow_enabled { 1.0 } else { 0.0 });
 
     let db = PgPoolOptions::new()
         .max_connections(50)
@@ -55,7 +65,16 @@ async fn main() -> anyhow::Result<()> {
 
     let brute_force = edusync_middleware::brute_force::BruteForceTracker::new();
 
-    let app_state = AppState { db, jwt_secret, jwt_refresh_secret, brute_force };
+    let app_state = AppState {
+        db,
+        jwt_secret,
+        jwt_refresh_secret,
+        brute_force,
+        shadow: ShadowRuntimeConfig {
+            enabled: shadow_enabled,
+            divergence_sample_rate,
+        },
+    };
 
     let health_service = ServiceProcess::new("system")
         .prefix("/api/v1")
@@ -110,6 +129,20 @@ async fn main() -> anyhow::Result<()> {
         .endpoint(Method::POST, "/rpc/:name", post(rpc_proxy_handler))
         .state(app_state.clone());
 
+    let observability_service = ServiceProcess::new("observability")
+        .prefix("/api/v1/internal")
+        .endpoint(
+            Method::GET,
+            "/shadow-config",
+            get(observability::shadow_config_handler),
+        )
+        .endpoint(
+            Method::POST,
+            "/divergence-events",
+            post(observability::divergence_event_handler),
+        )
+        .state(app_state.clone());
+
     VilApp::new("edusync-api")
         .port(port)
         .profile("development")
@@ -119,6 +152,7 @@ async fn main() -> anyhow::Result<()> {
         .service(auth_service)
         .service(course_service)
         .service(data_service)
+        .service(observability_service)
         .run()
         .await;
 

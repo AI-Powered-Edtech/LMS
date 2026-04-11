@@ -1,5 +1,6 @@
 use axum::{
     extract::{Extension, Path, Query},
+    http::HeaderMap,
     response::{IntoResponse, Response},
     Json,
 };
@@ -13,6 +14,7 @@ use uuid::Uuid;
 
 use crate::{
     extractors::{AuthedRequest, RbacGuard},
+    observability::request_id_from_headers,
     state::AppState,
 };
 
@@ -113,9 +115,19 @@ fn map_course(row: PgRow) -> Result<Course, sqlx::Error> {
 
 pub async fn list_courses_handler(
     Extension(state): Extension<Arc<AppState>>,
+    headers: HeaderMap,
     AuthedRequest(ctx): AuthedRequest,
     Query(params): Query<CourseListQuery>,
 ) -> Result<Json<CourseListResponse>, CourseApiError> {
+    let request_id = request_id_from_headers(&headers);
+    tracing::info!(
+        target: "edusync_api_server::courses",
+        request_id = %request_id,
+        flow = "courses.list",
+        tenant_id = %ctx.tenant_id,
+        user_id = %ctx.user_id,
+        "list_courses_request"
+    );
     let limit = params.limit.unwrap_or(10).clamp(1, 100);
     let page = params.page.unwrap_or(1).max(1);
     let offset = (page - 1) * limit;
@@ -158,9 +170,20 @@ pub async fn list_courses_handler(
 
 pub async fn get_course_handler(
     Extension(state): Extension<Arc<AppState>>,
+    headers: HeaderMap,
     AuthedRequest(ctx): AuthedRequest,
     Path(course_id): Path<Uuid>,
 ) -> Result<Json<Course>, CourseApiError> {
+    let request_id = request_id_from_headers(&headers);
+    tracing::info!(
+        target: "edusync_api_server::courses",
+        request_id = %request_id,
+        flow = "courses.get",
+        course_id = %course_id,
+        tenant_id = %ctx.tenant_id,
+        user_id = %ctx.user_id,
+        "get_course_request"
+    );
     let row = sqlx::query(
         r#"SELECT id, title, description, subject, level, created_by, created_at, updated_at, tenant_id, status::text AS status, published_at
            FROM public.courses
@@ -284,9 +307,20 @@ pub async fn delete_course_handler(
 
 pub async fn get_course_modules_handler(
     Extension(state): Extension<Arc<AppState>>,
+    headers: HeaderMap,
     AuthedRequest(ctx): AuthedRequest,
     Path(course_id): Path<Uuid>,
 ) -> Result<Json<Vec<CourseModuleWithLessons>>, CourseApiError> {
+    let request_id = request_id_from_headers(&headers);
+    tracing::info!(
+        target: "edusync_api_server::courses",
+        request_id = %request_id,
+        flow = "courses.modules",
+        course_id = %course_id,
+        tenant_id = %ctx.tenant_id,
+        user_id = %ctx.user_id,
+        "get_course_modules_request"
+    );
     let modules = sqlx::query(
         r#"SELECT id, title, "order", course_id
            FROM public.course_modules

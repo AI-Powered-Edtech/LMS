@@ -7,7 +7,9 @@ import {
   subscribeVilSession,
   writeVilSession,
 } from '@/services/auth/vilSession'
+import { getSupabaseClient } from '@/services/supabase/client'
 
+import { buildRequestHeaders, createRequestId, runShadowComparison } from './shadow'
 import type {
   ApiAuthClient,
   ApiClient,
@@ -32,7 +34,64 @@ interface VilRpcResponse {
   returns_set: boolean
 }
 
+interface ShadowSelectResult {
+  data: unknown
+  error: unknown
+}
+
+interface ShadowSelectQuery extends PromiseLike<ShadowSelectResult> {
+  eq(column: string, value: unknown): ShadowSelectQuery
+  neq(column: string, value: unknown): ShadowSelectQuery
+  in(column: string, values: unknown[]): ShadowSelectQuery
+  ilike(column: string, pattern: string): ShadowSelectQuery
+  lt(column: string, value: unknown): ShadowSelectQuery
+  lte(column: string, value: unknown): ShadowSelectQuery
+  gt(column: string, value: unknown): ShadowSelectQuery
+  gte(column: string, value: unknown): ShadowSelectQuery
+  is(column: string, value: unknown): ShadowSelectQuery
+  not(column: string, operator: string, value: unknown): ShadowSelectQuery
+  order(column: string, options?: { ascending?: boolean }): ShadowSelectQuery
+  range(from: number, to: number): ShadowSelectQuery
+  limit(count: number): ShadowSelectQuery
+  single(): PromiseLike<ShadowSelectResult>
+  maybeSingle(): PromiseLike<ShadowSelectResult>
+}
+
 const DEFAULT_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+const SAFE_READ_RPCS = new Set([
+  'get_activity_timeline',
+  'get_assignment_analytics',
+  'get_assignment_grading_queue',
+  'get_assignment_submission_bundle',
+  'get_at_risk_students',
+  'get_attempt_detail',
+  'get_course_analytics',
+  'get_course_engagement',
+  'get_engagement_summary',
+  'get_engagement_trend',
+  'get_executive_overview',
+  'get_gradebook_students',
+  'get_group_settings',
+  'get_lesson_analytics',
+  'get_my_children',
+  'get_parent_dashboard_snapshot',
+  'get_principal_monthly_trend_cached',
+  'get_principal_overview_cached',
+  'get_question_difficulty',
+  'get_quiz_live_status',
+  'get_student_group_assignment',
+  'get_student_path',
+  'get_student_prediction',
+  'get_student_progress_bundle',
+  'get_student_signals',
+  'get_survey_results',
+  'get_teacher_analytics',
+  'get_teacher_group_overview',
+  'get_tenant_activity_counts',
+  'list_funnel_definitions',
+  'rpc_check_builder_access',
+  'validate_invitation',
+])
 
 function normalizeError(error: unknown, fallback = 'Permintaan VIL gagal.'): ApiError {
   if (!error || typeof error !== 'object') {
@@ -65,19 +124,8 @@ function notImplementedError(message: string): ApiError {
   }
 }
 
-function buildHeaders(withAuth = false): HeadersInit {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  }
-
-  if (withAuth) {
-    const session = readVilSession()
-    if (session?.access_token) {
-      headers.Authorization = `Bearer ${session.access_token}`
-    }
-  }
-
-  return headers
+function buildHeaders(withAuth = false, requestId?: string): HeadersInit {
+  return buildRequestHeaders({}, { withAuth, requestId })
 }
 
 async function parseResponse<T>(response: Response): Promise<{
@@ -188,25 +236,121 @@ class VilQueryBuilder<T = unknown> implements ApiQueryBuilder<T> {
       return Promise.resolve({ data: null, error: this.queryError, count: null })
     }
 
+    const requestId = createRequestId()
+    const requestPayload = {
+      action: this.action,
+      select: this.selectColumns,
+      filters: this.filters,
+      order: this.orders,
+      range: this.currentRange,
+      limit: this.currentLimit,
+      values: this.values,
+      options: this.currentOptions,
+      single: this.singleMode,
+    }
+
     return requestJson<VilQueryResponse>(`/api/v1/data/${this.table}`, {
       method: 'POST',
-      headers: buildHeaders(true),
-      body: JSON.stringify({
-        action: this.action,
-        select: this.selectColumns,
-        filters: this.filters,
-        order: this.orders,
-        range: this.currentRange,
-        limit: this.currentLimit,
-        values: this.values,
-        options: this.currentOptions,
-        single: this.singleMode,
-      }),
-    }).then(({ data, error }) => ({
-      data: ((data?.data ?? null) as T | null) ?? null,
-      error,
-      count: typeof data?.count === 'number' ? data.count : null,
-    }))
+      headers: buildHeaders(true, requestId),
+      body: JSON.stringify(requestPayload),
+    }).then(({ data, error }) => {
+      const result = {
+        data: ((data?.data ?? null) as T | null) ?? null,
+        error,
+        count: typeof data?.count === 'number' ? data.count : null,
+      }
+
+      void this.runShadowSelect(requestId, requestPayload, result)
+      return result
+    })
+  }
+
+  private async runShadowSelect(
+    requestId: string,
+    requestPayload: JsonRecord,
+    primaryResult: ApiQueryResult<T>
+  ): Promise<void> {
+    if (this.action !== 'select') {
+      return
+    }
+
+    await runShadowComparison({
+      flowName: `proxy.query.${this.table}`,
+      endpoint: `/api/v1/data/${this.table}`,
+      method: 'POST',
+      shadowMode: 'read',
+      primaryBackend: 'vil',
+      shadowBackend: 'supabase',
+      requestSignature: requestPayload,
+      requestId,
+      primaryResult,
+      shadowRequest: async () => {
+        let query = getSupabaseClient()
+          .from(this.table)
+          .select(this.selectColumns, this.currentOptions as never) as unknown as ShadowSelectQuery
+
+        for (const filter of this.filters) {
+          switch (filter.op) {
+            case 'not':
+              if (!filter.comparator) {
+                throw new Error(`Shadow filter comparator untuk ${filter.column} wajib diisi`)
+              }
+              query = query.not(filter.column, filter.comparator, filter.value)
+              break
+            case 'is':
+              query = query.is(filter.column, filter.value)
+              break
+            case 'eq':
+              query = query.eq(filter.column, filter.value)
+              break
+            case 'neq':
+              query = query.neq(filter.column, filter.value)
+              break
+            case 'in':
+              query = query.in(filter.column, filter.value as unknown[])
+              break
+            case 'ilike':
+              query = query.ilike(filter.column, filter.value as string)
+              break
+            case 'lt':
+              query = query.lt(filter.column, filter.value)
+              break
+            case 'lte':
+              query = query.lte(filter.column, filter.value)
+              break
+            case 'gt':
+              query = query.gt(filter.column, filter.value)
+              break
+            case 'gte':
+              query = query.gte(filter.column, filter.value)
+              break
+            default:
+              throw new Error(`Shadow filter ${filter.op} belum didukung`)
+          }
+        }
+
+        for (const order of this.orders) {
+          query = query.order(order.column, { ascending: order.ascending !== false })
+        }
+
+        if (this.currentRange) {
+          query = query.range(this.currentRange.from, this.currentRange.to)
+        } else if (this.currentLimit !== null) {
+          query = query.limit(this.currentLimit)
+        }
+
+        const shadow =
+          this.singleMode === 'single'
+            ? await query.single()
+            : this.singleMode === 'maybeSingle'
+              ? await query.maybeSingle()
+              : await query
+        return {
+          data: (shadow.data ?? null) as T | null,
+          error: shadow.error ? normalizeError(shadow.error) : null,
+        }
+      },
+    })
   }
 
   select(columns = '*', options?: Record<string, unknown>): ApiQueryBuilder<T> {
@@ -429,21 +573,21 @@ async function callAuthRpc<T = unknown>(
     case 'ensure_profile_exists':
       return requestJson<T>('/api/v1/auth/ensure-profile', {
         method: 'POST',
-        headers: buildHeaders(true),
+        headers: buildHeaders(true, createRequestId()),
         body: JSON.stringify({}),
       })
 
     case 'accept_invitation':
       return requestJson<T>('/api/v1/auth/accept-invitation', {
         method: 'POST',
-        headers: buildHeaders(true),
+        headers: buildHeaders(true, createRequestId()),
         body: JSON.stringify({ token: args?.p_token }),
       })
 
     case 'enroll_student':
       return requestJson<T>('/api/v1/auth/enroll', {
         method: 'POST',
-        headers: buildHeaders(true),
+        headers: buildHeaders(true, createRequestId()),
         body: JSON.stringify({ join_code: args?.p_join_code }),
       })
 
@@ -452,7 +596,7 @@ async function callAuthRpc<T = unknown>(
         `/api/v1/auth/validate-invitation?token=${encodeURIComponent(String(args?.p_token ?? ''))}`,
         {
           method: 'GET',
-          headers: buildHeaders(),
+          headers: buildHeaders(false, createRequestId()),
         }
       )
 
@@ -461,7 +605,7 @@ async function callAuthRpc<T = unknown>(
         `/api/v1/auth/lookup-class?code=${encodeURIComponent(String(args?.p_join_code ?? ''))}`,
         {
           method: 'GET',
-          headers: buildHeaders(),
+          headers: buildHeaders(false, createRequestId()),
         }
       )
 
@@ -471,7 +615,7 @@ async function callAuthRpc<T = unknown>(
           `/api/v1/auth/lookup-class?code=${encodeURIComponent(String(args?.p_join_code ?? ''))}`,
           {
             method: 'GET',
-            headers: buildHeaders(),
+            headers: buildHeaders(false, createRequestId()),
           }
         )
 
@@ -481,7 +625,7 @@ async function callAuthRpc<T = unknown>(
 
         const enroll = await requestJson<unknown>('/api/v1/auth/enroll', {
           method: 'POST',
-          headers: buildHeaders(true),
+          headers: buildHeaders(true, createRequestId()),
           body: JSON.stringify({ join_code: args?.p_join_code }),
         })
 
@@ -510,7 +654,7 @@ async function callAuthRpc<T = unknown>(
       {
         const result = await requestJson<JsonRecord>('/api/v1/auth/create-tenant', {
           method: 'POST',
-          headers: buildHeaders(true),
+          headers: buildHeaders(true, createRequestId()),
           body: JSON.stringify({
             name: args?.p_school_name,
             slug:
@@ -538,16 +682,40 @@ async function callAuthRpc<T = unknown>(
 
     default:
       {
+        const requestId = createRequestId()
         const result = await requestJson<VilRpcResponse>(`/api/v1/rpc/${fn}`, {
           method: 'POST',
-          headers: buildHeaders(true),
+          headers: buildHeaders(true, requestId),
           body: JSON.stringify({ args: args ?? {} }),
         })
 
-        return {
+        const payload = {
           data: ((result.data?.data ?? null) as T | null) ?? null,
           error: result.error,
         }
+
+        if (SAFE_READ_RPCS.has(fn)) {
+          void runShadowComparison({
+            flowName: `proxy.rpc.${fn}`,
+            endpoint: `/api/v1/rpc/${fn}`,
+            method: 'POST',
+            shadowMode: 'read',
+            primaryBackend: 'vil',
+            shadowBackend: 'supabase',
+            requestSignature: { fn, args: args ?? {} },
+            requestId,
+            primaryResult: payload,
+            shadowRequest: async () => {
+              const shadow = await getSupabaseClient().rpc(fn, args ?? {})
+              return {
+                data: (shadow.data ?? null) as T | null,
+                error: shadow.error ? normalizeError(shadow.error) : null,
+              }
+            },
+          })
+        }
+
+        return payload
       }
   }
 }

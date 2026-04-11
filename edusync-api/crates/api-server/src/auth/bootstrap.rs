@@ -1,9 +1,10 @@
-use std::sync::Arc;
 use axum::{extract::Extension, http::HeaderMap, Json};
+use edusync_auth::{verify_access_token, AuthError};
 use serde::Serialize;
+use std::sync::Arc;
 use uuid::Uuid;
-use edusync_auth::{AuthError, verify_access_token};
-use crate::state::AppState;
+
+use crate::{observability::request_id_from_headers, state::AppState};
 
 #[derive(Serialize)]
 pub struct BootstrapProfile {
@@ -39,6 +40,7 @@ pub async fn bootstrap_handler(
     Extension(state): Extension<Arc<AppState>>,
     headers: HeaderMap,
 ) -> Result<Json<BootstrapResponse>, AuthError> {
+    let request_id = request_id_from_headers(&headers);
     let token = headers
         .get("authorization")
         .and_then(|v| v.to_str().ok())
@@ -47,6 +49,15 @@ pub async fn bootstrap_handler(
 
     let claims = verify_access_token(token, &state.jwt_secret)?;
     let user_id: Uuid = claims.sub.parse().map_err(|_| AuthError::InvalidToken)?;
+    tracing::info!(
+        target: "edusync_api_server::auth",
+        request_id = %request_id,
+        flow = "auth.bootstrap",
+        user_id = %user_id,
+        role = %claims.role,
+        tenant_id = %claims.tenant_id.clone().unwrap_or_default(),
+        "auth_bootstrap_request"
+    );
 
     // Get profile + email_confirmed_at
     let row = sqlx::query!(

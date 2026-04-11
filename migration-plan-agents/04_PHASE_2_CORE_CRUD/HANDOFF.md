@@ -14,15 +14,18 @@ Dokumentasi ini mencatat status aktual Phase 2 di codebase saat ini. Implementas
 | Models Batch 1 | ✅ | `course.rs`, `class.rs`, `course_module.rs`, `lesson.rs` cocok dengan skema lokal |
 | Courses CRUD | ✅ | Backend VIL punya route `courses` + modules, dan frontend `courseService` memakai cabang VIL |
 | Generic VIL data plane | ✅ | `/api/v1/data/:table` + `/api/v1/rpc/:name` aktif untuk service layer yang masih memakai `supabase.from/rpc` |
+| Observability + divergence sink | ✅ | `init_tracing()` aktif, request correlation id dipropagasi, dan `POST /api/v1/internal/divergence-events` tersedia |
+| Shadow read path | ✅ Partial | Read shadow untuk proxy query/RPC aman, auth bootstrap, dan `courses` GET path sudah aktif |
+| Gate 3 scoped verification | ✅ Partial | `typecheck:migration-gate`, `lint:migration-gate`, dan `test:gate3` sudah tersedia dan dapat dijalankan |
 | Frontend service refactor | ✅ | Service Batch 1–4 yang kritikal sudah dipindah dari nested PostgREST joins ke flat query composition |
 | Auth-adjacent onboarding RPCs | ✅ | `create_school_tenant`, enroll, invitation flow, onboarding flow tersambung ke mode `vil` |
 | Batch 2–4 | ✅ Implemented | Quiz, assignment, gradebook, analytics, progress, parent/onboarding path sudah bisa melewati VIL data plane |
 
 ### Yang Masih Tersisa
 
-- Shadow mode + divergence logging formal belum ada
-- Gate 3 security review belum dijalankan
-- Integration suite penuh untuk Batch 1–4 belum tersedia
+- Write shadow untuk quiz attempt, assignment submission, dan gradebook write belum dipasang
+- Gate 3 security review belum ditutup penuh walau guard inti data plane sudah diperketat
+- Integration suite penuh Batch 1–4 belum lengkap; yang ada saat ini baru API-level Gate 3 starter suite
 - Google OAuth callback Phase 1 masih stub
 
 ---
@@ -53,6 +56,7 @@ edusync-api/crates/
 - `src/services/auth/vilSession.ts` — shared session storage + in-memory auth event bus untuk mode `vil`
 - `src/services/auth/vilAuthProvider.ts` — login/register/refresh/signout/bootstrap/verify/reset flow untuk VIL
 - `src/services/api/runtime.ts` — runtime registry untuk active backend/client
+- `src/services/api/shadow.ts` — helper shadow read, hashing hasil, dan pengiriman divergence event
 - `src/services/api/vilApiClient.ts` — query builder VIL + generic RPC proxy untuk mode `vil`
 - `src/features/courses/api/courseService.ts` — sudah punya cabang VIL untuk CRUD course inti
 - `src/features/quizzes/api/*`, `src/features/assignments/api/*`, `src/features/gradebook/api/*`, `src/features/progress/api/*`, `src/features/parent/api/*`, `src/features/lessons/api/*` — service layer inti sudah diadaptasi ke flat query composition yang kompatibel dengan VIL
@@ -62,6 +66,7 @@ edusync-api/crates/
 ## Known Gaps
 
 - Google OAuth callback VIL masih stub
+- Shadow saat ini masih fokus di read/idempotent path; write shadow belum dibuka
 - `pnpm typecheck`, `pnpm lint`, dan `pnpm build` repo utama masih gagal oleh debt pre-existing di area non-migration seperti `OfflineSyncIndicator`, `useBulkImport`, `ai-builder-copilot`, dan beberapa comprehensive test file
 - `questionBankService` Phase 33A masih memakai join PostgREST lama dan belum termasuk scope Phase 2 ini
 - Realtime, storage, Edge Functions, PDF, dan email digest tetap berada di jalur phase berikutnya
@@ -80,9 +85,9 @@ edusync-api/crates/
 
 Sebelum Phase 3 boleh dimulai, minimal hal berikut masih harus selesai:
 
-1. Gate 3 security review dijalankan
-2. Shadow mode + divergence logging dipasang untuk flow kritikal
-3. Integration tests Batch 1–4 ditambahkan dan dijalankan
+1. Write shadow dipasang untuk flow mutasi kritikal
+2. Gate 3 security review ditutup penuh
+3. Integration tests Batch 1–4 diperluas dari starter suite yang ada sekarang
 4. Cleanup debt typecheck/lint repo utama yang masih unrelated ke migration slice
 
 ---

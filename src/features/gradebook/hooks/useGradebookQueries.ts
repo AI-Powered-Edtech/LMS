@@ -12,10 +12,10 @@ import {
   submitGradeLegacy,
   syncGradebook,
 } from '../api/gradebookApi'
+import { gradebookService } from '../api/gradebookService'
 import {
   GradebookAssignment,
   GradebookData,
-  gradebookService,
   GradeEntry,
   GradeStatus,
 } from '../api/legacyGradebookService'

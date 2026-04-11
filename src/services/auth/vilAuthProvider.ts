@@ -1,4 +1,7 @@
 /* eslint-disable max-lines */
+import { createRequestId, runShadowComparison } from '@/services/api/shadow'
+
+import { createSupabaseAuthProvider } from './supabaseAuthProvider'
 import type {
   AuthBootstrap,
   AuthError,
@@ -162,15 +165,50 @@ export function createVilAuthProvider(baseUrl = 'http://localhost:8080'): AuthPr
         return { data: null, error: { message: 'Belum login.', status: 401 } }
       }
 
-      return requestJson<AuthBootstrap>(
+      const requestId = createRequestId()
+      const result = await requestJson<AuthBootstrap>(
         baseUrl,
         '/api/v1/auth/bootstrap',
         {
           method: 'GET',
-          headers: buildHeaders(session),
+          headers: {
+            ...buildHeaders(session),
+            'X-Request-Id': requestId,
+          },
         },
         'Gagal memuat bootstrap autentikasi.'
       )
+
+      if (!result.error) {
+        void runShadowComparison({
+          flowName: 'auth.bootstrap',
+          endpoint: '/api/v1/auth/bootstrap',
+          method: 'GET',
+          shadowMode: 'read',
+          primaryBackend: 'vil',
+          shadowBackend: 'supabase',
+          requestSignature: { userId: session.user.id },
+          requestId,
+          primaryResult: {
+            data: result.data,
+            error: result.error ?? undefined,
+          },
+          shadowRequest: async () => {
+            const shadow = await createSupabaseAuthProvider().getAuthBootstrap()
+            return {
+              data: shadow.data,
+              error: shadow.error
+                ? {
+                    message: shadow.error.message,
+                    status: shadow.error.status,
+                  }
+                : null,
+            }
+          },
+        })
+      }
+
+      return result
     },
 
     onAuthStateChange: (callback) => ({

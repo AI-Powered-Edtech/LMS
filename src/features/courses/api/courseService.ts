@@ -1,20 +1,19 @@
+/* eslint-disable max-lines */
 import { getApiBackend, getApiClient } from '@/services/api'
+import { buildRequestHeaders, createRequestId, runShadowComparison } from '@/services/api/shadow'
 import { readVilSession } from '@/services/auth/vilSession'
+import { getSupabaseClient } from '@/services/supabase/client'
 import { logDevError, logDevWarn } from '@/utils/logDevError'
 
 import type { Course, CourseInsert, CourseUpdate, FetchCoursesOptions } from '../types'
 
 const VIL_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 
-async function requestVil<T>(path: string, init?: RequestInit): Promise<T> {
-  const session = readVilSession()
+async function requestVil<T>(path: string, init?: RequestInit & { requestId?: string }): Promise<T> {
+  const requestId = init?.requestId ?? createRequestId()
   const response = await fetch(`${VIL_BASE_URL}${path}`, {
     ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
-      ...(init?.headers ?? {}),
-    },
+    headers: buildRequestHeaders(init?.headers ?? {}, { withAuth: true, requestId }),
   })
 
   if (!response.ok) {
@@ -38,6 +37,84 @@ async function requestVil<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T
 }
 
+async function fetchSupabaseCoursesShadow(
+  tenantId: string,
+  page: number,
+  limit: number,
+  search?: string,
+  ids?: string[]
+): Promise<{ courses: Course[]; count: number }> {
+  let query = getSupabaseClient()
+    .from('courses')
+    .select(
+      'id, title, description, status, subject, level, created_at, updated_at, created_by, tenant_id',
+      { count: 'exact' }
+    )
+    .eq('tenant_id', tenantId)
+    .order('created_at', { ascending: false })
+
+  if (search) {
+    query = query.ilike('title', `%${search}%`)
+  }
+
+  const from = (page - 1) * limit
+  const to = from + limit - 1
+  query = query.range(from, to)
+
+  const { data, error, count } = await query
+  if (error) {
+    throw error
+  }
+
+  return {
+    courses: ((data ?? []) as unknown as Course[]).filter((course) => (ids?.length ? ids.includes(course.id) : true)),
+    count: count ?? 0,
+  }
+}
+
+async function fetchSupabaseCourseModulesShadow(
+  courseId: string,
+  tenantId: string
+): Promise<Array<{ id: string; title: string; order: number; course_id: string; lessons: unknown[] }>> {
+  const { data: modules, error } = await getSupabaseClient()
+    .from('course_modules')
+    .select('id, title, "order", course_id')
+    .eq('tenant_id', tenantId)
+    .eq('course_id', courseId)
+    .order('order', { ascending: true })
+
+  if (error) {
+    throw error
+  }
+
+  const moduleIds = ((modules ?? []) as Array<{ id: string }>).map((module) => module.id)
+  const { data: lessons, error: lessonError } =
+    moduleIds.length > 0
+      ? await getSupabaseClient()
+          .from('lessons')
+          .select('id, module_id, duration_minutes, "order"')
+          .eq('tenant_id', tenantId)
+          .in('module_id', moduleIds)
+          .order('order', { ascending: true })
+      : { data: [], error: null }
+
+  if (lessonError) {
+    throw lessonError
+  }
+
+  return ((modules ?? []) as Array<{ id: string; title: string; order: number; course_id: string }>).map(
+    (module) => ({
+      ...module,
+      lessons: ((lessons ?? []) as Array<{ id: string; module_id: string; duration_minutes: number | null }>)
+        .filter((lesson) => lesson.module_id === module.id)
+        .map((lesson) => ({
+          id: lesson.id,
+          duration_minutes: lesson.duration_minutes,
+        })),
+    })
+  )
+}
+
 export const courseService = {
   /**
    * Fetches courses for a specific tenant with optional pagination and search.
@@ -51,6 +128,7 @@ export const courseService = {
     ids,
   }: FetchCoursesOptions): Promise<{ courses: Course[]; count: number }> {
     if (getApiBackend() === 'vil') {
+      const requestId = createRequestId()
       const params = new URLSearchParams({
         page: String(page),
         limit: String(limit),
@@ -58,12 +136,36 @@ export const courseService = {
       if (search) params.set('search', search)
 
       const result = await requestVil<{ courses: Course[]; count: number }>(
-        `/api/v1/courses?${params.toString()}`
+        `/api/v1/courses?${params.toString()}`,
+        { requestId }
       )
 
       const courses = ids?.length
         ? result.courses.filter((course) => ids.includes(course.id))
         : result.courses
+
+      const session = readVilSession()
+      const shadowTenantId =
+        tenantId || (typeof session?.user?.user_metadata?.tenant_id === 'string'
+          ? session.user.user_metadata.tenant_id
+          : '')
+
+      if (shadowTenantId) {
+        void runShadowComparison({
+          flowName: 'courses.list',
+          endpoint: '/api/v1/courses',
+          method: 'GET',
+          shadowMode: 'read',
+          primaryBackend: 'vil',
+          shadowBackend: 'supabase',
+          requestSignature: { page, limit, search, ids },
+          requestId,
+          primaryResult: { data: { courses, count: result.count } },
+          shadowRequest: async () => ({
+            data: await fetchSupabaseCoursesShadow(shadowTenantId, page, limit, search, ids),
+          }),
+        })
+      }
 
       return { courses, count: result.count }
     }
@@ -156,7 +258,37 @@ export const courseService = {
    */
   async getCourseById(courseId: string, tenantId: string): Promise<Course | null> {
     if (getApiBackend() === 'vil') {
-      return await requestVil<Course>(`/api/v1/courses/${courseId}`)
+      const requestId = createRequestId()
+      const result = await requestVil<Course>(`/api/v1/courses/${courseId}`, { requestId })
+
+      void runShadowComparison({
+        flowName: 'courses.get',
+        endpoint: `/api/v1/courses/${courseId}`,
+        method: 'GET',
+        shadowMode: 'read',
+        primaryBackend: 'vil',
+        shadowBackend: 'supabase',
+        requestSignature: { courseId },
+        requestId,
+        primaryResult: { data: result },
+        shadowRequest: async () => {
+          const shadow = await getSupabaseClient()
+            .from('courses')
+            .select(
+              'id, title, description, status, subject, level, created_at, updated_at, created_by, tenant_id'
+            )
+            .eq('id', courseId)
+            .eq('tenant_id', tenantId)
+            .single()
+
+          return {
+            data: (shadow.data ?? null) as Course | null,
+            error: shadow.error ?? null,
+          }
+        },
+      })
+
+      return result
     }
 
     const db = getApiClient()
@@ -277,11 +409,27 @@ export const courseService = {
     Array<{ id: string; title: string; order: number; course_id: string; lessons: unknown[] }>
   > {
     if (getApiBackend() === 'vil') {
-      return await requestVil<
+      const requestId = createRequestId()
+      const result = await requestVil<
         Array<{ id: string; title: string; order: number; course_id: string; lessons: unknown[] }>
-      >(
-        `/api/v1/courses/${courseId}/modules`
-      )
+      >(`/api/v1/courses/${courseId}/modules`, { requestId })
+
+      void runShadowComparison({
+        flowName: 'courses.modules',
+        endpoint: `/api/v1/courses/${courseId}/modules`,
+        method: 'GET',
+        shadowMode: 'read',
+        primaryBackend: 'vil',
+        shadowBackend: 'supabase',
+        requestSignature: { courseId },
+        requestId,
+        primaryResult: { data: result },
+        shadowRequest: async () => ({
+          data: await fetchSupabaseCourseModulesShadow(courseId, tenantId),
+        }),
+      })
+
+      return result
     }
 
     const db = getApiClient()

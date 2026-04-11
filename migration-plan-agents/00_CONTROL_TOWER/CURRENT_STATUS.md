@@ -1,8 +1,8 @@
 # Current Status
 
 **Last Updated:** 2026-04-11
-**Current Phase:** Phase 2 (ACTIVE — implementation pass complete, formal cutover gates pending)
-**Execution Readiness:** 92/100 → Target: 92/100
+**Current Phase:** Phase 2 (ACTIVE — implementation pass complete, Gate 3 prep in progress)
+**Execution Readiness:** 94/100 → Target: 94/100
 
 ---
 
@@ -101,7 +101,7 @@
 | ------------------------ | --------------- | ------------------------------------------------ |
 | Gate 1 (Phase 0)         | **PASSED** ✅   | All 4 provider abstractions shipped (2026-04-09) |
 | Gate 2 (Phase 1 Auth)    | **PASSED** ✅   | All 10 auth endpoints verified (2026-04-11)      |
-| Gate 3 (Phase 2 Batch 1) | **PENDING**     | Implementation shipped; security/shadow review belum dijalankan |
+| Gate 3 (Phase 2 Batch 1) | **PENDING**     | Read shadow, divergence sink, scoped gates, dan API integration suite sudah ada; write shadow + final review masih pending |
 | Gate 4 (Phase 3)         | **NOT REACHED** | Stability check                                  |
 | Gate 5 (Phase 4)         | **NOT REACHED** | Realtime reliability                             |
 | Gate 6 (Phase 6)         | **NOT REACHED** | Final success                                    |
@@ -110,13 +110,13 @@
 
 ## Next Immediate Action Items
 
-1. **Phase 2 review pass** 🔄 ACTIVE
-   - VIL data plane (`/api/v1/data/*`, `/api/v1/rpc/*`) sudah dipakai untuk Batch 1–4 service layer
-   - Remaining formal work: Gate 3 security review, shadow mode, integration test suite penuh
+1. **Gate 3 hardening** 🔄 ACTIVE
+   - Tracing JSON, divergence sink, read shadow wrapper, dan scoped gate scripts sudah masuk
+   - Remaining formal work: write shadow untuk flow mutasi kritikal dan final security review sign-off
 
 2. **Verification debt outside migration slice**
    - `pnpm typecheck`, `pnpm lint`, `pnpm build` masih gagal oleh error/warning pre-existing di area non-migration
-   - Targeted lint untuk file migrasi lulus; backend `cargo check` + `cargo test` lulus
+   - `typecheck:migration-gate`, `lint:migration-gate`, dan `test:gate3` sekarang bisa dipakai sebagai sinyal scoped
 
 ---
 
@@ -178,4 +178,4 @@
 
 - Phase 0 abstraction layer sudah shipped; 0E/0F/0G masih berupa follow-up hardening dan verification debt
 - Phase 1 sudah selesai secara implementasi; follow-up tinggal OAuth exchange + cleanup
-- Phase 2 implementation pass complete, tetapi belum boleh dianggap exit-complete sebelum security review, shadow mode, dan integration suite ditutup
+- Phase 2 implementation pass complete; Gate 3 prep sekarang sudah punya observability, read shadow, dan integration suite API, tetapi belum exit-complete sebelum write shadow dan final review ditutup

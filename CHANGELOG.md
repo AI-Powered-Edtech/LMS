@@ -1,5 +1,29 @@
 # EduSync LMS — Changelog
 
+## [Phase 2 Gate 3 Prep — Observability, Shadow Read, dan Scoped Gates] — 2026-04-11
+
+### Added
+
+- `src/services/api/shadow.ts` — helper shadow comparison untuk request VIL, hash hasil, diff summary, dan pengiriman divergence event ke backend
+- `edusync-api/crates/integration-tests/tests/gate3_api.rs` — integration suite API untuk bootstrap auth, cardinality semantics, tenant isolation guard, RPC arg validation, dan course CRUD flow
+- `scripts/typecheck-migration-gate.mjs` — scoped typecheck gate yang hanya memblokir error pada surface migration
+
+### Changed
+
+- `edusync-api/crates/api-server/src/observability.rs` dan `main.rs` — tracing JSON sekarang benar-benar diaktifkan saat startup, runtime config shadow masuk ke `AppState`, dan tersedia sink `POST /api/v1/internal/divergence-events`
+- `edusync-api/crates/api-server/src/data_plane.rs` — tenant filter tidak lagi bisa dioverride, `single()/maybeSingle()` kini error pada >1 row, `update/delete` tenant-wide tanpa filter bisnis ditolak, dan resolver RPC tidak lagi memilih overload secara buta
+- `edusync-api/crates/api-server/src/auth/bootstrap.rs` dan `courses.rs` — request correlation id + tracing log untuk flow bootstrap dan course read path
+- `src/services/api/vilApiClient.ts`, `src/services/auth/vilAuthProvider.ts`, dan `src/features/courses/api/courseService.ts` — shadow read aktif untuk proxy query/RPC aman, auth bootstrap, dan course REST read path
+- `package.json` — ditambah `typecheck:migration-gate`, `lint:migration-gate`, dan `test:gate3`
+- `migration-plan-agents/00_CONTROL_TOWER/CURRENT_STATUS.md` dan `migration-plan-agents/04_PHASE_2_CORE_CRUD/HANDOFF.md` — status Gate 3 prep diselaraskan dengan implementasi observability/shadow/integration terbaru
+
+### Verified
+
+- `DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres cargo check -p edusync-api-server` lulus
+- `pnpm run typecheck:migration-gate` lulus untuk scope migration
+- `pnpm run lint:migration-gate` lulus tanpa error
+- `pnpm run test:gate3` lulus
+
 ## [Phase 2 VIL Data Plane + Service Migration Pass] — 2026-04-11
 
 ### Added

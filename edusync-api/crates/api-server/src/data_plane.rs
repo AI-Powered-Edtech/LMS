@@ -1,5 +1,6 @@
 use axum::{
     extract::{Extension, Path},
+    http::HeaderMap,
     response::{IntoResponse, Response},
     Json,
 };
@@ -12,6 +13,7 @@ use std::{collections::BTreeMap, sync::Arc};
 
 use crate::{
     extractors::AuthedRequest,
+    observability::request_id_from_headers,
     state::AppState,
 };
 
@@ -257,6 +259,8 @@ pub struct QueryOptions {
     pub head: Option<bool>,
     #[serde(rename = "onConflict", default)]
     pub on_conflict: Option<String>,
+    #[serde(rename = "allowFullTenantWrite", default)]
+    pub allow_full_tenant_write: Option<bool>,
 }
 
 #[derive(Debug, Serialize)]
@@ -275,6 +279,13 @@ pub struct RpcRequest {
 pub struct RpcResponse {
     pub data: Value,
     pub returns_set: bool,
+}
+
+#[derive(Debug)]
+struct ResolvedRpc {
+    returns_set: bool,
+    return_type: String,
+    arg_types: BTreeMap<String, String>,
 }
 
 fn is_allowed_identifier(value: &str) -> bool {
@@ -582,15 +593,39 @@ fn apply_filters(
     columns: &BTreeMap<String, ColumnMeta>,
 ) -> Result<(), DataPlaneError> {
     let mut filters = request_filters.to_vec();
-    if columns.contains_key("tenant_id")
-        && !filters.iter().any(|filter| filter.column.trim_matches('"') == "tenant_id")
-    {
-        filters.push(QueryFilter {
-            column: "tenant_id".to_string(),
-            op: "eq".to_string(),
-            value: Value::String(ctx.0.tenant_id.to_string()),
-            comparator: None,
-        });
+    if columns.contains_key("tenant_id") {
+        let tenant_id = ctx.0.tenant_id.to_string();
+        let mut saw_tenant_filter = false;
+
+        for filter in filters.iter_mut() {
+            if filter.column.trim_matches('"') != "tenant_id" {
+                continue;
+            }
+
+            saw_tenant_filter = true;
+
+            match (&*filter.op, &filter.value) {
+                ("eq", Value::String(value)) if value == &tenant_id => {}
+                ("in", Value::Array(values))
+                    if values.iter().all(|value| value.as_str() == Some(tenant_id.as_str())) => {}
+                _ => {
+                    return Err(AppError::Forbidden.into());
+                }
+            }
+
+            filter.value = Value::String(tenant_id.clone());
+            filter.op = "eq".to_string();
+            filter.comparator = None;
+        }
+
+        if !saw_tenant_filter {
+            filters.push(QueryFilter {
+                column: "tenant_id".to_string(),
+                op: "eq".to_string(),
+                value: Value::String(tenant_id),
+                comparator: None,
+            });
+        }
     }
 
     if !filters.is_empty() {
@@ -606,6 +641,37 @@ fn apply_filters(
             })?;
             push_filter(builder, filter, column)?;
         }
+    }
+
+    Ok(())
+}
+
+fn ensure_safe_mutation_filters(
+    filters: &[QueryFilter],
+    columns: &BTreeMap<String, ColumnMeta>,
+    options: &QueryOptions,
+) -> Result<(), DataPlaneError> {
+    if options.allow_full_tenant_write.unwrap_or(false) {
+        return Ok(());
+    }
+
+    let requires_non_tenant_filter = columns.contains_key("tenant_id");
+    let has_non_tenant_filter = filters
+        .iter()
+        .any(|filter| filter.column.trim_matches('"') != "tenant_id");
+
+    if requires_non_tenant_filter && !has_non_tenant_filter {
+        return Err(AppError::BadRequest(
+            "Mutasi VIL membutuhkan minimal satu filter bisnis selain tenant_id".to_string(),
+        )
+        .into());
+    }
+
+    if !requires_non_tenant_filter && filters.is_empty() {
+        return Err(AppError::BadRequest(
+            "Mutasi VIL membutuhkan filter eksplisit atau allowFullTenantWrite=true".to_string(),
+        )
+        .into());
     }
 
     Ok(())
@@ -663,14 +729,27 @@ fn map_rows(rows: Vec<PgRow>) -> Result<Value, DataPlaneError> {
 fn single_payload(payload: Value, mode: Option<&str>) -> Result<Value, DataPlaneError> {
     match mode {
         Some("single") => match payload {
-            Value::Array(items) => items
-                .into_iter()
-                .next()
-                .ok_or_else(|| AppError::NotFound.into()),
+            Value::Array(items) => match items.len() {
+                0 => Err(AppError::NotFound.into()),
+                1 => Ok(items.into_iter().next().unwrap_or(Value::Null)),
+                _ => Err(AppError::BadRequest(
+                    "single() mengharapkan tepat satu baris, tetapi menerima lebih dari satu hasil"
+                        .to_string(),
+                )
+                .into()),
+            },
             other => Ok(other),
         },
         Some("maybeSingle") => match payload {
-            Value::Array(items) => Ok(items.into_iter().next().unwrap_or(Value::Null)),
+            Value::Array(items) => match items.len() {
+                0 => Ok(Value::Null),
+                1 => Ok(items.into_iter().next().unwrap_or(Value::Null)),
+                _ => Err(AppError::BadRequest(
+                    "maybeSingle() mengharapkan nol atau satu baris, tetapi menerima lebih dari satu hasil"
+                        .to_string(),
+                )
+                .into()),
+            },
             other => Ok(other),
         },
         _ => Ok(payload),
@@ -781,12 +860,96 @@ fn push_rpc_arg(builder: &mut QueryBuilder<'_, Postgres>, value: &Value, sql_typ
     }
 }
 
+async fn resolve_rpc_signature(
+    pool: &PgPool,
+    name: &str,
+    provided_arg_names: &[String],
+) -> Result<ResolvedRpc, DataPlaneError> {
+    let rows = sqlx::query(
+        r#"
+        SELECT
+            p.oid::text AS oid,
+            p.proretset AS returns_set,
+            pg_catalog.format_type(p.prorettype, NULL) AS return_type,
+            COALESCE(p.proargnames, ARRAY[]::text[]) AS arg_names,
+            COALESCE(
+                ARRAY(
+                    SELECT pg_catalog.format_type(arg_type, NULL)
+                    FROM unnest(p.proargtypes::oid[]) AS arg_type
+                ),
+                ARRAY[]::text[]
+            ) AS arg_types
+        FROM pg_proc p
+        JOIN pg_namespace n ON n.oid = p.pronamespace
+        WHERE n.nspname = 'public'
+          AND p.proname = $1
+        ORDER BY p.oid DESC
+        "#,
+    )
+    .bind(name)
+    .fetch_all(pool)
+    .await?;
+
+    let provided = provided_arg_names
+        .iter()
+        .map(|value| value.as_str())
+        .collect::<std::collections::BTreeSet<_>>();
+
+    let mut matches = rows
+        .into_iter()
+        .filter_map(|row| {
+            let arg_names = row.get::<Vec<String>, _>("arg_names");
+            let arg_types = row.get::<Vec<String>, _>("arg_types");
+
+            if arg_names.len() != arg_types.len() {
+                return None;
+            }
+
+            let candidate_names = arg_names
+                .iter()
+                .map(|value| value.as_str())
+                .filter(|value| !value.is_empty())
+                .collect::<std::collections::BTreeSet<_>>();
+
+            if !provided.is_subset(&candidate_names) {
+                return None;
+            }
+
+            let arg_types = arg_names
+                .into_iter()
+                .zip(arg_types.into_iter())
+                .filter(|(arg_name, _)| !arg_name.is_empty())
+                .collect::<BTreeMap<_, _>>();
+
+            Some(ResolvedRpc {
+                returns_set: row.get::<bool, _>("returns_set"),
+                return_type: row.get::<String, _>("return_type"),
+                arg_types,
+            })
+        })
+        .collect::<Vec<_>>();
+
+    match matches.len() {
+        0 => Err(AppError::BadRequest(format!(
+            "Tidak ada signature RPC `{name}` yang cocok dengan argumen yang diberikan"
+        ))
+        .into()),
+        1 => Ok(matches.remove(0)),
+        _ => Err(AppError::BadRequest(format!(
+            "Signature RPC `{name}` ambigu untuk argumen yang diberikan"
+        ))
+        .into()),
+    }
+}
+
 pub async fn query_table_handler(
     Extension(state): Extension<Arc<AppState>>,
+    headers: HeaderMap,
     ctx: AuthedRequest,
     Path(table): Path<String>,
     Json(body): Json<QueryRequest>,
 ) -> Result<Json<QueryResponse>, DataPlaneError> {
+    let request_id = request_id_from_headers(&headers);
     ensure_allowed_table(&table)?;
 
     let all_columns = fetch_table_columns(&state.db, &table).await?;
@@ -797,10 +960,20 @@ pub async fn query_table_handler(
         count: None,
         head: None,
         on_conflict: None,
+        allow_full_tenant_write: None,
     });
 
     match body.action.as_str() {
         "select" => {
+            tracing::info!(
+                target: "edusync_api_server::data_plane",
+                request_id = %request_id,
+                action = %body.action,
+                table = %table,
+                tenant_id = %ctx.0.tenant_id,
+                user_id = %ctx.0.user_id,
+                "data_plane_select"
+            );
             let mut count = None;
             if options.count.as_deref() == Some("exact") {
                 let mut count_builder = QueryBuilder::new("SELECT COUNT(*)::bigint AS count FROM public.");
@@ -834,6 +1007,15 @@ pub async fn query_table_handler(
             Ok(Json(QueryResponse { data, count }))
         }
         "insert" | "upsert" => {
+            tracing::info!(
+                target: "edusync_api_server::data_plane",
+                request_id = %request_id,
+                action = %body.action,
+                table = %table,
+                tenant_id = %ctx.0.tenant_id,
+                user_id = %ctx.0.user_id,
+                "data_plane_write"
+            );
             let mut rows = normalize_json_rows(body.values)?;
             for row in rows.iter_mut() {
                 if columns_by_name.contains_key("tenant_id") {
@@ -970,6 +1152,15 @@ pub async fn query_table_handler(
             Ok(Json(QueryResponse { data, count: None }))
         }
         "update" => {
+            tracing::info!(
+                target: "edusync_api_server::data_plane",
+                request_id = %request_id,
+                action = %body.action,
+                table = %table,
+                tenant_id = %ctx.0.tenant_id,
+                user_id = %ctx.0.user_id,
+                "data_plane_write"
+            );
             let row = normalize_json_rows(body.values)?.into_iter().next().ok_or_else(|| {
                 AppError::BadRequest("Payload update wajib object".to_string())
             })?;
@@ -977,6 +1168,12 @@ pub async fn query_table_handler(
             if row.is_empty() {
                 return Err(AppError::BadRequest("Tidak ada kolom update".to_string()).into());
             }
+
+            if row.contains_key("tenant_id") {
+                return Err(AppError::Forbidden.into());
+            }
+
+            ensure_safe_mutation_filters(&body.filters, &columns_by_name, &options)?;
 
             let update_columns = row
                 .keys()
@@ -1036,6 +1233,16 @@ pub async fn query_table_handler(
             Ok(Json(QueryResponse { data, count: None }))
         }
         "delete" => {
+            tracing::info!(
+                target: "edusync_api_server::data_plane",
+                request_id = %request_id,
+                action = %body.action,
+                table = %table,
+                tenant_id = %ctx.0.tenant_id,
+                user_id = %ctx.0.user_id,
+                "data_plane_write"
+            );
+            ensure_safe_mutation_filters(&body.filters, &columns_by_name, &options)?;
             let mut builder = QueryBuilder::new("WITH mutated AS (DELETE FROM public.");
             builder.push(quote_ident(&table));
             apply_filters(&mut builder, &body.filters, &ctx, &columns_by_name)?;
@@ -1059,10 +1266,12 @@ pub async fn query_table_handler(
 
 pub async fn rpc_proxy_handler(
     Extension(state): Extension<Arc<AppState>>,
+    headers: HeaderMap,
     AuthedRequest(ctx): AuthedRequest,
     Path(name): Path<String>,
     Json(body): Json<RpcRequest>,
 ) -> Result<Json<RpcResponse>, DataPlaneError> {
+    let request_id = request_id_from_headers(&headers);
     ensure_allowed_rpc(&name)?;
 
     let args_object = match body.args {
@@ -1074,59 +1283,6 @@ pub async fn rpc_proxy_handler(
             )
         }
     };
-
-    let rpc_meta = sqlx::query(
-        r#"
-        SELECT
-            p.proretset AS returns_set,
-            pg_catalog.format_type(p.prorettype, NULL) AS return_type
-        FROM pg_proc p
-        JOIN pg_namespace n ON n.oid = p.pronamespace
-        WHERE n.nspname = 'public'
-          AND p.proname = $1
-        ORDER BY p.oid DESC
-        LIMIT 1
-        "#,
-    )
-    .bind(&name)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or(AppError::NotFound)?;
-
-    let returns_set = rpc_meta.get::<bool, _>("returns_set");
-    let return_type = rpc_meta.get::<String, _>("return_type");
-    let arg_rows = sqlx::query(
-        r#"
-        WITH target_function AS (
-            SELECT p.oid, p.proargnames, p.proargtypes::oid[] AS arg_types
-            FROM pg_proc p
-            JOIN pg_namespace n ON n.oid = p.pronamespace
-            WHERE n.nspname = 'public'
-              AND p.proname = $1
-            ORDER BY p.oid DESC
-            LIMIT 1
-        )
-        SELECT
-            COALESCE(target_function.proargnames[args.idx], '') AS arg_name,
-            pg_catalog.format_type(args.arg_type, NULL) AS arg_type
-        FROM target_function
-        JOIN LATERAL unnest(target_function.arg_types) WITH ORDINALITY AS args(arg_type, idx) ON true
-        "#,
-    )
-    .bind(&name)
-    .fetch_all(&state.db)
-    .await?;
-
-    let arg_types = arg_rows
-        .into_iter()
-        .filter_map(|row| {
-            let arg_name = row.get::<String, _>("arg_name");
-            if arg_name.is_empty() {
-                return None;
-            }
-            Some((arg_name, row.get::<String, _>("arg_type")))
-        })
-        .collect::<BTreeMap<_, _>>();
 
     let mut tx = state.db.begin().await?;
     set_request_claims(
@@ -1140,22 +1296,37 @@ pub async fn rpc_proxy_handler(
 
     let mut entries = args_object.into_iter().collect::<Vec<_>>();
     entries.sort_by(|left, right| left.0.cmp(&right.0));
+    let resolved = resolve_rpc_signature(
+        &state.db,
+        &name,
+        &entries.iter().map(|(key, _)| key.clone()).collect::<Vec<_>>(),
+    )
+    .await?;
+    tracing::info!(
+        target: "edusync_api_server::data_plane",
+        request_id = %request_id,
+        action = "rpc",
+        rpc = %name,
+        tenant_id = %ctx.tenant_id,
+        user_id = %ctx.user_id,
+        "data_plane_rpc"
+    );
 
-    let payload = if return_type == "void" {
+    let payload = if resolved.return_type == "void" {
         let mut builder = QueryBuilder::new("SELECT ");
-        push_rpc_call(&mut builder, &name, &entries, &arg_types)?;
+        push_rpc_call(&mut builder, &name, &entries, &resolved.arg_types)?;
         builder.build().execute(&mut *tx).await?;
         Value::Null
-    } else if returns_set {
+    } else if resolved.returns_set {
         let mut builder =
             QueryBuilder::new("SELECT COALESCE(jsonb_agg(to_jsonb(q)), '[]'::jsonb) AS payload FROM ");
-        push_rpc_call(&mut builder, &name, &entries, &arg_types)?;
+        push_rpc_call(&mut builder, &name, &entries, &resolved.arg_types)?;
         builder.push(" q");
         let row = builder.build().fetch_one(&mut *tx).await?;
         row.try_get::<Value, _>("payload").unwrap_or(Value::Array(Vec::new()))
     } else {
         let mut builder = QueryBuilder::new("SELECT to_jsonb(");
-        push_rpc_call(&mut builder, &name, &entries, &arg_types)?;
+        push_rpc_call(&mut builder, &name, &entries, &resolved.arg_types)?;
         builder.push(") AS payload");
         let row = builder.build().fetch_one(&mut *tx).await?;
         row.try_get::<Value, _>("payload").unwrap_or(Value::Null)
@@ -1163,5 +1334,8 @@ pub async fn rpc_proxy_handler(
 
     tx.commit().await?;
 
-    Ok(Json(RpcResponse { data: payload, returns_set }))
+    Ok(Json(RpcResponse {
+        data: payload,
+        returns_set: resolved.returns_set,
+    }))
 }
