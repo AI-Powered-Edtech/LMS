@@ -179,15 +179,12 @@ export function QuizEditorView({
         return
       }
 
-      for (let i = 0; i < toImport.length; i++) {
-        const q = toImport[i]
-        await questionBankService.addQuestionToQuiz(
-          q.id,
-          editingQuizId,
-          1,
-          currentQuestions.length + i
+      // ⚡ Bolt: Parallelize I/O-bound Supabase RPC calls for importing questions into a quiz
+      await Promise.all(
+        toImport.map((q, i) =>
+          questionBankService.addQuestionToQuiz(q.id, editingQuizId, 1, currentQuestions.length + i)
         )
-      }
+      )
 
       const newQuestions = toImport.map((q, idx) => ({
         id: q.id,
