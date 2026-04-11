@@ -50,7 +50,10 @@ async fn create_course(client: &Client, token: &str, title: &str) -> Result<Stri
         .await?;
 
     if !response.status().is_success() {
-        return Err(anyhow!("create course failed with status {}", response.status()));
+        return Err(anyhow!(
+            "create course failed with status {}",
+            response.status()
+        ));
     }
 
     let payload: Value = response.json().await?;
@@ -79,6 +82,22 @@ async fn delete_course(client: &Client, token: &str, course_id: &str) -> Result<
     Ok(())
 }
 
+fn sample_divergence_event() -> Value {
+    json!({
+        "request_id": Uuid::new_v4().to_string(),
+        "flow_name": "gate3-test",
+        "endpoint": "/api/v1/auth/bootstrap",
+        "method": "GET",
+        "primary_backend": "vil",
+        "shadow_backend": "supabase",
+        "normalized_request_signature": "GET:/api/v1/auth/bootstrap",
+        "result_hash_primary": "aaa",
+        "result_hash_shadow": "bbb",
+        "diff_summary": "sample divergence",
+        "severity": "warn"
+    })
+}
+
 #[tokio::test]
 async fn bootstrap_requires_authorization() -> Result<()> {
     let client = Client::new();
@@ -105,6 +124,34 @@ async fn bootstrap_returns_profile_for_authenticated_user() -> Result<()> {
     let payload: Value = response.json().await?;
     assert!(payload.get("profile").is_some());
     assert!(payload.get("memberships").is_some());
+    Ok(())
+}
+
+#[tokio::test]
+async fn divergence_sink_requires_authorization() -> Result<()> {
+    let client = Client::new();
+    let response = client
+        .post(format!("{}/api/v1/internal/divergence-events", base_url()))
+        .json(&sample_divergence_event())
+        .send()
+        .await?;
+
+    assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    Ok(())
+}
+
+#[tokio::test]
+async fn divergence_sink_accepts_authenticated_events() -> Result<()> {
+    let client = Client::new();
+    let token = login(&client).await?;
+    let response = client
+        .post(format!("{}/api/v1/internal/divergence-events", base_url()))
+        .bearer_auth(token)
+        .json(&sample_divergence_event())
+        .send()
+        .await?;
+
+    assert_eq!(response.status(), StatusCode::OK);
     Ok(())
 }
 
@@ -200,7 +247,10 @@ async fn rpc_argument_validation_rejects_unknown_args() -> Result<()> {
     let client = Client::new();
     let token = login(&client).await?;
     let response = client
-        .post(format!("{}/api/v1/rpc/complete_onboarding_step", base_url()))
+        .post(format!(
+            "{}/api/v1/rpc/complete_onboarding_step",
+            base_url()
+        ))
         .bearer_auth(token)
         .json(&json!({
             "args": {
@@ -222,7 +272,10 @@ async fn courses_crud_read_and_delete_flow_is_operational() -> Result<()> {
     let course_id = create_course(&client, &token, &title).await?;
 
     let list_response = client
-        .get(format!("{}/api/v1/courses?page=1&limit=10&search=Gate3%20CRUD", base_url()))
+        .get(format!(
+            "{}/api/v1/courses?page=1&limit=10&search=Gate3%20CRUD",
+            base_url()
+        ))
         .bearer_auth(&token)
         .send()
         .await?;

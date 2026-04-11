@@ -14,7 +14,7 @@ Dokumentasi ini mencatat status aktual Phase 2 di codebase saat ini. Implementas
 | Models Batch 1 | ✅ | `course.rs`, `class.rs`, `course_module.rs`, `lesson.rs` cocok dengan skema lokal |
 | Courses CRUD | ✅ | Backend VIL punya route `courses` + modules, dan frontend `courseService` memakai cabang VIL |
 | Generic VIL data plane | ✅ | `/api/v1/data/:table` + `/api/v1/rpc/:name` aktif untuk service layer yang masih memakai `supabase.from/rpc` |
-| Observability + divergence sink | ✅ | `init_tracing()` aktif, request correlation id dipropagasi, dan `POST /api/v1/internal/divergence-events` tersedia |
+| Observability + divergence sink | ✅ | `init_tracing()` aktif, request correlation id dipropagasi, `POST /api/v1/internal/divergence-events` tersedia, dan sink divergence sekarang mewajibkan Bearer auth |
 | Shadow read path | ✅ Partial | Read shadow untuk proxy query/RPC aman, auth bootstrap, dan `courses` GET path sudah aktif |
 | Gate 3 scoped verification | ✅ Partial | `typecheck:migration-gate`, `lint:migration-gate`, dan `test:gate3` sudah tersedia dan dapat dijalankan |
 | Frontend service refactor | ✅ | Service Batch 1–4 yang kritikal sudah dipindah dari nested PostgREST joins ke flat query composition |

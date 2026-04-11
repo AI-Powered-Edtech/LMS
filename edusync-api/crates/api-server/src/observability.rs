@@ -1,14 +1,11 @@
-use axum::{
-    extract::Extension,
-    http::HeaderMap,
-    Json,
-};
+use axum::{extract::Extension, http::HeaderMap, Json};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
 use uuid::Uuid;
 
+use crate::extractors::AuthedRequest;
 use crate::state::AppState;
 
 pub fn init_tracing() {
@@ -103,6 +100,7 @@ pub async fn shadow_config_handler(
 
 pub async fn divergence_event_handler(
     Extension(state): Extension<Arc<AppState>>,
+    AuthedRequest(ctx): AuthedRequest,
     Json(mut event): Json<DivergenceEvent>,
 ) -> Json<Value> {
     if !state.shadow.enabled {
@@ -120,6 +118,11 @@ pub async fn divergence_event_handler(
     if event.timestamp.is_none() {
         event.timestamp = Some(chrono::Utc::now().to_rfc3339());
     }
+
+    // Never trust actor identity supplied by the caller for audit events.
+    event.tenant_id = Some(ctx.tenant_id.to_string());
+    event.user_id = Some(ctx.user_id.to_string());
+    event.role = Some(ctx.role.clone());
 
     match event.severity.as_str() {
         "error" => tracing::error!(
