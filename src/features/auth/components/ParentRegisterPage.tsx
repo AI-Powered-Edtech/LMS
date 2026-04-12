@@ -62,8 +62,10 @@ function generateTempEmail(phone: string): string {
 function generateSecurePassword(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%'
   let pwd = ''
+  const array = new Uint32Array(32)
+  crypto.getRandomValues(array)
   for (let i = 0; i < 32; i++) {
-    pwd += chars[Math.floor(Math.random() * chars.length)]
+    pwd += chars[array[i] % chars.length]
   }
   return pwd
 }
