@@ -1,5 +1,6 @@
 import { BookOpen, CheckCircle, ChevronRight, Clock, Layers } from 'lucide-react'
 import { motion } from 'motion/react'
+import { memo } from 'react'
 
 import { cn } from '@/utils/cn'
 
@@ -18,7 +19,12 @@ interface ModuleListProps {
   nextIncompleteModuleId?: string
 }
 
-export function ModuleList({ modules, onSelectModule, nextIncompleteModuleId }: ModuleListProps) {
+// ⚡ Perf: Wrapped in React.memo to prevent unnecessary re-renders in CourseBrowser
+export const ModuleList = memo(function ModuleList({
+  modules,
+  onSelectModule,
+  nextIncompleteModuleId,
+}: ModuleListProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -148,4 +154,4 @@ export function ModuleList({ modules, onSelectModule, nextIncompleteModuleId }: 
       )}
     </motion.div>
   )
-}
+})
