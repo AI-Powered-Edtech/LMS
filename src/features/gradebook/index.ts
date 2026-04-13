@@ -18,6 +18,7 @@ export { useExportReport } from './hooks/useExportReport'
 export { useGradebook } from './hooks/useGradebookQueries'
 export { useGradebookQuery, useUpdateGrade } from './hooks/useGradebookQueries'
 export { useGradebookState, useGradebookDispatch } from './hooks/useGradebookState'
+export { useGradebookRealtime } from './hooks/useGradebookRealtime'
 
 // Queries
 export {

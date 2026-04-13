@@ -15,3 +15,6 @@ export type {
 
 // Backward-compat namespace (mirrors legacy services/quizService.ts export)
 export * as quizService from './api/quizzes.service'
+
+// Hooks
+export { useOfflineQuiz } from './hooks/useOfflineQuiz'
