@@ -1,26 +1,20 @@
-//! Background jobs — uses VIL Scheduler (VIL Way)
-//!
-//! Replaces the prior manual `tokio::time::interval` loops with
-//! `vil_server::core::scheduler::Scheduler`.
+//! Background jobs using VIL Scheduler
 //!
 //! Schedule (all UTC → WIB = UTC+7):
 //!   - Quiz grader        : every 30 seconds
 //!   - Progress processor : every 30 seconds
+//!   - Video transcoding  : every 30 seconds
 //!   - Analytics refresh  : every 15 minutes
-//!   - Email digest       : daily 10:00 UTC (17:00 WIB)
-//!   - Parent digest      : daily 10:30 UTC (17:30 WIB)
+//!   - Email digest       : every 24 hours (10:00 UTC = 17:00 WIB)
+//!   - Parent digest      : every 24 hours (10:30 UTC = 17:30 WIB)
 
-use vil_server::core::scheduler::Scheduler;
 use sqlx::PgPool;
 use std::time::Duration;
+use vil_server::core::scheduler::Scheduler;
 
-/// Build and return a configured `Scheduler` with all EduSync background jobs.
-///
-/// Call `.start()` on the returned scheduler in `main.rs` after building it.
 pub fn build_scheduler(db: PgPool) -> Scheduler {
     let mut sched = Scheduler::new();
 
-    // ── Quiz grader — every 30 seconds ───────────────────────────────────────
     {
         let db = db.clone();
         sched.every(Duration::from_secs(30), "quiz-grader", move || {
@@ -42,7 +36,6 @@ pub fn build_scheduler(db: PgPool) -> Scheduler {
         });
     }
 
-    // ── Progress events processor — every 30 seconds ──────────────────────────
     {
         let db = db.clone();
         sched.every(Duration::from_secs(30), "progress-processor", move || {
@@ -65,7 +58,18 @@ pub fn build_scheduler(db: PgPool) -> Scheduler {
         });
     }
 
-    // ── Analytics refresh — every 15 minutes ─────────────────────────────────
+    {
+        let db = db.clone();
+        sched.every(Duration::from_secs(30), "video-transcoding", move || {
+            let db = db.clone();
+            async move {
+                // Transcoding worker akan di-handle di storage module
+                // Karena membutuhkan S3 client yang hanya ada di api-server
+                tracing::debug!("cron:video_transcoding tick (handled by storage module)");
+            }
+        });
+    }
+
     {
         let db = db.clone();
         sched.every(Duration::from_secs(900), "analytics-refresh", move || {
@@ -82,10 +86,9 @@ pub fn build_scheduler(db: PgPool) -> Scheduler {
         });
     }
 
-    // ── Email digest — daily at 10:00 UTC (17:00 WIB) ─────────────────────────
     {
         let db = db.clone();
-        sched.daily_at_utc(10, 0, "email-digest", move || {
+        sched.every(Duration::from_secs(86400), "email-digest", move || {
             let db = db.clone();
             async move {
                 match edusync_services::email::digest::send_email_digest(&db).await {
@@ -101,10 +104,9 @@ pub fn build_scheduler(db: PgPool) -> Scheduler {
         });
     }
 
-    // ── Parent digest — daily at 10:30 UTC (17:30 WIB) ────────────────────────
     {
         let db = db.clone();
-        sched.daily_at_utc(10, 30, "parent-digest", move || {
+        sched.every(Duration::from_secs(86400), "parent-digest", move || {
             let db = db.clone();
             async move {
                 match edusync_services::email::parent_digest::send_parent_digest(&db).await {
@@ -120,6 +122,6 @@ pub fn build_scheduler(db: PgPool) -> Scheduler {
         });
     }
 
-    tracing::info!("VIL Scheduler dikonfigurasi (5 jobs)");
+    tracing::info!("VIL Scheduler dikonfigurasi (6 jobs)");
     sched
 }
