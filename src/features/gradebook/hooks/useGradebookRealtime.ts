@@ -27,6 +27,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { getRealtimeProvider } from '@/services/realtime/realtimeProvider'
 import { gradebookKeys } from '@/features/gradebook/queries/gradebookKeys'
 import type { GradebookEntry } from '@/features/gradebook/types'
+import type { RealtimeChannelStatus, PostgresChangesPayload } from '@/services/realtime/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -82,14 +83,7 @@ export function useGradebookRealtime(
   // ─── Handle Database Changes ──────────────────────────────────────────────
 
   const handleDatabaseChange = useCallback(
-    (payload: {
-      eventType: 'INSERT' | 'UPDATE' | 'DELETE'
-      table: string
-      schema: string
-      new?: GradebookEntry
-      old?: GradebookEntry
-      commit_timestamp: string
-    }) => {
+    (payload: PostgresChangesPayload) => {
       if (!courseId) return
 
       const { eventType, table, new: newRecord, old } = payload
@@ -97,27 +91,29 @@ export function useGradebookRealtime(
       // Update query cache based on event type
       if (table === 'gradebook_entries') {
         if (eventType === 'INSERT' && newRecord) {
+          const entry = newRecord as unknown as GradebookEntry
           // New grade entry added
           queryClient.setQueryData(
             gradebookKeys.entries(courseId),
             (oldEntries: GradebookEntry[] | undefined) => {
-              if (!oldEntries) return [newRecord]
-              return [...oldEntries, newRecord]
+              if (!oldEntries) return [entry]
+              return [...oldEntries, entry]
             }
           )
-          onEntryInserted?.(newRecord)
+          onEntryInserted?.(entry)
         }
 
         if (eventType === 'UPDATE' && newRecord) {
+          const entry = newRecord as unknown as GradebookEntry
           // Grade entry updated
           queryClient.setQueryData(
             gradebookKeys.entries(courseId),
             (oldEntries: GradebookEntry[] | undefined) => {
-              if (!oldEntries) return [newRecord]
-              return oldEntries.map((entry) => (entry.id === newRecord.id ? newRecord : entry))
+              if (!oldEntries) return [entry]
+              return oldEntries.map((e) => (e.id === entry.id ? entry : e))
             }
           )
-          onEntryUpdated?.(newRecord)
+          onEntryUpdated?.(entry)
         }
 
         if (eventType === 'DELETE' && old) {
@@ -217,7 +213,7 @@ export function useGradebookRealtime(
     )
 
     // Subscribe to channel
-    channel.subscribe((status: string) => {
+    channel.subscribe((status: RealtimeChannelStatus, _err?: Error) => {
       if (status === 'SUBSCRIBED') {
         if (subscriptionTimeoutRef.current) {
           clearTimeout(subscriptionTimeoutRef.current)
