@@ -7,6 +7,7 @@
 // Components
 export { GradebookExportActions } from './components/GradebookExportActions'
 export { GradebookMainTable } from './components/GradebookMainTable'
+export { GradebookMobileCards } from './components/GradebookMobileCards'
 export { GradebookTable } from './components/GradebookTable'
 export { GradebookStats } from './components/GradebookStats'
 export { GradebookSkeleton } from './components/GradebookSkeleton'
