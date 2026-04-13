@@ -6,68 +6,122 @@
  *
  * Features:
  * - Token-by-token streaming for responsive UI
+ * - Proper buffer accumulation (waits for \n\n before parsing)
  * - Automatic reconnection on failure
  * - Session persistence
  * - Rate limiting integration
  * - Error handling with retry logic
  */
 
-import { useState, useCallback, useRef } from 'react';
-import { getAuthToken } from '@/services/auth/vilSession';
+import { useState, useCallback, useRef } from 'react'
+import { getAuthToken } from '@/services/auth/vilSession'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface StreamingChunk {
-  token: string;
-  timestamp: number;
+  token: string
+  timestamp: number
 }
 
 export interface StreamingState {
-  status: 'idle' | 'connecting' | 'streaming' | 'completed' | 'error';
-  tokens: StreamingChunk[];
-  fullText: string;
-  sessionId?: string;
-  error?: string;
-  startTime?: number;
-  endTime?: number;
+  status: 'idle' | 'connecting' | 'streaming' | 'completed' | 'error'
+  tokens: StreamingChunk[]
+  fullText: string
+  sessionId?: string
+  error?: string
+  startTime?: number
+  endTime?: number
 }
 
 export interface UseAiStreamOptions {
-  onToken?: (token: string, fullText: string) => void;
-  onComplete?: (fullText: string, sessionId?: string) => void;
-  onError?: (error: string) => void;
-  maxRetries?: number;
-}
-
-// ─── SSE Event Types ─────────────────────────────────────────────────────────
-
-type SSEEventType = 'start' | 'message' | 'done' | 'error';
-
-interface SSEEventData {
-  status?: string;
-  token?: string;
-  reply?: string;
-  session_id?: string;
-  error?: string;
+  onToken?: (token: string, fullText: string) => void
+  onComplete?: (fullText: string, sessionId?: string) => void
+  onError?: (error: string) => void
+  maxRetries?: number
 }
 
 // ─── API Base URL ─────────────────────────────────────────────────────────────
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_URL || ''
+
+// ─── SSE Event Parser ─────────────────────────────────────────────────────────
+
+/**
+ * Parse SSE events from a buffer.
+ * Waits for complete events (delimited by \n\n) before parsing.
+ * Returns parsed events and remaining buffer.
+ */
+function parseSSEEvents(buffer: string): { events: SSEEvent[]; remaining: string } {
+  const events: SSEEvent[] = []
+  let remaining = buffer
+
+  // Find complete events (separated by \n\n)
+  while (true) {
+    const eventEndIndex = remaining.indexOf('\n\n')
+    if (eventEndIndex === -1) {
+      // No complete event found, wait for more data
+      break
+    }
+
+    const eventText = remaining.slice(0, eventEndIndex)
+    remaining = remaining.slice(eventEndIndex + 2)
+
+    const parsed = parseSingleSSEEvent(eventText)
+    if (parsed) {
+      events.push(parsed)
+    }
+  }
+
+  return { events, remaining }
+}
+
+/**
+ * Parse a single SSE event from text like:
+ * event: token
+ * data: {"token": "Hello"}
+ */
+function parseSingleSSEEvent(eventText: string): SSEEvent | null {
+  const lines = eventText.split('\n')
+  let eventType = 'message'
+  let data: string | null = null
+
+  for (const line of lines) {
+    if (line.startsWith('event:')) {
+      eventType = line.slice(6).trim()
+    } else if (line.startsWith('data:')) {
+      data = line.slice(5).trim()
+    }
+  }
+
+  if (!data) return null
+
+  try {
+    return { type: eventType as SSEEventType, data: JSON.parse(data) }
+  } catch {
+    return null
+  }
+}
+
+type SSEEventType = 'start' | 'token' | 'done' | 'error'
+
+interface SSEEvent {
+  type: SSEEventType
+  data: Record<string, any>
+}
 
 // ─── Main Hook ────────────────────────────────────────────────────────────────
 
 export function useAiStream(options: UseAiStreamOptions = {}) {
-  const { onToken, onComplete, onError, maxRetries = 2 } = options;
+  const { onToken, onComplete, onError, maxRetries = 2 } = options
 
   const [streamingState, setStreamingState] = useState<StreamingState>({
     status: 'idle',
     tokens: [],
     fullText: '',
-  });
+  })
 
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const retryCountRef = useRef(0);
+  const abortControllerRef = useRef<AbortController | null>(null)
+  const retryCountRef = useRef(0)
 
   /**
    * Start streaming AI Tutor response
@@ -76,11 +130,11 @@ export function useAiStream(options: UseAiStreamOptions = {}) {
     async (lessonId: string, message: string, sessionId?: string) => {
       // Abort any existing stream
       if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
+        abortControllerRef.current.abort()
       }
 
-      const controller = new AbortController();
-      abortControllerRef.current = controller;
+      const controller = new AbortController()
+      abortControllerRef.current = controller
 
       // Reset state
       setStreamingState({
@@ -89,20 +143,20 @@ export function useAiStream(options: UseAiStreamOptions = {}) {
         fullText: '',
         sessionId,
         startTime: Date.now(),
-      });
+      })
 
       try {
-        const token = await getAuthToken();
+        const token = await getAuthToken()
         if (!token) {
-          throw new Error('Authentication required');
+          throw new Error('Authentication required')
         }
 
         const response = await fetch(`${API_BASE}/api/v1/ai/tutor/stream`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'text/event-stream',
+            Authorization: `Bearer ${token}`,
+            Accept: 'text/event-stream',
           },
           body: JSON.stringify({
             lesson_id: lessonId,
@@ -110,131 +164,88 @@ export function useAiStream(options: UseAiStreamOptions = {}) {
             session_id: sessionId,
           }),
           signal: controller.signal,
-        });
+        })
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
         }
 
-        const reader = response.body?.getReader();
+        const reader = response.body?.getReader()
         if (!reader) {
-          throw new Error('ReadableStream not supported');
+          throw new Error('ReadableStream not supported')
         }
 
-        const decoder = new TextDecoder();
-        let buffer = '';
-        let fullText = '';
-        let currentSessionId = sessionId;
+        const decoder = new TextDecoder()
+        let buffer = ''
+        let fullText = ''
+        let currentSessionId = sessionId
 
         setStreamingState((prev) => ({
           ...prev,
           status: 'streaming',
-        }));
+        }))
 
         // Read SSE stream
         while (true) {
-          const { done, value } = await reader.read();
+          const { done, value } = await reader.read()
 
           if (done) {
-            break;
+            break
           }
 
-          // Decode chunk
-          const chunk = decoder.decode(value, { stream: true });
-          buffer += chunk;
+          // Decode chunk and append to buffer
+          const chunk = decoder.decode(value, { stream: true })
+          buffer += chunk
 
-          // Parse SSE events
-          const lines = buffer.split('\n');
-          buffer = ''; // Clear buffer
+          // Parse complete SSE events (only processes events delimited by \n\n)
+          const { events, remaining } = parseSSEEvents(buffer)
+          buffer = remaining // Keep incomplete data in buffer
 
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
+          // Handle each parsed event
+          for (const event of events) {
+            switch (event.type) {
+              case 'start':
+                // Processing started
+                break
 
-            // Skip empty lines and comments
-            if (!line.trim() || line.startsWith(':')) {
-              continue;
-            }
+              case 'token':
+                // New token from Groq
+                if (event.data.token) {
+                  const newChunk: StreamingChunk = {
+                    token: event.data.token,
+                    timestamp: Date.now(),
+                  }
 
-            // Parse event type
-            if (line.startsWith('event:')) {
-              const eventType = line.replace('event:', '').trim() as SSEEventType;
+                  fullText += event.data.token
 
-              // Next line should be data
-              const dataLine = lines[i + 1];
-              if (!dataLine || !dataLine.startsWith('data:')) {
-                continue;
-              }
+                  setStreamingState((prev) => ({
+                    ...prev,
+                    tokens: [...prev.tokens, newChunk],
+                    fullText,
+                  }))
 
-              try {
-                const eventData: SSEEventData = JSON.parse(
-                  dataLine.replace('data:', '').trim()
-                );
-
-                // Handle different event types
-                switch (eventType) {
-                  case 'start':
-                    // Processing started
-                    break;
-
-                  case 'message':
-                    // New token or complete message
-                    if (eventData.token) {
-                      // Token-by-token streaming
-                      const newChunk: StreamingChunk = {
-                        token: eventData.token,
-                        timestamp: Date.now(),
-                      };
-
-                      fullText += eventData.token;
-
-                      setStreamingState((prev) => ({
-                        ...prev,
-                        tokens: [...prev.tokens, newChunk],
-                        fullText,
-                      }));
-
-                      // Call onToken callback
-                      onToken?.(eventData.token, fullText);
-                    } else if (eventData.reply) {
-                      // Complete message received
-                      fullText = eventData.reply;
-                      currentSessionId = eventData.session_id;
-
-                      setStreamingState((prev) => ({
-                        ...prev,
-                        fullText,
-                        sessionId: currentSessionId,
-                      }));
-
-                      // Clear previous tokens as we got the full message
-                      onToken?.('', fullText);
-                    }
-                    break;
-
-                  case 'done':
-                    // Streaming completed
-                    currentSessionId = eventData.session_id || currentSessionId;
-
-                    setStreamingState((prev) => ({
-                      ...prev,
-                      status: 'completed',
-                      sessionId: currentSessionId,
-                      endTime: Date.now(),
-                    }));
-
-                    onComplete?.(fullText, currentSessionId);
-                    retryCountRef.current = 0; // Reset retry count on success
-                    break;
-
-                  case 'error':
-                    throw new Error(eventData.error || 'Streaming error occurred');
+                  onToken?.(event.data.token, fullText)
                 }
-              } catch (parseError) {
-                console.warn('Failed to parse SSE event:', line, parseError);
-              }
+                break
 
-              i++; // Skip data line
+              case 'done':
+                // Streaming completed
+                currentSessionId = event.data.session_id || currentSessionId
+
+                setStreamingState((prev) => ({
+                  ...prev,
+                  status: 'completed',
+                  sessionId: currentSessionId,
+                  endTime: Date.now(),
+                }))
+
+                onComplete?.(fullText, currentSessionId)
+                retryCountRef.current = 0
+                break
+
+              case 'error':
+                throw new Error(event.data.error || 'Streaming error occurred')
             }
           }
         }
@@ -246,76 +257,64 @@ export function useAiStream(options: UseAiStreamOptions = {}) {
               ...prev,
               status: 'completed',
               endTime: Date.now(),
-            };
+            }
           }
-          return prev;
-        });
-
+          return prev
+        })
       } catch (error: any) {
         if (error.name === 'AbortError') {
-          // Stream was intentionally aborted, don't treat as error
-          return;
+          return
         }
 
-        const errorMessage = error.message || 'Failed to start stream';
+        const errorMessage = error.message || 'Failed to start stream'
 
         // Retry logic
         if (retryCountRef.current < maxRetries) {
-          retryCountRef.current++;
-          console.log(`Retrying stream (${retryCountRef.current}/${maxRetries})...`);
-
-          // Wait before retry (exponential backoff)
-          await new Promise((resolve) =>
-            setTimeout(resolve, 1000 * retryCountRef.current)
-          );
-
-          // Retry with same parameters
-          return startStream(lessonId, message, sessionId);
+          retryCountRef.current++
+          await new Promise((resolve) => setTimeout(resolve, 1000 * retryCountRef.current))
+          return startStream(lessonId, message, sessionId)
         }
 
-        // Max retries reached
         setStreamingState((prev) => ({
           ...prev,
           status: 'error',
           error: errorMessage,
           endTime: Date.now(),
-        }));
+        }))
 
-        onError?.(errorMessage);
+        onError?.(errorMessage)
       }
     },
     [onToken, onComplete, onError, maxRetries]
-  );
+  )
 
   /**
    * Abort current stream
    */
   const abortStream = useCallback(() => {
     if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
     }
 
     setStreamingState((prev) => ({
       ...prev,
-      status: prev.status === 'streaming' || prev.status === 'connecting'
-        ? 'idle'
-        : prev.status,
-    }));
-  }, []);
+      status: prev.status === 'streaming' || prev.status === 'connecting' ? 'idle' : prev.status,
+    }))
+  }, [])
 
   /**
    * Reset streaming state
    */
   const resetStream = useCallback(() => {
-    abortStream();
+    abortStream()
     setStreamingState({
       status: 'idle',
       tokens: [],
       fullText: '',
-    });
-    retryCountRef.current = 0;
-  }, [abortStream]);
+    })
+    retryCountRef.current = 0
+  }, [abortStream])
 
   return {
     streamingState,
@@ -324,7 +323,7 @@ export function useAiStream(options: UseAiStreamOptions = {}) {
     resetStream,
     isStreaming: streamingState.status === 'streaming' || streamingState.status === 'connecting',
     fullText: streamingState.fullText,
-  };
+  }
 }
 
-export default useAiStream;
+export default useAiStream
