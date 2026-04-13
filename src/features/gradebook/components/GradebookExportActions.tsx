@@ -9,25 +9,30 @@
  * - Error states with retry
  */
 
-import { Download, FileDown, FileSpreadsheet, FileText, Loader2 } from 'lucide-react';
-import { useState } from 'react';
-import { useExportReport } from '@/features/gradebook/hooks/useExportReport';
-import { cn } from '@/utils/cn';
+import { Download, FileSpreadsheet, FileText, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { useExportReport } from '@/features/gradebook/hooks/useExportReport'
+import { cn } from '@/utils/cn'
 
-export type ExportFormat = 'csv' | 'excel' | 'pdf';
+export type ExportFormat = 'csv' | 'excel' | 'pdf'
 
 interface GradebookExportActionsProps {
-  courseId?: string;
-  startDate?: string;
-  endDate?: string;
-  className?: string;
+  courseId?: string
+  startDate?: string
+  endDate?: string
+  className?: string
 }
 
-const FORMAT_OPTIONS: { value: ExportFormat; label: string; icon: typeof FileText; mimeType: string }[] = [
+const FORMAT_OPTIONS: {
+  value: ExportFormat
+  label: string
+  icon: typeof FileText
+  mimeType: string
+}[] = [
   { value: 'csv', label: 'CSV', icon: FileSpreadsheet, mimeType: 'text/csv' },
   { value: 'excel', label: 'Excel', icon: FileSpreadsheet, mimeType: 'application/vnd.ms-excel' },
   { value: 'pdf', label: 'PDF', icon: FileText, mimeType: 'application/pdf' },
-];
+]
 
 export function GradebookExportActions({
   courseId,
@@ -35,37 +40,31 @@ export function GradebookExportActions({
   endDate,
   className,
 }: GradebookExportActionsProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
 
-  const {
-    exportReport,
-    isLoading,
-    progress,
-    error,
-    reset,
-  } = useExportReport({
+  const { exportReport, isLoading, progress, error, reset } = useExportReport({
     onCompleted: (job) => {
       // Auto-download when completed
       if (job.downloadUrl) {
-        window.open(job.downloadUrl, '_blank');
+        window.open(job.downloadUrl, '_blank')
       }
     },
-  });
+  })
 
   const handleExport = async (format: ExportFormat) => {
-    setOpen(false);
-    reset();
+    setOpen(false)
+    reset()
 
     try {
       await exportReport('grades', format, {
         course_id: courseId,
         start_date: startDate,
         end_date: endDate,
-      });
+      })
     } catch (err) {
-      console.error('[GradebookExport] Export failed:', err);
+      console.error('[GradebookExport] Export failed:', err)
     }
-  };
+  }
 
   return (
     <div className={cn('relative', className)}>
@@ -115,9 +114,7 @@ export function GradebookExportActions({
               <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Mempersiapkan export...
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {progress}% selesai
-              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{progress}% selesai</p>
             </div>
           </div>
 
@@ -134,9 +131,7 @@ export function GradebookExportActions({
       {/* Error State */}
       {error && (
         <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 border border-red-200 dark:border-red-700 rounded-lg shadow-lg z-50 p-4 space-y-3">
-          <p className="text-sm text-red-600 dark:text-red-400">
-            {error}
-          </p>
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
           <button
             onClick={() => setOpen(true)}
             className="w-full px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-md hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
@@ -147,14 +142,9 @@ export function GradebookExportActions({
       )}
 
       {/* Click Outside to Close */}
-      {open && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setOpen(false)}
-        />
-      )}
+      {open && <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />}
     </div>
-  );
+  )
 }
 
-export default GradebookExportActions;
+export default GradebookExportActions

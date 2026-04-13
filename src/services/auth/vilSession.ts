@@ -1,11 +1,20 @@
 import type { AuthSession } from './types'
 
-export const VIL_SESSION_STORAGE_KEY = 'vil_auth_session'
+const VIL_SESSION_STORAGE_KEY = 'vil_auth_session'
 const RECOVERY_TOKEN_STORAGE_KEY = 'vil_recovery_token'
 
 type SessionListener = (event: string, session: AuthSession | null) => void
 
 const listeners = new Set<SessionListener>()
+
+/**
+ * Get the current access token from session storage.
+ * Returns null if no session exists.
+ */
+export function getAuthToken(): string | null {
+  const session = readVilSession()
+  return session?.access_token || null
+}
 
 export function readVilSession(): AuthSession | null {
   if (typeof window === 'undefined') return null
