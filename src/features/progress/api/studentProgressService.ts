@@ -68,7 +68,7 @@ export const studentProgressService = {
     if (!moduleData || moduleData.length === 0) return []
 
     if (!userId) {
-      return moduleData.map((m, i) => ({
+      return moduleData.map((m: any, i: any) => ({
         id: m.id,
         title: m.title,
         status: (i === 0 ? 'active' : 'locked') as ModuleStatus,
@@ -76,7 +76,7 @@ export const studentProgressService = {
       }))
     }
 
-    const moduleIds = moduleData.map((m) => m.id)
+    const moduleIds = moduleData.map((m: any) => m.id)
     const { data: lessonData } = await db
       .from('lessons')
       .select('id, module_id')
@@ -90,7 +90,7 @@ export const studentProgressService = {
       .eq('tenant_id', tenantId)
 
     const completedSet = new Set(
-      (progressData ?? []).filter((p) => p.completed).map((p) => p.lesson_id)
+      (progressData ?? []).filter((p: any) => p.completed).map((p: any) => p.lesson_id)
     )
 
     const lessonsByModule = new Map<string, string[]>()
@@ -101,7 +101,7 @@ export const studentProgressService = {
     })
 
     let prevMastered = true
-    return moduleData.map((m, i) => {
+    return moduleData.map((m: any, i: any) => {
       const lessons = lessonsByModule.get(m.id) ?? []
       const completedCount = lessons.filter((id) => completedSet.has(id)).length
       const totalCount = lessons.length
@@ -142,7 +142,7 @@ export const studentProgressService = {
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)
 
-    const lessonIds = (data ?? []).map((row) => row.lesson_id)
+    const lessonIds = (data ?? []).map((row: any) => row.lesson_id)
     const { data: lessons } =
       lessonIds.length > 0
         ? await db
@@ -160,7 +160,7 @@ export const studentProgressService = {
     )
 
     const progressMap: Record<string, LessonProgress> = {}
-    ;(data ?? []).forEach((p) => {
+    ;(data ?? []).forEach((p: any) => {
       progressMap[p.lesson_id] = {
         lessonId: p.lesson_id,
         moduleId: lessonModuleMap.get(p.lesson_id) ?? '',
@@ -188,7 +188,7 @@ export const studentProgressService = {
       .order('submitted_at', { ascending: false })
       .limit(500)
 
-    const quizIds = (data ?? []).map((attempt) => attempt.quiz_id)
+    const quizIds = (data ?? []).map((attempt: any) => attempt.quiz_id)
     const { data: quizzes } =
       quizIds.length > 0
         ? await db
@@ -206,7 +206,7 @@ export const studentProgressService = {
     )
 
     const attemptsMap: Record<string, QuizAttempt[]> = {}
-    ;(data ?? []).forEach((a) => {
+    ;(data ?? []).forEach((a: any) => {
       const totalPoints = quizMap.get(a.quiz_id) ?? 100
       const attempt: QuizAttempt = {
         id: a.id,
@@ -238,7 +238,7 @@ export const studentProgressService = {
       .eq('user_id', userId)
       .eq('tenant_id', tenantId)
     if (error) return 0
-    return (data ?? []).reduce((sum, row) => sum + (row.points ?? 0), 0)
+    return (data ?? []).reduce((sum: any, row: any) => sum + (row.points ?? 0), 0)
   },
 
   /**
@@ -253,7 +253,7 @@ export const studentProgressService = {
 
     if (error) return []
 
-    const badgeIds = (data ?? []).map((badge) => badge.badge_id)
+    const badgeIds = (data ?? []).map((badge: any) => badge.badge_id)
     const { data: badges, error: badgeError } =
       badgeIds.length > 0
         ? await db.from('badges').select('id, name, icon').in('id', badgeIds)
@@ -268,7 +268,7 @@ export const studentProgressService = {
       ])
     )
 
-    return (data ?? []).map((b) => ({
+    return (data ?? []).map((b: any) => ({
       id: b.id,
       title: badgeMap.get(b.badge_id)?.name ?? 'Badge',
       icon: badgeMap.get(b.badge_id)?.icon ?? 'star',
@@ -292,7 +292,7 @@ export const studentProgressService = {
         .eq('tenant_id', tenantId)
 
       if (enrollments && enrollments.length > 0) {
-        enrolledClassIds = enrollments.map((e) => e.class_id)
+        enrolledClassIds = enrollments.map((e: any) => e.class_id)
       }
     }
 
@@ -309,7 +309,7 @@ export const studentProgressService = {
     }
 
     const { data } = await query
-    const classIds = ((data ?? []) as Array<{ class_id: string | null }>).map((row) => row.class_id)
+    const classIds = ((data ?? []) as Array<{ class_id: string | null }>).map((row: any) => row.class_id)
     const { data: classes } =
       classIds.length > 0
         ? await db
@@ -326,7 +326,7 @@ export const studentProgressService = {
       ((classes ?? []) as Array<{ id: string; name: string }>).map((klass) => [klass.id, klass.name])
     )
 
-    return (data ?? []).map((a) => ({
+    return (data ?? []).map((a: any) => ({
       id: a.id,
       title: a.title,
       subject: a.class_id ? (classMap.get(a.class_id) ?? '') : '',

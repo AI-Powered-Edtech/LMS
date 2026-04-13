@@ -11,16 +11,28 @@ const mockGetUser = vi.fn()
 function makeChain(resolveWith: { data: unknown; error: unknown }) {
   const chain: Record<string, any> = {}
   const methods = [
-    'select', 'insert', 'update', 'upsert', 'delete',
-    'eq', 'neq', 'in', 'order', 'limit', 'range',
-    'single', 'maybeSingle', 'match',
+    'select',
+    'insert',
+    'update',
+    'upsert',
+    'delete',
+    'eq',
+    'neq',
+    'in',
+    'order',
+    'limit',
+    'range',
+    'single',
+    'maybeSingle',
+    'match',
   ]
   for (const m of methods) {
     chain[m] = vi.fn().mockReturnValue(chain)
   }
   chain.single.mockResolvedValue(resolveWith)
   chain.maybeSingle.mockResolvedValue(resolveWith)
-  chain.then = (resolve: Function) => Promise.resolve(resolveWith).then(resolve)
+  chain.then = (resolve: (value: { data: unknown; error: unknown }) => unknown) =>
+    Promise.resolve(resolveWith).then(resolve)
   return chain
 }
 
@@ -61,10 +73,20 @@ describe('fetchGradebookEntries', () => {
   it('queries gradebook_entries with course and tenant isolation', async () => {
     const entries = [
       {
-        id: 'ge1', tenant_id: 't1', student_id: 'stu1', course_id: 'c1',
-        entity_type: 'quiz', entity_id: 'q1', score: 85, max_score: 100,
-        feedback: 'Good', graded_by: null, graded_at: null,
-        created_at: '2026-01-01', updated_at: '2026-01-01', title: 'Quiz 1',
+        id: 'ge1',
+        tenant_id: 't1',
+        student_id: 'stu1',
+        course_id: 'c1',
+        entity_type: 'quiz',
+        entity_id: 'q1',
+        score: 85,
+        max_score: 100,
+        feedback: 'Good',
+        graded_by: null,
+        graded_at: null,
+        created_at: '2026-01-01',
+        updated_at: '2026-01-01',
+        title: 'Quiz 1',
         profiles: { full_name: 'Budi', email: 'budi@edu.id' },
       },
     ]
@@ -81,13 +103,25 @@ describe('fetchGradebookEntries', () => {
   })
 
   it('calculates percentage correctly — 0 when max_score is 0', async () => {
-    const entries = [{
-      id: 'ge2', tenant_id: 't1', student_id: 'stu1', course_id: 'c1',
-      entity_type: 'assignment', entity_id: 'a1', score: 0, max_score: 0,
-      feedback: null, graded_by: null, graded_at: null,
-      created_at: '2026-01-01', updated_at: '2026-01-01', title: null,
-      profiles: null,
-    }]
+    const entries = [
+      {
+        id: 'ge2',
+        tenant_id: 't1',
+        student_id: 'stu1',
+        course_id: 'c1',
+        entity_type: 'assignment',
+        entity_id: 'a1',
+        score: 0,
+        max_score: 0,
+        feedback: null,
+        graded_by: null,
+        graded_at: null,
+        created_at: '2026-01-01',
+        updated_at: '2026-01-01',
+        title: null,
+        profiles: null,
+      },
+    ]
     mockFrom.mockReturnValue(makeChain({ data: entries, error: null }))
     const result = await fetchGradebookEntries('c1', 't1')
     expect(result[0].percentage).toBe(0)
@@ -141,10 +175,16 @@ describe('upsertGradebookEntry', () => {
     mockFrom.mockReturnValue(chain)
 
     await upsertGradebookEntry({
-      tenant_id: 't1', student_id: 'stu1', course_id: 'c1',
-      quiz_id: 'q1', assignment_id: null,
-      score: 90, max_score: 100, notes: null,
-      graded_by: 'teacher-1', graded_at: '2026-01-01',
+      tenant_id: 't1',
+      student_id: 'stu1',
+      course_id: 'c1',
+      quiz_id: 'q1',
+      assignment_id: null,
+      score: 90,
+      max_score: 100,
+      notes: null,
+      graded_by: 'teacher-1',
+      graded_at: '2026-01-01',
     } as any)
 
     expect(chain.upsert).toHaveBeenCalledWith(
@@ -205,11 +245,17 @@ describe('fetchGradebookSettings', () => {
 
 describe('upsertGradebookSettings', () => {
   it('upserts with tenant+course conflict', async () => {
-    const settings = { tenant_id: 't1', course_id: 'c1', grading_scale: 'A-F', weight_quizzes: 50, weight_assignments: 50 }
+    const settings = {
+      tenant_id: 't1',
+      course_id: 'c1',
+      grading_scale: 'A-F',
+      weight_quizzes: 50,
+      weight_assignments: 50,
+    }
     const chain = makeChain({ data: { id: 's1', ...settings }, error: null })
     mockFrom.mockReturnValue(chain)
 
-    const result = await upsertGradebookSettings(settings as any)
+    await upsertGradebookSettings(settings as any)
     expect(chain.upsert).toHaveBeenCalledWith(settings, { onConflict: 'tenant_id,course_id' })
   })
 })
@@ -258,10 +304,16 @@ describe('addAnnotation', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'teacher-1' } }, error: null })
     const chain = makeChain({
       data: {
-        id: 'ann-1', tenant_id: 't1', submission_id: 'sub-1',
-        annotator_id: 'teacher-1', x_percent: 50, y_percent: 30,
-        content: 'Perhatikan rumus ini', color: '#FFD700',
-        created_at: '2026-01-01', updated_at: '2026-01-01',
+        id: 'ann-1',
+        tenant_id: 't1',
+        submission_id: 'sub-1',
+        annotator_id: 'teacher-1',
+        x_percent: 50,
+        y_percent: 30,
+        content: 'Perhatikan rumus ini',
+        color: '#FFD700',
+        created_at: '2026-01-01',
+        updated_at: '2026-01-01',
       },
       error: null,
     })
@@ -294,9 +346,7 @@ describe('updateAnnotation', () => {
     })
     mockFrom.mockReturnValue(chain)
     await updateAnnotation('ann-1', 'Updated')
-    expect(chain.update).toHaveBeenCalledWith(
-      expect.objectContaining({ content: 'Updated' })
-    )
+    expect(chain.update).toHaveBeenCalledWith(expect.objectContaining({ content: 'Updated' }))
   })
 })
 
@@ -319,7 +369,13 @@ describe('deleteAnnotation', () => {
 describe('gradebookService.getStudentGrades', () => {
   it('queries assignment_submissions with student and tenant', async () => {
     const data = [
-      { id: 's1', score: 90, status: 'graded', submitted_at: '2026-01-01', assignments: { id: 'a1', title: 'HW1', max_points: 100, classes: { name: 'IPA' } } },
+      {
+        id: 's1',
+        score: 90,
+        status: 'graded',
+        submitted_at: '2026-01-01',
+        assignments: { id: 'a1', title: 'HW1', max_points: 100, classes: { name: 'IPA' } },
+      },
     ]
     mockFrom.mockReturnValue(makeChain({ data, error: null }))
     const result = await gradebookService.getStudentGrades('stu1', 't1')

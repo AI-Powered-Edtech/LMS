@@ -531,7 +531,7 @@ export const assignmentService = {
       throw error
     }
 
-    return (data ?? []).map((assignment) => ({
+    return (data ?? []).map((assignment: any) => ({
       ...(assignment as Assignment),
       status: normalizeAssignmentStatus(
         (assignment as Assignment).status,
@@ -819,7 +819,7 @@ export const assignmentService = {
 
     if (!enrollments || enrollments.length === 0) return 0
 
-    const enrolledCourseIds = enrollments.map((e) => e.course_id)
+    const enrolledCourseIds = enrollments.map((e: any) => e.course_id)
 
     const { data: allAssignments, error: aErr } = await db
       .from('assignments')
@@ -844,7 +844,7 @@ export const assignmentService = {
       .neq('status', 'DRAFT')
       .in(
         'assignment_id',
-        allAssignments.map((a) => a.id)
+        allAssignments.map((a: any) => a.id)
       )
 
     if (sErr) {
@@ -853,8 +853,8 @@ export const assignmentService = {
       return allAssignments.length
     }
 
-    const submittedIds = new Set((submitted ?? []).map((submission) => submission.assignment_id))
-    return allAssignments.filter((assignment) => !submittedIds.has(assignment.id)).length
+    const submittedIds = new Set((submitted ?? []).map((submission: any) => submission.assignment_id))
+    return allAssignments.filter((assignment: any) => !submittedIds.has(assignment.id)).length
   },
 
   async getAssignmentSubmissionBundle(

@@ -7,6 +7,7 @@ import { captureError } from '@/utils/sentry'
 
 import { aiBuilderCopilotService } from '../api/aiBuilderCopilotService'
 import type {
+  AIBuilderArtifact,
   GenerateLessonDraftRequest,
   GenerateLessonDraftResponse,
   GenerateOutlineRequest,
@@ -118,7 +119,7 @@ export function useApplyLessonDraft() {
   return useMutation({
     mutationFn: ({
       artifactId,
-      courseId,
+      courseId: _courseId,
       lessonId,
       selectedBlocks,
       quizPayload,
@@ -156,7 +157,7 @@ const PAGE_SIZE = 20
 export function useArtifactHistory(courseId: string | null) {
   const { tenantId, user } = useAuth()
 
-  return useInfiniteQuery({
+  return useInfiniteQuery<{ items: AIBuilderArtifact[]; hasMore: boolean }, Error>({
     queryKey: aiBuilderCopilotKeys.history(tenantId!, user!.id, courseId!),
     queryFn: async ({ pageParam }) => {
       return aiBuilderCopilotService.fetchArtifactHistory(
@@ -184,7 +185,7 @@ export function useDismissArtifact() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ artifactId, courseId }: { artifactId: string; courseId: string }) =>
+    mutationFn: ({ artifactId, courseId: _courseId }: { artifactId: string; courseId: string }) =>
       aiBuilderCopilotService.dismissArtifact(artifactId),
     onSuccess: (_data, variables) => {
       if (tenantId && user) {

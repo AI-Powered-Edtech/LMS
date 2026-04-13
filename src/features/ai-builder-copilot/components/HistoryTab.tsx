@@ -44,7 +44,10 @@ export function HistoryTab() {
   )
   const dismissMutation = useDismissArtifact()
 
-  const artifacts = data?.pages.flatMap((page) => page.items) ?? []
+  const artifacts =
+    (data?.pages as unknown as Array<{ items: AIBuilderArtifact[] }>)?.flatMap(
+      (page) => page.items
+    ) ?? []
 
   const handleDismiss = async (artifact: AIBuilderArtifact) => {
     if (!state.courseId) return
@@ -116,7 +119,8 @@ export function HistoryTab() {
     <div className="flex-1 flex flex-col">
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
         {artifacts.map((artifact) => {
-          const Icon = KIND_ICONS[artifact.artifact_kind]
+          const kind = artifact.artifact_kind as ArtifactKind
+          const Icon = KIND_ICONS[kind]
           return (
             <div
               key={artifact.id}
@@ -129,7 +133,7 @@ export function HistoryTab() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                      {ARTIFACT_KIND_LABELS[artifact.artifact_kind]}
+                      {ARTIFACT_KIND_LABELS[kind]}
                     </span>
                     <ArtifactStatusBadge status={artifact.status} />
                   </div>

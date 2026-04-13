@@ -254,7 +254,7 @@ export async function getQuestionStats(quizId: string): Promise<QuestionStatsWit
   }
 
   // Get question text and order for display
-  const questionIds = stats.map((s) => s.question_id)
+  const questionIds = stats.map((s: any) => s.question_id)
   const { data: questions, error: questionError } = await db
     .from('quiz_questions')
     .select('id, text, "order"')
@@ -262,7 +262,7 @@ export async function getQuestionStats(quizId: string): Promise<QuestionStatsWit
 
   if (questionError) {
     logDevError('quizAnalytics', 'Error fetching questions:', questionError)
-    return stats.map((s) => ({
+    return stats.map((s: any) => ({
       ...s,
       question_text: 'Question',
       question_order: 0,
@@ -270,8 +270,8 @@ export async function getQuestionStats(quizId: string): Promise<QuestionStatsWit
   }
 
   // Merge stats with question info
-  return stats.map((stat) => {
-    const question = questions?.find((q) => q.id === stat.question_id)
+  return stats.map((stat: any) => {
+    const question = questions?.find((q: any) => q.id === stat.question_id)
     return {
       ...stat,
       question_text: question?.text?.substring(0, 80) || 'Question',

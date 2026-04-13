@@ -175,7 +175,7 @@ export async function getQuizzesByClass(classId: string, tenantId: string) {
   if (error) throw error
 
   const assignments = (data ?? []) as Array<Record<string, unknown>>
-  const quizIds = assignments.map((assignment) => String(assignment.quiz_id)).filter(Boolean)
+  const quizIds = assignments.map((assignment: any) => String(assignment.quiz_id)).filter(Boolean)
   if (quizIds.length === 0) return []
 
   const [{ data: quizzes, error: quizError }, { data: questions, error: questionError }] =
@@ -207,7 +207,7 @@ export async function getQuizzesByClass(classId: string, tenantId: string) {
   })
 
   return assignments
-    .map((assignment) => {
+    .map((assignment: any) => {
       const quiz = quizMap.get(String(assignment.quiz_id))
       if (!quiz) return null
 
@@ -406,7 +406,7 @@ export async function setQuizStatus(
   if (!assignments || assignments.length === 0) return
 
   await Promise.all(
-    assignments.map((assignment) =>
+    assignments.map((assignment: any) =>
       db
         .from('quiz_assignments')
         .update({

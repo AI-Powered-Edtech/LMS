@@ -293,7 +293,7 @@ describe('videoUploadService', () => {
 
       vi.mocked(await import('@/services/db')).db.storage = {
         from: mockStorageFrom,
-      } as unknown as typeof import('@/services/db').db.storage
+      } as any
 
       await expect(
         videoUploadService.uploadVideo(file, 'lesson-1', null, 'tenant-1', progressFn)

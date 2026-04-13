@@ -44,11 +44,11 @@ export function Profile() {
   const displayName =
     profile?.first_name && profile?.last_name
       ? `${profile.first_name} ${profile.last_name}`
-      : (user?.user_metadata?.full_name ?? 'Pengguna')
+      : ((user?.user_metadata?.full_name as string) ?? 'Pengguna')
   const displayEmail = user?.email ?? ''
   const avatarUrl =
     profile?.avatar_url ??
-    `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id ?? 'default'}`
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=${(user?.id as string) ?? 'default'}`
 
   // Use activeRole for display; fall back to global role only if activeRole not yet resolved
   const displayRole = activeRole ?? role

@@ -46,7 +46,7 @@ export function useStudentEnrollments() {
 
       if (error) throw error
 
-      const courseIds = (data ?? []).map((enrollment) => enrollment.course_id)
+      const courseIds = (data ?? []).map((enrollment: any) => enrollment.course_id)
       if (courseIds.length === 0) return []
 
       const { data: courses, error: courseError } = await db

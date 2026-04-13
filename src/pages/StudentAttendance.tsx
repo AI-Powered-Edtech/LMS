@@ -59,7 +59,7 @@ export function StudentAttendance() {
       if (enrollError) throw enrollError
       if (!enrollments || enrollments.length === 0) return []
 
-      const enrollmentIds = enrollments.map((e) => e.id)
+      const enrollmentIds = enrollments.map((e: any) => e.id)
 
       const { data, error } = await db
         .from('attendance_records')
@@ -79,9 +79,9 @@ export function StudentAttendance() {
             class_id: string
             classes: { name: string } | null
           }>
-        ).map((e) => [e.id, e.classes?.name ?? ''])
+        ).map((enr) => [enr.id, enr.classes?.name ?? ''])
       )
-      return (data ?? []).map((r) => ({
+      return (data ?? []).map((r: any) => ({
         ...r,
         // Use scan_date if available, fallback to date
         scan_date: (r as { scan_date?: string | null }).scan_date ?? (r as { date?: string }).date,

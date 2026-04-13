@@ -15,9 +15,8 @@ export { StudentGradeView } from './components/StudentGradeView'
 
 // Hooks
 export { useExportReport } from './hooks/useExportReport'
-export { useGradebook } from './hooks/useGradebookQueries'
-export { useGradebookQuery, useUpdateGrade } from './hooks/useGradebookQueries'
-export { useGradebookState, useGradebookDispatch } from './hooks/useGradebookState'
+export { useGradebook, useGradebookQuery, useUpdateGrade } from './hooks/useGradebookQueries'
+export { useGradebookState } from './hooks/useGradebookState'
 export { useGradebookRealtime } from './hooks/useGradebookRealtime'
 
 // Queries
@@ -30,9 +29,5 @@ export {
 } from './queries/useGradebook'
 
 // Types
-export type {
-  GradebookEntry,
-  GradebookSettings,
-  GradebookStudent,
-  GradebookAssignment,
-} from './types'
+export type { GradebookEntry, GradebookSettings, GradebookStudent } from './types'
+export type { GradebookAssignment } from './api/legacyGradebookService'

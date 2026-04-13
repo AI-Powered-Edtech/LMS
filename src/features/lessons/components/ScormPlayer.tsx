@@ -172,7 +172,8 @@ export function ScormPlayer({
         // Set learner identity (always override with current user)
         if (pkg.scorm_version === '1.2') {
           initialData['cmi.core.student_id'] = user.id
-          initialData['cmi.core.student_name'] = user.user_metadata?.full_name || 'Student'
+          initialData['cmi.core.student_name'] =
+            (user.user_metadata?.full_name as string) || 'Student'
           if (runtime?.suspend_data) {
             initialData['cmi.suspend_data'] = runtime.suspend_data
           }
@@ -190,7 +191,7 @@ export function ScormPlayer({
         } else {
           // SCORM 2004
           initialData['cmi.learner_id'] = user.id
-          initialData['cmi.learner_name'] = user.user_metadata?.full_name || 'Student'
+          initialData['cmi.learner_name'] = (user.user_metadata?.full_name as string) || 'Student'
           if (runtime?.suspend_data) {
             initialData['cmi.suspend_data'] = runtime.suspend_data
           }

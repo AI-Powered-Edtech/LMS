@@ -55,8 +55,8 @@ export async function getSchoolQuizOverview(tenantId: string): Promise<AdminQuiz
 
   if (!quizzes || quizzes.length === 0) return []
 
-  const quizIds = quizzes.map((q) => q.id)
-  const classIds = quizzes.map((quiz) => quiz.class_id).filter(Boolean)
+  const quizIds = quizzes.map((q: any) => q.id)
+  const classIds = quizzes.map((quiz: any) => quiz.class_id).filter(Boolean)
 
   const [{ data: stats }, { data: questions }, { data: classes, error: classesError }] =
     await Promise.all([
@@ -96,7 +96,10 @@ export async function getSchoolQuizOverview(tenantId: string): Promise<AdminQuiz
 
   if (teacherError) throw teacherError
 
-  const statsMap = new Map((stats ?? []).map((s) => [s.quiz_id, s]))
+  const statsMap = new Map<
+    string,
+    { total_attempts: number; avg_score: number | null; pass_rate: number | null }
+  >((stats ?? []).map((s: any) => [s.quiz_id, s]))
   const questionCountMap = new Map<string, number>()
   ;((questions ?? []) as Array<{ quiz_id: string }>).forEach((question) => {
     questionCountMap.set(question.quiz_id, (questionCountMap.get(question.quiz_id) ?? 0) + 1)
@@ -113,7 +116,7 @@ export async function getSchoolQuizOverview(tenantId: string): Promise<AdminQuiz
     ])
   )
 
-  return quizzes.map((q) => {
+  return quizzes.map((q: any) => {
     const stat = statsMap.get(q.id)
     const klass = q.class_id ? classMap.get(q.class_id) : null
 
@@ -153,7 +156,7 @@ export async function getAntiCheatAuditLog(
 
   if (!data || data.length === 0) return []
 
-  const attemptIds = data.map((row) => row.attempt_id)
+  const attemptIds = data.map((row: any) => row.attempt_id)
   const { data: attempts, error: attemptError } = await db
     .from('quiz_attempts_v2')
     .select('id, student_id, quiz_id, tenant_id')
@@ -174,18 +177,10 @@ export async function getAntiCheatAuditLog(
   const [{ data: profiles, error: profileError }, { data: quizzes, error: quizError }] =
     await Promise.all([
       studentIds.length > 0
-        ? db
-            .from('profiles')
-            .select('id, full_name')
-            .eq('tenant_id', tenantId)
-            .in('id', studentIds)
+        ? db.from('profiles').select('id, full_name').eq('tenant_id', tenantId).in('id', studentIds)
         : Promise.resolve({ data: [], error: null }),
       quizIds.length > 0
-        ? db
-            .from('quizzes')
-            .select('id, title')
-            .eq('tenant_id', tenantId)
-            .in('id', quizIds)
+        ? db.from('quizzes').select('id, title').eq('tenant_id', tenantId).in('id', quizIds)
         : Promise.resolve({ data: [], error: null }),
     ])
 
@@ -206,7 +201,7 @@ export async function getAntiCheatAuditLog(
     ])
   )
 
-  return data.map((row) => {
+  return data.map((row: any) => {
     const attempt = attemptMap.get(row.attempt_id)
 
     return {

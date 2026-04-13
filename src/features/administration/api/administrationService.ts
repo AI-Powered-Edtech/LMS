@@ -178,8 +178,8 @@ export const administrationService = {
         // Filter out rows where the modules join returned null
         // (can happen if modules table has no matching row for the tenant).
         return tenantModules
-          .filter((tm) => tm.modules != null)
-          .map((tm) => {
+          .filter((tm: any) => tm.modules != null)
+          .map((tm: any) => {
             const mod = Array.isArray(tm.modules)
               ? tm.modules[0]
               : (tm.modules as unknown as {

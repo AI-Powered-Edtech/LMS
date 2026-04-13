@@ -268,7 +268,7 @@ export const groupAssignmentService = {
       throw groupError
     }
 
-    const groupIds = (groups ?? []).map((group) => group.id)
+    const groupIds = (groups ?? []).map((group: any) => group.id)
     const { data: existingMembers, error: memberError } =
       groupIds.length > 0
         ? await db
@@ -283,7 +283,7 @@ export const groupAssignmentService = {
       throw memberError
     }
 
-    const assignedSet = new Set((existingMembers ?? []).map((m) => m.user_id))
+    const assignedSet = new Set((existingMembers ?? []).map((m: any) => m.user_id))
 
     // 4. Map and return
     return (enrolled as Array<{ student_id: string }>).map((row) => {

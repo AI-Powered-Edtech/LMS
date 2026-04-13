@@ -72,6 +72,7 @@ const MAX_BACKOFF_MS = 300000 // 5 minutes
 /**
  * Generate a deterministic idempotency key from operation type + entity identifiers.
  * Prevents duplicate operations when the same action is queued multiple times.
+ * @internal Reserved for future use
  */
 export function generateIdempotencyKey(
   type: QueueOperationType,
@@ -210,9 +211,7 @@ async function processOperation(
       }
 
       case 'form-submit': {
-        const { error } = await db
-          .from(payload.tableName as string)
-          .insert(payload.data as never)
+        const { error } = await db.from(payload.tableName as string).insert(payload.data as never)
         result = { error }
         break
       }
@@ -318,7 +317,7 @@ export async function processSyncQueue(): Promise<SyncResult> {
  * Schedule the next sync cycle with exponential backoff.
  * Called after a sync attempt that had failures.
  */
-export function scheduleNextSync(failedCount: number, attempt: number): void {
+function scheduleNextSync(failedCount: number, attempt: number): void {
   if (failedCount === 0) return
 
   const delay = calculateBackoff(attempt)
@@ -333,6 +332,7 @@ export function scheduleNextSync(failedCount: number, attempt: number): void {
 /**
  * Start the offline sync listener.
  * Automatically processes the queue when the user comes back online.
+ * @internal Reserved for future use
  */
 export function startOfflineSync(): () => void {
   const handleOnline = async (): Promise<void> => {

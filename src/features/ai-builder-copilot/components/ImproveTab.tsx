@@ -1,4 +1,4 @@
-import { Check, Sparkles } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { useBuilder } from '@/contexts/BuilderContext'
@@ -91,7 +91,7 @@ export function ImproveTab() {
         block_content: blockContent,
         action,
         context: {
-          lesson_id: state.activeLesson.id,
+          lesson_id: state.activeLesson!.id,
           lesson_title: lessonTitle,
           block_type: activeBlock.type,
           block_id: activeBlock.id,
@@ -99,8 +99,7 @@ export function ImproveTab() {
       })
 
       const content =
-        (result.result.transformed_content as string) ??
-        JSON.stringify(result.result, null, 2)
+        (result.result.transformed_content as string) ?? JSON.stringify(result.result, null, 2)
 
       setTransformedContent(content)
     } catch (err) {

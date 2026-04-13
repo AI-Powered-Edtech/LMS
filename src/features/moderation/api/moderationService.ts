@@ -32,7 +32,7 @@ export const moderationService = {
       .order('created_at', { ascending: false })
       .limit(100)
     if (error) throw error
-    return (data || []).map((r) => ({
+    return (data || []).map((r: any) => ({
       id: r.id,
       contentId: r.content_id,
       contentType: r.content_type as ContentType,

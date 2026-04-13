@@ -60,12 +60,12 @@ export function AITutorPanel({
 
   // Streaming hook
   const {
-    streamingState,
+    streamingState: _streamingState,
     startStream,
-    abortStream,
+    abortStream: _abortStream,
     resetStream,
     isStreaming,
-    fullText: streamingText,
+    fullText: _streamingText,
   } = useAiStream({
     onToken: (_token, fullText) => {
       // Update the streaming message in real-time

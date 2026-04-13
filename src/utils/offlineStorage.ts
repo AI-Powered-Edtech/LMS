@@ -143,6 +143,7 @@ export async function getCachedQuiz(quizId: string): Promise<CachedQuiz | null> 
   return result ?? null
 }
 
+/** @internal Reserved for future use */
 export async function clearQuizCache(quizId: string): Promise<void> {
   const db = await openDB()
   const tx = db.transaction(STORES.QUIZ_CACHE, 'readwrite')
@@ -155,6 +156,7 @@ export async function clearQuizCache(quizId: string): Promise<void> {
 // Quiz answers
 // ---------------------------------------------------------------------------
 
+/** @internal Reserved for future use */
 export async function saveAnswer(answer: CachedAnswer): Promise<void> {
   const db = await openDB()
   const tx = db.transaction(STORES.QUIZ_ANSWERS, 'readwrite')
@@ -163,6 +165,7 @@ export async function saveAnswer(answer: CachedAnswer): Promise<void> {
   await wrapTransaction(tx)
 }
 
+/** @internal Reserved for future use */
 export async function getAnswers(quizId: string): Promise<CachedAnswer[]> {
   const db = await openDB()
   const tx = db.transaction(STORES.QUIZ_ANSWERS, 'readonly')
@@ -269,6 +272,7 @@ export async function deleteBuilderDraft(courseId: string): Promise<void> {
   await wrapTransaction(tx)
 }
 
+/** @internal Reserved for future use */
 export async function getAllDirtyDrafts(): Promise<unknown[]> {
   const db = await openDB()
   const tx = db.transaction(STORES.BUILDER_DRAFTS, 'readonly')
@@ -309,6 +313,7 @@ export async function getPendingCount(): Promise<number> {
 // ---------------------------------------------------------------------------
 
 /** Returns true if IndexedDB is available in the current environment. */
+/** @internal Reserved for future use */
 export function isIndexedDBAvailable(): boolean {
   try {
     return typeof indexedDB !== 'undefined' && indexedDB !== null
@@ -328,6 +333,7 @@ export function isIndexedDBAvailable(): boolean {
  * @param answer - Objek jawaban kuis yang akan disimpan
  * @param userId - ID pengguna untuk derivasi kunci enkripsi
  */
+/** @internal Reserved for future use */
 export async function cacheAnswerEncrypted(answer: CachedAnswer, userId: string): Promise<void> {
   const encryptedPayload = await encryptData(answer, userId)
   const db = await openDB()
@@ -351,6 +357,7 @@ export async function cacheAnswerEncrypted(answer: CachedAnswer, userId: string)
  * @param userId - ID pengguna untuk derivasi kunci dekripsi
  * @returns Array jawaban kuis yang sudah didekripsi
  */
+/** @internal Reserved for future use */
 export async function getAnswersEncrypted(quizId: string, userId: string): Promise<CachedAnswer[]> {
   const db = await openDB()
   const tx = db.transaction(STORES.QUIZ_ANSWERS, 'readonly')

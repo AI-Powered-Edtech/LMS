@@ -86,7 +86,7 @@ export const gradebookService = {
 
     if (queryError) throw queryError
 
-    const assignmentIds = (data ?? []).map((submission) => submission.assignment_id)
+    const assignmentIds = (data ?? []).map((submission: any) => submission.assignment_id)
     const { data: assignments, error: assignmentError } =
       assignmentIds.length > 0
         ? await db
@@ -109,7 +109,7 @@ export const gradebookService = {
             .eq('tenant_id', tenantId)
             .in(
               'id',
-              classIds.filter((classId): classId is string => Boolean(classId))
+              classIds.filter((classId: any): classId is string => Boolean(classId))
             )
         : { data: [], error: null }
 
@@ -124,7 +124,7 @@ export const gradebookService = {
       ((classes ?? []) as Array<{ id: string; name: string }>).map((klass) => [klass.id, klass.name])
     )
 
-    return (data ?? []).map((submission) => {
+    return (data ?? []).map((submission: any) => {
       const assignment = assignmentMap.get(submission.assignment_id)
       return {
         ...submission,

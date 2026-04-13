@@ -50,6 +50,7 @@ export function useOfflineQuiz(options: UseOfflineQuizOptions) {
       isOnline: navigator.onLine,
       cachedAnswers: [] as CachedAnswer[],
       syncStatus: { pending: 0, synced: 0, failed: 0 },
+      isLoading: false,
     }
     return initialState
   })

@@ -453,7 +453,7 @@ export const lessonService = {
     }
 
     // Fetch progress for all lessons in this module
-    const lessonIds = (lessons || []).map((l) => l.id)
+    const lessonIds = (lessons || []).map((l: any) => l.id)
     const { data: progressData, error: progressError } = await db
       .from('lesson_progress')
       .select(
@@ -797,7 +797,7 @@ export const lessonService = {
       return new Set()
     }
 
-    return new Set((data || []).map((p) => p.lesson_id))
+    return new Set((data || []).map((p: any) => p.lesson_id))
   },
 
   /**

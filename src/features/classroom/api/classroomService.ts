@@ -87,7 +87,7 @@ export const classroomService = {
       .eq('status', 'ACTIVE')
     if (error) throw error
 
-    const classIds = (enrollments ?? []).map((item) => item.class_id).filter(Boolean)
+    const classIds = (enrollments ?? []).map((item: any) => item.class_id).filter(Boolean)
     if (classIds.length === 0) return []
 
     const { data: classrooms, error: classroomError } = await db
@@ -215,7 +215,7 @@ export const classroomService = {
       .eq('course_id', courseId)
 
     if (error) throw error
-    return data?.map((item) => item.class_id) || []
+    return data?.map((item: any) => item.class_id) || []
   },
   /**
    * Subscribe to realtime classroom changes.

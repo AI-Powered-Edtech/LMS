@@ -136,7 +136,7 @@ export async function getQuestionsInBank(
 
   if (error) throw error
 
-  return (data ?? []).map((row) => {
+  return (data ?? []).map((row: any) => {
     const q = Array.isArray(row.question_bank) ? row.question_bank[0] : row.question_bank
     return {
       id: q?.id ?? '',

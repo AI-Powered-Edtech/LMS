@@ -82,7 +82,7 @@ export const gradebookService = {
       })(),
     ])
 
-    const assignments: GradebookAssignment[] = (assignmentsData ?? []).map((a) => ({
+    const assignments: GradebookAssignment[] = (assignmentsData ?? []).map((a: any) => ({
       id: a.id,
       title: a.title,
       type: 'assignment' as const,
@@ -95,7 +95,7 @@ export const gradebookService = {
     // Build grade map from submissions
     const grades: GradeData = {}
     if (submissionsData) {
-      submissionsData.forEach((sub) => {
+      submissionsData.forEach((sub: any) => {
         if (!grades[sub.student_id]) grades[sub.student_id] = {}
 
         grades[sub.student_id][sub.assignment_id] = {
@@ -117,7 +117,7 @@ export const gradebookService = {
 
     // Merge quiz results into grades - quizzes appear as assignments in gradebook
     if (quizAttempts && quizAttempts.length > 0) {
-      quizAttempts.forEach((attempt) => {
+      quizAttempts.forEach((attempt: any) => {
         if (!grades[attempt.student_id]) grades[attempt.student_id] = {}
         grades[attempt.student_id][attempt.quiz_id] = {
           score: attempt.score,

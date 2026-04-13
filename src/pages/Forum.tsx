@@ -6,7 +6,7 @@ import { lazy, Suspense, useMemo, useState } from 'react'
 import { ReportModal } from '@/components/moderation/ReportModal'
 import { EmptyState } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
-import { useClassroomList } from '@/features/classroom/queries/classroomQueries'
+import { useClassroom } from '@/features/classroom/hooks/useClassroomQueries'
 import { useCourses } from '@/features/courses/queries/courseQueries'
 import { discussionService } from '@/features/discussions/api/discussionService'
 import {
@@ -54,16 +54,12 @@ export function Forum() {
   // Course and classroom data for filters
   const { data: coursesData } = useCourses()
   const courses = coursesData?.courses ?? []
-  const { data: allClassrooms = [] } = useClassroomList(
-    user?.id ?? '',
-    activeRole ?? 'student',
-    tenantId ?? ''
-  )
+  const { classrooms: allClassrooms = [] } = useClassroom()
 
   // Filter classrooms by selected course
   const availableClassrooms = useMemo(() => {
     if (!selectedCourseId) return []
-    return allClassrooms.filter((classroom) => classroom.course_id === selectedCourseId)
+    return allClassrooms.filter((classroom: any) => classroom.course_id === selectedCourseId)
   }, [allClassrooms, selectedCourseId])
 
   const { data: rawDiscussions = [] } = useQuery({
@@ -326,9 +322,9 @@ export function Forum() {
                 </h3>
                 <button
                   onClick={() => {
-                    const selectedCourse = courses.find((c) => c.id === selectedCourseId)
+                    const selectedCourse = courses.find((c: any) => c.id === selectedCourseId)
                     const selectedClassroom = availableClassrooms.find(
-                      (c) => c.id === selectedClassId
+                      (c: any) => c.id === selectedClassId
                     )
                     exportParticipationToCSV({
                       data: participationData?.participants || [],

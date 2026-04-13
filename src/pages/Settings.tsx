@@ -74,7 +74,7 @@ export function Settings() {
   const displayName =
     profile?.first_name && profile?.last_name
       ? `${profile.first_name} ${profile.last_name}`
-      : (user?.user_metadata?.full_name ?? '')
+      : ((user?.user_metadata?.full_name as string) ?? '')
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">

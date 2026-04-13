@@ -207,7 +207,7 @@ export async function getSuspiciousAttemptCount(quizId: string, tenantId: string
     return 0
   }
 
-  const attemptIds = attempts?.map((a) => a.id) ?? []
+  const attemptIds = attempts?.map((a: any) => a.id) ?? []
   if (attemptIds.length === 0) return 0
 
   // Step 2: count cheating signals for those attempts

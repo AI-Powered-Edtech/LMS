@@ -45,7 +45,7 @@ export const calendarService = {
     ])
 
     if (assignments) {
-      assignments.forEach((a) => {
+      assignments.forEach((a: any) => {
         const dueDate = new Date(a.due_date!)
         events.push({
           id: `assignment-${a.id}`,
@@ -78,7 +78,7 @@ export const calendarService = {
         Minggu: 0,
       }
 
-      schedules.forEach((s) => {
+      schedules.forEach((s: any) => {
         const targetDay = dayMap[s.day] ?? 1
         const now = new Date()
         const diff = (targetDay - now.getDay() + 7) % 7
@@ -99,7 +99,7 @@ export const calendarService = {
     }
 
     if (quizzes) {
-      quizzes.forEach((q) => {
+      quizzes.forEach((q: any) => {
         events.push({
           id: `quiz-${q.id}`,
           title: q.title,

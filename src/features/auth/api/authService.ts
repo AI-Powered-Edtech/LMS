@@ -202,9 +202,9 @@ export const authService = {
    */
   async checkRateLimit(
     action: string,
-    key: string,
-    maxAttempts: number,
-    windowMs: number
+    _key: string,
+    _maxAttempts: number,
+    _windowMs: number
   ): Promise<RateLimitResult> {
     // check-rate-limit adalah internal service — tidak ada VIL endpoint publik.
     // Gunakan VIL API internal rate limit endpoint jika tersedia.

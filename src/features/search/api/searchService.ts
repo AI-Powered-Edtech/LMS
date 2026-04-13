@@ -52,7 +52,7 @@ export async function globalSearch(options: SearchOptions): Promise<SearchResult
         .limit(5)
 
       results.push(
-        ...(data ?? []).map((c) => ({
+        ...(data ?? []).map((c: any) => ({
           id: c.id,
           type: 'course' as const,
           title: c.title,
@@ -77,7 +77,7 @@ export async function globalSearch(options: SearchOptions): Promise<SearchResult
         .limit(5)
 
       results.push(
-        ...(data ?? []).map((l) => ({
+        ...(data ?? []).map((l: any) => ({
           id: l.id,
           type: 'lesson' as const,
           title: l.title,
@@ -102,7 +102,7 @@ export async function globalSearch(options: SearchOptions): Promise<SearchResult
         .limit(5)
 
       results.push(
-        ...(data ?? []).map((a) => ({
+        ...(data ?? []).map((a: any) => ({
           id: a.id,
           type: 'assignment' as const,
           title: a.title,
@@ -127,7 +127,7 @@ export async function globalSearch(options: SearchOptions): Promise<SearchResult
         .limit(5)
 
       results.push(
-        ...(data ?? []).map((q) => ({
+        ...(data ?? []).map((q: any) => ({
           id: q.id,
           type: 'quiz' as const,
           title: q.title,
@@ -151,7 +151,7 @@ export async function globalSearch(options: SearchOptions): Promise<SearchResult
         .limit(30)
 
       const normalizedQuery = query.trim().toLowerCase()
-      const filteredUsers = (data ?? []).filter((user) => {
+      const filteredUsers = (data ?? []).filter((user: any) => {
         const firstName = String(user.first_name ?? '').toLowerCase()
         const lastName = String(user.last_name ?? '').toLowerCase()
         const email = String(user.email ?? '').toLowerCase()
@@ -163,7 +163,7 @@ export async function globalSearch(options: SearchOptions): Promise<SearchResult
       })
 
       results.push(
-        ...filteredUsers.slice(0, 5).map((u) => ({
+        ...filteredUsers.slice(0, 5).map((u: any) => ({
           id: u.id,
           type: 'user' as const,
           title: `${u.first_name}${u.last_name ? ` ${u.last_name}` : ''}`.trim(),

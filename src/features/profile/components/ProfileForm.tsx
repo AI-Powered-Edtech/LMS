@@ -22,11 +22,11 @@ export function ProfileForm() {
   const displayName =
     firstName.trim() || lastName.trim()
       ? `${firstName.trim()} ${lastName.trim()}`.trim()
-      : (user?.user_metadata?.full_name ?? 'Pengguna')
+      : ((user?.user_metadata?.full_name as string) ?? 'Pengguna')
 
   const avatarUrl =
     profile?.avatar_url ??
-    `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id ?? 'default'}`
+    `https://api.dicebear.com/7.x/avataaars/svg?seed=${(user?.id as string) ?? 'default'}`
 
   const isDirty = firstName !== initialFirst || lastName !== initialLast
 

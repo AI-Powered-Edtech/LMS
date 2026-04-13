@@ -96,10 +96,8 @@ export function useFeatureFlag(flagName: string): boolean {
   return isFeatureEnabled(flagName, tenantId ?? undefined, user?.id)
 }
 
-// ---------------------------------------------------------------------------
-// Admin: persist flag change
-// ---------------------------------------------------------------------------
-
+// Admin: persist flag change (reserved for future admin UI use)
+// Kept for future use; suppressing TS6133 by exporting
 export async function updateFeatureFlag(
   flagName: string,
   updates: Partial<Omit<FeatureFlag, 'flag_name'>>

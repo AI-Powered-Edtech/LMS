@@ -163,11 +163,11 @@ export async function fetchPPDBSummary(periodId: string): Promise<PPDBSummary> {
   return {
     total: regs.length,
     quota: period?.quota ?? 0,
-    accepted: regs.filter((r) => r.status === 'accepted').length,
-    rejected: regs.filter((r) => r.status === 'rejected').length,
-    pending: regs.filter((r) => r.status === 'pending').length,
-    reviewed: regs.filter((r) => r.status === 'reviewed').length,
-    waitlisted: regs.filter((r) => r.status === 'waitlisted').length,
+    accepted: regs.filter((r: any) => r.status === 'accepted').length,
+    rejected: regs.filter((r: any) => r.status === 'rejected').length,
+    pending: regs.filter((r: any) => r.status === 'pending').length,
+    reviewed: regs.filter((r: any) => r.status === 'reviewed').length,
+    waitlisted: regs.filter((r: any) => r.status === 'waitlisted').length,
   }
 }
 

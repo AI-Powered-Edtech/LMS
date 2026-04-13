@@ -159,15 +159,15 @@ export async function getSurveyResults(
     const allResponses = responses ?? []
     const fallbackQuestionResults: QuestionResult[] = surveyData.questions.map((question) => {
       const answers = allResponses
-        .map((response) => response.answers[question.id])
-        .filter((answer) => answer !== undefined && answer !== null && answer !== '')
+        .map((response: any) => response.answers[question.id])
+        .filter((answer: any) => answer !== undefined && answer !== null && answer !== '')
 
       if (question.type === 'rating') {
         const numericAnswers = answers
-          .map(Number)
-          .filter((value) => !Number.isNaN(value) && value >= 1 && value <= 5)
+          .map((value: any) => Number(value))
+          .filter((value: any) => !Number.isNaN(value) && value >= 1 && value <= 5)
         const distribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-        numericAnswers.forEach((value) => {
+        numericAnswers.forEach((value: any) => {
           distribution[value] = (distribution[value] ?? 0) + 1
         })
 
@@ -175,7 +175,7 @@ export async function getSurveyResults(
           question,
           ratingAvg:
             numericAnswers.length > 0
-              ? numericAnswers.reduce((sum, value) => sum + value, 0) / numericAnswers.length
+              ? numericAnswers.reduce((sum: any, value: any) => sum + value, 0) / numericAnswers.length
               : 0,
           ratingDistribution: distribution,
         }
@@ -184,10 +184,10 @@ export async function getSurveyResults(
       if (question.type === 'yesno') {
         return {
           question,
-          yesCount: answers.filter((answer) =>
+          yesCount: answers.filter((answer: any) =>
             [true, 'true', 'ya', 'yes', 1, '1'].includes(answer as never)
           ).length,
-          noCount: answers.filter((answer) =>
+          noCount: answers.filter((answer: any) =>
             [false, 'false', 'tidak', 'no', 0, '0'].includes(answer as never)
           ).length,
         }

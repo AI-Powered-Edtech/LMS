@@ -98,7 +98,7 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
 
   if (questionError) throw questionError
 
-  const questionIds = (questions ?? []).map((question) => question.id)
+  const questionIds = (questions ?? []).map((question: any) => question.id)
   const { data: options, error: optionError } =
     questionIds.length > 0
       ? await db
@@ -122,7 +122,7 @@ export async function getAttemptQuestions(attemptId: string): Promise<QuizAttemp
   })
 
   const answersMap = new Map<string, (typeof answers)[0]>()
-  ;(answers ?? []).forEach((a) => answersMap.set(a.question_id, a))
+  ;(answers ?? []).forEach((a: any) => answersMap.set(a.question_id, a))
 
   // Map and normalize the data
   return manifest.map((questionId: string, index: number) => {

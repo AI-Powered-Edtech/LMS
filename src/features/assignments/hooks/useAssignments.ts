@@ -3,36 +3,7 @@ import { useAssignmentList } from '../queries/assignmentQueries'
 import { AssignmentUiState, AssignmentAttemptUi, StudentSubmission, Attachment } from '../types'
 
 // Raw database response type (snake_case from Supabase)
-interface AssignmentDbResponse {
-  id: string
-  title: string
-  description: string | null
-  due_date: string | null
-  available_from: string | null
-  max_points: number
-  max_attempts: number
-  late_penalty_percent: number
-  allow_text_submission: boolean
-  allow_file_submission: boolean
-  allow_link_submission: boolean
-  reminder_enabled: boolean
-  assignment_submissions: {
-    id: string
-    student_id: string
-    status: string
-    attempt_number: number
-    score: number | null
-    raw_score: number | null
-    submitted_at: string | null
-    submission_text: string | null
-    file_url: string | null
-    link_url: string | null
-    is_late: boolean
-    late_penalty_percent: number
-    feedback: string | null
-    user_profiles?: { full_name: string }[]
-  }[]
-}
+// Note: Type is used indirectly through SubmissionLike interface
 
 function normalizeSubmissionStatus(status: string | null | undefined) {
   switch (status?.toUpperCase()) {
@@ -48,9 +19,23 @@ function normalizeSubmissionStatus(status: string | null | undefined) {
   }
 }
 
-function toAttemptUi(
-  submission: AssignmentDbResponse['assignment_submissions'][number]
-): AssignmentAttemptUi {
+interface SubmissionLike {
+  id: string
+  student_id: string
+  status: string
+  attempt_number: number
+  score: number | null
+  raw_score: number | null
+  submitted_at: string | null
+  submission_text: string | null
+  file_url: string | null
+  link_url: string | null
+  is_late: boolean
+  late_penalty_percent: number
+  feedback: string | null
+}
+
+function toAttemptUi(submission: SubmissionLike): AssignmentAttemptUi {
   const fileName = submission.file_url ? submission.file_url.split('/').pop() || 'file' : null
 
   return {
@@ -160,7 +145,7 @@ export function useAssignments() {
                   studentName:
                     (s as unknown as { user_profiles?: { full_name: string } }).user_profiles
                       ?.full_name ||
-                    user?.user_metadata?.full_name ||
+                    (user?.user_metadata?.full_name as string) ||
                     'Siswa',
                   status: normalizeSubmissionStatus(s.status),
                   submittedAt: s.submitted_at,

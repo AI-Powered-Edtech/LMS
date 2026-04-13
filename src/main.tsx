@@ -21,9 +21,7 @@ import { reportWebVitals } from './utils/webVitals'
 // Validate env vars before anything else — fails fast with helpful message
 validateEnv()
 
-const apiBackend: 'vil' = 'vil'
-
-initApiClient(apiBackend)
+initApiClient()
 
 const vilApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 setAuthProvider(createVilAuthProvider(vilApiUrl))
