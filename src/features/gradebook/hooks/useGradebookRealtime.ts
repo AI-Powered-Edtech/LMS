@@ -24,7 +24,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { getRealtimeProvider } from '@/services/realtime/vilRealtimeProvider'
+import { getRealtimeProvider } from '@/services/realtime/realtimeProvider'
 import { gradebookKeys } from '@/features/gradebook/queries/gradebookKeys'
 import type { GradebookEntry } from '@/features/gradebook/types'
 
@@ -63,7 +63,7 @@ export function useGradebookRealtime(
     onEntryInserted,
     onEntryUpdated,
     onEntryDeleted,
-    onError,
+    onError: _onError,
   } = options
 
   const queryClient = useQueryClient()
@@ -73,7 +73,9 @@ export function useGradebookRealtime(
     isFallbackToPolling: false,
   })
 
-  const channelRef = useRef<ReturnType<ReturnType<typeof getRealtimeProvider>['channel']> | null>(null)
+  const channelRef = useRef<ReturnType<ReturnType<typeof getRealtimeProvider>['channel']> | null>(
+    null
+  )
   const retryCountRef = useRef(0)
   const subscriptionTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -112,9 +114,7 @@ export function useGradebookRealtime(
             gradebookKeys.entries(courseId),
             (oldEntries: GradebookEntry[] | undefined) => {
               if (!oldEntries) return [newRecord]
-              return oldEntries.map((entry) =>
-                entry.id === newRecord.id ? newRecord : entry
-              )
+              return oldEntries.map((entry) => (entry.id === newRecord.id ? newRecord : entry))
             }
           )
           onEntryUpdated?.(newRecord)
@@ -183,29 +183,41 @@ export function useGradebookRealtime(
     channelRef.current = channel
 
     // Subscribe to database changes
-    channel.on('postgres_changes', {
-      event: '*', // INSERT, UPDATE, DELETE
-      schema: 'public',
-      table: 'gradebook_entries',
-      filter: `course_id=eq.${courseId}`,
-    }, handleDatabaseChange)
+    channel.on(
+      'postgres_changes',
+      {
+        event: '*', // INSERT, UPDATE, DELETE
+        schema: 'public',
+        table: 'gradebook_entries',
+        filter: `course_id=eq.${courseId}`,
+      },
+      handleDatabaseChange
+    )
 
-    channel.on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'gradebook_settings',
-      filter: `course_id=eq.${courseId}`,
-    }, handleDatabaseChange)
+    channel.on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'gradebook_settings',
+        filter: `course_id=eq.${courseId}`,
+      },
+      handleDatabaseChange
+    )
 
-    channel.on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'gradebook_columns',
-      filter: `course_id=eq.${courseId}`,
-    }, handleDatabaseChange)
+    channel.on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'gradebook_columns',
+        filter: `course_id=eq.${courseId}`,
+      },
+      handleDatabaseChange
+    )
 
     // Subscribe to channel
-    channel.subscribe((status) => {
+    channel.subscribe((status: string) => {
       if (status === 'SUBSCRIBED') {
         if (subscriptionTimeoutRef.current) {
           clearTimeout(subscriptionTimeoutRef.current)

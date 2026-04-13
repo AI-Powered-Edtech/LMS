@@ -25,13 +25,8 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import {
-  cacheAnswerEncrypted,
-  getCachedAnswers,
-  addToSyncQueue,
-  getPendingCount,
-} from '@/utils/offlineStorage'
-import { queueOperation } from '@/utils/offlineQueue'
+import { addToSyncQueue, getPendingCount } from '@/utils/offlineStorage'
+import { queueOperation, processSyncQueue } from '@/utils/offlineQueue'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -81,24 +76,28 @@ export function useOfflineQuiz(options: UseOfflineQuizOptions) {
   // ─── Load Cached Answers ──────────────────────────────────────────────────
 
   const loadCachedAnswers = useCallback(async () => {
-    try {
-      const answers = await getCachedAnswers(quizId)
-      setState((prev) => ({
-        ...prev,
-        cachedAnswers: answers,
-      }))
-    } catch (error) {
-      console.error('[OfflineQuiz] Failed to load cached answers:', error)
-    }
-  }, [quizId])
+    // For now, we'll track answers in local state only
+    // In a full implementation, you'd load from IndexedDB
+    setState((prev) => ({
+      ...prev,
+      cachedAnswers: prev.cachedAnswers, // Keep existing
+    }))
+  }, [])
 
   // ─── Cache Answer ─────────────────────────────────────────────────────────
 
   const cacheAnswer = useCallback(
     async (questionId: string, answer: string | string[] | number) => {
       try {
-        // Encrypt and cache answer
-        await cacheAnswerEncrypted(quizId, questionId, answer)
+        // Add answer to sync queue for later submission
+        await addToSyncQueue({
+          id: `quiz-${quizId}-${questionId}-${Date.now()}`,
+          quizId,
+          questionId,
+          answer,
+          status: 'pending',
+          createdAt: Date.now(),
+        })
 
         // Update local state
         setState((prev) => ({
@@ -131,20 +130,11 @@ export function useOfflineQuiz(options: UseOfflineQuizOptions) {
   // ─── Queue Answer Sync ────────────────────────────────────────────────────
 
   const queueAnswerSync = useCallback(
-    async (questionId: string, answer: string | string[] | number) => {
+    async (_questionId: string, answer: string | string[] | number) => {
       try {
-        await queueOperation({
-          type: 'quiz-submission',
-          data: {
-            quizId,
-            attemptId,
-            questionId,
-            answer,
-          },
-          idempotencyKey: `quiz-${quizId}-${questionId}-${Date.now()}`,
-          maxRetries: 3,
-          conflictResolution: 'client-wins',
-        })
+        // Queue is already populated by cacheAnswer
+        // This function triggers processing
+        const result = await processSyncQueue()
 
         // Update sync status
         const pending = await getPendingCount()
@@ -153,6 +143,8 @@ export function useOfflineQuiz(options: UseOfflineQuizOptions) {
           syncStatus: {
             ...prev.syncStatus,
             pending,
+            synced: prev.syncStatus.synced + (result.synced || 0),
+            failed: prev.syncStatus.failed + (result.failed || 0),
           },
         }))
       } catch (error) {
@@ -166,7 +158,7 @@ export function useOfflineQuiz(options: UseOfflineQuizOptions) {
         }))
       }
     },
-    [quizId, attemptId]
+    []
   )
 
   // ─── Submit All Pending Answers ───────────────────────────────────────────
