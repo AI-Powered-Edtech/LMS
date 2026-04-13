@@ -322,11 +322,12 @@ export function ListSkeleton({
 
 // ─── Backward Compatibility Aliases ───────────────────────────────────────────
 // These aliases maintain compatibility with existing imports
+// IMPORTANT: Skeleton and SkeletonCard must match the OLD API (width/height props)
 
-/** @alias CardSkeleton - Backward compatible */
-export const Skeleton = CardSkeleton
+/** @alias SkeletonBlock - Backward compatible with old Skeleton API (width/height props) */
+export const Skeleton = SkeletonBlock
 
-/** @alias CardSkeleton - Backward compatible */
+/** @alias CardSkeleton - For card-level loading states */
 export const SkeletonCard = CardSkeleton
 
 export default {
