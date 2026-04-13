@@ -23,6 +23,7 @@ import {
   generateMessageId,
   getDifficultyColor,
 } from '@/features/ai-tutor'
+import { useAiStream } from '@/features/ai-tutor/hooks/useAiStream'
 import { cn } from '@/utils/cn'
 import { aiTutorRateLimiter } from '@/utils/rateLimiter'
 import { katexSanitizeSchema } from '@/utils/sanitizeMarkdown'
@@ -56,13 +57,52 @@ export function AITutorPanel({
   }, [])
 
   const { tenantId } = useAuth()
+
+  // Streaming hook
+  const {
+    streamingState,
+    startStream,
+    abortStream,
+    resetStream,
+    isStreaming,
+    fullText: streamingText,
+  } = useAiStream({
+    onToken: (_token, fullText) => {
+      // Update the streaming message in real-time
+      setMessages((prev) => {
+        const lastMsg = prev[prev.length - 1]
+        if (lastMsg && lastMsg.role === 'assistant' && lastMsg.isStreaming) {
+          return [...prev.slice(0, -1), { ...lastMsg, content: fullText }]
+        }
+        return prev
+      })
+    },
+    onComplete: (_fullText, sessionId) => {
+      // Mark streaming as completed
+      setMessages((prev) => {
+        const lastMsg = prev[prev.length - 1]
+        if (lastMsg && lastMsg.role === 'assistant' && lastMsg.isStreaming) {
+          return [...prev.slice(0, -1), { ...lastMsg, isStreaming: false }]
+        }
+        return prev
+      })
+      if (sessionId && sessionId !== currentSessionId) {
+        setCurrentSessionId(sessionId)
+        sessionStorage.setItem(`ai_tutor_session_${lessonId}`, sessionId)
+      }
+    },
+    onError: (error) => {
+      setError({ message: error, code: 'STREAM_ERROR' })
+    },
+  })
+
   // State
   const [messages, setMessages] = useState<AITutorMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<AITutorError | null>(null)
   const [difficulty, _setDifficulty] = useState<DifficultyLevel>(initialDifficulty)
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>(SUGGESTED_QUESTIONS)
-  const [sessionId, setSessionId] = useState<string | undefined>(() => {
+  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(() => {
     // SECURITY: Use sessionStorage instead of localStorage:
     // 1. Auto-cleared when tab closes — no storage quota leak across 100s of lessons
     // 2. Shorter window for XSS exploitation (cleared when session ends)
@@ -111,66 +151,80 @@ export function AITutorPanel({
     }
     setMessages((prev) => [...prev, userMessage])
     setError(null)
-    setIsLoading(true)
+
+    // Add placeholder for AI response with streaming flag
+    const streamingMessage: AITutorMessage = {
+      id: generateMessageId(),
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
+      isStreaming: true,
+    }
+    setMessages((prev) => [...prev, streamingMessage])
+
+    // Reset any previous streaming
+    resetStream()
 
     try {
-      const result = await askTutor(lessonId, question, tenantId!, sessionId)
+      // Try streaming first
+      await startStream(lessonId, question, currentSessionId)
 
-      if (result.error) {
-        setError(result.error)
+      // If streaming succeeds, the onToken/onComplete callbacks will update the message
+      // No need to do anything here
+    } catch (err) {
+      // Fallback to non-streaming mode if streaming fails
+      if (import.meta.env.DEV) {
+        console.warn('[AI Tutor] Streaming failed, falling back to non-streaming mode:', err)
+      }
 
-        // Add error message from AI
+      // Remove the streaming placeholder
+      setMessages((prev) => prev.slice(0, -1))
+
+      // Use non-streaming mode
+      setIsLoading(true)
+      try {
+        const result = await askTutor(lessonId, question, tenantId!, currentSessionId)
+
+        if (result.error) {
+          setError(result.error)
+          const errorMessage: AITutorMessage = {
+            id: generateMessageId(),
+            role: 'assistant',
+            content: result.error.message,
+            timestamp: new Date(),
+          }
+          setMessages((prev) => [...prev, errorMessage])
+          return
+        }
+
+        const responseData = result.data!
+        if (responseData.session_id && responseData.session_id !== currentSessionId) {
+          setCurrentSessionId(responseData.session_id)
+          sessionStorage.setItem(`ai_tutor_session_${lessonId}`, responseData.session_id)
+        }
+
+        const aiMessage: AITutorMessage = {
+          id: generateMessageId(),
+          role: 'assistant',
+          content: responseData.response,
+          timestamp: new Date(),
+        }
+        setMessages((prev) => [...prev, aiMessage])
+        setSuggestedQuestions((prev) => prev.filter((q) => q !== question))
+      } catch (fallbackErr) {
+        if (import.meta.env.DEV) console.error('[AI Tutor] Fallback error:', fallbackErr)
+        captureError(fallbackErr, { context: 'AITutorPanel.handleSendQuestion.fallback', lessonId })
+        setError({ message: 'Terjadi kesalahan yang tidak terduga', code: 'UNKNOWN_ERROR' })
         const errorMessage: AITutorMessage = {
           id: generateMessageId(),
           role: 'assistant',
-          content: result.error.message,
+          content: 'Maaf, terjadi kesalahan yang tidak terduga. Silakan coba lagi.',
           timestamp: new Date(),
         }
         setMessages((prev) => [...prev, errorMessage])
-        return
+      } finally {
+        setIsLoading(false)
       }
-
-      // Update session ID if it's new
-      const responseData = result.data!
-      if (responseData.session_id && responseData.session_id !== sessionId) {
-        setSessionId(responseData.session_id)
-        // SECURITY: sessionStorage — see comment on useState initializer above
-        sessionStorage.setItem(`ai_tutor_session_${lessonId}`, responseData.session_id)
-
-        // Cleanup: limit stored sessions to prevent storage bloat
-        // Keep only the 20 most recent sessions
-        const SESSION_PREFIX = 'ai_tutor_session_'
-        const sessionKeys = Object.keys(sessionStorage).filter((k) => k.startsWith(SESSION_PREFIX))
-        if (sessionKeys.length > 20) {
-          // Remove oldest entries (first ones added)
-          sessionKeys.slice(0, sessionKeys.length - 20).forEach((k) => sessionStorage.removeItem(k))
-        }
-      }
-
-      // Add AI response
-      const aiMessage: AITutorMessage = {
-        id: generateMessageId(),
-        role: 'assistant',
-        content: responseData.response,
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, aiMessage])
-
-      // Remove used suggested question if matches
-      setSuggestedQuestions((prev) => prev.filter((q) => q !== question))
-    } catch (err) {
-      if (import.meta.env.DEV) console.error('[AI Tutor] Unexpected error:', err)
-      captureError(err, { context: 'AITutorPanel.handleSendQuestion', lessonId })
-      setError({ message: 'Terjadi kesalahan yang tidak terduga', code: 'UNKNOWN_ERROR' })
-      const errorMessage: AITutorMessage = {
-        id: generateMessageId(),
-        role: 'assistant',
-        content: 'Maaf, terjadi kesalahan yang tidak terduga. Silakan coba lagi.',
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, errorMessage])
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -182,10 +236,11 @@ export function AITutorPanel({
 
   const handleClearChat = () => {
     sessionStorage.removeItem(`ai_tutor_session_${lessonId}`)
-    setSessionId(undefined)
+    setCurrentSessionId(undefined)
     setMessages([])
     setError(null)
     setSuggestedQuestions(SUGGESTED_QUESTIONS)
+    resetStream()
     // Add welcome message again
     const welcomeMessage: AITutorMessage = {
       id: generateMessageId(),
@@ -320,7 +375,7 @@ export function AITutorPanel({
         </AnimatePresence>
 
         {/* Typing Indicator */}
-        {isLoading && <AITutorTyping />}
+        {(isLoading || isStreaming) && <AITutorTyping />}
 
         {/* Error State */}
         {error && !isLoading && (
