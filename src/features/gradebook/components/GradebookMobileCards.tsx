@@ -46,9 +46,11 @@ interface MobileGradebookCardsProps {
 // ─── Utility Functions ────────────────────────────────────────────────────────
 
 function getGradeColor(percentage: number): string {
-  if (percentage >= 85) return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+  if (percentage >= 85)
+    return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
   if (percentage >= 70) return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-  if (percentage >= 60) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+  if (percentage >= 60)
+    return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
   return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
 }
 
@@ -102,7 +104,7 @@ function StudentCard({
   )
   const totalPercentage = gradedAssignments.reduce((sum, a) => {
     const entry = grades[a.id]
-    if (!entry || entry.max_score === 0) return sum
+    if (!entry || !entry.score || entry.max_score === 0) return sum
     return sum + (entry.score / entry.max_score) * 100
   }, 0)
   const average = gradedAssignments.length > 0 ? totalPercentage / gradedAssignments.length : 0
@@ -148,9 +150,7 @@ function StudentCard({
                 {student.name}
               </h3>
               {student.nis && (
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  NIS: {student.nis}
-                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">NIS: {student.nis}</p>
               )}
               {student.email && (
                 <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
@@ -162,10 +162,7 @@ function StudentCard({
 
           {/* Average Badge */}
           <div className="shrink-0">
-            <div className={cn(
-              'px-3 py-1.5 rounded-lg text-sm font-bold',
-              getGradeColor(average)
-            )}>
+            <div className={cn('px-3 py-1.5 rounded-lg text-sm font-bold', getGradeColor(average))}>
               {average > 0 ? getGradeLetter(average) : '-'}
             </div>
             {average > 0 && (
@@ -184,11 +181,7 @@ function StudentCard({
           className="w-full flex items-center justify-between text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
         >
           <span>Nilai Tugas ({assignments.length})</span>
-          {expanded ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
+          {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
 
         <AnimatePresence>
@@ -204,9 +197,10 @@ function StudentCard({
                 {assignments.map((assignment) => {
                   const entry = grades[assignment.id]
                   const hasGrade = entry?.score !== undefined && entry?.score !== null
-                  const percentage = hasGrade && entry.max_score > 0
-                    ? (entry.score / entry.max_score) * 100
-                    : 0
+                  const percentage =
+                    hasGrade && entry.max_score > 0 && entry.score
+                      ? (entry.score / entry.max_score) * 100
+                      : 0
 
                   return (
                     <div
@@ -239,7 +233,7 @@ function StudentCard({
                               onChange={(e) => setEditValue(e.target.value)}
                               className="w-16 px-2 py-1 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                               min={0}
-                              max={assignment.max_score}
+                              max={assignment.maxScore}
                               autoFocus
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter') handleSave(assignment.id)
@@ -261,11 +255,13 @@ function StudentCard({
                           </div>
                         ) : hasGrade ? (
                           <div className="flex items-center gap-2">
-                            <span className={cn(
-                              'px-2 py-1 rounded text-sm font-bold',
-                              getGradeColor(percentage)
-                            )}>
-                              {entry.score}/{assignment.max_score}
+                            <span
+                              className={cn(
+                                'px-2 py-1 rounded text-sm font-bold',
+                                getGradeColor(percentage)
+                              )}
+                            >
+                              {entry.score}/{assignment.maxScore}
                             </span>
                             {onEditGrade && (
                               <button
@@ -277,9 +273,7 @@ function StudentCard({
                             )}
                           </div>
                         ) : (
-                          <span className="text-sm text-slate-400 dark:text-slate-500">
-                            -
-                          </span>
+                          <span className="text-sm text-slate-400 dark:text-slate-500">-</span>
                         )}
                       </div>
                     </div>
@@ -316,21 +310,20 @@ export function GradebookMobileCards({
   })
 
   // Filter assignments based on type
-  const filteredAssignments = filterType && filterType !== 'all'
-    ? assignments.filter((a) => {
-        if (filterType === 'quiz') return a.type === 'quiz'
-        if (filterType === 'assignment') return a.type === 'assignment'
-        return true
-      })
-    : assignments
+  const filteredAssignments =
+    filterType && filterType !== 'all'
+      ? assignments.filter((a) => {
+          if (filterType === 'quiz') return a.type === 'quiz'
+          if (filterType === 'assignment') return a.type === 'assignment'
+          return true
+        })
+      : assignments
 
   if (filteredStudents.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <User className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-4" />
-        <p className="text-slate-600 dark:text-slate-400">
-          Tidak ada siswa yang ditemukan
-        </p>
+        <p className="text-slate-600 dark:text-slate-400">Tidak ada siswa yang ditemukan</p>
       </div>
     )
   }

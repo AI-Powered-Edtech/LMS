@@ -320,6 +320,15 @@ export function ListSkeleton({
   )
 }
 
+// ─── Backward Compatibility Aliases ───────────────────────────────────────────
+// These aliases maintain compatibility with existing imports
+
+/** @alias CardSkeleton - Backward compatible */
+export const Skeleton = CardSkeleton
+
+/** @alias CardSkeleton - Backward compatible */
+export const SkeletonCard = CardSkeleton
+
 export default {
   Block: SkeletonBlock,
   Card: CardSkeleton,
@@ -327,4 +336,7 @@ export default {
   Chart: ChartSkeleton,
   VideoPlayer: VideoPlayerSkeleton,
   List: ListSkeleton,
+  // Aliases
+  Skeleton,
+  SkeletonCard,
 }
