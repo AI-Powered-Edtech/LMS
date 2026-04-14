@@ -3,12 +3,10 @@
  * SPDX-License-Ide: Apache-2.
  */
 
-import { MotionConfig } from 'motion/react'
-import { useEffect } from 'react'
-import { BrowserRouter as Router } from 'react-router-dom'
+import { lazy, Suspense, useEffect } from 'react'
+import { HashRouter as Router } from 'react-router-dom'
 
 import { AppRoutes } from './app/routes'
-import { OfflineIndicator } from './components/OfflineIndicator'
 import { PWAInstallBanner } from './components/PWAInstallBanner'
 import { PWAUpdateToast } from './components/PWAUpdateToast'
 import { SessionManager } from './components/SessionManager'
@@ -19,31 +17,46 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { SkipToContent } from './features/accessibility'
 import { setupPrefetchListeners } from './utils/prefetch'
 
+const OfflineIndicator = lazy(() =>
+  import('./components/OfflineIndicator').then((m) => ({ default: m.OfflineIndicator }))
+)
+const MotionConfigWrapper = lazy(() =>
+  import('./app/providers').then((m) => ({ default: m.MotionConfigWrapper }))
+)
+
 export default function App() {
   useEffect(() => {
+    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+      const path = window.location.pathname
+      const hash = window.location.hash
+      const search = window.location.search
+      window.history.replaceState(null, '', `/#${path}${search}${hash}`)
+    }
     const cleanup = setupPrefetchListeners()
     return cleanup
   }, [])
 
   return (
-    <MotionConfig reducedMotion="user">
-      <ErrorBoundary>
-        <ThemeProvider>
-          <AuthProvider>
-            <Router>
-              <SkipToContent />
-              <ToastContainer />
-              <OfflineIndicator />
-              <PWAUpdateToast />
-              <PWAInstallBanner />
-              <SessionManager />
-              <main id="main-content" tabIndex={-1} className="outline-none">
-                <AppRoutes />
-              </main>
-            </Router>
-          </AuthProvider>
-        </ThemeProvider>
-      </ErrorBoundary>
-    </MotionConfig>
+    <ErrorBoundary>
+      <Suspense fallback={null}>
+        <MotionConfigWrapper>
+          <ThemeProvider>
+            <AuthProvider>
+              <Router>
+                <SkipToContent />
+                <ToastContainer />
+                <OfflineIndicator />
+                <PWAUpdateToast />
+                <PWAInstallBanner />
+                <SessionManager />
+                <main id="main-content" tabIndex={-1} className="outline-none">
+                  <AppRoutes />
+                </main>
+              </Router>
+            </AuthProvider>
+          </ThemeProvider>
+        </MotionConfigWrapper>
+      </Suspense>
+    </ErrorBoundary>
   )
 }

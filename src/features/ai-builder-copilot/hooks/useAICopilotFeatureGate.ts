@@ -23,9 +23,7 @@ export function useAICopilotFeatureGate(): { enabled: boolean; loading: boolean 
         // Fail closed — flag disabled if we can't load
       }
       if (!cancelled) {
-        setEnabled(
-          isFeatureEnabled('ai_course_builder_copilot', tenantId ?? undefined, user?.id)
-        )
+        setEnabled(isFeatureEnabled('ai_course_builder_copilot', tenantId ?? undefined, user?.id))
         setLoading(false)
       }
     }

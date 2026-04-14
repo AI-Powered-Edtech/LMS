@@ -42,9 +42,7 @@ export interface AppRealtimeChannel {
     filter: { event: 'sync' | 'join' | 'leave' },
     callback: (payload?: unknown) => void
   ): AppRealtimeChannel
-  subscribe(
-    callback?: (status: RealtimeChannelStatus, err?: Error) => void
-  ): AppRealtimeChannel
+  subscribe(callback?: (status: RealtimeChannelStatus, err?: Error) => void): AppRealtimeChannel
   unsubscribe(): Promise<'ok' | 'timed out' | 'error'>
   send(payload: {
     type: string

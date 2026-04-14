@@ -8,6 +8,7 @@ import { progressService, StudentProgressData } from '@/features/progress/api/pr
 import { ProgressSkeleton } from '@/features/progress/components/ProgressSkeleton'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 export function StudentProgress() {
   usePageTitle('Progres Siswa')
@@ -37,7 +38,7 @@ export function StudentProgress() {
         const progressData = await progressService.getStudentProgressBundle(studentId, tenantId!)
         setData(progressData)
       } catch (err: unknown) {
-        if (import.meta.env.DEV) console.error('Failed to load student progress', err)
+        if (import.meta.env.DEV) logger.error('Failed to load student progress', err)
         setError('Gagal memuat progres siswa')
       } finally {
         setLoading(false)

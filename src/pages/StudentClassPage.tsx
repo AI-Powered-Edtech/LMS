@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useClassroom } from '@/features/classroom/hooks/useClassroomQueries'
 import { Course, courseService } from '@/features/courses'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 export function StudentClassPage() {
@@ -31,7 +32,7 @@ export function StudentClassPage() {
         )
         setCourses(classCourses)
       } catch (err) {
-        if (import.meta.env.DEV) console.error('Failed to load class courses:', err)
+        if (import.meta.env.DEV) logger.error('Failed to load class courses:', err)
         captureError(err, { context: 'StudentClassPage.loadClassData' })
       } finally {
         setLoading(false)

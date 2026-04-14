@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 
 import { lessonService } from '@/features/lessons'
+import { logger } from '@/utils/logger'
 
 interface ProgressReporterProps {
   lessonId: string
@@ -48,7 +49,7 @@ export function ProgressReporter({
       await lessonService.queueProgressUpdate(lessonId, tenantId, s, pct, pos)
       lastSent.current = { percentage: pct, position: pos ?? 0 }
     } catch (err) {
-      if (import.meta.env.DEV) console.error('[ProgressReporter] Failed to sync:', err)
+      if (import.meta.env.DEV) logger.error('[ProgressReporter] Failed to sync:', err)
     }
   }, [lessonId, tenantId]) // Stable deps only — no interval churn
 

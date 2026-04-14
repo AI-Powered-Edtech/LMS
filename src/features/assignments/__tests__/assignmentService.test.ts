@@ -253,11 +253,9 @@ describe('assignmentService.gradeSubmission', () => {
     const eqAfterSelect = vi
       .fn()
       .mockReturnValue({ eq: vi.fn().mockReturnValue({ single: selectSingle }) })
-    const eqAfterUpdate = vi
-      .fn()
-      .mockReturnValue({
-        eq: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single: updateSingle }) }),
-      })
+    const eqAfterUpdate = vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single: updateSingle }) }),
+    })
 
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnValue({ eq: eqAfterSelect }),

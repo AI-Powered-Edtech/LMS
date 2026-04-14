@@ -113,11 +113,7 @@ export const rubricService = {
    * Delete a rubric by ID (cascades to criteria, levels, and scores via DB).
    */
   async deleteRubric(rubricId: string, tenantId: string): Promise<void> {
-    const { error } = await db
-      .from('rubrics')
-      .delete()
-      .eq('id', rubricId)
-      .eq('tenant_id', tenantId)
+    const { error } = await db.from('rubrics').delete().eq('id', rubricId).eq('tenant_id', tenantId)
 
     if (error) {
       logDevError('rubricService', 'Error deleting rubric:', error)

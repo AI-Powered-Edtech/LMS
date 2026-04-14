@@ -15,6 +15,7 @@ import { publicProfileService } from '@/features/profile/api/publicProfileServic
 import { db } from '@/services/db'
 import { type ProfileFormData, ProfileFormSchema } from '@/shared/schemas/forms'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 // ── Toggle Row ────────────────────────────────────────────────────────────────
@@ -96,7 +97,7 @@ export function AccountTab({
       setProfileMessage({ type: 'success', text: 'Profil berhasil diperbarui.' })
     } catch (err) {
       captureError(err, { context: 'SettingsTabs.updateProfile' })
-      if (import.meta.env.DEV) console.error('[SettingsTabs] Profile update failed:', err)
+      if (import.meta.env.DEV) logger.error('[SettingsTabs] Profile update failed:', err)
       setProfileMessage({ type: 'error', text: 'Gagal memperbarui profil. Coba lagi.' })
     } finally {
       setSavingProfile(false)
@@ -251,7 +252,7 @@ export function SecurityTab() {
       setConfirmPassword('')
     } catch (err) {
       captureError(err, { context: 'SettingsTabs.changePassword' })
-      if (import.meta.env.DEV) console.error('[SettingsTabs] Password change failed:', err)
+      if (import.meta.env.DEV) logger.error('[SettingsTabs] Password change failed:', err)
       setPasswordMessage({
         type: 'error',
         text: 'Gagal mengubah kata sandi. Pastikan kata sandi lama benar.',

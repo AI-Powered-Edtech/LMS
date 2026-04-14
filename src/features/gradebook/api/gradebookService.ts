@@ -121,7 +121,10 @@ export const gradebookService = {
       )
     )
     const classMap = new Map(
-      ((classes ?? []) as Array<{ id: string; name: string }>).map((klass) => [klass.id, klass.name])
+      ((classes ?? []) as Array<{ id: string; name: string }>).map((klass) => [
+        klass.id,
+        klass.name,
+      ])
     )
 
     return (data ?? []).map((submission: any) => {

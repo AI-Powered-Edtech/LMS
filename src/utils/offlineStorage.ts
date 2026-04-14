@@ -1,6 +1,8 @@
 // EduSync LMS — Offline Storage (IndexedDB)
 // Wraps native IndexedDB for offline quiz caching and sync queue
 
+import { logger } from '@/utils/logger'
+
 import { decryptData, encryptData } from './cryptoStorage'
 
 const DB_NAME = 'edusync-offline'
@@ -376,7 +378,7 @@ export async function getAnswersEncrypted(quizId: string, userId: string): Promi
       } catch (err) {
         // Abaikan record yang gagal didekripsi (kunci berbeda atau data korup)
         if (import.meta.env.DEV)
-          console.warn(
+          logger.warn(
             '[offlineStorage] Decryption failed for record — key mismatch or corruption:',
             err
           )

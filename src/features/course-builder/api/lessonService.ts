@@ -64,11 +64,7 @@ export const builderLessonService = {
   },
 
   async deleteLesson(lessonId: string, tenantId: string): Promise<void> {
-    const { error } = await db
-      .from('lessons')
-      .delete()
-      .eq('id', lessonId)
-      .eq('tenant_id', tenantId)
+    const { error } = await db.from('lessons').delete().eq('id', lessonId).eq('tenant_id', tenantId)
     if (error) throw new Error(error.message)
   },
 

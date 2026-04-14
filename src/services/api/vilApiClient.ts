@@ -7,6 +7,7 @@ import {
   subscribeVilSession,
   writeVilSession,
 } from '@/services/auth/vilSession'
+
 import { buildRequestHeaders, createRequestId } from './shadow'
 import type {
   ApiAuthClient,

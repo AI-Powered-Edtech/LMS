@@ -14,6 +14,7 @@ import {
 import { GlobalSearchModal } from '@/features/search'
 import { NotificationBell as StruggleBell } from '@/features/struggle'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 interface HeaderProps {
@@ -64,7 +65,7 @@ export const Header = memo(function Header({ onMenuClick }: HeaderProps) {
     try {
       await signOut()
     } catch (e) {
-      if (import.meta.env.DEV) console.error('[Header] signOut error:', e)
+      if (import.meta.env.DEV) logger.error('[Header] signOut error:', e)
       captureError(e, { context: 'Header.handleLogout' })
     } finally {
       void navigate('/login')

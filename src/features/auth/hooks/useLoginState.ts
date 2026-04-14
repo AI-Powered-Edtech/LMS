@@ -217,9 +217,7 @@ export function useLoginState(postAuthRedirect?: string | null) {
   const fillAccount = demoMode
     ? async (role: DemoAccountOption['key']) => {
         const devPassword = import.meta.env.VITE_DEV_PASSWORD ?? 'password123'
-        const accountEmail = import.meta.env.DEV
-          ? `${role}@edusync.dev`
-          : DEMO_ACCOUNTS[role].email
+        const accountEmail = import.meta.env.DEV ? `${role}@edusync.dev` : DEMO_ACCOUNTS[role].email
 
         loginForm.reset({ email: accountEmail, password: devPassword })
         setMode('login')

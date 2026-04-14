@@ -4,6 +4,7 @@
  */
 
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type { Quest, QuestDefinition } from '../types'
 
@@ -24,7 +25,7 @@ export const questService = {
       // RPC not yet deployed — degrade gracefully
       if (error.code === 'PGRST202' || error.code === '42883') {
         if (import.meta.env.DEV)
-          console.warn(
+          logger.warn(
             '[questService] get_active_quests_with_progress RPC not found — migration needed.'
           )
         return []

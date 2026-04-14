@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { analyticsService, type LiveEvent } from '@/features/analytics/api/analyticsService'
+import { logger } from '@/utils/logger'
 
 const EVENT_LABELS: Record<string, string> = {
   LESSON_STARTED: 'mulai pelajaran',
@@ -60,7 +61,7 @@ export function LiveActivityFeed({
           setIsConnected(true)
         }
       } catch (err) {
-        console.error('Failed to fetch live events', err)
+        logger.error('Failed to fetch live events', err)
         if (isMounted) setIsConnected(false)
       }
     }

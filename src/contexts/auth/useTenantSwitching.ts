@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
+import { logger } from '@/utils/logger'
 import { addBreadcrumb } from '@/utils/sentry'
 
 import type { Tenant } from './useRoleResolution'
@@ -85,7 +86,7 @@ export function useTenantSwitching({
       if (tenant) {
         if (!tenant.is_active) {
           if (import.meta.env.DEV)
-            console.warn(`[Auth] Attempted to switch to inactive tenant ${id} — blocked`)
+            logger.warn(`[Auth] Attempted to switch to inactive tenant ${id} — blocked`)
           localStorage.removeItem('activeTenantId')
           return
         }
@@ -94,7 +95,7 @@ export function useTenantSwitching({
         setTenantId(id)
       } else {
         if (import.meta.env.DEV)
-          console.warn(`Tenant with id ${id} not found in rawTenants - will validate on next auth`)
+          logger.warn(`Tenant with id ${id} not found in rawTenants - will validate on next auth`)
       }
     },
     [rawTenants]

@@ -5,8 +5,8 @@
 // Delegates attempt/submission to quizAttemptService.ts and
 // timer/helpers to quizTimerService.ts.
 // ==========================================================================
-
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type {
   QuestionType,
@@ -238,20 +238,14 @@ export async function getStudentQuizAssignments(
             .in('id', assignedQuizIds)
         : Promise.resolve({ data: [], error: null }),
       assignedClassIds.length > 0
-        ? db
-            .from('classes')
-            .select('id, name')
-            .eq('tenant_id', tenantId)
-            .in('id', assignedClassIds)
+        ? db.from('classes').select('id, name').eq('tenant_id', tenantId).in('id', assignedClassIds)
         : Promise.resolve({ data: [], error: null }),
     ])
 
   if (quizError) throw quizError
   if (classError) throw classError
 
-  const publishedQuizIds = new Set(
-    ((quizzes ?? []) as QuizRow[]).map((quiz) => quiz.id)
-  )
+  const publishedQuizIds = new Set(((quizzes ?? []) as QuizRow[]).map((quiz) => quiz.id))
   const questionCounts = new Map<string, Array<{ id: string }>>()
 
   if (publishedQuizIds.size > 0) {
@@ -262,7 +256,6 @@ export async function getStudentQuizAssignments(
       .in('quiz_id', Array.from(publishedQuizIds))
 
     if (quizQuestionError) throw quizQuestionError
-
     ;((quizQuestions ?? []) as Array<{ id: string; quiz_id: string }>).forEach((question) => {
       const existing = questionCounts.get(question.quiz_id) ?? []
       existing.push({ id: question.id })
@@ -346,11 +339,11 @@ export async function getUserAttempts(tenantId: string): Promise<QuizAttempt[]> 
     // These are schema-compatibility issues — degrade gracefully with an empty list.
     if (error.code === 'PGRST200' || error.code === '42P01' || error.code === '42703') {
       if (import.meta.env.DEV)
-        console.warn('[getUserAttempts] schema compat error — returning empty:', error.message)
+        logger.warn('[getUserAttempts] schema compat error — returning empty:', error.message)
       return []
     }
     // All other errors (auth, permissions, network) should surface to the caller.
-    if (import.meta.env.DEV) console.error('[getUserAttempts] query error:', error.message)
+    if (import.meta.env.DEV) logger.error('[getUserAttempts] query error:', error.message)
     throw error
   }
   return (data || []) as unknown as QuizAttempt[]

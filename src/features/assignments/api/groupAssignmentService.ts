@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
-import { getRealtimeProvider } from '@/services/realtime'
 import { db } from '@/services/db'
+import { getRealtimeProvider } from '@/services/realtime'
 import { logDevError } from '@/utils/logDevError'
 
 // ============================================================
@@ -132,11 +132,13 @@ interface GroupMessageRow {
   created_at: string
 }
 
-function toDisplayName(profile?: {
-  full_name?: string | null
-  first_name?: string | null
-  last_name?: string | null
-} | null): string {
+function toDisplayName(
+  profile?: {
+    full_name?: string | null
+    first_name?: string | null
+    last_name?: string | null
+  } | null
+): string {
   if (!profile) return 'Tanpa Nama'
   if (profile.full_name) return profile.full_name
   return [profile.first_name, profile.last_name].filter(Boolean).join(' ').trim() || 'Tanpa Nama'
@@ -145,7 +147,17 @@ function toDisplayName(profile?: {
 async function fetchProfiles(
   userIds: string[],
   tenantId: string
-): Promise<Map<string, { full_name: string | null; avatar_url: string | null; first_name?: string | null; last_name?: string | null }>> {
+): Promise<
+  Map<
+    string,
+    {
+      full_name: string | null
+      avatar_url: string | null
+      first_name?: string | null
+      last_name?: string | null
+    }
+  >
+> {
   if (userIds.length === 0) return new Map()
 
   const { data, error } = await db
@@ -157,13 +169,15 @@ async function fetchProfiles(
   if (error) throw error
 
   return new Map(
-    ((data ?? []) as Array<{
-      id: string
-      full_name: string | null
-      avatar_url: string | null
-      first_name?: string | null
-      last_name?: string | null
-    }>).map((profile) => [profile.id, profile])
+    (
+      (data ?? []) as Array<{
+        id: string
+        full_name: string | null
+        avatar_url: string | null
+        first_name?: string | null
+        last_name?: string | null
+      }>
+    ).map((profile) => [profile.id, profile])
   )
 }
 
@@ -452,7 +466,9 @@ export const groupAssignmentService = {
   async getGroupTasks(groupId: string, tenantId: string): Promise<GroupTask[]> {
     const { data, error } = await db
       .from('group_tasks')
-      .select('id, group_id, title, description, assigned_to, status, due_date, created_by, tenant_id, created_at')
+      .select(
+        'id, group_id, title, description, assigned_to, status, due_date, created_by, tenant_id, created_at'
+      )
       .eq('group_id', groupId)
       .eq('tenant_id', tenantId)
       .order('created_at', { ascending: true })
@@ -490,7 +506,9 @@ export const groupAssignmentService = {
         due_date: taskData.due_date,
         created_by: userId,
       })
-      .select('id, group_id, title, description, assigned_to, status, due_date, created_by, tenant_id, created_at')
+      .select(
+        'id, group_id, title, description, assigned_to, status, due_date, created_by, tenant_id, created_at'
+      )
       .single()
 
     if (error) {

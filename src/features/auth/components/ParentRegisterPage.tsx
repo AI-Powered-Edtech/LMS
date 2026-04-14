@@ -17,6 +17,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { db } from '@/services/db'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -269,7 +270,7 @@ export function ParentRegisterPage() {
       if (import.meta.env.DEV && result.dev_otp) {
         setDevOtp(result.dev_otp)
         if (import.meta.env.DEV) {
-          console.warn('[ParentRegister] DEV OTP:', result.dev_otp)
+          logger.warn('[ParentRegister] DEV OTP:', result.dev_otp)
         }
       }
 
@@ -370,7 +371,7 @@ export function ParentRegisterPage() {
       })
 
       if (profileError) {
-        console.error('[ParentRegister] Profile upsert error:', profileError)
+        logger.error('[ParentRegister] Profile upsert error:', profileError)
         // Non-fatal: akun sudah dibuat, profil bisa diupdate nanti
       }
 
@@ -382,7 +383,7 @@ export function ParentRegisterPage() {
 
       if (signInError) {
         // Jika email belum dikonfirmasi, redirect ke halaman sukses
-        console.warn('[ParentRegister] Auto sign-in skipped:', signInError.message)
+        logger.warn('[ParentRegister] Auto sign-in skipped:', signInError.message)
       }
 
       setStep(4)

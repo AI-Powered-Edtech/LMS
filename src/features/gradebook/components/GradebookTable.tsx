@@ -1,6 +1,6 @@
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { Download, RefreshCw, Search } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { useVirtualizer } from '@tanstack/react-virtual'
 
 import { EmptyState, Skeleton } from '@/components/ui'
 import { cn } from '@/utils/cn'

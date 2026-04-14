@@ -4,8 +4,8 @@
  * Provides methods for fetching user streaks, badges, achievements, XP, and certificates.
  * All methods require tenantId for proper multi-tenant isolation.
  */
-
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type {
   Badge,
@@ -80,7 +80,7 @@ export const gamificationService = {
       .limit(100)
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching badges:', error)
+      if (import.meta.env.DEV) logger.error('Error fetching badges:', error)
       throw error
     }
 

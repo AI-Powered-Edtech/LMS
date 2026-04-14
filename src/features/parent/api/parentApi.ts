@@ -5,8 +5,8 @@
 // Supabase queries untuk Parent Dashboard.
 // RLS di DB memastikan orang tua hanya bisa melihat data anak mereka sendiri.
 // ==========================================================================
-
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type {
   AttendanceDay,
@@ -27,7 +27,7 @@ export async function getMyChildren(): Promise<ChildInfo[]> {
   const { data, error } = await db.rpc('get_my_children')
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Parent] get_my_children error:', error)
+    if (import.meta.env.DEV) logger.error('[Parent] get_my_children error:', error)
     throw new Error('Gagal memuat daftar anak. Silakan coba lagi.')
   }
 
@@ -52,7 +52,7 @@ export async function getParentDashboardSnapshot(
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Parent] get_parent_dashboard_snapshot error:', error)
+    if (import.meta.env.DEV) logger.error('[Parent] get_parent_dashboard_snapshot error:', error)
     throw new Error('Gagal memuat dashboard orang tua.')
   }
 
@@ -86,7 +86,7 @@ export async function getChildGrades(studentId: string): Promise<ChildGradeSumma
     .limit(50)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Parent] getChildGrades error:', error)
+    if (import.meta.env.DEV) logger.error('[Parent] getChildGrades error:', error)
     return []
   }
 
@@ -101,7 +101,7 @@ export async function getChildGrades(studentId: string): Promise<ChildGradeSumma
       : { data: [], error: null }
 
   if (courseError) {
-    if (import.meta.env.DEV) console.error('[Parent] getChildGrades course error:', courseError)
+    if (import.meta.env.DEV) logger.error('[Parent] getChildGrades course error:', courseError)
   }
 
   const courseTitleMap = new Map(
@@ -175,7 +175,7 @@ export async function getMonthlyAttendance(
     .order('date', { ascending: true })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Parent] getMonthlyAttendance error:', error)
+    if (import.meta.env.DEV) logger.error('[Parent] getMonthlyAttendance error:', error)
     return []
   }
 
@@ -229,7 +229,7 @@ export async function getChildAttendance(
     .order('date', { ascending: true })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Parent] getChildAttendance error:', error)
+    if (import.meta.env.DEV) logger.error('[Parent] getChildAttendance error:', error)
     // Return empty slots untuk 5 hari
     return generateWeekSlots(weekStart)
   }
@@ -322,7 +322,7 @@ export async function getChildPendingAssignments(
       : { data: [], error: null }
 
   if (courseError && import.meta.env.DEV) {
-    console.error('[Parent] getChildPendingAssignments course error:', courseError)
+    logger.error('[Parent] getChildPendingAssignments course error:', courseError)
   }
 
   const courseTitleMap = new Map(
@@ -344,7 +344,7 @@ export async function getChildPendingAssignments(
 
   if (sErr) {
     if (import.meta.env.DEV)
-      console.error('[Parent] getChildPendingAssignments submissions error:', sErr)
+      logger.error('[Parent] getChildPendingAssignments submissions error:', sErr)
   }
 
   const submittedIds = new Set(
@@ -392,7 +392,7 @@ export async function getChildAchievements(studentId: string): Promise<string[]>
     .limit(10)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Parent] getChildAchievements error:', error)
+    if (import.meta.env.DEV) logger.error('[Parent] getChildAchievements error:', error)
     return []
   }
 

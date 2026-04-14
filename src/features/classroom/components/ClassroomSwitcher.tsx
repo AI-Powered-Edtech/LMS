@@ -12,6 +12,7 @@ import { useState } from 'react'
 import { useClassroom } from '@/features/classroom/hooks/useClassroomQueries'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 interface ClassroomSwitcherProps {
   /** Varian visual: 'slate' untuk Sidebar desktop, 'neutral' untuk MobileSidebar */
@@ -41,7 +42,7 @@ export function ClassroomSwitcher({ variant = 'slate' }: ClassroomSwitcherProps)
       setIsAddingClassroom(false)
       setIsDropdownOpen(false)
     } catch (err: unknown) {
-      if (import.meta.env.DEV) console.error('[ClassroomSwitcher] Failed to create class:', err)
+      if (import.meta.env.DEV) logger.error('[ClassroomSwitcher] Failed to create class:', err)
       addToast({
         type: 'error',
         message: `Gagal membuat kelas: ${err instanceof Error ? err.message : 'Terjadi kesalahan.'}`,

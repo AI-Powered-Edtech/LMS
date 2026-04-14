@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 export interface TeacherOnboardingState {
   id: string | null
@@ -89,7 +90,7 @@ export function useTeacherOnboarding(): UseTeacherOnboardingReturn {
 
         if (error) {
           // Table may not exist yet in local dev — silently skip
-          console.warn('[useTeacherOnboarding] DB fetch error:', error.message)
+          logger.warn('[useTeacherOnboarding] DB fetch error:', error.message)
           setIsLoading(false)
           return
         }
@@ -114,7 +115,7 @@ export function useTeacherOnboarding(): UseTeacherOnboardingReturn {
         // If no row exists → first time user, default state already shows wizard
       } catch (err) {
         if (!cancelled) {
-          console.warn('[useTeacherOnboarding] Unexpected error:', err)
+          logger.warn('[useTeacherOnboarding] Unexpected error:', err)
         }
       } finally {
         if (!cancelled) setIsLoading(false)
@@ -153,14 +154,14 @@ export function useTeacherOnboarding(): UseTeacherOnboardingReturn {
           .maybeSingle()
 
         if (error) {
-          console.warn('[useTeacherOnboarding] DB upsert error:', error.message)
+          logger.warn('[useTeacherOnboarding] DB upsert error:', error.message)
           return
         }
         if (data?.id && !state.id) {
           setState((prev) => ({ ...prev, id: data.id }))
         }
       } catch (err) {
-        console.warn('[useTeacherOnboarding] Unexpected persist error:', err)
+        logger.warn('[useTeacherOnboarding] Unexpected persist error:', err)
       }
     },
     [user, tenantId, state]

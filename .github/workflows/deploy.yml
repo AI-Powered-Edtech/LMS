@@ -113,6 +113,7 @@ jobs:
           vercel-args: '--prod'
 
       - name: Post-deploy health check
+        id: healthcheck
         run: |
           echo "Waiting for deployment to propagate..."
           sleep 30
@@ -123,3 +124,14 @@ jobs:
             exit 1
           fi
           echo "Health check passed (HTTP $STATUS)"
+
+      - name: Auto-rollback on failure
+        if: failure() && steps.healthcheck.outcome == 'failure'
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          echo "Health check failed. Initiating auto-rollback..."
+          # Fetch previous successful deployment URL or use Vercel CLI to rollback
+          pnpm dlx vercel rollback --yes --token ${{ secrets.VERCEL_TOKEN }}
+          echo "::warning::Rollback triggered due to health check failure."

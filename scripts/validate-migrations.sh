@@ -136,7 +136,38 @@ check_file() {
     fi
   fi
 
-  # ── Check 6: Filename format ─────────────────────────────────────────────
+  # ── Check 6: RPC Security Checks ─────────────────────────────────────────
+  # Find all CREATE FUNCTION or CREATE OR REPLACE FUNCTION statements
+  # We will just check the whole file for SET search_path and auth.uid() if it contains a function definition.
+  # For a more robust check, we check if the file contains CREATE FUNCTION.
+  if grep -qiE "CREATE (OR REPLACE )?FUNCTION" "$file"; then
+    
+    # Skip baseline as it was patched via ALTER FUNCTION in later migrations
+    if [[ "$filename" != "000_baseline.sql" && "$filename" != "001_performance_indexes.sql" ]]; then
+      # Check for SET search_path
+      if ! grep -qiE "SET search_path" "$file"; then
+        error "$filename: CREATE FUNCTION found but no 'SET search_path' found in this file"
+        info  "  → Every new RPC must use SET search_path TO 'public' to prevent search path injection (SECURITY.md)"
+        ((file_errors++))
+      fi
+
+      # Check for SECURITY DEFINER (optional, but if present, search_path is absolutely critical)
+      if grep -qiE "SECURITY DEFINER" "$file"; then
+        if ! grep -qiE "SET search_path" "$file"; then
+          error "$filename: SECURITY DEFINER function found without SET search_path"
+          ((file_errors++))
+        fi
+      fi
+    fi
+
+    # Check for auth.uid() or get_my_tenant_id() as a proxy for tenant/auth validation
+    if ! grep -qiE "(auth\.uid\(\)|get_my_tenant_id\(\))" "$file"; then
+      warn "$filename: CREATE FUNCTION found but no 'auth.uid()' or 'get_my_tenant_id()' check found in this file. Verify RPC auth/tenant validation."
+    fi
+
+  fi
+
+  # ── Check 7: Filename format ─────────────────────────────────────────────
   if ! echo "$filename" | grep -qE "^[0-9]{3,}_[a-z0-9_]+\.sql$"; then
     warn "$filename: Filename should match pattern NNN_description.sql (e.g., 100_add_courses_table.sql)"
   fi

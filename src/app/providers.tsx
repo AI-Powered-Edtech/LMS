@@ -1,4 +1,5 @@
 import { QueryClientProvider } from '@tanstack/react-query'
+import { MotionConfig } from 'motion/react'
 import React, { lazy, Suspense } from 'react'
 
 import { queryClient } from './queryClient'
@@ -27,4 +28,8 @@ export function AppProviders({ children }: AppProvidersProps) {
       )}
     </QueryClientProvider>
   )
+}
+
+export function MotionConfigWrapper({ children }: { children: React.ReactNode }) {
+  return <MotionConfig reducedMotion="user">{children}</MotionConfig>
 }

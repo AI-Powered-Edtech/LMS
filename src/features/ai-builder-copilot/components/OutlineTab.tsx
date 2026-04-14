@@ -6,9 +6,8 @@ import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
 
 import { useApplyOutline, useGenerateOutline } from '../queries/aiBuilderCopilotQueries'
-import type { OutlineModule } from '../types'
 import { useBuilderAICopilotStore } from '../store/builderAICopilot.store'
-
+import type { OutlineModule } from '../types'
 import { CopilotLoadingState } from './shared/CopilotLoadingState'
 import { ModuleOutlineCard } from './shared/ModuleOutlineCard'
 
@@ -156,9 +155,7 @@ export function OutlineTab() {
             className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2"
           >
             <Check className="w-4 h-4" />
-            {applyOutline.isPending
-              ? 'Menerapkan...'
-              : `Terapkan ${selectedModules.size} Modul`}
+            {applyOutline.isPending ? 'Menerapkan...' : `Terapkan ${selectedModules.size} Modul`}
           </button>
           <button
             onClick={() => {
@@ -179,8 +176,8 @@ export function OutlineTab() {
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-          Hasilkan kerangka kursus lengkap dengan modul dan pelajaran berdasarkan judul dan deskripsi
-          kursus Anda.
+          Hasilkan kerangka kursus lengkap dengan modul dan pelajaran berdasarkan judul dan
+          deskripsi kursus Anda.
         </p>
 
         <div>

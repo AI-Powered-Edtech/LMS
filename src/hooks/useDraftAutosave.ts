@@ -14,6 +14,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { logger } from '@/utils/logger'
+
 interface UseDraftAutosaveOptions<T> {
   /** localStorage key for this draft */
   key: string
@@ -93,7 +95,7 @@ export function useDraftAutosave<T>({
         onSave?.(dataRef.current)
       } catch (err) {
         // localStorage quota exceeded — fail silently (not critical)
-        if (import.meta.env.DEV) console.warn('[useDraftAutosave] Save failed:', err)
+        if (import.meta.env.DEV) logger.warn('[useDraftAutosave] Save failed:', err)
         setSaveStatusText('Gagal menyimpan otomatis')
       } finally {
         setIsSaving(false)

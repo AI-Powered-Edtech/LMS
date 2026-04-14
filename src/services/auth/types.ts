@@ -127,10 +127,7 @@ export interface AuthProvider {
     data: { session: AuthSession | null; user: AuthUser | null }
     error: AuthError | null
   }>
-  verifyOtp(params: {
-    token_hash: string
-    type: string
-  }): Promise<{
+  verifyOtp(params: { token_hash: string; type: string }): Promise<{
     error: AuthError | null
   }>
   resend(params: { type: string; email: string }): Promise<{

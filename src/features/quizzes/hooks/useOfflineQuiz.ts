@@ -5,10 +5,12 @@
  * Uses existing IndexedDB infrastructure from offlineStorage.ts and offlineQueue.ts.
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { addToSyncQueue, getPendingCount } from '@/utils/offlineStorage'
-import type { SyncQueueItem } from '@/utils/offlineStorage'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
+import { logger } from '@/utils/logger'
 import { processSyncQueue } from '@/utils/offlineQueue'
+import type { SyncQueueItem } from '@/utils/offlineStorage'
+import { addToSyncQueue, getPendingCount } from '@/utils/offlineStorage'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -100,7 +102,7 @@ export function useOfflineQuiz(options: UseOfflineQuizOptions) {
           void submitPendingAnswers()
         }
       } catch (error) {
-        console.error('[OfflineQuiz] Failed to cache answer:', error)
+        logger.error('[OfflineQuiz] Failed to cache answer:', error)
       }
     },
     [quizId]
@@ -134,7 +136,7 @@ export function useOfflineQuiz(options: UseOfflineQuizOptions) {
       await loadCachedAnswers()
       onSyncComplete?.()
     } catch (error) {
-      console.error('[OfflineQuiz] Failed to sync answers:', error)
+      logger.error('[OfflineQuiz] Failed to sync answers:', error)
       setState((prev) => ({
         ...prev,
         error: error instanceof Error ? error.message : 'Sinkronisasi gagal',

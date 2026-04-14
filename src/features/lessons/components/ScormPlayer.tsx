@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { lessonService, type UpsertScormRuntimeParams } from '@/features/lessons/api/lessonService'
+import { logger } from '@/utils/logger'
 
 import {
   createScormBridge,
@@ -74,7 +75,7 @@ export function ScormPlayer({
         }
         await lessonService.upsertScormRuntime(params)
       } catch (err) {
-        console.error('[ScormPlayer] persistState error:', err)
+        logger.error('[ScormPlayer] persistState error:', err)
       }
     },
     [user, tenantId, scormPackageId]
@@ -232,7 +233,7 @@ export function ScormPlayer({
         setPlayerState('ready')
       } catch (err) {
         if (cancelled) return
-        console.error('[ScormPlayer] init error:', err)
+        logger.error('[ScormPlayer] init error:', err)
         setPlayerState('error')
         setErrorMessage('Gagal memuat konten SCORM.')
       }

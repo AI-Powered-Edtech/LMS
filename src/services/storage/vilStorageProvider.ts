@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logger'
+
 /**
  * VIL S3/MinIO Storage Provider — Phase 5 Implementation
  *
@@ -12,7 +14,6 @@
  * Cutover mode (VITE_STORAGE_DUAL_WRITE=false, default):
  *   - All operations go to VIL S3 only.
  */
-
 import type {
   StorageBucketClient,
   StorageDownloadResponse,
@@ -162,7 +163,7 @@ class VilBucketClient implements StorageBucketClient {
       if (options?.cacheControl) headers['Cache-Control'] = options.cacheControl
 
       if (IS_DEV) {
-        console.debug(`[VilStorage] upload → ${url.toString()}`)
+        logger.debug(`[VilStorage] upload → ${url.toString()}`)
       }
 
       const resp = await fetch(url.toString(), {
@@ -188,7 +189,7 @@ class VilBucketClient implements StorageBucketClient {
 
       return result
     } catch (e) {
-      if (IS_DEV) console.warn('[VilStorage] upload error:', e)
+      if (IS_DEV) logger.warn('[VilStorage] upload error:', e)
       return { data: null, error: networkError() }
     }
   }
@@ -233,7 +234,7 @@ class VilBucketClient implements StorageBucketClient {
       }
 
       if (IS_DEV) {
-        console.debug(
+        logger.debug(
           `[VilStorage] presigned upload → ${upload_url} (${(file.size / 1024 / 1024).toFixed(1)} MiB)`
         )
       }
@@ -261,7 +262,7 @@ class VilBucketClient implements StorageBucketClient {
 
       return { data: { path }, error: null }
     } catch (e) {
-      if (IS_DEV) console.warn('[VilStorage] presigned upload error:', e)
+      if (IS_DEV) logger.warn('[VilStorage] presigned upload error:', e)
       return { data: null, error: networkError() }
     }
   }
@@ -284,7 +285,7 @@ class VilBucketClient implements StorageBucketClient {
       const blob = await resp.blob()
       return { data: blob, error: null }
     } catch (e) {
-      if (IS_DEV) console.warn('[VilStorage] download error:', e)
+      if (IS_DEV) logger.warn('[VilStorage] download error:', e)
       return { data: null, error: networkError() }
     }
   }
@@ -319,7 +320,7 @@ class VilBucketClient implements StorageBucketClient {
 
       return { data: deleted, error: null }
     } catch (e) {
-      if (IS_DEV) console.warn('[VilStorage] remove error:', e)
+      if (IS_DEV) logger.warn('[VilStorage] remove error:', e)
       return { data: null, error: networkError() }
     }
   }
@@ -376,7 +377,7 @@ class VilBucketClient implements StorageBucketClient {
 
       return { data: { signedUrl: json.signed_url }, error: null }
     } catch (e) {
-      if (IS_DEV) console.warn('[VilStorage] createSignedUrl error:', e)
+      if (IS_DEV) logger.warn('[VilStorage] createSignedUrl error:', e)
       return { data: null, error: networkError() }
     }
   }
@@ -412,7 +413,7 @@ class VilBucketClient implements StorageBucketClient {
 
       return { data, error: null }
     } catch (e) {
-      if (IS_DEV) console.warn('[VilStorage] list error:', e)
+      if (IS_DEV) logger.warn('[VilStorage] list error:', e)
       return { data: null, error: networkError() }
     }
   }
@@ -423,7 +424,7 @@ class VilBucketClient implements StorageBucketClient {
 
   // Dual-write to secondary storage removed — VIL S3 is now the sole storage backend.
   // These stubs are kept so call-sites inside DUAL_WRITE guards compile without change.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   private _dualWriteToSupabase(
     _path: string,
     _file: File | Blob | ArrayBuffer | FormData | ReadableStream,
@@ -432,7 +433,6 @@ class VilBucketClient implements StorageBucketClient {
     // no-op: secondary storage decommissioned
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private _dualRemoveFromSupabase(_paths: string[]): void {
     // no-op: secondary storage decommissioned
   }
@@ -451,7 +451,7 @@ export function createVilStorageProvider(baseUrl?: string): StorageProvider {
   const apiUrl = baseUrl ?? VIL_API_URL
 
   if (IS_DEV) {
-    console.debug(
+    logger.debug(
       `[VilStorage] Initialized — apiUrl=${apiUrl} cdnUrl=${CDN_URL || '(none)'} dualWrite=${DUAL_WRITE} primary=${STORAGE_PRIMARY}`
     )
   }

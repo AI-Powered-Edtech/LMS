@@ -8,7 +8,6 @@ import { cn } from '@/utils/cn'
 import { useApplyLessonDraft, useGenerateLessonDraft } from '../queries/aiBuilderCopilotQueries'
 import { useBuilderAICopilotStore } from '../store/builderAICopilot.store'
 import type { AssessmentSuggestions, LessonDraftBlock } from '../types'
-
 import { BlockPreviewCard } from './shared/BlockPreviewCard'
 import { CopilotLoadingState } from './shared/CopilotLoadingState'
 
@@ -26,7 +25,9 @@ export function LessonDraftTab() {
 
   // Preview state
   const [blocks, setBlocks] = useState<LessonDraftBlock[]>([])
-  const [assessmentSuggestions, setAssessmentSuggestions] = useState<AssessmentSuggestions | undefined>()
+  const [assessmentSuggestions, setAssessmentSuggestions] = useState<
+    AssessmentSuggestions | undefined
+  >()
   const [artifactId, setArtifactId] = useState<string | null>(null)
   const [selectedBlocks, setSelectedBlocks] = useState<Set<number>>(new Set())
   const [includeAssignment, setIncludeAssignment] = useState(false)

@@ -17,6 +17,7 @@
 import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/contexts/AuthContext'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 export function useSignOut(): () => Promise<void> {
@@ -27,7 +28,7 @@ export function useSignOut(): () => Promise<void> {
     try {
       await signOut()
     } catch (err) {
-      if (import.meta.env.DEV) console.error('[useSignOut] signOut error:', err)
+      if (import.meta.env.DEV) logger.error('[useSignOut] signOut error:', err)
       captureError(err, { context: 'useSignOut' })
     } finally {
       void navigate('/login')

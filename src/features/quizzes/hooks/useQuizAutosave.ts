@@ -1,7 +1,8 @@
 // Quiz Autosave Hook - Interval-based background save for Smart Player
 // Part of the Quiz Engine Refactor
-
 import { useCallback, useEffect, useRef, useState } from 'react'
+
+import { logger } from '@/utils/logger'
 
 /**
  * Interface for the quiz service passed to the hook
@@ -110,7 +111,7 @@ export function useQuizAutosave({
       }
     } catch (error) {
       // Log warning but don't throw - user keeps working
-      if (import.meta.env.DEV) console.warn('[useQuizAutosave] Save failed:', error)
+      if (import.meta.env.DEV) logger.warn('[useQuizAutosave] Save failed:', error)
     } finally {
       if (isMountedRef.current) {
         setIsSaving(false)

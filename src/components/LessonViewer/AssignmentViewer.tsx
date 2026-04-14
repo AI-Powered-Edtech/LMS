@@ -8,6 +8,7 @@ import {
   AssignmentSubmission,
 } from '@/features/assignments/api/assignmentService'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 interface AssignmentViewerProps {
   assignmentId: string
@@ -59,7 +60,7 @@ export function AssignmentViewer({
           setAttemptCount(sub.attempt_number ?? 1)
         }
       } catch (err: unknown) {
-        if (import.meta.env.DEV) console.error('Error loading submission:', err)
+        if (import.meta.env.DEV) logger.error('Error loading submission:', err)
         setError(err instanceof Error ? err.message : 'Gagal memuat submisi tugas.')
       } finally {
         setIsLoading(false)

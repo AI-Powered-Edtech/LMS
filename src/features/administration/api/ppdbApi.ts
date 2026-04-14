@@ -4,8 +4,8 @@
  * Semua query menggunakan Supabase client dengan RLS.
  * Tenant isolation dilakukan via RLS policy + auto_set_tenant_id trigger.
  */
-
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type {
   PPDBPeriod,
@@ -44,7 +44,7 @@ export async function fetchPPDBPeriods(): Promise<PPDBPeriod[]> {
     .order('created_at', { ascending: false })
 
   if (error) {
-    if (import.meta.env.DEV) console.warn('fetchPPDBPeriods error:', error.message)
+    if (import.meta.env.DEV) logger.warn('fetchPPDBPeriods error:', error.message)
     return []
   }
 
@@ -126,7 +126,7 @@ export async function fetchRegistrations(
   const { data, error, count } = await query
 
   if (error) {
-    if (import.meta.env.DEV) console.warn('fetchRegistrations error:', error.message)
+    if (import.meta.env.DEV) logger.warn('fetchRegistrations error:', error.message)
     return { data: [], count: 0 }
   }
 
@@ -135,11 +135,7 @@ export async function fetchRegistrations(
 
 /** Ambil ringkasan statistik pendaftar */
 export async function fetchPPDBSummary(periodId: string): Promise<PPDBSummary> {
-  const { data: period } = await db
-    .from('ppdb_periods')
-    .select('quota')
-    .eq('id', periodId)
-    .single()
+  const { data: period } = await db.from('ppdb_periods').select('quota').eq('id', periodId).single()
 
   const { data, error } = await db
     .from('ppdb_registrations')
@@ -147,7 +143,7 @@ export async function fetchPPDBSummary(periodId: string): Promise<PPDBSummary> {
     .eq('period_id', periodId)
 
   if (error) {
-    if (import.meta.env.DEV) console.warn('fetchPPDBSummary error:', error.message)
+    if (import.meta.env.DEV) logger.warn('fetchPPDBSummary error:', error.message)
     return {
       total: 0,
       quota: period?.quota ?? 0,

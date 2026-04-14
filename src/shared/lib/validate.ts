@@ -7,6 +7,8 @@
  */
 import * as v from 'valibot'
 
+import { logger } from '@/utils/logger'
+
 const isDev = import.meta.env?.DEV ?? false
 
 /**
@@ -35,7 +37,7 @@ export function validate(schema: v.GenericSchema, data: unknown, label?: string)
   const result = v.safeParse(schema, data)
   if (!result.success && isDev) {
     if (import.meta.env.DEV)
-      console.warn(`[validate] ${label ?? 'unknown'}: validation failed`, v.flatten(result.issues))
+      logger.warn(`[validate] ${label ?? 'unknown'}: validation failed`, v.flatten(result.issues))
   }
   return data
 }
@@ -64,7 +66,7 @@ export function validateArray(schema: v.GenericSchema, data: unknown[], label?: 
       const result = v.safeParse(schema, item)
       if (!result.success) {
         if (import.meta.env.DEV)
-          console.warn(
+          logger.warn(
             `[validate] ${label ?? 'item'}[${i}]: validation failed`,
             v.flatten(result.issues)
           )

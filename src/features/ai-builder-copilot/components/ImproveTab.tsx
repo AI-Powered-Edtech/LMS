@@ -9,7 +9,6 @@ import { useTransformContent } from '../queries/aiBuilderCopilotQueries'
 import { useBuilderAICopilotStore } from '../store/builderAICopilot.store'
 import type { TransformAction } from '../types'
 import { TRANSFORM_ACTION_LABELS } from '../types'
-
 import { CopilotLoadingState } from './shared/CopilotLoadingState'
 import { DiffPreview } from './shared/DiffPreview'
 

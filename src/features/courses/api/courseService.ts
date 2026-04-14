@@ -2,7 +2,7 @@
 import { getApiBackend, getApiClient } from '@/services/api'
 import { buildRequestHeaders, createRequestId, runShadowComparison } from '@/services/api/shadow'
 import { readVilSession } from '@/services/auth/vilSession'
-import { getSupabaseClient } from '@/services/db'
+import { getDbClient } from '@/services/db'
 import { logDevError, logDevWarn } from '@/utils/logDevError'
 
 import type { Course, CourseInsert, CourseUpdate, FetchCoursesOptions } from '../types'
@@ -50,7 +50,7 @@ async function fetchSupabaseCoursesShadow(
   search?: string,
   ids?: string[]
 ): Promise<{ courses: Course[]; count: number }> {
-  let query = getSupabaseClient()
+  let query = getDbClient()
     .from('courses')
     .select(
       'id, title, description, status, subject, level, created_at, updated_at, created_by, tenant_id',
@@ -86,7 +86,7 @@ async function fetchSupabaseCourseModulesShadow(
 ): Promise<
   Array<{ id: string; title: string; order: number; course_id: string; lessons: unknown[] }>
 > {
-  const { data: modules, error } = await getSupabaseClient()
+  const { data: modules, error } = await getDbClient()
     .from('course_modules')
     .select('id, title, "order", course_id')
     .eq('tenant_id', tenantId)
@@ -100,7 +100,7 @@ async function fetchSupabaseCourseModulesShadow(
   const moduleIds = ((modules ?? []) as Array<{ id: string }>).map((module) => module.id)
   const { data: lessons, error: lessonError } =
     moduleIds.length > 0
-      ? await getSupabaseClient()
+      ? await getDbClient()
           .from('lessons')
           .select('id, module_id, duration_minutes, "order"')
           .eq('tenant_id', tenantId)
@@ -285,7 +285,7 @@ export const courseService = {
         requestId,
         primaryResult: { data: result },
         shadowRequest: async () => {
-          const shadow = await getSupabaseClient()
+          const shadow = await getDbClient()
             .from('courses')
             .select(
               'id, title, description, status, subject, level, created_at, updated_at, created_by, tenant_id'

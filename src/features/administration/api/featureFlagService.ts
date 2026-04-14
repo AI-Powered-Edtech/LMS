@@ -4,6 +4,7 @@
  */
 import { db } from '@/services/db'
 import { type FeatureFlag, invalidateFlagCache } from '@/utils/featureFlags'
+import { logger } from '@/utils/logger'
 
 export const featureFlagService = {
   /**
@@ -19,7 +20,7 @@ export const featureFlagService = {
 
     if (error) {
       // If no flags exist for this tenant, return empty array gracefully
-      if (import.meta.env.DEV) console.warn('[featureFlagService] fetchFlags:', error.message)
+      if (import.meta.env.DEV) logger.warn('[featureFlagService] fetchFlags:', error.message)
       return []
     }
     return (data ?? []) as FeatureFlag[]

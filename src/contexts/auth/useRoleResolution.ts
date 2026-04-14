@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { authService } from '@/features/auth/api/authService'
+import { logger } from '@/utils/logger'
 import { addBreadcrumb, captureError, setSentryUser } from '@/utils/sentry'
 
 interface AuthUser {
@@ -269,7 +270,7 @@ export function useRoleResolution(user: AuthUser | null): UseRoleResolutionResul
           await fetchUserData(userId)
         }
       } catch (e) {
-        if (import.meta.env.DEV) console.error('Failed to accept invitation:', e)
+        if (import.meta.env.DEV) logger.error('Failed to accept invitation:', e)
         captureError(e, { context: 'processPendingInvite' })
 
         const errorMsg = (e instanceof Error ? e.message : String(e)).toLowerCase()
@@ -284,7 +285,7 @@ export function useRoleResolution(user: AuthUser | null): UseRoleResolutionResul
           localStorage.setItem('pendingInviteToken', pendingToken)
           localStorage.setItem('pendingInviteRetryCount', '1')
           if (import.meta.env.DEV)
-            console.warn('[Auth] Transient invite error — will retry on next login')
+            logger.warn('[Auth] Transient invite error — will retry on next login')
           return
         }
         localStorage.removeItem('pendingInviteRetryCount')
@@ -314,7 +315,7 @@ export function useRoleResolution(user: AuthUser | null): UseRoleResolutionResul
         message: 'Berhasil bergabung ke kelas!',
       })
     } catch (e) {
-      if (import.meta.env.DEV) console.error('[Auth] Failed to enroll with pending join code:', e)
+      if (import.meta.env.DEV) logger.error('[Auth] Failed to enroll with pending join code:', e)
       captureError(e, { context: 'processPendingJoinCode' })
       const { useToast } = await import('@/hooks/useToast')
       useToast.getState().addToast({
@@ -362,7 +363,7 @@ export function useRoleResolution(user: AuthUser | null): UseRoleResolutionResul
         setLoading(false)
       })
       .catch((err) => {
-        if (import.meta.env.DEV) console.error('[Auth] Auth chain failed:', err)
+        if (import.meta.env.DEV) logger.error('[Auth] Auth chain failed:', err)
         captureError(err, { context: 'useRoleResolution.fetchChain' })
         setLoading(false)
         setLoadingMemberships(false)

@@ -8,6 +8,7 @@ import { NotificationPreferencesPanel } from '@/features/notifications'
 import { profilePreferences } from '@/features/profile/api/profilePreferences'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 import { AccountTab, AppearanceTab, SecurityTab } from './SettingsTabs'
@@ -66,7 +67,7 @@ export function Settings() {
     try {
       await signOut()
     } catch (e) {
-      if (import.meta.env.DEV) console.error('[Settings] signOut error:', e)
+      if (import.meta.env.DEV) logger.error('[Settings] signOut error:', e)
       captureError(e, { context: 'Settings.handleSignOut' })
     }
   }, [signOut])

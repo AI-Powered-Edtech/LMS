@@ -9,15 +9,16 @@
  * - HLS ready indicator
  */
 
-import { AlertCircle, CheckCircle2, Clock, Loader2, RotateCcw, Video } from 'lucide-react';
-import { cn } from '@/utils/cn';
+import { AlertCircle, CheckCircle2, Clock, Loader2, RotateCcw, Video } from 'lucide-react'
+
+import { cn } from '@/utils/cn'
 
 interface VideoTranscodingStatusProps {
-  progress: number;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  errorMessage?: string;
-  onRetry?: () => void;
-  className?: string;
+  progress: number
+  status: 'pending' | 'processing' | 'completed' | 'failed'
+  errorMessage?: string
+  onRetry?: () => void
+  className?: string
 }
 
 const STATUS_CONFIG = {
@@ -49,7 +50,7 @@ const STATUS_CONFIG = {
     icon: AlertCircle,
     showProgress: false,
   },
-};
+}
 
 export function VideoTranscodingStatus({
   progress,
@@ -58,31 +59,22 @@ export function VideoTranscodingStatus({
   onRetry,
   className,
 }: VideoTranscodingStatusProps) {
-  const config = STATUS_CONFIG[status];
-  const Icon = config.icon;
+  const config = STATUS_CONFIG[status]
+  const Icon = config.icon
 
   return (
     <div className={cn('space-y-3', className)}>
       {/* Status Header */}
       <div className="flex items-center gap-3">
         <div className={cn('shrink-0', config.color)}>
-          <Icon
-            className={cn(
-              'w-5 h-5',
-              status === 'processing' && 'animate-spin'
-            )}
-          />
+          <Icon className={cn('w-5 h-5', status === 'processing' && 'animate-spin')} />
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className={cn('text-sm font-medium', config.color)}>
-            {config.label}
-          </p>
+          <p className={cn('text-sm font-medium', config.color)}>{config.label}</p>
 
           {config.showProgress && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              {progress}% selesai
-            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{progress}% selesai</p>
           )}
         </div>
 
@@ -129,9 +121,7 @@ export function VideoTranscodingStatus({
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <div className="flex items-start gap-2">
             <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-            <p className="text-xs text-red-700 dark:text-red-300">
-              {errorMessage}
-            </p>
+            <p className="text-xs text-red-700 dark:text-red-300">{errorMessage}</p>
           </div>
         </div>
       )}
@@ -146,7 +136,7 @@ export function VideoTranscodingStatus({
         </div>
       )}
     </div>
-  );
+  )
 }
 
-export default VideoTranscodingStatus;
+export default VideoTranscodingStatus

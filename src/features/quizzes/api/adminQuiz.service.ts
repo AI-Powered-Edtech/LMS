@@ -8,6 +8,7 @@
 import { db } from '@/services/db'
 import { validateArray } from '@/shared/lib/validate'
 import { QuizRowSchema } from '@/shared/schemas'
+import { logger } from '@/utils/logger'
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -48,7 +49,7 @@ export async function getSchoolQuizOverview(tenantId: string): Promise<AdminQuiz
     .order('created_at', { ascending: false })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Error fetching school quizzes:', error)
+    if (import.meta.env.DEV) logger.error('Error fetching school quizzes:', error)
     throw error
   }
   validateArray(QuizRowSchema, quizzes || [], 'adminQuiz.getSchoolQuizOverview')
@@ -150,7 +151,7 @@ export async function getAntiCheatAuditLog(
     .limit(limit)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Error fetching audit log:', error)
+    if (import.meta.env.DEV) logger.error('Error fetching audit log:', error)
     throw error
   }
 

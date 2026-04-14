@@ -1,4 +1,5 @@
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type { InteractionProgress } from '../types'
 
@@ -44,7 +45,7 @@ export const interactiveBlockService = {
       .maybeSingle()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('[interactiveBlockService] getProgress error:', error)
+      if (import.meta.env.DEV) logger.error('[interactiveBlockService] getProgress error:', error)
       return null
     }
 

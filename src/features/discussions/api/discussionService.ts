@@ -1,4 +1,5 @@
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 export interface Discussion {
   id: string
@@ -82,7 +83,7 @@ export const discussionService = {
     const { data, error } = await query
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching discussions:', error)
+      if (import.meta.env.DEV) logger.error('Error fetching discussions:', error)
       throw error
     }
 
@@ -102,7 +103,7 @@ export const discussionService = {
       .single()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error saving discussion:', error)
+      if (import.meta.env.DEV) logger.error('Error saving discussion:', error)
       throw error
     }
 
@@ -123,7 +124,7 @@ export const discussionService = {
       .eq('tenant_id', tenantId)
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error deleting discussion:', error)
+      if (import.meta.env.DEV) logger.error('Error deleting discussion:', error)
       throw error
     }
   },
@@ -139,7 +140,7 @@ export const discussionService = {
       .eq('tenant_id', tenantId)
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error toggling pin status:', error)
+      if (import.meta.env.DEV) logger.error('Error toggling pin status:', error)
       throw error
     }
   },
@@ -190,12 +191,12 @@ export const discussionService = {
       // PGRST202 = RPC not deployed yet — degrade gracefully until migration runs.
       if (error.code === 'PGRST202') {
         if (import.meta.env.DEV)
-          console.warn(
+          logger.warn(
             '[discussionService] vote_discussion_secure RPC not found — migration needed.'
           )
         return { success: false, reason: 'rpc_not_found' }
       }
-      if (import.meta.env.DEV) console.error('Error voting on discussion:', error)
+      if (import.meta.env.DEV) logger.error('Error voting on discussion:', error)
       throw error
     }
     const result = data as { success: boolean; reason?: string } | null
@@ -221,7 +222,7 @@ export const discussionService = {
     if (error) {
       if (error.code === 'PGRST202' || error.code === '42883') {
         if (import.meta.env.DEV)
-          console.warn('[discussionService] toggle_post_vote RPC not found — migration needed.')
+          logger.warn('[discussionService] toggle_post_vote RPC not found — migration needed.')
         return { action: 'removed', post_id: postId }
       }
       throw error
@@ -265,7 +266,7 @@ export const discussionService = {
     if (error) {
       if (error.code === 'PGRST202' || error.code === '42883') {
         if (import.meta.env.DEV)
-          console.warn(
+          logger.warn(
             '[discussionService] accept_discussion_answer RPC not found — migration needed.'
           )
         return
@@ -292,7 +293,7 @@ export const discussionService = {
 
     if (postError) {
       if (import.meta.env.DEV)
-        console.error('[discussionService] setBestAnswer pre-verify error:', postError)
+        logger.error('[discussionService] setBestAnswer pre-verify error:', postError)
       throw postError
     }
     if (!post) {
@@ -307,10 +308,10 @@ export const discussionService = {
       // PGRST202 = RPC not deployed yet — degrade gracefully until migration runs.
       if (error.code === 'PGRST202') {
         if (import.meta.env.DEV)
-          console.warn('[discussionService] set_best_answer RPC not found — migration needed.')
+          logger.warn('[discussionService] set_best_answer RPC not found — migration needed.')
         return
       }
-      if (import.meta.env.DEV) console.error('Error setting best answer:', error)
+      if (import.meta.env.DEV) logger.error('Error setting best answer:', error)
       throw error
     }
   },

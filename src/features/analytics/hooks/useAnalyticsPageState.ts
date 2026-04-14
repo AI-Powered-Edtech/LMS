@@ -8,6 +8,7 @@ import {
   useTeacherAnalytics,
 } from '@/features/analytics/queries/analyticsQueries'
 import { Course, courseService } from '@/features/courses'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 export function useAnalyticsPageState() {
@@ -39,7 +40,7 @@ export function useAnalyticsPageState() {
           // Otherwise, leave selectedCourseId empty and show placeholder
         }
       } catch (err) {
-        if (import.meta.env.DEV) console.error('Failed to load courses', err)
+        if (import.meta.env.DEV) logger.error('Failed to load courses', err)
         captureError(err, { context: 'useAnalyticsPageState.loadCourses' })
       }
     }
@@ -91,7 +92,7 @@ export function useAnalyticsPageState() {
       await refreshMutation.mutateAsync(selectedCourseId)
       void refetch()
     } catch (err: unknown) {
-      if (import.meta.env.DEV) console.error('Failed to refresh analytics', err)
+      if (import.meta.env.DEV) logger.error('Failed to refresh analytics', err)
 
       let refreshError = 'Gagal memperbarui data analitik manual.'
 

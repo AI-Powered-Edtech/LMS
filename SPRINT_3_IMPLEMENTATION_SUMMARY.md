@@ -9,6 +9,7 @@
 ## 📋 Overview
 
 Sprint 3 berfokus pada optimalisasi UI/UX untuk mobile responsiveness, accessibility (A11y), dan consistent loading/error states. Implementasi mencakup:
+
 - Mobile-First Gradebook dengan Card Layout (P0)
 - Shared Responsive Hook untuk semua features (P0)
 - Loading Skeletons yang konsisten (P2)
@@ -22,10 +23,12 @@ Sprint 3 berfokus pada optimalisasi UI/UX untuk mobile responsiveness, accessibi
 ### 3.1 Mobile-First Gradebook 🔴 P0
 
 **Files Created:**
+
 - `src/features/gradebook/components/GradebookMobileCards.tsx` - Card-based mobile view
 - `src/hooks/useResponsive.ts` - Shared responsive breakpoints hook
 
 **Features:**
+
 - ✅ Card layout optimized untuk mobile (< 768px)
 - ✅ Collapsible assignment list per student
 - ✅ Color-coded grade badges (A/B/C/D dengan warna)
@@ -36,6 +39,7 @@ Sprint 3 berfokus pada optimalisasi UI/UX untuk mobile responsiveness, accessibi
 - ✅ Responsive avatar & student info layout
 
 **Breakpoints:**
+
 ```
 Mobile:  < 768px  → Card Layout
 Tablet:  768-1024px → Hybrid (can use either)
@@ -43,22 +47,25 @@ Desktop: > 1024px → Table Layout
 ```
 
 **Usage Example:**
+
 ```tsx
 import { useResponsive } from '@/hooks/useResponsive'
 import { GradebookMobileCards, GradebookMainTable } from '@/features/gradebook'
 
 const { isMobile } = useResponsive()
 
-{isMobile ? (
-  <GradebookMobileCards
-    students={students}
-    assignments={assignments}
-    grades={grades}
-    onEditGrade={handleEditGrade}
-  />
-) : (
-  <GradebookMainTable {...props} />
-)}
+{
+  isMobile ? (
+    <GradebookMobileCards
+      students={students}
+      assignments={assignments}
+      grades={grades}
+      onEditGrade={handleEditGrade}
+    />
+  ) : (
+    <GradebookMainTable {...props} />
+  )
+}
 ```
 
 ---
@@ -66,6 +73,7 @@ const { isMobile } = useResponsive()
 ### 3.2 A11y Improvements 🟠 P1
 
 **Implemented Across All Components:**
+
 - ✅ `role="status"` pada semua skeleton loaders
 - ✅ `aria-label` untuk loading indicators
 - ✅ `aria-live="assertive"` untuk error messages
@@ -74,12 +82,14 @@ const { isMobile } = useResponsive()
 - ✅ Semantic HTML (h2, h3, button, details/summary)
 
 **Error Boundary Accessibility:**
+
 - ✅ `role="alert"` pada error messages
 - ✅ `aria-live="assertive"` untuk screen readers
 - ✅ Keyboard-accessible retry button
 - ✅ Development error details dalam `<details>` (collapsible)
 
 **Gradebook Mobile Cards Accessibility:**
+
 - ✅ Enter/Space untuk expand/collapse
 - ✅ Escape untuk cancel editing
 - ✅ Auto-focus pada edit input
@@ -90,26 +100,28 @@ const { isMobile } = useResponsive()
 ### 3.3 Loading Skeletons 🟡 P2
 
 **Files Created:**
+
 - `src/components/ui/Skeleton.tsx` - Comprehensive skeleton library
 
 **Skeleton Types Available:**
 
-| Type | Use Case | Features |
-|------|----------|----------|
-| `SkeletonBlock` | Generic placeholder | Custom width/height/rounded |
-| `CardSkeleton` | Card loading states | Header, lines, footer |
-| `TableSkeleton` | Table loading states | Configurable rows/columns |
-| `ChartSkeleton` | Chart/graph loading | Grid lines, legend, title |
-| `VideoPlayerSkeleton` | Video player loading | Aspect ratio options |
-| `ListSkeleton` | List items loading | Avatar, description options |
+| Type                  | Use Case             | Features                    |
+| --------------------- | -------------------- | --------------------------- |
+| `SkeletonBlock`       | Generic placeholder  | Custom width/height/rounded |
+| `CardSkeleton`        | Card loading states  | Header, lines, footer       |
+| `TableSkeleton`       | Table loading states | Configurable rows/columns   |
+| `ChartSkeleton`       | Chart/graph loading  | Grid lines, legend, title   |
+| `VideoPlayerSkeleton` | Video player loading | Aspect ratio options        |
+| `ListSkeleton`        | List items loading   | Avatar, description options |
 
 **Usage Examples:**
+
 ```tsx
-import { 
-  CardSkeleton, 
-  TableSkeleton, 
+import {
+  CardSkeleton,
+  TableSkeleton,
   ChartSkeleton,
-  VideoPlayerSkeleton 
+  VideoPlayerSkeleton
 } from '@/components/ui'
 
 // Card loading
@@ -126,6 +138,7 @@ import {
 ```
 
 **Features:**
+
 - ✅ Consistent shimmer animation (Tailwind `animate-pulse`)
 - ✅ Accessible with `role="status"` and `aria-label`
 - ✅ Dark mode support
@@ -137,9 +150,11 @@ import {
 ### 3.4 Error Boundaries 🟡 P2
 
 **Files Created:**
+
 - `src/components/ui/ErrorBoundary.tsx` - Error boundary component
 
 **Features:**
+
 - ✅ Catches render errors, lifecycle errors, constructor errors
 - ✅ User-friendly error messages dalam Bahasa Indonesia
 - ✅ Retry button dengan custom handler support
@@ -149,6 +164,7 @@ import {
 - ✅ Accessible error UI (`role="alert"`, `aria-live`)
 
 **Usage Examples:**
+
 ```tsx
 import { ErrorBoundary, withErrorBoundary } from '@/components/ui'
 
@@ -158,7 +174,7 @@ import { ErrorBoundary, withErrorBoundary } from '@/components/ui'
 </ErrorBoundary>
 
 // Pattern 2: Custom fallback
-<ErrorBoundary 
+<ErrorBoundary
   fallback={<CustomErrorUI />}
   onRetry={() => window.location.reload()}
 >
@@ -172,6 +188,7 @@ const SafeComponent = withErrorBoundary(MyComponent, {
 ```
 
 **Error UI Features:**
+
 - Icon + heading + description
 - Retry button (primary action)
 - Development details (collapsed by default)
@@ -223,7 +240,7 @@ import { useResponsive } from '@/hooks/useResponsive'
 
 function MyComponent() {
   const { isMobile, isTablet, isDesktop } = useResponsive()
-  
+
   if (isMobile) return <MobileView />
   if (isTablet) return <TableView />
   return <DesktopView />
@@ -237,11 +254,9 @@ Gunakan skeleton yang sesuai dengan konten:
 ```tsx
 const [loading, setData] = useState(false)
 
-{loading ? (
-  <TableSkeleton rows={5} columns={4} />
-) : (
-  <DataTable data={data} />
-)}
+{
+  loading ? <TableSkeleton rows={5} columns={4} /> : <DataTable data={data} />
+}
 ```
 
 ### 3. Error Handling

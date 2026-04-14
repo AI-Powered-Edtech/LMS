@@ -9,6 +9,7 @@
 ## 📋 Overview
 
 Sprint 4 menyelesaikan item-item yang tersisa dari Sprint 2 dan Sprint 3 yang belum diimplementasi:
+
 - WebSocket Real-time Updates untuk Gradebook (Sprint 2.3 - P0)
 - Offline Quiz Synchronization (Sprint 2.4 - P1)
 - Responsive analytics charts (Sprint 3.2 - P1) - sudah ada infrastruktur
@@ -21,11 +22,13 @@ Sprint 4 menyelesaikan item-item yang tersisa dari Sprint 2 dan Sprint 3 yang be
 ### 2.3 Gradebook WebSocket Real-time Updates 🔴 P0
 
 **Files Created:**
+
 - `edusync-api/migrations/014_gradebook_realtime_triggers.sql` - Database triggers
 - `src/features/gradebook/hooks/useGradebookRealtime.ts` - WebSocket hook
 - `src/features/gradebook/queries/gradebookKeys.ts` - Centralized query keys
 
 **Features:**
+
 - ✅ Real-time INSERT/UPDATE/DELETE detection via WebSocket
 - ✅ Automatic React Query cache updates
 - ✅ Fallback to polling jika WebSocket unavailable
@@ -35,6 +38,7 @@ Sprint 4 menyelesaikan item-item yang tersisa dari Sprint 2 dan Sprint 3 yang be
 - ✅ Support untuk 3 tables: gradebook_entries, gradebook_settings, gradebook_columns
 
 **Database Migration:**
+
 ```sql
 -- Triggers untuk realtime notifications
 CREATE TRIGGER notify_gradebook_entries
@@ -43,21 +47,22 @@ CREATE TRIGGER notify_gradebook_entries
 ```
 
 **WebSocket Channel:**
+
 ```
 gradebook:course:{courseId}
 ```
 
 **Usage Example:**
+
 ```tsx
 import { useGradebookRealtime } from '@/features/gradebook'
 
 function Gradebook({ courseId }) {
-  const { isConnected, isFallbackToPolling, lastUpdateAt } = 
-    useGradebookRealtime(courseId, {
-      onEntryUpdated: (entry) => {
-        console.log('Grade updated:', entry)
-      },
-    })
+  const { isConnected, isFallbackToPolling, lastUpdateAt } = useGradebookRealtime(courseId, {
+    onEntryUpdated: (entry) => {
+      console.log('Grade updated:', entry)
+    },
+  })
 
   return (
     <div>
@@ -74,9 +79,11 @@ function Gradebook({ courseId }) {
 ### 2.4 Offline Quiz Synchronization 🟠 P1
 
 **Files Created:**
+
 - `src/features/quizzes/hooks/useOfflineQuiz.ts` - Offline quiz hook
 
 **Features:**
+
 - ✅ Cache quiz questions offline
 - ✅ Store answers locally dengan enkripsi (AES-GCM)
 - ✅ Auto-sync ketika connection resumes
@@ -87,27 +94,25 @@ function Gradebook({ courseId }) {
 - ✅ Delayed sync untuk connection stability
 
 **Infrastructure Used:**
+
 - `offlineStorage.ts` - IndexedDB untuk quiz cache & encrypted answers
 - `offlineQueue.ts` - Queue processor dengan retry logic
 
 **Usage Example:**
+
 ```tsx
 import { useOfflineQuiz } from '@/features/quizzes'
 
 function QuizAttempt({ quizId, attemptId }) {
-  const {
-    isOnline,
-    cachedAnswers,
-    syncStatus,
-    cacheAnswer,
-    submitPendingAnswers,
-  } = useOfflineQuiz({
-    quizId,
-    attemptId,
-    onSyncComplete: () => {
-      toast.success('Jawaban tersinkronisasi!')
-    },
-  })
+  const { isOnline, cachedAnswers, syncStatus, cacheAnswer, submitPendingAnswers } = useOfflineQuiz(
+    {
+      quizId,
+      attemptId,
+      onSyncComplete: () => {
+        toast.success('Jawaban tersinkronisasi!')
+      },
+    }
+  )
 
   const handleAnswerChange = (questionId, answer) => {
     cacheAnswer(questionId, answer)
@@ -117,9 +122,7 @@ function QuizAttempt({ quizId, attemptId }) {
     <div>
       {!isOnline && <OfflineBanner />}
       <QuizQuestions onAnswerChange={handleAnswerChange} />
-      <button onClick={submitPendingAnswers}>
-        Sync Now ({syncStatus.pending} pending)
-      </button>
+      <button onClick={submitPendingAnswers}>Sync Now ({syncStatus.pending} pending)</button>
     </div>
   )
 }
@@ -162,7 +165,9 @@ Total Lines Added: ~600
 ## 🚀 Integration Points
 
 ### Backend Requirements:
+
 Untuk mengaktifkan WebSocket realtime updates, backend perlu:
+
 1. Run migration: `sqlx migrate run`
 2. Listen pada PostgreSQL notify channels:
    - `notify_gradebook_entries`
@@ -171,13 +176,14 @@ Untuk mengaktifkan WebSocket realtime updates, backend perlu:
 3. Forward notifications ke WebSocket channel `gradebook:course:{courseId}`
 
 ### Frontend Integration:
+
 ```tsx
 // Di Gradebook component utama
 import { useGradebookRealtime } from '@/features/gradebook'
 
 function GradebookPage({ courseId }) {
   useGradebookRealtime(courseId)
-  
+
   return <GradebookTable />
 }
 ```
@@ -188,19 +194,20 @@ function GradebookPage({ courseId }) {
 
 **All 4 sprints successfully implemented:**
 
-| Sprint | Focus | Files | Lines | Status |
-|--------|-------|-------|-------|--------|
-| **Sprint 1** | Backend Infrastructure | 13 | 1,719 | ✅ |
-| **Sprint 2** | Frontend Wiring | 11 | 1,453 | ✅ |
-| **Sprint 3** | UI/UX Optimization | 7 | 1,325 | ✅ |
-| **Sprint 4** | Remaining Features | 4 | 600 | ✅ |
-| **Total** | Phase 2 Complete | **35** | **5,097** | **✅ DONE** |
+| Sprint       | Focus                  | Files  | Lines     | Status      |
+| ------------ | ---------------------- | ------ | --------- | ----------- |
+| **Sprint 1** | Backend Infrastructure | 13     | 1,719     | ✅          |
+| **Sprint 2** | Frontend Wiring        | 11     | 1,453     | ✅          |
+| **Sprint 3** | UI/UX Optimization     | 7      | 1,325     | ✅          |
+| **Sprint 4** | Remaining Features     | 4      | 600       | ✅          |
+| **Total**    | Phase 2 Complete       | **35** | **5,097** | **✅ DONE** |
 
 ---
 
 ## 🎉 Phase 2 Deliverables
 
 ### Backend (Sprint 1):
+
 - ✅ Video HLS Transcoding Pipeline
 - ✅ Document Generation Service (PDF/CSV)
 - ✅ AI Endpoints dengan SSE Streaming
@@ -208,6 +215,7 @@ function GradebookPage({ courseId }) {
 - ✅ Background job workers
 
 ### Frontend (Sprint 2):
+
 - ✅ AI Tutor SSE Streaming
 - ✅ Video Transcoding Status Monitoring
 - ✅ Report Export UI
@@ -215,6 +223,7 @@ function GradebookPage({ courseId }) {
 - ✅ Offline Quiz Sync
 
 ### UI/UX (Sprint 3):
+
 - ✅ Mobile-First Gradebook
 - ✅ Responsive Hook
 - ✅ Loading Skeletons (6 types)
@@ -222,6 +231,7 @@ function GradebookPage({ courseId }) {
 - ✅ A11y Improvements
 
 ### Final (Sprint 4):
+
 - ✅ Real-time Gradebook Updates
 - ✅ Offline Quiz Orchestration
 - ✅ Centralized Query Keys

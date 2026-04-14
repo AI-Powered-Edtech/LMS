@@ -1,7 +1,7 @@
 import { Crown, Trophy } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import { Card, EmptyState, SkeletonCard, ErrorFallback } from '@/components/ui'
+import { Card, EmptyState, ErrorFallback, SkeletonCard } from '@/components/ui'
 import type { LeaderboardEntry } from '@/features/gamification'
 
 interface LeaderboardPreviewProps {

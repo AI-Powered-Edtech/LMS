@@ -1,4 +1,5 @@
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 // FIXED: Persist user-created calendar events to DB (calendar_events table)
 
@@ -71,7 +72,7 @@ export const calendarEventService = {
 
     if (error) {
       if (import.meta.env.DEV)
-        console.error('[calendarEventService] fetchUserCalendarEvents:', error)
+        logger.error('[calendarEventService] fetchUserCalendarEvents:', error)
       return []
     }
 

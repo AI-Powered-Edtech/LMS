@@ -1,4 +1,5 @@
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 // --- Types (shared with consumers) ---
 
@@ -214,9 +215,7 @@ export const studentProgressService = {
         score: a.score ?? 0,
         totalPoints,
         percentage: (() => {
-          return totalPoints > 0
-            ? Math.round(((a.score ?? 0) / totalPoints) * 100)
-            : (a.score ?? 0)
+          return totalPoints > 0 ? Math.round(((a.score ?? 0) / totalPoints) * 100) : (a.score ?? 0)
         })(),
         passed: a.passed ?? (a.score ?? 0) >= 70,
         completedAt: new Date(a.submitted_at || a.started_at),
@@ -309,7 +308,9 @@ export const studentProgressService = {
     }
 
     const { data } = await query
-    const classIds = ((data ?? []) as Array<{ class_id: string | null }>).map((row: any) => row.class_id)
+    const classIds = ((data ?? []) as Array<{ class_id: string | null }>).map(
+      (row: any) => row.class_id
+    )
     const { data: classes } =
       classIds.length > 0
         ? await db
@@ -323,7 +324,10 @@ export const studentProgressService = {
         : { data: [] }
 
     const classMap = new Map(
-      ((classes ?? []) as Array<{ id: string; name: string }>).map((klass) => [klass.id, klass.name])
+      ((classes ?? []) as Array<{ id: string; name: string }>).map((klass) => [
+        klass.id,
+        klass.name,
+      ])
     )
 
     return (data ?? []).map((a: any) => ({
@@ -358,7 +362,7 @@ export const studentProgressService = {
       },
       { onConflict: 'user_id,lesson_id' }
     )
-    if (error) if (import.meta.env.DEV) console.error('Error updating lesson progress:', error)
+    if (error) if (import.meta.env.DEV) logger.error('Error updating lesson progress:', error)
   },
 
   /**
@@ -372,7 +376,7 @@ export const studentProgressService = {
     _tenantId: string
   ): Promise<void> {
     if (import.meta.env.DEV)
-      console.warn(
+      logger.warn(
         '[studentProgressService] Legacy submitQuizAttempt skipped. Quiz attempts are persisted via quiz_attempts_v2 RPC flow.'
       )
   },
@@ -385,6 +389,6 @@ export const studentProgressService = {
       p_user_id: userId,
       p_points: amount,
     })
-    if (error) if (import.meta.env.DEV) console.error('Error adding XP:', error)
+    if (error) if (import.meta.env.DEV) logger.error('Error adding XP:', error)
   },
 }

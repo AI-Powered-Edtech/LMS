@@ -1,4 +1,5 @@
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 // Custom error types for administration operations
 class AdministrationError extends Error {
@@ -166,7 +167,7 @@ export const administrationService = {
         // Log as warn — missing tenant_modules seed data is a setup
         // issue, not an application error; callers fall back to defaults.
         if (import.meta.env.DEV)
-          console.warn(
+          logger.warn(
             'tenant_modules fetch returned an error (likely no seed data):',
             tenantError.message
           )
@@ -206,7 +207,7 @@ export const administrationService = {
       return []
     } catch (error) {
       if (import.meta.env.DEV)
-        console.warn(
+        logger.warn(
           'Tenant modules unavailable, caller will use defaults:',
           error instanceof Error ? error.message : error
         )
@@ -225,11 +226,11 @@ export const administrationService = {
         .eq('module_id', moduleId)
 
       if (error) {
-        if (import.meta.env.DEV) console.error('Failed to update tenant module:', error)
+        if (import.meta.env.DEV) logger.error('Failed to update tenant module:', error)
         throw error
       }
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Error toggling tenant module:', error)
+      if (import.meta.env.DEV) logger.error('Error toggling tenant module:', error)
       throw parseSupabaseError(error)
     }
   },
@@ -250,7 +251,7 @@ export const administrationService = {
 
       if (error) {
         // If table doesn't exist or other error, return empty array
-        if (import.meta.env.DEV) console.warn('No sync history available:', error.message)
+        if (import.meta.env.DEV) logger.warn('No sync history available:', error.message)
         return []
       }
 
@@ -280,7 +281,7 @@ export const administrationService = {
       return []
     } catch (error) {
       // Return empty array on any error - sync history is optional
-      if (import.meta.env.DEV) console.warn('Error fetching sync history, returning empty:', error)
+      if (import.meta.env.DEV) logger.warn('Error fetching sync history, returning empty:', error)
       return []
     }
   },
@@ -453,7 +454,7 @@ export const administrationService = {
     if (error) {
       // get_audit_logs RPC may not exist in this DB instance — return empty gracefully
       if (import.meta.env.DEV)
-        console.warn('[AuditDashboard] get_audit_logs RPC unavailable:', error.message)
+        logger.warn('[AuditDashboard] get_audit_logs RPC unavailable:', error.message)
       return []
     }
     return (data ?? []) as AuditLog[]
@@ -511,7 +512,7 @@ export const administrationService = {
       .order('recorded_at', { ascending: false })
       .limit(50)
     if (error) {
-      if (import.meta.env.DEV) console.warn('Could not fetch app_metrics:', error)
+      if (import.meta.env.DEV) logger.warn('Could not fetch app_metrics:', error)
       return []
     }
     return data ?? []
@@ -532,7 +533,7 @@ export const administrationService = {
       .order('full_name', { ascending: true })
       .limit(200)
     if (error) {
-      if (import.meta.env.DEV) console.warn('[Finance] fetchStudentsForInvoice error:', error)
+      if (import.meta.env.DEV) logger.warn('[Finance] fetchStudentsForInvoice error:', error)
       return []
     }
     return (data ?? []) as Array<{ id: string; full_name: string | null; email: string }>

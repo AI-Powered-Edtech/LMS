@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
+import { logger } from '@/utils/logger'
 import { getPendingCount } from '@/utils/offlineStorage'
 
 /**
@@ -19,7 +20,7 @@ export function useSyncQueueCount(): number {
       setCount(total)
     } catch (err) {
       // IndexedDB unavailable — count stays 0
-      if (import.meta.env.DEV) console.warn('[useSyncQueueCount] IndexedDB unavailable:', err)
+      if (import.meta.env.DEV) logger.warn('[useSyncQueueCount] IndexedDB unavailable:', err)
     }
   }, [])
 

@@ -1,0 +1,85 @@
+{
+  "name": "ci-env",
+  "version": "1.17.0",
+  "requiresBuild": false,
+  "files": {
+    "LICENSE": {
+      "checkedAt": 1776145626863,
+      "integrity": "sha512-h6UdN9reqH0nV9KZ6eS5rF2gdXa3r5D3GC3/7Zx9zTQgJ4HZjykaj7jZvTV43qblcGG/diJWcp/Y6DbBPU2/bQ==",
+      "mode": 420,
+      "size": 1077
+    },
+    "utils/drone.js": {
+      "checkedAt": 1776145626864,
+      "integrity": "sha512-s4kuGfsqGJt8xM1YcqMtbfGjcw769yuSYxVJDSHuLXvssQ94BWGq5vfrNoAPE/6N8gfR3LgCfLUlSnR4/sQc2g==",
+      "mode": 420,
+      "size": 1025
+    },
+    "utils/drone.test.js": {
+      "checkedAt": 1776145626864,
+      "integrity": "sha512-ErCPkRyOYBShKWa82xBP/hp+2vbyOy7M6tnn/bx+YBoD+b5S+6Azb/23rTsjDjdSuuPmNMhnvYvjBTDzk84ukw==",
+      "mode": 420,
+      "size": 506
+    },
+    "index.js": {
+      "checkedAt": 1776145626864,
+      "integrity": "sha512-e+XPmXdJDBN83MktFiXa3ZKLT/70cA1OXc+vSg6jVB/WDPqC9RL7++Dcf8GN4xbP8xXClXk7+HXjdA485ts85g==",
+      "mode": 420,
+      "size": 8450
+    },
+    "test.js": {
+      "checkedAt": 1776145626865,
+      "integrity": "sha512-2qfnOtaBODNA8e08bFxd9tfSGfnOKWrNIQMO1aSvYUzhtpdiy73OWloLC+fp8mSehLlbtBvzGRq8e2MgPkIY0A==",
+      "mode": 420,
+      "size": 4103
+    },
+    "package.json": {
+      "checkedAt": 1776145626865,
+      "integrity": "sha512-mxaF2ky4nW8Ek8flqTYRulNWTb0Bjss3t9mM9h+DulA2CznFc29Nf6a1lnLPxA/QpcNyemEsmziPvvgMKLtEQQ==",
+      "mode": 420,
+      "size": 596
+    },
+    "README.md": {
+      "checkedAt": 1776145626865,
+      "integrity": "sha512-LQF/ZK3Bjc9OIKjgHWUHRWEf6VJrwHpnIPUuuGGN/X+n2Q0d7CxIgA5zFtzdmGLF+ZhoHnQSTeqqzfLN3cDwOQ==",
+      "mode": 420,
+      "size": 703
+    },
+    ".drone.yml": {
+      "checkedAt": 1776145626865,
+      "integrity": "sha512-iRaOsM/mruGMZH+l9/LU/mttUr/ew/ZjfmSfwXOF86u8N6kgR4NJzeF7UouhYAbh6MVgH4K96VbL87mVTzmmnw==",
+      "mode": 420,
+      "size": 504
+    },
+    ".gitlab-ci.yml": {
+      "checkedAt": 1776145626866,
+      "integrity": "sha512-0T3zMErZbKia+a3Lh0Ff89vDZAVd27mkmCdANWzUHQBnvBYOw15zltOd9AxGeG+EQmw3rJV0hQP6g15li0CXvw==",
+      "mode": 420,
+      "size": 100
+    },
+    ".travis.yml": {
+      "checkedAt": 1776145626866,
+      "integrity": "sha512-Gu51OhPssu9XXoregoZE5a9eLjH7/mVa/nThOvNRAdvNHKxTkrb1023v2yr5rcK7VRyhjCmclC2h8KdYYNf5jA==",
+      "mode": 420,
+      "size": 120
+    },
+    "circle.yml": {
+      "checkedAt": 1776145626866,
+      "integrity": "sha512-04B3n1lt2CPIPrPPoigzJv5njeYbLK8GDXMkhV2Z5rI+WVBZGtNnB7aKkiB+YZcmDhH7p7oQsvOOzpik9PsNEg==",
+      "mode": 420,
+      "size": 90
+    },
+    ".github/workflows/test.yml": {
+      "checkedAt": 1776145626867,
+      "integrity": "sha512-dkVvgPLHywc1IiywdeqbXYM/2asmwIVMNFE/X9ZQZfQWRBvyhQfV2DI4EJFPUc1HVXgkMKKgee0K7rWVR9ljqw==",
+      "mode": 420,
+      "size": 254
+    },
+    "wercker.yml": {
+      "checkedAt": 1776145626867,
+      "integrity": "sha512-buRcuJ5mAV9siE0FFPdE33j1Inb5nKatCsWKglcL+k1oJPXraOJYXX25KX3JqLBnLF/dphKNtitJORAHYBLfIA==",
+      "mode": 420,
+      "size": 343
+    }
+  }
+}

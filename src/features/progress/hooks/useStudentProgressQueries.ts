@@ -7,6 +7,7 @@ import {
   studentProgressService,
 } from '@/features/progress/api/studentProgressService'
 import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 type Achievement = AchievementData & { icon: 'crown' | 'zap' | 'target' | 'star' }
@@ -95,7 +96,7 @@ export function useStudentProgressData() {
     },
     unlockModule: (_moduleId: string) => {
       // This would need to be implemented with a mutation if needed
-      if (import.meta.env.DEV) console.warn('unlockModule not implemented in React Query hooks')
+      if (import.meta.env.DEV) logger.warn('unlockModule not implemented in React Query hooks')
     },
   }
 }

@@ -16,6 +16,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { adminNavGroups } from '@/shared/config/navigation'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -58,7 +59,7 @@ export function AdminSidebar() {
     try {
       await signOut()
     } catch (e) {
-      if (import.meta.env.DEV) console.error('[AdminSidebar] signOut error:', e)
+      if (import.meta.env.DEV) logger.error('[AdminSidebar] signOut error:', e)
       captureError(e, { context: 'AdminSidebar.signOut' })
     } finally {
       void navigate('/login')

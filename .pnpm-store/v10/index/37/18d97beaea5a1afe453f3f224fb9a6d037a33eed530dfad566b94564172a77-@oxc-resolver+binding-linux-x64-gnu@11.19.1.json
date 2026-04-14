@@ -1,0 +1,25 @@
+{
+  "name": "@oxc-resolver/binding-linux-x64-gnu",
+  "version": "11.19.1",
+  "requiresBuild": false,
+  "files": {
+    "package.json": {
+      "checkedAt": 1776140543929,
+      "integrity": "sha512-XY6gIZ3N5ALcYGVXCupK0O6xknmTryYJgolVkaGkaBTBzQpJL1ddJH2a6O4q4Jqv7CTDBf4PjxJym14A0H6Bjw==",
+      "mode": 420,
+      "size": 547
+    },
+    "README.md": {
+      "checkedAt": 1776140543930,
+      "integrity": "sha512-hm8ELVuzcgGV51keqnEXpg/NncMgfaWGVXERXqfbTR+5gotmBXsT6Xp5DFqJKCb8VTSIZsy3VSZeFc7ceiX85g==",
+      "mode": 420,
+      "size": 117
+    },
+    "resolver.linux-x64-gnu.node": {
+      "checkedAt": 1776140543936,
+      "integrity": "sha512-GJwLkWGJBd/pAvJhVJEYUzo2Q+b3rhPgYW9JqDxg24xiMtJlOfkLAnYkiV9gnC4kBgDQKN5e6oAi2Djw2xySsA==",
+      "mode": 420,
+      "size": 2530616
+    }
+  }
+}

@@ -7,6 +7,7 @@ import {
   questionBankService,
 } from '@/features/question-bank/api/questionBankService'
 import { useToast } from '@/hooks/useToast'
+import { logger } from '@/utils/logger'
 
 import { QuestionCard } from './QuestionCard'
 
@@ -56,7 +57,7 @@ export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
       })
       setQuestions(data)
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to load questions:', error)
+      if (import.meta.env.DEV) logger.error('Failed to load questions:', error)
       addToast({ type: 'error', message: 'Gagal memuat soal. Coba lagi.' })
     } finally {
       setLoading(false)
@@ -80,7 +81,7 @@ export const QuestionSearchModal: React.FC<QuestionSearchModalProps> = ({
       }
       // Optionally remove from list or show visual feedback
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to add question:', error)
+      if (import.meta.env.DEV) logger.error('Failed to add question:', error)
       addToast({ type: 'error', message: 'Gagal menambahkan soal ke kuis.' })
     } finally {
       setAddingIds((prev) => {

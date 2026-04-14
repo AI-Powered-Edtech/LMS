@@ -14,8 +14,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { getRealtimeProvider } from '@/services/realtime'
 import { db } from '@/services/db'
+import { getRealtimeProvider } from '@/services/realtime'
+import { logger } from '@/utils/logger'
 import { STALE } from '@/utils/queryConstants'
 import { captureError } from '@/utils/sentry'
 
@@ -70,7 +71,7 @@ async function fetchAdminNotifications(
     .limit(limit)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[useAdminNotifications] fetch error:', error)
+    if (import.meta.env.DEV) logger.error('[useAdminNotifications] fetch error:', error)
     throw error
   }
 

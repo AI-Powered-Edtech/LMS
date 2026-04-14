@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 
+import { logger } from '@/utils/logger'
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -104,12 +106,12 @@ export function usePWA(): PWAState {
   } = useRegisterSW({
     onRegistered(r) {
       if (import.meta.env.DEV) {
-        console.warn('[usePWA] SW registered', r)
+        logger.warn('[usePWA] SW registered', r)
       }
     },
     onRegisterError(error) {
       if (import.meta.env.DEV) {
-        console.warn('[usePWA] SW registration error', error)
+        logger.warn('[usePWA] SW registration error', error)
       }
     },
   })

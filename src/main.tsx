@@ -3,6 +3,8 @@ import './index.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
+import { logger } from '@/utils/logger'
+
 import App from './App.tsx'
 import { AppProviders } from './app/providers'
 import { validateEnv } from './config/env.schema'
@@ -56,7 +58,7 @@ window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => 
         : 'Kesalahan tidak terduga'
 
   if (import.meta.env.DEV) {
-    console.error('[Unhandled Rejection]', reason)
+    logger.error('[Unhandled Rejection]', reason)
   }
 
   // 1. Chunk / dynamic import failure → dismissable toast with reload action

@@ -1,4 +1,5 @@
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 import type { EventMetadata, LearningEvent, LearningEventType } from '../types/events.types'
@@ -38,7 +39,7 @@ export function trackLearningEvent(params: {
   if (eventBuffer.length > MAX_BUFFER_SIZE) {
     const dropped = eventBuffer.length - MAX_BUFFER_SIZE
     if (import.meta.env.DEV) {
-      console.warn(`[Analytics] Dropping ${dropped} events (buffer overflow — backend may be slow)`)
+      logger.warn(`[Analytics] Dropping ${dropped} events (buffer overflow — backend may be slow)`)
     }
     eventBuffer = eventBuffer.slice(-MAX_BUFFER_SIZE)
   }
@@ -73,8 +74,7 @@ async function flushEvents() {
 
   try {
     if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
-      if (import.meta.env.DEV) console.debug('[Analytics] Flushing', batch.length, 'events')
+      if (import.meta.env.DEV) logger.debug('[Analytics] Flushing', batch.length, 'events')
     }
 
     const { error } = await db.rpc('insert_learning_events', {
@@ -82,12 +82,12 @@ async function flushEvents() {
     })
 
     if (error) {
-      if (import.meta.env.DEV) console.warn('[Analytics] Flush failed, re-queuing:', error.message)
+      if (import.meta.env.DEV) logger.warn('[Analytics] Flush failed, re-queuing:', error.message)
       eventBuffer = [...batch, ...eventBuffer].slice(-MAX_BUFFER_SIZE)
     }
   } catch (err) {
     captureError(err, { context: 'trackingService.flushEvents' })
-    if (import.meta.env.DEV) console.warn('[Analytics] Flush error:', err)
+    if (import.meta.env.DEV) logger.warn('[Analytics] Flush error:', err)
     eventBuffer = [...batch, ...eventBuffer].slice(-MAX_BUFFER_SIZE)
   } finally {
     isFlushing = false

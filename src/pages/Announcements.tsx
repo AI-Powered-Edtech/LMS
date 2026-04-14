@@ -17,6 +17,7 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 const PAGE_SIZE = 10
 
@@ -122,7 +123,7 @@ export function Announcements() {
       setIsCreateModalOpen(false)
       void refetch()
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Error creating announcement:', err)
+      if (import.meta.env.DEV) logger.error('Error creating announcement:', err)
       addToast({ message: 'Gagal menyimpan pengumuman.', type: 'error' })
     }
   }

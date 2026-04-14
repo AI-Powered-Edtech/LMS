@@ -2,6 +2,7 @@ import { type Dispatch, type MutableRefObject, useCallback } from 'react'
 
 import { useToast } from '@/hooks/useToast'
 import { DomainBlock } from '@/shared/types/blockTypes'
+import { logger } from '@/utils/logger'
 
 import { builderBlockService } from './api/blockService'
 import type { BuilderAction, BuilderState } from './builderReducer'
@@ -24,7 +25,7 @@ export function useBlockActions(
         const block = await builderBlockService.createBlock(lessonId, type, tenantId)
         dispatch({ type: 'ADD_BLOCK', block })
       } catch (err: unknown) {
-        if (import.meta.env.DEV) console.error('Failed to add block:', err)
+        if (import.meta.env.DEV) logger.error('Failed to add block:', err)
         addToast({
           type: 'error',
           message:
@@ -100,7 +101,7 @@ export function useBlockActions(
       } catch (err: unknown) {
         // Rollback: restore previous blocks
         dispatch({ type: 'SET_BLOCKS', blocks: previousBlocks })
-        if (import.meta.env.DEV) console.error('Failed to delete block:', err)
+        if (import.meta.env.DEV) logger.error('Failed to delete block:', err)
         addToast({
           type: 'error',
           message:
@@ -127,7 +128,7 @@ export function useBlockActions(
       try {
         await builderBlockService.reorderBlocks(state.activeLesson!.id, blockIds, tenantId!)
       } catch (error: unknown) {
-        if (import.meta.env.DEV) console.error('Failed to reorder blocks', error)
+        if (import.meta.env.DEV) logger.error('Failed to reorder blocks', error)
         dispatch({ type: 'SET_BLOCKS', blocks: previousBlocks })
         addToast({
           type: 'error',

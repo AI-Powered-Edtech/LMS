@@ -1,4 +1,5 @@
 import { BookOpen, FileText, LayoutList, Loader2, RefreshCw, Sparkles, XCircle } from 'lucide-react'
+
 import { useBuilder } from '@/contexts/BuilderContext'
 import { useToast } from '@/hooks/useToast'
 
@@ -6,7 +7,6 @@ import { useArtifactHistory, useDismissArtifact } from '../queries/aiBuilderCopi
 import { useBuilderAICopilotStore } from '../store/builderAICopilot.store'
 import type { AIBuilderArtifact, ArtifactKind, CopilotTab } from '../types'
 import { ARTIFACT_KIND_LABELS } from '../types'
-
 import { ArtifactStatusBadge } from './shared/ArtifactStatusBadge'
 
 const KIND_ICONS: Record<ArtifactKind, typeof Sparkles> = {

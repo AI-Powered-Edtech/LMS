@@ -25,6 +25,7 @@ import {
 } from '@/features/ai-tutor'
 import { useAiStream } from '@/features/ai-tutor/hooks/useAiStream'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 import { aiTutorRateLimiter } from '@/utils/rateLimiter'
 import { katexSanitizeSchema } from '@/utils/sanitizeMarkdown'
 import { captureError } from '@/utils/sentry'
@@ -174,7 +175,7 @@ export function AITutorPanel({
     } catch (err) {
       // Fallback to non-streaming mode if streaming fails
       if (import.meta.env.DEV) {
-        console.warn('[AI Tutor] Streaming failed, falling back to non-streaming mode:', err)
+        logger.warn('[AI Tutor] Streaming failed, falling back to non-streaming mode:', err)
       }
 
       // Remove the streaming placeholder
@@ -212,7 +213,7 @@ export function AITutorPanel({
         setMessages((prev) => [...prev, aiMessage])
         setSuggestedQuestions((prev) => prev.filter((q) => q !== question))
       } catch (fallbackErr) {
-        if (import.meta.env.DEV) console.error('[AI Tutor] Fallback error:', fallbackErr)
+        if (import.meta.env.DEV) logger.error('[AI Tutor] Fallback error:', fallbackErr)
         captureError(fallbackErr, { context: 'AITutorPanel.handleSendQuestion.fallback', lessonId })
         setError({ message: 'Terjadi kesalahan yang tidak terduga', code: 'UNKNOWN_ERROR' })
         const errorMessage: AITutorMessage = {

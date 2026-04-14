@@ -22,7 +22,7 @@
  * ```
  */
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 // ─── Breakpoint Constants ─────────────────────────────────────────────────────
 
@@ -52,9 +52,7 @@ export interface ResponsiveState {
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useResponsive(): ResponsiveState {
-  const [dimensions, setDimensions] = useState<ResponsiveState>(() =>
-    getResponsiveState()
-  )
+  const [dimensions, setDimensions] = useState<ResponsiveState>(() => getResponsiveState())
 
   useEffect(() => {
     let ticking = false

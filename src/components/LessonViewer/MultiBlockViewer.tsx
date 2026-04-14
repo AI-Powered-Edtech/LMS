@@ -9,6 +9,7 @@ import {
 import { BLOCK_REGISTRY, isValidBlockType } from '@/features/lessons/blockRegistry'
 import type { Lesson } from '@/features/lessons/types'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 import { BlockRenderer } from './BlockRenderer'
 import { BlockSkeleton } from './blocks/BlockSkeleton'
@@ -90,7 +91,7 @@ export function MultiBlockViewer({
         }
         setCaptionsByBlock(grouped)
       })
-      .catch((err) => console.error('Failed to load captions', err))
+      .catch((err) => logger.error('Failed to load captions', err))
   }, [lesson.id])
 
   const markBlockComplete = useCallback(

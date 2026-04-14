@@ -7,6 +7,7 @@
 // ==========================================================================
 
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 import { messageRateLimiter } from '@/utils/rateLimiter'
 
 // ── Types ─────────────────────────────────────────────────────────────────
@@ -123,7 +124,7 @@ export async function getThreads(parentId: string): Promise<MessageThread[]> {
     .order('last_message_at', { ascending: false })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[MessageApi] getThreads error:', error)
+    if (import.meta.env.DEV) logger.error('[MessageApi] getThreads error:', error)
     throw new Error('Gagal memuat daftar pesan. Silakan coba lagi.')
   }
 
@@ -151,14 +152,16 @@ export async function getMessages(threadId: string): Promise<ThreadMessage[]> {
     .order('created_at', { ascending: true })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[MessageApi] getMessages error:', error)
+    if (import.meta.env.DEV) logger.error('[MessageApi] getMessages error:', error)
     throw new Error('Gagal memuat pesan. Silakan coba lagi.')
   }
 
   if (!data || data.length === 0) return []
 
   const rows = data as Record<string, unknown>[]
-  const profiles = await fetchProfiles(Array.from(new Set(rows.map((row) => row.sender_id as string))))
+  const profiles = await fetchProfiles(
+    Array.from(new Set(rows.map((row) => row.sender_id as string)))
+  )
 
   return rows.map((row) => mapMessageRow(row, profiles))
 }
@@ -186,7 +189,7 @@ export async function sendMessage(threadId: string, content: string): Promise<Th
     .single()
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[MessageApi] sendMessage error:', error)
+    if (import.meta.env.DEV) logger.error('[MessageApi] sendMessage error:', error)
     throw new Error('Gagal mengirim pesan. Silakan coba lagi.')
   }
 
@@ -224,7 +227,7 @@ export async function createThread(params: CreateThreadParams): Promise<MessageT
     .single()
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[MessageApi] createThread error:', error)
+    if (import.meta.env.DEV) logger.error('[MessageApi] createThread error:', error)
     // Coba fetch thread yang sudah ada
     const { data: existing, error: fetchError } = await db
       .from('parent_teacher_threads')
@@ -267,7 +270,7 @@ export async function markThreadRead(threadId: string, role: 'parent' | 'teacher
     .eq('id', threadId)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[MessageApi] markThreadRead error:', error)
+    if (import.meta.env.DEV) logger.error('[MessageApi] markThreadRead error:', error)
     // Non-fatal: jangan throw, cukup log
   }
 }

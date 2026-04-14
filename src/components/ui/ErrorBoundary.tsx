@@ -24,8 +24,10 @@
 
 import { AlertCircle, RefreshCw } from 'lucide-react'
 import { Component, type ErrorInfo, type ReactNode } from 'react'
-import { captureError } from '@/utils/sentry'
+
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
+import { captureError } from '@/utils/sentry'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -75,8 +77,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
-      console.error('ErrorBoundary caught error:', error)
-      console.error('Component stack:', errorInfo.componentStack)
+      logger.error('ErrorBoundary caught error:', error)
+      logger.error('Component stack:', errorInfo.componentStack)
     }
 
     this.setState({

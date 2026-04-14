@@ -66,7 +66,12 @@ describe('aiBuilderCopilotService', () => {
 
     mockFrom.mockReturnValue(chain)
 
-    const result = await aiBuilderCopilotService.fetchArtifactHistory('course-1', 'user-1', null, 20)
+    const result = await aiBuilderCopilotService.fetchArtifactHistory(
+      'course-1',
+      'user-1',
+      null,
+      20
+    )
 
     expect(mockFrom).toHaveBeenCalledWith('ai_builder_artifacts')
     expect(chain.eq).toHaveBeenCalledWith('course_id', 'course-1')

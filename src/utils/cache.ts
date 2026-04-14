@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger'
 // Client-side cache layer using localStorage with TTL
 // Reduces Supabase Disk IO by caching query results
 
@@ -39,7 +40,7 @@ export function setCache<T>(key: string, data: T, ttlMinutes: number): void {
     } catch {
       // Silently fail — app works without cache
       if (import.meta.env.DEV)
-        console.warn('[cache] localStorage quota exceeded, clearing and retrying:', key)
+        logger.warn('[cache] localStorage quota exceeded, clearing and retrying:', key)
     }
   }
 }
@@ -73,7 +74,7 @@ export async function cachedQuery<T>(
       localStorage.removeItem('edusync_cache_' + key)
     } catch {
       if (import.meta.env.DEV)
-        console.warn('[cache] Failed to remove corrupted cache entry for key:', key)
+        logger.warn('[cache] Failed to remove corrupted cache entry for key:', key)
     }
     throw error
   }

@@ -3,8 +3,8 @@
 //
 // Supabase queries for Principal Executive Dashboard.
 // ==========================================================================
-
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type {
   ExecutiveOverview,
@@ -48,7 +48,7 @@ export async function getExecutiveOverviewCached(
   }
 
   if (import.meta.env.DEV && cachedError) {
-    console.warn('[Principal] get_principal_overview_cached miss — falling back:', cachedError)
+    logger.warn('[Principal] get_principal_overview_cached miss — falling back:', cachedError)
   }
 
   // Fallback to real-time RPC
@@ -65,7 +65,7 @@ export async function getExecutiveOverview(tenantId: string): Promise<ExecutiveO
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Principal] get_executive_overview error:', error)
+    if (import.meta.env.DEV) logger.error('[Principal] get_executive_overview error:', error)
     throw new Error('Gagal memuat ringkasan eksekutif. Silakan coba lagi.')
   }
 
@@ -110,7 +110,7 @@ export async function getMonthlyTrend(
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Principal] getMonthlyTrend error:', error)
+    if (import.meta.env.DEV) logger.error('[Principal] getMonthlyTrend error:', error)
     // Return empty array instead of throwing — graceful degradation
     return []
   }
@@ -133,7 +133,7 @@ export async function getPrincipalSettings(tenantId: string): Promise<PrincipalS
     .maybeSingle()
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Principal] getPrincipalSettings error:', error)
+    if (import.meta.env.DEV) logger.error('[Principal] getPrincipalSettings error:', error)
     return null
   }
 
@@ -152,7 +152,7 @@ export async function updatePrincipalSettings(
     )
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Principal] updatePrincipalSettings error:', error)
+    if (import.meta.env.DEV) logger.error('[Principal] updatePrincipalSettings error:', error)
     throw new Error('Gagal menyimpan pengaturan. Silakan coba lagi.')
   }
 }
@@ -175,7 +175,7 @@ export async function getROIMetrics(tenantId: string): Promise<ROIMetrics> {
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Principal] getROIMetrics error:', error)
+    if (import.meta.env.DEV) logger.error('[Principal] getROIMetrics error:', error)
     return {
       paper_saved_sheets: 0,
       paper_saved_cost: 0,
@@ -224,7 +224,7 @@ export async function getBaselineMetrics(tenantId: string): Promise<SchoolBaseli
     .maybeSingle()
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Principal] getBaselineMetrics error:', error)
+    if (import.meta.env.DEV) logger.error('[Principal] getBaselineMetrics error:', error)
     return null
   }
 
@@ -246,7 +246,7 @@ export async function saveBaselineMetrics(
     )
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Principal] saveBaselineMetrics error:', error)
+    if (import.meta.env.DEV) logger.error('[Principal] saveBaselineMetrics error:', error)
     throw new Error('Gagal menyimpan data baseline. Silakan coba lagi.')
   }
 }

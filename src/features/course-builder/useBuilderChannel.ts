@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { getRealtimeProvider, type AppRealtimeChannel } from '@/services/realtime'
+import { type AppRealtimeChannel, getRealtimeProvider } from '@/services/realtime'
 import { logDevWarn } from '@/utils/logDevError'
 
 import { auditService } from './api/auditService'

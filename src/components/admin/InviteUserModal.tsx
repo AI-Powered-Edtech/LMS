@@ -5,6 +5,7 @@ import * as v from 'valibot'
 
 import { useToast } from '@/hooks/useToast'
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import { useAuth } from '../../contexts/AuthContext'
 import { FormField } from '../ui/FormField'
@@ -100,7 +101,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      if (import.meta.env.DEV) console.warn('[InviteUserModal] Clipboard write failed')
+      if (import.meta.env.DEV) logger.warn('[InviteUserModal] Clipboard write failed')
       addToast({ type: 'info', message: 'Salin tautan secara manual dari kolom di atas.' })
     }
   }

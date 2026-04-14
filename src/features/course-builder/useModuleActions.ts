@@ -2,6 +2,7 @@ import { type Dispatch, useCallback } from 'react'
 
 import { useToast } from '@/hooks/useToast'
 import { DomainModule } from '@/shared/types/moduleTypes'
+import { logger } from '@/utils/logger'
 
 import { builderModuleService } from './api/moduleService'
 import type { BuilderAction, BuilderState } from './builderReducer'
@@ -21,7 +22,7 @@ export function useModuleActions(
         const mod = await builderModuleService.createModule(state.courseId, title, tenantId)
         dispatch({ type: 'ADD_MODULE', module: mod })
       } catch (err: unknown) {
-        if (import.meta.env.DEV) console.error('Failed to add module:', err)
+        if (import.meta.env.DEV) logger.error('Failed to add module:', err)
         addToast({
           type: 'error',
           message:
@@ -66,7 +67,7 @@ export function useModuleActions(
       try {
         await builderModuleService.deleteModule(moduleId, tenantId)
       } catch (err: unknown) {
-        if (import.meta.env.DEV) console.error('Failed to delete module:', err)
+        if (import.meta.env.DEV) logger.error('Failed to delete module:', err)
         addToast({
           type: 'error',
           message:
@@ -96,7 +97,7 @@ export function useModuleActions(
       try {
         await builderModuleService.reorderModules(state.courseId, moduleIds, tenantId)
       } catch (error: unknown) {
-        if (import.meta.env.DEV) console.error('Failed to reorder modules', error)
+        if (import.meta.env.DEV) logger.error('Failed to reorder modules', error)
         dispatch({ type: 'SET_MODULES', modules: previousModules })
         addToast({
           type: 'error',

@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logger'
+
 // ─────────────────────────────────────────────────────────────────────────────
 // VIL WebSocket Realtime Provider
 //
@@ -7,7 +9,6 @@
 // Semua saluran berbagi SATU koneksi WebSocket (multiplexed).
 // Rekoneksi otomatis dengan exponential backoff.
 // ─────────────────────────────────────────────────────────────────────────────
-
 import type {
   AppRealtimeChannel,
   PostgresChangesFilter,
@@ -200,7 +201,7 @@ class VilChannel implements AppRealtimeChannel {
     // Kirim pesan join ke server
     this.sendRaw({ type: 'join', channel: this.name })
     if (IS_DEV) {
-      console.debug(`[VilRealtime] Bergabung ke saluran: ${this.name}`)
+      logger.debug(`[VilRealtime] Bergabung ke saluran: ${this.name}`)
     }
     return this
   }
@@ -209,7 +210,7 @@ class VilChannel implements AppRealtimeChannel {
     try {
       this.sendRaw({ type: 'leave', channel: this.name })
       if (IS_DEV) {
-        console.debug(`[VilRealtime] Meninggalkan saluran: ${this.name}`)
+        logger.debug(`[VilRealtime] Meninggalkan saluran: ${this.name}`)
       }
       return 'ok'
     } catch {
@@ -271,7 +272,7 @@ class VilChannel implements AppRealtimeChannel {
       this.sendRaw({ type: 'track', channel: this.name, payload: this.trackedPayload })
     }
     if (IS_DEV) {
-      console.debug(`[VilRealtime] Re-join saluran setelah koneksi ulang: ${this.name}`)
+      logger.debug(`[VilRealtime] Re-join saluran setelah koneksi ulang: ${this.name}`)
     }
   }
 
@@ -302,12 +303,12 @@ class VilChannel implements AppRealtimeChannel {
   private handleSystem(msg: ServerSystemMessage): void {
     if (msg.event === 'SUBSCRIBED') {
       if (IS_DEV) {
-        console.debug(`[VilRealtime] Saluran berhasil berlangganan: ${this.name}`)
+        logger.debug(`[VilRealtime] Saluran berhasil berlangganan: ${this.name}`)
       }
       this.subscribeCallback?.('SUBSCRIBED')
     } else if (msg.event === 'CLOSED') {
       if (IS_DEV) {
-        console.debug(`[VilRealtime] Saluran ditutup oleh server: ${this.name}`)
+        logger.debug(`[VilRealtime] Saluran ditutup oleh server: ${this.name}`)
       }
       this.subscribeCallback?.('CLOSED')
     }
@@ -455,7 +456,7 @@ function createConnection(conn: WsConnection, baseUrl: string, onReady?: () => v
   const url = buildWsUrl(baseUrl)
 
   if (IS_DEV) {
-    console.debug(
+    logger.debug(
       `[VilRealtime] Menghubungkan ke WebSocket: ${baseUrl} (percobaan: ${conn.retryAttempt})`
     )
   }
@@ -470,7 +471,7 @@ function createConnection(conn: WsConnection, baseUrl: string, onReady?: () => v
     }
     conn.retryAttempt = 0
     if (IS_DEV) {
-      console.debug('[VilRealtime] Koneksi WebSocket berhasil')
+      logger.debug('[VilRealtime] Koneksi WebSocket berhasil')
     }
 
     // Mulai interval ping untuk menjaga koneksi tetap hidup
@@ -497,19 +498,19 @@ function createConnection(conn: WsConnection, baseUrl: string, onReady?: () => v
       msg = JSON.parse(event.data as string) as ServerMessage
     } catch {
       if (IS_DEV) {
-        console.warn('[VilRealtime] Gagal mengurai pesan JSON:', event.data)
+        logger.warn('[VilRealtime] Gagal mengurai pesan JSON:', event.data)
       }
       return
     }
 
     if (IS_DEV && msg.type !== 'pong') {
-      console.debug('[VilRealtime] Pesan masuk:', msg)
+      logger.debug('[VilRealtime] Pesan masuk:', msg)
     }
 
     if (msg.type === 'pong') return
 
     if (msg.type === 'error') {
-      console.error('[VilRealtime] Error dari server:', msg.message)
+      logger.error('[VilRealtime] Error dari server:', msg.message)
       return
     }
 
@@ -519,14 +520,14 @@ function createConnection(conn: WsConnection, baseUrl: string, onReady?: () => v
       if (channel) {
         channel.handleIncoming(msg)
       } else if (IS_DEV) {
-        console.debug(`[VilRealtime] Pesan untuk saluran tidak dikenal: ${msg.channel}`)
+        logger.debug(`[VilRealtime] Pesan untuk saluran tidak dikenal: ${msg.channel}`)
       }
     }
   }
 
   ws.onerror = (event) => {
     if (IS_DEV) {
-      console.warn('[VilRealtime] Kesalahan WebSocket:', event)
+      logger.warn('[VilRealtime] Kesalahan WebSocket:', event)
     }
   }
 
@@ -540,7 +541,7 @@ function createConnection(conn: WsConnection, baseUrl: string, onReady?: () => v
     }
 
     if (IS_DEV) {
-      console.warn(
+      logger.warn(
         `[VilRealtime] Koneksi terputus (kode: ${event.code}). Mencoba ulang dalam ${calcBackoff(conn.retryAttempt)}ms...`
       )
     }
@@ -566,7 +567,7 @@ function createConnection(conn: WsConnection, baseUrl: string, onReady?: () => v
         }
       }, delay)
     } else {
-      console.error(
+      logger.error(
         `[VilRealtime] Melebihi batas percobaan koneksi ulang (${MAX_RETRIES}). Berhenti mencoba ulang.`
       )
     }

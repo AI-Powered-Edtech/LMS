@@ -18,6 +18,7 @@ export {
 
 // Import VIL session for auth token
 import { readVilSession } from '@/services/auth/vilSession'
+import { logger } from '@/utils/logger'
 
 /**
  * Ask a question to the AI Tutor
@@ -51,7 +52,7 @@ export async function askTutor(
     })
 
     if (!response.ok) {
-      if (import.meta.env.DEV) console.error('[AI Tutor] API error:', response.status)
+      if (import.meta.env.DEV) logger.error('[AI Tutor] API error:', response.status)
       // Translate HTTP errors to Indonesian
       const indonesianMsg =
         response.status === 503
@@ -125,7 +126,7 @@ export async function askTutor(
 
     return { data: data as import('../types').AITutorResponse }
   } catch (err: unknown) {
-    if (import.meta.env.DEV) console.error('[AI Tutor] Unexpected error:', err)
+    if (import.meta.env.DEV) logger.error('[AI Tutor] Unexpected error:', err)
 
     // Handle network errors
     if (err instanceof TypeError && err.message.includes('fetch')) {

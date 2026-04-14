@@ -13,6 +13,7 @@ import {
 } from '@/features/quizzes/queries/quizPlayer.mutations'
 import type { QuizAttemptQuestion, SubmitAnswer } from '@/features/quizzes/types/quizzes.types'
 import { useToast } from '@/hooks/useToast'
+import { logger } from '@/utils/logger'
 
 interface LessonQuizPlayerProps {
   quizId: string
@@ -126,7 +127,7 @@ export function LessonQuizPlayer({
           onCompletionMet()
         }
       } catch (err: unknown) {
-        if (import.meta.env.DEV) console.error('Submit failed:', err)
+        if (import.meta.env.DEV) logger.error('Submit failed:', err)
         addToast({
           type: 'error',
           message: 'Gagal mengirim jawaban. Periksa koneksi dan coba lagi.',

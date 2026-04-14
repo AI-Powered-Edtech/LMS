@@ -47,13 +47,13 @@ src/features/ai-builder-copilot/
 
 ## Tab dan Capability
 
-| Tab | Tujuan | Backend |
-| --- | --- | --- |
-| `Outline` | Generate modul + lesson tree dari konteks kursus | Edge Function `generate-course-outline` |
-| `Lesson Draft` | Generate blok teks untuk lesson aktif | Edge Function `generate-lesson-draft` |
-| `Assessment` | Generate kuis, bacaan, atau tugas dari lesson aktif | Edge Function `generate-lesson-draft` |
-| `Improve` | Ringkas, perluas, sederhanakan, ubah nada, atau ubah konten terpilih | Edge Function `transform-course-content` |
-| `History` | Lihat artefak AI terdahulu dan muat ulang preview | Query `ai_builder_artifacts` |
+| Tab            | Tujuan                                                               | Backend                                  |
+| -------------- | -------------------------------------------------------------------- | ---------------------------------------- |
+| `Outline`      | Generate modul + lesson tree dari konteks kursus                     | Edge Function `generate-course-outline`  |
+| `Lesson Draft` | Generate blok teks untuk lesson aktif                                | Edge Function `generate-lesson-draft`    |
+| `Assessment`   | Generate kuis, bacaan, atau tugas dari lesson aktif                  | Edge Function `generate-lesson-draft`    |
+| `Improve`      | Ringkas, perluas, sederhanakan, ubah nada, atau ubah konten terpilih | Edge Function `transform-course-content` |
+| `History`      | Lihat artefak AI terdahulu dan muat ulang preview                    | Query `ai_builder_artifacts`             |
 
 ## Data Flow
 

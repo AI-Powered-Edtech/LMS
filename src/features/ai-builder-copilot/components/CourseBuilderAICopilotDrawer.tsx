@@ -1,12 +1,4 @@
-import {
-  BookOpen,
-  FileText,
-  History,
-  LayoutList,
-  Sparkles,
-  Wand2,
-  X,
-} from 'lucide-react'
+import { BookOpen, FileText, History, LayoutList, Sparkles, Wand2, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
 import { useBuilder } from '@/contexts/BuilderContext'
@@ -14,7 +6,6 @@ import { cn } from '@/utils/cn'
 
 import { useBuilderAICopilotStore } from '../store/builderAICopilot.store'
 import type { CopilotTab } from '../types'
-
 import { AssessmentTab } from './AssessmentTab'
 import { HistoryTab } from './HistoryTab'
 import { ImproveTab } from './ImproveTab'
@@ -30,9 +21,27 @@ interface TabConfig {
 }
 
 const TABS: TabConfig[] = [
-  { id: 'outline', label: 'Kerangka', icon: LayoutList, requiresLesson: false, requiresBlock: false },
-  { id: 'lesson_draft', label: 'Draft', icon: FileText, requiresLesson: true, requiresBlock: false },
-  { id: 'assessment', label: 'Asesmen', icon: BookOpen, requiresLesson: true, requiresBlock: false },
+  {
+    id: 'outline',
+    label: 'Kerangka',
+    icon: LayoutList,
+    requiresLesson: false,
+    requiresBlock: false,
+  },
+  {
+    id: 'lesson_draft',
+    label: 'Draft',
+    icon: FileText,
+    requiresLesson: true,
+    requiresBlock: false,
+  },
+  {
+    id: 'assessment',
+    label: 'Asesmen',
+    icon: BookOpen,
+    requiresLesson: true,
+    requiresBlock: false,
+  },
   { id: 'improve', label: 'Perbaiki', icon: Wand2, requiresLesson: true, requiresBlock: false },
   { id: 'history', label: 'Riwayat', icon: History, requiresLesson: false, requiresBlock: false },
 ]
@@ -99,9 +108,7 @@ export function CourseBuilderAICopilotDrawer({ onClose }: CourseBuilderAICopilot
               onTabChange={setActiveTab}
               isTabAvailable={isTabAvailable}
             />
-            <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-              {renderTabContent()}
-            </div>
+            <div className="flex-1 min-h-0 overflow-hidden flex flex-col">{renderTabContent()}</div>
           </motion.aside>
         </motion.div>
       </AnimatePresence>
@@ -116,14 +123,8 @@ export function CourseBuilderAICopilotDrawer({ onClose }: CourseBuilderAICopilot
       className="w-96 shrink-0 bg-white dark:bg-slate-900 border-l border-slate-200/60 dark:border-slate-800/60 flex flex-col h-full animate-in slide-in-from-right duration-200"
     >
       <DrawerHeader onClose={onClose} />
-      <TabBar
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        isTabAvailable={isTabAvailable}
-      />
-      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-        {renderTabContent()}
-      </div>
+      <TabBar activeTab={activeTab} onTabChange={setActiveTab} isTabAvailable={isTabAvailable} />
+      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">{renderTabContent()}</div>
     </aside>
   )
 }

@@ -3,8 +3,8 @@
 //
 // Supabase queries untuk Satisfaction Survey System.
 // ==========================================================================
-
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type {
   CreateSurveyInput,
@@ -27,7 +27,7 @@ export async function getSurveys(): Promise<SatisfactionSurvey[]> {
     .order('created_at', { ascending: false })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Survey] getSurveys error:', error)
+    if (import.meta.env.DEV) logger.error('[Survey] getSurveys error:', error)
     throw new Error('Gagal memuat daftar survey. Silakan coba lagi.')
   }
 
@@ -53,7 +53,7 @@ export async function createSurvey(input: CreateSurveyInput): Promise<Satisfacti
     .single()
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Survey] createSurvey error:', error)
+    if (import.meta.env.DEV) logger.error('[Survey] createSurvey error:', error)
     throw new Error('Gagal membuat survey. Silakan coba lagi.')
   }
 
@@ -78,7 +78,7 @@ export async function updateSurvey(
     .single()
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Survey] updateSurvey error:', error)
+    if (import.meta.env.DEV) logger.error('[Survey] updateSurvey error:', error)
     throw new Error('Gagal memperbarui survey. Silakan coba lagi.')
   }
 
@@ -88,13 +88,10 @@ export async function updateSurvey(
 // ── Publish Survey ─────────────────────────────────────────────
 
 export async function publishSurvey(id: string): Promise<void> {
-  const { error } = await db
-    .from('satisfaction_surveys')
-    .update({ status: 'active' })
-    .eq('id', id)
+  const { error } = await db.from('satisfaction_surveys').update({ status: 'active' }).eq('id', id)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Survey] publishSurvey error:', error)
+    if (import.meta.env.DEV) logger.error('[Survey] publishSurvey error:', error)
     throw new Error('Gagal mempublikasikan survey. Silakan coba lagi.')
   }
 }
@@ -102,13 +99,10 @@ export async function publishSurvey(id: string): Promise<void> {
 // ── Close Survey ───────────────────────────────────────────────
 
 export async function closeSurvey(id: string): Promise<void> {
-  const { error } = await db
-    .from('satisfaction_surveys')
-    .update({ status: 'closed' })
-    .eq('id', id)
+  const { error } = await db.from('satisfaction_surveys').update({ status: 'closed' }).eq('id', id)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Survey] closeSurvey error:', error)
+    if (import.meta.env.DEV) logger.error('[Survey] closeSurvey error:', error)
     throw new Error('Gagal menutup survey. Silakan coba lagi.')
   }
 }
@@ -119,7 +113,7 @@ export async function deleteSurvey(id: string): Promise<void> {
   const { error } = await db.from('satisfaction_surveys').delete().eq('id', id)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Survey] deleteSurvey error:', error)
+    if (import.meta.env.DEV) logger.error('[Survey] deleteSurvey error:', error)
     throw new Error('Gagal menghapus survey. Silakan coba lagi.')
   }
 }
@@ -175,7 +169,8 @@ export async function getSurveyResults(
           question,
           ratingAvg:
             numericAnswers.length > 0
-              ? numericAnswers.reduce((sum: any, value: any) => sum + value, 0) / numericAnswers.length
+              ? numericAnswers.reduce((sum: any, value: any) => sum + value, 0) /
+                numericAnswers.length
               : 0,
           ratingDistribution: distribution,
         }
@@ -212,7 +207,7 @@ export async function getSurveyResults(
   })
 
   if (resultsError) {
-    if (import.meta.env.DEV) console.error('[Survey] getSurveyResults RPC error:', resultsError)
+    if (import.meta.env.DEV) logger.error('[Survey] getSurveyResults RPC error:', resultsError)
     throw new Error('Gagal memuat hasil survey.')
   }
 
@@ -276,7 +271,7 @@ export async function getActiveSurveys(): Promise<SatisfactionSurvey[]> {
     .limit(20)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Survey] getActiveSurveys error:', error)
+    if (import.meta.env.DEV) logger.error('[Survey] getActiveSurveys error:', error)
     throw new Error('Gagal memuat daftar survei aktif. Silakan coba lagi.')
   }
 
@@ -299,7 +294,7 @@ export async function getSurveyById(surveyId: string): Promise<SatisfactionSurve
     .single()
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Survey] getSurveyById error:', error)
+    if (import.meta.env.DEV) logger.error('[Survey] getSurveyById error:', error)
     throw new Error('Gagal memuat survei. Silakan coba lagi.')
   }
 
@@ -325,7 +320,7 @@ export async function hasRespondedToSurvey(surveyId: string): Promise<boolean> {
     .eq('respondent_id', user.id)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Survey] hasRespondedToSurvey error:', error)
+    if (import.meta.env.DEV) logger.error('[Survey] hasRespondedToSurvey error:', error)
     return false
   }
 
@@ -355,7 +350,7 @@ export async function submitSurveyResponse(
     .single()
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Survey] submitSurveyResponse error:', error)
+    if (import.meta.env.DEV) logger.error('[Survey] submitSurveyResponse error:', error)
     throw new Error('Gagal mengirim respons survey. Silakan coba lagi.')
   }
 }

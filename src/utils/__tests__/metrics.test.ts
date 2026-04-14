@@ -74,7 +74,7 @@ describe('metrics', () => {
       // Should not throw
       await expect(trackMetric('page.load_time_ms', 100)).resolves.toBeUndefined()
 
-      // Should not console.warn in PROD mode
+      // Should not logger.warn in PROD mode
       expect(consoleWarnSpy).not.toHaveBeenCalled()
 
       consoleWarnSpy.mockRestore()

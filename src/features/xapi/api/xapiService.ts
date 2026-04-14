@@ -1,4 +1,5 @@
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type { XAPIContext, XAPIObjectType, XAPIResult, XAPIVerb } from '../types/index'
 
@@ -31,7 +32,7 @@ export const xapiService = {
 
       if (error) {
         if (import.meta.env.DEV) {
-          console.warn('[xAPI] recordStatement error (non-critical):', error.message)
+          logger.warn('[xAPI] recordStatement error (non-critical):', error.message)
         }
         return null
       }
@@ -39,7 +40,7 @@ export const xapiService = {
       return data as string | null
     } catch (err) {
       if (import.meta.env.DEV) {
-        console.warn('[xAPI] recordStatement exception (non-critical):', err)
+        logger.warn('[xAPI] recordStatement exception (non-critical):', err)
       }
       return null
     }

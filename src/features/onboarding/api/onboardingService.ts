@@ -1,4 +1,5 @@
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 /**
  * Onboarding Progress Service
@@ -29,7 +30,7 @@ export const onboardingService = {
 
     if (error) {
       if (import.meta.env.DEV)
-        console.warn('[onboardingService] onboarding_progress unavailable:', error.message)
+        logger.warn('[onboardingService] onboarding_progress unavailable:', error.message)
       return []
     }
     if (!data) return []
@@ -77,7 +78,7 @@ export const onboardingService = {
 
     if (error) {
       if (import.meta.env.DEV)
-        console.warn('[onboardingService] onboarding_progress unavailable:', error.message)
+        logger.warn('[onboardingService] onboarding_progress unavailable:', error.message)
       return []
     }
     return data ?? []

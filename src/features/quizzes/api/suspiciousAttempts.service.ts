@@ -8,6 +8,7 @@
 import { db } from '@/services/db'
 import { validateArray } from '@/shared/lib/validate'
 import { CheatingSignalRowSchema } from '@/shared/schemas'
+import { logger } from '@/utils/logger'
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -61,7 +62,7 @@ export async function getSuspiciousAttempts(
     .eq('tenant_id', tenantId)
 
   if (attemptError) {
-    if (import.meta.env.DEV) console.error('Error fetching quiz attempts:', attemptError)
+    if (import.meta.env.DEV) logger.error('Error fetching quiz attempts:', attemptError)
     throw attemptError
   }
 
@@ -83,7 +84,7 @@ export async function getSuspiciousAttempts(
     .order('created_at', { ascending: true })
 
   if (signalError) {
-    if (import.meta.env.DEV) console.error('Error fetching cheating signals:', signalError)
+    if (import.meta.env.DEV) logger.error('Error fetching cheating signals:', signalError)
     throw signalError
   }
   validateArray(CheatingSignalRowSchema, signals || [], 'suspiciousAttempts.getSuspiciousAttempts')
@@ -93,11 +94,7 @@ export async function getSuspiciousAttempts(
   const studentIds = attemptRows.map((attempt) => attempt.student_id)
   const [{ data: profiles }, { data: quizzes }] = await Promise.all([
     studentIds.length > 0
-      ? db
-          .from('profiles')
-          .select('id, full_name')
-          .eq('tenant_id', tenantId)
-          .in('id', studentIds)
+      ? db.from('profiles').select('id, full_name').eq('tenant_id', tenantId).in('id', studentIds)
       : Promise.resolve({ data: [], error: null }),
     db.from('quizzes').select('id, title').eq('tenant_id', tenantId).eq('id', quizId),
   ])
@@ -203,7 +200,7 @@ export async function getSuspiciousAttemptCount(quizId: string, tenantId: string
     .eq('tenant_id', tenantId)
 
   if (attemptsError) {
-    if (import.meta.env.DEV) console.error('Error fetching attempts for count:', attemptsError)
+    if (import.meta.env.DEV) logger.error('Error fetching attempts for count:', attemptsError)
     return 0
   }
 
@@ -217,7 +214,7 @@ export async function getSuspiciousAttemptCount(quizId: string, tenantId: string
     .in('attempt_id', attemptIds)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Error counting suspicious attempts:', error)
+    if (import.meta.env.DEV) logger.error('Error counting suspicious attempts:', error)
     return 0
   }
 

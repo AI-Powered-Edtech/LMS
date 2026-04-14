@@ -11,6 +11,7 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { useRoleBasedPath } from '@/hooks/useRoleBasedPath'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 // Gradient palette rotated per card index
 const CARD_GRADIENTS = [
@@ -128,7 +129,7 @@ export const Courses: React.FC = () => {
         `${getPath('/app/teacher/course-builder', '/app/admin/course-builder')}?courseId=${newCourse.id}`
       )
     } catch (err: unknown) {
-      if (import.meta.env.DEV) console.error('Failed to create course:', err)
+      if (import.meta.env.DEV) logger.error('Failed to create course:', err)
       addToast({
         type: 'error',
         message: err instanceof Error ? err.message : 'Gagal membuat materi baru.',

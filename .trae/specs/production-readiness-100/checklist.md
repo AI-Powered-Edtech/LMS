@@ -1,0 +1,8 @@
+- [x] `.env.example` telah disinkronkan dengan variabel yang dibutuhkan.
+- [x] Tidak ada `console.log` atau `console.debug` yang membocorkan data sensitif di production.
+- [x] Test Unit dan Integrasi untuk flow kritikal berjalan sukses di CI.
+- [x] E2E Smoke test (5 skenario utama) berjalan dan terintegrasi di pipeline E2E.
+- [x] Route utama di-load secara lazy dan ukuran bundle awal < 500kB.
+- [x] Pipeline CI/CD memblokir deployment jika budget performa terlampaui.
+- [x] Pipeline CI/CD memiliki fitur auto-rollback atau dokumentasi rollback yang jelas jika deployment gagal.
+- [x] Security check diimplementasikan pada pipeline migrasi.

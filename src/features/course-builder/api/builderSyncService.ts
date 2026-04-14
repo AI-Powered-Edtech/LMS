@@ -12,6 +12,7 @@
  */
 
 import type { BuilderState } from '@/features/course-builder'
+import { logger } from '@/utils/logger'
 
 import { courseService } from '../../courses/api/courseService'
 import { builderBlockService } from './blockService'
@@ -103,7 +104,7 @@ export async function syncBuilderToServer(
       if (import.meta.env.DEV) {
         pendingResults.forEach((result, idx) => {
           if (result.status === 'rejected') {
-            console.warn(
+            logger.warn(
               `[syncBuilderToServer] pendingBlock sync failed at index ${idx}:`,
               result.reason
             )

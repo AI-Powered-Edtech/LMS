@@ -57,8 +57,7 @@ export function useStudentEnrollments() {
 
       if (courseError) throw courseError
 
-      return ((courses ?? []) as EnrolledCourse[])
-        .filter((c) => c.status === 'published')
+      return ((courses ?? []) as EnrolledCourse[]).filter((c) => c.status === 'published')
     },
     enabled: !!tenantId && !!user?.id,
     staleTime: STALE.MODERATE,

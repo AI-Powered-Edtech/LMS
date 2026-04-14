@@ -9,6 +9,7 @@ import {
 } from '@/features/question-bank/api/questionBankService'
 import { QuestionType } from '@/features/quizzes'
 import { useToast } from '@/hooks/useToast'
+import { logger } from '@/utils/logger'
 
 interface QuestionEditorProps {
   isOpen: boolean
@@ -77,7 +78,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
         })),
       })
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to load question:', error)
+      if (import.meta.env.DEV) logger.error('Failed to load question:', error)
       addToast({ type: 'error', message: 'Gagal memuat soal.' })
       onClose()
     } finally {
@@ -101,7 +102,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
       if (onSaveSuccess) onSaveSuccess()
       onClose()
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to save question:', error)
+      if (import.meta.env.DEV) logger.error('Failed to save question:', error)
       addToast({ type: 'error', message: 'Gagal menyimpan soal.' })
     } finally {
       setSaving(false)

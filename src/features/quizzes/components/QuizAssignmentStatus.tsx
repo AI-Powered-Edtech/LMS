@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import { QuizAssignment, quizService } from '@/features/quizzes'
 import { useToast } from '@/hooks/useToast'
+import { logger } from '@/utils/logger'
 
 interface QuizAssignmentStatusProps {
   quizId: string
@@ -28,7 +29,7 @@ export function QuizAssignmentStatus({ quizId, onAssignClick }: QuizAssignmentSt
       const data = await quizService.getAssignmentsByQuiz(quizId, tenantId)
       setAssignments(data)
     } catch (err: unknown) {
-      if (import.meta.env.DEV) console.error('Failed to load assignments:', err)
+      if (import.meta.env.DEV) logger.error('Failed to load assignments:', err)
       setError(err instanceof Error ? err.message : 'Gagal memuat status assignment')
     } finally {
       setIsLoading(false)

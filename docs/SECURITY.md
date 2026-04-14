@@ -146,6 +146,15 @@ add_header Content-Security-Policy "default-src 'self'; ..." always;
 - The SCORM API bridge attaches to the **parent** `window`, not the iframe's window
 - `scorm_runtime_data.lesson_status` has sticky terminal states: once `completed` or `passed`, it cannot revert
 
+## Governance and Policies
+
+For detailed operational security procedures, please refer to the following documents:
+
+- [Secret Rotation SOP](security/SECRET_ROTATION_SOP.md)
+- [Audit Logging Retention Policy](security/AUDIT_LOGGING_POLICY.md)
+
+## Feature Module Cross-Reference
+
 ## Secrets Checklist (Production)
 
 | Secret                  | Min Length   | Notes                                |

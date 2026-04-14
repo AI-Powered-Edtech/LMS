@@ -1,4 +1,4 @@
-import { Check, HelpCircle, FileText, PenTool, Sparkles } from 'lucide-react'
+import { Check, FileText, HelpCircle, PenTool, Sparkles } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { useBuilder } from '@/contexts/BuilderContext'
@@ -7,12 +7,7 @@ import { cn } from '@/utils/cn'
 
 import { useApplyLessonDraft, useGenerateLessonDraft } from '../queries/aiBuilderCopilotQueries'
 import { useBuilderAICopilotStore } from '../store/builderAICopilot.store'
-import type {
-  AssignmentDraftPayload,
-  LessonDraftBlock,
-  QuizDraftPayload,
-} from '../types'
-
+import type { AssignmentDraftPayload, LessonDraftBlock, QuizDraftPayload } from '../types'
 import { BlockPreviewCard } from './shared/BlockPreviewCard'
 import { CopilotLoadingState } from './shared/CopilotLoadingState'
 
@@ -43,7 +38,10 @@ function resolveModeFromArtifact(
     return 'quiz'
   }
 
-  if (artifact.output.assignment_payload && typeof artifact.output.assignment_payload === 'object') {
+  if (
+    artifact.output.assignment_payload &&
+    typeof artifact.output.assignment_payload === 'object'
+  ) {
     return 'writing'
   }
 
@@ -70,8 +68,9 @@ export function AssessmentTab() {
 
   const activeLessonTitle = useMemo(
     () =>
-      state.modules.flatMap((module) => module.lessons).find((lesson) => lesson.id === state.activeLesson?.id)
-        ?.title ?? '',
+      state.modules
+        .flatMap((module) => module.lessons)
+        .find((lesson) => lesson.id === state.activeLesson?.id)?.title ?? '',
     [state.modules, state.activeLesson?.id]
   )
 
@@ -83,7 +82,8 @@ export function AssessmentTab() {
       ? (hydratedArtifact.output.blocks as LessonDraftBlock[])
       : []
     const hydratedQuiz =
-      hydratedArtifact.output.quiz_payload && typeof hydratedArtifact.output.quiz_payload === 'object'
+      hydratedArtifact.output.quiz_payload &&
+      typeof hydratedArtifact.output.quiz_payload === 'object'
         ? (hydratedArtifact.output.quiz_payload as QuizDraftPayload)
         : null
     const hydratedAssignment =
@@ -210,7 +210,9 @@ export function AssessmentTab() {
               <button
                 onClick={() =>
                   setSelectedBlocks((prev) =>
-                    prev.size === blocks.length ? new Set() : new Set(blocks.map((_, index) => index))
+                    prev.size === blocks.length
+                      ? new Set()
+                      : new Set(blocks.map((_, index) => index))
                   )
                 }
                 className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
@@ -357,9 +359,7 @@ export function AssessmentTab() {
                 <entry.icon
                   className={cn(
                     'w-4 h-4',
-                    mode === entry.value
-                      ? 'text-indigo-600 dark:text-indigo-400'
-                      : 'text-slate-500'
+                    mode === entry.value ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500'
                   )}
                 />
               </div>

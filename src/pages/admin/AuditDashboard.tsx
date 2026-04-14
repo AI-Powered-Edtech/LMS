@@ -27,6 +27,7 @@ import { exportAuditLogsToCSV } from '@/features/administration/utils/auditExpor
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 const ACTION_CONFIG: Record<
@@ -132,7 +133,7 @@ export function AuditDashboard() {
           setHasMore(false)
         }
       } catch (err) {
-        if (import.meta.env.DEV) console.error('Failed to fetch audit logs:', err)
+        if (import.meta.env.DEV) logger.error('Failed to fetch audit logs:', err)
         captureError(err, { context: 'AuditDashboard.fetchAuditLogs' })
       } finally {
         setLoading(false)

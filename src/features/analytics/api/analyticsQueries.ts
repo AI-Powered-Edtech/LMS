@@ -6,6 +6,7 @@
 // ==========================================================================
 
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type {
   ActivityTimePoint,
@@ -40,7 +41,7 @@ export async function refreshCourseStats(courseId: string, tenantId: string): Pr
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Failed to refresh course stats:', error)
+    if (import.meta.env.DEV) logger.error('Failed to refresh course stats:', error)
     throw parseRpcError(error)
   }
 }
@@ -58,7 +59,7 @@ export async function getTeacherAnalytics(
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Failed to get teacher analytics:', error)
+    if (import.meta.env.DEV) logger.error('Failed to get teacher analytics:', error)
     throw parseRpcError(error)
   }
 
@@ -74,7 +75,7 @@ export async function refreshAllCourseStats(tenantId: string): Promise<void> {
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Failed to refresh all course stats:', error)
+    if (import.meta.env.DEV) logger.error('Failed to refresh all course stats:', error)
     throw parseRpcError(error)
   }
 }
@@ -90,7 +91,7 @@ export async function fetchTenantCourseStats(tenantId: string): Promise<CourseSt
     .eq('tenant_id', tenantId)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Failed to get tenant analytics overview:', error)
+    if (import.meta.env.DEV) logger.error('Failed to get tenant analytics overview:', error)
     throw new Error('Gagal memuat ringkasan analitik. Silakan coba lagi.')
   }
 
@@ -113,7 +114,7 @@ export async function fetchActivityCounts(
 
   if (error) {
     // The RPC may not exist on all environments — return empty gracefully.
-    if (import.meta.env.DEV) console.warn('get_tenant_activity_counts unavailable:', error.message)
+    if (import.meta.env.DEV) logger.warn('get_tenant_activity_counts unavailable:', error.message)
     return []
   }
 
@@ -128,7 +129,7 @@ export async function fetchCourseEngagement(tenantId: string): Promise<CourseEng
     p_tenant_id: tenantId,
   })
   if (error) {
-    if (import.meta.env.DEV) console.error('Failed to get course engagement stats:', error)
+    if (import.meta.env.DEV) logger.error('Failed to get course engagement stats:', error)
     throw new Error('Gagal memuat data engagement kursus. Silakan coba lagi.')
   }
   return (data || []).map(
@@ -165,7 +166,7 @@ export async function fetchActivityTimeline(
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Failed to get activity timeline:', error)
+    if (import.meta.env.DEV) logger.error('Failed to get activity timeline:', error)
     throw new Error('Gagal memuat timeline aktivitas. Silakan coba lagi.')
   }
 
@@ -268,7 +269,7 @@ export async function listFunnelDefinitions(courseId?: string): Promise<FunnelDe
           try {
             return JSON.parse(r.steps as string)
           } catch {
-            if (import.meta.env.DEV) console.warn('[Analytics] Invalid funnel steps JSON:', r.steps)
+            if (import.meta.env.DEV) logger.warn('[Analytics] Invalid funnel steps JSON:', r.steps)
             return []
           }
         })(),
@@ -403,7 +404,7 @@ export async function fetchLatestEvents(tenantId: string, limit = 10): Promise<L
     .limit(limit)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Failed to fetch live events', error)
+    if (import.meta.env.DEV) logger.error('Failed to fetch live events', error)
     throw error
   }
 

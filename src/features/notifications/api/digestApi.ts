@@ -5,8 +5,9 @@
 // API functions untuk parent_digest_settings.
 // ==========================================================================
 
-import { db } from '@/services/db'
 import { readVilSession } from '@/services/auth/vilSession'
+import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -43,7 +44,7 @@ export async function getDigestSettings(parentId: string): Promise<DigestSetting
     .maybeSingle()
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[DigestApi] getDigestSettings error:', error)
+    if (import.meta.env.DEV) logger.error('[DigestApi] getDigestSettings error:', error)
     throw new Error('Gagal memuat pengaturan digest. Silakan coba lagi.')
   }
 
@@ -78,7 +79,7 @@ export async function updateDigestSettings(
     .single()
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[DigestApi] updateDigestSettings error:', error)
+    if (import.meta.env.DEV) logger.error('[DigestApi] updateDigestSettings error:', error)
     throw new Error('Gagal menyimpan pengaturan digest. Silakan coba lagi.')
   }
 
@@ -108,8 +109,7 @@ export async function triggerManualDigest(parentId: string): Promise<void> {
   })
 
   if (!response.ok) {
-    if (import.meta.env.DEV)
-      console.error('[DigestApi] triggerManualDigest error:', response.status)
+    if (import.meta.env.DEV) logger.error('[DigestApi] triggerManualDigest error:', response.status)
     throw new Error('Gagal mengirim digest manual. Silakan coba lagi.')
   }
 }

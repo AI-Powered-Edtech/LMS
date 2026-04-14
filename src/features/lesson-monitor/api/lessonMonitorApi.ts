@@ -1,4 +1,5 @@
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type { LessonMonitorData } from '../types'
 
@@ -32,12 +33,12 @@ export async function fetchLessonMonitorData(
   if (error) {
     if (error.code === 'PGRST202') {
       if (import.meta.env.DEV) {
-        console.warn('get_lesson_progress_monitor RPC not available, returning empty payload')
+        logger.warn('get_lesson_progress_monitor RPC not available, returning empty payload')
       }
       return empty
     }
     if (import.meta.env.DEV) {
-      console.error('Failed to fetch lesson monitor data:', error)
+      logger.error('Failed to fetch lesson monitor data:', error)
     }
     throw new Error('Gagal memuat data monitor pelajaran. Silakan coba lagi.')
   }

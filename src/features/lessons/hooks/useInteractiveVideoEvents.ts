@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import type { InteractiveEvent, InteractiveVideoMetadata, Quiz } from '@/features/lessons/types'
 import { getQuizWithQuestions } from '@/features/quizzes/api/quizManager.service'
+import { logger } from '@/utils/logger'
 
 // ==========================================================================
 // useInteractiveVideoEvents — Shared hook for interactive video pop-up quizzes
@@ -80,7 +81,7 @@ export function useInteractiveVideoEvents({
         .then((quizData) => {
           setLoadedQuizzes((prev) => ({ ...prev, [id]: quizData as unknown as Quiz }))
         })
-        .catch((err) => console.error('[useInteractiveVideoEvents] Failed to load quiz', err))
+        .catch((err) => logger.error('[useInteractiveVideoEvents] Failed to load quiz', err))
     })
   }, [tenantId, events, eventIdsKey])
 
@@ -112,7 +113,7 @@ export function useInteractiveVideoEvents({
       // Resume video slightly past the trigger point to avoid re-triggering
       if (videoRef.current) {
         videoRef.current.currentTime = current.timeInSeconds + 2
-        videoRef.current.play().catch(console.error)
+        videoRef.current.play().catch(logger.error)
       }
     }
   }, [videoRef])

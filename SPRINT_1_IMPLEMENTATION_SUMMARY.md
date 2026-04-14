@@ -9,6 +9,7 @@
 ## 📋 Overview
 
 Sprint 1 berfokus pada pembangunan infrastruktur backend tingkat lanjut untuk mendukung fitur-fitur utama EduSync:
+
 - Video HLS Transcoding Pipeline
 - Document Generation Service (PDF & Reports)
 - AI Endpoints dengan SSE Streaming
@@ -23,11 +24,13 @@ Semua implementasi menggunakan arsitektur yang sudah ada (Axum + VIL Framework) 
 ### 1.1 Video HLS Transcoding Pipeline 🔴 P0
 
 **Files Created:**
+
 - `edusync-api/crates/services/src/video/transcode.rs` - Service layer untuk transcoding
 - `edusync-api/crates/api-server/src/storage/transcode_handlers.rs` - API handlers
 - `edusync-api/migrations/012_video_transcoding_jobs.sql` - Database migration
 
 **Endpoints:**
+
 ```
 POST /api/v1/storage/transcode
   - Body: { video_id, s3_key, filename }
@@ -38,6 +41,7 @@ GET /api/v1/storage/transcode-status/:video_id
 ```
 
 **Features:**
+
 - ✅ Background job worker untuk memproses antrean transcoding
 - ✅ Status tracking: pending → processing → completed/failed
 - ✅ Progress percentage tracking (0-100%)
@@ -46,11 +50,13 @@ GET /api/v1/storage/transcode-status/:video_id
 - ✅ Database tracking dengan tabel `video_transcoding_jobs`
 
 **Architecture:**
+
 ```
 Client Upload → S3 → Create Job → Background Worker → FFmpeg Transcode → HLS in S3 → Update DB
 ```
 
 **TODO (Production Ready):**
+
 - [ ] Integrate actual FFmpeg binary untuk transcoding
 - [ ] Implement thumbnail generation
 - [ ] Add Cloudflare Stream integration sebagai alternatif
@@ -61,11 +67,13 @@ Client Upload → S3 → Create Job → Background Worker → FFmpeg Transcode �
 ### 1.2 Document Generation Service 🟠 P1
 
 **Files Created:**
+
 - `edusync-api/crates/services/src/reports/mod.rs` - Reports export service (CSV/Excel/PDF)
 - `edusync-api/crates/api-server/src/report_handlers.rs` - API handlers
 - `edusync-api/migrations/013_export_jobs.sql` - Database migration
 
 **Endpoints:**
+
 ```
 POST /api/v1/reports/export
   - Body: { report_type, format, course_id?, start_date?, end_date? }
@@ -76,16 +84,19 @@ GET /api/v1/reports/export/:job_id
 ```
 
 **Report Types:**
+
 - `grades` - Laporan nilai siswa dengan assignment details
 - `attendance` - Laporan kehadiran dengan check-in times
 - `progress` - Laporan progres belajar (modules completed, %)
 
 **Export Formats:**
+
 - ✅ CSV (fully implemented dengan `csv` crate)
 - 🟡 Excel (stub - menggunakan CSV sebagai placeholder)
 - 🟡 PDF (stub - menggunakan CSV sebagai placeholder)
 
 **Features:**
+
 - ✅ Async job processing dengan background worker
 - ✅ CSV export dengan filtering (course_id, date range)
 - ✅ Job status tracking
@@ -93,6 +104,7 @@ GET /api/v1/reports/export/:job_id
 - ✅ Error handling dan reporting
 
 **TODO (Production Ready):**
+
 - [ ] Implement Excel export dengan `rust_xlsxwriter`
 - [ ] Implement PDF report generation dengan `printpdf`
 - [ ] Add actual S3 upload (currently placeholder)
@@ -103,10 +115,12 @@ GET /api/v1/reports/export/:job_id
 ### 1.3 Advanced AI Endpoints & SSE Streaming 🟠 P1
 
 **Files Created:**
+
 - `edusync-api/crates/api-server/src/ai_streaming_handlers.rs` - SSE streaming handler
 - `edusync-api/crates/api-server/src/plagiarism_handlers.rs` - Plagiarism API handlers
 
 **New Endpoints:**
+
 ```
 POST /api/v1/ai/tutor/stream
   - Body: { lesson_id, message, session_id? }
@@ -121,6 +135,7 @@ GET /api/v1/ai/plagiarism-report/:report_id
 ```
 
 **SSE Streaming Features:**
+
 - ✅ Server-Sent Events untuk real-time AI response streaming
 - ✅ Session management dengan persistence
 - ✅ Rate limiting (50 calls/hr per user)
@@ -129,6 +144,7 @@ GET /api/v1/ai/plagiarism-report/:report_id
 - ✅ Event types: start, message, done, error
 
 **Plagiarism Checker Features:**
+
 - ✅ Text similarity detection (Jaccard index)
 - ✅ Cross-student submission comparison
 - ✅ Risk level classification (clean/suspicious/high_risk)
@@ -136,6 +152,7 @@ GET /api/v1/ai/plagiarism-report/:report_id
 - ✅ Configurable similarity threshold (>30%)
 
 **SSE Event Format:**
+
 ```
 event: start
 data: {"status":"processing"}
@@ -151,6 +168,7 @@ data: {"error": "...", "status":"failed"}
 ```
 
 **TODO (Production Ready):**
+
 - [ ] Implement true token-by-token streaming dari Groq
 - [ ] Add plagiarism matched_text extraction (highlight phrases)
 - [ ] Add web scraping untuk plagiarism checking against internet
@@ -161,12 +179,14 @@ data: {"error": "...", "status":"failed"}
 ## 🗄️ Database Migrations
 
 ### Migration 012: video_transcoding_jobs
+
 - Tabel untuk tracking job transcoding video
 - Indexes untuk performance (status, user_id, created_at)
 - Auto-update trigger untuk updated_at
 - Constraints untuk data integrity
 
 ### Migration 013: export_jobs
+
 - Tabel untuk tracking export laporan
 - Support multiple formats (pdf, excel, csv)
 - JSONB query_params untuk flexible filtering
@@ -191,11 +211,13 @@ data: {"error": "...", "status":"failed"}
 ## 🧪 Testing
 
 **Unit Tests Included:**
+
 - ✅ `video/transcode.rs` - Status enum serialization
 - ✅ `reports/mod.rs` - Export request validation
 - ✅ `pdf/certificate.rs` - Certificate generation (existing)
 
 **Manual Testing Required:**
+
 - [ ] End-to-end video transcoding flow
 - [ ] SSE streaming dengan actual Groq API
 - [ ] CSV export dengan data besar
@@ -208,6 +230,7 @@ data: {"error": "...", "status":"failed"}
 Semua endpoint mengikuti format response yang konsisten:
 
 **Success Response:**
+
 ```json
 {
   "success": true,
@@ -216,6 +239,7 @@ Semua endpoint mengikuti format response yang konsisten:
 ```
 
 **Error Response:**
+
 ```json
 {
   "success": false,
@@ -231,6 +255,7 @@ Semua endpoint memerlukan authentication via JWT token yang diekstrak melalui `A
 ## 🚀 Deployment Notes
 
 ### Environment Variables Required:
+
 ```bash
 # Video Transcoding
 S3_ENDPOINT=https://minio.local
@@ -248,12 +273,14 @@ CLOUDFLARE_API_TOKEN=xxx
 ```
 
 ### Migration Run:
+
 ```bash
 cd edusync-api
 sqlx migrate run
 ```
 
 ### Build & Run:
+
 ```bash
 cargo build --release
 cargo run --bin edusync-api-server
@@ -278,6 +305,7 @@ cargo run --bin edusync-api-server
 ## 📋 Next Steps - Sprint 2
 
 Sprint 2 akan fokus pada **Frontend-Backend Wiring**:
+
 1. Wiring Video Transcoding ke UI (HLS.js integration)
 2. Wiring PDF Exports dengan loading states
 3. Wiring AI SSE Streaming di frontend (EventSource API)

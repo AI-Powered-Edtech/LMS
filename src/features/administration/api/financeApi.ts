@@ -1,4 +1,5 @@
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type { FinanceOverview, InvoiceFilter, InvoiceRecord, MonthlyData } from '../types/finance'
 
@@ -65,7 +66,7 @@ export async function fetchFinancePage(
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Finance] get_finance_dashboard_page error:', error)
+    if (import.meta.env.DEV) logger.error('[Finance] get_finance_dashboard_page error:', error)
     throw new Error('Gagal memuat daftar tagihan.')
   }
 
@@ -82,7 +83,7 @@ export async function fetchFinanceOverview(tenantId: string): Promise<FinanceOve
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Finance] get_finance_overview error:', error)
+    if (import.meta.env.DEV) logger.error('[Finance] get_finance_overview error:', error)
     throw new Error('Gagal memuat ringkasan keuangan.')
   }
 
@@ -100,7 +101,7 @@ export async function fetchFinanceMonthly(tenantId: string): Promise<MonthlyData
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Finance] get_finance_monthly error:', error)
+    if (import.meta.env.DEV) logger.error('[Finance] get_finance_monthly error:', error)
     throw new Error('Gagal memuat tren pembayaran.')
   }
 
@@ -124,7 +125,7 @@ export async function reconcileInvoicePayment(
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Finance] reconcile_invoice_payment error:', error)
+    if (import.meta.env.DEV) logger.error('[Finance] reconcile_invoice_payment error:', error)
     throw new Error(error.message || 'Gagal merekonsiliasi pembayaran.')
   }
 
@@ -153,7 +154,7 @@ export async function sendInvoiceReminders(
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('[Finance] send_invoice_reminders error:', error)
+    if (import.meta.env.DEV) logger.error('[Finance] send_invoice_reminders error:', error)
     throw new Error(error.message || 'Gagal mengirim pengingat tagihan.')
   }
 

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import type { AIBuilderArtifact } from '../types'
 import { useBuilderAICopilotStore } from '../store/builderAICopilot.store'
+import type { AIBuilderArtifact } from '../types'
 
 const mockArtifact: AIBuilderArtifact = {
   id: 'artifact-1',

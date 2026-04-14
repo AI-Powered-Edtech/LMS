@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 
+import { logger } from '@/utils/logger'
+
 import { useAuth } from '../../contexts/AuthContext'
 import { courseService } from '../../features/courses'
 
@@ -69,7 +71,7 @@ export const CourseEnrollmentGuard: React.FC<CourseEnrollmentGuardProps> = ({ ch
           setIsEnrolled(result.enrolled)
         }
       } catch (err: unknown) {
-        if (import.meta.env.DEV) console.error('Enrollment verification failed:', err)
+        if (import.meta.env.DEV) logger.error('Enrollment verification failed:', err)
         const msg = err instanceof Error ? err.message : 'Gagal memverifikasi status pendaftaran'
         setError(msg)
         setIsEnrolled(false)

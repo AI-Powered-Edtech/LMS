@@ -2,6 +2,7 @@ import { type Dispatch, useCallback } from 'react'
 
 import { useToast } from '@/hooks/useToast'
 import { DomainLesson } from '@/shared/types/lessonTypes'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 import { builderBlockService } from './api/blockService'
@@ -23,7 +24,7 @@ export function useLessonActions(
         const lesson = await builderLessonService.createLesson(moduleId, type, title, tenantId)
         dispatch({ type: 'ADD_LESSON', moduleId, lesson })
       } catch (err: unknown) {
-        if (import.meta.env.DEV) console.error('Failed to add lesson:', err)
+        if (import.meta.env.DEV) logger.error('Failed to add lesson:', err)
         addToast({
           type: 'error',
           message:
@@ -76,7 +77,7 @@ export function useLessonActions(
       } catch (err: unknown) {
         // Rollback: restore modules to pre-delete state
         dispatch({ type: 'SET_MODULES', modules: previousModules })
-        if (import.meta.env.DEV) console.error('Failed to delete lesson:', err)
+        if (import.meta.env.DEV) logger.error('Failed to delete lesson:', err)
         addToast({
           type: 'error',
           message:
@@ -111,7 +112,7 @@ export function useLessonActions(
         try {
           await builderLessonService.reorderLessons(targetMod.id, lessonIds, tenantId)
         } catch (error: unknown) {
-          if (import.meta.env.DEV) console.error('Failed to reorder lessons', error)
+          if (import.meta.env.DEV) logger.error('Failed to reorder lessons', error)
           dispatch({ type: 'SET_MODULES', modules: previousModules })
           addToast({
             type: 'error',
@@ -133,7 +134,7 @@ export function useLessonActions(
         const blocks = await builderBlockService.fetchLessonBlocks(lessonId, tenantId)
         dispatch({ type: 'LOAD_BLOCKS_SUCCESS', lessonId, blocks })
       } catch (err) {
-        if (import.meta.env.DEV) console.error('Failed to load blocks:', err)
+        if (import.meta.env.DEV) logger.error('Failed to load blocks:', err)
         captureError(err, { context: 'useLessonActions.selectLesson', lessonId })
         dispatch({
           type: 'LOAD_BLOCKS_ERROR',

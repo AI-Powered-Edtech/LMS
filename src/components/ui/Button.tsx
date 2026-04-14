@@ -1,6 +1,7 @@
 import { forwardRef, memo } from 'react'
 
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
@@ -52,7 +53,7 @@ export const Button = memo(
         !ariaLabel &&
         !props['aria-labelledby']
       ) {
-        console.warn('Button: Icon-only buttons require an aria-label for accessibility')
+        logger.warn('Button: Icon-only buttons require an aria-label for accessibility')
       }
 
       return (

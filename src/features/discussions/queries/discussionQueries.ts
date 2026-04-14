@@ -2,8 +2,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
-import { getRealtimeProvider } from '@/services/realtime'
 import { db } from '@/services/db'
+import { getRealtimeProvider } from '@/services/realtime'
+import { logger } from '@/utils/logger'
 import { GC, STALE } from '@/utils/queryConstants'
 
 import { discussionService } from '../api/discussionService'
@@ -110,7 +111,7 @@ export function useForumParticipationStats(
       if (error) {
         // Graceful fallback if RPC doesn't exist yet
         if (import.meta.env.DEV) {
-          console.warn(
+          logger.warn(
             'get_forum_participation RPC not available, returning empty dashboard:',
             error.message
           )

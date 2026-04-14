@@ -1,5 +1,6 @@
 /* eslint-disable max-lines */
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 import {
@@ -113,7 +114,7 @@ async function loadSecureQueue(): Promise<ProgressQueueItem[]> {
     return parsedData
   } catch (e) {
     if (import.meta.env.DEV) {
-      console.warn('[Offline Queue] Invalid or unauthorized queue detected, clearing.', e)
+      logger.warn('[Offline Queue] Invalid or unauthorized queue detected, clearing.', e)
     }
     sessionStorage.removeItem(QUEUE_KEY)
     _cachedRawQueue = null
@@ -126,7 +127,7 @@ async function saveSecureQueue(queue: ProgressQueueItem[]): Promise<void> {
   const sessionKey = await getSessionKey()
   if (!sessionKey) {
     if (import.meta.env.DEV) {
-      console.warn('[Offline Queue] Cannot save queue without active session')
+      logger.warn('[Offline Queue] Cannot save queue without active session')
     }
     // Clear cache to prevent inconsistencies
     _cachedRawQueue = null
@@ -394,7 +395,7 @@ export const lessonService = {
     }
 
     if (rpcError && rpcError.code !== 'PGRST202') {
-      if (import.meta.env.DEV) console.error('Error fetching lesson snapshot:', rpcError)
+      if (import.meta.env.DEV) logger.error('Error fetching lesson snapshot:', rpcError)
     }
 
     const { data, error } = await db
@@ -407,7 +408,7 @@ export const lessonService = {
       .maybeSingle()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching lesson:', error)
+      if (import.meta.env.DEV) logger.error('Error fetching lesson:', error)
       return null
     }
 
@@ -448,7 +449,7 @@ export const lessonService = {
     const { data: lessons, error: lessonsError } = await query.order('order')
 
     if (lessonsError) {
-      if (import.meta.env.DEV) console.error('Error fetching module lessons:', lessonsError)
+      if (import.meta.env.DEV) logger.error('Error fetching module lessons:', lessonsError)
       return { lessons: [], progress: {} }
     }
 
@@ -464,7 +465,7 @@ export const lessonService = {
       .in('lesson_id', lessonIds)
 
     if (progressError) {
-      if (import.meta.env.DEV) console.error('Error fetching lesson progress:', progressError)
+      if (import.meta.env.DEV) logger.error('Error fetching lesson progress:', progressError)
     }
 
     // Index progress by lesson_id
@@ -517,7 +518,7 @@ export const lessonService = {
     })
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error updating progress:', error)
+      if (import.meta.env.DEV) logger.error('Error updating progress:', error)
       throw error
     }
   },
@@ -551,7 +552,7 @@ export const lessonService = {
     } catch (err) {
       captureError(err, { context: 'lessonService.queueProgressUpdate' })
       if (import.meta.env.DEV) {
-        console.warn('[Offline Queue] Network error, queuing progress for lesson', lessonId)
+        logger.warn('[Offline Queue] Network error, queuing progress for lesson', lessonId)
       }
 
       let queue: ProgressQueueItem[] = await loadSecureQueue()
@@ -639,7 +640,7 @@ export const lessonService = {
         } catch (err) {
           // Leave failed beacon for next attempt — don't block the rest of the queue
           if (import.meta.env.DEV) {
-            console.warn('[lessonService] Beacon replay failed, will retry:', err)
+            logger.warn('[lessonService] Beacon replay failed, will retry:', err)
           }
         }
       }
@@ -663,7 +664,7 @@ export const lessonService = {
         } catch (err) {
           captureError(err, { context: 'lessonService.flushOfflineQueue' })
           if (import.meta.env.DEV) {
-            console.warn('[Offline Queue] Failed to sync item, re-queuing', item.lessonId)
+            logger.warn('[Offline Queue] Failed to sync item, re-queuing', item.lessonId)
           }
           remainingQueue.push(item)
         }
@@ -709,7 +710,7 @@ export const lessonService = {
       .maybeSingle()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching progress:', error)
+      if (import.meta.env.DEV) logger.error('Error fetching progress:', error)
       return null
     }
 
@@ -793,7 +794,7 @@ export const lessonService = {
       .eq('completed', true)
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching completed lessons:', error)
+      if (import.meta.env.DEV) logger.error('Error fetching completed lessons:', error)
       return new Set()
     }
 
@@ -817,7 +818,7 @@ export const lessonService = {
       p_suspend_data: params.suspendData ?? null,
     })
     if (error) {
-      console.error('[lessonService] upsert_scorm_runtime error:', error)
+      logger.error('[lessonService] upsert_scorm_runtime error:', error)
       throw error
     }
   },
@@ -834,7 +835,7 @@ export const lessonService = {
       .maybeSingle()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Failed to load module title:', error)
+      if (import.meta.env.DEV) logger.error('Failed to load module title:', error)
       return null
     }
     return data?.title ?? null
@@ -880,14 +881,14 @@ export const lessonService = {
         captureError(new Error('SSRF blocked: SCORM API URL origin mismatch'), {
           context: 'lessonService.postScormRuntime',
         })
-        if (import.meta.env.DEV) console.error('[lessonService] Blocked: Invalid API URL')
+        if (import.meta.env.DEV) logger.error('[lessonService] Blocked: Invalid API URL')
         return
       }
     } catch {
       captureError(new Error('SSRF blocked: Failed to parse SCORM API URL'), {
         context: 'lessonService.postScormRuntime',
       })
-      if (import.meta.env.DEV) console.error('[lessonService] Blocked: Invalid API URL')
+      if (import.meta.env.DEV) logger.error('[lessonService] Blocked: Invalid API URL')
       return
     }
 
@@ -902,7 +903,7 @@ export const lessonService = {
         keepalive: true,
       })
     } catch (error) {
-      console.warn('[lessonService] Failed to sync SCORM runtime:', error)
+      logger.warn('[lessonService] Failed to sync SCORM runtime:', error)
     }
   },
 }

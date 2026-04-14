@@ -13,7 +13,7 @@ describe('logDevError', () => {
   })
 
   describe('logDevError', () => {
-    it('harus call console.error dalam mode DEV dengan context prefix', () => {
+    it('harus call logger.error dalam mode DEV dengan context prefix', () => {
       const devSpy = vi.spyOn(console, 'error')
       // Pastikan import.meta.env.DEV adalah true untuk test ini
       if (import.meta.env.DEV) {
@@ -75,7 +75,7 @@ describe('logDevError', () => {
   })
 
   describe('logDevWarn', () => {
-    it('harus call console.warn dalam mode DEV dengan context prefix', () => {
+    it('harus call logger.warn dalam mode DEV dengan context prefix', () => {
       const warnSpy = vi.spyOn(console, 'warn')
       if (import.meta.env.DEV) {
         logDevWarn('MyComponent', 'warning message')

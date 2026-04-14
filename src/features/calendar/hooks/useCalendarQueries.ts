@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { calendarEventService } from '@/features/calendar/api/calendarEventService'
 import { CalendarEvent, calendarService } from '@/features/calendar/api/calendarService'
 import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { logger } from '@/utils/logger'
 import { STALE } from '@/utils/queryConstants'
 
 // Zustand store for calendar events (optimistic client-side state)
@@ -121,7 +122,7 @@ export function usePersistCalendarEvent() {
       }
     },
     onError: (err) => {
-      if (import.meta.env.DEV) console.error('[usePersistCalendarEvent]', err)
+      if (import.meta.env.DEV) logger.error('[usePersistCalendarEvent]', err)
     },
   })
 }

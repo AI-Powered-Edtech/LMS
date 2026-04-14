@@ -12,24 +12,20 @@ export const gradebookKeys = {
   all: ['gradebook'] as const,
 
   // Entries (grades)
-  entries: (courseId: string) =>
-    ['gradebook', 'entries', courseId] as const,
+  entries: (courseId: string) => ['gradebook', 'entries', courseId] as const,
 
   // Settings
-  settings: (courseId: string) =>
-    ['gradebook', 'settings', courseId] as const,
+  settings: (courseId: string) => ['gradebook', 'settings', courseId] as const,
 
   // Columns
-  columns: (courseId: string) =>
-    ['gradebook', 'columns', courseId] as const,
+  columns: (courseId: string) => ['gradebook', 'columns', courseId] as const,
 
   // Student-specific grades
   studentGrades: (courseId: string, studentId: string) =>
     ['gradebook', 'student', courseId, studentId] as const,
 
   // Analytics
-  analytics: (courseId: string) =>
-    ['gradebook', 'analytics', courseId] as const,
+  analytics: (courseId: string) => ['gradebook', 'analytics', courseId] as const,
 } as const
 
 export default gradebookKeys

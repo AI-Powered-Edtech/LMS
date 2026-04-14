@@ -79,10 +79,7 @@ export async function getInvitations(): Promise<TenantInvitation[]> {
 }
 
 export async function revokeInvitation(id: string): Promise<void> {
-  const { error } = await db
-    .from('tenant_invitations')
-    .update({ status: 'revoked' })
-    .eq('id', id)
+  const { error } = await db.from('tenant_invitations').update({ status: 'revoked' }).eq('id', id)
 
   if (error) throw error
 }

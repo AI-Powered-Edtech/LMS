@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react'
 
 import { EmptyState } from '@/components/ui'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 import { translateQuizAttemptStatus } from '@/utils/statusTranslations'
 
 import { getSuspiciousAttempts, type SuspiciousAttempt } from '../../api/suspiciousAttempts.service'
@@ -62,7 +63,7 @@ export function SuspiciousAttemptsPanel({
         const data = await getSuspiciousAttempts(quizId, tenantId)
         setAttempts(data)
       } catch (err) {
-        if (import.meta.env.DEV) console.error('Failed to load suspicious attempts:', err)
+        if (import.meta.env.DEV) logger.error('Failed to load suspicious attempts:', err)
         setError('Gagal memuat data kecurangan')
       } finally {
         setIsLoading(false)

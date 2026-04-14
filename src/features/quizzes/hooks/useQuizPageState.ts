@@ -24,6 +24,7 @@ import {
 } from '@/features/quizzes/queries/quizPlayer.queries'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useToast } from '@/hooks/useToast'
+import { logger } from '@/utils/logger'
 import { cacheQuiz } from '@/utils/offlineStorage'
 import { quizSubmitRateLimiter } from '@/utils/rateLimiter'
 import { captureError } from '@/utils/sentry'
@@ -256,7 +257,7 @@ export function useQuizPageState() {
       } catch (err) {
         // IndexedDB caching failure is non-critical — continue
         if (import.meta.env.DEV)
-          console.warn('[useQuizPageState] IndexedDB quiz cache write failed:', err)
+          logger.warn('[useQuizPageState] IndexedDB quiz cache write failed:', err)
       }
 
       setInitialAnswers(recoveredAnswers)
@@ -266,7 +267,7 @@ export function useQuizPageState() {
       setIsLoadingQuestions(false)
     } catch (err: unknown) {
       setIsLoadingQuestions(false)
-      if (import.meta.env.DEV) console.error('Failed to start/resume', err)
+      if (import.meta.env.DEV) logger.error('Failed to start/resume', err)
       const message = err instanceof Error ? err.message : ''
       if (message.includes('not enrolled'))
         addToast({
@@ -309,7 +310,7 @@ export function useQuizPageState() {
       setShowResults(true)
       setShowAnswerReview(false)
     } catch (err: unknown) {
-      if (import.meta.env.DEV) console.error('Gagal mengirim kuis', err)
+      if (import.meta.env.DEV) logger.error('Gagal mengirim kuis', err)
       captureError(err, { context: 'useQuizPageState.handleSubmit', attemptId: currentAttemptId })
       const message = err instanceof Error ? err.message : ''
       if (message.includes('Time limit exceeded')) {
@@ -342,7 +343,7 @@ export function useQuizPageState() {
       setGradedQuestions(questions)
       setShowAnswerReview(true)
     } catch (err) {
-      if (import.meta.env.DEV) console.error('Failed to load graded questions:', err)
+      if (import.meta.env.DEV) logger.error('Failed to load graded questions:', err)
       addToast({ type: 'error', message: 'Gagal memuat review jawaban. Silakan coba lagi.' })
     }
   }

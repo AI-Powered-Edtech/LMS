@@ -25,6 +25,7 @@ import { FeatureManagement } from '@/features/administration/components/FeatureM
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 // Default sync status for initial state (will be replaced with real data)
@@ -96,7 +97,7 @@ export function AdministrationDashboard() {
       }
     } catch (error) {
       captureError(error, { context: 'AdministrationDashboard.fetchSyncHistory' })
-      if (import.meta.env.DEV) console.error('Failed to fetch sync history:', error)
+      if (import.meta.env.DEV) logger.error('Failed to fetch sync history:', error)
       // Use defaults on error
       setSyncHistory(defaultSyncStatus)
     } finally {
@@ -137,7 +138,7 @@ export function AdministrationDashboard() {
       }
     } catch (error) {
       captureError(error, { context: 'AdministrationDashboard.triggerSync' })
-      if (import.meta.env.DEV) console.error('Sync failed:', error)
+      if (import.meta.env.DEV) logger.error('Sync failed:', error)
       setSyncMessage({
         type: 'error',
         text: 'Terjadi kesalahan saat sinkronisasi. Silakan coba lagi.',

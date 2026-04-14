@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */
 /**
  * Gradebook Export Actions Component
  *
@@ -11,8 +12,10 @@
 
 import { Download, FileSpreadsheet, FileText, Loader2 } from 'lucide-react'
 import { useState } from 'react'
+
 import { useExportReport } from '@/features/gradebook/hooks/useExportReport'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 export type ExportFormat = 'csv' | 'excel' | 'pdf'
 
@@ -62,7 +65,7 @@ export function GradebookExportActions({
         end_date: endDate,
       })
     } catch (err) {
-      console.error('[GradebookExport] Export failed:', err)
+      logger.error('[GradebookExport] Export failed:', err)
     }
   }
 
@@ -141,6 +144,7 @@ export function GradebookExportActions({
         </div>
       )}
 
+      {}
       {/* Click Outside to Close */}
       {open && <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />}
     </div>

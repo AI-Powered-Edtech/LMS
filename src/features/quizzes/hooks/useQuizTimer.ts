@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 interface UseQuizTimerOptions {
   expiresAt: string | null
@@ -109,7 +110,7 @@ export function useQuizTimer({
       setPauseCountdown(result.pause_remaining_seconds)
     } catch (err) {
       // Surface error to the user via console; UI layer shows toast via error boundary
-      if (import.meta.env.DEV) console.error('[useQuizTimer] Gagal mempause kuis:', err)
+      if (import.meta.env.DEV) logger.error('[useQuizTimer] Gagal mempause kuis:', err)
       throw err
     } finally {
       setIsPauseLoading(false)
@@ -128,7 +129,7 @@ export function useQuizTimer({
       setIsPaused(false)
       setPauseCountdown(0)
     } catch (err) {
-      if (import.meta.env.DEV) console.error('[useQuizTimer] Gagal melanjutkan kuis:', err)
+      if (import.meta.env.DEV) logger.error('[useQuizTimer] Gagal melanjutkan kuis:', err)
       throw err
     } finally {
       setIsPauseLoading(false)

@@ -6,6 +6,7 @@
 // ==========================================================================
 
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type { QuestionType } from '../types/quizzes.types'
 
@@ -85,11 +86,7 @@ export async function replaceQuestionOptions(
   options: { text: string; is_correct: boolean }[]
 ) {
   // Delete existing options
-  await db
-    .from('quiz_options')
-    .delete()
-    .eq('question_id', questionId)
-    .eq('tenant_id', tenantId)
+  await db.from('quiz_options').delete().eq('question_id', questionId).eq('tenant_id', tenantId)
 
   // Insert new options
   if (options.length > 0) {
@@ -132,7 +129,7 @@ export async function gradeAttemptQuestion(
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Error grading question:', error)
+    if (import.meta.env.DEV) logger.error('Error grading question:', error)
     throw new Error(error.message || 'Failed to grade question')
   }
 
@@ -159,7 +156,7 @@ export async function getAssignmentResults(assignmentId: string, _tenantId: stri
   })
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Error fetching assignment results:', error)
+    if (import.meta.env.DEV) logger.error('Error fetching assignment results:', error)
     throw new Error(error.message || 'Failed to fetch assignment results')
   }
 

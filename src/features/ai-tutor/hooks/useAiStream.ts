@@ -13,7 +13,8 @@
  * - Error handling with retry logic
  */
 
-import { useState, useCallback, useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
+
 import { getAuthToken } from '@/services/auth/vilSession'
 
 // ─── Types ────────────────────────────────────────────────────────────────────

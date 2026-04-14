@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 import {
   type BuilderDraft,
   deleteBuilderDraft,
@@ -166,7 +167,7 @@ export function useBuilderOffline(
         await syncDraftToServer(draft)
         resetWasOffline()
       } catch (e) {
-        console.error('[useBuilderOffline] Reconnect sync failed:', e)
+        logger.error('[useBuilderOffline] Reconnect sync failed:', e)
         resetWasOffline()
       }
     }
@@ -184,7 +185,7 @@ export function useBuilderOffline(
       try {
         await syncDraftToServer(conflictDialog.pendingDraft)
       } catch (e) {
-        console.error('[useBuilderOffline] handleConflictUseLocal failed:', e)
+        logger.error('[useBuilderOffline] handleConflictUseLocal failed:', e)
       }
     }
     setConflictDialog(null)

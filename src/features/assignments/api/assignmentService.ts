@@ -1,7 +1,8 @@
-import { getStorageProvider } from '@/services/storage'
 /* eslint-disable max-lines */
 import { db } from '@/services/db'
+import { getStorageProvider } from '@/services/storage'
 import { logDevError } from '@/utils/logDevError'
+import { logger } from '@/utils/logger'
 
 export type AssignmentStatus = 'draft' | 'published' | 'archived'
 export type SubmissionStatus = 'draft' | 'submitted' | 'late' | 'graded' | 'returned'
@@ -813,7 +814,7 @@ export const assignmentService = {
 
     if (eErr) {
       if (import.meta.env.DEV)
-        console.error('[assignmentService] getPendingAssignmentCount enrollments error:', eErr)
+        logger.error('[assignmentService] getPendingAssignmentCount enrollments error:', eErr)
       return 0
     }
 
@@ -830,7 +831,7 @@ export const assignmentService = {
 
     if (aErr) {
       if (import.meta.env.DEV)
-        console.error('[assignmentService] getPendingAssignmentCount error:', aErr)
+        logger.error('[assignmentService] getPendingAssignmentCount error:', aErr)
       return 0
     }
 
@@ -849,11 +850,13 @@ export const assignmentService = {
 
     if (sErr) {
       if (import.meta.env.DEV)
-        console.error('[assignmentService] getPendingAssignmentCount submissions error:', sErr)
+        logger.error('[assignmentService] getPendingAssignmentCount submissions error:', sErr)
       return allAssignments.length
     }
 
-    const submittedIds = new Set((submitted ?? []).map((submission: any) => submission.assignment_id))
+    const submittedIds = new Set(
+      (submitted ?? []).map((submission: any) => submission.assignment_id)
+    )
     return allAssignments.filter((assignment: any) => !submittedIds.has(assignment.id)).length
   },
 

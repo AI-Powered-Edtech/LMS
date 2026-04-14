@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { logger } from '@/utils/logger'
+
 const STORAGE_KEY = 'edusync_pwa_install_dismissed'
 const DISMISS_DURATION_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
 
@@ -77,7 +79,7 @@ export function usePWAInstall(): PWAInstallState {
     } catch {
       // localStorage unavailable — fail silently
       if (import.meta.env.DEV)
-        console.warn('[usePWAInstall] localStorage write failed for dismiss state')
+        logger.warn('[usePWAInstall] localStorage write failed for dismiss state')
     }
     setIsDismissed(true)
   }, [])

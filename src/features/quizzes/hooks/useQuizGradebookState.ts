@@ -7,6 +7,7 @@ import {
   quizAnalyticsService,
 } from '@/features/quizzes/api/quizAnalyticsService'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 import { translateDbError } from '@/utils/statusTranslations'
 
@@ -55,8 +56,7 @@ export function useQuizGradebookState() {
       } catch (err) {
         captureError(err, { context: 'useQuizGradebookState.loadClasses' })
         setError('Gagal memuat daftar kelas.')
-        if (import.meta.env.DEV)
-          console.error('[useQuizGradebookState] Failed to load classes', err)
+        if (import.meta.env.DEV) logger.error('[useQuizGradebookState] Failed to load classes', err)
       }
     }
 
@@ -128,7 +128,7 @@ export function useQuizGradebookState() {
         setQuestionDifficulty(data)
       } catch (err) {
         captureError(err, { context: 'useQuizGradebookState.loadDifficulty' })
-        if (import.meta.env.DEV) console.error('Failed to load question difficulty', err)
+        if (import.meta.env.DEV) logger.error('Failed to load question difficulty', err)
       } finally {
         setIsDifficultyLoading(false)
       }

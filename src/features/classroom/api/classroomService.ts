@@ -1,5 +1,5 @@
-import { getRealtimeProvider } from '@/services/realtime'
 import { db } from '@/services/db'
+import { getRealtimeProvider } from '@/services/realtime'
 
 export interface Classroom {
   id: string
@@ -255,11 +255,7 @@ export const classroomService = {
    * Delete a classroom by ID.
    */
   async deleteClassroom(classId: string, tenantId: string): Promise<void> {
-    const { error } = await db
-      .from('classes')
-      .delete()
-      .eq('id', classId)
-      .eq('tenant_id', tenantId)
+    const { error } = await db.from('classes').delete().eq('id', classId).eq('tenant_id', tenantId)
     if (error) throw error
   },
 

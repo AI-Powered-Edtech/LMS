@@ -6,6 +6,7 @@
 // ==========================================================================
 
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type { QuizMode } from '../types/quizzes.types'
 
@@ -90,10 +91,10 @@ export async function getTeacherQuizzes(tenantId: string) {
   })
 
   return quizzes.map((quiz) => ({
-      ...quiz,
-      assignment_count: assignmentCountByQuiz.get(String(quiz.id)) ?? 0,
-      question_count: questionCountByQuiz.get(String(quiz.id)) ?? 0,
-    }))
+    ...quiz,
+    assignment_count: assignmentCountByQuiz.get(String(quiz.id)) ?? 0,
+    question_count: questionCountByQuiz.get(String(quiz.id)) ?? 0,
+  }))
 }
 
 /**
@@ -341,7 +342,7 @@ export async function createQuiz(payload: {
   )
 
   if (assignError) {
-    if (import.meta.env.DEV) console.error('Failed to auto-create quiz assignment:', assignError)
+    if (import.meta.env.DEV) logger.error('Failed to auto-create quiz assignment:', assignError)
     throw assignError
   }
 
@@ -369,11 +370,7 @@ export async function updateQuiz(
  * Delete a quiz
  */
 export async function deleteQuiz(quizId: string, tenantId: string) {
-  const { error } = await db
-    .from('quizzes')
-    .delete()
-    .eq('id', quizId)
-    .eq('tenant_id', tenantId)
+  const { error } = await db.from('quizzes').delete().eq('id', quizId).eq('tenant_id', tenantId)
 
   if (error) throw error
 }

@@ -4,6 +4,7 @@
  */
 
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type { Notification } from '../types'
 
@@ -31,7 +32,7 @@ export async function fetchNotifications(
     .limit(50)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Error fetching notifications:', error)
+    if (import.meta.env.DEV) logger.error('Error fetching notifications:', error)
     throw error
   }
 
@@ -49,7 +50,7 @@ export async function markAsRead(id: string, tenantId: string): Promise<void> {
     .eq('tenant_id', tenantId)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Error marking notification as read:', error)
+    if (import.meta.env.DEV) logger.error('Error marking notification as read:', error)
     throw error
   }
 }
@@ -66,7 +67,7 @@ export async function markAllAsRead(userId: string, tenantId: string): Promise<v
     .eq('is_read', false)
 
   if (error) {
-    if (import.meta.env.DEV) console.error('Error marking all notifications as read:', error)
+    if (import.meta.env.DEV) logger.error('Error marking all notifications as read:', error)
     throw error
   }
 }
@@ -95,7 +96,7 @@ export async function sendNotification(
   if (error) {
     if (error.code === 'PGRST202') {
       if (import.meta.env.DEV)
-        console.warn(
+        logger.warn(
           '[notificationService] create_notification RPC not found. Jalankan migrasi notification RPC sebelum mengirim notifikasi.',
           error
         )
@@ -104,7 +105,7 @@ export async function sendNotification(
       )
     }
     if (import.meta.env.DEV)
-      console.error('Error sending notification via RPC (create_notification):', error)
+      logger.error('Error sending notification via RPC (create_notification):', error)
     throw error
   }
 }

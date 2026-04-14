@@ -26,6 +26,7 @@ import {
 import { useDebounce } from '@/hooks/useDebounce'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 type SortKey = 'quiz_title' | 'total_attempts' | 'avg_score' | 'pass_rate' | 'created_at'
 type SortDir = 'asc' | 'desc'
@@ -68,7 +69,7 @@ export function AdminQuizOverview() {
         setQuizzes(quizData)
         setAuditLog(auditData)
       } catch (err) {
-        if (import.meta.env.DEV) console.error('Admin quiz overview error:', err)
+        if (import.meta.env.DEV) logger.error('Admin quiz overview error:', err)
         setError('Gagal memuat data kuis')
       } finally {
         setIsLoading(false)

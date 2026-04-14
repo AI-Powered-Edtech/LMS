@@ -11,6 +11,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useAuth } from '@/contexts/AuthContext'
 import { logDevError, logDevWarn } from '@/utils/logDevError'
+import { logger } from '@/utils/logger'
 
 import * as notificationApi from '../api/notificationApi'
 
@@ -106,7 +107,7 @@ export function usePushSubscription(): UsePushSubscriptionReturn {
         }
       } catch (err) {
         // Service worker not ready or push not available
-        if (import.meta.env.DEV) console.warn('[Push] SW check error:', err)
+        if (import.meta.env.DEV) logger.warn('[Push] SW check error:', err)
         if (!cancelled) {
           setIsSubscribed(false)
         }
@@ -206,7 +207,7 @@ export function usePushSubscription(): UsePushSubscriptionReturn {
           }
         } catch (err) {
           // PushManager may not be available; still clear server-side
-          if (import.meta.env.DEV) console.warn('[Push] PushManager unsubscribe failed:', err)
+          if (import.meta.env.DEV) logger.warn('[Push] PushManager unsubscribe failed:', err)
           // Non-fatal: server-side will be cleared regardless
         }
       }

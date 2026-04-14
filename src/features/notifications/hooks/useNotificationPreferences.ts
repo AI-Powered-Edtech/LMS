@@ -11,6 +11,8 @@
 
 import { useCallback, useState } from 'react'
 
+import { logger } from '@/utils/logger'
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type NotificationChannel = 'inApp' | 'email' | 'push'
@@ -76,7 +78,7 @@ function saveToStorage(prefs: NotificationPrefsMap): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs))
   } catch {
     if (import.meta.env.DEV) {
-      console.warn('[useNotificationPreferences] localStorage write failed')
+      logger.warn('[useNotificationPreferences] localStorage write failed')
     }
   }
 }

@@ -97,10 +97,7 @@ export const videoCaptionService = {
   },
 
   async setDefaultCaption(captionId: string, lessonId: string): Promise<void> {
-    await db
-      .from('lesson_video_captions')
-      .update({ is_default: false })
-      .eq('lesson_id', lessonId)
+    await db.from('lesson_video_captions').update({ is_default: false }).eq('lesson_id', lessonId)
 
     const { error } = await db
       .from('lesson_video_captions')

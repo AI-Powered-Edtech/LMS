@@ -8,6 +8,7 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useToast } from '@/hooks/useToast'
 import { useUndoableAction } from '@/hooks/useUndoableAction'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 export function useClassManagementState() {
@@ -74,7 +75,7 @@ export function useClassManagementState() {
         const enrolledStudents = await classroomService.getEnrolledStudents(classId, tenantId)
         setStudents(enrolledStudents)
       } catch (err) {
-        if (import.meta.env.DEV) console.error('Failed to fetch students:', err)
+        if (import.meta.env.DEV) logger.error('Failed to fetch students:', err)
         captureError(err, { context: 'useClassManagementState.fetchStudents' })
         setStudents([])
       } finally {

@@ -2,6 +2,7 @@
 // Fire-and-forget: sends metrics to app_metrics table without blocking UI
 
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 export type MetricName =
   | 'quiz.completion_rate'
@@ -31,7 +32,7 @@ export async function trackMetric(
     })
   } catch (err) {
     // Metrics are non-critical — silently ignore errors
-    if (import.meta.env.DEV) console.warn('[metrics] Failed to record metric:', err)
+    if (import.meta.env.DEV) logger.warn('[metrics] Failed to record metric:', err)
   }
 }
 

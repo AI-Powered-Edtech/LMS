@@ -16,9 +16,7 @@ export const assignmentKeys = {
  */
 type AssignmentListResponse = Awaited<ReturnType<typeof assignmentService.getAssignments>>
 
-export function useAssignmentList(
-  tenantId: string
-): UseQueryResult<AssignmentListResponse> {
+export function useAssignmentList(tenantId: string): UseQueryResult<AssignmentListResponse> {
   return useQuery({
     queryKey: assignmentKeys.all(tenantId),
     queryFn: () => assignmentService.getAssignments(tenantId),

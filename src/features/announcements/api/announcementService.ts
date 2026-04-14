@@ -1,4 +1,5 @@
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import { Announcement, AnnouncementRSVP } from '../types'
 
@@ -57,7 +58,7 @@ export const announcementService = {
     const { data, error } = await query
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error fetching announcements:', error)
+      if (import.meta.env.DEV) logger.error('Error fetching announcements:', error)
       throw error
     }
 
@@ -106,7 +107,7 @@ export const announcementService = {
       .single()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error saving announcement:', error)
+      if (import.meta.env.DEV) logger.error('Error saving announcement:', error)
       throw error
     }
 
@@ -117,11 +118,7 @@ export const announcementService = {
    * Delete announcement with tenant isolation
    */
   async deleteAnnouncement(id: string, tenantId: string) {
-    const { error } = await db
-      .from('announcements')
-      .delete()
-      .eq('id', id)
-      .eq('tenant_id', tenantId)
+    const { error } = await db.from('announcements').delete().eq('id', id).eq('tenant_id', tenantId)
 
     if (error) throw error
   },
@@ -148,7 +145,7 @@ export const announcementService = {
       .single()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('Error submitting RSVP:', error)
+      if (import.meta.env.DEV) logger.error('Error submitting RSVP:', error)
       throw error
     }
 

@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/useToast'
 import { createQueryKeys } from '@/shared/lib/queryKeys'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 import {
@@ -24,7 +25,7 @@ export type Assignment = GradebookAssignment
 
 const gradebookKeys = createQueryKeys('gradebook')
 
-function useGradebookQuery(submissionsPage = 0, legacyMode = true, courseId?: string) {
+export function useGradebookQuery(submissionsPage = 0, legacyMode = true, courseId?: string) {
   const { user, tenantId, activeRole } = useAuth()
   const shouldPoll = activeRole === 'teacher' || activeRole === 'admin'
 
@@ -50,7 +51,7 @@ function useGradebookQuery(submissionsPage = 0, legacyMode = true, courseId?: st
   })
 }
 
-function useUpdateGrade(legacyMode = true, courseId?: string) {
+export function useUpdateGrade(legacyMode = true, courseId?: string) {
   const { tenantId, user } = useAuth()
   const queryClient = useQueryClient()
   const addToast = useToast((s) => s.addToast)
@@ -222,13 +223,13 @@ export function useGradebook(submissionsPage = 0, courseId?: string, forceLegacy
         // Non-fatal: optimistic cache update still applied so teacher UX isn't blocked.
         // The next gradebook refresh will sync from DB.
         if (import.meta.env.DEV) {
-          console.warn('[Gradebook] addGradebookItem DB persist failed (cache still updated):', err)
+          logger.warn('[Gradebook] addGradebookItem DB persist failed (cache still updated):', err)
         }
       }
     } else if (tenantId && !courseId) {
       // No valid courseId — skip DB persist. Teacher must select a course first for persistence.
       if (import.meta.env.DEV) {
-        console.warn(
+        logger.warn(
           '[Gradebook] addAssignment: no courseId provided, DB persist skipped. Select a course first.'
         )
       }

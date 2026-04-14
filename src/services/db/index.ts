@@ -12,6 +12,7 @@ import { getActiveApiClient } from '@/services/api/runtime'
 import { getAuthProvider } from '@/services/auth'
 import { getRealtimeProvider } from '@/services/realtime'
 import { getStorageProvider } from '@/services/storage'
+import { logger } from '@/utils/logger'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const db: any = {
@@ -50,7 +51,7 @@ export const db: any = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     invoke(fnName: string, _options?: any): Promise<{ data: null; error: Error }> {
       const msg = `[VIL] Edge Function '${fnName}' removed. Use fetch('/api/v1/...') instead.`
-      console.error(msg)
+      logger.error(msg)
       return Promise.resolve({ data: null, error: new Error(msg) })
     },
   },

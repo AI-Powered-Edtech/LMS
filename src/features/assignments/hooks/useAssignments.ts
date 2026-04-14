@@ -1,6 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext'
+
 import { useAssignmentList } from '../queries/assignmentQueries'
-import { AssignmentUiState, AssignmentAttemptUi, StudentSubmission, Attachment } from '../types'
+import { AssignmentAttemptUi, AssignmentUiState, Attachment, StudentSubmission } from '../types'
 
 // Raw database response type (snake_case from Supabase)
 // Note: Type is used indirectly through SubmissionLike interface

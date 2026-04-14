@@ -15,86 +15,86 @@
 
 ## Table Existence
 
-| Table | Exists in local DB |
-| --- | --- |
-| `classes` | yes |
-| `enrollments` | yes |
-| `invitations` | no |
-| `profiles` | yes |
-| `tenant_memberships` | no |
-| `tenants` | yes |
-| `user_roles` | yes |
+| Table                | Exists in local DB |
+| -------------------- | ------------------ |
+| `classes`            | yes                |
+| `enrollments`        | yes                |
+| `invitations`        | no                 |
+| `profiles`           | yes                |
+| `tenant_memberships` | no                 |
+| `tenants`            | yes                |
+| `user_roles`         | yes                |
 
 ## Column Audit
 
 ### `public.classes`
 
-| Column | Type | Nullable | Default |
-| --- | --- | --- | --- |
-| `id` | `uuid` | no | `gen_random_uuid()` |
-| `name` | `text` | no | none |
-| `course_id` | `uuid` | yes | none |
-| `teacher_id` | `uuid` | no | none |
-| `join_code` | `text` | no | none |
-| `max_students` | `integer` | yes | none |
-| `created_at` | `timestamp with time zone` | no | `now()` |
-| `updated_at` | `timestamp with time zone` | no | `now()` |
-| `tenant_id` | `uuid` | no | none |
+| Column         | Type                       | Nullable | Default             |
+| -------------- | -------------------------- | -------- | ------------------- |
+| `id`           | `uuid`                     | no       | `gen_random_uuid()` |
+| `name`         | `text`                     | no       | none                |
+| `course_id`    | `uuid`                     | yes      | none                |
+| `teacher_id`   | `uuid`                     | no       | none                |
+| `join_code`    | `text`                     | no       | none                |
+| `max_students` | `integer`                  | yes      | none                |
+| `created_at`   | `timestamp with time zone` | no       | `now()`             |
+| `updated_at`   | `timestamp with time zone` | no       | `now()`             |
+| `tenant_id`    | `uuid`                     | no       | none                |
 
 ### `public.enrollments`
 
-| Column | Type | Nullable | Default |
-| --- | --- | --- | --- |
-| `id` | `uuid` | no | `gen_random_uuid()` |
-| `class_id` | `uuid` | no | none |
-| `student_id` | `uuid` | no | none |
-| `status` | `USER-DEFINED` | no | `'ACTIVE'::enrollment_status` |
-| `joined_at` | `timestamp with time zone` | no | `now()` |
-| `tenant_id` | `uuid` | no | none |
+| Column       | Type                       | Nullable | Default                       |
+| ------------ | -------------------------- | -------- | ----------------------------- |
+| `id`         | `uuid`                     | no       | `gen_random_uuid()`           |
+| `class_id`   | `uuid`                     | no       | none                          |
+| `student_id` | `uuid`                     | no       | none                          |
+| `status`     | `USER-DEFINED`             | no       | `'ACTIVE'::enrollment_status` |
+| `joined_at`  | `timestamp with time zone` | no       | `now()`                       |
+| `tenant_id`  | `uuid`                     | no       | none                          |
 
 Note: local schema still uses `student_id`, not `user_id`.
 
 ### `public.profiles`
 
-| Column | Type | Nullable | Default |
-| --- | --- | --- | --- |
-| `id` | `uuid` | no | none |
-| `email` | `text` | no | none |
-| `first_name` | `text` | no | `''::text` |
-| `last_name` | `text` | no | `''::text` |
-| `avatar_url` | `text` | yes | none |
-| `phone` | `text` | yes | none |
-| `is_active` | `boolean` | no | `true` |
-| `created_at` | `timestamp with time zone` | no | `now()` |
-| `updated_at` | `timestamp with time zone` | no | `now()` |
-| `tenant_id` | `uuid` | yes | none |
-| `full_name` | `text` | yes | none |
-| `level` | `integer` | yes | `1` |
-| `is_demo` | `boolean` | yes | `false` |
-| `username` | `text` | yes | none |
-| `bio` | `text` | yes | `''::text` |
-| `is_profile_public` | `boolean` | yes | `false` |
+| Column              | Type                       | Nullable | Default    |
+| ------------------- | -------------------------- | -------- | ---------- |
+| `id`                | `uuid`                     | no       | none       |
+| `email`             | `text`                     | no       | none       |
+| `first_name`        | `text`                     | no       | `''::text` |
+| `last_name`         | `text`                     | no       | `''::text` |
+| `avatar_url`        | `text`                     | yes      | none       |
+| `phone`             | `text`                     | yes      | none       |
+| `is_active`         | `boolean`                  | no       | `true`     |
+| `created_at`        | `timestamp with time zone` | no       | `now()`    |
+| `updated_at`        | `timestamp with time zone` | no       | `now()`    |
+| `tenant_id`         | `uuid`                     | yes      | none       |
+| `full_name`         | `text`                     | yes      | none       |
+| `level`             | `integer`                  | yes      | `1`        |
+| `is_demo`           | `boolean`                  | yes      | `false`    |
+| `username`          | `text`                     | yes      | none       |
+| `bio`               | `text`                     | yes      | `''::text` |
+| `is_profile_public` | `boolean`                  | yes      | `false`    |
 
 ### `public.tenants`
 
-| Column | Type | Nullable | Default |
-| --- | --- | --- | --- |
-| `id` | `uuid` | no | `gen_random_uuid()` |
-| `name` | `text` | no | none |
-| `slug` | `text` | no | none |
-| `is_active` | `boolean` | no | `true` |
-| `created_at` | `timestamp with time zone` | no | `now()` |
-| `updated_at` | `timestamp with time zone` | no | `now()` |
+| Column       | Type                       | Nullable | Default             |
+| ------------ | -------------------------- | -------- | ------------------- |
+| `id`         | `uuid`                     | no       | `gen_random_uuid()` |
+| `name`       | `text`                     | no       | none                |
+| `slug`       | `text`                     | no       | none                |
+| `is_active`  | `boolean`                  | no       | `true`              |
+| `created_at` | `timestamp with time zone` | no       | `now()`             |
+| `updated_at` | `timestamp with time zone` | no       | `now()`             |
 
 ### `public.user_roles`
 
-| Column | Type | Nullable | Default |
-| --- | --- | --- | --- |
-| `id` | `uuid` | no | `gen_random_uuid()` |
-| `user_id` | `uuid` | no | none |
-| `role` | `USER-DEFINED` | no | none |
-| `created_at` | `timestamp with time zone` | no | `now()` |
-| `tenant_id` | `uuid` | no | none |
+| Column       | Type                       | Nullable | Default             |
+| ------------ | -------------------------- | -------- | ------------------- |
+| `id`         | `uuid`                     | no       | `gen_random_uuid()` |
+| `user_id`    | `uuid`                     | no       | none                |
+| `role`       | `USER-DEFINED`             | no       | none                |
+| `created_at` | `timestamp with time zone` | no       | `now()`             |
+| `tenant_id`  | `uuid`                     | no       | none                |
 
 ### `public.invitations`
 

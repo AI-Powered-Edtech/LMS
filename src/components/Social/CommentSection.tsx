@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Discussion, discussionService } from '@/features/discussions/api/discussionService'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 // ⚡ Perf: CommentItem extracted to file-level and wrapped in React.memo.
 // Previously defined INSIDE CommentSection's render body, which caused React
@@ -314,7 +315,7 @@ export function CommentSection({ entityId, entityType, className }: CommentSecti
 
       setComments(roots)
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Error loading comments:', error)
+      if (import.meta.env.DEV) logger.error('Error loading comments:', error)
       addToast({ type: 'error', message: 'Gagal memuat komentar' })
     } finally {
       setLoading(false)

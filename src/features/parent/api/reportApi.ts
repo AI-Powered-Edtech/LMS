@@ -9,6 +9,7 @@
 
 import { readVilSession } from '@/services/auth/vilSession'
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type { AvailableReportMonth, ParentMonthlyReport } from '../types'
 
@@ -54,7 +55,7 @@ export async function getMonthlyReport(
   })
 
   if (!response.ok) {
-    if (import.meta.env.DEV) console.error('[reportApi] getMonthlyReport error:', response.status)
+    if (import.meta.env.DEV) logger.error('[reportApi] getMonthlyReport error:', response.status)
     throw new Error('Gagal memuat laporan. Silakan coba lagi.')
   }
 
@@ -92,7 +93,7 @@ export async function getAvailableReportMonths(
 
   if (lessonError) {
     if (import.meta.env.DEV)
-      console.error('[reportApi] getAvailableReportMonths lesson error:', lessonError)
+      logger.error('[reportApi] getAvailableReportMonths lesson error:', lessonError)
   }
 
   // Ambil juga dari attendance_records sebagai fallback
@@ -121,7 +122,7 @@ export async function getAvailableReportMonths(
 
   if (attendanceError) {
     if (import.meta.env.DEV)
-      console.error('[reportApi] getAvailableReportMonths attendance error:', attendanceError)
+      logger.error('[reportApi] getAvailableReportMonths attendance error:', attendanceError)
   }
 
   // Kumpulkan semua bulan unik dari kedua sumber

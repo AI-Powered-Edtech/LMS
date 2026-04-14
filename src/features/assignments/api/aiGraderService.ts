@@ -1,4 +1,5 @@
 import { readVilSession } from '@/services/auth/vilSession'
+import { logger } from '@/utils/logger'
 
 interface AIGradeRequest {
   submissionId: string
@@ -35,7 +36,7 @@ export const aiGraderService = {
       })
 
       if (!response.ok) {
-        if (import.meta.env.DEV) console.error('[AI Grader] API error:', response.status)
+        if (import.meta.env.DEV) logger.error('[AI Grader] API error:', response.status)
 
         let errorMessage = 'Gagal melakukan penilaian otomatis dengan AI.'
 
@@ -57,7 +58,7 @@ export const aiGraderService = {
 
       return data as AIGradeResponse
     } catch (err: unknown) {
-      if (import.meta.env.DEV) console.error('[AI Grader] Unexpected error:', err)
+      if (import.meta.env.DEV) logger.error('[AI Grader] Unexpected error:', err)
 
       // Re-throw the error with a friendly message to be handled by the UI
       if (err instanceof Error && err.message && err.message !== 'Failed to fetch') {

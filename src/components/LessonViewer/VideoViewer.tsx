@@ -6,6 +6,7 @@ import { useInteractiveVideoEvents } from '@/features/lessons/hooks/useInteracti
 import { QuizViewer } from '@/features/quizzes/components/QuizViewer'
 import { AdaptiveVideoPlayer, type CaptionTrack } from '@/features/video'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 interface Transcript {
   time: number
@@ -171,7 +172,7 @@ export function VideoViewer({
         videoRef.current.load()
         videoRef.current.currentTime = currentPos
         videoRef.current.play().catch((e) => {
-          if (import.meta.env.DEV) console.error('Recovery play failed', e)
+          if (import.meta.env.DEV) logger.error('Recovery play failed', e)
         })
       }
     }

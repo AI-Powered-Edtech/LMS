@@ -14,6 +14,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
 import { assignmentService } from '@/features/assignments/api/assignmentService'
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 const BADGE_STALE = 2 * 60 * 1000 // 2 menit
 
@@ -61,7 +62,7 @@ export function useNavBadges(): NavBadges {
       })
 
       if (error) {
-        if (import.meta.env.DEV) console.error('[useNavBadges] unreadNotifications error:', error)
+        if (import.meta.env.DEV) logger.error('[useNavBadges] unreadNotifications error:', error)
         return 0
       }
 

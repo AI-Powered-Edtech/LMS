@@ -2,6 +2,7 @@
 import Papa from 'papaparse'
 
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type { GradebookColumn, GradebookEntry, GradebookSettings } from '../types'
 
@@ -79,13 +80,17 @@ export async function fetchGradebookEntries(
   if (profileError) throw profileError
 
   const profileMap = new Map(
-    ((profiles ?? []) as Array<Record<string, unknown>>).map((profile) => [String(profile.id), profile])
+    ((profiles ?? []) as Array<Record<string, unknown>>).map((profile) => [
+      String(profile.id),
+      profile,
+    ])
   )
 
   return rows.map((row) => {
     const profile =
       profileMap.get(String(row.student_id)) ??
-      ((row.profiles as Record<string, unknown> | null | undefined) ?? null)
+      (row.profiles as Record<string, unknown> | null | undefined) ??
+      null
     const entityType = row.entity_type as string
     const itemType: 'quiz' | 'assignment' | undefined =
       entityType === 'quiz' ? 'quiz' : entityType === 'assignment' ? 'assignment' : undefined
@@ -256,7 +261,7 @@ export async function addGradebookItem(data: {
   })
 
   if (columnError && import.meta.env.DEV) {
-    console.warn(
+    logger.warn(
       '[Gradebook] gradebook_columns insert failed (falling back to sentinel):',
       columnError
     )

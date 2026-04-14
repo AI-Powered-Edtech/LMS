@@ -15,6 +15,7 @@
 import { ChevronDown, ChevronUp, Edit2, Save, User, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
+
 import { cn } from '@/utils/cn'
 
 import type { GradebookEntry } from '../types'

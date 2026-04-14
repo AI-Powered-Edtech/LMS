@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { isLessonLocked, type Lesson, type LessonProgress, lessonService } from '@/features/lessons'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { useToast } from '@/hooks/useToast'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 
 export function useLessonViewerState() {
@@ -110,7 +111,7 @@ export function useLessonViewerState() {
     )
       return
     if (import.meta.env.DEV) {
-      console.warn('[Lesson Completion]', { lessonId: state.lesson.id, status: state.status })
+      logger.warn('[Lesson Completion]', { lessonId: state.lesson.id, status: state.status })
     }
     actions.completionMet()
 
@@ -156,7 +157,7 @@ export function useLessonViewerState() {
           void confetti({ particleCount: 150, spread: 80, origin: { y: 0.7 } })
         } catch (err) {
           if (import.meta.env.DEV) {
-            console.warn('Confetti failed:', err)
+            logger.warn('Confetti failed:', err)
           }
         }
       }
@@ -168,7 +169,7 @@ export function useLessonViewerState() {
       }
     } catch (err) {
       if (import.meta.env.DEV) {
-        console.error('Completion failed:', err)
+        logger.error('Completion failed:', err)
       }
       captureError(err, {
         context: 'useLessonViewerState',
@@ -284,7 +285,7 @@ export function useLessonViewerState() {
       })
       .catch((err) => {
         if (import.meta.env.DEV) {
-          console.error('Failed to load module title:', err)
+          logger.error('Failed to load module title:', err)
         }
       })
 
@@ -297,7 +298,7 @@ export function useLessonViewerState() {
         }
       })
       .catch((err) => {
-        if (import.meta.env.DEV) console.error('Failed to load module lessons:', err)
+        if (import.meta.env.DEV) logger.error('Failed to load module lessons:', err)
       })
       .finally(() => {
         if (!cancelled) setSidebarLoading(false)

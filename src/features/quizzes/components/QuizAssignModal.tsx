@@ -6,6 +6,7 @@ import { Classroom, classroomService } from '@/features/classroom/api/classroomS
 import { QuizAssignment, quizService } from '@/features/quizzes'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 
 interface QuizAssignModalProps {
   quizId: string
@@ -74,7 +75,7 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
       setClasses(fetchedClasses)
       setAssignments(initialAssignments)
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to load classes', error)
+      if (import.meta.env.DEV) logger.error('Failed to load classes', error)
       addToast({ type: 'error', message: 'Gagal memuat daftar kelas.' })
     } finally {
       setIsLoading(false)
@@ -99,7 +100,7 @@ export function QuizAssignModal({ quizId, isOpen, onClose, onSuccess }: QuizAssi
       onSuccess()
       onClose()
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to assign quiz', error)
+      if (import.meta.env.DEV) logger.error('Failed to assign quiz', error)
       addToast({ type: 'error', message: 'Gagal menugaskan kuis. Silakan coba lagi.' })
     } finally {
       setIsSubmitting(false)

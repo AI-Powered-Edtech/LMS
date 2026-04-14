@@ -5,6 +5,7 @@ import type { Metric } from 'web-vitals'
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals'
 
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 /* ─── Helpers ──────────────────────────────────────────────── */
 
@@ -28,7 +29,7 @@ function logMetricDev(metric: Metric): void {
   const color = badgeColors[metric.name] ?? '#6b7280'
 
   if (import.meta.env.DEV) {
-    console.warn(
+    logger.warn(
       `%c ${metric.name} %c ${metric.value.toFixed(1)} ${ratingEmoji(metric.rating)}`,
       `background:${color};color:#fff;padding:2px 6px;border-radius:3px;font-weight:bold`,
       'color:inherit'
@@ -54,7 +55,7 @@ async function sendMetricProd(metric: Metric): Promise<void> {
     })
   } catch (err) {
     // Silently drop — vitals are non-critical telemetry
-    if (import.meta.env.DEV) console.warn('[webVitals] Failed to report metric:', err)
+    if (import.meta.env.DEV) logger.warn('[webVitals] Failed to report metric:', err)
   }
 }
 

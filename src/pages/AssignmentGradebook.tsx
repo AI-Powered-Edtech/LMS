@@ -13,6 +13,7 @@ import { AssignmentCard } from '@/features/assignments/components/AssignmentCard
 import { GradingModal } from '@/features/assignments/components/GradingModal'
 import { usePageTitle } from '@/hooks/usePageTitle'
 import { cn } from '@/utils/cn'
+import { logger } from '@/utils/logger'
 import { captureError } from '@/utils/sentry'
 import { translateDbError } from '@/utils/statusTranslations'
 
@@ -53,7 +54,7 @@ export function AssignmentGradebook() {
         const data = await assignmentService.getAssignmentSubmissions(assignment.id, tenantId!)
         setSubmissions(data || [])
       } catch (err) {
-        if (import.meta.env.DEV) console.error('Error fetching submissions:', err)
+        if (import.meta.env.DEV) logger.error('Error fetching submissions:', err)
         captureError(err, { context: 'AssignmentGradebook.handleSelectAssignment' })
       } finally {
         setLoadingSubmissions(false)

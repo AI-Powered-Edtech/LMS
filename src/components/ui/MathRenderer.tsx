@@ -123,8 +123,8 @@ export function MathRenderer({
         <Skeleton
           className="inline-block align-middle"
           aria-label="Memuat persamaan matematika"
-          width={displayMode ? '100%' : 80}
-          height={displayMode ? 40 : 20}
+          width={displayMode ? '100%' : '80px'}
+          height={displayMode ? '40px' : '20px'}
         />
       }
     >

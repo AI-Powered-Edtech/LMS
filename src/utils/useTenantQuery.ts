@@ -23,10 +23,7 @@ import { useAuth } from '../contexts/AuthContext'
 export function useTenantQuery(): {
   tenantId: string | null
   tenantQuery: (table: string, columns?: string) => unknown
-  tenantInsert: (
-    table: string,
-    data: Record<string, unknown>
-  ) => Promise<unknown>
+  tenantInsert: (table: string, data: Record<string, unknown>) => Promise<unknown>
 } {
   const { tenantId } = useAuth()
 

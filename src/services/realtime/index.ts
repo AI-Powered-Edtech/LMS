@@ -1,3 +1,4 @@
+export { getRealtimeProvider, setRealtimeProvider } from './realtimeProvider'
 export type {
   AppRealtimeChannel,
   PostgresChangeEvent,
@@ -7,5 +8,4 @@ export type {
   RealtimeChannelStatus,
   RealtimeProvider,
 } from './types'
-export { getRealtimeProvider, setRealtimeProvider } from './realtimeProvider'
 export { createVilRealtimeProvider } from './vilRealtimeProvider'

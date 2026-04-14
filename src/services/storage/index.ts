@@ -1,3 +1,4 @@
+export { getStorageProvider, setStorageProvider } from './storageProvider'
 export type {
   StorageBucketClient,
   StorageDownloadResponse,
@@ -11,5 +12,4 @@ export type {
   StorageUploadOptions,
   StorageUploadResponse,
 } from './types'
-export { getStorageProvider, setStorageProvider } from './storageProvider'
 export { createVilStorageProvider } from './vilStorageProvider'

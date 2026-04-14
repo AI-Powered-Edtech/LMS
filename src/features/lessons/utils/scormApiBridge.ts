@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logger'
+
 // ==========================================================================
 // SCORM API Bridge — scormApiBridge.ts
 //
@@ -10,7 +12,6 @@
 //   bridge.attach(window)  // injects API onto window object
 //   bridge.detach(window)  // cleanup on unmount
 // ==========================================================================
-
 import { CmiDataStore, extractPayload, READ_ONLY_12, READ_ONLY_2004 } from './scormDataModel'
 import {
   getScorm12Diagnostic,
@@ -87,7 +88,7 @@ export function createScormBridge(options: ScormBridgeOptions): ScormBridge {
       setError('0')
 
       // Fire async, don't block the content
-      onTerminate(payload).catch((err) => console.error('[ScormBridge] Terminate error:', err))
+      onTerminate(payload).catch((err) => logger.error('[ScormBridge] Terminate error:', err))
 
       return 'true'
     },
@@ -128,7 +129,7 @@ export function createScormBridge(options: ScormBridgeOptions): ScormBridge {
       const payload = extractPayload(store, '1.2')
       setError('0')
 
-      onCommit(payload).catch((err) => console.error('[ScormBridge] Commit error:', err))
+      onCommit(payload).catch((err) => logger.error('[ScormBridge] Commit error:', err))
 
       return 'true'
     },
@@ -180,7 +181,7 @@ export function createScormBridge(options: ScormBridgeOptions): ScormBridge {
       initialized = false
       setError('0')
 
-      onTerminate(payload).catch((err) => console.error('[ScormBridge] Terminate error:', err))
+      onTerminate(payload).catch((err) => logger.error('[ScormBridge] Terminate error:', err))
 
       return 'true'
     },
@@ -232,7 +233,7 @@ export function createScormBridge(options: ScormBridgeOptions): ScormBridge {
       const payload = extractPayload(store, '2004')
       setError('0')
 
-      onCommit(payload).catch((err) => console.error('[ScormBridge] Commit error:', err))
+      onCommit(payload).catch((err) => logger.error('[ScormBridge] Commit error:', err))
 
       return 'true'
     },

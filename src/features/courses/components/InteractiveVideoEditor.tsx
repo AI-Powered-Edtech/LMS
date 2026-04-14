@@ -11,6 +11,7 @@ import {
 import type { InteractiveEvent, InteractiveVideoMetadata } from '@/features/lessons/types'
 import { getTeacherQuizzes } from '@/features/quizzes/api/quizManager.service'
 import { type VideoAsset, VideoProcessingStatus, VideoUploader } from '@/features/video'
+import { logger } from '@/utils/logger'
 
 interface InteractiveVideoEditorProps {
   metadata: InteractiveVideoMetadata
@@ -68,7 +69,7 @@ export function InteractiveVideoEditor({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setQuizzes(data.map((q: any) => ({ id: String(q.id ?? ''), title: String(q.title ?? '') })))
       } catch (err) {
-        console.error('Failed to load quizzes', err)
+        logger.error('Failed to load quizzes', err)
       } finally {
         setLoading(false)
       }
@@ -83,7 +84,7 @@ export function InteractiveVideoEditor({
     videoCaptionService
       .getCaptions(lessonId, blockId)
       .then(setCaptions)
-      .catch((err) => console.error('Failed to load captions', err))
+      .catch((err) => logger.error('Failed to load captions', err))
       .finally(() => setCaptionLoading(false))
   }, [lessonId, blockId])
 
@@ -153,7 +154,7 @@ export function InteractiveVideoEditor({
       await videoCaptionService.deleteCaption(captionId)
       setCaptions((prev) => prev.filter((c) => c.id !== captionId))
     } catch (err) {
-      console.error('Failed to delete caption', err)
+      logger.error('Failed to delete caption', err)
     }
   }
 
@@ -163,7 +164,7 @@ export function InteractiveVideoEditor({
       await videoCaptionService.setDefaultCaption(captionId, lessonId)
       setCaptions((prev) => prev.map((c) => ({ ...c, is_default: c.id === captionId })))
     } catch (err) {
-      console.error('Failed to set default caption', err)
+      logger.error('Failed to set default caption', err)
     }
   }
 

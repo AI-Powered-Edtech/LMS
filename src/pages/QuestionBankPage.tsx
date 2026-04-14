@@ -12,6 +12,7 @@ import { QuestionBankSkeleton } from '@/features/question-bank/components/Questi
 import { QuestionCard } from '@/features/question-bank/components/QuestionCard'
 import { QuestionEditor } from '@/features/question-bank/components/QuestionEditor'
 import { usePageTitle } from '@/hooks/usePageTitle'
+import { logger } from '@/utils/logger'
 
 export function QuestionBankPage() {
   const addToast = useToast((s) => s.addToast)
@@ -58,7 +59,7 @@ export function QuestionBankPage() {
       })
       setQuestions(data)
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to load questions:', error)
+      if (import.meta.env.DEV) logger.error('Failed to load questions:', error)
       addToast({ type: 'error', message: 'Gagal memuat bank soal. Coba lagi.' })
     } finally {
       setLoading(false)
@@ -82,7 +83,7 @@ export function QuestionBankPage() {
       await questionBankService.archiveQuestion(id)
       setQuestions((q) => q.filter((item) => item.id !== id))
     } catch (error) {
-      if (import.meta.env.DEV) console.error('Failed to delete question:', error)
+      if (import.meta.env.DEV) logger.error('Failed to delete question:', error)
       addToast({ type: 'error', message: 'Gagal menghapus soal.' })
     }
   }

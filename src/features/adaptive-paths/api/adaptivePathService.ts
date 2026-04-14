@@ -1,4 +1,5 @@
 import { db } from '@/services/db'
+import { logger } from '@/utils/logger'
 
 import type { EvaluationResult, PathRule, PathRuleInsert } from '../types'
 
@@ -17,7 +18,7 @@ export const adaptivePathService = {
       .order('priority', { ascending: false })
 
     if (error) {
-      if (import.meta.env.DEV) console.error('[adaptivePathService] getPathRules error:', error)
+      if (import.meta.env.DEV) logger.error('[adaptivePathService] getPathRules error:', error)
       throw error
     }
 
@@ -52,7 +53,7 @@ export const adaptivePathService = {
       .single()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('[adaptivePathService] createPathRule error:', error)
+      if (import.meta.env.DEV) logger.error('[adaptivePathService] createPathRule error:', error)
       throw error
     }
 
@@ -90,7 +91,7 @@ export const adaptivePathService = {
       .single()
 
     if (error) {
-      if (import.meta.env.DEV) console.error('[adaptivePathService] updatePathRule error:', error)
+      if (import.meta.env.DEV) logger.error('[adaptivePathService] updatePathRule error:', error)
       throw error
     }
 
@@ -108,7 +109,7 @@ export const adaptivePathService = {
       .eq('tenant_id', tenantId)
 
     if (error) {
-      if (import.meta.env.DEV) console.error('[adaptivePathService] deletePathRule error:', error)
+      if (import.meta.env.DEV) logger.error('[adaptivePathService] deletePathRule error:', error)
       throw error
     }
   },
@@ -131,7 +132,7 @@ export const adaptivePathService = {
 
     if (error) {
       if (import.meta.env.DEV)
-        console.error('[adaptivePathService] evaluateNextLesson error:', error)
+        logger.error('[adaptivePathService] evaluateNextLesson error:', error)
       throw error
     }
 
@@ -161,8 +162,7 @@ export const adaptivePathService = {
       .eq('tenant_id', tenantId)
 
     if (error) {
-      if (import.meta.env.DEV)
-        console.error('[adaptivePathService] setLessonRemedial error:', error)
+      if (import.meta.env.DEV) logger.error('[adaptivePathService] setLessonRemedial error:', error)
       throw error
     }
   },

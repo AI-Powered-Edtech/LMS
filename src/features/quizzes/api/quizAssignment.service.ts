@@ -94,17 +94,16 @@ export async function getAssignmentsByQuiz(quizId: string, tenantId: string) {
   const classIds = rows.map((row) => row.class_id)
   const { data: classes, error: classError } =
     classIds.length > 0
-      ? await db
-          .from('classes')
-          .select('id, name')
-          .eq('tenant_id', tenantId)
-          .in('id', classIds)
+      ? await db.from('classes').select('id, name').eq('tenant_id', tenantId).in('id', classIds)
       : { data: [], error: null }
 
   if (classError) throw classError
 
   const classMap = new Map(
-    ((classes ?? []) as Array<{ id: string; name: string | null }>).map((klass) => [klass.id, klass])
+    ((classes ?? []) as Array<{ id: string; name: string | null }>).map((klass) => [
+      klass.id,
+      klass,
+    ])
   )
 
   return rows.map((row) => ({
@@ -130,17 +129,11 @@ export async function getAssignmentsByClass(classId: string, tenantId: string) {
 
   const [{ data: classes, error: classError }, { data: quizzes, error: quizError }] =
     await Promise.all([
-      db
-        .from('classes')
-        .select('id, name')
-        .eq('tenant_id', tenantId)
-        .eq('id', classId),
+      db.from('classes').select('id, name').eq('tenant_id', tenantId).eq('id', classId),
       quizIds.length > 0
         ? db
             .from('quizzes')
-            .select(
-              'id, title, mode, passing_score, status, time_limit_minutes, max_attempts'
-            )
+            .select('id, title, mode, passing_score, status, time_limit_minutes, max_attempts')
             .eq('tenant_id', tenantId)
             .in('id', quizIds)
         : Promise.resolve({ data: [], error: null }),
@@ -168,15 +161,17 @@ export async function getAssignmentsByClass(classId: string, tenantId: string) {
     questionMap.set(question.quiz_id, existing)
   })
   const quizMap = new Map(
-    ((quizzes ?? []) as Array<{
-      id: string
-      title: string
-      mode: string
-      passing_score: number | null
-      status: string
-      time_limit_minutes: number | null
-      max_attempts: number | null
-    }>).map((quiz) => [
+    (
+      (quizzes ?? []) as Array<{
+        id: string
+        title: string
+        mode: string
+        passing_score: number | null
+        status: string
+        time_limit_minutes: number | null
+        max_attempts: number | null
+      }>
+    ).map((quiz) => [
       quiz.id,
       {
         ...quiz,
@@ -245,27 +240,29 @@ export async function getClassQuizAssignments(
   if (quizError) throw quizError
 
   const quizMap = new Map(
-    ((quizzes ?? []) as Array<{
-      id: string
-      title: string | null
-      passing_score: number | null
-      max_attempts: number | null
-      status: string
-    }>).map((quiz) => [quiz.id, quiz])
+    (
+      (quizzes ?? []) as Array<{
+        id: string
+        title: string | null
+        passing_score: number | null
+        max_attempts: number | null
+        status: string
+      }>
+    ).map((quiz) => [quiz.id, quiz])
   )
 
   return rows
     .filter((assignment) => quizMap.has(assignment.quiz_id))
     .map((assignment) => {
       const quiz = quizMap.get(assignment.quiz_id)
-    return {
-      id: assignment.id,
-      quiz_id: assignment.quiz_id,
-      title: quiz?.title || 'Kuis',
-      passing_score: quiz?.passing_score || 70,
-      max_attempts: assignment.max_attempts ?? quiz?.max_attempts ?? null,
-    }
-  })
+      return {
+        id: assignment.id,
+        quiz_id: assignment.quiz_id,
+        title: quiz?.title || 'Kuis',
+        passing_score: quiz?.passing_score || 70,
+        max_attempts: assignment.max_attempts ?? quiz?.max_attempts ?? null,
+      }
+    })
 }
 
 /**

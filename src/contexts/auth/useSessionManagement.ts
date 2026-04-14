@@ -7,6 +7,7 @@ import {
   markOAuthRedirectPending,
 } from '@/features/auth/utils/authFlow'
 import { getAuthProvider } from '@/services/auth'
+import { logger } from '@/utils/logger'
 import { addBreadcrumb, captureError } from '@/utils/sentry'
 
 interface AuthSession {
@@ -96,7 +97,7 @@ export function useSessionManagement(): UseSessionManagementResult {
     } catch (err) {
       captureError(err, { context: 'AuthContext.signOut' })
       if (import.meta.env.DEV) {
-        console.error('[Auth] signOut error (state already cleared):', err)
+        logger.error('[Auth] signOut error (state already cleared):', err)
       }
     }
   }, [])
@@ -183,7 +184,7 @@ export function useSessionManagement(): UseSessionManagementResult {
       })
       .catch((err) => {
         if (import.meta.env.DEV) {
-          console.error('[Auth] getSession failed:', err)
+          logger.error('[Auth] getSession failed:', err)
         }
         setAuthError(err instanceof Error ? err.message : 'Gagal memulihkan sesi login.')
         setAuthStatus('auth_error')
@@ -238,14 +239,14 @@ export function useSessionManagement(): UseSessionManagementResult {
 
       if (remainingS <= REFRESH_THRESHOLD_S) {
         if (import.meta.env.DEV) {
-          console.warn(`[Auth] Token expires in ${remainingS}s, refreshing...`)
+          logger.warn(`[Auth] Token expires in ${remainingS}s, refreshing...`)
         }
 
         try {
           const { error } = await getAuthProvider().refreshSession()
           if (error) {
             if (import.meta.env.DEV) {
-              console.error('[Auth] Proactive token refresh failed:', error)
+              logger.error('[Auth] Proactive token refresh failed:', error)
             }
             captureError(error, { context: 'proactiveTokenRefresh' })
             addBreadcrumb('Proactive token refresh failed — signing out', 'auth', {
@@ -262,7 +263,7 @@ export function useSessionManagement(): UseSessionManagementResult {
           }
         } catch (err) {
           if (import.meta.env.DEV) {
-            console.error('[Auth] Proactive token refresh exception:', err)
+            logger.error('[Auth] Proactive token refresh exception:', err)
           }
           captureError(err, { context: 'proactiveTokenRefreshException' })
           addBreadcrumb('Proactive token refresh exception — signing out', 'auth', {

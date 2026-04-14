@@ -1,4 +1,4 @@
-import { beforeEach,describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { openDB } from '../offlineStorage'
 import {
@@ -8,10 +8,11 @@ import {
   isQueueFull,
   type QueuedUpload,
   queueUpload,
-  removeFromQueue} from '../offlineUploadQueue'
+  removeFromQueue,
+} from '../offlineUploadQueue'
 
 vi.mock('../offlineStorage', () => ({
-  openDB: vi.fn()
+  openDB: vi.fn(),
 }))
 
 describe('offlineUploadQueue', () => {
@@ -23,7 +24,7 @@ describe('offlineUploadQueue', () => {
     path: 'test-path',
     blockId: 'block-1',
     courseId: 'course-1',
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   }
 
   // Helper to create mock IDB instance

@@ -1,0 +1,61 @@
+import CJS_COMPAT_NODE_URL_e6wt3b00afv from 'node:url';
+import CJS_COMPAT_NODE_PATH_e6wt3b00afv from 'node:path';
+import CJS_COMPAT_NODE_MODULE_e6wt3b00afv from "node:module";
+
+var __filename = CJS_COMPAT_NODE_URL_e6wt3b00afv.fileURLToPath(import.meta.url);
+var __dirname = CJS_COMPAT_NODE_PATH_e6wt3b00afv.dirname(__filename);
+var require = CJS_COMPAT_NODE_MODULE_e6wt3b00afv.createRequire(import.meta.url);
+
+// ------------------------------------------------------------
+// end of CJS compatibility banner, injected by Storybook's esbuild configuration
+// ------------------------------------------------------------
+
+// src/common/versions.ts
+var versions_default = {
+  "@storybook/addon-a11y": "10.3.4",
+  "@storybook/addon-docs": "10.3.4",
+  "@storybook/addon-links": "10.3.4",
+  "@storybook/addon-onboarding": "10.3.4",
+  "storybook-addon-pseudo-states": "10.3.4",
+  "@storybook/addon-themes": "10.3.4",
+  "@storybook/addon-vitest": "10.3.4",
+  "@storybook/builder-vite": "10.3.4",
+  "@storybook/builder-webpack5": "10.3.4",
+  storybook: "10.3.4",
+  "@storybook/angular": "10.3.4",
+  "@storybook/ember": "10.3.4",
+  "@storybook/html-vite": "10.3.4",
+  "@storybook/nextjs": "10.3.4",
+  "@storybook/nextjs-vite": "10.3.4",
+  "@storybook/preact-vite": "10.3.4",
+  "@storybook/react-native-web-vite": "10.3.4",
+  "@storybook/react-vite": "10.3.4",
+  "@storybook/react-webpack5": "10.3.4",
+  "@storybook/server-webpack5": "10.3.4",
+  "@storybook/svelte-vite": "10.3.4",
+  "@storybook/sveltekit": "10.3.4",
+  "@storybook/vue3-vite": "10.3.4",
+  "@storybook/web-components-vite": "10.3.4",
+  sb: "10.3.4",
+  "@storybook/cli": "10.3.4",
+  "@storybook/codemod": "10.3.4",
+  "@storybook/core-webpack": "10.3.4",
+  "create-storybook": "10.3.4",
+  "@storybook/csf-plugin": "10.3.4",
+  "eslint-plugin-storybook": "10.3.4",
+  "@storybook/react-dom-shim": "10.3.4",
+  "@storybook/preset-create-react-app": "10.3.4",
+  "@storybook/preset-react-webpack": "10.3.4",
+  "@storybook/preset-server-webpack": "10.3.4",
+  "@storybook/html": "10.3.4",
+  "@storybook/preact": "10.3.4",
+  "@storybook/react": "10.3.4",
+  "@storybook/server": "10.3.4",
+  "@storybook/svelte": "10.3.4",
+  "@storybook/vue3": "10.3.4",
+  "@storybook/web-components": "10.3.4"
+};
+
+export {
+  versions_default
+};

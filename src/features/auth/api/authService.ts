@@ -4,7 +4,7 @@ import {
   sanitizeRedirectTarget,
 } from '@/features/auth/utils/authFlow'
 import { getApiClient } from '@/services/api'
-import { getAuthProvider, type AuthBootstrap as ProviderAuthBootstrap } from '@/services/auth'
+import { type AuthBootstrap as ProviderAuthBootstrap, getAuthProvider } from '@/services/auth'
 import { logDevError } from '@/utils/logDevError'
 import { addBreadcrumb, captureError } from '@/utils/sentry'
 

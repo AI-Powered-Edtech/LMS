@@ -22,12 +22,13 @@
  * ```
  */
 
-import { useEffect, useState, useRef, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { getRealtimeProvider } from '@/services/realtime/realtimeProvider'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
 import { gradebookKeys } from '@/features/gradebook/queries/gradebookKeys'
 import type { GradebookEntry } from '@/features/gradebook/types'
-import type { RealtimeChannelStatus, PostgresChangesPayload } from '@/services/realtime/types'
+import { getRealtimeProvider } from '@/services/realtime/realtimeProvider'
+import type { PostgresChangesPayload, RealtimeChannelStatus } from '@/services/realtime/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
