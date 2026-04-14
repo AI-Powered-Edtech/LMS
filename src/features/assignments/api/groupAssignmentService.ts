@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { logDevError } from '@/src/utils/logDevError'
 
 // ============================================================
@@ -56,9 +56,9 @@ export const groupAssignmentService = {
    * Returns the group, members, and submission for the calling student.
    */
   async getStudentGroup(assignmentId: string): Promise<StudentGroupData | null> {
-    const { data, error } = await supabase.rpc('get_student_group_assignment', {
-      p_assignment_id: assignmentId,
-    })
+    const { data, error } = await apiFetch('/rpc/get_student_group_assignment', { method: 'POST', body: JSON.stringify({
+          p_assignment_id: assignmentId,
+        }) })
 
     if (error) {
       logDevError('groupAssignmentService', 'Error fetching student group:', error)
@@ -72,9 +72,9 @@ export const groupAssignmentService = {
    * Returns all groups with members and submission status for a teacher.
    */
   async getTeacherGroups(assignmentId: string): Promise<TeacherGroupEntry[]> {
-    const { data, error } = await supabase.rpc('get_teacher_group_overview', {
-      p_assignment_id: assignmentId,
-    })
+    const { data, error } = await apiFetch('/rpc/get_teacher_group_overview', { method: 'POST', body: JSON.stringify({
+          p_assignment_id: assignmentId,
+        }) })
 
     if (error) {
       logDevError('groupAssignmentService', 'Error fetching teacher groups:', error)
@@ -88,10 +88,10 @@ export const groupAssignmentService = {
    * Teacher creates groups with assigned members for an assignment.
    */
   async createGroups(assignmentId: string, groups: CreateGroupInput[]): Promise<void> {
-    const { error } = await supabase.rpc('create_assignment_groups', {
-      p_assignment_id: assignmentId,
-      p_groups: groups,
-    })
+    const { error } = await apiFetch('/rpc/create_assignment_groups', { method: 'POST', body: JSON.stringify({
+          p_assignment_id: assignmentId,
+          p_groups: groups,
+        }) })
 
     if (error) {
       logDevError('groupAssignmentService', 'Error creating groups:', error)
@@ -108,12 +108,12 @@ export const groupAssignmentService = {
     content?: string
     fileUrl?: string
   }): Promise<string> {
-    const { data, error } = await supabase.rpc('submit_group_assignment', {
-      p_group_id: params.groupId,
-      p_assignment_id: params.assignmentId,
-      p_content: params.content ?? null,
-      p_file_url: params.fileUrl ?? null,
-    })
+    const { data, error } = await apiFetch('/rpc/submit_group_assignment', { method: 'POST', body: JSON.stringify({
+          p_group_id: params.groupId,
+          p_assignment_id: params.assignmentId,
+          p_content: params.content ?? null,
+          p_file_url: params.fileUrl ?? null,
+        }) })
 
     if (error) {
       logDevError('groupAssignmentService', 'Error submitting group assignment:', error)
@@ -132,11 +132,11 @@ export const groupAssignmentService = {
     grade: number
     feedback?: string
   }): Promise<void> {
-    const { error } = await supabase.rpc('grade_group_submission', {
-      p_submission_id: params.submissionId,
-      p_grade: params.grade,
-      p_feedback: params.feedback ?? null,
-    })
+    const { error } = await apiFetch('/rpc/grade_group_submission', { method: 'POST', body: JSON.stringify({
+          p_submission_id: params.submissionId,
+          p_grade: params.grade,
+          p_feedback: params.feedback ?? null,
+        }) })
 
     if (error) {
       logDevError('groupAssignmentService', 'Error grading group submission:', error)

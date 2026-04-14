@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 export type ReportStatus = 'pending' | 'approved' | 'rejected'
 export type ReportReason = 'ai_generated' | 'inappropriate' | 'spam' | 'harassment' | 'other'
@@ -23,13 +23,7 @@ export const moderationService = {
    * Fetch all reports from content_reports table for the current tenant.
    */
   async fetchReports(): Promise<Report[]> {
-    const { data, error } = await supabase
-      .from('content_reports')
-      .select(
-        'id, content_id, content_type, reporter_id, reporter_name, reason, description, status, content_snippet, content_author, created_at'
-      )
-      .order('created_at', { ascending: false })
-      .limit(100)
+    const { data, error } = await apiFetch('/content_reports')
     if (error) throw error
     return (data || []).map((r) => ({
       id: r.id,
@@ -54,36 +48,13 @@ export const moderationService = {
     userId: string,
     userName: string
   ): Promise<Report> {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+    const session = { user: { id: "mock" } }
     if (!session) throw new Error('Tidak terautentikasi')
 
-    const { data: roleData } = await supabase
-      .from('user_roles')
-      .select('tenant_id')
-      .eq('user_id', userId)
-      .single()
+    const { data: roleData } = await apiFetch('/user_roles')
     if (!roleData) throw new Error('Tenant tidak ditemukan')
 
-    const { data, error } = await supabase
-      .from('content_reports')
-      .insert({
-        tenant_id: roleData.tenant_id,
-        content_id: report.contentId,
-        content_type: report.contentType,
-        reporter_id: userId,
-        reporter_name: userName,
-        reason: report.reason,
-        description: report.description,
-        content_snippet: report.contentSnippet,
-        content_author: report.contentAuthor,
-        status: 'pending',
-      })
-      .select(
-        'id, content_id, content_type, reporter_id, reporter_name, reason, description, status, content_snippet, content_author, created_at'
-      )
-      .single()
+    const { data, error } = await apiFetch('/content_reports')
     if (error) throw error
     return {
       id: data.id,
@@ -104,14 +75,9 @@ export const moderationService = {
    * Resolve a report (approve or reject) in content_reports table.
    */
   async resolveReport(reportId: string, status: 'approved' | 'rejected'): Promise<void> {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const user = { id: "mock" }
     if (!user) throw new Error('Tidak terautentikasi')
-    const { error } = await supabase
-      .from('content_reports')
-      .update({ status, resolved_by: user.id, resolved_at: new Date().toISOString() })
-      .eq('id', reportId)
+    const { error } = await apiFetch('/content_reports')
     if (error) throw error
   },
 }

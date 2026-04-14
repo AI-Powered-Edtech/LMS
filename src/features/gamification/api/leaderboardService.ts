@@ -5,7 +5,7 @@
  * All methods require tenantId for proper multi-tenant isolation.
  */
 
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 import type { LeaderboardEntry } from '../types'
 
@@ -20,19 +20,7 @@ export const leaderboardService = {
    */
   async getLeaderboard(classId: string, tenantId: string): Promise<LeaderboardEntry[]> {
     // Try with class_id filter (migration 052+)
-    let query = supabase
-      .from('leaderboards')
-      .select(
-        `
-                points,
-                rank,
-                user_id,
-                profiles(full_name, avatar_url)
-              `
-      )
-      .eq('tenant_id', tenantId)
-      .order('rank', { ascending: true })
-      .limit(20)
+    let query = apiFetch('/leaderboards')
 
     // Only filter by class_id if provided
     if (classId) {
@@ -47,12 +35,7 @@ export const leaderboardService = {
         return []
       // If class_id or score column doesn't exist, try minimal query
       if (error.code === '42703') {
-        const { data: fallback, error: fbError } = await supabase
-          .from('leaderboards')
-          .select('points, rank, user_id, profiles(full_name, avatar_url)')
-          .eq('tenant_id', tenantId)
-          .order('rank', { ascending: true })
-          .limit(20)
+        const { data: fallback, error: fbError } = await apiFetch('/leaderboards')
 
         if (fbError) throw fbError
         // Map points → score for type compatibility
@@ -91,20 +74,7 @@ export const leaderboardService = {
     now.setUTCHours(0, 0, 0, 0)
     const weekStart = now.toISOString()
 
-    let query = supabase
-      .from('leaderboards_weekly')
-      .select(
-        `
-                score,
-                rank,
-                user_id,
-                profiles(full_name, avatar_url)
-            `
-      )
-      .eq('tenant_id', tenantId)
-      .eq('week_start', weekStart)
-      .order('rank', { ascending: true })
-      .limit(20)
+    let query = apiFetch('/leaderboards_weekly')
 
     if (classId) {
       query = query.eq('class_id', classId)

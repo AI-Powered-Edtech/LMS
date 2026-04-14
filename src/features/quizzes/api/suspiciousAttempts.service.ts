@@ -5,7 +5,7 @@
  * Teachers can mark attempts as reviewed or override scores.
  */
 
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { validateArray } from '@/src/shared/lib/validate'
 import { CheatingSignalRowSchema } from '@/src/shared/schemas'
 
@@ -55,31 +55,7 @@ export async function getSuspiciousAttempts(
   tenantId: string
 ): Promise<SuspiciousAttempt[]> {
   // Get all cheating signals for this quiz's attempts
-  const { data: signals, error: signalError } = await supabase
-    .from('quiz_cheating_signals')
-    .select(
-      `
-      id,
-      attempt_id,
-      signal_type,
-      metadata,
-      created_at,
-      quiz_attempts_v2!inner (
-        id,
-        student_id,
-        quiz_id,
-        score,
-        status,
-        is_reviewed,
-        tenant_id,
-        profiles!quiz_attempts_v2_student_id_fkey ( full_name ),
-        quizzes!quiz_attempts_v2_quiz_id_fkey ( title )
-      )
-    `
-    )
-    .eq('quiz_attempts_v2.quiz_id', quizId)
-    .eq('quiz_attempts_v2.tenant_id', tenantId)
-    .order('created_at', { ascending: true })
+  const { data: signals, error: signalError } = await apiFetch('/quiz_cheating_signals')
 
   if (signalError) {
     if (import.meta.env.DEV) console.error('Error fetching cheating signals:', signalError)
@@ -161,11 +137,7 @@ export async function getSuspiciousAttempts(
  * Get the total count of suspicious attempts for a quiz (for badge display).
  */
 export async function getSuspiciousAttemptCount(quizId: string, tenantId: string): Promise<number> {
-  const { count, error } = await supabase
-    .from('quiz_cheating_signals')
-    .select('attempt_id', { count: 'exact', head: true })
-    .eq('quiz_attempts_v2.quiz_id', quizId)
-    .eq('quiz_attempts_v2.tenant_id', tenantId)
+  const { count, error } = await apiFetch('/quiz_cheating_signals')
 
   if (error) {
     if (import.meta.env.DEV) console.error('Error counting suspicious attempts:', error)

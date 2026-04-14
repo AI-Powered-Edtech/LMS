@@ -15,7 +15,7 @@ export function Gradebook() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      {/* Gradebook per Kursus (data Supabase) */}
+      {/* Gradebook per Kursus (data API) */}
       <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm p-4 sm:p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">

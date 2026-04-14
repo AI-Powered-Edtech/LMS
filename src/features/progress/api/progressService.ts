@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 export interface StudentProgressData {
   profile: {
@@ -38,9 +38,9 @@ export interface StudentProgressData {
 export const progressService = {
   async getStudentProgressBundle(studentId: string): Promise<StudentProgressData> {
     try {
-      const { data, error } = await supabase.rpc('get_student_progress_bundle', {
-        p_student_id: studentId,
-      })
+      const { data, error } = await apiFetch('/rpc/get_student_progress_bundle', { method: 'POST', body: JSON.stringify({
+              p_student_id: studentId,
+            }) })
 
       if (error) throw error
 

@@ -12,7 +12,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 const BADGE_STALE = 2 * 60 * 1000 // 2 menit
 
@@ -48,19 +48,7 @@ export function useNavBadges(): NavBadges {
     queryKey: navBadgeKeys.pendingAssignments(user?.id ?? '', tenantId ?? ''),
     queryFn: async () => {
       // Cari assignment yang published dan belum punya submission SUBMITTED
-      const { count, error } = await supabase
-        .from('assignments')
-        .select(
-          `id,
-           assignment_submissions!left(id, status)`,
-          { count: 'exact', head: false }
-        )
-        .eq('tenant_id', tenantId!)
-        .eq('is_published', true)
-        .or(
-          `assignment_submissions.student_id.is.null,assignment_submissions.status.neq.SUBMITTED`,
-          { foreignTable: 'assignment_submissions' }
-        )
+      const { count, error } = await apiFetch('/assignments')
 
       if (error) {
         if (import.meta.env.DEV) console.error('[useNavBadges] pendingAssignments error:', error)
@@ -77,9 +65,9 @@ export function useNavBadges(): NavBadges {
   const { data: unreadNotifications = 0 } = useQuery({
     queryKey: navBadgeKeys.unreadNotifications(user?.id ?? '', tenantId ?? ''),
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_unread_notification_count', {
-        p_user_id: user!.id,
-      })
+      const { data, error } = await apiFetch('/rpc/get_unread_notification_count', { method: 'POST', body: JSON.stringify({
+              p_user_id: user!.id,
+            }) })
 
       if (error) {
         if (import.meta.env.DEV) console.error('[useNavBadges] unreadNotifications error:', error)

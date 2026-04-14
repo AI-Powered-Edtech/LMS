@@ -72,23 +72,6 @@ export default defineConfig(({ mode }) => {
           navigateFallback: '/offline.html',
           runtimeCaching: [
             {
-              urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'supabase-api',
-                networkTimeoutSeconds: 5,
-                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 },
-              },
-            },
-            {
-              urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/v1\/object\/.*/i,
-              handler: 'StaleWhileRevalidate' as const,
-              options: {
-                cacheName: 'supabase-storage',
-                expiration: { maxEntries: 200, maxAgeSeconds: 7 * 24 * 60 * 60 }, // 7 days
-              },
-            },
-            {
               urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
               handler: 'CacheFirst',
               options: {
@@ -136,7 +119,6 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-            'vendor-supabase': ['@supabase/supabase-js'],
             'vendor-recharts': ['recharts'],
             'vendor-katex': ['katex'],
             'vendor-query': ['@tanstack/react-query'],

@@ -1,3 +1,4 @@
+import { api } from "@/src/lib/api"
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { storageService } from '../api/storageService'
@@ -22,8 +23,8 @@ const { mockStorageRemove, mockStorageFrom, mockSingle, mockFrom } = vi.hoisted(
   }
 })
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/src/services/api/client', () => ({
+  api: {
     from: mockFrom,
     storage: {
       from: mockStorageFrom,

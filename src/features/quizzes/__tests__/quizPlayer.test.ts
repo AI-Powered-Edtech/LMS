@@ -1,3 +1,4 @@
+import { api } from "@/src/lib/api"
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { startQuizAttempt, submitQuizAttempt } from '../api/quizPlayer.service'
@@ -5,8 +6,8 @@ import { startQuizAttempt, submitQuizAttempt } from '../api/quizPlayer.service'
 const mockRpc = vi.fn()
 const mockGetSession = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/src/services/api/client', () => ({
+  api: {
     rpc: (...args: unknown[]) => mockRpc(...args),
     auth: {
       getSession: () => mockGetSession(),

@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { validateArray } from '@/src/shared/lib/validate'
 import { TenantInvitationRowSchema } from '@/src/shared/schemas'
 
@@ -34,12 +34,12 @@ export interface GetUsersParams {
 }
 
 export async function getTenantUsers(params: GetUsersParams = {}): Promise<TenantUser[]> {
-  const { data, error } = await supabase.rpc('get_tenant_users', {
-    p_search: params.search || null,
-    p_role: params.role || null,
-    p_cursor: params.cursor || null,
-    p_limit: params.limit || 20,
-  })
+  const { data, error } = await apiFetch('/rpc/get_tenant_users', { method: 'POST', body: JSON.stringify({
+      p_search: params.search || null,
+      p_role: params.role || null,
+      p_cursor: params.cursor || null,
+      p_limit: params.limit || 20,
+    }) })
 
   if (error) throw error
   return (data ?? []) as TenantUser[]
@@ -49,29 +49,26 @@ export async function updateUserRole(
   userId: string,
   newRole: string
 ): Promise<{ old_role: string; new_role: string }> {
-  const { data, error } = await supabase.rpc('update_user_role', {
-    p_user_id: userId,
-    p_new_role: newRole,
-  })
+  const { data, error } = await apiFetch('/rpc/update_user_role', { method: 'POST', body: JSON.stringify({
+      p_user_id: userId,
+      p_new_role: newRole,
+    }) })
 
   if (error) throw error
   return data as { old_role: string; new_role: string }
 }
 
 export async function deactivateUser(userId: string, active: boolean = false): Promise<void> {
-  const { error } = await supabase.rpc('deactivate_user', {
-    p_user_id: userId,
-    p_active: active,
-  })
+  const { error } = await apiFetch('/rpc/deactivate_user', { method: 'POST', body: JSON.stringify({
+      p_user_id: userId,
+      p_active: active,
+    }) })
 
   if (error) throw error
 }
 
 export async function getInvitations(): Promise<TenantInvitation[]> {
-  const { data, error } = await supabase
-    .from('tenant_invitations')
-    .select('id, email, role, status, token, expires_at, created_at, accepted_at')
-    .order('created_at', { ascending: false })
+  const { data, error } = await apiFetch('/tenant_invitations')
 
   if (error) throw error
   validateArray(TenantInvitationRowSchema, data ?? [], 'adminUserService.getInvitations')
@@ -79,10 +76,7 @@ export async function getInvitations(): Promise<TenantInvitation[]> {
 }
 
 export async function revokeInvitation(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('tenant_invitations')
-    .update({ status: 'revoked' })
-    .eq('id', id)
+  const { error } = await apiFetch('/tenant_invitations')
 
   if (error) throw error
 }

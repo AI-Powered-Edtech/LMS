@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { useToast } from '@/src/components/ui'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 import { useAuth } from '../contexts/AuthContext'
 
@@ -52,10 +52,10 @@ export function WorkspaceSelector() {
 
     setIsSubmitting(true)
     try {
-      const { data, error } = await supabase.rpc('onboard_student_join_class', {
-        p_join_code: joinCode.trim(),
-        p_full_name: fullName.trim(),
-      })
+      const { data, error } = await apiFetch('/rpc/onboard_student_join_class', { method: 'POST', body: JSON.stringify({
+              p_join_code: joinCode.trim(),
+              p_full_name: fullName.trim(),
+            }) })
 
       if (error) throw error
 
@@ -88,11 +88,11 @@ export function WorkspaceSelector() {
 
     setIsSubmitting(true)
     try {
-      const { error } = await supabase.rpc('create_school_tenant', {
-        p_school_name: schoolName.trim(),
-        p_full_name: fullName.trim(),
-        p_role: 'teacher',
-      })
+      const { error } = await apiFetch('/rpc/create_school_tenant', { method: 'POST', body: JSON.stringify({
+              p_school_name: schoolName.trim(),
+              p_full_name: fullName.trim(),
+              p_role: 'teacher',
+            }) })
 
       if (error) throw error
 
@@ -121,11 +121,11 @@ export function WorkspaceSelector() {
 
     setIsSubmitting(true)
     try {
-      const { error } = await supabase.rpc('create_school_tenant', {
-        p_school_name: schoolName.trim(),
-        p_full_name: fullName.trim(),
-        p_role: 'admin',
-      })
+      const { error } = await apiFetch('/rpc/create_school_tenant', { method: 'POST', body: JSON.stringify({
+              p_school_name: schoolName.trim(),
+              p_full_name: fullName.trim(),
+              p_role: 'admin',
+            }) })
 
       if (error) throw error
 

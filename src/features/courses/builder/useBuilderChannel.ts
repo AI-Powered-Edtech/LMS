@@ -1,7 +1,5 @@
-import { type RealtimeChannel } from '@supabase/supabase-js'
+import { api, apiFetch } from '@/src/lib/api'
 import { useCallback, useEffect, useRef, useState } from 'react'
-
-import { supabase } from '@/src/services/supabase/client'
 
 import type { BuilderAction } from './builderReducer'
 
@@ -19,14 +17,14 @@ export function useBuilderChannel(
   dispatch: React.Dispatch<BuilderAction>,
   onReconnect?: () => void
 ) {
-  const channelRef = useRef<RealtimeChannel | null>(null)
+  const channelRef = useRef<any | null>(null)
   const [channelStatus, setChannelStatus] = useState<ChannelStatus>('disconnected')
 
   // Subscribe to channel when courseId is available
   useEffect(() => {
     if (!courseId || !userId) return
 
-    const channel = supabase.channel(`builder:${courseId}`, {
+    const channel = api.channel(`builder:${courseId}`, {
       config: { broadcast: { self: false } },
     })
 

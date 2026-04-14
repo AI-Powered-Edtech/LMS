@@ -1,7 +1,7 @@
 /**
  * AI Tutor Service — Client for the AI Tutor Edge Function
  *
- * Handles communication with the Supabase Edge Function for AI-powered
+ * Handles communication with the API Edge Function for AI-powered
  * tutoring within the Smart Player.
  */
 
@@ -16,8 +16,8 @@ export {
   validateQuestion,
 } from './promptBuilder'
 
-// Import supabase for internal use
-import { supabase } from '@/src/services/supabase/client'
+// Import api for internal use
+import { api, apiFetch } from '@/src/lib/api'
 
 /**
  * Ask a question to the AI Tutor
@@ -33,7 +33,7 @@ export async function askTutor(
   sessionId?: string
 ): Promise<{ data?: import('../types').AITutorResponse; error?: import('../types').AITutorError }> {
   try {
-    const { data, error } = await supabase.functions.invoke('ai-tutor', {
+    const { data, error } = await api.functions.invoke('ai-tutor', {
       body: {
         lesson_id: lessonId,
         question: question.trim(),
@@ -44,7 +44,7 @@ export async function askTutor(
 
     if (error) {
       if (import.meta.env.DEV) console.error('[AI Tutor] Edge Function error:', error)
-      // Translate raw Supabase SDK network/invoke errors to Indonesian
+      // Translate raw API SDK network/invoke errors to Indonesian
       const rawMsg: string = error.message ?? ''
       const indonesianMsg = rawMsg.includes('Failed to send a request')
         ? 'Tutor AI sedang tidak tersedia. Silakan coba lagi nanti.'

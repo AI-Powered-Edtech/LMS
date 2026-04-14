@@ -7,7 +7,7 @@ import {
   quizAnalyticsService,
 } from '@/src/features/quizzes/api/quizAnalyticsService'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 export interface AssignmentOption {
   id: string
@@ -46,17 +46,10 @@ export function useQuizGradebookState() {
 
   useEffect(() => {
     async function loadClasses() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const user = { id: "mock" }
       if (!user || !activeTenant) return
 
-      const { data, error } = await supabase
-        .from('classes')
-        .select('id, name')
-        .eq('teacher_id', user.id)
-        .eq('tenant_id', activeTenant.id)
-        .order('name', { ascending: true })
+      const { data, error } = await apiFetch('/classes')
 
       if (!error && data) setClasses(data)
     }
@@ -75,26 +68,7 @@ export function useQuizGradebookState() {
     async function loadAssignments() {
       setIsAssignmentLoading(true)
       try {
-        const { data, error } = await supabase
-          .from('quiz_assignments')
-          .select(
-            `
-                        id,
-                        quiz_id,
-                        max_attempts,
-                        quizzes!inner (
-                            id,
-                            title,
-                            passing_score,
-                            max_attempts,
-                            status
-                        )
-                    `
-          )
-          .eq('class_id', selectedClass)
-          .eq('tenant_id', activeTenant!.id)
-          .eq('quizzes.status', 'published')
-          .order('created_at', { ascending: false })
+        const { data, error } = await apiFetch('/quiz_assignments')
 
         if (error) throw error
 

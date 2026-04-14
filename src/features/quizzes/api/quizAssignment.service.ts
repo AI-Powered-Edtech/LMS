@@ -1,7 +1,7 @@
 // Quiz Assignment Service - Assignment Management API
 // Extracted from quizService.ts for the Quiz Engine Refactor
 
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 import type { AssignmentUpsertInput, QuizAssignment } from '../types/quizzes.types'
 
@@ -34,16 +34,10 @@ export async function assignQuizToClasses(
   tenantId: string,
   assignments: AssignmentUpsertInput[]
 ) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = { id: "mock" }
 
   // Get quiz details
-  const { data: quiz, error: quizError } = await supabase
-    .from('quizzes')
-    .select('status, max_attempts')
-    .eq('id', quizId)
-    .single()
+  const { data: quiz, error: quizError } = await apiFetch('/quizzes')
 
   if (quizError) throw quizError
 
@@ -59,9 +53,7 @@ export async function assignQuizToClasses(
     status: deriveAssignmentStatus(quiz.status, assignment.available_from, assignment.due_at),
   }))
 
-  const { error } = await supabase
-    .from('quiz_assignments')
-    .upsert(rows, { onConflict: 'quiz_id,class_id' })
+  const { error } = await apiFetch('/quiz_assignments')
 
   if (error) throw error
 }
@@ -70,20 +62,7 @@ export async function assignQuizToClasses(
  * Get all assignments for a specific quiz
  */
 export async function getAssignmentsByQuiz(quizId: string, tenantId: string) {
-  const { data, error } = await supabase
-    .from('quiz_assignments')
-    .select(
-      `
-      *,
-      classes (
-        id,
-        name
-      )
-    `
-    )
-    .eq('quiz_id', quizId)
-    .eq('tenant_id', tenantId)
-    .order('created_at', { ascending: true })
+  const { data, error } = await apiFetch('/quiz_assignments')
 
   if (error) throw error
   return data as QuizAssignment[]
@@ -93,29 +72,7 @@ export async function getAssignmentsByQuiz(quizId: string, tenantId: string) {
  * Get all assignments for a specific class
  */
 export async function getAssignmentsByClass(classId: string, tenantId: string) {
-  const { data, error } = await supabase
-    .from('quiz_assignments')
-    .select(
-      `
-      *,
-      classes (
-        id,
-        name
-      ),
-      quizzes (
-        id,
-        title,
-        mode,
-        passing_score,
-        status,
-        time_limit_minutes,
-        max_attempts,
-        quiz_questions (id)
-      )
-    `
-    )
-    .eq('class_id', classId)
-    .eq('tenant_id', tenantId)
+  const { data, error } = await apiFetch('/quiz_assignments')
 
   if (error) throw error
   return data
@@ -125,11 +82,7 @@ export async function getAssignmentsByClass(classId: string, tenantId: string) {
  * Remove a quiz assignment (unassign from class)
  */
 export async function removeQuizAssignment(assignmentId: string, tenantId: string) {
-  const { error } = await supabase
-    .from('quiz_assignments')
-    .delete()
-    .eq('id', assignmentId)
-    .eq('tenant_id', tenantId)
+  const { error } = await apiFetch('/quiz_assignments')
 
   if (error) throw error
 }

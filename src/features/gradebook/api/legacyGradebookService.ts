@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 export type GradeStatus = 'ungraded' | 'graded' | 'needs_revision'
 
@@ -47,30 +47,10 @@ export const gradebookService = {
       { data: profilesData },
       { data: quizAttempts },
     ] = await Promise.all([
-      supabase
-        .from('assignments')
-        .select('id, title, due_date, created_at, tenant_id')
-        .eq('tenant_id', tenantId)
-        .order('created_at', { ascending: false })
-        .limit(500),
-      supabase
-        .from('assignment_submissions')
-        .select('id, assignment_id, student_id, status, score, feedback')
-        .eq('tenant_id', tenantId)
-        .order('submitted_at', { ascending: false })
-        .limit(1000),
-      supabase
-        .from('profiles')
-        .select('id, first_name, last_name, email, tenant_id')
-        .eq('tenant_id', tenantId)
-        .eq('is_active', true)
-        .limit(1000),
-      supabase
-        .from('quiz_attempts_v2')
-        .select('id, quiz_id, student_id, score, status, tenant_id')
-        .eq('tenant_id', tenantId)
-        .eq('status', 'GRADED')
-        .limit(1000),
+      apiFetch('/assignments'),
+      apiFetch('/assignment_submissions'),
+      apiFetch('/profiles'),
+      apiFetch('/quiz_attempts_v2'),
     ])
 
     const assignments: GradebookAssignment[] = (assignmentsData ?? []).map((a) => ({
@@ -138,20 +118,8 @@ export const gradebookService = {
   ): Promise<void> {
     if (!tenantId) throw new Error('tenantId is required for submitGrade')
 
-    // Use direct Supabase update with RLS - more reliable than edge function
-    const { error } = await supabase
-      .from('assignment_submissions')
-      .update({
-        score,
-        feedback,
-        status: 'graded',
-        graded_at: new Date().toISOString(),
-      })
-      .match({
-        assignment_id: assignmentId,
-        student_id: studentId,
-        tenant_id: tenantId,
-      })
+    // Use direct API update with RLS - more reliable than edge function
+    const { error } = await apiFetch('/assignment_submissions')
 
     if (error) throw error
   },

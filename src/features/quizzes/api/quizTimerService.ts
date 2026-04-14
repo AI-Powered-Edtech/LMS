@@ -5,7 +5,7 @@
 // Extracted from quizPlayer.service.ts for modularity.
 // ==========================================================================
 
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { logDevError } from '@/src/utils/logDevError'
 
 import type { QuizAttemptQuestion, SubmitAnswer } from '../types/quizzes.types'
@@ -18,11 +18,11 @@ export async function recordCheatingSignal(
   signalType: string,
   metadata: Record<string, unknown> = {}
 ): Promise<void> {
-  const { error } = await supabase.rpc('record_cheating_signal', {
-    p_attempt_id: attemptId,
-    p_signal_type: signalType,
-    p_metadata: metadata,
-  })
+  const { error } = await apiFetch('/rpc/record_cheating_signal', { method: 'POST', body: JSON.stringify({
+      p_attempt_id: attemptId,
+      p_signal_type: signalType,
+      p_metadata: metadata,
+    }) })
 
   if (error) {
     logDevError('quizPlayer', 'Error recording cheating signal:', error)
@@ -33,9 +33,9 @@ export async function recordCheatingSignal(
  * Record a heartbeat to indicate the quiz is still in progress
  */
 export async function recordHeartbeat(attemptId: string): Promise<boolean> {
-  const { data, error } = await supabase.rpc('record_quiz_heartbeat', {
-    p_attempt_id: attemptId,
-  })
+  const { data, error } = await apiFetch('/rpc/record_quiz_heartbeat', { method: 'POST', body: JSON.stringify({
+      p_attempt_id: attemptId,
+    }) })
 
   if (error) {
     logDevError('quizPlayer', 'Heartbeat error:', error)

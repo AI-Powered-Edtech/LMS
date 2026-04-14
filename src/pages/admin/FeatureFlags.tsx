@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { EmptyState } from '@/src/components/ui'
 import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { cn } from '@/src/utils/cn'
 import { FeatureFlag, invalidateFlagCache } from '@/src/utils/featureFlags'
 
@@ -31,10 +31,7 @@ export default function FeatureFlagsPage() {
   const fetchFlags = useCallback(async () => {
     setLoading(true)
     setError(null)
-    const { data, error: fetchErr } = await supabase
-      .from('feature_flags')
-      .select('flag_name, enabled, tenant_ids, rollout_percentage')
-      .order('flag_name')
+    const { data, error: fetchErr } = await apiFetch('/feature_flags')
 
     if (fetchErr) {
       setError('Gagal memuat fitur flags. Coba muat ulang halaman.')
@@ -74,13 +71,7 @@ export default function FeatureFlagsPage() {
 
     try {
       for (const flag of dirty) {
-        const { error: updateErr } = await supabase
-          .from('feature_flags')
-          .update({
-            enabled: flag.enabled,
-            rollout_percentage: flag.rollout_percentage,
-          })
-          .eq('flag_name', flag.flag_name)
+        const { error: updateErr } = await apiFetch('/feature_flags')
 
         if (updateErr) throw updateErr
       }

@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 // ============================================================
 // Types (exported for use in AssignmentBlockEditor)
@@ -20,14 +20,7 @@ export interface AssignmentBlockData {
 
 export const builderAssignmentService = {
   async getAssignmentByLesson(lessonId: string, tenantId: string) {
-    const { data, error } = await supabase
-      .from('assignments')
-      .select(
-        'id, lesson_id, course_id, tenant_id, title, instructions, max_points, max_attempts, is_published, due_date, created_at'
-      )
-      .eq('lesson_id', lessonId)
-      .eq('tenant_id', tenantId)
-      .maybeSingle()
+    const { data, error } = await apiFetch('/assignments')
 
     if (error) throw new Error(error.message)
     return data || null
@@ -40,42 +33,11 @@ export const builderAssignmentService = {
     data: AssignmentBlockData
   ) {
     if (data.id) {
-      const { data: result, error } = await supabase
-        .from('assignments')
-        .update({
-          title: data.title,
-          instructions: data.instructions,
-          max_points: data.max_points,
-          max_attempts: data.max_attempts,
-          is_published: data.is_published,
-          due_date: data.due_date,
-        })
-        .eq('id', data.id)
-        .eq('tenant_id', tenantId)
-        .select(
-          'id, lesson_id, course_id, tenant_id, title, instructions, max_points, max_attempts, is_published, due_date, created_at'
-        )
-        .single()
+      const { data: result, error } = await apiFetch('/assignments')
       if (error) throw new Error(error.message)
       return result
     } else {
-      const { data: result, error } = await supabase
-        .from('assignments')
-        .insert({
-          lesson_id: lessonId,
-          course_id: courseId,
-          tenant_id: tenantId,
-          title: data.title,
-          instructions: data.instructions,
-          max_points: data.max_points,
-          max_attempts: data.max_attempts,
-          is_published: data.is_published,
-          due_date: data.due_date,
-        })
-        .select(
-          'id, lesson_id, course_id, tenant_id, title, instructions, max_points, max_attempts, is_published, due_date, created_at'
-        )
-        .single()
+      const { data: result, error } = await apiFetch('/assignments')
       if (error) throw new Error(error.message)
       return result
     }

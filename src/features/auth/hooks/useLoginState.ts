@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import {
   type LoginFormData,
   LoginFormSchema,
@@ -67,13 +67,18 @@ export function useLoginState() {
       if (token) {
         setInviteToken(token)
         setMode('register')
-        supabase.rpc('validate_invitation', { p_token: token }).then(({ data }) => {
+        apiFetch('/invitations/validate', {
+          method: 'POST',
+          body: JSON.stringify({ token })
+        }).then((data) => {
           if (data?.valid) {
             setInviteInfo(data as InviteInfo)
             registerForm.setValue('email', data.email)
           } else {
             setError(data?.error || 'Undangan tidak valid atau sudah kedaluwarsa.')
           }
+        }).catch((err) => {
+          setError(err.message || 'Gagal memvalidasi undangan')
         })
       }
     }
@@ -89,14 +94,20 @@ export function useLoginState() {
     }
     const timer = setTimeout(async () => {
       setClassLookupLoading(true)
-      const { data } = await supabase.rpc('public_lookup_class', { p_join_code: code })
-      setClassLookupLoading(false)
-      if (data?.found) {
-        setClassInfo(data as ClassInfo)
-        setClassLookupError('')
-      } else {
+      try {
+        const data = await apiFetch(`/classes/lookup?code=${code}`)
+        setClassLookupLoading(false)
+        if (data?.found) {
+          setClassInfo(data as ClassInfo)
+          setClassLookupError('')
+        } else {
+          setClassInfo(null)
+          if (code.length >= 5) setClassLookupError(data?.error ?? 'Kode tidak ditemukan')
+        }
+      } catch (err: any) {
+        setClassLookupLoading(false)
         setClassInfo(null)
-        if (code.length >= 5) setClassLookupError(data?.error ?? 'Kode tidak ditemukan')
+        if (code.length >= 5) setClassLookupError(err.message || 'Kode tidak ditemukan')
       }
     }, 500)
     return () => clearTimeout(timer)

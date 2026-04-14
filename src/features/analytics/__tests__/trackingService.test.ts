@@ -1,10 +1,11 @@
+import { api } from "@/src/lib/api"
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockInsert = vi.fn()
 const mockFrom = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/src/services/api/client', () => ({
+  api: {
     from: (...args: unknown[]) => mockFrom(...args),
   },
 }))

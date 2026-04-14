@@ -1,3 +1,4 @@
+import { api } from "@/src/lib/api"
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { fetchGradebookSettings, syncGradebook } from '../api/gradebookApi'
@@ -12,8 +13,8 @@ const { mockRpc, mockFrom, mockMaybeSingle } = vi.hoisted(() => {
   return { mockRpc, mockFrom, mockMaybeSingle }
 })
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/src/services/api/client', () => ({
+  api: {
     rpc: mockRpc,
     from: mockFrom,
   },

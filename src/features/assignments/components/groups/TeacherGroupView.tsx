@@ -1,3 +1,4 @@
+import { api } from "@/src/lib/api"
 import { ArrowLeft, Eye, PenTool, Plus, RefreshCw, Users } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useState } from 'react'
@@ -17,7 +18,7 @@ export function TeacherGroupView() {
     })
   }
 
-  // TODO: Replace with real data from Supabase API
+  // TODO: Replace with real data from API API
   const groups: {
     id: number
     name: string

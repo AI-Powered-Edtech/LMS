@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 export interface Discussion {
   id: string
@@ -49,11 +49,7 @@ export const discussionService = {
     courseId?: string
     parentId?: string | null
   }) {
-    let query = supabase
-      .from('discussions')
-      .select(DISCUSSION_COLUMNS)
-      .order('is_pinned', { ascending: false })
-      .order('created_at', { ascending: true })
+    let query = apiFetch('/discussions')
 
     if (options.tenantId) {
       query = query.eq('tenant_id', options.tenantId)
@@ -91,11 +87,7 @@ export const discussionService = {
   async saveDiscussion(
     discussion: Partial<Discussion> & { tenant_id: string; author_id: string; content: string }
   ) {
-    const { data, error } = await supabase
-      .from('discussions')
-      .upsert(discussion)
-      .select(DISCUSSION_COLUMNS)
-      .single()
+    const { data, error } = await apiFetch('/discussions')
 
     if (error) {
       if (import.meta.env.DEV) console.error('Error saving discussion:', error)
@@ -109,14 +101,7 @@ export const discussionService = {
    * Soft delete a discussion entry (preserves thread integrity)
    */
   async deleteDiscussion(id: string, tenantId: string) {
-    const { error } = await supabase
-      .from('discussions')
-      .update({
-        is_deleted: true,
-        content: '[Komentar ini telah dihapus]',
-      })
-      .eq('id', id)
-      .eq('tenant_id', tenantId)
+    const { error } = await apiFetch('/discussions')
 
     if (error) {
       if (import.meta.env.DEV) console.error('Error deleting discussion:', error)
@@ -128,11 +113,7 @@ export const discussionService = {
    * Toggle the pinned status of a discussion
    */
   async togglePin(id: string, is_pinned: boolean, tenantId: string) {
-    const { error } = await supabase
-      .from('discussions')
-      .update({ is_pinned })
-      .eq('id', id)
-      .eq('tenant_id', tenantId)
+    const { error } = await apiFetch('/discussions')
 
     if (error) {
       if (import.meta.env.DEV) console.error('Error toggling pin status:', error)
@@ -144,15 +125,7 @@ export const discussionService = {
    * Fetch top-level forum posts (no lesson/course/announcement context)
    */
   async fetchForumPosts(tenantId: string): Promise<Discussion[]> {
-    const { data, error } = await supabase
-      .from('discussions')
-      .select(DISCUSSION_COLUMNS)
-      .eq('tenant_id', tenantId)
-      .is('lesson_id', null)
-      .is('course_id', null)
-      .is('announcement_id', null)
-      .eq('is_deleted', false)
-      .order('created_at', { ascending: false })
+    const { data, error } = await apiFetch('/discussions')
 
     if (error) throw error
     return (data ?? []) as unknown as Discussion[]
@@ -162,22 +135,14 @@ export const discussionService = {
    * Vote on a discussion post (fire-and-forget).
    */
   async voteDiscussion(discussionId: string): Promise<void> {
-    await supabase.rpc('vote_discussion', { p_discussion_id: discussionId })
+    await apiFetch('/rpc/vote_discussion', { method: 'POST', body: JSON.stringify({ p_discussion_id: discussionId }) })
   },
 
   /**
    * Mark a comment as the best answer for a post.
    */
   async setBestAnswer(postId: string, commentId: string, tenantId: string): Promise<void> {
-    await supabase
-      .from('discussions')
-      .update({ is_best_answer: false })
-      .eq('parent_id', postId)
-      .eq('tenant_id', tenantId)
-    await supabase
-      .from('discussions')
-      .update({ is_best_answer: true })
-      .eq('id', commentId)
-      .eq('tenant_id', tenantId)
+    await apiFetch('/discussions')
+    await apiFetch('/discussions')
   },
 }

@@ -7,7 +7,7 @@ import { useClassroom } from '@/src/features/classroom/hooks/useClassroomQueries
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 export interface EnrolledStudent {
   id: string
@@ -65,12 +65,7 @@ export function useClassManagementState() {
       const counts: Record<string, number> = {}
       await Promise.all(
         classIds.map(async (id) => {
-          const { count } = await supabase
-            .from('enrollments')
-            .select('id', { count: 'exact', head: true })
-            .eq('class_id', id)
-            .eq('tenant_id', tenantId)
-            .eq('status', 'ACTIVE')
+          const { count } = await apiFetch('/enrollments')
           counts[id] = count ?? 0
         })
       )
@@ -86,18 +81,7 @@ export function useClassManagementState() {
       if (!tenantId) return
       setLoadingStudents(true)
       try {
-        const { data: enrollmentData, error: enrollmentError } = await supabase
-          .from('enrollments')
-          .select(
-            `
-          id,
-          joined_at,
-          student:profiles!enrollments_student_id_fkey(id, full_name, email)
-        `
-          )
-          .eq('class_id', classId)
-          .eq('tenant_id', tenantId)
-          .eq('status', 'ACTIVE')
+        const { data: enrollmentData, error: enrollmentError } = await apiFetch('/enrollments')
         if (enrollmentError) throw enrollmentError
 
         setStudents(
@@ -205,14 +189,7 @@ export function useClassManagementState() {
   const handleRemoveStudent = async (student: EnrolledStudent) => {
     if (!confirm(`Keluarkan ${student.full_name} dari kelas ini?`)) return
     try {
-      const { error } = await supabase
-        .from('enrollments')
-        .update({
-          status: 'REMOVED',
-          removed_at: new Date().toISOString(),
-          removed_by: user?.id,
-        })
-        .eq('id', student.id)
+      const { error } = await apiFetch('/enrollments')
       if (error) throw error
       // Refresh student list
       fetchStudents(selectedClassId!)

@@ -5,7 +5,7 @@ import { EmptyState } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { ProgressSkeleton } from '@/src/features/progress/components/ProgressSkeleton'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 const STATUS_CONFIG = {
   hadir: {
@@ -45,14 +45,7 @@ export function StudentAttendance() {
   const { data: records = [], isLoading } = useQuery({
     queryKey: ['student-attendance', user?.id, tenantId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('attendance_records')
-        .select(
-          'id, scan_date, present_count, absent_count, sick_count, permit_count, details, class_id, classes(name)'
-        )
-        .eq('tenant_id', tenantId!)
-        .order('scan_date', { ascending: false })
-        .limit(60)
+      const { data, error } = await apiFetch('/attendance_records')
       if (error) throw error
       return data ?? []
     },

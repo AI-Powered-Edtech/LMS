@@ -1,11 +1,11 @@
 // ==========================================================================
 // Analytics Queries — analyticsQueries.ts
 //
-// Individual Supabase RPC/query functions for analytics data retrieval.
+// Individual API RPC/query functions for analytics data retrieval.
 // Extracted from analyticsService.ts for modularity.
 // ==========================================================================
 
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 import type {
   ActivityTimePoint,
@@ -34,10 +34,10 @@ import { parseRpcError } from './analyticsAggregation'
  * Refreshes the pre-aggregated course_stats.
  */
 export async function refreshCourseStats(courseId: string, tenantId: string): Promise<void> {
-  const { error } = await supabase.rpc('refresh_course_stats', {
-    p_course_id: courseId,
-    p_tenant_id: tenantId,
-  })
+  const { error } = await apiFetch('/rpc/refresh_course_stats', { method: 'POST', body: JSON.stringify({
+      p_course_id: courseId,
+      p_tenant_id: tenantId,
+    }) })
 
   if (error) {
     if (import.meta.env.DEV) console.error('Failed to refresh course stats:', error)
@@ -52,10 +52,10 @@ export async function getTeacherAnalytics(
   courseId: string,
   tenantId: string
 ): Promise<TeacherAnalyticsData | null> {
-  const { data, error } = await supabase.rpc('get_teacher_analytics', {
-    p_course_id: courseId,
-    p_tenant_id: tenantId,
-  })
+  const { data, error } = await apiFetch('/rpc/get_teacher_analytics', { method: 'POST', body: JSON.stringify({
+      p_course_id: courseId,
+      p_tenant_id: tenantId,
+    }) })
 
   if (error) {
     if (import.meta.env.DEV) console.error('Failed to get teacher analytics:', error)
@@ -69,7 +69,7 @@ export async function getTeacherAnalytics(
  * Refresh all course stats (admin only)
  */
 export async function refreshAllCourseStats(_tenantId: string): Promise<void> {
-  const { error } = await supabase.rpc('refresh_all_course_stats')
+  const { error } = await apiFetch('/rpc/refresh_all_course_stats', { method: 'POST' })
 
   if (error) {
     if (import.meta.env.DEV) console.error('Failed to refresh all course stats:', error)
@@ -81,12 +81,7 @@ export async function refreshAllCourseStats(_tenantId: string): Promise<void> {
  * Fetches tenant-level course_stats rows for aggregation.
  */
 export async function fetchTenantCourseStats(tenantId: string): Promise<CourseStatsRow[]> {
-  const { data, error } = await supabase
-    .from('course_stats')
-    .select(
-      'course_id, tenant_id, total_enrolled, active_students, avg_progress, avg_quiz_score, last_refreshed_at'
-    )
-    .eq('tenant_id', tenantId)
+  const { data, error } = await apiFetch('/course_stats')
 
   if (error) {
     if (import.meta.env.DEV) console.error('Failed to get tenant analytics overview:', error)
@@ -105,10 +100,10 @@ export async function fetchActivityCounts(
   tenantId: string,
   days: number
 ): Promise<{ event_type: string; count: number }[]> {
-  const { data, error } = await supabase.rpc('get_tenant_activity_counts', {
-    p_tenant_id: tenantId,
-    p_days: days,
-  })
+  const { data, error } = await apiFetch('/rpc/get_tenant_activity_counts', { method: 'POST', body: JSON.stringify({
+      p_tenant_id: tenantId,
+      p_days: days,
+    }) })
 
   if (error) {
     if (import.meta.env.DEV) console.error('Failed to get activity metrics via RPC:', error)
@@ -122,9 +117,9 @@ export async function fetchActivityCounts(
  * Fetches course engagement data via RPC.
  */
 export async function fetchCourseEngagement(tenantId: string): Promise<CourseEngagement[]> {
-  const { data, error } = await supabase.rpc('get_course_engagement', {
-    p_tenant_id: tenantId,
-  })
+  const { data, error } = await apiFetch('/rpc/get_course_engagement', { method: 'POST', body: JSON.stringify({
+      p_tenant_id: tenantId,
+    }) })
   if (error) {
     if (import.meta.env.DEV) console.error('Failed to get course engagement stats:', error)
     throw new Error('Gagal memuat data engagement kursus. Silakan coba lagi.')
@@ -155,10 +150,10 @@ export async function fetchActivityTimeline(
   tenantId: string,
   days: number
 ): Promise<ActivityTimePoint[]> {
-  const { data, error } = await supabase.rpc('get_activity_timeline', {
-    p_tenant_id: tenantId,
-    p_days: days,
-  })
+  const { data, error } = await apiFetch('/rpc/get_activity_timeline', { method: 'POST', body: JSON.stringify({
+      p_tenant_id: tenantId,
+      p_days: days,
+    }) })
 
   if (error) {
     if (import.meta.env.DEV) console.error('Failed to get activity timeline:', error)
@@ -199,7 +194,7 @@ export async function getCourseAnalyticsDashboard(
   courseId: string,
   _tenantId: string
 ): Promise<CourseAnalytics | null> {
-  const { data, error } = await supabase.rpc('get_course_analytics', { p_course_id: courseId })
+  const { data, error } = await apiFetch('/rpc/get_course_analytics', { method: 'POST', body: JSON.stringify({ p_course_id: courseId }) })
   if (error) throw parseRpcError(error)
   return (data as CourseAnalytics[])?.[0] ?? null
 }
@@ -208,7 +203,7 @@ export async function getLessonAnalyticsDashboard(
   courseId: string,
   _tenantId: string
 ): Promise<LessonAnalytics[]> {
-  const { data, error } = await supabase.rpc('get_lesson_analytics', { p_course_id: courseId })
+  const { data, error } = await apiFetch('/rpc/get_lesson_analytics', { method: 'POST', body: JSON.stringify({ p_course_id: courseId }) })
   if (error) throw parseRpcError(error)
   return (data as LessonAnalytics[]) ?? []
 }
@@ -218,10 +213,10 @@ export async function getStudentSignalsDashboard(
   _tenantId: string,
   lessonId?: string
 ): Promise<StudentSignal[]> {
-  const { data, error } = await supabase.rpc('get_student_signals', {
-    p_course_id: courseId,
-    p_lesson_id: lessonId ?? null,
-  })
+  const { data, error } = await apiFetch('/rpc/get_student_signals', { method: 'POST', body: JSON.stringify({
+      p_course_id: courseId,
+      p_lesson_id: lessonId ?? null,
+    }) })
   if (error) throw parseRpcError(error)
   return (data as StudentSignal[]) ?? []
 }
@@ -234,20 +229,20 @@ export async function saveFunnelDefinition(
   courseId?: string,
   funnelId?: string
 ): Promise<string> {
-  const { data, error } = await supabase.rpc('save_funnel_definition', {
-    p_name: name,
-    p_steps: steps,
-    p_course_id: courseId ?? null,
-    p_funnel_id: funnelId ?? null,
-  })
+  const { data, error } = await apiFetch('/rpc/save_funnel_definition', { method: 'POST', body: JSON.stringify({
+      p_name: name,
+      p_steps: steps,
+      p_course_id: courseId ?? null,
+      p_funnel_id: funnelId ?? null,
+    }) })
   if (error) throw parseRpcError(error)
   return data as string
 }
 
 export async function listFunnelDefinitions(courseId?: string): Promise<FunnelDefinition[]> {
-  const { data, error } = await supabase.rpc('list_funnel_definitions', {
-    p_course_id: courseId ?? null,
-  })
+  const { data, error } = await apiFetch('/rpc/list_funnel_definitions', { method: 'POST', body: JSON.stringify({
+      p_course_id: courseId ?? null,
+    }) })
   if (error) throw parseRpcError(error)
   return ((data as Array<Record<string, unknown>>) ?? []).map((r) => ({
     ...r,
@@ -256,12 +251,12 @@ export async function listFunnelDefinitions(courseId?: string): Promise<FunnelDe
 }
 
 export async function deleteFunnelDefinition(funnelId: string): Promise<void> {
-  const { error } = await supabase.rpc('delete_funnel_definition', { p_funnel_id: funnelId })
+  const { error } = await apiFetch('/rpc/delete_funnel_definition', { method: 'POST', body: JSON.stringify({ p_funnel_id: funnelId }) })
   if (error) throw parseRpcError(error)
 }
 
 export async function getFunnelResults(funnelId: string): Promise<FunnelStepResult[]> {
-  const { data, error } = await supabase.rpc('get_funnel_results', { p_funnel_id: funnelId })
+  const { data, error } = await apiFetch('/rpc/get_funnel_results', { method: 'POST', body: JSON.stringify({ p_funnel_id: funnelId }) })
   if (error) throw parseRpcError(error)
   return (data as FunnelStepResult[]) ?? []
 }
@@ -272,10 +267,10 @@ export async function getRetentionMatrix(
   courseId: string,
   weeksBack: number = 8
 ): Promise<RetentionRow[]> {
-  const { data, error } = await supabase.rpc('get_retention_matrix', {
-    p_course_id: courseId,
-    p_weeks_back: weeksBack,
-  })
+  const { data, error } = await apiFetch('/rpc/get_retention_matrix', { method: 'POST', body: JSON.stringify({
+      p_course_id: courseId,
+      p_weeks_back: weeksBack,
+    }) })
   if (error) throw parseRpcError(error)
   return (data as RetentionRow[]) ?? []
 }
@@ -283,7 +278,7 @@ export async function getRetentionMatrix(
 // ── SP-16: Engagement Scoring ──────────────────────────────────
 
 export async function getEngagementSummary(courseId: string): Promise<EngagementSummaryRow[]> {
-  const { data, error } = await supabase.rpc('get_engagement_summary', { p_course_id: courseId })
+  const { data, error } = await apiFetch('/rpc/get_engagement_summary', { method: 'POST', body: JSON.stringify({ p_course_id: courseId }) })
   if (error) throw parseRpcError(error)
   return (data as EngagementSummaryRow[]) ?? []
 }
@@ -292,10 +287,10 @@ export async function getEngagementTrend(
   courseId: string,
   days: number = 30
 ): Promise<EngagementTrendPoint[]> {
-  const { data, error } = await supabase.rpc('get_engagement_trend', {
-    p_course_id: courseId,
-    p_days: days,
-  })
+  const { data, error } = await apiFetch('/rpc/get_engagement_trend', { method: 'POST', body: JSON.stringify({
+      p_course_id: courseId,
+      p_days: days,
+    }) })
   if (error) throw parseRpcError(error)
   return (data as EngagementTrendPoint[]) ?? []
 }
@@ -306,19 +301,19 @@ export async function getLearningPaths(
   courseId: string,
   minUsers: number = 1
 ): Promise<LearningPath[]> {
-  const { data, error } = await supabase.rpc('get_learning_paths', {
-    p_course_id: courseId,
-    p_min_users: minUsers,
-  })
+  const { data, error } = await apiFetch('/rpc/get_learning_paths', { method: 'POST', body: JSON.stringify({
+      p_course_id: courseId,
+      p_min_users: minUsers,
+    }) })
   if (error) throw parseRpcError(error)
   return (data as LearningPath[]) ?? []
 }
 
 export async function getStudentPath(userId: string, courseId: string): Promise<StudentPathStep[]> {
-  const { data, error } = await supabase.rpc('get_student_path', {
-    p_user_id: userId,
-    p_course_id: courseId,
-  })
+  const { data, error } = await apiFetch('/rpc/get_student_path', { method: 'POST', body: JSON.stringify({
+      p_user_id: userId,
+      p_course_id: courseId,
+    }) })
   if (error) throw parseRpcError(error)
   return (data as StudentPathStep[]) ?? []
 }
@@ -329,10 +324,10 @@ export async function getAtRiskStudents(
   courseId: string,
   minRisk: number = 0.3
 ): Promise<StudentPrediction[]> {
-  const { data, error } = await supabase.rpc('get_at_risk_students', {
-    p_course_id: courseId,
-    p_min_risk: minRisk,
-  })
+  const { data, error } = await apiFetch('/rpc/get_at_risk_students', { method: 'POST', body: JSON.stringify({
+      p_course_id: courseId,
+      p_min_risk: minRisk,
+    }) })
   if (error) throw parseRpcError(error)
   return (data as StudentPrediction[]) ?? []
 }
@@ -341,18 +336,18 @@ export async function getStudentPrediction(
   userId: string,
   courseId: string
 ): Promise<PredictionDetail | null> {
-  const { data, error } = await supabase.rpc('get_student_prediction', {
-    p_user_id: userId,
-    p_course_id: courseId,
-  })
+  const { data, error } = await apiFetch('/rpc/get_student_prediction', { method: 'POST', body: JSON.stringify({
+      p_user_id: userId,
+      p_course_id: courseId,
+    }) })
   if (error) throw parseRpcError(error)
   return ((data as PredictionDetail[]) ?? [])[0] ?? null
 }
 
 export async function getPredictionSummary(courseId: string): Promise<PredictionSummary | null> {
-  const { data, error } = await supabase.rpc('get_prediction_summary', {
-    p_course_id: courseId,
-  })
+  const { data, error } = await apiFetch('/rpc/get_prediction_summary', { method: 'POST', body: JSON.stringify({
+      p_course_id: courseId,
+    }) })
   if (error) throw parseRpcError(error)
   return ((data as PredictionSummary[]) ?? [])[0] ?? null
 }

@@ -1,3 +1,4 @@
+import { api } from "@/src/lib/api"
 import { Link } from 'react-router-dom'
 
 import { OptimizedImage } from '@/src/components/ui'

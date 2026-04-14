@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 // --- Types (shared with consumers) ---
 
@@ -58,11 +58,7 @@ export const studentProgressService = {
    * Fetch course modules for a specific tenant, ordered by position.
    */
   async fetchModules(tenantId: string): Promise<ModuleData[]> {
-    const { data } = await supabase
-      .from('course_modules')
-      .select('id, title, order, course_id')
-      .eq('tenant_id', tenantId)
-      .order('order')
+    const { data } = await apiFetch('/course_modules')
 
     return (data ?? []).map((m, i) => ({
       id: m.id,
@@ -79,11 +75,7 @@ export const studentProgressService = {
     userId: string,
     tenantId: string
   ): Promise<Record<string, LessonProgress>> {
-    const { data } = await supabase
-      .from('lesson_progress')
-      .select('lesson_id, completed, completed_at')
-      .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
+    const { data } = await apiFetch('/lesson_progress')
 
     const progressMap: Record<string, LessonProgress> = {}
     ;(data ?? []).forEach((p) => {
@@ -105,14 +97,7 @@ export const studentProgressService = {
     userId: string,
     tenantId: string
   ): Promise<Record<string, QuizAttempt[]>> {
-    const { data } = await supabase
-      .from('quiz_attempts_v2')
-      .select('id, quiz_id, score, started_at, submitted_at, passed')
-      .eq('student_id', userId)
-      .eq('tenant_id', tenantId)
-      .in('status', ['SUBMITTED', 'GRADED'])
-      .order('submitted_at', { ascending: false })
-      .limit(500)
+    const { data } = await apiFetch('/quiz_attempts_v2')
 
     const attemptsMap: Record<string, QuizAttempt[]> = {}
     ;(data ?? []).forEach((a) => {
@@ -136,11 +121,7 @@ export const studentProgressService = {
    * Fetch user XP total within a tenant.
    */
   async fetchXP(userId: string, tenantId: string): Promise<number> {
-    const { data, error } = await supabase
-      .from('user_points')
-      .select('points')
-      .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
+    const { data, error } = await apiFetch('/user_points')
     if (error) return 0
     return (data ?? []).reduce((sum, row) => sum + (row.points ?? 0), 0)
   },
@@ -149,11 +130,7 @@ export const studentProgressService = {
    * Fetch user badges/achievements within a tenant.
    */
   async fetchAchievements(userId: string, tenantId: string): Promise<AchievementData[]> {
-    const { data, error } = await supabase
-      .from('user_badges')
-      .select('id, earned_at, badges(name, icon)')
-      .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
+    const { data, error } = await apiFetch('/user_badges')
 
     if (error) return []
 
@@ -169,12 +146,7 @@ export const studentProgressService = {
    * Fetch upcoming assignments for a tenant (limited to 10).
    */
   async fetchAssignments(tenantId: string): Promise<AssignmentData[]> {
-    const { data } = await supabase
-      .from('assignments')
-      .select('id, title, due_date, classes(name)')
-      .eq('tenant_id', tenantId)
-      .order('due_date', { ascending: true })
-      .limit(10)
+    const { data } = await apiFetch('/assignments')
 
     return (data ?? []).map((a) => ({
       id: a.id,
@@ -198,16 +170,7 @@ export const studentProgressService = {
     completed: boolean,
     tenantId: string
   ): Promise<void> {
-    const { error } = await supabase.from('lesson_progress').upsert(
-      {
-        user_id: userId,
-        lesson_id: lessonId,
-        completed,
-        completed_at: completed ? new Date().toISOString() : null,
-        tenant_id: tenantId,
-      },
-      { onConflict: 'user_id,lesson_id' }
-    )
+    const { error } = await apiFetch('/lesson_progress')
     if (error) if (import.meta.env.DEV) console.error('Error updating lesson progress:', error)
   },
 
@@ -231,10 +194,10 @@ export const studentProgressService = {
    * Add XP to a user via RPC.
    */
   async addXP(userId: string, amount: number): Promise<void> {
-    const { error } = await supabase.rpc('add_user_points', {
-      p_user_id: userId,
-      p_points: amount,
-    })
+    const { error } = await apiFetch('/rpc/add_user_points', { method: 'POST', body: JSON.stringify({
+          p_user_id: userId,
+          p_points: amount,
+        }) })
     if (error) if (import.meta.env.DEV) console.error('Error adding XP:', error)
   },
 }

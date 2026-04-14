@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 // ============================================================
 // Types (exported for use in QuizBlockEditor)
@@ -39,22 +39,7 @@ export interface QuizBlockData {
 
 export const builderQuizService = {
   async getQuizByLesson(lessonId: string, tenantId: string) {
-    const { data, error } = await supabase
-      .from('quizzes')
-      .select(
-        `
-        id, lesson_id, tenant_id, title, instructions, max_attempts, passing_score,
-        shuffle_questions, shuffle_options, time_limit_minutes, status, mode,
-        show_correct_answers, available_from, available_until,
-        quiz_questions (
-          id, text, "order", question_type, points, explanation,
-          quiz_options (id, text, is_correct)
-        )
-      `
-      )
-      .eq('lesson_id', lessonId)
-      .eq('tenant_id', tenantId)
-      .single()
+    const { data, error } = await apiFetch('/quizzes')
 
     if (error && error.code !== 'PGRST116') throw new Error(error.message)
     return data || null
@@ -65,30 +50,22 @@ export const builderQuizService = {
     tenantId: string,
     data: QuizBlockData
   ): Promise<{ quiz_id: string }> {
-    const { data: result, error } = await supabase.rpc('save_quiz_builder', {
-      p_lesson_id: lessonId,
-      p_tenant_id: tenantId,
-      p_quiz_data: data,
-    })
+    const { data: result, error } = await apiFetch('/rpc/save_quiz_builder', { method: 'POST', body: JSON.stringify({
+          p_lesson_id: lessonId,
+          p_tenant_id: tenantId,
+          p_quiz_data: data,
+        }) })
     if (error) throw new Error(error.message)
     return result as { quiz_id: string }
   },
 
   async publishQuiz(quizId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
-      .from('quizzes')
-      .update({ status: 'published' })
-      .eq('id', quizId)
-      .eq('tenant_id', tenantId)
+    const { error } = await apiFetch('/quizzes')
     if (error) throw new Error(error.message)
   },
 
   async draftQuiz(quizId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
-      .from('quizzes')
-      .update({ status: 'draft' })
-      .eq('id', quizId)
-      .eq('tenant_id', tenantId)
+    const { error } = await apiFetch('/quizzes')
     if (error) throw new Error(error.message)
   },
 }

@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 // Custom error types for administration operations
 class AdministrationError extends Error {
@@ -70,9 +70,9 @@ function getTargetRolesForModule(slug: string): ('teacher' | 'student')[] {
 }
 
 /**
- * Parse Supabase error and return user-friendly error
+ * Parse API error and return user-friendly error
  */
-function parseSupabaseError(error: unknown): AdministrationError {
+function parseAPIError(error: unknown): AdministrationError {
   const errorMessage = error instanceof Error ? error.message : String(error)
 
   if (errorMessage.includes('function not found') || errorMessage.includes('does not exist')) {
@@ -125,27 +125,7 @@ export const administrationService = {
       // Uses a regular (left) join so that a missing modules row does not
       // cause an RLS-driven error — rows without a matching module are
       // simply filtered out in the map below.
-      const { data: tenantModules, error: tenantError } = await supabase
-        .from('tenant_modules')
-        .select(
-          `
-          id,
-          tenant_id,
-          module_id,
-          is_enabled,
-          updated_at,
-          modules(
-            id,
-            slug,
-            name,
-            description,
-            is_core,
-            api_enabled_default,
-            created_at
-          )
-        `
-        )
-        .order('module_id', { ascending: true })
+      const { data: tenantModules, error: tenantError } = await apiFetch('/tenant_modules')
 
       if (tenantError) {
         // Log as warn — missing tenant_modules seed data is a setup
@@ -195,7 +175,7 @@ export const administrationService = {
           'Tenant modules unavailable, caller will use defaults:',
           error instanceof Error ? error.message : error
         )
-      throw parseSupabaseError(error)
+      throw parseAPIError(error)
     }
   },
 
@@ -204,10 +184,7 @@ export const administrationService = {
    */
   async toggleTenantModule(moduleId: string, isEnabled: boolean): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('tenant_modules')
-        .update({ is_enabled: isEnabled, updated_at: new Date().toISOString() })
-        .eq('module_id', moduleId)
+      const { error } = await apiFetch('/tenant_modules')
 
       if (error) {
         if (import.meta.env.DEV) console.error('Failed to update tenant module:', error)
@@ -215,7 +192,7 @@ export const administrationService = {
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error('Error toggling tenant module:', error)
-      throw parseSupabaseError(error)
+      throw parseAPIError(error)
     }
   },
 
@@ -226,12 +203,7 @@ export const administrationService = {
   async getSyncHistory(): Promise<SyncHistoryItem[]> {
     try {
       // Try to query activity_logs for sync-related events
-      const { data, error } = await supabase
-        .from('activity_logs')
-        .select('id, tenant_id, user_id, action, metadata, created_at')
-        .ilike('action', '%sync%')
-        .order('created_at', { ascending: false })
-        .limit(50)
+      const { data, error } = await apiFetch('/activity_logs')
 
       if (error) {
         // If table doesn't exist or other error, return empty array

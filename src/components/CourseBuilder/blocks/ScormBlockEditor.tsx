@@ -12,7 +12,7 @@ import { useCallback, useRef, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useBuilder } from '@/src/contexts/BuilderContext'
-import { supabase } from '@/src/services/supabase/client'
+import { api, apiFetch } from '@/src/lib/api'
 
 interface ScormBlockEditorProps {
   blockId: string
@@ -90,7 +90,7 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
 
         setUploadProgress('Mengekstrak dan memvalidasi manifest...')
 
-        const { data, error: fnError } = await supabase.functions.invoke<ScormExtractResponse>(
+        const { data, error: fnError } = await api.functions.invoke<ScormExtractResponse>(
           'scorm-extract',
           { body: formData }
         )
@@ -135,11 +135,7 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
     // Remove the scorm_packages record (cascade will clean up runtime data)
     if (scormMeta?.scorm_package_id) {
       try {
-        await supabase
-          .from('scorm_packages')
-          .delete()
-          .eq('id', scormMeta.scorm_package_id)
-          .eq('tenant_id', tenantId!)
+        await apiFetch('/scorm_packages')
       } catch {
         // Non-fatal — metadata will be cleared regardless
       }

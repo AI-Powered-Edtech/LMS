@@ -38,7 +38,7 @@ export function StudentGroupView() {
   const [activeTab, setActiveTab] = useState('workspace')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // TODO: Replace with real data from Supabase API
+  // TODO: Replace with real data from API API
   const [tasks, setTasks] = useState<Task[]>([])
   const [chat, setChat] = useState<ChatMessage[]>([])
   const [newMessage, setNewMessage] = useState('')

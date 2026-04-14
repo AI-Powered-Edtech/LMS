@@ -1,3 +1,4 @@
+import { api } from "@/src/lib/api"
 import { useCallback, useEffect, useRef } from 'react'
 
 import { lessonService } from '@/src/features/lessons'
@@ -12,7 +13,7 @@ interface ProgressReporterProps {
 }
 
 /**
- * ProgressReporter — Invisible component that throttles progress updates to Supabase.
+ * ProgressReporter — Invisible component that throttles progress updates to API.
  * Sends updates every 5 seconds using the monotonic RPC function.
  */
 export function ProgressReporter({

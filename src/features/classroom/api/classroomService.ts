@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { api, apiFetch } from '@/src/lib/api'
 
 export interface Classroom {
   id: string
@@ -23,35 +23,19 @@ export const classroomService = {
    */
   async fetchClassrooms(userId: string, role: UserRole, tenantId: string): Promise<Classroom[]> {
     if (role === 'teacher') {
-      const { data, error } = await supabase
-        .from('classes')
-        .select('id, name, course_id, teacher_id, join_code, max_students, created_at')
-        .eq('teacher_id', userId)
-        .eq('tenant_id', tenantId)
-        .order('created_at', { ascending: false })
+      const { data, error } = await apiFetch('/classes')
       if (error) throw error
       return data ?? []
     }
 
     if (role === 'admin') {
-      const { data, error } = await supabase
-        .from('classes')
-        .select('id, name, course_id, teacher_id, join_code, max_students, created_at')
-        .eq('tenant_id', tenantId)
-        .order('created_at', { ascending: false })
+      const { data, error } = await apiFetch('/classes')
       if (error) throw error
       return data ?? []
     }
 
     // Student: fetch via enrollments
-    const { data: enrollments, error } = await supabase
-      .from('enrollments')
-      .select(
-        'class_id, classes( id, name, course_id, teacher_id, join_code, max_students, created_at )'
-      )
-      .eq('student_id', userId)
-      .eq('tenant_id', tenantId)
-      .eq('status', 'ACTIVE')
+    const { data: enrollments, error } = await apiFetch('/enrollments')
     if (error) throw error
     return (enrollments
       ?.map((e) => (e as unknown as { classes: Classroom }).classes)
@@ -75,12 +59,7 @@ export const classroomService = {
         }
       }
     }
-    const { error } = await supabase.from('classes').insert({
-      name,
-      teacher_id: teacherId,
-      join_code: joinCode,
-      tenant_id: tenantId,
-    })
+    const { error } = await apiFetch('/classes')
     if (error) throw error
   },
 
@@ -88,7 +67,7 @@ export const classroomService = {
    * Update classroom name.
    */
   async updateClassroom(id: string, name: string): Promise<void> {
-    const { error } = await supabase.from('classes').update({ name }).eq('id', id)
+    const { error } = await apiFetch('/classes')
     if (error) throw error
   },
 
@@ -97,9 +76,9 @@ export const classroomService = {
    * Note: student_id and tenant_id are inferred by the RPC from auth context.
    */
   async joinClassroom(joinCode: string): Promise<void> {
-    const { error } = await supabase.rpc('enroll_student', {
-      p_join_code: joinCode.toUpperCase(),
-    })
+    const { error } = await apiFetch('/rpc/enroll_student', { method: 'POST', body: JSON.stringify({
+          p_join_code: joinCode.toUpperCase(),
+        }) })
 
     if (error) {
       const message = error.message || ''
@@ -131,11 +110,7 @@ export const classroomService = {
    * Assign a course to a class.
    */
   async assignCourseToClass(courseId: string, classId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase.from('course_classes').insert({
-      course_id: courseId,
-      class_id: classId,
-      tenant_id: tenantId,
-    })
+    const { error } = await apiFetch('/course_classes')
     if (error) throw error
   },
 
@@ -147,12 +122,7 @@ export const classroomService = {
     classId: string,
     tenantId: string
   ): Promise<void> {
-    const { error } = await supabase
-      .from('course_classes')
-      .delete()
-      .eq('course_id', courseId)
-      .eq('class_id', classId)
-      .eq('tenant_id', tenantId)
+    const { error } = await apiFetch('/course_classes')
     if (error) throw error
   },
 
@@ -160,10 +130,7 @@ export const classroomService = {
    * Fetch classes assigned to a specific course.
    */
   async fetchAssignedClassesForCourse(courseId: string): Promise<string[]> {
-    const { data, error } = await supabase
-      .from('course_classes')
-      .select('class_id')
-      .eq('course_id', courseId)
+    const { data, error } = await apiFetch('/course_classes')
 
     if (error) throw error
     return data?.map((item) => item.class_id) || []
@@ -173,7 +140,7 @@ export const classroomService = {
    * Returns cleanup function.
    */
   subscribeToChanges(onUpdate: () => void): () => void {
-    const channel = supabase
+    const channel = api
       .channel('classrooms-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, onUpdate)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'enrollments' }, onUpdate)
@@ -181,7 +148,7 @@ export const classroomService = {
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      api.removeChannel(channel)
     }
   },
 
@@ -189,7 +156,7 @@ export const classroomService = {
    * Delete a classroom by ID.
    */
   async deleteClassroom(classId: string): Promise<void> {
-    const { error } = await supabase.from('classes').delete().eq('id', classId)
+    const { error } = await apiFetch('/classes')
     if (error) throw error
   },
 }

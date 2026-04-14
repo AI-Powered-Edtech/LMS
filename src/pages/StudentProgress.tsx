@@ -1,3 +1,4 @@
+import { api } from "@/src/lib/api"
 import { Award, BarChart2, BookOpen, TrendingUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'

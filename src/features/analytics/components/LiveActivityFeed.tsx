@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 interface LiveEvent {
   id: string
@@ -58,12 +58,7 @@ export function LiveActivityFeed({
     const fetchLatestEvents = async () => {
       if (isPaused) return
       try {
-        const { data } = await supabase
-          .from('learning_events')
-          .select('id, user_id, event_type, lesson_id, course_id, created_at, metadata')
-          .eq('tenant_id', activeTenant)
-          .order('created_at', { ascending: false })
-          .limit(10)
+        const { data } = await apiFetch('/learning_events')
 
         if (isMounted && data) {
           setEvents((prev) => {

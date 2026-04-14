@@ -16,7 +16,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 import { AdministrationSkeleton } from '@/src/features/administration/components/AdministrationSkeleton'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { cn } from '@/src/utils/cn'
 
 interface AuditLog {
@@ -100,11 +100,11 @@ export function AuditDashboard() {
     async (newCursor?: string) => {
       setLoading(true)
       try {
-        const { data, error } = await supabase.rpc('get_audit_logs', {
-          p_action: actionFilter || null,
-          p_cursor: newCursor || null,
-          p_limit: PAGE_SIZE,
-        })
+        const { data, error } = await apiFetch('/rpc/get_audit_logs', { method: 'POST', body: JSON.stringify({
+                  p_action: actionFilter || null,
+                  p_cursor: newCursor || null,
+                  p_limit: PAGE_SIZE,
+                }) })
 
         if (error) throw error
 

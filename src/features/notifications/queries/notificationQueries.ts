@@ -1,7 +1,7 @@
 /**
  * Notification React Query hooks
  * Replaces NotificationContext with proper tenant isolation.
- * Uses polling (60s) instead of WebSocket to reduce Supabase Free Tier load.
+ * Uses polling (60s) instead of WebSocket to reduce API Free Tier load.
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'

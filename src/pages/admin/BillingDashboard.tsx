@@ -16,7 +16,7 @@ import { useToast } from '@/src/components/ui/Toast'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { cn } from '@/src/utils/cn'
 
 // --- UTILS ---
@@ -112,29 +112,17 @@ export function BillingDashboard() {
       setLoading(true)
 
       try {
-        const { data: invData, error: invErr } = await supabase
-          .from('invoices')
-          .select('id, amount_due, amount_paid, status, due_date, created_at')
-          .eq('tenant_id', tenantId)
-          .order('created_at', { ascending: false })
+        const { data: invData, error: invErr } = await apiFetch('/invoices')
 
         if (invErr) throw invErr
 
-        const { data: subData, error: subErr } = await supabase
-          .from('tenant_subscriptions')
-          .select(`id, status, current_period_end, plan_id`)
-          .eq('tenant_id', tenantId)
-          .single()
+        const { data: subData, error: subErr } = await apiFetch('/tenant_subscriptions')
 
         // If no sub, that's fine (trial or free)
         if (subErr && subErr.code !== 'PGRST116') throw subErr
 
         if (subData) {
-          const { data: planData } = await supabase
-            .from('billing_plans')
-            .select('id, name, price')
-            .eq('id', subData.plan_id)
-            .single()
+          const { data: planData } = await apiFetch('/billing_plans')
           setSubscription({ ...subData, plan: planData || { name: 'Unknown', price: 0 } })
         }
 

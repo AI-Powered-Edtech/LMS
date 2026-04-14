@@ -3,7 +3,7 @@
  * All functions accept tenantId for defense-in-depth tenant isolation
  */
 
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 import type { Notification } from '../types'
 
@@ -14,21 +14,7 @@ export async function fetchNotifications(
   userId: string,
   tenantId: string
 ): Promise<Notification[]> {
-  const { data, error } = await supabase
-    .from('notifications')
-    .select(
-      `
-            id, user_id, tenant_id, title, message, type, is_read, created_at, actor_id, link,
-            actor:actor_id (
-                full_name,
-                avatar_url
-            )
-        `
-    )
-    .eq('tenant_id', tenantId)
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(50)
+  const { data, error } = await apiFetch('/notifications')
 
   if (error) {
     if (import.meta.env.DEV) console.error('Error fetching notifications:', error)
@@ -42,11 +28,7 @@ export async function fetchNotifications(
  * Mark a single notification as read with tenant verification
  */
 export async function markAsRead(id: string, tenantId: string): Promise<void> {
-  const { error } = await supabase
-    .from('notifications')
-    .update({ is_read: true })
-    .eq('id', id)
-    .eq('tenant_id', tenantId)
+  const { error } = await apiFetch('/notifications')
 
   if (error) {
     if (import.meta.env.DEV) console.error('Error marking notification as read:', error)
@@ -58,12 +40,7 @@ export async function markAsRead(id: string, tenantId: string): Promise<void> {
  * Mark all notifications as read with tenant verification
  */
 export async function markAllAsRead(userId: string, tenantId: string): Promise<void> {
-  const { error } = await supabase
-    .from('notifications')
-    .update({ is_read: true })
-    .eq('tenant_id', tenantId)
-    .eq('user_id', userId)
-    .eq('is_read', false)
+  const { error } = await apiFetch('/notifications')
 
   if (error) {
     if (import.meta.env.DEV) console.error('Error marking all notifications as read:', error)
@@ -82,13 +59,7 @@ export async function sendNotification(
   type: string = 'system',
   tenantId: string
 ): Promise<void> {
-  const { error } = await supabase.from('notifications').insert({
-    tenant_id: tenantId,
-    user_id: userId,
-    title,
-    message,
-    type,
-  })
+  const { error } = await apiFetch('/notifications')
 
   if (error) {
     if (import.meta.env.DEV) console.error('Error sending notification:', error)

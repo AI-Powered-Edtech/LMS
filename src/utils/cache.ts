@@ -1,5 +1,5 @@
 // Client-side cache layer using localStorage with TTL
-// Reduces Supabase Disk IO by caching query results
+// Reduces API Disk IO by caching query results
 
 interface CacheEntry<T> {
   data: T

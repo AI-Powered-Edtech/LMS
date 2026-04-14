@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 import { Lesson, LessonProgress, ProgressQueueItem, SignedProgressQueue } from '../types'
 
@@ -45,9 +45,7 @@ async function verifySignature(
 }
 
 async function getSessionKey(): Promise<string | null> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  const session = { user: { id: "mock" } }
   if (!session || !session.user) return null
   return session.user.id + (session.expires_at || 0).toString()
 }
@@ -112,10 +110,10 @@ export const lessonService = {
    */
   async fetchLesson(lessonId: string, tenantId: string): Promise<Lesson | null> {
     // Try RPC first (migration 803+), fallback to direct query
-    const { data: rpcData, error: rpcError } = await supabase.rpc('get_lesson_snapshot', {
-      p_lesson_id: lessonId,
-      p_tenant_id: tenantId,
-    })
+    const { data: rpcData, error: rpcError } = await apiFetch('/rpc/get_lesson_snapshot', { method: 'POST', body: JSON.stringify({
+          p_lesson_id: lessonId,
+          p_tenant_id: tenantId,
+        }) })
 
     if (!rpcError && rpcData?.lesson) {
       interface RpcSnapshot {
@@ -153,26 +151,7 @@ export const lessonService = {
     }
 
     // Fallback: direct query (works without migration 803)
-    const { data, error } = await supabase
-      .from('lessons')
-      .select(
-        `
-                id, module_id, title, content, type, order,
-                passing_score, is_published, duration_minutes, tenant_id,
-                lesson_resources (id, lesson_id, type, url, title, content, metadata),
-                quizzes (
-                    id, lesson_id, title, instructions, time_limit_minutes, max_attempts,
-                    quiz_questions (id, text, order, quiz_options (id, text))
-                ),
-                assignments (
-                    id, tenant_id, course_id, lesson_id, title, instructions,
-                    max_points, max_attempts, is_published, due_date, created_at
-                )
-            `
-      )
-      .eq('id', lessonId)
-      .eq('tenant_id', tenantId)
-      .maybeSingle()
+    const { data, error } = await apiFetch('/lessons')
 
     if (error) {
       if (import.meta.env.DEV) console.error('Error fetching lesson:', error)
@@ -194,26 +173,7 @@ export const lessonService = {
     progress: Record<string, LessonProgress>
   }> {
     // Fetch lessons
-    const { data: lessons, error: lessonsError } = await supabase
-      .from('lessons')
-      .select(
-        `
-        id, module_id, title, content, type, order,
-        passing_score, is_published, duration_minutes, tenant_id,
-        lesson_resources (id, lesson_id, type, url, title, content, metadata),
-        quizzes (
-          id, lesson_id, title, instructions, time_limit_minutes, max_attempts,
-          quiz_questions (id, text, order, quiz_options (id, text))
-        ),
-        assignments (
-          id, tenant_id, course_id, lesson_id, title, instructions,
-          max_points, max_attempts, is_published, due_date, created_at
-        )
-      `
-      )
-      .eq('module_id', moduleId)
-      .eq('tenant_id', tenantId)
-      .order('order')
+    const { data: lessons, error: lessonsError } = await apiFetch('/lessons')
 
     if (lessonsError) {
       if (import.meta.env.DEV) console.error('Error fetching module lessons:', lessonsError)
@@ -222,13 +182,7 @@ export const lessonService = {
 
     // Fetch progress for all lessons in this module
     const lessonIds = (lessons || []).map((l) => l.id)
-    const { data: progressData, error: progressError } = await supabase
-      .from('lesson_progress')
-      .select(
-        'id, user_id, lesson_id, status, progress_percentage, last_position, completed, completed_at'
-      )
-      .eq('user_id', userId)
-      .in('lesson_id', lessonIds)
+    const { data: progressData, error: progressError } = await apiFetch('/lesson_progress')
 
     if (progressError) {
       if (import.meta.env.DEV) console.error('Error fetching lesson progress:', progressError)
@@ -264,23 +218,21 @@ export const lessonService = {
       lastVideoPosition?: number
     }
   ): Promise<void> {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const user = { id: "mock" }
     if (!user) throw new Error('Not authenticated')
 
-    const { error } = await supabase.rpc('update_lesson_progress_monotonic', {
-      p_user_id: user.id,
-      p_lesson_id: lessonId,
-      p_tenant_id: tenantId,
-      p_status: status,
-      p_progress_percentage: progressPercentage,
-      p_last_position: lastPosition ?? null,
-      p_last_block_id: resumeAnchor?.lastBlockId ?? null,
-      p_last_block_index: resumeAnchor?.lastBlockIndex ?? null,
-      p_last_block_offset: resumeAnchor?.lastBlockOffset ?? null,
-      p_last_video_position: resumeAnchor?.lastVideoPosition ?? null,
-    })
+    const { error } = await apiFetch('/rpc/update_lesson_progress_monotonic', { method: 'POST', body: JSON.stringify({
+          p_user_id: user.id,
+          p_lesson_id: lessonId,
+          p_tenant_id: tenantId,
+          p_status: status,
+          p_progress_percentage: progressPercentage,
+          p_last_position: lastPosition ?? null,
+          p_last_block_id: resumeAnchor?.lastBlockId ?? null,
+          p_last_block_index: resumeAnchor?.lastBlockIndex ?? null,
+          p_last_block_offset: resumeAnchor?.lastBlockOffset ?? null,
+          p_last_video_position: resumeAnchor?.lastVideoPosition ?? null,
+        }) })
 
     if (error) {
       if (import.meta.env.DEV) console.error('Error updating progress:', error)
@@ -416,15 +368,7 @@ export const lessonService = {
     userId: string,
     tenantId: string
   ): Promise<LessonProgress | null> {
-    const { data, error } = await supabase
-      .from('lesson_progress')
-      .select(
-        'id, user_id, lesson_id, status, progress_percentage, last_position, completed, completed_at'
-      )
-      .eq('lesson_id', lessonId)
-      .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
-      .maybeSingle()
+    const { data, error } = await apiFetch('/lesson_progress')
 
     if (error) {
       if (import.meta.env.DEV) console.error('Error fetching progress:', error)

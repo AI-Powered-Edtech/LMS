@@ -1,13 +1,14 @@
+import { api } from "@/src/lib/api"
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Mock Supabase before importing featureFlags
-vi.mock('@/src/services/supabase/client', () => {
+// Mock API before importing featureFlags
+vi.mock('@/src/services/api/client', () => {
   const mockSelect = vi.fn()
   const mockFrom = vi.fn((_table?: string) => ({ select: mockSelect }))
   const mockEq = vi.fn(() => ({ eq: mockEq }))
 
   return {
-    supabase: {
+    api: {
       from: (table: string) => {
         if (table === 'feature_flags') {
           return { select: mockSelect, update: () => ({ eq: mockEq }) }
@@ -29,9 +30,9 @@ import {
 } from '../featureFlags'
 
 // Access mock helpers
-const supabaseMock = await import('@/src/services/supabase/client')
+const apiMock = await import('@/src/services/api/client')
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockSelect: ReturnType<typeof vi.fn> = (supabaseMock as any).__mockSelect
+const mockSelect: ReturnType<typeof vi.fn> = (apiMock as any).__mockSelect
 
 async function seedFlags(flags: FeatureFlag[]) {
   invalidateFlagCache()

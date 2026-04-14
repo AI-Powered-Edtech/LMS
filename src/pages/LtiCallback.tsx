@@ -2,13 +2,13 @@ import { AlertTriangle, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { supabase } from '@/src/services/supabase/client'
+import { api, apiFetch } from '@/src/lib/api'
 
 // ==========================================================================
 // LtiCallback — Handles the redirect after LTI launch
 //
 // Receives a magic link token from the lti-launch Edge Function,
-// verifies it via Supabase OTP, and redirects to the target lesson/course.
+// verifies it via API OTP, and redirects to the target lesson/course.
 //
 // Route: /#/lti/callback?token=...&type=magiclink&redirect=...
 // ==========================================================================
@@ -36,8 +36,8 @@ export function LtiCallback() {
       }
 
       try {
-        // Verify the OTP token to establish a Supabase session
-        const { data, error } = await supabase.auth.verifyOtp({
+        // Verify the OTP token to establish a API session
+        const { data, error } = await api.auth.verifyOtp({
           token_hash: token,
           type: type as 'magiclink',
         })

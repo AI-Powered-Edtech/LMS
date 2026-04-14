@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { logDevError, logDevWarn } from '@/src/utils/logDevError'
 
 import type { Course, CourseInsert, CourseUpdate, FetchCoursesOptions } from '../types'
@@ -10,27 +10,7 @@ export const courseService = {
    */
   async fetchCourses({ tenantId, page = 1, limit = 10, search, ids }: FetchCoursesOptions) {
     // Try fetching with joined class data first
-    let query = supabase
-      .from('courses')
-      .select(
-        `
-                id,
-                title,
-                description,
-                status,
-                created_at,
-                updated_at,
-                created_by,
-                tenant_id,
-                assigned_classes:course_classes(
-                    class_id,
-                    class:classes(name)
-                )
-            `,
-        { count: 'exact' }
-      )
-      .eq('tenant_id', tenantId)
-      .limit(100)
+    let query = apiFetch('/courses')
 
     if (ids && ids.length > 0) {
       query = query.in('id', ids)
@@ -57,14 +37,7 @@ export const courseService = {
         'Courses join query failed, falling back to simple fetch:',
         error.message
       )
-      let fallbackQuery = supabase
-        .from('courses')
-        .select('id, title, description, status, created_at, updated_at, created_by, tenant_id', {
-          count: 'exact',
-        })
-        .eq('tenant_id', tenantId)
-        .order('created_at', { ascending: false })
-        .limit(100)
+      let fallbackQuery = apiFetch('/courses')
 
       if (ids && ids.length > 0) {
         fallbackQuery = fallbackQuery.in('id', ids)
@@ -97,12 +70,7 @@ export const courseService = {
    * Gets a specific course by its ID.
    */
   async getCourseById(courseId: string, tenantId: string) {
-    const { data, error } = await supabase
-      .from('courses')
-      .select('id, title, description, status, created_at, updated_at, created_by, tenant_id')
-      .eq('id', courseId)
-      .eq('tenant_id', tenantId)
-      .single()
+    const { data, error } = await apiFetch('/courses')
 
     if (error) {
       logDevError('courseService', 'Error fetching course by ID:', error)
@@ -118,11 +86,7 @@ export const courseService = {
    * but we provide it here explicitly for completeness if the RLS allows it.
    */
   async createCourse(courseData: CourseInsert) {
-    const { data, error } = await supabase
-      .from('courses')
-      .insert(courseData)
-      .select('id, title, description, status, created_at, updated_at, created_by, tenant_id')
-      .single()
+    const { data, error } = await apiFetch('/courses')
 
     if (error) {
       logDevError('courseService', 'Error creating course:', error)
@@ -136,13 +100,7 @@ export const courseService = {
    * Updates an existing course.
    */
   async updateCourse(courseId: string, updates: CourseUpdate, tenantId: string) {
-    const { data, error } = await supabase
-      .from('courses')
-      .update(updates)
-      .eq('id', courseId)
-      .eq('tenant_id', tenantId)
-      .select('id, title, description, status, created_at, updated_at, created_by, tenant_id')
-      .single()
+    const { data, error } = await apiFetch('/courses')
 
     if (error) {
       logDevError('courseService', 'Error updating course:', error)
@@ -156,11 +114,7 @@ export const courseService = {
    * Deletes a course.
    */
   async deleteCourse(courseId: string, tenantId: string) {
-    const { error } = await supabase
-      .from('courses')
-      .delete()
-      .eq('id', courseId)
-      .eq('tenant_id', tenantId)
+    const { error } = await apiFetch('/courses')
 
     if (error) {
       logDevError('courseService', 'Error deleting course:', error)
@@ -172,14 +126,7 @@ export const courseService = {
    * Checks if a user is enrolled in a specific course.
    */
   async checkEnrollment(courseId: string, userId: string, tenantId: string) {
-    const { data, error } = await supabase
-      .from('course_enrollments')
-      .select('id')
-      .eq('course_id', courseId)
-      .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
-      .eq('status', 'ACTIVE')
-      .maybeSingle()
+    const { data, error } = await apiFetch('/course_enrollments')
 
     if (error) {
       logDevError('courseService', 'Error checking course enrollment:', error)

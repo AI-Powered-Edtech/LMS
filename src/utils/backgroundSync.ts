@@ -1,7 +1,7 @@
 // EduSync LMS — Background Sync
 // Processes the offline sync queue when connectivity is restored
 
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 import { getPendingSubmissions, markSynced } from './offlineStorage'
 
@@ -29,14 +29,7 @@ export async function syncPendingSubmissions(): Promise<SyncResult> {
       if (item.type === 'quiz-submission') {
         const payload = item.payload as QuizSubmissionPayload
 
-        const { error } = await supabase
-          .from('quiz_attempts')
-          .update({
-            answers: payload.answers,
-            completed_at: new Date().toISOString(),
-            submitted_late: true,
-          })
-          .eq('id', payload.attemptId)
+        const { error } = await apiFetch('/quiz_attempts')
 
         if (!error) {
           await markSynced(item.id)

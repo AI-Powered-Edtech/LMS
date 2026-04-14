@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 import { Announcement, AnnouncementRSVP } from '../types'
 
@@ -16,22 +16,7 @@ export const announcementService = {
       search?: string
     } = {}
   ) {
-    let query = supabase
-      .from('announcements')
-      .select(
-        `
-                id, tenant_id, course_id, title, content, priority, target_audience,
-                status, is_pinned, allow_comments, requires_rsvp, location, contact_person,
-                created_by, created_at, updated_at,
-                author:created_by (
-                    full_name,
-                    avatar_url
-                )
-            `
-      )
-      .eq('tenant_id', tenantId)
-      .order('is_pinned', { ascending: false })
-      .order('created_at', { ascending: false })
+    let query = apiFetch('/announcements')
 
     if (options.courseId) {
       query = query.or(`course_id.eq.${options.courseId},course_id.is.null`)
@@ -68,22 +53,7 @@ export const announcementService = {
    * Get announcement by ID with tenant isolation
    */
   async getAnnouncementById(id: string, tenantId: string) {
-    const { data, error } = await supabase
-      .from('announcements')
-      .select(
-        `
-                id, tenant_id, course_id, title, content, priority, target_audience,
-                status, is_pinned, allow_comments, requires_rsvp, location, contact_person,
-                created_by, created_at, updated_at,
-                author:created_by (
-                    full_name,
-                    avatar_url
-                )
-            `
-      )
-      .eq('id', id)
-      .eq('tenant_id', tenantId)
-      .single()
+    const { data, error } = await apiFetch('/announcements')
 
     if (error) throw error
     return data as unknown as Announcement
@@ -95,15 +65,7 @@ export const announcementService = {
   async saveAnnouncement(
     announcement: Partial<Announcement> & { tenant_id: string; created_by: string }
   ) {
-    const { data, error } = await supabase
-      .from('announcements')
-      .upsert(announcement)
-      .select(
-        `id, tenant_id, course_id, title, content, priority, target_audience,
-                status, is_pinned, allow_comments, requires_rsvp, location, contact_person,
-                created_by, created_at, updated_at`
-      )
-      .single()
+    const { data, error } = await apiFetch('/announcements')
 
     if (error) {
       if (import.meta.env.DEV) console.error('Error saving announcement:', error)
@@ -117,11 +79,7 @@ export const announcementService = {
    * Delete announcement with tenant isolation
    */
   async deleteAnnouncement(id: string, tenantId: string) {
-    const { error } = await supabase
-      .from('announcements')
-      .delete()
-      .eq('id', id)
-      .eq('tenant_id', tenantId)
+    const { error } = await apiFetch('/announcements')
 
     if (error) throw error
   },
@@ -135,17 +93,7 @@ export const announcementService = {
     userId: string,
     response: 'yes' | 'no' | 'maybe'
   ) {
-    const { data, error } = await supabase
-      .from('announcement_rsvps')
-      .upsert({
-        announcement_id: announcementId,
-        tenant_id: tenantId,
-        user_id: userId,
-        response,
-        responded_at: new Date().toISOString(),
-      })
-      .select('id, tenant_id, announcement_id, user_id, response, responded_at')
-      .single()
+    const { data, error } = await apiFetch('/announcement_rsvps')
 
     if (error) {
       if (import.meta.env.DEV) console.error('Error submitting RSVP:', error)
@@ -159,13 +107,7 @@ export const announcementService = {
    * Get RSVP status for a user/announcement with tenant isolation
    */
   async getUserRSVP(announcementId: string, userId: string, tenantId: string) {
-    const { data, error } = await supabase
-      .from('announcement_rsvps')
-      .select('id, tenant_id, announcement_id, user_id, response, responded_at')
-      .eq('announcement_id', announcementId)
-      .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
-      .maybeSingle()
+    const { data, error } = await apiFetch('/announcement_rsvps')
 
     if (error) throw error
     return data as AnnouncementRSVP | null

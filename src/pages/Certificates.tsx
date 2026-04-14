@@ -28,7 +28,7 @@ import { useStudentCertificates } from '@/src/features/gamification'
 import { useDebounce } from '@/src/hooks/useDebounce'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
-import { supabase } from '@/src/services/supabase/client'
+import { api, apiFetch } from '@/src/lib/api'
 
 export function Certificates() {
   const addToast = useToast((s) => s.addToast)
@@ -73,7 +73,7 @@ export function Certificates() {
     setIsDownloading(cert.id)
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-pdf', {
+      const { data, error } = await api.functions.invoke('generate-pdf', {
         body: {
           type: 'certificate',
           data: {

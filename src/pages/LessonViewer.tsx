@@ -306,7 +306,7 @@ export function LessonViewer() {
               />
             )}
 
-          {/* Progress Reporter (invisible -- syncs to Supabase every 5s) */}
+          {/* Progress Reporter (invisible -- syncs to API every 5s) */}
           {s.state.lesson && s.tenantId && (
             <ProgressReporter
               lessonId={s.state.lesson.id}

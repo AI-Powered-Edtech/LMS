@@ -1,17 +1,18 @@
+import { api } from "@/src/lib/api"
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { announcementService } from '../api/announcementService'
 
 const mockFrom = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/src/services/api/client', () => ({
+  api: {
     from: (...args: unknown[]) => mockFrom(...args),
   },
 }))
 
 /**
- * Build a fully chainable Supabase query mock.
+ * Build a fully chainable API query mock.
  * Every method returns `this` so any chain order works,
  * and `then` makes the object awaitable with the given result.
  */

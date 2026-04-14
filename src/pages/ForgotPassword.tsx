@@ -6,7 +6,7 @@ import * as v from 'valibot'
 
 import { FormField } from '@/src/components/ui/FormField'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { passwordResetRateLimiter } from '@/src/utils/rateLimiter'
 
 const forgotPasswordSchema = v.object({
@@ -42,17 +42,13 @@ export function ForgotPassword() {
     }
 
     try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(data.email, {
-        redirectTo: `${window.location.origin}/#/reset-password`,
+      await apiFetch('/v1/auth/reset-password', {
+        method: 'POST',
+        body: JSON.stringify({ email: data.email, redirectTo: `${window.location.origin}/#/reset-password` }),
       })
-
-      if (resetError) {
-        setError(resetError.message)
-      } else {
-        setSubmitted(true)
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan. Silakan coba lagi.')
+      setSubmitted(true)
+    } catch (err: any) {
+      setError(err.message || 'Terjadi kesalahan. Silakan coba lagi.')
     }
   }
 

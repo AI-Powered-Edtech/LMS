@@ -43,7 +43,7 @@ export function Announcements() {
   const { addToast } = useToast()
   const [announcements, setAnnouncements] = useState<AnnouncementCardData[]>([])
   const [searchTerm, setSearchTerm] = useState('')
-  // ⚡ Perf: Debounce search term to prevent a Supabase API call on every keystroke.
+  // ⚡ Perf: Debounce search term to prevent a API API call on every keystroke.
   // Previously, each keystroke triggered useAnnouncements() with the raw searchTerm,
   // causing ~10-15 unnecessary DB round-trips per search.
   const debouncedSearch = useDebounce(searchTerm, 300)

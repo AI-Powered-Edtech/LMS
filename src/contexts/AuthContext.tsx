@@ -1,4 +1,18 @@
-import type { Session, User } from '@supabase/supabase-js'
+export interface User {
+  id: string
+  email?: string
+  user_metadata?: Record<string, any>
+  email_confirmed_at?: string
+}
+
+export interface Session {
+  access_token: string
+  refresh_token?: string
+  expires_in?: number
+  expires_at?: number
+  user: User
+}
+
 import React, {
   createContext,
   ReactNode,
@@ -10,7 +24,7 @@ import React, {
   useState,
 } from 'react'
 
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 export type Role = 'teacher' | 'student' | 'admin'
 
@@ -160,131 +174,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (fetchLock.current) return
     fetchLock.current = true
     try {
-      // Fetch profile
-      let { data: profileData, error: profileErr } = await supabase
-        .from('profiles')
-        .select('id, email, first_name, last_name, avatar_url, tenant_id')
-        .eq('id', userId)
-        .single()
-
-      // If profile doesn't exist (406 = no rows from .single()), auto-create via RPC
-      if (!profileData && profileErr) {
-        if (import.meta.env.DEV)
-          console.warn('[Auth] Profile missing for user, calling ensure_profile_exists()...')
-        const { data: rpcResult, error: rpcErr } = await supabase.rpc('ensure_profile_exists')
-        if (rpcResult && !rpcErr) {
-          // RPC returns full profile row as JSON — extract the fields we need
-          const p = rpcResult as Record<string, unknown>
-          profileData = {
-            id: p.id as string,
-            email: p.email as string,
-            first_name: (p.first_name as string) || '',
-            last_name: (p.last_name as string) || '',
-            avatar_url: (p.avatar_url as string) || null,
-            tenant_id: (p.tenant_id as string) || null,
-          }
-        } else if (import.meta.env.DEV) {
-          console.error('[Auth] ensure_profile_exists() failed:', rpcErr)
-        }
+      const data = await apiFetch(`/users/${userId}/data`)
+      
+      const profileData = data.profile || {
+        id: userId,
+        email: '',
+        first_name: '',
+        last_name: '',
+        avatar_url: null,
+        tenant_id: null
       }
+      
+      setProfile(profileData)
+      setTenantId(profileData.tenant_id)
+      
+      const rolesData = data.roles || []
+      const userRoles = rolesData.map((r: any) => r.role.toLowerCase() as Role)
+      setRoles(userRoles)
 
-      if (profileData) {
-        setProfile(profileData)
-        setTenantId(profileData.tenant_id)
-      }
+      const loadedMemberships: TenantMembership[] = []
+      const tenantsMap: Record<string, Tenant> = {}
 
-      // Fetch roles and tenants
-      const { data: rolesData, error: rolesErr } = await supabase
-        .from('user_roles')
-        .select(
-          `
-          role,
-          tenant_id,
-          tenants (
-            id,
-            name,
-            slug,
-            is_active
-          )
-        `
-        )
-        .eq('user_id', userId)
-
-      if (rolesErr) {
-        console.error('Failed to fetch user roles:', rolesErr)
-      }
-
-      if (rolesData) {
-        const userRoles = rolesData.map(
-          (r: {
-            role: string
-            tenant_id: string
-            tenants?:
-              | { id: string; name: string; slug: string; is_active: boolean }
-              | { id: string; name: string; slug: string; is_active: boolean }[]
-          }) => r.role.toLowerCase() as Role
-        )
-        setRoles(userRoles)
-
-        const loadedMemberships: TenantMembership[] = []
-        const tenantsMap: Record<string, Tenant> = {}
-
-        rolesData.forEach(
-          (r: {
-            role: string
-            tenant_id: string
-            tenants?:
-              | { id: string; name: string; slug: string; is_active: boolean }
-              | { id: string; name: string; slug: string; is_active: boolean }[]
-          }) => {
-            if (r.tenants) {
-              const t = Array.isArray(r.tenants) ? r.tenants[0] : r.tenants
-              loadedMemberships.push({
-                tenant_id: r.tenant_id,
-                tenant_name: t.name,
-                tenant_logo: null,
-                role: r.role.toLowerCase() as Role,
-              })
-              tenantsMap[t.id] = {
-                id: t.id,
-                name: t.name,
-                slug: t.slug,
-                is_active: t.is_active,
-              }
-            }
-          }
-        )
-
-        setMemberships(loadedMemberships)
-        setRawTenants(tenantsMap)
-
-        // Security: Read tenant_id hint from localStorage and validate against memberships
-        const cachedTenantId = localStorage.getItem('activeTenantId')
-        let initialTenantId = cachedTenantId
-
-        // Validate cached tenant_id against server memberships
-        const validMembership = loadedMemberships.find((m) => m.tenant_id === cachedTenantId)
-
-        // If cached tenant_id is not valid (not in memberships), use first membership
-        if (!validMembership) {
-          if (loadedMemberships.length > 0) {
-            initialTenantId = loadedMemberships[0].tenant_id
-          } else {
-            initialTenantId = profileData?.tenant_id || null
+      rolesData.forEach((r: any) => {
+        if (r.tenants) {
+          const t = Array.isArray(r.tenants) ? r.tenants[0] : r.tenants
+          loadedMemberships.push({
+            tenant_id: r.tenant_id,
+            tenant_name: t.name,
+            tenant_logo: null,
+            role: r.role.toLowerCase() as Role,
+          })
+          tenantsMap[t.id] = {
+            id: t.id,
+            name: t.name,
+            slug: t.slug,
+            is_active: t.is_active,
           }
         }
+      })
 
-        // Store validated tenant_id in localStorage
-        if (initialTenantId) {
-          localStorage.setItem('activeTenantId', initialTenantId)
-        }
+      setMemberships(loadedMemberships)
+      setRawTenants(tenantsMap)
 
-        // Set activeTenant only after validation
-        if (initialTenantId && tenantsMap[initialTenantId]) {
-          setActiveTenantState(tenantsMap[initialTenantId])
-          setTenantId(initialTenantId)
+      const cachedTenantId = localStorage.getItem('activeTenantId')
+      let initialTenantId = cachedTenantId
+
+      const validMembership = loadedMemberships.find((m) => m.tenant_id === cachedTenantId)
+
+      if (!validMembership) {
+        if (loadedMemberships.length > 0) {
+          initialTenantId = loadedMemberships[0].tenant_id
+        } else {
+          initialTenantId = profileData?.tenant_id || null
         }
       }
+
+      if (initialTenantId) {
+        localStorage.setItem('activeTenantId', initialTenantId)
+      }
+
+      if (initialTenantId && tenantsMap[initialTenantId]) {
+        setActiveTenantState(tenantsMap[initialTenantId])
+        setTenantId(initialTenantId)
+      }
+    } catch (err) {
+      console.error('Failed to fetch user data:', err)
     } finally {
       setLoadingMemberships(false)
       fetchLock.current = false
@@ -301,11 +255,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     localStorage.removeItem('pendingInviteToken')
     try {
-      const { data } = await supabase.rpc('accept_invitation', {
-        p_token: pendingToken,
+      const data = await apiFetch('/invitations/accept', {
+        method: 'POST',
+        body: JSON.stringify({ token: pendingToken }),
       })
       if (data?.success) {
-        // Re-fetch user data to pick up the upgraded role
         fetchLock.current = false // Allow re-fetch
         await fetchUserData(userId)
       }
@@ -319,7 +273,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!pendingCode) return
     localStorage.removeItem('pendingJoinCode')
     try {
-      await supabase.rpc('enroll_student', { p_join_code: pendingCode })
+      await apiFetch('/students/enroll', {
+        method: 'POST',
+        body: JSON.stringify({ join_code: pendingCode }),
+      })
     } catch (e) {
       if (import.meta.env.DEV) console.error('[Auth] Failed to enroll with pending join code:', e)
     }
@@ -327,111 +284,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s)
-      setUser(s?.user ?? null)
-      if (s?.user) {
-        wasAuthenticatedRef.current = true
-        fetchUserData(s.user.id)
-          .then(() => processPendingInvite(s!.user.id))
-          .then(() => processPendingJoinCode())
-          .finally(() => {
-            setLoading(false)
-          })
-      } else {
-        setLoadingMemberships(false)
-        setLoading(false)
-      }
-    })
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s)
-      setUser(s?.user ?? null)
-      if (s?.user) {
-        wasAuthenticatedRef.current = true
-        // FIX: Set loadingMemberships=true BEFORE fetch starts.
-        // Without this, there is a brief window where loading=false AND
-        // memberships=[] — causing WorkspaceSelector to flash
-        // "No Workspace Access" before data arrives.
-        setLoadingMemberships(true)
-        fetchUserData(s.user.id)
-          .then(() => processPendingInvite(s!.user.id))
-          .then(() => processPendingJoinCode())
-          .then(() => {
-            setLoading(false)
-          })
-          .catch(() => {
-            setLoading(false)
-          })
-      } else {
-        // Detect session expiry: user was authenticated but session became null
-        if (wasAuthenticatedRef.current && _event === 'SIGNED_OUT') {
-          setSessionExpired(true)
+    const initAuth = async () => {
+      try {
+        const data = await apiFetch('/auth/me')
+        if (data && data.user) {
+          setSession({ access_token: localStorage.getItem('token') || '', user: data.user })
+          setUser(data.user)
+          wasAuthenticatedRef.current = true
+          await fetchUserData(data.user.id)
+          await processPendingInvite(data.user.id)
+          await processPendingJoinCode()
+        } else {
+          setLoadingMemberships(false)
         }
-        wasAuthenticatedRef.current = false
-        setProfile(null)
-        setTenantId(null)
-        setMemberships([])
-        setActiveTenantState(null)
-        setRawTenants({})
-        setRoles([])
+      } catch (err) {
         setLoadingMemberships(false)
+      } finally {
         setLoading(false)
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-  /* eslint-enable react-hooks/exhaustive-deps */
-
-  // B6: Proactive JWT refresh — check every 60s, refresh if expiring within 5 min
-  useEffect(() => {
-    if (!session) return
-
-    const INTERVAL_MS = 60_000
-    const REFRESH_THRESHOLD_S = 5 * 60 // 5 minutes in seconds
-
-    const checkAndRefresh = async () => {
-      const currentSession = (await supabase.auth.getSession()).data.session
-      if (!currentSession) return
-
-      const expiresAt = currentSession.expires_at // unix timestamp in seconds
-      if (!expiresAt) return
-
-      const nowS = Math.floor(Date.now() / 1000)
-      const remainingS = expiresAt - nowS
-
-      if (remainingS <= REFRESH_THRESHOLD_S) {
-        if (import.meta.env.DEV)
-          console.info(`[Auth] Token expires in ${remainingS}s, refreshing proactively...`)
-
-        const { error } = await supabase.auth.refreshSession()
-        if (error) {
-          console.error('[Auth] Proactive token refresh failed:', error)
-          // If refresh fails and we had an active session, mark as expired and sign out
-          setSessionExpired(true)
-          await signOut()
-        }
       }
     }
 
-    const interval = setInterval(checkAndRefresh, INTERVAL_MS)
-    return () => clearInterval(interval)
-    // signOut is a stable callback; session identity change triggers re-subscribe
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    initAuth()
+  }, [])
+  /* eslint-enable react-hooks/exhaustive-deps */
+
+  // B6: Proactive JWT refresh — not needed for local REST or can be implemented later
+  useEffect(() => {
+    // Implement token refresh logic here if needed
   }, [session?.access_token])
 
   const signIn = useCallback(async (email: string, password: string) => {
     setSessionExpired(false)
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    return { error: error as Error | null }
+    try {
+      const data = await apiFetch('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      })
+      if (data.token) {
+        localStorage.setItem('token', data.token)
+        setSession({ access_token: data.token, user: data.user })
+        setUser(data.user)
+        wasAuthenticatedRef.current = true
+        setLoadingMemberships(true)
+        await fetchUserData(data.user.id)
+        await processPendingInvite(data.user.id)
+        await processPendingJoinCode()
+        setLoading(false)
+      }
+      return { error: null }
+    } catch (err: any) {
+      return { error: new Error(err.message) }
+    }
   }, [])
 
   const signUp = useCallback(
@@ -442,52 +345,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       lastName: string,
       signUpTenantId?: string
     ) => {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
+      try {
+        const data = await apiFetch('/auth/register', {
+          method: 'POST',
+          body: JSON.stringify({
+            email,
+            password,
             first_name: firstName,
             last_name: lastName,
-            ...(signUpTenantId ? { tenant_id: signUpTenantId } : {}),
-          },
-        },
-      })
-      return { error: error as Error | null }
+            tenant_id: signUpTenantId,
+          }),
+        })
+        if (data.token) {
+          localStorage.setItem('token', data.token)
+          setSession({ access_token: data.token, user: data.user })
+          setUser(data.user)
+        }
+        return { error: null }
+      } catch (err: any) {
+        return { error: new Error(err.message) }
+      }
     },
     []
   )
 
   const signOut = useCallback(async () => {
-    // Clear localStorage - only store tenant_id hint, not full objects
     localStorage.removeItem('activeTenantId')
-    // Clear user+session eagerly so AuthGuard redirects to /login immediately
+    localStorage.removeItem('token')
     setUser(null)
     setSession(null)
-    // Clear state eagerly so UI reacts immediately
     setProfile(null)
     setTenantId(null)
     setMemberships([])
     setActiveTenantState(null)
     setRawTenants({})
     setRoles([])
-    // onAuthStateChange will fire after signOut and set loading=false
     try {
-      await supabase.auth.signOut()
+      await apiFetch('/auth/logout', { method: 'POST' })
     } catch (err) {
-      // Even if Supabase signOut fails (network error, expired session),
-      // we've already cleared local state so the user is effectively logged out.
-      if (import.meta.env.DEV) console.error('[Auth] signOut error (state already cleared):', err)
+      if (import.meta.env.DEV) console.error('[Auth] signOut error:', err)
     }
   }, [])
 
   const signInWithGoogle = useCallback(async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + window.location.pathname,
-      },
-    })
+    window.location.href = '/api/auth/google'
   }, [])
 
   const hasRole = useCallback((r: Role) => roles.includes(r), [roles])

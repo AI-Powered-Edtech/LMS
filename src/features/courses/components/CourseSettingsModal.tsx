@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 import { CourseCollaborators } from './CourseCollaborators'
 
@@ -45,12 +45,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
 
     async function fetchCourse() {
       setLoading(true)
-      const { data: course, error: fetchErr } = await supabase
-        .from('courses')
-        .select('title, description, subject, level')
-        .eq('id', courseId)
-        .eq('tenant_id', tenantId)
-        .single()
+      const { data: course, error: fetchErr } = await apiFetch('/courses')
 
       if (cancelled) return
 
@@ -97,16 +92,7 @@ function GeneralSettingsTab({ courseId }: { courseId: string }) {
         setSaved(false)
         setError(null)
 
-        const { error: updateErr } = await supabase
-          .from('courses')
-          .update({
-            title: updatedData.title,
-            description: updatedData.description || null,
-            subject: updatedData.subject || null,
-            level: updatedData.level || null,
-          })
-          .eq('id', courseId)
-          .eq('tenant_id', tenantId)
+        const { error: updateErr } = await apiFetch('/courses')
 
         setSaving(false)
 

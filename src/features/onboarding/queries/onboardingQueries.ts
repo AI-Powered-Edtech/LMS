@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { createQueryKeys } from '@/src/lib/queryKeys'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { GC, STALE } from '@/src/utils/queryConstants'
 
 import type { OnboardingProgress } from '../types'
@@ -22,12 +22,7 @@ export function useOnboardingProgress(tenantId: string, userId: string) {
   return useQuery({
     queryKey: onboardingKeys.progress(tenantId, userId),
     queryFn: async (): Promise<OnboardingProgress | null> => {
-      const { data } = await supabase
-        .from('onboarding_progress')
-        .select('id, tenant_id, user_id, steps_completed, completed_at')
-        .eq('tenant_id', tenantId)
-        .eq('user_id', userId)
-        .maybeSingle()
+      const { data } = await apiFetch('/onboarding_progress')
       return data as OnboardingProgress | null
     },
     enabled: !!tenantId && !!userId,
@@ -50,15 +45,7 @@ export function useUpdateOnboardingProgress(tenantId: string, userId: string) {
       stepsCompleted: Record<string, boolean>
     }): Promise<OnboardingProgress> => {
       const allDone = Object.values(stepsCompleted).every(Boolean)
-      const { data, error } = await supabase
-        .from('onboarding_progress')
-        .update({
-          steps_completed: stepsCompleted,
-          completed_at: allDone ? new Date().toISOString() : null,
-        })
-        .eq('id', progressId)
-        .select('id, tenant_id, user_id, steps_completed, completed_at')
-        .single()
+      const { data, error } = await apiFetch('/onboarding_progress')
       if (error) throw error
       return data as OnboardingProgress
     },

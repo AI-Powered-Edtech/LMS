@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 import { useAuth } from '../contexts/AuthContext'
 
@@ -24,14 +24,14 @@ export function useTenantQuery() {
   const { tenantId } = useAuth()
 
   /**
-   * Returns a Supabase query builder pre-filtered by tenant_id.
+   * Returns a API query builder pre-filtered by tenant_id.
    * Caller must chain `.select('col1, col2, ...')` to specify columns.
    * Falls back to an unfiltered query if tenantId is not available
    * (RLS will still enforce isolation).
    */
   const tenantQuery = useCallback(
     (table: string, columns = 'id') => {
-      const query = supabase.from(table)
+      const query = apiFetch('/table')
       if (tenantId) {
         return query.select(columns).eq('tenant_id', tenantId)
       }
@@ -47,7 +47,7 @@ export function useTenantQuery() {
   const tenantInsert = useCallback(
     async (table: string, data: Record<string, unknown>) => {
       const record = tenantId ? { ...data, tenant_id: tenantId } : data
-      return supabase.from(table).insert(record)
+      return apiFetch('/table')
     },
     [tenantId]
   )

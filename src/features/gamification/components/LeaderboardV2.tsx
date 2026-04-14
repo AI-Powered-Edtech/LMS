@@ -1,3 +1,4 @@
+import { api } from "@/src/lib/api"
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Calendar, Filter, Flame, TrendingUp, Trophy } from 'lucide-react'
 import { motion } from 'motion/react'

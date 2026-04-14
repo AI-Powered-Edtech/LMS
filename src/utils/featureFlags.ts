@@ -1,7 +1,7 @@
 // EduSync LMS — Feature Flags
-// Tenant-aware, rollout-percentage feature flag system backed by Supabase
+// Tenant-aware, rollout-percentage feature flag system backed by API
 
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 export interface FeatureFlag {
   flag_name: string
@@ -21,9 +21,7 @@ const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 export async function loadFeatureFlags(): Promise<void> {
   if (flagCache && Date.now() < cacheExpiry) return
 
-  const { data } = await supabase
-    .from('feature_flags')
-    .select('flag_name, enabled, tenant_ids, rollout_percentage')
+  const { data } = await apiFetch('/feature_flags')
 
   flagCache = new Map((data ?? []).map((f: FeatureFlag) => [f.flag_name, f]))
   cacheExpiry = Date.now() + CACHE_TTL
@@ -80,7 +78,7 @@ export async function updateFeatureFlag(
   flagName: string,
   updates: Partial<Omit<FeatureFlag, 'flag_name'>>
 ): Promise<void> {
-  await supabase.from('feature_flags').update(updates).eq('flag_name', flagName)
+  await apiFetch('/feature_flags')
 
   // Invalidate so the next read refreshes from DB
   invalidateFlagCache()

@@ -5,7 +5,7 @@
  * Used by the Admin Quiz Overview dashboard.
  */
 
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { validateArray } from '@/src/shared/lib/validate'
 import { QuizRowSchema } from '@/src/shared/schemas'
 
@@ -42,21 +42,7 @@ export interface AntiCheatAuditEntry {
  */
 export async function getSchoolQuizOverview(tenantId: string): Promise<AdminQuizOverviewItem[]> {
   // Fetch quizzes with their class and creator info
-  const { data: quizzes, error } = await supabase
-    .from('quizzes')
-    .select(
-      `
-      id,
-      title,
-      status,
-      created_at,
-      classes ( name ),
-      profiles!quizzes_created_by_fkey ( full_name ),
-      quiz_questions ( id )
-    `
-    )
-    .eq('tenant_id', tenantId)
-    .order('created_at', { ascending: false })
+  const { data: quizzes, error } = await apiFetch('/quizzes')
 
   if (error) {
     if (import.meta.env.DEV) console.error('Error fetching school quizzes:', error)
@@ -68,11 +54,7 @@ export async function getSchoolQuizOverview(tenantId: string): Promise<AdminQuiz
 
   // Fetch quiz stats for all quizzes in one query
   const quizIds = quizzes.map((q) => q.id)
-  const { data: stats } = await supabase
-    .from('quiz_stats')
-    .select('quiz_id, total_attempts, avg_score, pass_rate')
-    .in('quiz_id', quizIds)
-    .eq('tenant_id', tenantId)
+  const { data: stats } = await apiFetch('/quiz_stats')
 
   const statsMap = new Map((stats ?? []).map((s) => [s.quiz_id, s]))
 
@@ -105,25 +87,7 @@ export async function getAntiCheatAuditLog(
   tenantId: string,
   limit: number = 50
 ): Promise<AntiCheatAuditEntry[]> {
-  const { data, error } = await supabase
-    .from('quiz_cheating_signals')
-    .select(
-      `
-      id,
-      attempt_id,
-      signal_type,
-      created_at,
-      quiz_attempts_v2!inner (
-        student_id,
-        tenant_id,
-        profiles!quiz_attempts_v2_student_id_fkey ( full_name ),
-        quizzes!quiz_attempts_v2_quiz_id_fkey ( title )
-      )
-    `
-    )
-    .eq('quiz_attempts_v2.tenant_id', tenantId)
-    .order('created_at', { ascending: false })
-    .limit(limit)
+  const { data, error } = await apiFetch('/quiz_cheating_signals')
 
   if (error) {
     if (import.meta.env.DEV) console.error('Error fetching audit log:', error)

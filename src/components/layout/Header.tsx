@@ -1,3 +1,4 @@
+import { api } from "@/src/lib/api"
 import { Activity, Flame, LogOut, Moon, Star, Sun, UserCircle } from 'lucide-react'
 import { memo, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'

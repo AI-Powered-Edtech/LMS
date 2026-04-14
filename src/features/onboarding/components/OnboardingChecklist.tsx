@@ -2,7 +2,7 @@ import { CheckCircle2, ChevronDown, ChevronUp, Circle, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '@/src/contexts/AuthContext'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { cn } from '@/src/utils/cn'
 
 import { ONBOARDING_STEPS, OnboardingProgress } from '../types'
@@ -34,27 +34,13 @@ function OnboardingChecklistInner({ tenantId, userId }: InnerProps) {
 
   const fetchProgress = useCallback(async () => {
     setLoading(true)
-    const { data } = await supabase
-      .from('onboarding_progress')
-      .select('id, tenant_id, user_id, steps_completed, completed_at')
-      .eq('tenant_id', tenantId)
-      .eq('user_id', userId)
-      .maybeSingle()
+    const { data } = await apiFetch('/onboarding_progress')
 
     if (data) {
       setProgress(data as OnboardingProgress)
     } else {
       // Upsert a fresh record for this admin
-      const { data: created } = await supabase
-        .from('onboarding_progress')
-        .insert({
-          tenant_id: tenantId,
-          user_id: userId,
-          steps_completed: {},
-          completed_at: null,
-        })
-        .select('id, tenant_id, user_id, steps_completed, completed_at')
-        .single()
+      const { data: created } = await apiFetch('/onboarding_progress')
       if (created) setProgress(created as OnboardingProgress)
     }
     setLoading(false)
@@ -79,15 +65,7 @@ function OnboardingChecklistInner({ tenantId, userId }: InnerProps) {
     }
     const allComplete = ONBOARDING_STEPS.every((s) => updated[s.id])
 
-    const { data } = await supabase
-      .from('onboarding_progress')
-      .update({
-        steps_completed: updated,
-        completed_at: allComplete ? new Date().toISOString() : null,
-      })
-      .eq('id', progress.id)
-      .select('id, tenant_id, user_id, steps_completed, completed_at')
-      .single()
+    const { data } = await apiFetch('/onboarding_progress')
 
     if (data) setProgress(data as OnboardingProgress)
   }

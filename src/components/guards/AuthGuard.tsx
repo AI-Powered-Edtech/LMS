@@ -37,7 +37,7 @@ export function AuthGuard({ children, requireEmailVerification = true }: AuthGua
   const location = useLocation()
 
   // ── 1. Loading ─────────────────────────────────────────────────────────────
-  // Show a full-screen loading indicator while Supabase resolves the session
+  // Show a full-screen loading indicator while API resolves the session
   // and fetches the user profile + memberships.
   if (loading) {
     return <AppLoading />

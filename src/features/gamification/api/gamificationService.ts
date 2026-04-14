@@ -5,7 +5,7 @@
  * All methods require tenantId for proper multi-tenant isolation.
  */
 
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 import type {
   Badge,
@@ -27,12 +27,7 @@ export const gamificationService = {
    * Fetches the current streak for the authenticated user.
    */
   async getUserStreak(userId: string, tenantId: string): Promise<UserStreak | null> {
-    const { data, error } = await supabase
-      .from('user_streaks')
-      .select('user_id, tenant_id, current_streak, longest_streak, last_activity_date, updated_at')
-      .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
-      .maybeSingle()
+    const { data, error } = await apiFetch('/user_streaks')
 
     if (error) {
       if (error.code === '42P01' || error.code === '42703') return null
@@ -46,18 +41,7 @@ export const gamificationService = {
    * Fetches the badges earned by the authenticated user (v1 compat).
    */
   async getUserBadges(userId: string, tenantId: string): Promise<UserBadge[]> {
-    const { data, error } = await supabase
-      .from('user_badges')
-      .select(
-        `
-                badge_id,
-                earned_at,
-                badge:badges (*)
-            `
-      )
-      .eq('user_id', userId)
-      .eq('tenant_id', tenantId)
-      .order('earned_at', { ascending: false })
+    const { data, error } = await apiFetch('/user_badges')
 
     if (error) {
       if (error.code === '42P01' || error.code === '42703') return []
@@ -71,13 +55,7 @@ export const gamificationService = {
    * Fetches all available badges (v1 compat).
    */
   async getAllBadges(): Promise<Badge[]> {
-    const { data, error } = await supabase
-      .from('badges')
-      .select(
-        'id, name, description, icon, xp_reward, condition_type, condition_threshold, tenant_id, created_at'
-      )
-      .order('name')
-      .limit(100)
+    const { data, error } = await apiFetch('/badges')
 
     if (error) {
       if (import.meta.env.DEV) console.error('Error fetching badges:', error)
@@ -93,9 +71,9 @@ export const gamificationService = {
 
   /** Get all badge definitions with earned status for a student */
   async getStudentBadges(userId: string): Promise<BadgeDefinition[]> {
-    const { data, error } = await supabase.rpc('get_student_badges', {
-      p_user_id: userId,
-    })
+    const { data, error } = await apiFetch('/rpc/get_student_badges', { method: 'POST', body: JSON.stringify({
+          p_user_id: userId,
+        }) })
     if (error) {
       if (error.code === 'PGRST202' || error.code === '42883') return []
       throw error
@@ -105,9 +83,9 @@ export const gamificationService = {
 
   /** Get student certificates */
   async getStudentCertificates(userId: string): Promise<Certificate[]> {
-    const { data, error } = await supabase.rpc('get_student_certificates', {
-      p_user_id: userId,
-    })
+    const { data, error } = await apiFetch('/rpc/get_student_certificates', { method: 'POST', body: JSON.stringify({
+          p_user_id: userId,
+        }) })
     if (error) {
       if (error.code === 'PGRST202' || error.code === '42883') return []
       throw error
@@ -117,10 +95,10 @@ export const gamificationService = {
 
   /** Teacher issues a certificate */
   async issueCertificate(userId: string, courseId: string) {
-    const { data, error } = await supabase.rpc('issue_certificate', {
-      p_user_id: userId,
-      p_course_id: courseId,
-    })
+    const { data, error } = await apiFetch('/rpc/issue_certificate', { method: 'POST', body: JSON.stringify({
+          p_user_id: userId,
+          p_course_id: courseId,
+        }) })
     if (error) throw error
     return (data as unknown as unknown[])?.[0] ?? data
   },
@@ -139,43 +117,11 @@ export const gamificationService = {
     tenant_id: string
   }) {
     if (badge.id) {
-      const { data, error } = await supabase
-        .from('badge_definitions')
-        .update({
-          name: badge.name,
-          description: badge.description,
-          icon_emoji: badge.icon_emoji,
-          badge_type: badge.badge_type,
-          criteria: badge.criteria,
-          xp_reward: badge.xp_reward,
-          rarity: badge.rarity,
-          is_active: badge.is_active,
-        })
-        .eq('id', badge.id)
-        .select(
-          'id, tenant_id, name, description, icon_emoji, badge_type, criteria, xp_reward, rarity, is_active, created_at'
-        )
-        .single()
+      const { data, error } = await apiFetch('/badge_definitions')
       if (error) throw error
       return data
     } else {
-      const { data, error } = await supabase
-        .from('badge_definitions')
-        .insert({
-          tenant_id: badge.tenant_id,
-          name: badge.name,
-          description: badge.description,
-          icon_emoji: badge.icon_emoji,
-          badge_type: badge.badge_type,
-          criteria: badge.criteria,
-          xp_reward: badge.xp_reward,
-          rarity: badge.rarity,
-          is_active: badge.is_active,
-        })
-        .select(
-          'id, tenant_id, name, description, icon_emoji, badge_type, criteria, xp_reward, rarity, is_active, created_at'
-        )
-        .single()
+      const { data, error } = await apiFetch('/badge_definitions')
       if (error) throw error
       return data
     }
@@ -183,13 +129,7 @@ export const gamificationService = {
 
   /** Get all badge definitions for teacher management */
   async getBadgeDefinitions(tenantId: string) {
-    const { data, error } = await supabase
-      .from('badge_definitions')
-      .select(
-        'id, tenant_id, name, description, icon_emoji, badge_type, criteria, xp_reward, rarity, is_active, created_at'
-      )
-      .or(`tenant_id.is.null,tenant_id.eq.${tenantId}`)
-      .order('created_at')
+    const { data, error } = await apiFetch('/badge_definitions')
     if (error) throw error
     return data ?? []
   },
@@ -200,9 +140,9 @@ export const gamificationService = {
 
   /** Get student XP profile */
   async getStudentXPProfile(userId: string): Promise<StudentXPProfile | null> {
-    const { data, error } = await supabase.rpc('get_student_xp_profile', {
-      p_user_id: userId,
-    })
+    const { data, error } = await apiFetch('/rpc/get_student_xp_profile', { method: 'POST', body: JSON.stringify({
+          p_user_id: userId,
+        }) })
     if (error) {
       if (error.code === 'PGRST202' || error.code === '42883') return null
       throw error
@@ -223,12 +163,12 @@ export const gamificationService = {
     period?: LeaderboardPeriod
     limit?: number
   }): Promise<LeaderboardV2Entry[]> {
-    const { data, error } = await supabase.rpc('get_leaderboard_v2', {
-      p_course_id: params.courseId ?? null,
-      p_sort_by: params.sortBy ?? 'xp',
-      p_period: params.period ?? 'all_time',
-      p_limit: params.limit ?? 50,
-    })
+    const { data, error } = await apiFetch('/rpc/get_leaderboard_v2', { method: 'POST', body: JSON.stringify({
+          p_course_id: params.courseId ?? null,
+          p_sort_by: params.sortBy ?? 'xp',
+          p_period: params.period ?? 'all_time',
+          p_limit: params.limit ?? 50,
+        }) })
     if (error) {
       if (error.code === 'PGRST202' || error.code === '42883') return []
       throw error

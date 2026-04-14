@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 interface AIGradeRequest {
   submissionId: string
@@ -22,9 +22,9 @@ export const aiGraderService = {
    */
   async gradeEssay(request: AIGradeRequest): Promise<AIGradeResponse> {
     try {
-      const { data, error } = await supabase.functions.invoke('ai-grade-essay', {
+      const { data, error } = await apiFetch("/functions/ai-grade-essay", { method: "POST", body: JSON.stringify({
         body: request,
-      })
+      }) })
 
       if (error) {
         if (import.meta.env.DEV) console.error('[AI Grader] Edge Function error:', error)

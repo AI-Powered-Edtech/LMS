@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as v from 'valibot'
 
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 import { useAuth } from '../../contexts/AuthContext'
 import { FormField } from '../ui/FormField'
@@ -48,16 +48,7 @@ export function InviteUserModal({ isOpen, onClose, onSuccess }: InviteUserModalP
         return
       }
 
-      const { data: insertData, error: insertError } = await supabase
-        .from('tenant_invitations')
-        .insert({
-          tenant_id: tenantId,
-          email: data.email.toLowerCase().trim(),
-          role: data.role,
-          invited_by: user.id,
-        })
-        .select('token')
-        .single()
+      const { data: insertData, error: insertError } = await apiFetch('/tenant_invitations')
 
       if (insertError) {
         if (insertError.code === '23505') {

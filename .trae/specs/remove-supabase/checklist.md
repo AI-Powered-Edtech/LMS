@@ -1,0 +1,5 @@
+- [x] Ketergantungan `@supabase/supabase-js` tidak ada lagi di `package.json`.
+- [x] Tidak ada referensi ke `supabase` di seluruh source code (`src/`).
+- [x] Aplikasi frontend dapat berjalan tanpa error (bebas dari error inisialisasi Supabase).
+- [x] Autentikasi diarahkan ke endpoint backend lokal (misal: `/api/v1/auth/login`).
+- [x] Variabel lingkungan Supabase sudah dihapus dari `.env.example`.

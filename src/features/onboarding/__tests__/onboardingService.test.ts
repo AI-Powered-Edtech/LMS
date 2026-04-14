@@ -1,3 +1,4 @@
+import { api } from "@/src/lib/api"
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { onboardingService } from '../api/onboardingService'
@@ -13,8 +14,8 @@ const { mockEq, mockFrom } = vi.hoisted(() => {
   return { mockEq, mockFrom }
 })
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/src/services/api/client', () => ({
+  api: {
     from: mockFrom,
     rpc: vi.fn(),
     auth: {
@@ -40,7 +41,7 @@ describe('onboardingService', () => {
       expect(result).toEqual(mockData)
     })
 
-    it('harus throw error saat Supabase error', async () => {
+    it('harus throw error saat API error', async () => {
       mockEq.mockResolvedValue({
         data: null,
         error: { message: 'RLS violation' },

@@ -19,7 +19,7 @@ import {
 import { useGradebook } from '@/src/features/gradebook/hooks/useGradebookQueries'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
 import { useToast } from '@/src/hooks/useToast'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 export function SpeedGrader() {
   usePageTitle('Speed Grader')
@@ -64,10 +64,7 @@ export function SpeedGrader() {
     setSaveStatus('idle')
 
     try {
-      let assignmentQuery = supabase
-        .from('assignments')
-        .select('id, tenant_id')
-        .eq('id', assignmentId)
+      let assignmentQuery = apiFetch('/assignments')
       if (tenantId) assignmentQuery = assignmentQuery.eq('tenant_id', tenantId)
 
       const { data: assignment, error: assignmentError } = await assignmentQuery.single()
@@ -84,11 +81,7 @@ export function SpeedGrader() {
     }
 
     try {
-      let query = supabase
-        .from('assignment_submissions')
-        .select('submission_text')
-        .eq('assignment_id', assignmentId)
-        .eq('student_id', currentStudent.id)
+      let query = apiFetch('/assignment_submissions')
       if (tenantId) query = query.eq('tenant_id', tenantId)
 
       const { data: submission, error } = await query.maybeSingle()

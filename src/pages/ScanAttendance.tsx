@@ -6,12 +6,12 @@ import { Link } from 'react-router-dom'
 import { useToast } from '@/src/components/ui'
 import { useAuth } from '@/src/contexts/AuthContext'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 /**
  * ScanAttendance — AI-powered attendance book scanning.
  *
- * The scan feature requires a Supabase Edge Function (`scan-attendance`)
+ * The scan feature requires a API Edge Function (`scan-attendance`)
  * that accepts an image and returns structured attendance data via AI vision.
  * Until that Edge Function is deployed, the scan buttons show an informational
  * toast. The class selector queries real data from the `classes` table.
@@ -25,11 +25,7 @@ export function ScanAttendance() {
   const { data: classes = [] } = useQuery({
     queryKey: ['teacher-classes', tenantId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('classes')
-        .select('id, name')
-        .eq('tenant_id', tenantId!)
-        .eq('teacher_id', user!.id)
+      const { data } = await apiFetch('/classes')
       return data ?? []
     },
     enabled: !!tenantId && !!user,

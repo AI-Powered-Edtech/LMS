@@ -3,7 +3,7 @@
  * All queries include tenant_id for multi-tenant isolation
  */
 
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { logDevError } from '@/src/utils/logDevError'
 
 import type { Notification, NotificationPreferences } from '../types'
@@ -33,14 +33,7 @@ export async function fetchNotifications(
   limit = 50,
   offset = 0
 ): Promise<Notification[]> {
-  const { data, error } = await supabase
-    .from('notifications')
-    .select(NOTIFICATION_COLUMNS)
-    .eq('user_id', userId)
-    .eq('tenant_id', tenantId)
-    .order('created_at', { ascending: false })
-    .limit(limit)
-    .range(offset, offset + limit - 1)
+  const { data, error } = await apiFetch('/notifications')
 
   if (error) {
     logDevError('notifications', 'fetchNotifications error:', error)
@@ -55,7 +48,7 @@ export async function fetchNotifications(
  */
 export async function markNotificationRead(id: string): Promise<void> {
   // Only update is_read — read_at column may not exist in baseline schema
-  const { error } = await supabase.from('notifications').update({ is_read: true }).eq('id', id)
+  const { error } = await apiFetch('/notifications')
 
   if (error) {
     logDevError('notifications', 'markNotificationRead error:', error)
@@ -67,12 +60,7 @@ export async function markNotificationRead(id: string): Promise<void> {
  * Mark all unread notifications as read for a user within a tenant
  */
 export async function markAllNotificationsRead(userId: string, tenantId: string): Promise<void> {
-  const { error } = await supabase
-    .from('notifications')
-    .update({ is_read: true })
-    .eq('user_id', userId)
-    .eq('tenant_id', tenantId)
-    .eq('is_read', false)
+  const { error } = await apiFetch('/notifications')
 
   if (error) {
     logDevError('notifications', 'markAllNotificationsRead error:', error)
@@ -84,12 +72,7 @@ export async function markAllNotificationsRead(userId: string, tenantId: string)
  * Fetch the count of unread notifications
  */
 export async function fetchUnreadCount(userId: string, tenantId: string): Promise<number> {
-  const { count, error } = await supabase
-    .from('notifications')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .eq('tenant_id', tenantId)
-    .eq('is_read', false)
+  const { count, error } = await apiFetch('/notifications')
 
   if (error) {
     logDevError('notifications', 'fetchUnreadCount error:', error)
@@ -106,14 +89,7 @@ export async function fetchNotificationPreferences(
   userId: string,
   tenantId: string
 ): Promise<NotificationPreferences | null> {
-  const { data, error } = await supabase
-    .from('notification_preferences')
-    .select(
-      'id, tenant_id, user_id, email_enabled, push_enabled, quiet_hours_start, quiet_hours_end, disabled_types, push_subscription'
-    )
-    .eq('user_id', userId)
-    .eq('tenant_id', tenantId)
-    .maybeSingle()
+  const { data, error } = await apiFetch('/notification_preferences')
 
   if (error) {
     logDevError('notifications', 'fetchNotificationPreferences error:', error)
@@ -129,13 +105,7 @@ export async function fetchNotificationPreferences(
 export async function upsertNotificationPreferences(
   prefs: Partial<NotificationPreferences> & { user_id: string; tenant_id: string }
 ): Promise<NotificationPreferences> {
-  const { data, error } = await supabase
-    .from('notification_preferences')
-    .upsert(prefs, { onConflict: 'user_id,tenant_id' })
-    .select(
-      'id, tenant_id, user_id, email_enabled, push_enabled, quiet_hours_start, quiet_hours_end, disabled_types, push_subscription'
-    )
-    .single()
+  const { data, error } = await apiFetch('/notification_preferences')
 
   if (error) {
     logDevError('notifications', 'upsertNotificationPreferences error:', error)

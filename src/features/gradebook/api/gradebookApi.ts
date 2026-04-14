@@ -1,6 +1,6 @@
 import Papa from 'papaparse'
 
-import { supabase } from '@/src/services/supabase/client'
+import { api, apiFetch } from '@/src/lib/api'
 
 import type { GradebookColumn, GradebookEntry, GradebookSettings } from '../types'
 
@@ -14,41 +14,7 @@ export async function fetchGradebookEntries(
   courseId: string,
   tenantId: string
 ): Promise<GradebookEntry[]> {
-  const { data, error } = await supabase
-    .from('gradebook_entries')
-    .select(
-      `
-      id,
-      tenant_id,
-      student_id,
-      course_id,
-      assignment_id,
-      quiz_id,
-      score,
-      max_score,
-      percentage,
-      grade_letter,
-      notes,
-      graded_by,
-      graded_at,
-      created_at,
-      updated_at,
-      profiles:student_id (
-        first_name,
-        last_name,
-        email
-      ),
-      assignments:assignment_id (
-        title
-      ),
-      quizzes:quiz_id (
-        title
-      )
-      `
-    )
-    .eq('course_id', courseId)
-    .eq('tenant_id', tenantId)
-    .order('created_at', { ascending: true })
+  const { data, error } = await apiFetch('/gradebook_entries')
 
   if (error) throw error
 
@@ -106,16 +72,7 @@ export async function updateGradebookEntry(
   id: string,
   updates: Partial<Pick<GradebookEntry, 'score' | 'notes' | 'grade_letter'>>
 ): Promise<GradebookEntry> {
-  const { data, error } = await supabase
-    .from('gradebook_entries')
-    .update({ ...updates, updated_at: new Date().toISOString() })
-    .eq('id', id)
-    .select(
-      `id, tenant_id, student_id, course_id, assignment_id, quiz_id,
-       score, max_score, percentage, grade_letter, notes,
-       graded_by, graded_at, created_at, updated_at`
-    )
-    .single()
+  const { data, error } = await apiFetch('/gradebook_entries')
 
   if (error) throw error
 
@@ -126,38 +83,12 @@ export async function updateGradebookEntry(
 
 /**
  * Menyimpan (insert atau update) satu entri nilai.
- * percentage adalah generated column, tidak boleh dikirim ke Supabase.
+ * percentage adalah generated column, tidak boleh dikirim ke API.
  */
 export async function upsertGradebookEntry(
   entry: Omit<GradebookEntry, 'id' | 'percentage'>
 ): Promise<GradebookEntry> {
-  const { data, error } = await supabase
-    .from('gradebook_entries')
-    .upsert(
-      {
-        tenant_id: entry.tenant_id,
-        student_id: entry.student_id,
-        course_id: entry.course_id,
-        assignment_id: entry.assignment_id,
-        quiz_id: entry.quiz_id,
-        score: entry.score,
-        max_score: entry.max_score,
-        grade_letter: entry.grade_letter,
-        notes: entry.notes,
-        graded_by: entry.graded_by,
-        graded_at: entry.graded_at,
-        updated_at: new Date().toISOString(),
-      },
-      {
-        onConflict: 'tenant_id,student_id,course_id,assignment_id,quiz_id',
-      }
-    )
-    .select(
-      `id, tenant_id, student_id, course_id, assignment_id, quiz_id,
-       score, max_score, percentage, grade_letter, notes,
-       graded_by, graded_at, created_at, updated_at`
-    )
-    .single()
+  const { data, error } = await apiFetch('/gradebook_entries')
 
   if (error) throw error
 
@@ -171,10 +102,10 @@ export async function upsertGradebookEntry(
  * ke gradebook_entries. Mengembalikan jumlah baris yang di-upsert.
  */
 export async function syncGradebook(courseId: string, tenantId: string): Promise<number> {
-  const { data, error } = await supabase.rpc('sync_gradebook_entries', {
-    p_course_id: courseId,
-    p_tenant_id: tenantId,
-  })
+  const { data, error } = await apiFetch('/rpc/sync_gradebook_entries', { method: 'POST', body: JSON.stringify({
+      p_course_id: courseId,
+      p_tenant_id: tenantId,
+    }) })
 
   if (error) throw error
 
@@ -191,12 +122,7 @@ export async function fetchGradebookSettings(
   courseId: string,
   tenantId: string
 ): Promise<GradebookSettings | null> {
-  const { data, error } = await supabase
-    .from('gradebook_settings')
-    .select(`id, tenant_id, course_id, grading_scale, weight_quizzes, weight_assignments`)
-    .eq('course_id', courseId)
-    .eq('tenant_id', tenantId)
-    .maybeSingle()
+  const { data, error } = await apiFetch('/gradebook_settings')
 
   if (error) throw error
 
@@ -209,11 +135,7 @@ export async function fetchGradebookSettings(
 export async function upsertGradebookSettings(
   settings: Omit<GradebookSettings, 'id'>
 ): Promise<GradebookSettings> {
-  const { data, error } = await supabase
-    .from('gradebook_settings')
-    .upsert(settings, { onConflict: 'tenant_id,course_id' })
-    .select(`id, tenant_id, course_id, grading_scale, weight_quizzes, weight_assignments`)
-    .single()
+  const { data, error } = await apiFetch('/gradebook_settings')
 
   if (error) throw error
 

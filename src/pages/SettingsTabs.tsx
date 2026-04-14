@@ -11,7 +11,7 @@ import { OptimizedImage } from '@/src/components/ui'
 import { OfflineFormNotice } from '@/src/components/ui/OfflineFormNotice'
 import { useAuth } from '@/src/contexts/AuthContext'
 import type { Theme } from '@/src/contexts/ThemeContext'
-import { supabase } from '@/src/services/supabase/client'
+import { api, apiFetch } from '@/src/lib/api'
 import { type ProfileFormData, ProfileFormSchema } from '@/src/shared/schemas/forms'
 import { cn } from '@/src/utils/cn'
 
@@ -84,14 +84,7 @@ export function AccountTab({ avatarUrl, displayEmail, roleLabel, displayName }: 
     try {
       const [firstName, ...rest] = data.fullName.trim().split(' ')
       const lastName = rest.join(' ')
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          first_name: firstName,
-          last_name: lastName || '',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId)
+      const { error } = await apiFetch('/profiles')
       if (error) throw error
       setProfileMessage({ type: 'success', text: 'Profil berhasil diperbarui.' })
     } catch {
@@ -233,7 +226,7 @@ export function SecurityTab() {
     setSavingPassword(true)
     try {
       // 1. Verifikasi kata sandi lama dulu
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      const { error: authError } = await api.auth.signInWithPassword({
         email: user!.email!,
         password: currentPassword,
       })
@@ -243,7 +236,7 @@ export function SecurityTab() {
         return
       }
       // 2. Baru update password
-      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      const { error } = await api.auth.updateUser({ password: newPassword })
       if (error) throw error
       setPasswordMessage({ type: 'success', text: 'Kata sandi berhasil diubah.' })
       setCurrentPassword('')

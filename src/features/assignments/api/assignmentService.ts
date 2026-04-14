@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { api, apiFetch } from '@/src/lib/api'
 import { logDevError } from '@/src/utils/logDevError'
 
 export interface Assignment {
@@ -50,11 +50,7 @@ export const assignmentService = {
    * Creates a new assignment linked to a lesson.
    */
   async createAssignment(assignment: Omit<Assignment, 'id' | 'created_at' | 'updated_at'>) {
-    const { data, error } = await supabase
-      .from('assignments')
-      .insert(assignment)
-      .select(ASSIGNMENT_COLUMNS)
-      .single()
+    const { data, error } = await apiFetch('/assignments')
 
     if (error) {
       logDevError('assignmentService', 'Error creating assignment:', error)
@@ -74,15 +70,7 @@ export const assignmentService = {
       'id' | 'submitted_at' | 'graded_at' | 'score' | 'feedback' | 'status'
     >
   ) {
-    const { data, error } = await supabase
-      .from('assignment_submissions')
-      .upsert({
-        ...submission,
-        status: 'submitted',
-        submitted_at: new Date().toISOString(),
-      })
-      .select(SUBMISSION_COLUMNS)
-      .single()
+    const { data, error } = await apiFetch('/assignment_submissions')
 
     if (error) {
       logDevError('assignmentService', 'Error submitting assignment:', error)
@@ -96,18 +84,7 @@ export const assignmentService = {
    * Teachers grade a submission.
    */
   async gradeSubmission(submissionId: string, tenantId: string, score: number, feedback: string) {
-    const { data, error } = await supabase
-      .from('assignment_submissions')
-      .update({
-        score,
-        feedback,
-        status: 'graded',
-        graded_at: new Date().toISOString(),
-      })
-      .eq('id', submissionId)
-      .eq('tenant_id', tenantId)
-      .select(SUBMISSION_COLUMNS)
-      .single()
+    const { data, error } = await apiFetch('/assignment_submissions')
 
     if (error) {
       logDevError('assignmentService', 'Error grading submission:', error)
@@ -121,12 +98,7 @@ export const assignmentService = {
    * Fetches assignment details by lesson_id.
    */
   async getAssignmentByLesson(lessonId: string, tenantId: string) {
-    const { data, error } = await supabase
-      .from('assignments')
-      .select(ASSIGNMENT_COLUMNS)
-      .eq('lesson_id', lessonId)
-      .eq('tenant_id', tenantId)
-      .maybeSingle()
+    const { data, error } = await apiFetch('/assignments')
 
     if (error) {
       logDevError('assignmentService', 'Error fetching assignment by lesson:', error)
@@ -140,20 +112,7 @@ export const assignmentService = {
    * Fetches assignment details along with student's current submission if any.
    */
   async getAssignmentDetails(assignmentId: string, studentId: string, tenantId: string) {
-    const { data, error } = await supabase
-      .from('assignments')
-      .select(
-        `
-                ${ASSIGNMENT_COLUMNS},
-                assignment_submissions!left (
-                    ${SUBMISSION_COLUMNS}
-                )
-            `
-      )
-      .eq('id', assignmentId)
-      .eq('tenant_id', tenantId)
-      .eq('assignment_submissions.student_id', studentId)
-      .single()
+    const { data, error } = await apiFetch('/assignments')
 
     if (error) {
       logDevError('assignmentService', 'Error fetching assignment details:', error)
@@ -167,21 +126,7 @@ export const assignmentService = {
    * Fetches all submissions for an assignment (for Teacher Gradebook).
    */
   async getAssignmentSubmissions(assignmentId: string, tenantId: string) {
-    const { data, error } = await supabase
-      .from('assignment_submissions')
-      .select(
-        `
-                ${SUBMISSION_COLUMNS},
-                user_profiles:student_id (
-                    full_name,
-                    avatar_url
-                )
-            `
-      )
-      .eq('assignment_id', assignmentId)
-      .eq('tenant_id', tenantId)
-      .order('submitted_at', { ascending: false })
-      .limit(200)
+    const { data, error } = await apiFetch('/assignment_submissions')
 
     if (error) {
       logDevError('assignmentService', 'Error fetching assignment submissions:', error)
@@ -200,25 +145,7 @@ export const assignmentService = {
     const from = (page - 1) * limit
     const to = from + limit - 1
 
-    const { data, error, count } = await supabase
-      .from('assignments')
-      .select(
-        `
-                ${ASSIGNMENT_COLUMNS},
-                assignment_submissions!left (
-                    id,
-                    status,
-                    score,
-                    submitted_at,
-                    file_url
-                )
-            `,
-        { count: 'exact' }
-      )
-      .eq('tenant_id', tenantId)
-      .eq('is_published', true)
-      .order('due_date', { ascending: true })
-      .range(from, to)
+    const { data, error, count } = await apiFetch('/assignments')
 
     if (error) {
       logDevError('assignmentService', 'Error fetching student assignments:', error)
@@ -252,27 +179,7 @@ export const assignmentService = {
     const from = (page - 1) * limit
     const to = from + limit - 1
 
-    const { data, error, count } = await supabase
-      .from('assignments')
-      .select(
-        `
-                ${ASSIGNMENT_COLUMNS},
-                assignment_submissions!left (
-                    id,
-                    status,
-                    score,
-                    submitted_at,
-                    file_url,
-                    user_profiles:student_id (
-                        full_name
-                    )
-                )
-            `,
-        { count: 'exact' }
-      )
-      .eq('tenant_id', tenantId)
-      .order('due_date', { ascending: true })
-      .range(from, to)
+    const { data, error, count } = await apiFetch('/assignments')
 
     if (error) {
       logDevError('assignmentService', 'Error fetching assignments:', error)
@@ -300,11 +207,11 @@ export const assignmentService = {
     userId: string
   ): Promise<string> {
     const storagePath = `${tenantId}/assignments/${assignmentId}/${userId}/${Date.now()}-${file.name}`
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await api.storage
       .from('assignment-submissions')
       .upload(storagePath, file, { upsert: false })
     if (uploadError) throw uploadError
-    const { data: publicData } = supabase.storage
+    const { data: publicData } = api.storage
       .from('assignment-submissions')
       .getPublicUrl(uploadData?.path || '')
     return publicData?.publicUrl || uploadData?.path || ''

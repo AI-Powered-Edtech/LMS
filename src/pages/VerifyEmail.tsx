@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 import { useAuth } from '../contexts/AuthContext'
 
@@ -17,18 +17,14 @@ export function VerifyEmail() {
     setResending(true)
 
     try {
-      const { error: resendError } = await supabase.auth.resend({
-        type: 'signup',
-        email: user?.email ?? '',
+      await apiFetch('/v1/auth/resend-verification', {
+        method: 'POST',
+        body: JSON.stringify({ email: user?.email ?? '' }),
       })
 
-      if (resendError) {
-        setError(resendError.message)
-      } else {
-        setResent(true)
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Gagal mengirim ulang email verifikasi.')
+      setResent(true)
+    } catch (err: any) {
+      setError(err.message || 'Gagal mengirim ulang email verifikasi.')
     } finally {
       setResending(false)
     }

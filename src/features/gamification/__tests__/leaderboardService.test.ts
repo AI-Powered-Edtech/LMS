@@ -1,11 +1,12 @@
+import { api } from "@/src/lib/api"
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { leaderboardService } from '../api/leaderboardService'
 
 const mockFrom = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/src/services/api/client', () => ({
+  api: {
     from: (...args: unknown[]) => mockFrom(...args),
   },
 }))
@@ -20,7 +21,7 @@ function makeLeaderboardChain(resolveWith: { data: unknown; error: unknown }) {
   // The final method in the chain resolves the promise
   // The chain is: .from().select().eq('tenant_id').order().limit()
   // Then conditionally .eq('class_id') is added before await
-  // Since Supabase query builder is chainable, limit returns a thenable
+  // Since API query builder is chainable, limit returns a thenable
   chain.limit.mockImplementation(() => {
     // Return a thenable that also has .eq() for the class_id filter
     const thenable = {

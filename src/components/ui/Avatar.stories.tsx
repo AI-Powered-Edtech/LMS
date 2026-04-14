@@ -1,3 +1,4 @@
+import { api } from "@/src/lib/api"
 import type { Meta, StoryObj } from '@storybook/react'
 
 import { Avatar } from './Avatar'

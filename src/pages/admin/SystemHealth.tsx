@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 
 import { Spinner } from '@/src/components/ui'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 interface HealthCheck {
   status: 'healthy' | 'degraded' | 'down'
@@ -46,7 +46,7 @@ export function SystemHealth() {
     try {
       // Check DB health via a simple query
       const start = performance.now()
-      const { error: dbError } = await supabase.from('tenants').select('id').limit(1)
+      const { error: dbError } = await apiFetch('/tenants')
       const dbLatency = Math.round(performance.now() - start)
 
       const dbOk = !dbError
@@ -62,11 +62,7 @@ export function SystemHealth() {
       })
 
       // Recent metrics
-      const { data: recentMetrics } = await supabase
-        .from('app_metrics')
-        .select('metric_name, metric_value')
-        .order('recorded_at', { ascending: false })
-        .limit(50)
+      const { data: recentMetrics } = await apiFetch('/app_metrics')
 
       const summary: MetricSummary[] = []
 

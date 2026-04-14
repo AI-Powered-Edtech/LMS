@@ -4,7 +4,7 @@
 import type { Metric } from 'web-vitals'
 import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals'
 
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 /* ─── Helpers ──────────────────────────────────────────────── */
 
@@ -41,17 +41,7 @@ async function sendMetricProd(metric: Metric): Promise<void> {
   if (Math.random() > 0.1) return
 
   try {
-    await supabase.from('activity_events').insert({
-      event_type: 'WEB_VITAL',
-      event_data: {
-        name: metric.name,
-        value: metric.value,
-        rating: metric.rating,
-        delta: metric.delta,
-        id: metric.id,
-        navigationType: metric.navigationType,
-      },
-    })
+    await apiFetch('/activity_events')
   } catch {
     // Silently drop — vitals are non-critical telemetry
   }

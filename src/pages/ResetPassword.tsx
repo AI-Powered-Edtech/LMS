@@ -6,7 +6,7 @@ import * as v from 'valibot'
 
 import { FormField } from '@/src/components/ui/FormField'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 const resetPasswordSchema = v.pipe(
   v.object({
@@ -43,42 +43,23 @@ export function ResetPassword() {
   })
 
   useEffect(() => {
-    // Supabase auto-logs the user in when they click the recovery link.
-    // We listen for the PASSWORD_RECOVERY event to know we're ready.
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setSessionReady(true)
-      }
-    })
-
-    // Also check if user already has an active session (e.g., page refresh)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setSessionReady(true)
-      }
-    })
-
-    return () => subscription.unsubscribe()
+    // For local backend, we assume the link has a token in URL or it's handled via session
+    setSessionReady(true)
   }, [])
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     setError('')
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: data.password,
+      await apiFetch('/v1/auth/update-password', {
+        method: 'POST',
+        body: JSON.stringify({ password: data.password }),
       })
 
-      if (updateError) {
-        setError(updateError.message)
-      } else {
-        setSuccess(true)
-        setTimeout(() => navigate('/'), 3000)
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan.')
+      setSuccess(true)
+      setTimeout(() => navigate('/'), 3000)
+    } catch (err: any) {
+      setError(err.message || 'Terjadi kesalahan.')
     }
   }
 

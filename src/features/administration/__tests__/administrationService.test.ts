@@ -1,3 +1,4 @@
+import { api } from "@/src/lib/api"
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { administrationService } from '../api/administrationService'
@@ -9,8 +10,8 @@ const _mockFrom = vi.fn(() => ({ select: mockSelect }))
 const mockUpdate = vi.fn(() => ({ eq: mockUpdateEq }))
 const mockUpdateEq = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/src/services/api/client', () => ({
+  api: {
     from: (...args: unknown[]) => {
       const table = args[0] as string
       if (table === 'tenant_modules') {
@@ -56,7 +57,7 @@ describe('administrationService', () => {
       expect(result[0].isEnabled).toBe(true)
     })
 
-    it('harus throw error saat Supabase error', async () => {
+    it('harus throw error saat API error', async () => {
       mockOrder.mockResolvedValue({ data: null, error: { message: 'RLS violation' } })
 
       await expect(administrationService.getTenantModules()).rejects.toThrow()

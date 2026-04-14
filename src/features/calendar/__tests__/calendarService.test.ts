@@ -1,11 +1,12 @@
+import { api } from "@/src/lib/api"
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { calendarService } from '../api/calendarService'
 
 const mockFromChain = vi.fn()
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/src/services/api/client', () => ({
+  api: {
     from: (table: string) => {
       // Return a deeply chainable proxy that ultimately resolves via mockFromChain
       const chain: Record<string, unknown> = {}
@@ -34,7 +35,7 @@ describe('calendarService', () => {
 
   describe('fetchEvents', () => {
     it('harus mengembalikan array event yang sudah digabung', async () => {
-      // Mock all three supabase calls to return empty data
+      // Mock all three api calls to return empty data
       mockFromChain.mockReturnValue({ data: [], error: null })
 
       const result = await calendarService.fetchEvents('tenant-1')

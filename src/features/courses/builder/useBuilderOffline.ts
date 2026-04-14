@@ -57,7 +57,7 @@ export function useBuilderOffline(courseId: string | null, state: BuilderState):
   // Sync when coming back online
   useEffect(() => {
     if (wasOffline && isOnline && hasPendingDraft && courseId) {
-      // The actual sync to Supabase is handled by the action hooks
+      // The actual sync to API is handled by the action hooks
       // We just clear the dirty state and pending draft
       deleteBuilderDraft(courseId).then(() => {
         setHasPendingDraft(false)

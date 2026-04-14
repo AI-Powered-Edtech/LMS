@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 import type { EventMetadata, LearningEvent, LearningEventType } from '../types/events.types'
 
@@ -71,9 +71,9 @@ async function flushEvents() {
       if (import.meta.env.DEV) console.debug('[Analytics] Flushing', batch.length, 'events')
     }
 
-    const { error } = await supabase.rpc('insert_learning_events', {
-      p_events: batch,
-    })
+    const { error } = await apiFetch('/rpc/insert_learning_events', { method: 'POST', body: JSON.stringify({
+          p_events: batch,
+        }) })
 
     if (error) {
       if (import.meta.env.DEV) console.warn('[Analytics] Flush failed, re-queuing:', error.message)

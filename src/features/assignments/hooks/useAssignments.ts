@@ -5,7 +5,7 @@ import { assignmentService } from '@/src/features/assignments/api/assignmentServ
 
 import { AssignmentUiState, StudentSubmission } from '../types'
 
-// Raw database response type (snake_case from Supabase)
+// Raw database response type (snake_case from API)
 interface AssignmentDbResponse {
   id: string
   title: string

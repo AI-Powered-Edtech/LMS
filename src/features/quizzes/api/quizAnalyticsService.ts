@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { logDevError } from '@/src/utils/logDevError'
 
 // --- Types ---
@@ -73,9 +73,9 @@ export const quizAnalyticsService = {
    * Shows student's selected option vs correct option per question.
    */
   async getAttemptDetail(attemptId: string): Promise<AttemptDetailAnswer[]> {
-    const { data, error } = await supabase.rpc('get_attempt_detail', {
-      p_attempt_id: attemptId,
-    })
+    const { data, error } = await apiFetch('/rpc/get_attempt_detail', { method: 'POST', body: JSON.stringify({
+          p_attempt_id: attemptId,
+        }) })
 
     if (error) {
       logDevError('quizAnalytics', 'Error fetching attempt detail:', error)
@@ -90,9 +90,9 @@ export const quizAnalyticsService = {
    * Returns percentage of students who answered each question correctly.
    */
   async getQuestionDifficulty(assignmentId: string): Promise<QuestionDifficulty[]> {
-    const { data, error } = await supabase.rpc('get_question_difficulty', {
-      p_assignment_id: assignmentId,
-    })
+    const { data, error } = await apiFetch('/rpc/get_question_difficulty', { method: 'POST', body: JSON.stringify({
+          p_assignment_id: assignmentId,
+        }) })
 
     if (error) {
       logDevError('quizAnalytics', 'Error fetching question difficulty:', error)
@@ -106,12 +106,7 @@ export const quizAnalyticsService = {
    * Fetch quiz stats from the precomputed quiz_stats table.
    */
   async getQuizStats(quizId: string, tenantId?: string): Promise<QuizStats | null> {
-    let query = supabase
-      .from('quiz_stats')
-      .select(
-        'quiz_id, tenant_id, total_attempts, total_unique_students, avg_score, median_score, highest_score, lowest_score, avg_time_seconds, pass_rate, updated_at'
-      )
-      .eq('quiz_id', quizId)
+    let query = apiFetch('/quiz_stats')
 
     // Tenant isolation — filter by tenant_id when available
     if (tenantId) {
@@ -197,13 +192,7 @@ export const quizAnalyticsService = {
  */
 export async function getQuestionStats(quizId: string): Promise<QuestionStatsWithQuestion[]> {
   // Get question stats
-  const { data: stats, error } = await supabase
-    .from('question_stats')
-    .select(
-      'id, question_id, quiz_id, tenant_id, total_answers, correct_answers, difficulty_rate, avg_time_seconds, updated_at'
-    )
-    .eq('quiz_id', quizId)
-    .order('question_id', { ascending: true })
+  const { data: stats, error } = await apiFetch('/question_stats')
 
   if (error) {
     logDevError('quizAnalytics', 'Error fetching question stats:', error)
@@ -216,10 +205,7 @@ export async function getQuestionStats(quizId: string): Promise<QuestionStatsWit
 
   // Get question text and order for display
   const questionIds = stats.map((s) => s.question_id)
-  const { data: questions, error: questionError } = await supabase
-    .from('quiz_questions')
-    .select('id, text, "order"')
-    .in('id', questionIds)
+  const { data: questions, error: questionError } = await apiFetch('/quiz_questions')
 
   if (questionError) {
     logDevError('quizAnalytics', 'Error fetching questions:', questionError)

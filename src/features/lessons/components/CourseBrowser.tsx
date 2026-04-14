@@ -11,7 +11,7 @@ import {
 import { useAuth } from '@/src/contexts/AuthContext'
 import { courseService } from '@/src/features/courses'
 import { LessonSkeleton } from '@/src/features/lessons/components/LessonSkeleton'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { cn } from '@/src/utils/cn'
 
 // ============================================================
@@ -78,13 +78,8 @@ export function CourseBrowser({
 
         // 2+5. Fetch modules and instructor profile in parallel
         const [{ data: modulesData }, { data: profileData }] = await Promise.all([
-          supabase
-            .from('course_modules')
-            .select('id, title, order, course_id, lessons(id, duration_minutes)')
-            .eq('tenant_id', tenantId)
-            .eq('course_id', activeCourse.id)
-            .order('order', { ascending: true }),
-          supabase.from('profiles').select('full_name').eq('id', activeCourse.created_by).single(),
+          apiFetch('/course_modules'),
+          apiFetch('/profiles'),
         ])
 
         if (profileData?.full_name) setInstructorName(profileData.full_name)
@@ -102,12 +97,7 @@ export function CourseBrowser({
 
         let completedSet = new Set<string>()
         if (allLessonIds.length > 0) {
-          const { data: progressData } = await supabase
-            .from('lesson_progress')
-            .select('lesson_id, completed')
-            .eq('user_id', user.id)
-            .in('lesson_id', allLessonIds)
-            .eq('completed', true)
+          const { data: progressData } = await apiFetch('/lesson_progress')
 
           if (progressData) {
             completedSet = new Set(progressData.map((p) => p.lesson_id))

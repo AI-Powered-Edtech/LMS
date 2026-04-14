@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { mapBlock } from '@/src/shared/types/blockMappers'
 import { DomainBlock } from '@/src/shared/types/blockTypes'
 
@@ -7,34 +7,16 @@ import { DomainBlock } from '@/src/shared/types/blockTypes'
  */
 export const builderBlockService = {
   async fetchLessonBlocks(lessonId: string, tenantId: string): Promise<DomainBlock[]> {
-    const { data, error } = await supabase
-      .from('lesson_resources')
-      .select('id, lesson_id, tenant_id, order_index, type, url, title, content, metadata')
-      .eq('lesson_id', lessonId)
-      .eq('tenant_id', tenantId)
-      .order('order_index', { ascending: true })
+    const { data, error } = await apiFetch('/lesson_resources')
 
     if (error) throw new Error(error.message)
     return (data || []).map(mapBlock)
   },
 
   async createBlock(lessonId: string, type: string, tenantId: string): Promise<DomainBlock> {
-    const { count } = await supabase
-      .from('lesson_resources')
-      .select('id', { count: 'exact', head: true })
-      .eq('lesson_id', lessonId)
-      .eq('tenant_id', tenantId)
+    const { count } = await apiFetch('/lesson_resources')
 
-    const { data, error } = await supabase
-      .from('lesson_resources')
-      .insert({
-        lesson_id: lessonId,
-        type,
-        order_index: count || 0,
-        tenant_id: tenantId,
-      })
-      .select('id, lesson_id, tenant_id, order_index, type, url, title, content, metadata')
-      .single()
+    const { data, error } = await apiFetch('/lesson_resources')
 
     if (error) throw new Error(error.message)
     return mapBlock(data)
@@ -48,32 +30,24 @@ export const builderBlockService = {
     if (data.metadata !== undefined) dbUpdate.metadata = data.metadata
     if (data.orderIndex !== undefined) dbUpdate.order_index = data.orderIndex
 
-    const { error } = await supabase
-      .from('lesson_resources')
-      .update(dbUpdate)
-      .eq('id', blockId)
-      .eq('tenant_id', tenantId)
+    const { error } = await apiFetch('/lesson_resources')
 
     if (error) throw new Error(error.message)
   },
 
   async deleteBlock(blockId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
-      .from('lesson_resources')
-      .delete()
-      .eq('id', blockId)
-      .eq('tenant_id', tenantId)
+    const { error } = await apiFetch('/lesson_resources')
 
     if (error) throw new Error(error.message)
   },
 
   async reorderBlocks(lessonId: string, blockIds: string[], tenantId: string): Promise<void> {
     // Optimized RPC call using WITH ORDINALITY
-    const { error } = await supabase.rpc('rpc_reorder_lesson_resources', {
-      p_lesson_id: lessonId,
-      p_resource_ids: blockIds,
-      p_tenant_id: tenantId,
-    })
+    const { error } = await apiFetch('/rpc/rpc_reorder_lesson_resources', { method: 'POST', body: JSON.stringify({
+          p_lesson_id: lessonId,
+          p_resource_ids: blockIds,
+          p_tenant_id: tenantId,
+        }) })
 
     if (error) throw new Error(error.message)
   },

@@ -1,3 +1,4 @@
+import { api } from "@/src/lib/api"
 import { formatDistanceToNow } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { Edit2, MessageSquare, MoreVertical, Pin, Send, Trash2 } from 'lucide-react'

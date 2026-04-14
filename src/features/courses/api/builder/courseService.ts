@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { mapCourse } from '@/src/shared/types/courseMappers'
 import { DomainCourse } from '@/src/shared/types/courseTypes'
 import { mapModule } from '@/src/shared/types/moduleMappers'
@@ -24,26 +24,11 @@ export const builderCourseService = {
     course: DomainCourse
     modules: DomainModule[]
   }> {
-    const { data: course, error: courseErr } = await supabase
-      .from('courses')
-      .select('id, title, description, status, created_at, updated_at, tenant_id')
-      .eq('id', courseId)
-      .eq('tenant_id', tenantId)
-      .single()
+    const { data: course, error: courseErr } = await apiFetch('/courses')
 
     if (courseErr || !course) throw new Error('Materi tidak ditemukan')
 
-    const { data: modules, error: modErr } = await supabase
-      .from('course_modules')
-      .select(
-        `
-        id, title, "order", course_id, tenant_id,
-        lessons ( id, title, "order", type, is_published, duration_minutes, passing_score, tenant_id )
-      `
-      )
-      .eq('course_id', courseId)
-      .eq('tenant_id', tenantId)
-      .order('order', { ascending: true })
+    const { data: modules, error: modErr } = await apiFetch('/course_modules')
 
     if (modErr) throw new Error(modErr.message)
 
@@ -64,37 +49,25 @@ export const builderCourseService = {
 
   /** Use RPC to publish a course and update status/publishing timestamps */
   async publishCourse(courseId: string, _tenantId: string): Promise<void> {
-    const { error } = await supabase.rpc('rpc_publish_course', {
-      p_course_id: courseId,
-    })
+    const { error } = await apiFetch('/rpc/rpc_publish_course', { method: 'POST', body: JSON.stringify({
+          p_course_id: courseId,
+        }) })
     if (error) throw new Error(error.message)
   },
 
   /** Manually drafted via update instead of full RPC for now, for completeness */
   async draftCourse(courseId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
-      .from('courses')
-      .update({ status: 'draft' })
-      .eq('id', courseId)
-      .eq('tenant_id', tenantId)
+    const { error } = await apiFetch('/courses')
     if (error) throw new Error(error.message)
   },
 
   async submitForReview(courseId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
-      .from('courses')
-      .update({ status: 'in_review' })
-      .eq('id', courseId)
-      .eq('tenant_id', tenantId)
+    const { error } = await apiFetch('/courses')
     if (error) throw new Error(error.message)
   },
 
   async approveCourse(courseId: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
-      .from('courses')
-      .update({ status: 'approved' })
-      .eq('id', courseId)
-      .eq('tenant_id', tenantId)
+    const { error } = await apiFetch('/courses')
     if (error) throw new Error(error.message)
   },
 }

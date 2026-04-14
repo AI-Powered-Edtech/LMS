@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 // ============================================================
 // Types
@@ -26,16 +26,7 @@ export const collaboratorService = {
    * Fetch all collaborators for a given course within a tenant.
    */
   async fetchCollaborators(courseId: string, tenantId: string): Promise<Collaborator[]> {
-    const { data, error } = await supabase
-      .from('course_collaborators')
-      .select(
-        `
-        id, user_id, role,
-        profiles:user_id ( full_name, email )
-      `
-      )
-      .eq('course_id', courseId)
-      .eq('tenant_id', tenantId)
+    const { data, error } = await apiFetch('/course_collaborators')
 
     if (error) throw error
 
@@ -53,12 +44,7 @@ export const collaboratorService = {
   async searchUsers(query: string, tenantId: string): Promise<SearchableUser[]> {
     if (!query) return []
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, full_name, email')
-      .eq('tenant_id', tenantId)
-      .ilike('full_name', `%${query}%`)
-      .limit(5)
+    const { data, error } = await apiFetch('/profiles')
 
     if (error) throw error
     return data || []
@@ -73,12 +59,7 @@ export const collaboratorService = {
     role: Collaborator['role'],
     tenantId: string
   ): Promise<void> {
-    const { error } = await supabase.from('course_collaborators').insert({
-      course_id: courseId,
-      user_id: userId,
-      role,
-      tenant_id: tenantId,
-    })
+    const { error } = await apiFetch('/course_collaborators')
     if (error) throw error
   },
 
@@ -86,11 +67,7 @@ export const collaboratorService = {
    * Remove a collaborator by record ID.
    */
   async removeCollaborator(id: string, tenantId: string): Promise<void> {
-    const { error } = await supabase
-      .from('course_collaborators')
-      .delete()
-      .eq('id', id)
-      .eq('tenant_id', tenantId)
+    const { error } = await apiFetch('/course_collaborators')
     if (error) throw error
   },
 }

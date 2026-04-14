@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 export interface CalendarEvent {
   id: string
@@ -25,12 +25,7 @@ export const calendarService = {
     const events: CalendarEvent[] = []
 
     // 1. Assignment due dates
-    const { data: assignments } = await supabase
-      .from('assignments')
-      .select('id, title, due_date, description')
-      .eq('tenant_id', tenantId)
-      .not('due_date', 'is', null)
-      .order('due_date')
+    const { data: assignments } = await apiFetch('/assignments')
 
     if (assignments) {
       assignments.forEach((a) => {
@@ -49,10 +44,7 @@ export const calendarService = {
     }
 
     // 2. Class schedules (recurring)
-    const { data: schedules } = await supabase
-      .from('class_schedules')
-      .select('id, day, start_time, end_time, tenant_id, classes(name)')
-      .eq('tenant_id', tenantId)
+    const { data: schedules } = await apiFetch('/class_schedules')
 
     if (schedules) {
       const dayMap: Record<string, number> = {
@@ -93,12 +85,7 @@ export const calendarService = {
     }
 
     // 3. Quizzes
-    const { data: quizzes } = await supabase
-      .from('quizzes')
-      .select('id, title, created_at')
-      .eq('tenant_id', tenantId)
-      .order('created_at', { ascending: false })
-      .limit(200)
+    const { data: quizzes } = await apiFetch('/quizzes')
 
     if (quizzes) {
       quizzes.forEach((q) => {

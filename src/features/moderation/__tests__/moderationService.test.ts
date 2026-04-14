@@ -1,3 +1,4 @@
+import { api } from "@/src/lib/api"
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { moderationService } from '../api/moderationService'
@@ -20,8 +21,8 @@ const { mockChain, mockFrom } = vi.hoisted(() => {
   return { mockChain, mockFrom }
 })
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/src/services/api/client', () => ({
+  api: {
     from: mockFrom,
     auth: {
       getSession: vi.fn().mockResolvedValue({

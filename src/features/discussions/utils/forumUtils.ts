@@ -1,3 +1,4 @@
+import { api } from "@/src/lib/api"
 import type { Discussion } from '@/src/features/discussions/api/discussionService'
 import type { ForumPost } from '@/src/features/discussions/types/forum'
 

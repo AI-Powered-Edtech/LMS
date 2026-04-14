@@ -1,4 +1,4 @@
-import { type RealtimeChannel } from '@supabase/supabase-js'
+type RealtimeChannel = any
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 export interface PresenceData {

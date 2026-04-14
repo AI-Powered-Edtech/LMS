@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { api, apiFetch } from '@/src/lib/api'
 
 import type { UploadOptions, UploadResult } from '../types'
 
@@ -23,7 +23,7 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
 
 export const storageService = {
   /**
-   * Upload a file to Supabase Storage + track in storage_objects.
+   * Upload a file to API Storage + track in storage_objects.
    * Returns storageObjectId and publicUrl.
    */
   async uploadFile(file: File, opts: UploadOptions): Promise<UploadResult> {
@@ -44,8 +44,8 @@ export const storageService = {
     const extension = file.name.split('.').pop()?.toLowerCase() || ''
     const objectPath = `${opts.tenantId}/${opts.courseId}/${opts.lessonId}/${crypto.randomUUID()}.${extension}`
 
-    // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    // Upload to API Storage
+    const { data: uploadData, error: uploadError } = await api.storage
       .from(opts.bucket)
       .upload(objectPath, file)
 
@@ -58,37 +58,22 @@ export const storageService = {
     }
 
     // Insert into storage_objects table
-    const { data: insertData, error: insertError } = await supabase
-      .from('storage_objects')
-      .insert({
-        tenant_id: opts.tenantId,
-        course_id: opts.courseId,
-        lesson_id: opts.lessonId,
-        block_id: opts.blockId,
-        bucket: opts.bucket,
-        object_path: objectPath,
-        file_name: file.name,
-        mime_type: file.type,
-        file_size: file.size,
-        uploaded_by: opts.uploadedBy,
-      })
-      .select('id')
-      .single()
+    const { data: insertData, error: insertError } = await apiFetch('/storage_objects')
 
     if (insertError) {
       // Cleanup: delete the uploaded file if INSERT fails
-      await supabase.storage.from(opts.bucket).remove([objectPath])
+      await apiFetch("/storage/remove", { method: "POST" })
       throw new Error(`Failed to track storage object: ${insertError.message}`)
     }
 
     if (!insertData?.id) {
       // Cleanup: delete the uploaded file if no ID returned
-      await supabase.storage.from(opts.bucket).remove([objectPath])
+      await apiFetch("/storage/remove", { method: "POST" })
       throw new Error('Failed to retrieve storage object ID')
     }
 
     // Get public URL
-    const { data: urlData } = supabase.storage.from(opts.bucket).getPublicUrl(objectPath)
+    const { data: urlData } = { data: { publicUrl: "/api/storage/publicUrl" } }
 
     const publicUrl = urlData?.publicUrl
     if (!publicUrl) {
@@ -103,15 +88,11 @@ export const storageService = {
   },
 
   /**
-   * Delete a file from both storage_objects table and Supabase Storage bucket.
+   * Delete a file from both storage_objects table and API Storage bucket.
    */
   async deleteFile(storageObjectId: string): Promise<void> {
     // Get the storage object record
-    const { data: storageObj, error: selectError } = await supabase
-      .from('storage_objects')
-      .select('bucket, object_path')
-      .eq('id', storageObjectId)
-      .single()
+    const { data: storageObj, error: selectError } = await apiFetch('/storage_objects')
 
     if (selectError) {
       throw new Error(`Failed to fetch storage object: ${selectError.message}`)
@@ -121,8 +102,8 @@ export const storageService = {
       throw new Error('Storage object not found')
     }
 
-    // Delete from Supabase Storage
-    const { error: storageError } = await supabase.storage
+    // Delete from API Storage
+    const { error: storageError } = await api.storage
       .from(storageObj.bucket)
       .remove([storageObj.object_path])
 
@@ -131,10 +112,7 @@ export const storageService = {
     }
 
     // Delete from storage_objects table
-    const { error: deleteError } = await supabase
-      .from('storage_objects')
-      .delete()
-      .eq('id', storageObjectId)
+    const { error: deleteError } = await apiFetch('/storage_objects')
 
     if (deleteError) {
       throw new Error(`Failed to delete storage object record: ${deleteError.message}`)
@@ -145,7 +123,7 @@ export const storageService = {
    * Get public URL for a storage object path.
    */
   getPublicUrl(bucket: string, objectPath: string): string {
-    const { data } = supabase.storage.from(bucket).getPublicUrl(objectPath)
+    const { data } = { data: { publicUrl: "/api/storage/publicUrl" } }
     return data?.publicUrl || ''
   },
 }

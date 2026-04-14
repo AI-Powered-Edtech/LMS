@@ -17,7 +17,7 @@ import { useAuth } from '@/src/contexts/AuthContext'
 import { useAddCalendarEvent } from '@/src/features/calendar/hooks/useCalendarQueries'
 import { useSendNotification } from '@/src/features/notifications'
 import { usePageTitle } from '@/src/hooks/usePageTitle'
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { cn } from '@/src/utils/cn'
 
 export function Creator() {
@@ -123,12 +123,12 @@ export function Creator() {
       formData.append('questionCount', questionCount.toString())
       formData.append('difficulty', difficulty)
 
-      const { data, error: supaError } = await supabase.functions.invoke('generate-ai-content', {
+      const { data, error: supaError } = await apiFetch("/functions/generate-ai-content", { method: "POST", body: JSON.stringify({
         body: formData,
-      })
+      }) })
 
       if (supaError) {
-        if (import.meta.env.DEV) console.error('Supabase edge function error:', supaError)
+        if (import.meta.env.DEV) console.error('API edge function error:', supaError)
         const msg = supaError.message ?? ''
         // 404 — edge function not deployed
         if (msg.includes('404') || msg.includes('not found') || msg.includes('FetchError')) {

@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 import { validate, validateArray } from '@/src/shared/lib/validate'
 import { DiscussionPostRowSchema } from '@/src/shared/schemas'
 
@@ -15,13 +15,7 @@ export const commentService = {
    * Fetch comments for a discussion thread, including author profile names.
    */
   async fetchComments(threadId: string): Promise<CommentData[]> {
-    const { data, error } = await supabase
-      .from('discussion_posts')
-      .select(
-        'id, content, created_at, author_id, profiles!discussion_posts_author_id_fkey(first_name, last_name)'
-      )
-      .eq('thread_id', threadId)
-      .order('created_at', { ascending: true })
+    const { data, error } = await apiFetch('/discussion_posts')
 
     if (error) throw error
     validateArray(DiscussionPostRowSchema, data ?? [], 'commentService.fetchComments')
@@ -46,15 +40,7 @@ export const commentService = {
     authorId: string,
     text: string
   ): Promise<{ id: string; created_at: string }> {
-    const { data, error } = await supabase
-      .from('discussion_posts')
-      .insert({
-        thread_id: threadId,
-        author_id: authorId,
-        content: text,
-      })
-      .select('id, created_at')
-      .single()
+    const { data, error } = await apiFetch('/discussion_posts')
 
     if (error) throw error
     validate(DiscussionPostRowSchema, data, 'commentService.addComment')

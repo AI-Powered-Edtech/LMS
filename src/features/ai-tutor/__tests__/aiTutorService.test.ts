@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/src/services/supabase/client', () => ({
-  supabase: {
+vi.mock('@/src/services/api/client', () => ({
+  api: {
     functions: {
       invoke: vi.fn(),
     },
   },
 }))
 
-import { supabase } from '@/src/services/supabase/client'
+import { apiFetch } from '@/src/lib/api'
 
 import { askTutor } from '..'
 
@@ -31,14 +31,14 @@ describe('AI Tutor Service', () => {
         session_id: 'abc123',
       }
 
-      vi.mocked(supabase.functions.invoke).mockResolvedValueOnce({
+      vi.mocked(api.functions.invoke).mockResolvedValueOnce({
         data: mockResponse,
         error: null,
       })
 
       const result = await askTutor(mockLessonId, mockQuestion, mockTenantId, mockSessionId)
 
-      expect(supabase.functions.invoke).toHaveBeenCalledWith('ai-tutor', {
+      expect(api.functions.invoke).toHaveBeenCalledWith('ai-tutor', {
         body: {
           lesson_id: mockLessonId,
           question: mockQuestion,
@@ -52,7 +52,7 @@ describe('AI Tutor Service', () => {
     })
 
     it('handles EDGE_FUNCTION_ERROR correctly', async () => {
-      vi.mocked(supabase.functions.invoke).mockResolvedValueOnce({
+      vi.mocked(api.functions.invoke).mockResolvedValueOnce({
         data: null,
         error: new Error('Edge function failed'),
       })
@@ -67,7 +67,7 @@ describe('AI Tutor Service', () => {
     })
 
     it('handles RATE_LIMIT_MINUTE correctly', async () => {
-      vi.mocked(supabase.functions.invoke).mockResolvedValueOnce({
+      vi.mocked(api.functions.invoke).mockResolvedValueOnce({
         data: {
           error: 'Terlalu banyak permintaan (rate_limit)',
           retryAfter: 60,
@@ -86,7 +86,7 @@ describe('AI Tutor Service', () => {
     })
 
     it('handles RATE_LIMIT_DAILY correctly', async () => {
-      vi.mocked(supabase.functions.invoke).mockResolvedValueOnce({
+      vi.mocked(api.functions.invoke).mockResolvedValueOnce({
         data: {
           error: 'Batas harian tercapai (daily)',
         },
@@ -103,7 +103,7 @@ describe('AI Tutor Service', () => {
     })
 
     it('handles generic TUTOR_ERROR from edge function correctly', async () => {
-      vi.mocked(supabase.functions.invoke).mockResolvedValueOnce({
+      vi.mocked(api.functions.invoke).mockResolvedValueOnce({
         data: {
           error: 'Provider failure',
         },
@@ -127,7 +127,7 @@ describe('AI Tutor Service', () => {
         session_id: 'abc123',
       }
 
-      vi.mocked(supabase.functions.invoke).mockResolvedValueOnce({
+      vi.mocked(api.functions.invoke).mockResolvedValueOnce({
         data: mockEmptyResponse,
         error: null,
       })
@@ -146,7 +146,7 @@ describe('AI Tutor Service', () => {
         foo: 'bar', // Missing 'response' field entirely
       }
 
-      vi.mocked(supabase.functions.invoke).mockResolvedValueOnce({
+      vi.mocked(api.functions.invoke).mockResolvedValueOnce({
         data: mockMalformedResponse,
         error: null,
       })
@@ -162,7 +162,7 @@ describe('AI Tutor Service', () => {
 
     it('handles NETWORK_ERROR correctly', async () => {
       const networkError = new TypeError('Failed to fetch')
-      vi.mocked(supabase.functions.invoke).mockRejectedValueOnce(networkError)
+      vi.mocked(api.functions.invoke).mockRejectedValueOnce(networkError)
 
       const result = await askTutor(mockLessonId, mockQuestion, mockTenantId)
 
@@ -175,7 +175,7 @@ describe('AI Tutor Service', () => {
 
     it('handles arbitrary unexpected errors as UNKNOWN_ERROR', async () => {
       const randomError = new Error('Something weird happened')
-      vi.mocked(supabase.functions.invoke).mockRejectedValueOnce(randomError)
+      vi.mocked(api.functions.invoke).mockRejectedValueOnce(randomError)
 
       const result = await askTutor(mockLessonId, mockQuestion, mockTenantId)
 
@@ -189,7 +189,7 @@ describe('AI Tutor Service', () => {
     it('passes a large input question correctly', async () => {
       const largeQuestion = 'a'.repeat(1500) // 1500 chars question
 
-      vi.mocked(supabase.functions.invoke).mockResolvedValueOnce({
+      vi.mocked(api.functions.invoke).mockResolvedValueOnce({
         data: {
           response: 'Short answer',
           difficulty: 'mastering',
@@ -201,7 +201,7 @@ describe('AI Tutor Service', () => {
 
       await askTutor(mockLessonId, largeQuestion, mockTenantId, mockSessionId)
 
-      expect(supabase.functions.invoke).toHaveBeenCalledWith('ai-tutor', {
+      expect(api.functions.invoke).toHaveBeenCalledWith('ai-tutor', {
         body: {
           lesson_id: mockLessonId,
           question: largeQuestion,
