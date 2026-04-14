@@ -5,6 +5,7 @@ export const AUTH_SURFACE_PREFIXES = [
   '/login',
   '/auth/callback',
   '/auth/error',
+  '/verify-email',
   '/forgot-password',
   '/reset-password',
   '/verify-email',

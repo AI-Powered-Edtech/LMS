@@ -96,7 +96,7 @@ export async function updateDigestSettings(
 export async function triggerManualDigest(parentId: string): Promise<void> {
   // TODO: send-parent-digest adalah internal cron job — tidak ada VIL endpoint yang setara.
   // Untuk testing manual, trigger langsung dari server/admin panel.
-  const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+  const apiUrl = import.meta.env.VITE_API_URL ?? ''
   const token = readVilSession()?.access_token
 
   const response = await fetch(`${apiUrl}/api/v1/whatsapp/send-otp`, {

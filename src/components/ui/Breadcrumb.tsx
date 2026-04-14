@@ -16,11 +16,11 @@ export interface BreadcrumbProps {
 
 export function Breadcrumb({ items, className }: BreadcrumbProps): React.JSX.Element {
   return (
-    <nav aria-label="Breadcrumb" className={cn('flex items-center gap-1.5 text-sm', className)}>
+    <nav aria-label="Breadcrumb" className={cn('flex items-center gap-1 text-xs', className)}>
       {items.map((item, index) => {
         const isLast = index === items.length - 1
         return (
-          <span key={index} className="flex items-center gap-1.5">
+          <span key={index} className="flex items-center gap-1">
             {index > 0 && (
               <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
             )}

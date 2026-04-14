@@ -7,7 +7,7 @@ import { logDevError, logDevWarn } from '@/utils/logDevError'
 
 import type { Course, CourseInsert, CourseUpdate, FetchCoursesOptions } from '../types'
 
-const VIL_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+const VIL_BASE_URL = import.meta.env.VITE_API_URL || ''
 
 async function requestVil<T>(
   path: string,

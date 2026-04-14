@@ -10,7 +10,7 @@ vi.mock('@/services/auth/vilSession', () => ({
 
 vi.stubGlobal('import.meta', {
   env: {
-    VITE_API_URL: 'http://localhost:8080',
+    VITE_API_URL: '',
     DEV: false,
   },
 })

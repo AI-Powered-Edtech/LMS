@@ -24,7 +24,7 @@ export function VerifyEmail() {
   usePageTitle('Verifikasi Email')
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { user, signOut } = useAuth()
+  const { user, signOut, emailVerified } = useAuth()
   const [verifyState, setVerifyState] = useState<VerifyState>({ status: 'idle' })
   const [resendState, setResendState] = useState<ResendState>({ status: 'idle' })
 
@@ -34,6 +34,9 @@ export function VerifyEmail() {
     const type = searchParams.get('type')
 
     if (!code && !(tokenHash && type === 'signup')) {
+      if (emailVerified) {
+        navigate('/app', { replace: true })
+      }
       return
     }
 
@@ -78,7 +81,7 @@ export function VerifyEmail() {
     return () => {
       active = false
     }
-  }, [navigate, searchParams])
+  }, [navigate, searchParams, emailVerified])
 
   const handleResend = async () => {
     if (!user?.email) {

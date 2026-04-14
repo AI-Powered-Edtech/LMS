@@ -220,7 +220,7 @@ export function ScormPlayer({
         bridgeRef.current = bridge
 
         // 5. Build iframe URL from VIL Storage
-        const vilApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+        const vilApiUrl = import.meta.env.VITE_API_URL || ''
         const contentUrl = `${vilApiUrl}/storage/scorm-packages/${pkg.storage_path}/${pkg.entry_point}`
         setIframeUrl(contentUrl)
 

@@ -23,7 +23,7 @@ export const aiAuthoringService = {
    * Calls the generate-ai-content Supabase Edge Function.
    */
   async generateFromFile(formData: FormData): Promise<GenerateFromFileResponse> {
-    const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+    const apiUrl = import.meta.env.VITE_API_URL ?? ''
     const token = readVilSession()?.access_token
 
     const res = await fetch(`${apiUrl}/api/v1/ai/generate-content`, {
@@ -124,7 +124,7 @@ export const aiAuthoringService = {
    * Calls the generate-quiz-from-content Supabase Edge Function.
    */
   async generateFromLesson(config: GenerateFromLessonConfig): Promise<GenerateFromLessonResponse> {
-    const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+    const apiUrl = import.meta.env.VITE_API_URL ?? ''
     const token = readVilSession()?.access_token
 
     const res = await fetch(`${apiUrl}/api/v1/ai/generate-quiz`, {

@@ -47,7 +47,7 @@ interface DivergenceEventPayload {
   sampled_shadow_payload?: unknown
 }
 
-const DEFAULT_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+const DEFAULT_BASE_URL = import.meta.env.VITE_API_URL || ''
 const SHADOW_MODE = import.meta.env.VITE_VIL_SHADOW_MODE || 'off'
 const SHADOW_SAMPLE_RATE = Number(import.meta.env.VITE_VIL_SHADOW_SAMPLE_RATE || '1')
 const INCLUDE_PAYLOAD = import.meta.env.VITE_VIL_SHADOW_INCLUDE_PAYLOAD === 'true'
@@ -135,7 +135,11 @@ function buildActorContext(): {
 }
 
 export function createRequestId(): string {
-  return `vil-${crypto.randomUUID()}`
+  try {
+    return `vil-${crypto.randomUUID()}`
+  } catch {
+    return `vil-${Math.random().toString(36).substring(2, 15)}`
+  }
 }
 
 export function buildRequestHeaders(

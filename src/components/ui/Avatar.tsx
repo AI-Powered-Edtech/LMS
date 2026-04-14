@@ -16,15 +16,15 @@ export interface AvatarProps {
 /* ─── Size Variants ───────────────────────────────────────────── */
 
 const sizeClasses = {
-  sm: 'w-8 h-8 text-xs',
-  md: 'w-10 h-10 text-sm',
-  lg: 'w-14 h-14 text-base',
+  sm: 'w-6 h-6 text-[10px]',
+  md: 'w-8 h-8 text-xs',
+  lg: 'w-10 h-10 text-sm',
 } as const
 
 const indicatorSizes = {
-  sm: 'w-2.5 h-2.5 border-[1.5px]',
-  md: 'w-3 h-3 border-2',
-  lg: 'w-3.5 h-3.5 border-2',
+  sm: 'w-2 h-2 border-[1px]',
+  md: 'w-2.5 h-2.5 border-[1.5px]',
+  lg: 'w-3 h-3 border-2',
 } as const
 
 /* ─── Helpers ─────────────────────────────────────────────────── */

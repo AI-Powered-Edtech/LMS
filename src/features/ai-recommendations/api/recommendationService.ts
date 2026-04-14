@@ -12,7 +12,7 @@ export const aiRecommendationService = {
     const token = readVilSession()?.access_token
     if (!token) throw new Error('Tidak terautentikasi')
 
-    const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+    const apiUrl = import.meta.env.VITE_API_URL ?? ''
 
     // TODO: Phase 6 — ganti dengan /api/v1/ai/recommend-learning-path saat endpoint tersedia.
     const response = await fetch(`${apiUrl}/api/v1/ai/generate-content`, {

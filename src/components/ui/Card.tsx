@@ -10,9 +10,9 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const paddings = {
   none: '',
-  sm: 'p-3',
-  md: 'p-4 sm:p-6',
-  lg: 'p-6 sm:p-8',
+  sm: 'p-1',
+  md: 'p-2 sm:p-3',
+  lg: 'p-3 sm:p-4',
 } as const
 
 export const Card = memo(
@@ -22,7 +22,7 @@ export const Card = memo(
         <div
           ref={ref}
           className={cn(
-            'bg-white rounded-2xl dark:bg-slate-900',
+            'bg-white rounded-lg dark:bg-slate-900',
             border && 'border border-slate-200 dark:border-slate-700/60',
             'shadow-sm',
             paddings[padding],

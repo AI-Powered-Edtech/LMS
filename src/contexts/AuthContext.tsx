@@ -119,6 +119,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const role = useMemo(() => getPrimaryRole(roles), [roles])
   const permissions = useMemo(() => getPermissions(role), [role])
   const emailVerified = !!user?.email_confirmed_at
+  console.log('USER:', user, 'emailVerified:', emailVerified)
+
   const hasRole = useCallback((r: Role) => roles.includes(r), [roles])
   const refreshAuthBootstrap = useCallback(async () => {
     if (!user) return

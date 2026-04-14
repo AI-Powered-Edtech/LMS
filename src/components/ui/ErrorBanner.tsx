@@ -33,10 +33,10 @@ export function ErrorBanner({
     <div
       role="alert"
       className={cn(
-        'flex items-start gap-3 rounded-lg',
+        'flex items-start gap-2 rounded-lg',
         isInline
-          ? 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 px-3 py-2.5'
-          : 'bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 px-4 py-3',
+          ? 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 px-2 py-1.5'
+          : 'bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 px-3 py-2',
         className
       )}
     >
@@ -52,13 +52,13 @@ export function ErrorBanner({
           <p
             className={cn(
               'font-semibold text-red-800 dark:text-red-200',
-              isInline ? 'text-sm' : 'text-base'
+              isInline ? 'text-xs' : 'text-sm'
             )}
           >
             {title}
           </p>
         )}
-        <p className={cn('text-red-700 dark:text-red-300', isInline ? 'text-sm' : 'text-sm')}>
+        <p className={cn('text-red-700 dark:text-red-300', isInline ? 'text-xs' : 'text-xs')}>
           {message}
         </p>
       </div>

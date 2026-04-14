@@ -109,7 +109,7 @@ export function ReportGenerator({ open, onClose }: ReportGeneratorProps) {
 
       if (wantCSV) {
         // Fetch report data for CSV
-        const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+        const apiUrl = import.meta.env.VITE_API_URL ?? ''
         const token = readVilSession()?.access_token
 
         const response = await fetch(`${apiUrl}/api/v1/pdf/executive-report`, {

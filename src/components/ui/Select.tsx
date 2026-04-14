@@ -21,9 +21,9 @@ export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectE
 /* ─── Size Variants ───────────────────────────────────────────── */
 
 const selectSizes = {
-  sm: 'text-sm px-3 py-1.5 rounded-lg',
-  md: 'text-sm px-4 py-2.5 rounded-xl',
-  lg: 'text-base px-4 py-3 rounded-xl',
+  sm: 'text-xs px-2 py-1 rounded-sm',
+  md: 'text-xs px-2.5 py-1.5 rounded-md',
+  lg: 'text-sm px-3 py-2 rounded-md',
 } as const
 
 /* ─── Select Component ────────────────────────────────────────── */
@@ -64,7 +64,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             aria-invalid={!!error}
             aria-describedby={error ? `${id}-error` : undefined}
             className={cn(
-              'w-full appearance-none border bg-white text-slate-900 transition-colors duration-200 outline-none pr-10',
+              'w-full appearance-none border bg-white text-slate-900 transition-colors duration-200 outline-none pr-8',
               'focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
               'dark:bg-slate-900 dark:text-white',
               error

@@ -17,8 +17,8 @@ const variants = {
 } as const
 
 const sizes = {
-  sm: 'text-xs px-2 py-0.5 gap-1',
-  md: 'text-sm px-2.5 py-1 gap-1.5',
+  sm: 'text-[10px] px-1.5 py-0.5 gap-0.5',
+  md: 'text-xs px-2 py-0.5 gap-1',
 } as const
 
 export const Badge = memo(function Badge({

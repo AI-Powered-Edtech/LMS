@@ -42,7 +42,7 @@ export async function getMonthlyReport(
   year: number,
   tenantId: string
 ): Promise<ParentMonthlyReport> {
-  const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+  const apiUrl = import.meta.env.VITE_API_URL ?? ''
   const token = readVilSession()?.access_token
 
   const response = await fetch(`${apiUrl}/api/v1/pdf/parent-report`, {

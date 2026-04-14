@@ -162,12 +162,12 @@ export function ModalHeader({ title, onClose, className, children }: ModalHeader
   return (
     <div
       className={cn(
-        'flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700/60 shrink-0',
+        'flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700/60 shrink-0',
         className
       )}
     >
       {title ? (
-        <h2 id={titleId} className="text-lg font-bold text-slate-900 dark:text-white">
+        <h2 id={titleId} className="text-base font-bold text-slate-900 dark:text-white">
           {title}
         </h2>
       ) : (
@@ -178,7 +178,7 @@ export function ModalHeader({ title, onClose, className, children }: ModalHeader
         <button
           type="button"
           onClick={onClose}
-          className="p-2.5 -mr-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          className="p-1.5 -mr-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           aria-label="Tutup"
         >
           <X className="w-5 h-5" />
@@ -196,7 +196,7 @@ export interface ModalBodyProps {
 }
 
 export function ModalBody({ children, className }: ModalBodyProps) {
-  return <div className={cn('px-6 py-4 overflow-y-auto flex-1', className)}>{children}</div>
+  return <div className={cn('px-4 py-3 overflow-y-auto flex-1', className)}>{children}</div>
 }
 
 /* ─── ModalFooter ──────────────────────────────────────────── */
@@ -210,7 +210,7 @@ export function ModalFooter({ children, className }: ModalFooterProps) {
   return (
     <div
       className={cn(
-        'flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-slate-700/60 shrink-0',
+        'flex items-center justify-end gap-2 px-4 py-3 border-t border-slate-200 dark:border-slate-700/60 shrink-0',
         className
       )}
     >

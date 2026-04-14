@@ -33,7 +33,7 @@ interface VilRpcResponse {
   returns_set: boolean
 }
 
-const DEFAULT_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+const DEFAULT_BASE_URL = import.meta.env.VITE_API_URL || ''
 
 function normalizeError(error: unknown, fallback = 'Permintaan VIL gagal.'): ApiError {
   if (!error || typeof error !== 'object') {

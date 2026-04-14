@@ -70,7 +70,7 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
       role="alert"
       aria-live="assertive"
       className={cn(
-        'flex items-start gap-3 w-80 max-w-full p-4 rounded-xl border shadow-lg',
+        'flex items-start gap-2 w-72 max-w-full p-3 rounded-lg border shadow-lg',
         'translate-x-full opacity-0 transition-all duration-200 ease-out',
         toastVariants[toast.type]
       )}

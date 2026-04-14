@@ -68,13 +68,13 @@ export function CardSkeleton({
       role="status"
       aria-label="Loading card content"
       className={cn(
-        'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-3',
+        'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2',
         className
       )}
     >
       {/* Header */}
       {showHeader && (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <SkeletonBlock width="w-10" height="h-10" rounded="rounded-full" />
           <div className="flex-1 space-y-2">
             <SkeletonBlock width="w-3/4" height="h-4" />

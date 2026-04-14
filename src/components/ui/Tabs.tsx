@@ -96,7 +96,7 @@ export function Tabs({
             tabIndex={isActive ? 0 : -1}
             onClick={() => onChange(tab.id)}
             className={cn(
-              'relative flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 outline-none z-[1]',
+              'relative flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors duration-200 outline-none z-[1]',
               'focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1',
               isActive
                 ? 'text-slate-900 dark:text-white'

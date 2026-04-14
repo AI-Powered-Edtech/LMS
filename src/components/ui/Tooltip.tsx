@@ -61,7 +61,7 @@ export function Tooltip({ content, position = 'top', children }: TooltipProps) {
         <div
           role="tooltip"
           className={cn(
-            'absolute z-50 px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap pointer-events-none',
+            'absolute z-50 px-2 py-1 text-[10px] font-medium rounded-md whitespace-nowrap pointer-events-none',
             'bg-slate-900 text-white dark:bg-slate-200 dark:text-slate-900',
             'shadow-lg',
             'animate-in fade-in duration-150',

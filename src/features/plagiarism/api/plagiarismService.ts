@@ -21,7 +21,7 @@ export const plagiarismService = {
       throw new Error('Tidak terautentikasi')
     }
 
-    const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+    const apiUrl = import.meta.env.VITE_API_URL ?? ''
 
     // TODO: Phase 6 — ganti dengan /api/v1/plagiarism/check saat endpoint tersedia di VIL.
     const res = await fetch(`${apiUrl}/api/v1/plagiarism/check`, {

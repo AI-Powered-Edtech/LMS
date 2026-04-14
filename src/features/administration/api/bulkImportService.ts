@@ -68,7 +68,7 @@ export async function runBulkImport(
   tenantId: string,
   importJobId: string
 ): Promise<BulkImportResult> {
-  const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+  const apiUrl = import.meta.env.VITE_API_URL ?? ''
   const token = readVilSession()?.access_token
 
   const response = await fetch(`${apiUrl}/api/v1/import/users`, {

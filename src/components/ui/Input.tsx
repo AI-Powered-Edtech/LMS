@@ -10,15 +10,15 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 const inputSizes = {
-  sm: 'text-sm px-3 py-1.5 rounded-lg',
-  md: 'text-sm px-4 py-2.5 rounded-xl',
-  lg: 'text-base px-4 py-3 rounded-xl',
+  sm: 'text-xs px-2 py-1 rounded-sm',
+  md: 'text-xs px-2.5 py-1.5 rounded-md',
+  lg: 'text-sm px-3 py-2 rounded-md',
 } as const
 
 const iconPadding = {
-  sm: 'pl-9',
-  md: 'pl-10',
-  lg: 'pl-11',
+  sm: 'pl-6',
+  md: 'pl-7',
+  lg: 'pl-8',
 } as const
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(

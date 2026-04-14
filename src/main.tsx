@@ -1,5 +1,20 @@
 import './index.css'
 
+if (typeof window !== 'undefined') {
+  if (!window.crypto) {
+    ;(window as any).crypto = {}
+  }
+  if (typeof window.crypto.randomUUID !== 'function') {
+    window.crypto.randomUUID = function () {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        const r = (Math.random() * 16) | 0,
+          v = c === 'x' ? r : (r & 0x3) | 0x8
+        return v.toString(16)
+      }) as any
+    }
+  }
+}
+
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
@@ -25,7 +40,7 @@ validateEnv()
 
 initApiClient()
 
-const vilApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+const vilApiUrl = import.meta.env.VITE_API_URL || ''
 setAuthProvider(createVilAuthProvider(vilApiUrl))
 setRealtimeProvider(createVilRealtimeProvider(vilApiUrl))
 setStorageProvider(createVilStorageProvider(vilApiUrl))

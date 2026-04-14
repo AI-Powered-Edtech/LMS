@@ -19,7 +19,7 @@ export const certificateService = {
    */
   async generatePdf(params: CertificatePdfParams): Promise<Blob> {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+      const apiUrl = import.meta.env.VITE_API_URL ?? ''
       const token = readVilSession()?.access_token
 
       const response = await fetch(`${apiUrl}/api/v1/pdf/certificate`, {

@@ -91,7 +91,7 @@ export function ScormBlockEditor({ blockId }: ScormBlockEditorProps) {
 
         setUploadProgress('Mengekstrak dan memvalidasi manifest...')
 
-        const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+        const apiUrl = import.meta.env.VITE_API_URL ?? ''
         const token = readVilSession()?.access_token
 
         const res = await fetch(`${apiUrl}/api/v1/scorm/extract`, {

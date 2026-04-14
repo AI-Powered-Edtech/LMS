@@ -144,7 +144,12 @@ export const authService = {
       } else {
         const storedRedirect = consumePostAuthRedirect()
         const preferredRedirect = sanitizeRedirectTarget(fallbackPath ?? storedRedirect)
-        if (preferredRedirect && !isAuthSurfacePath(preferredRedirect)) {
+        const isInvalidFallback =
+          !preferredRedirect ||
+          preferredRedirect === '/login' ||
+          preferredRedirect === '/verify-email'
+
+        if (!isInvalidFallback && !isAuthSurfacePath(preferredRedirect)) {
           destination = preferredRedirect
         } else if (activeMemberships.length > 1) {
           destination = '/workspace-selector'
@@ -211,7 +216,7 @@ export const authService = {
     try {
       const { readVilSession } = await import('@/services/auth/vilSession')
       const token = readVilSession()?.access_token
-      const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+      const apiUrl = import.meta.env.VITE_API_URL ?? ''
 
       const response = await fetch(`${apiUrl}/api/v1/health`, {
         method: 'GET',

@@ -859,7 +859,7 @@ export const lessonService = {
       p_suspend_data: params.suspendData ?? null,
     })
 
-    const vilApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+    const vilApiUrl = import.meta.env.VITE_API_URL || ''
     const scormApiUrl = `${vilApiUrl}/api/v1/scorm/runtime`
 
     // Retrieve VIL session token for auth header

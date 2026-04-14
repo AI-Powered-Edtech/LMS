@@ -20,7 +20,7 @@ import type {
 
 // ─── Konfigurasi ──────────────────────────────────────────────────────────────
 
-const WS_URL = import.meta.env.VITE_WS_URL ?? 'ws://localhost:8080/ws'
+const WS_URL = import.meta.env.VITE_WS_URL || (typeof window !== 'undefined' ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws` : '')
 const MAX_RETRIES = 10
 const BACKOFF_BASE_MS = 1000
 const BACKOFF_MAX_MS = 30000

@@ -31,7 +31,7 @@ import type {
 // Configuration — all read from env vars, no hardcoded URLs
 // ---------------------------------------------------------------------------
 
-const VIL_API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+const VIL_API_URL = import.meta.env.VITE_API_URL ?? ''
 const CDN_URL = (import.meta.env.VITE_CDN_URL ?? '') as string
 const DUAL_WRITE = import.meta.env.VITE_STORAGE_DUAL_WRITE === 'true'
 const STORAGE_PRIMARY = (import.meta.env.VITE_STORAGE_PRIMARY ?? 's3') as string

@@ -33,6 +33,7 @@ interface VilAuthResponse {
     email: string
     role?: string
     tenant_id?: string | null
+    email_confirmed_at?: string
   }
 }
 
@@ -66,6 +67,7 @@ function buildSession(payload: VilAuthResponse): AuthSession {
     user: {
       id: payload.user.id,
       email: payload.user.email,
+      email_confirmed_at: payload.user.email_confirmed_at || new Date().toISOString(),
       app_metadata: payload.user.role ? { role: payload.user.role } : undefined,
       user_metadata: payload.user.tenant_id ? { tenant_id: payload.user.tenant_id } : undefined,
     },
@@ -152,7 +154,7 @@ function mapUserFromSession(session: AuthSession | null): AuthUser | null {
   return session?.user ?? null
 }
 
-export function createVilAuthProvider(baseUrl = 'http://localhost:8080'): AuthProvider {
+export function createVilAuthProvider(baseUrl = ''): AuthProvider {
   return {
     getSession: async () => ({ data: { session: readVilSession() }, error: null }),
 
